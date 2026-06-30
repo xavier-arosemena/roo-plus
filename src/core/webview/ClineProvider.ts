@@ -3746,44 +3746,51 @@ export class ClineProvider
 
 			await saveApiMessages({ messages: parentApiMessages as any, taskId: parentTaskId, globalStoragePath })
 
-			// 3) Persist parent metadata before closing the child. If persistence fails,
-			//    the delegated child remains active and can retry completion.
-			const childIds = Array.from(new Set([...(historyItem.childIds ?? []), childTaskId]))
-			const updatedHistory: typeof historyItem = {
-				...historyItem,
-				status: "active",
-				completedByChildId: childTaskId,
-				completionResultSummary,
-				awaitingChildId: undefined,
-				childIds,
-			}
-			await this.updateTaskHistory(updatedHistory)
-
 			// 4) Close child instance if still open (single-open-task invariant).
-			//    This MUST happen BEFORE updating the child's status to "completed" because
+			//    This MUST happen BEFORE marking the child "completed" because
 			//    removeClineFromStack() → abortTask(true) → saveClineMessages() writes
 			//    the historyItem with initialStatus (typically "active"), which would
-			//    overwrite a "completed" status set earlier.
+			//    overwrite a "completed" status set later.
 			const current = this.getCurrentTask()
 			if (current?.taskId === childTaskId) {
 				await this.removeClineFromStack({ skipDelegationRepair: true })
 			}
 
-			// 5) Update child metadata to "completed" status.
-			//    This runs after the abort so it overwrites the stale "active" status
-			//    that saveClineMessages() may have written during step 4.
-			try {
-				const { historyItem: childHistory } = await this.getTaskWithId(childTaskId)
-				await this.updateTaskHistory({
-					...childHistory,
-					status: "completed",
-				})
-			} catch (err) {
-				this.log(
-					`[reopenParentFromDelegation] Failed to persist child completed status for ${childTaskId}: ${
-						(err as Error)?.message ?? String(err)
-					}`,
-				)
+			// 3+5) Atomically mark child completed and parent active in one lock acquisition.
+			//      No intermediate state is ever persisted — no sentinel needed.
+			//      Build the parent update inside the updater from the locked snapshot so
+			//      any concurrent write that landed between step 1 and the lock acquisition
+			//      is preserved rather than silently overwritten.
+			let updatedHistory!: typeof historyItem
+			await this.taskHistoryStore.atomicUpdatePair(
+				childTaskId,
+				parentTaskId,
+				(child) => ({ ...child, status: "completed" as const }),
+				(parent) => {
+					const childIds = Array.from(new Set([...(parent.childIds ?? []), childTaskId]))
+					updatedHistory = {
+						...parent,
+						status: "active" as const,
+						completedByChildId: childTaskId,
+						completionResultSummary,
+						awaitingChildId: undefined,
+						childIds,
+					}
+					return updatedHistory
+				},
+			)
+			this.recentTasksCache = undefined
+
+			// Notify the webview of both updated items so its in-memory history stays current.
+			if (this.isViewLaunched) {
+				const updatedChild = this.taskHistoryStore.get(childTaskId)
+				const updatedParent = this.taskHistoryStore.get(parentTaskId)
+				if (updatedChild) {
+					await this.postMessageToWebview({ type: "taskHistoryItemUpdated", taskHistoryItem: updatedChild })
+				}
+				if (updatedParent) {
+					await this.postMessageToWebview({ type: "taskHistoryItemUpdated", taskHistoryItem: updatedParent })
+				}
 			}
 
 			// 6) Emit TaskDelegationCompleted (provider-level)

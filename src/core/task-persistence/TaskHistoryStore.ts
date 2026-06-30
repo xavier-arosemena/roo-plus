@@ -166,16 +166,7 @@ export class TaskHistoryStore {
 	 * Must only be called from within a `withLock` callback.
 	 */
 	private async _upsertUnlocked(item: HistoryItem): Promise<HistoryItem[]> {
-		const existing = this.cache.get(item.id)
-
-		// Merge: preserve existing metadata unless explicitly overwritten
-		const merged = existing ? { ...existing, ...item } : item
-
-		// Write per-task file (source of truth)
-		await this.writeTaskFile(merged)
-
-		// Update in-memory cache
-		this.cache.set(merged.id, merged)
+		await this.upsertCore(item)
 
 		// Schedule debounced index write
 		this.scheduleIndexWrite()
@@ -563,6 +554,73 @@ export class TaskHistoryStore {
 			}
 			return this._upsertUnlocked(updated)
 		})
+	}
+
+	/**
+	 * Atomically update two related HistoryItems within a single lock acquisition.
+	 * Both updaters run synchronously (no I/O, no lock re-entry). Both writes are
+	 * committed before the lock releases — no concurrent writer can observe an
+	 * intermediate state.
+	 *
+	 * @throws If either task ID is not present in the cache.
+	 */
+	public atomicUpdatePair(
+		firstId: string,
+		secondId: string,
+		firstUpdater: (current: HistoryItem) => HistoryItem,
+		secondUpdater: (current: HistoryItem) => HistoryItem,
+	): Promise<HistoryItem[]> {
+		return this.withLock(async () => {
+			const first = this.cache.get(firstId)
+			if (!first) throw new Error(`[TaskHistoryStore] atomicUpdatePair: ${firstId} not found`)
+			const second = this.cache.get(secondId)
+			if (!second) throw new Error(`[TaskHistoryStore] atomicUpdatePair: ${secondId} not found`)
+
+			const updatedFirst = firstUpdater(structuredClone(first))
+			const updatedSecond = secondUpdater(structuredClone(second))
+
+			if (updatedFirst.id !== firstId) {
+				throw new Error(
+					`[TaskHistoryStore] atomicUpdatePair: first updater changed id from ${firstId} to ${updatedFirst.id}`,
+				)
+			}
+			if (updatedSecond.id !== secondId) {
+				throw new Error(
+					`[TaskHistoryStore] atomicUpdatePair: second updater changed id from ${secondId} to ${updatedSecond.id}`,
+				)
+			}
+
+			// Merge with existing cache entries before writing, mirroring upsertCore.
+			const mergedFirst = { ...first, ...updatedFirst }
+			const mergedSecond = { ...second, ...updatedSecond }
+
+			// Write both files before touching the cache so readers never observe a
+			// half-updated in-memory state between the two await points.
+			await this.writeTaskFile(mergedFirst)
+			await this.writeTaskFile(mergedSecond)
+
+			// Both disk writes succeeded — now update the cache atomically.
+			this.cache.set(firstId, mergedFirst)
+			this.cache.set(secondId, mergedSecond)
+
+			this.scheduleIndexWrite()
+			const all = this.getAll()
+			if (this.onWrite) {
+				await this.onWrite(all)
+			}
+			return all
+		})
+	}
+
+	/**
+	 * Write a single item to disk and update the cache without triggering onWrite
+	 * or scheduling an index write. Must only be called from within a withLock callback.
+	 */
+	private async upsertCore(item: HistoryItem): Promise<void> {
+		const existing = this.cache.get(item.id)
+		const merged = existing ? { ...existing, ...item } : item
+		await this.writeTaskFile(merged)
+		this.cache.set(merged.id, merged)
 	}
 
 	// ────────────────────────────── Private: Write lock ──────────────────────────────
