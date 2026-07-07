@@ -450,6 +450,8 @@
 		"poeBaseUrl": "Базовый URL Poe",
 		"fireworksApiKey": "Fireworks API-ключ",
 		"getFireworksApiKey": "Получить Fireworks API-ключ",
+		"friendliApiKey": "Friendli API-ключ",
+		"getFriendliApiKey": "Получить Friendli API-ключ",
 		"deepSeekApiKey": "DeepSeek API-ключ",
 		"getDeepSeekApiKey": "Получить DeepSeek API-ключ",
 		"moonshotApiKey": "Moonshot API-ключ",

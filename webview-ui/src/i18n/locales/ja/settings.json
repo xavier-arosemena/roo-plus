@@ -450,6 +450,8 @@
 		"poeBaseUrl": "Poe ベースURL",
 		"fireworksApiKey": "Fireworks APIキー",
 		"getFireworksApiKey": "Fireworks APIキーを取得",
+		"friendliApiKey": "Friendli APIキー",
+		"getFriendliApiKey": "Friendli APIキーを取得",
 		"deepSeekApiKey": "DeepSeek APIキー",
 		"getDeepSeekApiKey": "DeepSeek APIキーを取得",
 		"moonshotApiKey": "Moonshot APIキー",

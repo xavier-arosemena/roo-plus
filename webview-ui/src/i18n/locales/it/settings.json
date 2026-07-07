@@ -450,6 +450,8 @@
 		"poeBaseUrl": "URL base Poe",
 		"fireworksApiKey": "Chiave API Fireworks",
 		"getFireworksApiKey": "Ottieni chiave API Fireworks",
+		"friendliApiKey": "Chiave API Friendli",
+		"getFriendliApiKey": "Ottieni chiave API Friendli",
 		"deepSeekApiKey": "Chiave API DeepSeek",
 		"getDeepSeekApiKey": "Ottieni chiave API DeepSeek",
 		"moonshotApiKey": "Chiave API Moonshot",

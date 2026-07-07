@@ -450,6 +450,8 @@
 		"poeBaseUrl": "Poe Temel URL",
 		"fireworksApiKey": "Fireworks API Anahtarı",
 		"getFireworksApiKey": "Fireworks API Anahtarı Al",
+		"friendliApiKey": "Friendli API Anahtarı",
+		"getFriendliApiKey": "Friendli API Anahtarı Al",
 		"deepSeekApiKey": "DeepSeek API Anahtarı",
 		"getDeepSeekApiKey": "DeepSeek API Anahtarı Al",
 		"moonshotApiKey": "Moonshot API Anahtarı",

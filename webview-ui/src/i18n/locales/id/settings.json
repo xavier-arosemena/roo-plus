@@ -450,6 +450,8 @@
 		"poeBaseUrl": "Poe Base URL",
 		"fireworksApiKey": "Fireworks API Key",
 		"getFireworksApiKey": "Dapatkan Fireworks API Key",
+		"friendliApiKey": "Friendli API Key",
+		"getFriendliApiKey": "Dapatkan Friendli API Key",
 		"deepSeekApiKey": "DeepSeek API Key",
 		"getDeepSeekApiKey": "Dapatkan DeepSeek API Key",
 		"moonshotApiKey": "Kunci API Moonshot",

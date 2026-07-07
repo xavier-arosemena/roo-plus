@@ -204,7 +204,7 @@ vi.mock("../ApiOptions", () => ({
 				value={apiConfiguration.basetenApiKey ?? ""}
 				onChange={(event) => setApiConfigurationField("basetenApiKey", event.target.value)}
 			/>
-			{["openrouter", "baseten", "deepseek"].map((provider) => (
+			{["openrouter", "baseten", "deepseek", "friendli"].map((provider) => (
 				<button
 					key={provider}
 					data-testid={`set-provider-${provider}`}

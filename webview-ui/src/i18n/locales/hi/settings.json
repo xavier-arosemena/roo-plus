@@ -450,6 +450,8 @@
 		"poeBaseUrl": "Poe बेस URL",
 		"fireworksApiKey": "Fireworks API कुंजी",
 		"getFireworksApiKey": "Fireworks API कुंजी प्राप्त करें",
+		"friendliApiKey": "Friendli API कुंजी",
+		"getFriendliApiKey": "Friendli API कुंजी प्राप्त करें",
 		"deepSeekApiKey": "DeepSeek API कुंजी",
 		"getDeepSeekApiKey": "DeepSeek API कुंजी प्राप्त करें",
 		"moonshotApiKey": "Moonshot API कुंजी",
