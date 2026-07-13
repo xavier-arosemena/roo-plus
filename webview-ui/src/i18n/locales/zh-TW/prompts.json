@@ -8,7 +8,7 @@
 		"editModesConfig": "編輯模式設定",
 		"editGlobalModes": "編輯全域模式",
 		"editProjectModes": "編輯專案模式 (.roomodes)",
-		"createModeHelpText": "模式是 Zoo 的專屬角色，用於客製化其行為。<0>了解如何使用模式</0>或<1>自訂模式。</1>",
+		"createModeHelpText": "模式是 Roo+ 的專屬角色，用於客製化其行為。<0>了解如何使用模式</0>或<1>自訂模式。</1>",
 		"selectMode": "搜尋模式",
 		"noMatchFound": "找不到任何模式"
 	},
@@ -33,7 +33,7 @@
 	"roleDefinition": {
 		"title": "角色定義",
 		"resetToDefault": "重設為預設值",
-		"description": "定義此模式下 Zoo 的專業知識和個性。此描述將會形塑 Zoo 展現自我及處理工作的方式。"
+		"description": "定義此模式下 Roo+ 的專業知識和個性。此描述將會形塑 Zoo 展現自我及處理工作的方式。"
 	},
 	"description": {
 		"title": "簡短描述（給人看的）",
@@ -166,7 +166,7 @@
 		},
 		"roleDefinition": {
 			"label": "角色定義",
-			"description": "定義此模式下 Zoo 的專業知識和個性。"
+			"description": "定義此模式下 Roo+ 的專業知識和個性。"
 		},
 		"description": {
 			"label": "簡短描述（供人檢視）",

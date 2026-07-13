@@ -40,7 +40,7 @@
 		"ui": "UI",
 		"experimental": "実験的",
 		"language": "言語",
-		"about": "Zoo Codeについて",
+		"about": "Roo+について",
 		"skills": "Skills",
 		"rules": "ルール"
 	},
@@ -67,7 +67,7 @@
 		"rooHistoryImport": {
 			"settingLabel": "Roo Code から履歴をインポート",
 			"cardTitle": "Roo Code の履歴",
-			"cardDescription": "保存済みの Roo Code の会話を Zoo Code にコピーします。",
+			"cardDescription": "保存済みの Roo Code の会話を Roo+ にコピーします。",
 			"statusImporting": "履歴をインポート中",
 			"statusFailed": "インポート失敗",
 			"statusComplete": "インポート完了",
@@ -119,7 +119,7 @@
 		"footer": "スラッシュコマンドを使用して、頻繁に使用するプロンプトとワークフローにすばやくアクセスします。"
 	},
 	"rules": {
-		"description": "グローバルおよびワークスペースの .roo/rules ディレクトリから Zoo Code ルールファイルを管理します。設定フォルダーを手動で探さずに、一般ルールまたはモード固有ルールを作成できます。",
+		"description": "グローバルおよびワークスペースの .roo/rules ディレクトリから Roo+ ルールファイルを管理します。設定フォルダーを手動で探さずに、一般ルールまたはモード固有ルールを作成できます。",
 		"workspaceRules": "ワークスペースルール",
 		"globalRules": "グローバルルール",
 		"noWorkspaceRules": "このプロジェクトにはまだルールがありません。",
@@ -556,7 +556,7 @@
 			}
 		},
 		"customModel": {
-			"capabilities": "カスタムOpenAI互換モデルの機能と価格を設定します。モデルの機能はZoo Codeのパフォーマンスに影響を与える可能性があるため、慎重に指定してください。",
+			"capabilities": "カスタムOpenAI互換モデルの機能と価格を設定します。モデルの機能はRoo+のパフォーマンスに影響を与える可能性があるため、慎重に指定してください。",
 			"maxTokens": {
 				"label": "最大出力トークン",
 				"description": "モデルが生成できる応答の最大トークン数。（サーバーが最大トークンを設定できるようにするには-1を指定します。）"
@@ -633,7 +633,7 @@
 			"maxTokensDescription": "Claude Codeレスポンスの最大出力トークン数。デフォルトは8000です。"
 		},
 		"zooGateway": {
-			"account": "Zoo Code アカウント",
+			"account": "Roo+ アカウント",
 			"signInButton": "Zoo Code にサインイン",
 			"signInDescription": "Zoo Gateway をアカウントで使用するにはサインインしてください",
 			"authenticated": "認証済み",
@@ -827,9 +827,9 @@
 			"description": "親VS Codeプロセスから環境変数を継承するには、これをオンにします。<0>詳細情報</0>"
 		},
 		"profile": {
-			"label": "Zoo Code シェルプロファイル",
+			"label": "Roo+ シェルプロファイル",
 			"followVscode": "VS Code プロファイルに従う（推奨）",
-			"description": "デフォルトでは Zoo Code は VS Code に設定されたシェルを使用します。VS Code が公開するパスベースのシェルプロファイルを選択するには一覧からシェルプロファイルを選択してください。ソースのみのプロファイル（例：組み込みの PowerShell エントリ）はここに表示できません。 <0>詳細を見る</0>",
+			"description": "デフォルトでは Roo+ は VS Code に設定されたシェルを使用します。VS Code が公開するパスベースのシェルプロファイルを選択するには一覧からシェルプロファイルを選択してください。ソースのみのプロファイル（例：組み込みの PowerShell エントリ）はここに表示できません。 <0>詳細を見る</0>",
 			"configureButton": "VS Code でデフォルトプロファイルを選択",
 			"noProfiles": "(terminal.integrated.profiles にパスベースのプロファイルが見つかりません)"
 		}
@@ -964,7 +964,7 @@
 	"footer": {
 		"telemetry": {
 			"label": "匿名のエラーと使用状況レポートを許可",
-			"description": "匿名の使用データとエラーレポートを送信してZoo Codeの改善にご協力ください。このテレメトリはコード、プロンプト、個人情報を収集しません。詳細については<privacyLink>プライバシーポリシー</privacyLink>をご覧ください。"
+			"description": "匿名の使用データとエラーレポートを送信してRoo+の改善にご協力ください。このテレメトリはコード、プロンプト、個人情報を収集しません。詳細については<privacyLink>プライバシーポリシー</privacyLink>をご覧ください。"
 		},
 		"settings": {
 			"import": "インポート",
@@ -993,7 +993,7 @@
 		"modelNotAllowed": "モデル「{{model}}」はプロバイダー「{{provider}}」に対して組織によって許可されていません",
 		"profileInvalid": "このプロファイルには、組織によって許可されていないプロバイダーまたはモデルが含まれています",
 		"qwenCodeOauthPath": "有効なOAuth認証情報のパスを提供する必要があります",
-		"zooGatewaySignIn": "Zoo Gatewayを使用するにはZoo Codeにサインインしてください。"
+		"zooGatewaySignIn": "Zoo Gatewayを使用するにはRoo+にサインインしてください。"
 	},
 	"placeholders": {
 		"apiKey": "API キーを入力...",

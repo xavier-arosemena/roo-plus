@@ -1,4 +1,3 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
-  <rect width="400" height="400" rx="80" ry="80" fill="#000"/>
-  <text x="200" y="260" font-family="Arial, sans-serif" font-size="220" font-weight="bold" fill="#fff" text-anchor="middle">R+</text>
+  <text x="200" y="260" font-family="Arial, sans-serif" font-size="220" font-weight="bold" fill="#000" text-anchor="middle">R+</text>
 </svg>

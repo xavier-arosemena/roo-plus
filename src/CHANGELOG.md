@@ -1,20 +1,4 @@
-# Roo+ Changelog
-
-## [3.68.2]
-
-### Minor Changes
-
-- Fix(webview): update welcome screen branding from Zoo Code to Roo+ (#1)
-- Fix(webview): replace Roo kangaroo logo with Roo+ "R+" logo (#1)
-- Fix(webview): update all locale strings (18 languages) to show "Roo+" instead of "Zoo Code" (#1)
-- Fix(marketplace): correct README.md to show Roo+ content on marketplace details page (#1)
-- Chore(release): initial Roo+ fork publication to Open VSX Registry (#1)
-
-## [3.68.1]
-
-### Minor Changes
-
-- Fix(marketplace): publish correct Roo+ README to Open VSX (#1)
+# Zoo Code Changelog
 
 ## [3.68.0]
 

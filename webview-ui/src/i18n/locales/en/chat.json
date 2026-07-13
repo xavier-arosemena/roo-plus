@@ -133,7 +133,7 @@
 		},
 		"modelAgnostic": {
 			"title": "Bring your own model, no markup or lock-in",
-			"description": "Use your own provider key or even run local inference — Zoo doesn't charge for it"
+			"description": "Use your own provider key or even run local inference — Roo+ doesn't charge for it"
 		}
 	},
 	"selectMode": "Select mode for interaction",

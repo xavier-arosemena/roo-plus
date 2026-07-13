@@ -57,7 +57,7 @@
 			"label": "發現安全漏洞？",
 			"link": "遵循我們的揭露流程"
 		},
-		"community": "想要取得使用技巧或與其他 Zoo Code 使用者交流？加入 <redditLink>reddit.com/r/ZooCode</redditLink> 或 <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
+		"community": "想要取得使用技巧或與其他 Roo+ 使用者交流？加入 <redditLink>reddit.com/r/ZooCode</redditLink> 或 <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
 		"contactAndCommunity": "聯絡與社群",
 		"manageSettings": "管理設定",
 		"debugMode": {
@@ -119,7 +119,7 @@
 		"footer": "使用斜線命令快速存取經常使用的提示詞和工作流程。"
 	},
 	"rules": {
-		"description": "從全域與工作區 .roo/rules 目錄管理 Zoo Code 規則檔案。無需手動瀏覽設定資料夾，即可建立一般規則或特定模式規則。",
+		"description": "從全域與工作區 .roo/rules 目錄管理 Roo+ 規則檔案。無需手動瀏覽設定資料夾，即可建立一般規則或特定模式規則。",
 		"workspaceRules": "工作區規則",
 		"globalRules": "全域規則",
 		"noWorkspaceRules": "此專案尚無規則。",
@@ -175,24 +175,24 @@
 		},
 		"chatFontSize": {
 			"label": "聊天字型大小",
-			"description": "設定 Zoo Code 聊天的字型大小（以像素為單位）。保留預設值以符合 VS Code 的字型大小。",
+			"description": "設定 Roo+ 聊天的字型大小（以像素為單位）。保留預設值以符合 VS Code 的字型大小。",
 			"reset": "使用 VS Code 預設值"
 		},
 		"autoCloseZooOpenedFiles": {
-			"label": "自動關閉 Zoo 開啟的檔案",
-			"description": "啟用後，Zoo 為 diff 暫時開啟的編輯器分頁將在接受或拒絕變更後自動關閉。使用者在編輯前已開啟的分頁不會被自動關閉。"
+			"label": "自動關閉 Roo+ 開啟的檔案",
+			"description": "啟用後，Roo+ 為 diff 暫時開啟的編輯器分頁將在接受或拒絕變更後自動關閉。使用者在編輯前已開啟的分頁不會被自動關閉。"
 		},
 		"autoCloseZooOpenedFilesAfterUserEdited": {
 			"label": "使用者操作後也自動關閉",
-			"description": "啟用後，即使使用者在編輯工作階段中點擊或輸入了檔案或 diff，Zoo 開啟的分頁也會被關閉。若「自動關閉 Zoo 開啟的檔案」已停用，則此選項無效。"
+			"description": "啟用後，即使使用者在編輯工作階段中點擊或輸入了檔案或 diff，Zoo 開啟的分頁也會被關閉。若「自動關閉 Roo+ 開啟的檔案」已停用，則此選項無效。"
 		},
 		"autoCloseZooOpenedNewFiles": {
 			"label": "自動關閉新建立的檔案",
-			"description": "啟用後，Zoo 新建（而非修改）的檔案分頁在接受變更後也會自動關閉。"
+			"description": "啟用後，Roo+ 新建（而非修改）的檔案分頁在接受變更後也會自動關閉。"
 		}
 	},
 	"prompts": {
-		"description": "設定用於快速操作的支援提示詞，如增強提示詞、解釋程式碼和修復問題。這些提示詞幫助 Zoo 為常見開發工作提供更好的支援。"
+		"description": "設定用於快速操作的支援提示詞，如增強提示詞、解釋程式碼和修復問題。這些提示詞幫助 Roo+ 為常見開發工作提供更好的支援。"
 	},
 	"codeIndex": {
 		"title": "程式碼庫索引",
@@ -314,10 +314,10 @@
 		"enabled": "自動核准已啟用",
 		"readOnly": {
 			"label": "讀取",
-			"description": "啟用後，Zoo 將自動檢視目錄內容並讀取檔案，無需等待您的核准。",
+			"description": "啟用後，Roo+ 將自動檢視目錄內容並讀取檔案，無需等待您的核准。",
 			"outsideWorkspace": {
 				"label": "包含工作區外的檔案",
-				"description": "允許 Zoo 讀取目前工作區外的檔案且無需核准。"
+				"description": "允許 Roo+ 讀取目前工作區外的檔案且無需核准。"
 			}
 		},
 		"write": {
@@ -326,11 +326,11 @@
 			"delayLabel": "寫入後延遲一小段時間，以便診斷工具偵測潛在問題",
 			"outsideWorkspace": {
 				"label": "包含工作區外的檔案",
-				"description": "允許 Zoo 在目前工作區外建立與編輯檔案且無需核准。"
+				"description": "允許 Roo+ 在目前工作區外建立與編輯檔案且無需核准。"
 			},
 			"protected": {
 				"label": "包含受保護的檔案",
-				"description": "允許 Zoo 建立與編輯受保護的檔案（如 .rooignore 和 .roo/ 設定檔）且無需核准。"
+				"description": "允許 Roo+ 建立與編輯受保護的檔案（如 .rooignore 和 .roo/ 設定檔）且無需核准。"
 			}
 		},
 		"mcp": {
@@ -561,7 +561,7 @@
 			"draftModelDesc": "草稿模型必須來自相同模型系列才能正確運作。",
 			"selectDraftModel": "選擇草稿模型",
 			"noModelsFound": "未找到草稿模型。請確保 LM Studio 以伺服器模式執行。",
-			"description": "LM Studio 允許您在本機電腦執行模型。詳細資訊請參閱快速入門指南。您需要啟動 LM Studio 的本機伺服器功能才能與此擴充功能搭配使用。<span>注意：</span> Zoo Code 使用複雜提示詞，與 Claude 模型搭配最佳。功能較弱的模型可能無法正常運作。"
+			"description": "LM Studio 允許您在本機電腦執行模型。詳細資訊請參閱快速入門指南。您需要啟動 LM Studio 的本機伺服器功能才能與此擴充功能搭配使用。<span>注意：</span> Roo+ 使用複雜提示詞，與 Claude 模型搭配最佳。功能較弱的模型可能無法正常運作。"
 		},
 		"ollama": {
 			"baseUrl": "基礎 URL（選用）",
@@ -573,7 +573,7 @@
 			"thinking": "啟用思考",
 			"thinkingHelp": "為推理模型（例如 qwen3、deepseek-r1）啟用 Ollama 的原生思考。啟用後，模型的推理將單獨串流和顯示。不支援的模型將忽略此設定。",
 			"description": "Ollama 允許您在本機電腦執行模型。請參閱快速入門指南。",
-			"warning": "注意：Zoo Code 使用複雜提示詞，與 Claude 模型搭配最佳。功能較弱的模型可能無法正常運作。"
+			"warning": "注意：Roo+ 使用複雜提示詞，與 Claude 模型搭配最佳。功能較弱的模型可能無法正常運作。"
 		},
 		"openRouter": {
 			"providerRouting": {
@@ -630,7 +630,7 @@
 		},
 		"consecutiveMistakeLimit": {
 			"label": "錯誤和重複限制",
-			"description": "在顯示「Zoo 遇到問題」對話方塊前允許的連續錯誤或重複操作次數。設定為 0 可停用此安全機制（永不觸發）。",
+			"description": "在顯示「Roo+ 遇到問題」對話方塊前允許的連續錯誤或重複操作次數。設定為 0 可停用此安全機制（永不觸發）。",
 			"unlimitedDescription": "已啟用無限重試（自動繼續）。對話方塊將永遠不會出現。",
 			"warning": "⚠️ 設定為 0 允許無限重試，這可能會消耗大量 API 使用量"
 		},
@@ -660,9 +660,9 @@
 			"maxTokensDescription": "Claude Code 回應的最大輸出 Token 數量。預設為 8000。"
 		},
 		"zooGateway": {
-			"account": "Zoo Code 帳戶",
-			"signInButton": "登入 Zoo Code",
-			"signInDescription": "登入以使用您的帳戶存取 Zoo Gateway",
+			"account": "Roo+ 帳戶",
+			"signInButton": "登入 Roo+",
+			"signInDescription": "登入以使用您的帳戶存取 Roo+ Gateway",
 			"authenticated": "已認證",
 			"authenticatedAs": "已認證為 {{name}}"
 		}
@@ -674,18 +674,18 @@
 		},
 		"enable": {
 			"label": "啟用自動檢查點",
-			"description": "啟用後，Zoo 將在工作執行期間自動建立檢查點，方便檢視變更或回到較早的狀態。 <0>了解更多</0>"
+			"description": "啟用後，Roo+ 將在工作執行期間自動建立檢查點，方便檢視變更或回到較早的狀態。 <0>了解更多</0>"
 		}
 	},
 	"notifications": {
 		"sound": {
 			"label": "啟用音效",
-			"description": "啟用後，Zoo 將為通知和事件播放音效。",
+			"description": "啟用後，Roo+ 將為通知和事件播放音效。",
 			"volumeLabel": "音量"
 		},
 		"tts": {
 			"label": "啟用文字轉語音",
-			"description": "啟用後，Zoo 將使用文字轉語音功能朗讀其回應。",
+			"description": "啟用後，Roo+ 將使用文字轉語音功能朗讀其回應。",
 			"speedLabel": "速度"
 		}
 	},
@@ -693,7 +693,7 @@
 		"description": "控制 AI 上下文視窗中要包含哪些資訊，會影響 Token 用量和回應品質",
 		"autoCondenseContextPercent": {
 			"label": "觸發智慧上下文壓縮的閾值",
-			"description": "當上下文視窗達到此閾值時，Zoo 將自動壓縮它。"
+			"description": "當上下文視窗達到此閾值時，Roo+ 將自動壓縮它。"
 		},
 		"condensingApiConfiguration": {
 			"label": "上下文壓縮的 API 設定",
@@ -729,7 +729,7 @@
 		},
 		"maxReadFile": {
 			"label": "檔案讀取自動截斷閾值",
-			"description": "當模型未指定起始/結束值時，Zoo 讀取的行數。如果此數值小於檔案總行數，Zoo 將產生程式碼定義的行號索引。特殊情況：-1 指示 Zoo 讀取整個檔案（不建立索引），0 指示不讀取任何行並僅提供行索引以取得最小上下文。較低的值可最小化初始上下文使用，允許後續精確的行範圍讀取。明確指定起始/結束的請求不受此設定限制。 <0>了解更多</0>",
+			"description": "當模型未指定起始/結束值時，Zoo 讀取的行數。如果此數值小於檔案總行數，Roo+ 將產生程式碼定義的行號索引。特殊情況：-1 指示 Roo+ 讀取整個檔案（不建立索引），0 指示不讀取任何行並僅提供行索引以取得最小上下文。較低的值可最小化初始上下文使用，允許後續精確的行範圍讀取。明確指定起始/結束的請求不受此設定限制。 <0>了解更多</0>",
 			"lines": "行",
 			"always_full_read": "始終讀取整個檔案"
 		},
@@ -802,15 +802,15 @@
 		},
 		"outputLineLimit": {
 			"label": "終端機輸出限制",
-			"description": "保留首尾行並丟棄中間行以保持在限制內。降低可節省 Token；提高可為 Zoo 提供更多中間細節。Zoo 看到內容被跳過的佔位符。<0>了解更多</0>"
+			"description": "保留首尾行並丟棄中間行以保持在限制內。降低可節省 Token；提高可為 Roo+ 提供更多中間細節。Zoo 看到內容被跳過的佔位符。<0>了解更多</0>"
 		},
 		"outputCharacterLimit": {
 			"label": "終端機字元限制",
-			"description": "透過強制限制輸出大小來覆寫行限制以防止記憶體問題。如果超出，保留開頭和結尾並向 Zoo 顯示內容被跳過的佔位符。<0>了解更多</0>"
+			"description": "透過強制限制輸出大小來覆寫行限制以防止記憶體問題。如果超出，保留開頭和結尾並向 Roo+ 顯示內容被跳過的佔位符。<0>了解更多</0>"
 		},
 		"outputPreviewSize": {
 			"label": "命令輸出預覽大小",
-			"description": "控制 Zoo 直接看到的命令輸出量。完整輸出始終會被儲存，需要時可以存取。",
+			"description": "控制 Roo+ 直接看到的命令輸出量。完整輸出始終會被儲存，需要時可以存取。",
 			"options": {
 				"small": "小 (5KB)",
 				"medium": "中 (10KB)",
@@ -854,9 +854,9 @@
 			"description": "啟用此選項以從父 VS Code 程序繼承環境變數。<0>了解更多</0>"
 		},
 		"profile": {
-			"label": "Zoo Code 終端機設定檔",
+			"label": "Roo+ 終端機設定檔",
 			"followVscode": "跟隨 VS Code 設定檔 （推薦）",
-			"description": "預設情況下，Zoo Code 使用 VS Code 設定的 Shell。從清單中選擇 VS Code 公開的路徑型 Shell 設定檔。僅含來源的設定檔（如內建的 PowerShell 項目）無法在此列出。 <0>了解更多</0>",
+			"description": "預設情況下，Roo+ 使用 VS Code 設定的 Shell。從清單中選擇 VS Code 公開的路徑型 Shell 設定檔。僅含來源的設定檔（如內建的 PowerShell 項目）無法在此列出。 <0>了解更多</0>",
 			"configureButton": "在 VS Code 中選擇預設設定檔",
 			"noProfiles": "(在 terminal.integrated.profiles 中未找到路徑型設定檔)"
 		}
@@ -894,7 +894,7 @@
 		},
 		"INSERT_BLOCK": {
 			"name": "使用實驗性插入內容工具",
-			"description": "啟用實驗性的插入內容工具，允許 Zoo 直接在指定行號插入內容，而無需產生差異比對。"
+			"description": "啟用實驗性的插入內容工具，允許 Roo+ 直接在指定行號插入內容，而無需產生差異比對。"
 		},
 		"CONCURRENT_FILE_READS": {
 			"name": "啟用並行檔案讀取",
@@ -902,7 +902,7 @@
 		},
 		"MULTI_SEARCH_AND_REPLACE": {
 			"name": "使用實驗性多區塊差異比對工具",
-			"description": "啟用後，Zoo 將使用多區塊差異比對工具，嘗試在單一請求中更新檔案內的多個程式碼區塊。"
+			"description": "啟用後，Roo+ 將使用多區塊差異比對工具，嘗試在單一請求中更新檔案內的多個程式碼區塊。"
 		},
 		"MARKETPLACE": {
 			"name": "啟用 Marketplace",
@@ -910,7 +910,7 @@
 		},
 		"PREVENT_FOCUS_DISRUPTION": {
 			"name": "背景編輯",
-			"description": "啟用後可防止編輯器焦點中斷。檔案編輯會在背景進行，不會開啟 diff 檢視或搶奪焦點。您可以在 Zoo 進行變更時繼續不受干擾地工作。檔案可能會在不獲得焦點的情況下開啟以捕獲診斷，或保持完全關閉。"
+			"description": "啟用後可防止編輯器焦點中斷。檔案編輯會在背景進行，不會開啟 diff 檢視或搶奪焦點。您可以在 Roo+ 進行變更時繼續不受干擾地工作。檔案可能會在不獲得焦點的情況下開啟以捕獲診斷，或保持完全關閉。"
 		},
 		"ASSISTANT_MESSAGE_PARSER": {
 			"name": "使用全新訊息解析器",
@@ -951,7 +951,7 @@
 	},
 	"promptCaching": {
 		"label": "停用提示詞快取",
-		"description": "勾選後，Zoo 將不會為此模型使用提示詞快取。"
+		"description": "勾選後，Roo+ 將不會為此模型使用提示詞快取。"
 	},
 	"temperature": {
 		"useCustom": "使用自訂溫度",
@@ -991,7 +991,7 @@
 	"footer": {
 		"telemetry": {
 			"label": "允許匿名錯誤與使用情況回報",
-			"description": "透過發送匿名使用資料和錯誤回報來協助改善 Zoo Code。此遙測不會收集程式碼、提示詞或個人資訊。查看我們的 <privacyLink>隱私權政策</privacyLink> 以了解更多資訊。"
+			"description": "透過發送匿名使用資料和錯誤回報來協助改善 Roo+。此遙測不會收集程式碼、提示詞或個人資訊。查看我們的 <privacyLink>隱私權政策</privacyLink> 以了解更多資訊。"
 		},
 		"settings": {
 			"import": "匯入",
@@ -1020,7 +1020,7 @@
 		"modelNotAllowed": "模型 '{{model}}' 不允許用於供應商 '{{provider}}'，此設定已被組織禁止",
 		"profileInvalid": "此設定檔包含您的組織不允許的供應商或模型",
 		"qwenCodeOauthPath": "您必須提供有效的 OAuth 憑證路徑",
-		"zooGatewaySignIn": "請登入 Zoo Code 以使用 Zoo Gateway。"
+		"zooGatewaySignIn": "請登入 Roo+ 以使用 Roo+ Gateway。"
 	},
 	"placeholders": {
 		"apiKey": "請輸入 API 金鑰...",

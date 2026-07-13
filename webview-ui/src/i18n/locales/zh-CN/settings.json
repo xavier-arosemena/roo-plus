@@ -40,7 +40,7 @@
 		"ui": "UI",
 		"experimental": "实验性",
 		"language": "语言",
-		"about": "关于 Zoo Code",
+		"about": "关于 Roo+ Code",
 		"skills": "Skills",
 		"rules": "规则"
 	},
@@ -57,7 +57,7 @@
 			"label": "发现安全漏洞？",
 			"link": "遵循我们的披露流程"
 		},
-		"community": "想要获取使用技巧或与其他 Zoo Code 用户交流？加入 <redditLink>reddit.com/r/ZooCode</redditLink> 或 <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
+		"community": "想要获取使用技巧或与其他 Roo+ 用户交流？加入 <redditLink>reddit.com/r/ZooCode</redditLink> 或 <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
 		"contactAndCommunity": "联系与社区",
 		"manageSettings": "管理设置",
 		"debugMode": {
@@ -119,7 +119,7 @@
 		"footer": "使用斜杠命令快速访问经常使用的提示词和工作流。"
 	},
 	"rules": {
-		"description": "从全局和工作区 .roo/rules 目录管理 Zoo Code 规则文件。无需手动浏览配置文件夹，即可创建通用规则或特定模式规则。",
+		"description": "从全局和工作区 .roo/rules 目录管理 Roo+ 规则文件。无需手动浏览配置文件夹，即可创建通用规则或特定模式规则。",
 		"workspaceRules": "工作区规则",
 		"globalRules": "全局规则",
 		"noWorkspaceRules": "此项目中还没有规则。",
@@ -165,7 +165,7 @@
 		"footer": "规则会先加载特定模式指导，再加载通用指导。全局规则会先于工作区规则加载。"
 	},
 	"prompts": {
-		"description": "配置用于快速操作的支持提示词，如增强提示词、解释代码和修复问题。这些提示词帮助 Zoo 为常见开发任务提供更好的支持。"
+		"description": "配置用于快速操作的支持提示词，如增强提示词、解释代码和修复问题。这些提示词帮助 Roo+ 为常见开发任务提供更好的支持。"
 	},
 	"codeIndex": {
 		"title": "代码库索引",
@@ -292,7 +292,7 @@
 			"description": "启用后，Zoo 将自动浏览目录和读取文件内容，无需人工确认。",
 			"outsideWorkspace": {
 				"label": "包含工作区外的文件",
-				"description": "允许 Zoo 读取当前工作区外的文件，无需批准。"
+				"description": "允许 Roo+ 读取当前工作区外的文件，无需批准。"
 			}
 		},
 		"write": {
@@ -301,11 +301,11 @@
 			"delayLabel": "延迟一段时间再自动批准写入，可以在期间检查模型输出是否有问题",
 			"outsideWorkspace": {
 				"label": "包含工作区外的文件",
-				"description": "允许 Zoo 创建和编辑当前工作区外的文件，无需批准。"
+				"description": "允许 Roo+ 创建和编辑当前工作区外的文件，无需批准。"
 			},
 			"protected": {
 				"label": "包含受保护的文件",
-				"description": "允许 Zoo 创建和编辑受保护的文件（如 .rooignore 和 .roo/ 配置文件），无需批准。"
+				"description": "允许 Roo+ 创建和编辑受保护的文件（如 .rooignore 和 .roo/ 配置文件），无需批准。"
 			}
 		},
 		"mcp": {
@@ -634,8 +634,8 @@
 		},
 		"zooGateway": {
 			"account": "Zoo Code 账户",
-			"signInButton": "登录 Zoo Code",
-			"signInDescription": "登录以使用您的账户访问 Zoo Gateway",
+			"signInButton": "登录 Roo+ Code",
+			"signInDescription": "登录以使用您的账户访问 Roo+ Gateway",
 			"authenticated": "已认证",
 			"authenticatedAs": "已认证为 {{name}}"
 		}
@@ -775,15 +775,15 @@
 		},
 		"outputLineLimit": {
 			"label": "终端输出限制",
-			"description": "保留首尾行并丢弃中间行以保持在限制内。降低可节省 token；提高可为 Zoo 提供更多中间细节。Zoo 看到内容被跳过的占位符。<0>了解更多</0>"
+			"description": "保留首尾行并丢弃中间行以保持在限制内。降低可节省 token；提高可为 Roo+ 提供更多中间细节。Zoo 看到内容被跳过的占位符。<0>了解更多</0>"
 		},
 		"outputCharacterLimit": {
 			"label": "终端字符限制",
-			"description": "通过强制限制输出大小来覆盖行限制以防止内存问题。如果超出，保留开头和结尾并向 Zoo 显示内容被跳过的占位符。<0>了解更多</0>"
+			"description": "通过强制限制输出大小来覆盖行限制以防止内存问题。如果超出，保留开头和结尾并向 Roo+ 显示内容被跳过的占位符。<0>了解更多</0>"
 		},
 		"outputPreviewSize": {
 			"label": "命令输出预览大小",
-			"description": "控制 Zoo 直接看到的命令输出量。完整输出始终会被保存，需要时可以访问。",
+			"description": "控制 Roo+ 直接看到的命令输出量。完整输出始终会被保存，需要时可以访问。",
 			"options": {
 				"small": "小 (5KB)",
 				"medium": "中 (10KB)",
@@ -867,7 +867,7 @@
 		},
 		"INSERT_BLOCK": {
 			"name": "启用插入内容工具",
-			"description": "允许 Zoo 在特定行号插入内容，无需处理差异。"
+			"description": "允许 Roo+ 在特定行号插入内容，无需处理差异。"
 		},
 		"MULTI_SEARCH_AND_REPLACE": {
 			"name": "允许批量搜索和替换",
@@ -883,7 +883,7 @@
 		},
 		"PREVENT_FOCUS_DISRUPTION": {
 			"name": "后台编辑",
-			"description": "启用后防止编辑器焦点干扰。文件编辑在后台进行，不会打开差异视图或抢夺焦点。你可以在 Zoo 进行更改时继续不受干扰地工作。文件可以在不获取焦点的情况下打开以捕获诊断信息，或保持完全关闭状态。"
+			"description": "启用后防止编辑器焦点干扰。文件编辑在后台进行，不会打开差异视图或抢夺焦点。你可以在 Roo+ 进行更改时继续不受干扰地工作。文件可以在不获取焦点的情况下打开以捕获诊断信息，或保持完全关闭状态。"
 		},
 		"ASSISTANT_MESSAGE_PARSER": {
 			"name": "使用新的消息解析器",
@@ -908,11 +908,11 @@
 		},
 		"RUN_SLASH_COMMAND": {
 			"name": "启用模型发起的斜杠命令",
-			"description": "启用后 Zoo 可运行斜杠命令执行工作流程。"
+			"description": "启用后 Roo+ 可运行斜杠命令执行工作流程。"
 		},
 		"CUSTOM_TOOLS": {
 			"name": "启用自定义工具",
-			"description": "启用后 Zoo 可从项目中的 .roo/tools 目录或全局工具目录 ~/.roo/tools 加载并使用自定义 TypeScript/JavaScript 工具。注意：这些工具将自动获批。",
+			"description": "启用后 Roo+ 可从项目中的 .roo/tools 目录或全局工具目录 ~/.roo/tools 加载并使用自定义 TypeScript/JavaScript 工具。注意：这些工具将自动获批。",
 			"toolsHeader": "可用自定义工具",
 			"noTools": "未加载自定义工具。请向项目的 .roo/tools 目录或全局工具目录 ~/.roo/tools 添加 .ts 或 .js 文件。",
 			"refreshButton": "刷新",
@@ -964,7 +964,7 @@
 	"footer": {
 		"telemetry": {
 			"label": "允许匿名数据收集",
-			"description": "通过发送匿名使用数据和错误报告来帮助改进 Zoo Code。此遥测不会收集代码、提示 或个人信息。详细信息请参阅我们的<privacyLink>隐私政策</privacyLink>。您可以随时关闭此功能。"
+			"description": "通过发送匿名使用数据和错误报告来帮助改进 Roo+ Code。此遥测不会收集代码、提示 或个人信息。详细信息请参阅我们的<privacyLink>隐私政策</privacyLink>。您可以随时关闭此功能。"
 		},
 		"settings": {
 			"import": "导入",
@@ -993,7 +993,7 @@
 		"modelNotAllowed": "模型 '{{model}}' 不允许用于提供商 '{{provider}}'，您的组织不允许",
 		"profileInvalid": "此配置文件包含您的组织不允许的提供商或模型",
 		"qwenCodeOauthPath": "您必须提供有效的 OAuth 凭证路径",
-		"zooGatewaySignIn": "请登录 Zoo Code 以使用 Zoo Gateway。"
+		"zooGatewaySignIn": "请登录 Roo+ 以使用 Roo+ Gateway。"
 	},
 	"placeholders": {
 		"apiKey": "请输入 API 密钥...",
@@ -1058,16 +1058,16 @@
 		},
 		"chatFontSize": {
 			"label": "聊天字体大小",
-			"description": "设置 Zoo Code 聊天的字体大小（以像素为单位）。保留默认值以匹配 VS Code 的字体大小。",
+			"description": "设置 Roo+ 聊天的字体大小（以像素为单位）。保留默认值以匹配 VS Code 的字体大小。",
 			"reset": "使用 VS Code 默认值"
 		},
 		"autoCloseZooOpenedFiles": {
-			"label": "自动关闭 Zoo 打开的文件",
+			"label": "自动关闭 Roo+ 打开的文件",
 			"description": "启用后，Zoo 为 diff 临时打开的编辑器标签页将在接受或拒绝更改后自动关闭。用户在编辑前已打开的标签页不会被自动关闭。"
 		},
 		"autoCloseZooOpenedFilesAfterUserEdited": {
 			"label": "用户操作后也自动关闭",
-			"description": "启用后，即使用户在编辑会话中点击或输入了文件或 diff，Zoo 打开的标签页也会被关闭。若「自动关闭 Zoo 打开的文件」已禁用，则此选项无效。"
+			"description": "启用后，即使用户在编辑会话中点击或输入了文件或 diff，Zoo 打开的标签页也会被关闭。若「自动关闭 Roo+ 打开的文件」已禁用，则此选项无效。"
 		},
 		"autoCloseZooOpenedNewFiles": {
 			"label": "自动关闭新建的文件",
