@@ -25,7 +25,10 @@
 		"code-server:install": "node scripts/code-server.js",
 		"changeset:version": "cp CHANGELOG.md src/CHANGELOG.md && changeset version && cp -vf src/CHANGELOG.md .",
 		"knip": "knip",
-		"npm:publish:types": "pnpm --filter @roo-code/types npm:publish"
+		"npm:publish:types": "pnpm --filter @roo-code/types npm:publish",
+		"sync:custom-modes": "node scripts/sync-custom-modes.mjs",
+		"custom-modes:update": "cd custom-modes && git pull && cd .. && node scripts/sync-custom-modes.mjs",
+		"custom-modes:catalog": "node scripts/generate-catalog.mjs"
 	},
 	"devDependencies": {
 		"@changesets/cli": "2.29.7",
@@ -44,7 +47,8 @@
 		"rimraf": "6.0.1",
 		"tsx": "4.22.4",
 		"turbo": "2.10.0",
-		"typescript": "5.9.3"
+		"typescript": "5.9.3",
+		"yaml": "^2.8.0"
 	},
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json,css,md}": [

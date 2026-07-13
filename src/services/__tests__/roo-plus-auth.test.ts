@@ -14,7 +14,7 @@ import {
 	setRooPlusToken,
 	setRooPlusUserInfo,
 	verifyRooPlusToken,
-} from "../zoo-code-auth"
+} from "../roo-plus-auth"
 
 vi.mock("vscode", () => ({
 	workspace: {
