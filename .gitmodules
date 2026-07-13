@@ -1,0 +1,3 @@
+[submodule "custom-modes"]
+	path = custom-modes
+	url = git@github.com:xavier-arosemena/Custom-Modes-Roo-Code.git

@@ -1,4 +1,47 @@
-# Zoo Code Changelog
+# Roo+ Changelog
+
+## [3.69.1] — 2026-07-13
+
+### Major — Custom Modes Library Integration
+
+- Integrated **225 specialized agents** from `Custom-Modes-Roo-Code` as a git submodule (`custom-modes/`)
+- Added **146 custom modes** pre-loaded in `.roomodes` (7 existing + 139 curated agents)
+- Added **233 agents** to the Modes Marketplace catalog (`src/assets/marketplace/modes.yml`)
+- Created curation manifest (`custom-modes/manifest.json`) for controlling which agents are pre-loaded
+- Added conversion script (`scripts/sync-custom-modes.mjs`) to convert agent YAMLs → `.roomodes` + marketplace catalog
+- Added agent catalog generator (`scripts/generate-catalog.mjs`) producing `custom-modes/AGENT_CATALOG.md`
+- Added npm scripts: `sync:custom-modes`, `custom-modes:update`, `custom-modes:catalog`
+- Updated root README.md with full Custom Modes Library documentation:
+  - 🏢 For Organizations section (Product, Marketing, Sales, Legal & Compliance)
+  - 🧠 SOTA 2026 Personas section (11 advanced reasoning personas)
+  - 🛠️ Developer Toolbox section (Core Dev, Languages, DevOps, Security)
+  - ✔ GDPR/EU compliance coverage via Compliance Specialist agent
+  - 📋 Agent Catalog reference with import instructions
+- Published v3.69.1 to Open VSX Registry with updated marketplace description (banner + custom modes details)
+- Updated bundle size: 33.77 MB, 1,932 files
+
+### Notes
+
+- 94 additional agents remain available in the submodule for manual import
+- Custom modes library is independently versioned via git submodule for easy upstream updates
+
+## [3.68.3] — 2026-07-13
+
+### Fix
+
+- Corrected logo SVG mask for proper rendering in all themes
+- Fixed remaining "Zoo" branding strings that were missed in initial rebrand
+- Cleaned up stray references in localization files
+
+## [3.68.2] — 2026-07-13
+
+### Major — Initial Roo+ Fork Release
+
+- Forked from Zoo Code v3.68.0 to create **Roo+**
+- Rebranded all instances of "Zoo Code" and "Zoo" to "Roo+" and "Roo"
+- Updated all branding assets, logos, icons, and color schemes
+- Updated extension display name, description, and gallery banner
+- Set up Open VSX Registry publishing pipeline
 
 ## [3.68.0]
 
