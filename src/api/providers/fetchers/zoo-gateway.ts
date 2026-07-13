@@ -3,7 +3,7 @@ import axios from "axios"
 import type { ModelInfo } from "@roo-code/types"
 
 import type { ApiHandlerOptions } from "../../../shared/api"
-import { getZooCodeBaseUrl, resolveZooGatewaySessionToken } from "../../../services/zoo-code-auth"
+import { getRooPlusBaseUrl, resolveZooGatewaySessionToken } from "../../../services/roo-plus-auth"
 
 import {
 	type VercelAiGatewayModel,
@@ -22,7 +22,7 @@ const MODEL_DISCOVERY_TIMEOUT_MS = 15_000
 
 export async function getZooGatewayModels(options?: ApiHandlerOptions): Promise<Record<string, ModelInfo>> {
 	const models: Record<string, ModelInfo> = {}
-	const baseURL = options?.zooGatewayBaseUrl ?? `${getZooCodeBaseUrl()}/api/gateway/v1`
+	const baseURL = options?.zooGatewayBaseUrl ?? `${getRooPlusBaseUrl()}/api/gateway/v1`
 
 	const sessionToken = resolveZooGatewaySessionToken(options?.zooSessionToken)
 	if (!sessionToken) {

@@ -2,16 +2,16 @@ import * as vscode from "vscode"
 
 import { getRouterUnavailableSignInMessage } from "../core/config/routerRemoval"
 import { ClineProvider } from "../core/webview/ClineProvider"
-import { handleAuthCallback as handleZooCodeAuthCallback, setZooCodeUserInfo } from "../services/zoo-code-auth"
+import { handleAuthCallback as handleRooPlusAuthCallback, setRooPlusUserInfo } from "../services/roo-plus-auth"
 
 /**
- * Persist the Zoo Code session token to every active provider instance.
+ * Persist the Roo+ session token to every active provider instance.
  *
- * The profile settings write (handleZooCodeCallback) must run on any active
+ * The profile settings write (roo-plus auth callback) must run on any active
  * instance — not just the visible one — so the zoo-gateway zooSessionToken is
  * persisted even when the sidebar/panel is hidden at callback time.
  *
- * Run sequentially (NOT Promise.all): each ClineProvider's handleZooCodeCallback
+ * Run sequentially (NOT Promise.all): each ClineProvider's roo-plus auth callback
  * does a read-modify-write on the same backing provider settings store
  * (listConfig → getProfile → saveConfig / upsertProviderProfile). Fanning out
  * concurrently across N instances can interleave reads/writes and clobber
@@ -22,7 +22,7 @@ async function propagateZooGatewayCallback(token: string): Promise<void> {
 	const allInstances = ClineProvider.getAllInstances()
 	for (const instance of allInstances) {
 		try {
-			await instance.handleZooCodeCallback(token)
+			await instance.handleRooPlusCallback(token)
 		} catch (error) {
 			console.error(
 				"Failed to persist Zoo Gateway token for a provider instance:",
@@ -69,11 +69,11 @@ export const handleUri = async (uri: vscode.Uri) => {
 				const email = query.get("email") ?? null
 				const image = query.get("image") ?? null
 
-				const success = await handleZooCodeAuthCallback(token)
+				const success = await handleRooPlusAuthCallback(token)
 				if (success) {
 					// Store user info after successful auth validation (regardless of webview visibility)
-					// Always call setZooCodeUserInfo to clear stale data when fields are missing
-					await setZooCodeUserInfo({
+					// Always call setRooPlusUserInfo to clear stale data when fields are missing
+					await setRooPlusUserInfo({
 						name,
 						email,
 						image,

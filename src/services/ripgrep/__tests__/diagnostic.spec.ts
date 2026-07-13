@@ -324,7 +324,7 @@ describe("registerRipgrepDiagnosticCommand", () => {
 	it("creates an output channel and registers the command", () => {
 		registerRipgrepDiagnosticCommand()
 
-		expect(vscode.window.createOutputChannel).toHaveBeenCalledWith("Zoo Code Ripgrep Diagnostic")
+		expect(vscode.window.createOutputChannel).toHaveBeenCalledWith("Roo+ Ripgrep Diagnostic")
 		expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
 			expect.stringContaining("showRipgrepDiagnostic"),
 			expect.any(Function),
@@ -345,7 +345,7 @@ describe("registerRipgrepDiagnosticCommand", () => {
 		await handler()
 
 		expect(mockChannel.clear).toHaveBeenCalled()
-		expect(mockChannel.appendLine).toHaveBeenCalledWith(expect.stringContaining("Zoo Code Ripgrep Diagnostic"))
+		expect(mockChannel.appendLine).toHaveBeenCalledWith(expect.stringContaining("Roo+ Ripgrep Diagnostic"))
 		expect(mockChannel.show).toHaveBeenCalledWith(true)
 	})
 
@@ -355,11 +355,9 @@ describe("registerRipgrepDiagnosticCommand", () => {
 		const [[, handler]] = vi.mocked(vscode.commands.registerCommand).mock.calls
 		await handler()
 
-		expect(vscode.env.clipboard.writeText).toHaveBeenCalledWith(
-			expect.stringContaining("Zoo Code Ripgrep Diagnostic"),
-		)
+		expect(vscode.env.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("Roo+ Ripgrep Diagnostic"))
 		expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-			"Zoo Code: ripgrep diagnostic copied to clipboard.",
+			"Roo+: ripgrep diagnostic copied to clipboard.",
 		)
 	})
 })

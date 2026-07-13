@@ -96,7 +96,7 @@
 	"enqueueMessage": "Afegeix el missatge a la cua (s'enviarà quan acabi la tasca actual)",
 	"scrollToBottom": "Desplaça't al final del xat",
 	"scrollToLatestCheckpoint": "Desplaça't al checkpoint anterior",
-	"about": "Zoo Code és tot un equip de desenvolupament d'IA al teu editor.",
+	"about": "Roo+ Code és tot un equip de desenvolupament d'IA al teu editor.",
 	"docs": "Consulta els nostres <DocsLink>documents</DocsLink> per a més informació.",
 	"onboarding": "La teva llista de tasques en aquest espai de treball està buida.",
 	"rooTips": {
@@ -142,7 +142,7 @@
 	"diffError": {
 		"title": "Edició fallida"
 	},
-	"troubleMessage": "Zoo està tenint problemes...",
+	"troubleMessage": "Roo+ està tenint problemes...",
 	"apiRequest": {
 		"title": "Sol·licitud API",
 		"failed": "Sol·licitud API ha fallat",
@@ -188,40 +188,40 @@
 		"wantsToFetch": "Roo vol obtenir instruccions detallades per ajudar amb la tasca actual."
 	},
 	"fileOperations": {
-		"wantsToRead": "Zoo vol llegir aquest fitxer",
-		"wantsToReadOutsideWorkspace": "Zoo vol llegir aquest fitxer fora de l'espai de treball",
-		"didRead": "Zoo ha llegit aquest fitxer",
-		"wantsToEdit": "Zoo vol editar aquest fitxer",
-		"wantsToEditOutsideWorkspace": "Zoo vol editar aquest fitxer fora de l'espai de treball",
-		"wantsToEditProtected": "Zoo vol editar un fitxer de configuració protegit",
-		"wantsToCreate": "Zoo vol crear un nou fitxer",
+		"wantsToRead": "Roo+ vol llegir aquest fitxer",
+		"wantsToReadOutsideWorkspace": "Roo+ vol llegir aquest fitxer fora de l'espai de treball",
+		"didRead": "Roo+ ha llegit aquest fitxer",
+		"wantsToEdit": "Roo+ vol editar aquest fitxer",
+		"wantsToEditOutsideWorkspace": "Roo+ vol editar aquest fitxer fora de l'espai de treball",
+		"wantsToEditProtected": "Roo+ vol editar un fitxer de configuració protegit",
+		"wantsToCreate": "Roo+ vol crear un nou fitxer",
 		"wantsToSearchReplace": "Roo vol realitzar cerca i substitució en aquest fitxer",
 		"didSearchReplace": "Roo ha realitzat cerca i substitució en aquest fitxer",
-		"wantsToInsert": "Zoo vol inserir contingut en aquest fitxer",
-		"wantsToInsertWithLineNumber": "Zoo vol inserir contingut a la línia {{lineNumber}} d'aquest fitxer",
-		"wantsToInsertAtEnd": "Zoo vol afegir contingut al final d'aquest fitxer",
+		"wantsToInsert": "Roo+ vol inserir contingut en aquest fitxer",
+		"wantsToInsertWithLineNumber": "Roo+ vol inserir contingut a la línia {{lineNumber}} d'aquest fitxer",
+		"wantsToInsertAtEnd": "Roo+ vol afegir contingut al final d'aquest fitxer",
 		"wantsToReadAndXMore": "En Zoo vol llegir aquest fitxer i {{count}} més",
-		"wantsToReadMultiple": "Zoo vol llegir diversos fitxers",
-		"wantsToApplyBatchChanges": "Zoo vol aplicar canvis a múltiples fitxers",
-		"wantsToGenerateImage": "Zoo vol generar una imatge",
-		"wantsToGenerateImageOutsideWorkspace": "Zoo vol generar una imatge fora de l'espai de treball",
-		"wantsToGenerateImageProtected": "Zoo vol generar una imatge en una ubicació protegida",
-		"didGenerateImage": "Zoo ha generat una imatge"
+		"wantsToReadMultiple": "Roo+ vol llegir diversos fitxers",
+		"wantsToApplyBatchChanges": "Roo+ vol aplicar canvis a múltiples fitxers",
+		"wantsToGenerateImage": "Roo+ vol generar una imatge",
+		"wantsToGenerateImageOutsideWorkspace": "Roo+ vol generar una imatge fora de l'espai de treball",
+		"wantsToGenerateImageProtected": "Roo+ vol generar una imatge en una ubicació protegida",
+		"didGenerateImage": "Roo+ ha generat una imatge"
 	},
 	"directoryOperations": {
-		"wantsToViewTopLevel": "Zoo vol veure els fitxers de nivell superior en aquest directori",
-		"didViewTopLevel": "Zoo ha vist els fitxers de nivell superior en aquest directori",
-		"wantsToViewRecursive": "Zoo vol veure recursivament tots els fitxers en aquest directori",
-		"didViewRecursive": "Zoo ha vist recursivament tots els fitxers en aquest directori",
-		"wantsToSearch": "Zoo vol cercar en aquest directori <code>{{regex}}</code>",
-		"didSearch": "Zoo ha cercat en aquest directori <code>{{regex}}</code>",
-		"wantsToSearchOutsideWorkspace": "Zoo vol cercar en aquest directori (fora de l'espai de treball) <code>{{regex}}</code>",
-		"didSearchOutsideWorkspace": "Zoo ha cercat en aquest directori (fora de l'espai de treball) <code>{{regex}}</code>",
-		"wantsToViewTopLevelOutsideWorkspace": "Zoo vol veure els fitxers de nivell superior en aquest directori (fora de l'espai de treball)",
-		"didViewTopLevelOutsideWorkspace": "Zoo ha vist els fitxers de nivell superior en aquest directori (fora de l'espai de treball)",
-		"wantsToViewRecursiveOutsideWorkspace": "Zoo vol veure recursivament tots els fitxers en aquest directori (fora de l'espai de treball)",
-		"didViewRecursiveOutsideWorkspace": "Zoo ha vist recursivament tots els fitxers en aquest directori (fora de l'espai de treball)",
-		"wantsToViewMultipleDirectories": "Zoo vol veure diversos directoris"
+		"wantsToViewTopLevel": "Roo+ vol veure els fitxers de nivell superior en aquest directori",
+		"didViewTopLevel": "Roo+ ha vist els fitxers de nivell superior en aquest directori",
+		"wantsToViewRecursive": "Roo+ vol veure recursivament tots els fitxers en aquest directori",
+		"didViewRecursive": "Roo+ ha vist recursivament tots els fitxers en aquest directori",
+		"wantsToSearch": "Roo+ vol cercar en aquest directori <code>{{regex}}</code>",
+		"didSearch": "Roo+ ha cercat en aquest directori <code>{{regex}}</code>",
+		"wantsToSearchOutsideWorkspace": "Roo+ vol cercar en aquest directori (fora de l'espai de treball) <code>{{regex}}</code>",
+		"didSearchOutsideWorkspace": "Roo+ ha cercat en aquest directori (fora de l'espai de treball) <code>{{regex}}</code>",
+		"wantsToViewTopLevelOutsideWorkspace": "Roo+ vol veure els fitxers de nivell superior en aquest directori (fora de l'espai de treball)",
+		"didViewTopLevelOutsideWorkspace": "Roo+ ha vist els fitxers de nivell superior en aquest directori (fora de l'espai de treball)",
+		"wantsToViewRecursiveOutsideWorkspace": "Roo+ vol veure recursivament tots els fitxers en aquest directori (fora de l'espai de treball)",
+		"didViewRecursiveOutsideWorkspace": "Roo+ ha vist recursivament tots els fitxers en aquest directori (fora de l'espai de treball)",
+		"wantsToViewMultipleDirectories": "Roo+ vol veure diversos directoris"
 	},
 	"commandOutput": "Sortida de la comanda",
 	"commandExecution": {
@@ -250,18 +250,18 @@
 		"youSaid": "Has dit"
 	},
 	"mcp": {
-		"wantsToUseTool": "Zoo vol utilitzar una eina al servidor MCP {{serverName}}",
-		"wantsToAccessResource": "Zoo vol accedir a un recurs al servidor MCP {{serverName}}"
+		"wantsToUseTool": "Roo+ vol utilitzar una eina al servidor MCP {{serverName}}",
+		"wantsToAccessResource": "Roo+ vol accedir a un recurs al servidor MCP {{serverName}}"
 	},
 	"modes": {
-		"wantsToSwitch": "Zoo vol canviar a mode <code>{{mode}}</code>",
-		"wantsToSwitchWithReason": "Zoo vol canviar a mode <code>{{mode}}</code> perquè: {{reason}}",
-		"didSwitch": "Zoo ha canviat a mode <code>{{mode}}</code>",
-		"didSwitchWithReason": "Zoo ha canviat a mode <code>{{mode}}</code> perquè: {{reason}}"
+		"wantsToSwitch": "Roo+ vol canviar a mode <code>{{mode}}</code>",
+		"wantsToSwitchWithReason": "Roo+ vol canviar a mode <code>{{mode}}</code> perquè: {{reason}}",
+		"didSwitch": "Roo+ ha canviat a mode <code>{{mode}}</code>",
+		"didSwitchWithReason": "Roo+ ha canviat a mode <code>{{mode}}</code> perquè: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Zoo vol crear una nova subtasca en mode <code>{{mode}}</code>",
-		"wantsToFinish": "Zoo vol finalitzar aquesta subtasca",
+		"wantsToCreate": "Roo+ vol crear una nova subtasca en mode <code>{{mode}}</code>",
+		"wantsToFinish": "Roo+ vol finalitzar aquesta subtasca",
 		"newTaskContent": "Instruccions de la subtasca",
 		"completionContent": "Subtasca completada",
 		"resultContent": "Resultats de la subtasca",
@@ -270,7 +270,7 @@
 		"goToSubtask": "Veure tasca"
 	},
 	"questions": {
-		"hasQuestion": "Zoo té una pregunta"
+		"hasQuestion": "Roo+ té una pregunta"
 	},
 	"taskCompleted": "Tasca completada",
 	"modelResponseIncomplete": "Resposta del model incompleta",
@@ -373,18 +373,18 @@
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "S'ha arribat al límit de sol·licituds aprovades automàticament",
-			"description": "Zoo ha arribat al límit aprovat automàticament de {{count}} sol·licitud(s) d'API. Vols reiniciar el comptador i continuar amb la tasca?",
+			"description": "Roo+ ha arribat al límit aprovat automàticament de {{count}} sol·licitud(s) d'API. Vols reiniciar el comptador i continuar amb la tasca?",
 			"button": "Reiniciar i continuar"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "S'ha arribat al límit de cost d'aprovació automàtica",
 			"button": "Restableix i continua",
-			"description": "Zoo ha arribat al límit de cost aprovat automàticament de ${{count}}. Vols restablir el cost i continuar amb la tasca?"
+			"description": "Roo+ ha arribat al límit de cost aprovat automàticament de ${{count}}. Vols restablir el cost i continuar amb la tasca?"
 		}
 	},
 	"codebaseSearch": {
-		"wantsToSearch": "Zoo vol cercar a la base de codi <code>{{query}}</code>",
-		"wantsToSearchWithPath": "Zoo vol cercar a la base de codi <code>{{query}}</code> a <code>{{path}}</code>",
+		"wantsToSearch": "Roo+ vol cercar a la base de codi <code>{{query}}</code>",
+		"wantsToSearchWithPath": "Roo+ vol cercar a la base de codi <code>{{query}}</code> a <code>{{path}}</code>",
 		"didSearch_one": "S'ha trobat 1 resultat",
 		"didSearch_other": "S'han trobat {{count}} resultats",
 		"resultTooltip": "Puntuació de similitud: {{score}} (fes clic per obrir el fitxer)"
@@ -425,7 +425,7 @@
 		"ariaLabel": "Versió {{version}} - Feu clic per veure les notes de llançament"
 	},
 	"rooCloudCTA": {
-		"title": "Zoo Code Cloud està evolucionant!",
+		"title": "Roo+ Code Cloud està evolucionant!",
 		"description": "Executa agents remots al núvol, accedeix a les teves tasques des de qualsevol lloc, col·labora amb altres i molt més.",
 		"joinWaitlist": "Registra't per rebre les últimes actualitzacions."
 	},
@@ -460,8 +460,8 @@
 		"clickToEdit": "Feu clic per editar el missatge"
 	},
 	"slashCommand": {
-		"wantsToRun": "Zoo vol executar una comanda slash",
-		"didRun": "Zoo ha executat una comanda slash"
+		"wantsToRun": "Roo+ vol executar una comanda slash",
+		"didRun": "Roo+ ha executat una comanda slash"
 	},
 	"contextMenu": {
 		"noResults": "Sense resultats",
@@ -486,7 +486,7 @@
 		"openMcpSettings": "Obrir configuració de MCP"
 	},
 	"readCommandOutput": {
-		"title": "Zoo read command output"
+		"title": "Roo+ read command output"
 	},
 	"retiredProvider": {
 		"title": "Proveïdor ja no compatible",

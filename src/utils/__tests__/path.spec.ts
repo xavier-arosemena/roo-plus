@@ -32,13 +32,13 @@ const mockWindow = (
 ).window
 
 /**
- * Set the value returned for `zoo-code.workspace.rootResolution` in tests.
+ * Set the value returned for `roo-plus.workspace.rootResolution` in tests.
  * Pass `undefined` to fall back to the default ("activeEditor").
  */
 function setRootResolution(value: "activeEditor" | "firstFolder" | undefined) {
 	mockWorkspace.getConfiguration = (section?: string) => ({
 		get: (key: string, defaultValue?: unknown) => {
-			if (section === "zoo-code" && key === "workspace.rootResolution") {
+			if (section === "roo-plus" && key === "workspace.rootResolution") {
 				return value ?? defaultValue
 			}
 			return defaultValue

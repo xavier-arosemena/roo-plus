@@ -2,21 +2,21 @@ import * as vscode from "vscode"
 
 import { t } from "../i18n"
 
-const ZOO_CODE_TOKEN_KEY = "zoo-code-session-token"
-const ZOO_CODE_USER_NAME_KEY = "zoo-code-user-name"
-const ZOO_CODE_USER_EMAIL_KEY = "zoo-code-user-email"
-const ZOO_CODE_USER_IMAGE_KEY = "zoo-code-user-image"
+const ZOO_CODE_TOKEN_KEY = "roo-plus-session-token"
+const ZOO_CODE_USER_NAME_KEY = "roo-plus-user-name"
+const ZOO_CODE_USER_EMAIL_KEY = "roo-plus-user-email"
+const ZOO_CODE_USER_IMAGE_KEY = "roo-plus-user-image"
 
 let secretStorage: vscode.SecretStorage | undefined
 
-// In-memory cache for synchronous access in ZooCodeHandler hot path
+// In-memory cache for synchronous access in RooPlusHandler hot path
 let _cachedToken: string | undefined = undefined
 let _sessionCleared = false
 let _cachedUserName: string | undefined = undefined
 let _cachedUserEmail: string | undefined = undefined
 let _cachedUserImage: string | undefined = undefined
 
-export async function initZooCodeAuth(context: vscode.ExtensionContext): Promise<void> {
+export async function initRooPlusAuth(context: vscode.ExtensionContext): Promise<void> {
 	if (!context.secrets) {
 		// Secret storage unavailable (e.g. test environment without secrets mock).
 		// Treat as unauthenticated startup — all cached values remain undefined.
@@ -24,7 +24,7 @@ export async function initZooCodeAuth(context: vscode.ExtensionContext): Promise
 	}
 	secretStorage = context.secrets
 
-	// Pre-load the token and user info into memory on init so ZooCodeHandler can access them synchronously
+	// Pre-load the token and user info into memory on init so RooPlusHandler can access them synchronously
 	_cachedToken = await secretStorage.get(ZOO_CODE_TOKEN_KEY)
 	_sessionCleared = false
 	_cachedUserName = await secretStorage.get(ZOO_CODE_USER_NAME_KEY)
@@ -35,10 +35,10 @@ export async function initZooCodeAuth(context: vscode.ExtensionContext): Promise
 	// Network errors / 5xx ("unreachable") leave the cached session in place so a
 	// transient backend blip doesn't force users to sign in again.
 	if (_cachedToken) {
-		const result = await verifyZooCodeToken()
+		const result = await verifyRooPlusToken()
 		if (result === "invalid") {
-			await clearZooCodeUserInfo()
-			await clearZooCodeToken()
+			await clearRooPlusUserInfo()
+			await clearRooPlusToken()
 		}
 	}
 
@@ -67,8 +67,8 @@ export async function initZooCodeAuth(context: vscode.ExtensionContext): Promise
 	})
 }
 
-// Synchronous getter for use in ZooCodeHandler (called in hot path during API requests)
-export function getCachedZooCodeToken(): string {
+// Synchronous getter for use in RooPlusHandler (called in hot path during API requests)
+export function getCachedRooPlusToken(): string {
 	return _cachedToken ?? ""
 }
 
@@ -87,7 +87,7 @@ export function resolveZooGatewaySessionToken(profileToken?: string): string | u
 	return profileToken || undefined
 }
 
-export function getCachedZooCodeUserInfo(): { name?: string; email?: string; image?: string } {
+export function getCachedRooPlusUserInfo(): { name?: string; email?: string; image?: string } {
 	return {
 		name: _cachedUserName,
 		email: _cachedUserEmail,
@@ -95,19 +95,19 @@ export function getCachedZooCodeUserInfo(): { name?: string; email?: string; ima
 	}
 }
 
-export async function getZooCodeToken(): Promise<string | undefined> {
+export async function getRooPlusToken(): Promise<string | undefined> {
 	if (!secretStorage) return undefined
 	return secretStorage.get(ZOO_CODE_TOKEN_KEY)
 }
 
-export async function setZooCodeToken(token: string): Promise<void> {
+export async function setRooPlusToken(token: string): Promise<void> {
 	if (!secretStorage) return
 	await secretStorage.store(ZOO_CODE_TOKEN_KEY, token)
 	_cachedToken = token
 	_sessionCleared = false
 }
 
-export async function setZooCodeUserInfo(info: {
+export async function setRooPlusUserInfo(info: {
 	name?: string | null
 	email?: string | null
 	image?: string | null
@@ -139,7 +139,7 @@ export async function setZooCodeUserInfo(info: {
 	}
 }
 
-export async function clearZooCodeUserInfo(): Promise<void> {
+export async function clearRooPlusUserInfo(): Promise<void> {
 	if (!secretStorage) return
 	await secretStorage.delete(ZOO_CODE_USER_NAME_KEY)
 	await secretStorage.delete(ZOO_CODE_USER_EMAIL_KEY)
@@ -149,14 +149,14 @@ export async function clearZooCodeUserInfo(): Promise<void> {
 	_cachedUserImage = undefined
 }
 
-export async function clearZooCodeToken(): Promise<void> {
+export async function clearRooPlusToken(): Promise<void> {
 	if (!secretStorage) return
 	await secretStorage.delete(ZOO_CODE_TOKEN_KEY)
 	_cachedToken = undefined
 	_sessionCleared = true
 }
 
-export function getZooCodeBaseUrl(): string {
+export function getRooPlusBaseUrl(): string {
 	return process.env.ZOO_CODE_BASE_URL || "https://www.zoocode.dev"
 }
 
@@ -167,7 +167,7 @@ export async function handleAuthCallback(token: string): Promise<boolean> {
 	}
 
 	// Verify token with backend before storing
-	const baseUrl = getZooCodeBaseUrl()
+	const baseUrl = getRooPlusBaseUrl()
 	try {
 		const response = await fetch(`${baseUrl}/api/extension/auth/verify`, {
 			headers: { Authorization: `Bearer ${token}` },
@@ -193,7 +193,7 @@ export async function handleAuthCallback(token: string): Promise<boolean> {
 		return false
 	}
 
-	await setZooCodeToken(token)
+	await setRooPlusToken(token)
 
 	vscode.window.showInformationMessage(t("common:zooAuth.info.connected"))
 	return true
@@ -212,11 +212,11 @@ export async function handleAuthCallback(token: string): Promise<boolean> {
  *
  * This function has no side-effects; callers are responsible for acting on the result.
  */
-export async function verifyZooCodeToken(): Promise<"valid" | "invalid" | "unreachable"> {
-	const token = await getZooCodeToken()
+export async function verifyRooPlusToken(): Promise<"valid" | "invalid" | "unreachable"> {
+	const token = await getRooPlusToken()
 	if (!token) return "invalid"
 
-	const baseUrl = getZooCodeBaseUrl()
+	const baseUrl = getRooPlusBaseUrl()
 
 	try {
 		const response = await fetch(`${baseUrl}/api/extension/auth/verify`, {
@@ -238,15 +238,15 @@ export async function verifyZooCodeToken(): Promise<"valid" | "invalid" | "unrea
 	}
 }
 
-export async function isZooCodeAuthenticated(): Promise<boolean> {
-	const token = await getZooCodeToken()
+export async function isRooPlusAuthenticated(): Promise<boolean> {
+	const token = await getRooPlusToken()
 	return !!token
 }
 
-export async function disconnectZooCode(): Promise<void> {
-	const token = await getZooCodeToken()
+export async function disconnectRooPlus(): Promise<void> {
+	const token = await getRooPlusToken()
 	if (token) {
-		const baseUrl = getZooCodeBaseUrl()
+		const baseUrl = getRooPlusBaseUrl()
 
 		try {
 			await fetch(`${baseUrl}/api/extension/auth/revoke`, {
@@ -258,7 +258,7 @@ export async function disconnectZooCode(): Promise<void> {
 			// Ignore errors during revocation
 		}
 	}
-	await clearZooCodeToken()
-	await clearZooCodeUserInfo()
+	await clearRooPlusToken()
+	await clearRooPlusUserInfo()
 	vscode.window.showInformationMessage(t("common:zooAuth.info.disconnected"))
 }

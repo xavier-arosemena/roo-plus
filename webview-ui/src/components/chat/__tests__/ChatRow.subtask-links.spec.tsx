@@ -17,7 +17,7 @@ vi.mock("react-i18next", () => ({
 	useTranslation: () => ({
 		t: (key: string) => {
 			const map: Record<string, string> = {
-				"chat:subtasks.wantsToCreate": "Roo wants to create a new subtask",
+				"chat:subtasks.wantsToCreate": "Roo+ wants to create a new subtask",
 				"chat:subtasks.resultContent": "Task result",
 				"chat:subtasks.goToSubtask": "Go to subtask",
 			}

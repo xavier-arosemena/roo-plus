@@ -96,7 +96,7 @@
 	"enqueueMessage": "将消息加入队列（当前任务完成后发送）",
 	"scrollToBottom": "滚动到聊天底部",
 	"scrollToLatestCheckpoint": "滚动到上一个检查点",
-	"about": "Zoo Code 是您编辑器中的整个 AI 开发团队。",
+	"about": "Roo+ Code 是您编辑器中的整个 AI 开发团队。",
 	"docs": "查看我们的 <DocsLink>文档</DocsLink> 了解更多信息。",
 	"onboarding": "此工作区中的任务列表为空。",
 	"rooTips": {
@@ -200,9 +200,9 @@
 		"wantsToInsert": "需要在此文件中插入内容",
 		"wantsToInsertWithLineNumber": "需要在第 {{lineNumber}} 行插入内容",
 		"wantsToInsertAtEnd": "需要在文件末尾添加内容",
-		"wantsToReadAndXMore": "Zoo 想读取此文件以及另外 {{count}} 个文件",
-		"wantsToReadMultiple": "Zoo 想要读取多个文件",
-		"wantsToApplyBatchChanges": "Zoo 想要对多个文件应用更改",
+		"wantsToReadAndXMore": "Roo+ 想读取此文件以及另外 {{count}} 个文件",
+		"wantsToReadMultiple": "Roo+ 想要读取多个文件",
+		"wantsToApplyBatchChanges": "Roo+ 想要对多个文件应用更改",
 		"wantsToGenerateImage": "需要生成图片",
 		"wantsToGenerateImageOutsideWorkspace": "需要在工作区外生成图片",
 		"wantsToGenerateImageProtected": "需要在受保护位置生成图片",
@@ -221,7 +221,7 @@
 		"didViewTopLevelOutsideWorkspace": "已查看目录文件列表（工作区外）",
 		"wantsToViewRecursiveOutsideWorkspace": "需要查看目录所有文件（工作区外）",
 		"didViewRecursiveOutsideWorkspace": "已查看目录所有文件（工作区外）",
-		"wantsToViewMultipleDirectories": "Zoo 想要查看多个目录"
+		"wantsToViewMultipleDirectories": "Roo+ 想要查看多个目录"
 	},
 	"commandOutput": "命令输出",
 	"commandExecution": {
@@ -245,7 +245,7 @@
 	"response": "响应",
 	"arguments": "参数",
 	"text": {
-		"rooSaid": "Zoo 说"
+		"rooSaid": "Roo+ 说"
 	},
 	"feedback": {
 		"youSaid": "你说"
@@ -330,15 +330,15 @@
 		}
 	},
 	"skill": {
-		"wantsToLoad": "Zoo 想要加载技能",
-		"didLoad": "Zoo 加载了技能"
+		"wantsToLoad": "Roo+ 想要加载技能",
+		"didLoad": "Roo+ 加载了技能"
 	},
 	"followUpSuggest": {
 		"copyToInput": "复制到输入框（或按住Shift点击）",
 		"timerPrefix": "自动批准已启用。{{seconds}}秒后选择中…"
 	},
 	"announcement": {
-		"title": "Zoo Code {{version}} 已发布",
+		"title": "Roo+ Code {{version}} 已发布",
 		"support": "请在 <githubLink>GitHub</githubLink> 上为 Zoo Code 点星支持我们。",
 		"release": {
 			"heading": "新增功能：",
@@ -374,7 +374,7 @@
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "已达自动批准请求限制",
-			"description": "Zoo 已达到 {{count}} 次 API 请求的自动批准限制。您想重置计数并继续任务吗？",
+			"description": "Roo+ 已达到 {{count}} 次 API 请求的自动批准限制。您想重置计数并继续任务吗？",
 			"button": "重置并继续"
 		},
 		"autoApprovedCostLimitReached": {
@@ -384,8 +384,8 @@
 		}
 	},
 	"codebaseSearch": {
-		"wantsToSearch": "Zoo 需要搜索代码库: <code>{{query}}</code>",
-		"wantsToSearchWithPath": "Zoo 需要在 <code>{{path}}</code> 中搜索: <code>{{query}}</code>",
+		"wantsToSearch": "Roo+ 需要搜索代码库: <code>{{query}}</code>",
+		"wantsToSearchWithPath": "Roo+ 需要在 <code>{{path}}</code> 中搜索: <code>{{query}}</code>",
 		"didSearch_one": "找到 1 个结果",
 		"didSearch_other": "找到 {{count}} 个结果",
 		"resultTooltip": "相似度评分: {{score}} (点击打开文件)"
@@ -426,7 +426,7 @@
 		"ariaLabel": "版本 {{version}} - 点击查看发布说明"
 	},
 	"rooCloudCTA": {
-		"title": "Zoo Code Cloud 正在进化！",
+		"title": "Roo+ Code Cloud 正在进化！",
 		"description": "在云端运行远程代理，随时随地访问任务，与他人协作等更多功能。",
 		"joinWaitlist": "注册获取最新更新。"
 	},
@@ -467,8 +467,8 @@
 		"clickToEdit": "点击编辑消息"
 	},
 	"slashCommand": {
-		"wantsToRun": "Zoo 想要运行斜杠命令",
-		"didRun": "Zoo 运行了斜杠命令"
+		"wantsToRun": "Roo+ 想要运行斜杠命令",
+		"didRun": "Roo+ 运行了斜杠命令"
 	},
 	"todo": {
 		"partial": "已完成 {{completed}} / {{total}} 个待办事项",
@@ -487,7 +487,7 @@
 		"openMcpSettings": "打开 MCP 设置"
 	},
 	"readCommandOutput": {
-		"title": "Zoo read command output"
+		"title": "Roo+ read command output"
 	},
 	"retiredProvider": {
 		"title": "供应商不再受支持",

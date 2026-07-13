@@ -33,7 +33,7 @@ import { zooGatewayDefaultModelId, ZOO_GATEWAY_DEFAULT_TEMPERATURE } from "@roo-
 import { ZooGatewayHandler, classifyGatewayApiError, toGatewayStreamError } from "../zoo-gateway"
 import { ApiHandlerOptions } from "../../../shared/api"
 import { Package } from "../../../shared/package"
-import { clearZooCodeToken } from "../../../services/zoo-code-auth"
+import { clearRooPlusToken } from "../../../services/roo-plus-auth"
 
 vitest.mock("openai")
 vitest.mock("delay", () => ({
@@ -71,23 +71,23 @@ vitest.mock("../fetchers/modelCache", () => ({
 	getModelsFromCache: vitest.fn().mockReturnValue(undefined),
 }))
 
-const mockGetCachedZooCodeToken = vitest.hoisted(() => vitest.fn<() => string | undefined>(() => undefined))
+const mockGetCachedRooPlusToken = vitest.hoisted(() => vitest.fn<() => string | undefined>(() => undefined))
 const mockSessionCleared = vitest.hoisted(() => ({ value: false }))
 
-vitest.mock("../../../services/zoo-code-auth", () => ({
-	getZooCodeBaseUrl: vitest.fn(function () {
+vitest.mock("../../../services/roo-plus-auth", () => ({
+	getRooPlusBaseUrl: vitest.fn(function () {
 		return "https://www.zoocode.dev"
 	}),
-	getCachedZooCodeToken: () => mockGetCachedZooCodeToken() ?? "",
+	getCachedRooPlusToken: () => mockGetCachedRooPlusToken() ?? "",
 	resolveZooGatewaySessionToken: (profileToken?: string) => {
-		const cached = mockGetCachedZooCodeToken()
+		const cached = mockGetCachedRooPlusToken()
 		if (cached) return cached
 		if (mockSessionCleared.value) return undefined
 		return profileToken
 	},
-	clearZooCodeToken: vitest.fn(async () => {
+	clearRooPlusToken: vitest.fn(async () => {
 		mockSessionCleared.value = true
-		mockGetCachedZooCodeToken.mockReturnValue(undefined)
+		mockGetCachedRooPlusToken.mockReturnValue(undefined)
 	}),
 }))
 
@@ -120,7 +120,7 @@ describe("ZooGatewayHandler", () => {
 	beforeEach(() => {
 		vitest.clearAllMocks()
 		mockSessionCleared.value = false
-		mockGetCachedZooCodeToken.mockReturnValue(undefined)
+		mockGetCachedRooPlusToken.mockReturnValue(undefined)
 		mockCreate.mockClear()
 		showErrorMessage.mockReset()
 		showErrorMessage.mockResolvedValue(undefined)
@@ -159,7 +159,7 @@ describe("ZooGatewayHandler", () => {
 		})
 
 		it("prefers the secret-storage cache over a persisted profile token", () => {
-			mockGetCachedZooCodeToken.mockReturnValue("zoo_ext_cached_token")
+			mockGetCachedRooPlusToken.mockReturnValue("zoo_ext_cached_token")
 
 			new ZooGatewayHandler({
 				zooSessionToken: "zoo_ext_stale_profile_token",
@@ -184,8 +184,8 @@ describe("ZooGatewayHandler", () => {
 				baseURL: "https://staging.zoocode.dev/api/gateway/v1",
 				apiKey: mockOptions.zooSessionToken,
 				defaultHeaders: expect.objectContaining({
-					"HTTP-Referer": "https://github.com/Zoo-Code-Org/Zoo-Code",
-					"X-Title": "Zoo Code",
+					"HTTP-Referer": "https://github.com/Roo-Plus-Org/Roo-Plus",
+					"X-Title": "Roo+",
 					"X-Zoo-Editor": "vscode",
 					"X-Zoo-Extension-Version": Package.version,
 				}),
@@ -193,7 +193,7 @@ describe("ZooGatewayHandler", () => {
 			})
 		})
 
-		it("defaults the gateway base URL from getZooCodeBaseUrl", () => {
+		it("defaults the gateway base URL from getRooPlusBaseUrl", () => {
 			new ZooGatewayHandler(mockOptions)
 
 			expect(OpenAI).toHaveBeenCalledWith(
@@ -226,7 +226,7 @@ describe("ZooGatewayHandler", () => {
 		it("requires authentication at request time when no session token is available", async () => {
 			const handler = new ZooGatewayHandler({})
 			await expect(drainCreateMessage(handler)).rejects.toThrow(
-				"Zoo Gateway requires authentication. Please sign in to Zoo Code first.",
+				"Zoo Gateway requires authentication. Please sign in to Roo+ first.",
 			)
 		})
 
@@ -260,7 +260,7 @@ describe("ZooGatewayHandler", () => {
 				for await (const _chunk of stream) {
 					// drain
 				}
-			}).rejects.toThrow("Zoo Gateway requires authentication. Please sign in to Zoo Code first.")
+			}).rejects.toThrow("Zoo Gateway requires authentication. Please sign in to Roo+ first.")
 		})
 
 		it("streams text and usage chunks", async () => {
@@ -537,7 +537,7 @@ describe("ZooGatewayHandler", () => {
 			showErrorMessage.mockResolvedValueOnce("common:zooAuth.buttons.sign_in")
 
 			await expect(drainCreateMessage(handler)).rejects.toThrow()
-			expect(clearZooCodeToken).toHaveBeenCalledTimes(1)
+			expect(clearRooPlusToken).toHaveBeenCalledTimes(1)
 			expect(showErrorMessage).toHaveBeenCalledWith(
 				"common:zooAuth.errors.session_expired",
 				"common:zooAuth.buttons.sign_in",
@@ -553,7 +553,7 @@ describe("ZooGatewayHandler", () => {
 			showErrorMessage.mockResolvedValueOnce(undefined)
 
 			await expect(drainCreateMessage(handler)).rejects.toThrow()
-			expect(clearZooCodeToken).toHaveBeenCalledTimes(1)
+			expect(clearRooPlusToken).toHaveBeenCalledTimes(1)
 			expect(openExternal).not.toHaveBeenCalled()
 		})
 
@@ -565,7 +565,7 @@ describe("ZooGatewayHandler", () => {
 			showErrorMessage.mockResolvedValueOnce("common:zooAuth.buttons.add_credits")
 
 			await expect(drainCreateMessage(handler)).rejects.toThrow()
-			expect(clearZooCodeToken).not.toHaveBeenCalled()
+			expect(clearRooPlusToken).not.toHaveBeenCalled()
 			expect(showErrorMessage).toHaveBeenCalledWith(
 				"common:zooAuth.errors.out_of_credits",
 				"common:zooAuth.buttons.add_credits",
@@ -619,7 +619,7 @@ describe("ZooGatewayHandler", () => {
 
 			await expect(drainCreateMessage(handler)).rejects.toThrow("network down")
 			expect(showErrorMessage).not.toHaveBeenCalled()
-			expect(clearZooCodeToken).not.toHaveBeenCalled()
+			expect(clearRooPlusToken).not.toHaveBeenCalled()
 		})
 
 		it("surfaces the gateway error then wraps the message in completePrompt", async () => {

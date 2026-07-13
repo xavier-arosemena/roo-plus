@@ -109,7 +109,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 
 		// Execute command.
 		// Determine whether the active shell is PowerShell so we can apply the
-		// PS-specific counter/sleep workarounds.  Prefer the Zoo Code profile
+		// PS-specific counter/sleep workarounds.  Prefer the Roo+ profile
 		// override (if set) over the VS Code default profile.  Fix for the wrong
 		// config API: must be getConfiguration("terminal.integrated").get(
 		// "defaultProfile.windows"), not the reversed form that always returns null.

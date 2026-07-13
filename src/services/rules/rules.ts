@@ -392,7 +392,7 @@ function createRuleTemplate(fileName: string, input: CreateRuleInput): string {
 	const title = path.basename(fileName, ".md")
 	const modeLine = input.kind === "mode" ? ` for ${input.modeSlug} mode` : ""
 
-	return `# ${title}\n\nAdd Zoo Code rule guidance${modeLine} here.\n`
+	return `# ${title}\n\nAdd Roo+ rule guidance${modeLine} here.\n`
 }
 
 function compareRules(a: RuleMetadata, b: RuleMetadata): number {

@@ -2,18 +2,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import * as vscode from "vscode"
 
 import {
-	clearZooCodeToken,
-	clearZooCodeUserInfo,
-	disconnectZooCode,
-	getCachedZooCodeToken,
-	getCachedZooCodeUserInfo,
-	getZooCodeBaseUrl,
+	clearRooPlusToken,
+	clearRooPlusUserInfo,
+	disconnectRooPlus,
+	getCachedRooPlusToken,
+	getCachedRooPlusUserInfo,
+	getRooPlusBaseUrl,
 	handleAuthCallback,
-	initZooCodeAuth,
+	initRooPlusAuth,
 	resolveZooGatewaySessionToken,
-	setZooCodeToken,
-	setZooCodeUserInfo,
-	verifyZooCodeToken,
+	setRooPlusToken,
+	setRooPlusUserInfo,
+	verifyRooPlusToken,
 } from "../zoo-code-auth"
 
 vi.mock("vscode", () => ({
@@ -61,48 +61,48 @@ describe("zoo-code-auth", () => {
 	})
 
 	afterEach(async () => {
-		await clearZooCodeToken()
-		await clearZooCodeUserInfo()
+		await clearRooPlusToken()
+		await clearRooPlusUserInfo()
 		vi.restoreAllMocks()
 	})
 
-	describe("getCachedZooCodeToken", () => {
+	describe("getCachedRooPlusToken", () => {
 		it("returns an empty string when no token is set", async () => {
-			await clearZooCodeToken()
+			await clearRooPlusToken()
 
-			expect(getCachedZooCodeToken()).toBe("")
+			expect(getCachedRooPlusToken()).toBe("")
 		})
 
 		it("preloads the cached token during initialization", async () => {
-			await mockSecrets.store("zoo-code-session-token", "zoo_ext_cached_token")
+			await mockSecrets.store("roo-plus-session-token", "zoo_ext_cached_token")
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ valid: true }),
 			})
 
-			await initZooCodeAuth(mockContext)
+			await initRooPlusAuth(mockContext)
 			await Promise.resolve()
 
-			expect(getCachedZooCodeToken()).toBe("zoo_ext_cached_token")
+			expect(getCachedRooPlusToken()).toBe("zoo_ext_cached_token")
 		})
 	})
 
-	describe("initZooCodeAuth", () => {
+	describe("initRooPlusAuth", () => {
 		it("clears stored user info and token when the cached token is invalid", async () => {
-			await mockSecrets.store("zoo-code-session-token", "zoo_ext_stale_token")
-			await mockSecrets.store("zoo-code-user-name", "Jane Doe")
-			await mockSecrets.store("zoo-code-user-email", "jane@example.com")
-			await mockSecrets.store("zoo-code-user-image", "https://example.com/avatar.png")
+			await mockSecrets.store("roo-plus-session-token", "zoo_ext_stale_token")
+			await mockSecrets.store("roo-plus-user-name", "Jane Doe")
+			await mockSecrets.store("roo-plus-user-email", "jane@example.com")
+			await mockSecrets.store("roo-plus-user-image", "https://example.com/avatar.png")
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ valid: false }),
 			})
 
-			await initZooCodeAuth(mockContext)
+			await initRooPlusAuth(mockContext)
 
 			// Both token and user info should be cleared on a definitive invalid response
-			expect(getCachedZooCodeToken()).toBe("")
-			expect(getCachedZooCodeUserInfo()).toEqual({
+			expect(getCachedRooPlusToken()).toBe("")
+			expect(getCachedRooPlusUserInfo()).toEqual({
 				name: undefined,
 				email: undefined,
 				image: undefined,
@@ -110,19 +110,19 @@ describe("zoo-code-auth", () => {
 		})
 
 		it("clears stored user info and token when backend returns HTTP error (invalid token)", async () => {
-			await mockSecrets.store("zoo-code-session-token", "zoo_ext_stale_token")
-			await mockSecrets.store("zoo-code-user-name", "Jane Doe")
-			await mockSecrets.store("zoo-code-user-email", "jane@example.com")
+			await mockSecrets.store("roo-plus-session-token", "zoo_ext_stale_token")
+			await mockSecrets.store("roo-plus-user-name", "Jane Doe")
+			await mockSecrets.store("roo-plus-user-email", "jane@example.com")
 			mockFetch.mockResolvedValueOnce({
 				ok: false,
 				status: 401,
 				statusText: "Unauthorized",
 			})
 
-			await initZooCodeAuth(mockContext)
+			await initRooPlusAuth(mockContext)
 
-			expect(getCachedZooCodeToken()).toBe("")
-			expect(getCachedZooCodeUserInfo()).toEqual({
+			expect(getCachedRooPlusToken()).toBe("")
+			expect(getCachedRooPlusUserInfo()).toEqual({
 				name: undefined,
 				email: undefined,
 				image: undefined,
@@ -130,52 +130,52 @@ describe("zoo-code-auth", () => {
 		})
 
 		it("preserves token and user info when the backend is temporarily unreachable", async () => {
-			await mockSecrets.store("zoo-code-session-token", "zoo_ext_valid_token")
-			await mockSecrets.store("zoo-code-user-name", "Jane Doe")
-			await mockSecrets.store("zoo-code-user-email", "jane@example.com")
+			await mockSecrets.store("roo-plus-session-token", "zoo_ext_valid_token")
+			await mockSecrets.store("roo-plus-user-name", "Jane Doe")
+			await mockSecrets.store("roo-plus-user-email", "jane@example.com")
 			// Simulate a network error during verification
 			mockFetch.mockRejectedValueOnce(new Error("Network error"))
 
-			await initZooCodeAuth(mockContext)
+			await initRooPlusAuth(mockContext)
 
-			expect(getCachedZooCodeToken()).toBe("zoo_ext_valid_token")
-			expect(getCachedZooCodeUserInfo().name).toBe("Jane Doe")
+			expect(getCachedRooPlusToken()).toBe("zoo_ext_valid_token")
+			expect(getCachedRooPlusUserInfo().name).toBe("Jane Doe")
 		})
 
 		it("preserves token and user info when verify returns 5xx (transient backend error)", async () => {
-			await mockSecrets.store("zoo-code-session-token", "zoo_ext_valid_token")
-			await mockSecrets.store("zoo-code-user-name", "Jane Doe")
-			await mockSecrets.store("zoo-code-user-email", "jane@example.com")
+			await mockSecrets.store("roo-plus-session-token", "zoo_ext_valid_token")
+			await mockSecrets.store("roo-plus-user-name", "Jane Doe")
+			await mockSecrets.store("roo-plus-user-email", "jane@example.com")
 			mockFetch.mockResolvedValueOnce({
 				ok: false,
 				status: 503,
 				statusText: "Service Unavailable",
 			})
 
-			await initZooCodeAuth(mockContext)
+			await initRooPlusAuth(mockContext)
 
-			expect(getCachedZooCodeToken()).toBe("zoo_ext_valid_token")
-			expect(getCachedZooCodeUserInfo().name).toBe("Jane Doe")
+			expect(getCachedRooPlusToken()).toBe("zoo_ext_valid_token")
+			expect(getCachedRooPlusUserInfo().name).toBe("Jane Doe")
 		})
 	})
 
-	describe("clearZooCodeToken", () => {
+	describe("clearRooPlusToken", () => {
 		it("clears the cached token", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeToken("zoo_ext_test_token")
+			await initRooPlusAuth(mockContext)
+			await setRooPlusToken("zoo_ext_test_token")
 
-			await clearZooCodeToken()
+			await clearRooPlusToken()
 
-			expect(getCachedZooCodeToken()).toBe("")
+			expect(getCachedRooPlusToken()).toBe("")
 		})
 	})
 
-	describe("getZooCodeBaseUrl", () => {
+	describe("getRooPlusBaseUrl", () => {
 		it("returns the default URL when ZOO_CODE_BASE_URL is not set", () => {
 			const originalEnv = process.env.ZOO_CODE_BASE_URL
 			delete process.env.ZOO_CODE_BASE_URL
 
-			expect(getZooCodeBaseUrl()).toBe("https://www.zoocode.dev")
+			expect(getRooPlusBaseUrl()).toBe("https://www.zoocode.dev")
 
 			if (originalEnv) {
 				process.env.ZOO_CODE_BASE_URL = originalEnv
@@ -186,7 +186,7 @@ describe("zoo-code-auth", () => {
 			const originalEnv = process.env.ZOO_CODE_BASE_URL
 			process.env.ZOO_CODE_BASE_URL = "https://staging.zoocode.dev"
 
-			expect(getZooCodeBaseUrl()).toBe("https://staging.zoocode.dev")
+			expect(getRooPlusBaseUrl()).toBe("https://staging.zoocode.dev")
 
 			if (originalEnv) {
 				process.env.ZOO_CODE_BASE_URL = originalEnv
@@ -198,7 +198,7 @@ describe("zoo-code-auth", () => {
 
 	describe("handleAuthCallback", () => {
 		it("does not persist a token when backend verification fails", async () => {
-			await initZooCodeAuth(mockContext)
+			await initRooPlusAuth(mockContext)
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ valid: false }),
@@ -207,12 +207,12 @@ describe("zoo-code-auth", () => {
 			const success = await handleAuthCallback("zoo_ext_fake_token")
 
 			expect(success).toBe(false)
-			expect(getCachedZooCodeToken()).toBe("")
-			expect(mockSecrets.store).not.toHaveBeenCalledWith("zoo-code-session-token", "zoo_ext_fake_token")
+			expect(getCachedRooPlusToken()).toBe("")
+			expect(mockSecrets.store).not.toHaveBeenCalledWith("roo-plus-session-token", "zoo_ext_fake_token")
 		})
 
 		it("persists a token only after backend verification succeeds", async () => {
-			await initZooCodeAuth(mockContext)
+			await initRooPlusAuth(mockContext)
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ valid: true }),
@@ -221,114 +221,114 @@ describe("zoo-code-auth", () => {
 			const success = await handleAuthCallback("zoo_ext_real_token")
 
 			expect(success).toBe(true)
-			expect(getCachedZooCodeToken()).toBe("zoo_ext_real_token")
-			expect(mockSecrets.store).toHaveBeenCalledWith("zoo-code-session-token", "zoo_ext_real_token")
+			expect(getCachedRooPlusToken()).toBe("zoo_ext_real_token")
+			expect(mockSecrets.store).toHaveBeenCalledWith("roo-plus-session-token", "zoo_ext_real_token")
 		})
 	})
 
-	describe("verifyZooCodeToken", () => {
+	describe("verifyRooPlusToken", () => {
 		it("returns 'valid' when the backend confirms the token", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeToken("zoo_ext_valid_token")
+			await initRooPlusAuth(mockContext)
+			await setRooPlusToken("zoo_ext_valid_token")
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ valid: true }),
 			})
 
-			expect(await verifyZooCodeToken()).toBe("valid")
+			expect(await verifyRooPlusToken()).toBe("valid")
 			// Token should NOT be cleared — no side effects
-			expect(getCachedZooCodeToken()).toBe("zoo_ext_valid_token")
+			expect(getCachedRooPlusToken()).toBe("zoo_ext_valid_token")
 		})
 
 		it("returns 'invalid' when the backend reports valid: false", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeToken("zoo_ext_invalid_token")
+			await initRooPlusAuth(mockContext)
+			await setRooPlusToken("zoo_ext_invalid_token")
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ valid: false }),
 			})
 
-			expect(await verifyZooCodeToken()).toBe("invalid")
+			expect(await verifyRooPlusToken()).toBe("invalid")
 			// No side effects — caller decides what to do
-			expect(getCachedZooCodeToken()).toBe("zoo_ext_invalid_token")
+			expect(getCachedRooPlusToken()).toBe("zoo_ext_invalid_token")
 		})
 
 		it("returns 'invalid' when the backend returns 4xx", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeToken("zoo_ext_invalid_token")
+			await initRooPlusAuth(mockContext)
+			await setRooPlusToken("zoo_ext_invalid_token")
 			mockFetch.mockResolvedValueOnce({
 				ok: false,
 				status: 401,
 				statusText: "Unauthorized",
 			})
 
-			expect(await verifyZooCodeToken()).toBe("invalid")
+			expect(await verifyRooPlusToken()).toBe("invalid")
 		})
 
 		it("returns 'unreachable' when the backend returns 5xx (transient)", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeToken("zoo_ext_token")
+			await initRooPlusAuth(mockContext)
+			await setRooPlusToken("zoo_ext_token")
 			mockFetch.mockResolvedValueOnce({
 				ok: false,
 				status: 503,
 				statusText: "Service Unavailable",
 			})
 
-			expect(await verifyZooCodeToken()).toBe("unreachable")
-			expect(getCachedZooCodeToken()).toBe("zoo_ext_token")
+			expect(await verifyRooPlusToken()).toBe("unreachable")
+			expect(getCachedRooPlusToken()).toBe("zoo_ext_token")
 		})
 
 		it("returns 'unreachable' when a network error occurs", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeToken("zoo_ext_token")
+			await initRooPlusAuth(mockContext)
+			await setRooPlusToken("zoo_ext_token")
 			mockFetch.mockRejectedValueOnce(new Error("Network error"))
 
-			expect(await verifyZooCodeToken()).toBe("unreachable")
+			expect(await verifyRooPlusToken()).toBe("unreachable")
 			// Token must NOT be cleared on network error
-			expect(getCachedZooCodeToken()).toBe("zoo_ext_token")
+			expect(getCachedRooPlusToken()).toBe("zoo_ext_token")
 		})
 
 		it("returns 'invalid' when no token is stored", async () => {
-			await initZooCodeAuth(mockContext)
+			await initRooPlusAuth(mockContext)
 
-			expect(await verifyZooCodeToken()).toBe("invalid")
+			expect(await verifyRooPlusToken()).toBe("invalid")
 		})
 	})
 
-	describe("setZooCodeUserInfo", () => {
+	describe("setRooPlusUserInfo", () => {
 		it("clears email when passed null", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeUserInfo({
+			await initRooPlusAuth(mockContext)
+			await setRooPlusUserInfo({
 				name: "Jane Doe",
 				email: "jane@example.com",
 				image: "https://example.com/avatar.png",
 			})
 
 			// Verify email is set
-			expect(getCachedZooCodeUserInfo().email).toBe("jane@example.com")
+			expect(getCachedRooPlusUserInfo().email).toBe("jane@example.com")
 
 			// Clear email with null
-			await setZooCodeUserInfo({ email: null })
+			await setRooPlusUserInfo({ email: null })
 
 			// Email should be cleared, but other fields should remain
-			const info = getCachedZooCodeUserInfo()
+			const info = getCachedRooPlusUserInfo()
 			expect(info.email).toBeUndefined()
 			expect(info.name).toBe("Jane Doe")
 			expect(info.image).toBe("https://example.com/avatar.png")
 		})
 
 		it("does not clear email when passed undefined", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeUserInfo({
+			await initRooPlusAuth(mockContext)
+			await setRooPlusUserInfo({
 				name: "Jane Doe",
 				email: "jane@example.com",
 				image: "https://example.com/avatar.png",
 			})
 
 			// Pass undefined for email - should preserve existing value
-			await setZooCodeUserInfo({ name: "John Doe", email: undefined })
+			await setRooPlusUserInfo({ name: "John Doe", email: undefined })
 
-			const info = getCachedZooCodeUserInfo()
+			const info = getCachedRooPlusUserInfo()
 			expect(info.email).toBe("jane@example.com")
 			expect(info.name).toBe("John Doe")
 		})
@@ -336,39 +336,39 @@ describe("zoo-code-auth", () => {
 
 	describe("resolveZooGatewaySessionToken", () => {
 		it("prefers the cached token over a profile token", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeToken("zoo_ext_cached")
+			await initRooPlusAuth(mockContext)
+			await setRooPlusToken("zoo_ext_cached")
 
 			expect(resolveZooGatewaySessionToken("zoo_ext_profile")).toBe("zoo_ext_cached")
 		})
 
 		it("ignores profile tokens after an explicit sign-out clear", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeToken("zoo_ext_cached")
-			await clearZooCodeToken()
+			await initRooPlusAuth(mockContext)
+			await setRooPlusToken("zoo_ext_cached")
+			await clearRooPlusToken()
 
 			expect(resolveZooGatewaySessionToken("zoo_ext_stale_profile")).toBeUndefined()
 		})
 
 		it("falls back to the profile token when the cache is empty and not cleared", async () => {
-			await initZooCodeAuth(mockContext)
+			await initRooPlusAuth(mockContext)
 
 			expect(resolveZooGatewaySessionToken("zoo_ext_profile")).toBe("zoo_ext_profile")
 		})
 	})
 
-	describe("disconnectZooCode", () => {
+	describe("disconnectRooPlus", () => {
 		it("revokes the current token and clears cached auth state", async () => {
-			await initZooCodeAuth(mockContext)
-			await setZooCodeToken("zoo_ext_real_token")
-			await setZooCodeUserInfo({
+			await initRooPlusAuth(mockContext)
+			await setRooPlusToken("zoo_ext_real_token")
+			await setRooPlusUserInfo({
 				name: "Jane Doe",
 				email: "jane@example.com",
 				image: "https://example.com/avatar.png",
 			})
 			mockFetch.mockResolvedValueOnce({ ok: true })
 
-			await disconnectZooCode()
+			await disconnectRooPlus()
 
 			expect(mockFetch).toHaveBeenCalledWith(
 				expect.stringContaining("/api/extension/auth/revoke"),
@@ -377,8 +377,8 @@ describe("zoo-code-auth", () => {
 					headers: { Authorization: "Bearer zoo_ext_real_token" },
 				}),
 			)
-			expect(getCachedZooCodeToken()).toBe("")
-			expect(getCachedZooCodeUserInfo()).toEqual({
+			expect(getCachedRooPlusToken()).toBe("")
+			expect(getCachedRooPlusUserInfo()).toEqual({
 				name: undefined,
 				email: undefined,
 				image: undefined,

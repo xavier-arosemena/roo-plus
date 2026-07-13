@@ -958,16 +958,16 @@ export class ClineProvider
 	 * Seeds the zoo-gateway provider profile for users who have a cached auth token
 	 * but no profile (e.g., users who signed in before Zoo Gateway was added), or
 	 * who have an empty/imported profile without a token.
-	 * Called once per webview init; handleZooCodeCallback is idempotent so repeated calls are safe.
+	 * Called once per webview init; handleRooPlusCallback is idempotent so repeated calls are safe.
 	 */
 	private async ensureZooGatewayProfileSeeded(): Promise<void> {
-		const { getCachedZooCodeToken, getZooCodeBaseUrl } = await import("../../services/zoo-code-auth")
-		const token = getCachedZooCodeToken()
+		const { getCachedRooPlusToken, getRooPlusBaseUrl } = await import("../../services/roo-plus-auth")
+		const token = getCachedRooPlusToken()
 		if (!token) return
-		const expectedGatewayBaseUrl = `${getZooCodeBaseUrl()}/api/gateway/v1`
+		const expectedGatewayBaseUrl = `${getRooPlusBaseUrl()}/api/gateway/v1`
 
 		// Check ALL zoo-gateway profiles — only skip seeding if every profile has the current token.
-		// Using .find() would miss stale tokens in duplicate/renamed profiles since handleZooCodeCallback
+		// Using .find() would miss stale tokens in duplicate/renamed profiles since handleRooPlusCallback
 		// uses .filter() and updates all of them — the early-return guard must match.
 		const allProfiles = await this.providerSettingsManager.listConfig()
 		const zooGatewayProfiles = allProfiles.filter((p) => p.apiProvider === "zoo-gateway")
@@ -1003,7 +1003,7 @@ export class ClineProvider
 		}
 
 		// User has token but either no profile, some profiles without token, or stale tokens — seed all
-		await this.handleZooCodeCallback(token)
+		await this.handleRooPlusCallback(token)
 	}
 
 	public async createTaskWithHistoryItem(
@@ -1805,9 +1805,9 @@ export class ClineProvider
 		await this.upsertProviderProfile(currentApiConfigName, newConfiguration)
 	}
 
-	// Zoo Code Auth
+	// Roo+ Auth
 
-	async handleZooCodeCallback(token: string) {
+	async handleRooPlusCallback(token: string) {
 		// Auth mutation (token storage, subscription check, success toast) was already
 		// performed by handleAuthCallback() in handleUri.ts before this method was called.
 		// Save the zoo-gateway provider profile with the session token so that
@@ -1826,8 +1826,8 @@ export class ClineProvider
 			// (staging, local dev) route completions to the correct backend instead of always
 			// hard-coding production. An already-set value in the profile is NOT preserved here —
 			// it must always align with the auth server the user just authenticated against.
-			const { getZooCodeBaseUrl } = await import("../../services/zoo-code-auth")
-			const derivedGatewayBaseUrl = `${getZooCodeBaseUrl()}/api/gateway/v1`
+			const { getRooPlusBaseUrl } = await import("../../services/roo-plus-auth")
+			const derivedGatewayBaseUrl = `${getRooPlusBaseUrl()}/api/gateway/v1`
 
 			// Check if Zoo Gateway is the currently active profile by apiProvider identity,
 			// not by profile name (profile names are user-renameable).
@@ -1874,7 +1874,7 @@ export class ClineProvider
 			}
 		} catch (error) {
 			this.log(
-				`[handleZooCodeCallback] Failed to save zoo-gateway profile: ${
+				`[handleRooPlusCallback] Failed to save zoo-gateway profile: ${
 					error instanceof Error ? error.message : String(error)
 				}`,
 			)
@@ -2382,19 +2382,19 @@ export class ClineProvider
 		}
 
 		try {
-			const { isZooCodeAuthenticated, getCachedZooCodeUserInfo, getZooCodeBaseUrl } =
-				await import("../../services/zoo-code-auth")
-			const userInfo = getCachedZooCodeUserInfo()
+			const { isRooPlusAuthenticated, getCachedRooPlusUserInfo, getRooPlusBaseUrl } =
+				await import("../../services/roo-plus-auth")
+			const userInfo = getCachedRooPlusUserInfo()
 			zooCodeState = {
-				zooCodeIsAuthenticated: await isZooCodeAuthenticated(),
+				zooCodeIsAuthenticated: await isRooPlusAuthenticated(),
 				zooCodeUserName: userInfo.name,
 				zooCodeUserEmail: userInfo.email,
 				zooCodeUserImage: userInfo.image,
-				zooCodeBaseUrl: getZooCodeBaseUrl(),
+				zooCodeBaseUrl: getRooPlusBaseUrl(),
 				deviceName: os.hostname(),
 			}
 		} catch {
-			// Keep the default unauthenticated state if the optional Zoo Code auth service is unavailable.
+			// Keep the default unauthenticated state if the optional Roo+ auth service is unavailable.
 		}
 
 		return {
@@ -2991,7 +2991,7 @@ export class ClineProvider
 			return
 		}
 		this.log(
-			`[Zoo Code] Webview hidden during active task.\n` +
+			`[Roo+] Webview hidden during active task.\n` +
 				`  taskId:       ${task.taskId}\n` +
 				`  messageCount: ${task.clineMessages.length}\n` +
 				`  stackDepth:   ${this.clineStack.length}\n` +

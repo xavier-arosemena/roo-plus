@@ -59,7 +59,7 @@ interface ImagesApiOptions {
 }
 
 /**
- * Shared image generation implementation for OpenRouter and Zoo Code Cloud providers
+ * Shared image generation implementation for OpenRouter and Roo+ Cloud providers
  */
 export async function generateImageWithProvider(options: ImageGenerationOptions): Promise<ImageGenerationResult> {
 	const { baseURL, authToken, model, prompt, inputImage } = options
@@ -70,8 +70,8 @@ export async function generateImageWithProvider(options: ImageGenerationOptions)
 			headers: {
 				Authorization: `Bearer ${authToken}`,
 				"Content-Type": "application/json",
-				"HTTP-Referer": "https://github.com/Zoo-Code-Org/Zoo-Code",
-				"X-Title": "Zoo Code",
+				"HTTP-Referer": "https://github.com/Roo-Plus-Org/Roo-Plus",
+				"X-Title": "Roo+",
 			},
 			body: JSON.stringify({
 				model,
@@ -216,8 +216,8 @@ export async function generateImageWithImagesApi(options: ImagesApiOptions): Pro
 			headers: {
 				Authorization: `Bearer ${authToken}`,
 				"Content-Type": "application/json",
-				"HTTP-Referer": "https://github.com/Zoo-Code-Org/Zoo-Code",
-				"X-Title": "Zoo Code",
+				"HTTP-Referer": "https://github.com/Roo-Plus-Org/Roo-Plus",
+				"X-Title": "Roo+",
 			},
 			body: JSON.stringify(requestBody),
 		}

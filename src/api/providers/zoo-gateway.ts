@@ -10,7 +10,7 @@ import {
 } from "@roo-code/types"
 
 import { ApiHandlerOptions } from "../../shared/api"
-import { clearZooCodeToken, getZooCodeBaseUrl, resolveZooGatewaySessionToken } from "../../services/zoo-code-auth"
+import { clearRooPlusToken, getRooPlusBaseUrl, resolveZooGatewaySessionToken } from "../../services/roo-plus-auth"
 import { Package } from "../../shared/package"
 import { t } from "../../i18n"
 
@@ -51,13 +51,13 @@ export function toGatewayStreamError(raw: unknown): Error {
 	})
 }
 
-function buildZooCodeSignInUrl(): string {
+function buildRooPlusSignInUrl(): string {
 	const callbackUri = encodeURIComponent(
 		`${vscode.env.uriScheme}://${Package.publisher}.${Package.name}/auth-callback`,
 	)
 	const device = encodeURIComponent(vscode.env.appName || "VS Code")
 	const editor = encodeURIComponent("VS Code")
-	return `${getZooCodeBaseUrl()}/dashboard/connect?device=${device}&editor=${editor}&version=${Package.version}&callback_uri=${callbackUri}`
+	return `${getRooPlusBaseUrl()}/dashboard/connect?device=${device}&editor=${editor}&version=${Package.version}&callback_uri=${callbackUri}`
 }
 
 type ZooGatewayApiErrorAction =
@@ -97,13 +97,13 @@ async function surfaceGatewayApiError(error: unknown): Promise<void> {
 	switch (action.kind) {
 		case "sign_in": {
 			// Wipe before sign-in so the callback rebinds against an empty slot.
-			await clearZooCodeToken()
+			await clearRooPlusToken()
 			const clicked = await vscode.window.showErrorMessage(
 				t("common:zooAuth.errors.session_expired"),
 				t("common:zooAuth.buttons.sign_in"),
 			)
 			if (clicked) {
-				void vscode.env.openExternal(vscode.Uri.parse(buildZooCodeSignInUrl()))
+				void vscode.env.openExternal(vscode.Uri.parse(buildRooPlusSignInUrl()))
 			}
 			return
 		}
@@ -113,7 +113,7 @@ async function surfaceGatewayApiError(error: unknown): Promise<void> {
 				: t("common:zooAuth.errors.out_of_credits")
 			const clicked = await vscode.window.showErrorMessage(message, t("common:zooAuth.buttons.add_credits"))
 			if (clicked) {
-				void vscode.env.openExternal(vscode.Uri.parse(`${getZooCodeBaseUrl()}/dashboard/credits`))
+				void vscode.env.openExternal(vscode.Uri.parse(`${getRooPlusBaseUrl()}/dashboard/credits`))
 			}
 			return
 		}
@@ -123,7 +123,7 @@ async function surfaceGatewayApiError(error: unknown): Promise<void> {
 				t("common:zooAuth.buttons.contact_support"),
 			)
 			if (clicked) {
-				void vscode.env.openExternal(vscode.Uri.parse(`${getZooCodeBaseUrl()}/support`))
+				void vscode.env.openExternal(vscode.Uri.parse(`${getRooPlusBaseUrl()}/support`))
 			}
 			return
 		}
@@ -138,11 +138,11 @@ interface ZooGatewayUsage extends OpenAI.CompletionUsage {
 	cost?: number
 }
 
-const ZOO_GATEWAY_AUTH_ERROR = "Zoo Gateway requires authentication. Please sign in to Zoo Code first."
+const ZOO_GATEWAY_AUTH_ERROR = "Zoo Gateway requires authentication. Please sign in to Roo+ first."
 
 export class ZooGatewayHandler extends RouterProvider implements SingleCompletionHandler {
 	constructor(options: ApiHandlerOptions) {
-		const baseURL = options.zooGatewayBaseUrl ?? `${getZooCodeBaseUrl()}/api/gateway/v1`
+		const baseURL = options.zooGatewayBaseUrl ?? `${getRooPlusBaseUrl()}/api/gateway/v1`
 
 		const sessionToken = resolveZooGatewaySessionToken(options.zooSessionToken)
 

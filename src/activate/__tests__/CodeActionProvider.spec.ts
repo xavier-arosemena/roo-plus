@@ -8,10 +8,10 @@ import { CodeActionProvider } from "../CodeActionProvider"
 vi.mock("../../i18n", () => ({
 	t: vi.fn((key: string) => {
 		const translations: Record<string, string> = {
-			"common:codeActions.explain": "Explain with Zoo Code",
-			"common:codeActions.fix": "Fix with Zoo Code",
-			"common:codeActions.improve": "Improve with Zoo Code",
-			"common:codeActions.addToContext": "Add to Zoo Code",
+			"common:codeActions.explain": "Explain with Roo+",
+			"common:codeActions.fix": "Fix with Roo+",
+			"common:codeActions.improve": "Improve with Roo+",
+			"common:codeActions.addToContext": "Add to Roo+",
 		}
 		return translations[key] || key
 	}),
@@ -92,9 +92,9 @@ describe("CodeActionProvider", () => {
 			const actions = provider.provideCodeActions(mockDocument, mockRange, mockContext)
 
 			expect(actions).toHaveLength(3)
-			expect((actions as any)[0].title).toBe("Add to Zoo Code")
-			expect((actions as any)[1].title).toBe("Explain with Zoo Code")
-			expect((actions as any)[2].title).toBe("Improve with Zoo Code")
+			expect((actions as any)[0].title).toBe("Add to Roo+")
+			expect((actions as any)[1].title).toBe("Explain with Roo+")
+			expect((actions as any)[2].title).toBe("Improve with Roo+")
 		})
 
 		it("should provide fix action instead of fix logic when diagnostics exist", () => {
@@ -105,8 +105,8 @@ describe("CodeActionProvider", () => {
 			const actions = provider.provideCodeActions(mockDocument, mockRange, mockContext)
 
 			expect(actions).toHaveLength(2)
-			expect((actions as any).some((a: any) => a.title === "Fix with Zoo Code")).toBe(true)
-			expect((actions as any).some((a: any) => a.title === "Add to Zoo Code")).toBe(true)
+			expect((actions as any).some((a: any) => a.title === "Fix with Roo+")).toBe(true)
+			expect((actions as any).some((a: any) => a.title === "Add to Roo+")).toBe(true)
 		})
 
 		it("should return empty array when no effective range", () => {
@@ -128,7 +128,7 @@ describe("CodeActionProvider", () => {
 			const actions = provider.provideCodeActions(mockDocument, mockRange, mockContext)
 
 			expect(actions).toEqual([])
-			expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith("zoo-code")
+			expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith("roo-plus")
 			expect(mockGet).toHaveBeenCalledWith("enableCodeActions", true)
 		})
 

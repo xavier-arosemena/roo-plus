@@ -5,11 +5,11 @@ import axios from "axios"
 import { getZooGatewayModels, parseZooGatewayModel } from "../zoo-gateway"
 
 vitest.mock("axios")
-vitest.mock("../../../../services/zoo-code-auth", () => ({
-	getCachedZooCodeToken: vitest.fn(function () {
+vitest.mock("../../../../services/roo-plus-auth", () => ({
+	getCachedRooPlusToken: vitest.fn(function () {
 		return ""
 	}),
-	getZooCodeBaseUrl: vitest.fn(function () {
+	getRooPlusBaseUrl: vitest.fn(function () {
 		return "https://example.test"
 	}),
 	resolveZooGatewaySessionToken: vitest.fn(function (profileToken?: string) {

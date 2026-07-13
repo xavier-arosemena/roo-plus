@@ -122,7 +122,7 @@ describe("versionedSettings", () => {
 			}
 
 			const originalName = Package.name
-			;(Package as { name: string }).name = "zoo-code-nightly"
+			;(Package as { name: string }).name = "roo-plus-nightly"
 
 			try {
 				const result = findHighestMatchingVersion(versionedSettings, "1.0.0")

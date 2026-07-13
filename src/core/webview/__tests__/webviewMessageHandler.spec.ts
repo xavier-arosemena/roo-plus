@@ -4,8 +4,8 @@ import type { Mock } from "vitest"
 
 // Mock dependencies - must come before imports
 vi.mock("../../../api/providers/fetchers/modelCache")
-vi.mock("../../../services/zoo-code-auth", () => ({
-	disconnectZooCode: vi.fn().mockResolvedValue(undefined),
+vi.mock("../../../services/roo-plus-auth", () => ({
+	disconnectRooPlus: vi.fn().mockResolvedValue(undefined),
 }))
 vi.mock("../../../api/providers/fetchers/lmstudio", () => ({
 	getLMStudioModels: vi.fn(),
@@ -1356,8 +1356,8 @@ describe("zooCodeSignOut", () => {
 		vi.clearAllMocks()
 	})
 
-	it("disconnects Zoo Code and clears tokens from all zoo-gateway profiles", async () => {
-		const { disconnectZooCode } = await import("../../../services/zoo-code-auth")
+	it("disconnects Roo+ and clears tokens from all zoo-gateway profiles", async () => {
+		const { disconnectRooPlus } = await import("../../../services/roo-plus-auth")
 		const upsertProviderProfile = vi.fn().mockResolvedValue(undefined)
 		const saveConfig = vi.fn().mockResolvedValue(undefined)
 
@@ -1388,7 +1388,7 @@ describe("zooCodeSignOut", () => {
 
 		await webviewMessageHandler(mockClineProvider, { type: "zooCodeSignOut" })
 
-		expect(disconnectZooCode).toHaveBeenCalled()
+		expect(disconnectRooPlus).toHaveBeenCalled()
 		expect(upsertProviderProfile).toHaveBeenCalledWith(
 			"Zoo Gateway",
 			expect.not.objectContaining({ zooSessionToken: expect.anything() }),

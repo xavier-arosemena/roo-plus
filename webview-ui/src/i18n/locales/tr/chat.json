@@ -1,5 +1,5 @@
 {
-	"greeting": "Zoo Code'a hoş geldin!",
+	"greeting": "Roo+ Code'a hoş geldin!",
 	"task": {
 		"title": "Görev",
 		"expand": "Görevi genişlet",
@@ -96,7 +96,7 @@
 	"enqueueMessage": "Mesajı kuyruğa ekle (mevcut görev tamamlandıktan sonra gönderilecek)",
 	"scrollToBottom": "Sohbetin altına kaydır",
 	"scrollToLatestCheckpoint": "Önceki checkpoint'e kaydır",
-	"about": "Zoo Code, düzenleyicinizdeki bütün bir yapay zeka geliştirme ekibidir.",
+	"about": "Roo+ Code, düzenleyicinizdeki bütün bir yapay zeka geliştirme ekibidir.",
 	"docs": "Daha fazla bilgi için <DocsLink>belgelerimize</DocsLink> göz atın.",
 	"onboarding": "Bu çalışma alanındaki görev listeniz boş.",
 	"rooTips": {
@@ -142,7 +142,7 @@
 	"diffError": {
 		"title": "Düzenleme Başarısız"
 	},
-	"troubleMessage": "Zoo sorun yaşıyor...",
+	"troubleMessage": "Roo+ sorun yaşıyor...",
 	"apiRequest": {
 		"title": "API İsteği",
 		"failed": "API İsteği Başarısız",
@@ -188,40 +188,40 @@
 		"wantsToFetch": "Roo mevcut göreve yardımcı olmak için ayrıntılı talimatlar almak istiyor"
 	},
 	"fileOperations": {
-		"wantsToRead": "Zoo bu dosyayı okumak istiyor",
-		"wantsToReadOutsideWorkspace": "Zoo çalışma alanı dışındaki bu dosyayı okumak istiyor",
-		"didRead": "Zoo bu dosyayı okudu",
-		"wantsToEdit": "Zoo bu dosyayı düzenlemek istiyor",
-		"wantsToEditOutsideWorkspace": "Zoo çalışma alanı dışındaki bu dosyayı düzenlemek istiyor",
-		"wantsToEditProtected": "Zoo korumalı bir yapılandırma dosyasını düzenlemek istiyor",
-		"wantsToCreate": "Zoo yeni bir dosya oluşturmak istiyor",
+		"wantsToRead": "Roo+ bu dosyayı okumak istiyor",
+		"wantsToReadOutsideWorkspace": "Roo+ çalışma alanı dışındaki bu dosyayı okumak istiyor",
+		"didRead": "Roo+ bu dosyayı okudu",
+		"wantsToEdit": "Roo+ bu dosyayı düzenlemek istiyor",
+		"wantsToEditOutsideWorkspace": "Roo+ çalışma alanı dışındaki bu dosyayı düzenlemek istiyor",
+		"wantsToEditProtected": "Roo+ korumalı bir yapılandırma dosyasını düzenlemek istiyor",
+		"wantsToCreate": "Roo+ yeni bir dosya oluşturmak istiyor",
 		"wantsToSearchReplace": "Roo bu dosyada arama ve değiştirme yapmak istiyor",
 		"didSearchReplace": "Roo bu dosyada arama ve değiştirme yaptı",
-		"wantsToInsert": "Zoo bu dosyaya içerik eklemek istiyor",
-		"wantsToInsertWithLineNumber": "Zoo bu dosyanın {{lineNumber}}. satırına içerik eklemek istiyor",
-		"wantsToInsertAtEnd": "Zoo bu dosyanın sonuna içerik eklemek istiyor",
-		"wantsToReadAndXMore": "Zoo bu dosyayı ve {{count}} tane daha okumak istiyor",
-		"wantsToReadMultiple": "Zoo birden fazla dosya okumak istiyor",
-		"wantsToApplyBatchChanges": "Zoo birden fazla dosyaya değişiklik uygulamak istiyor",
-		"wantsToGenerateImage": "Zoo bir görsel oluşturmak istiyor",
-		"wantsToGenerateImageOutsideWorkspace": "Zoo çalışma alanının dışında bir görsel oluşturmak istiyor",
-		"wantsToGenerateImageProtected": "Zoo korumalı bir konumda görsel oluşturmak istiyor",
-		"didGenerateImage": "Zoo bir görsel oluşturdu"
+		"wantsToInsert": "Roo+ bu dosyaya içerik eklemek istiyor",
+		"wantsToInsertWithLineNumber": "Roo+ bu dosyanın {{lineNumber}}. satırına içerik eklemek istiyor",
+		"wantsToInsertAtEnd": "Roo+ bu dosyanın sonuna içerik eklemek istiyor",
+		"wantsToReadAndXMore": "Roo+ bu dosyayı ve {{count}} tane daha okumak istiyor",
+		"wantsToReadMultiple": "Roo+ birden fazla dosya okumak istiyor",
+		"wantsToApplyBatchChanges": "Roo+ birden fazla dosyaya değişiklik uygulamak istiyor",
+		"wantsToGenerateImage": "Roo+ bir görsel oluşturmak istiyor",
+		"wantsToGenerateImageOutsideWorkspace": "Roo+ çalışma alanının dışında bir görsel oluşturmak istiyor",
+		"wantsToGenerateImageProtected": "Roo+ korumalı bir konumda görsel oluşturmak istiyor",
+		"didGenerateImage": "Roo+ bir görsel oluşturdu"
 	},
 	"directoryOperations": {
-		"wantsToViewTopLevel": "Zoo bu dizindeki üst düzey dosyaları görüntülemek istiyor",
-		"didViewTopLevel": "Zoo bu dizindeki üst düzey dosyaları görüntüledi",
-		"wantsToViewRecursive": "Zoo bu dizindeki tüm dosyaları özyinelemeli olarak görüntülemek istiyor",
-		"didViewRecursive": "Zoo bu dizindeki tüm dosyaları özyinelemeli olarak görüntüledi",
-		"wantsToSearch": "Zoo bu dizinde <code>{{regex}}</code> için arama yapmak istiyor",
-		"didSearch": "Zoo bu dizinde <code>{{regex}}</code> için arama yaptı",
-		"wantsToSearchOutsideWorkspace": "Zoo bu dizinde (çalışma alanı dışında) <code>{{regex}}</code> için arama yapmak istiyor",
-		"didSearchOutsideWorkspace": "Zoo bu dizinde (çalışma alanı dışında) <code>{{regex}}</code> için arama yaptı",
-		"wantsToViewTopLevelOutsideWorkspace": "Zoo bu dizindeki (çalışma alanı dışında) üst düzey dosyaları görüntülemek istiyor",
-		"didViewTopLevelOutsideWorkspace": "Zoo bu dizindeki (çalışma alanı dışında) üst düzey dosyaları görüntüledi",
-		"wantsToViewRecursiveOutsideWorkspace": "Zoo bu dizindeki (çalışma alanı dışında) tüm dosyaları özyinelemeli olarak görüntülemek istiyor",
-		"didViewRecursiveOutsideWorkspace": "Zoo bu dizindeki (çalışma alanı dışında) tüm dosyaları özyinelemeli olarak görüntüledi",
-		"wantsToViewMultipleDirectories": "Zoo birden fazla dizini görüntülemek istiyor"
+		"wantsToViewTopLevel": "Roo+ bu dizindeki üst düzey dosyaları görüntülemek istiyor",
+		"didViewTopLevel": "Roo+ bu dizindeki üst düzey dosyaları görüntüledi",
+		"wantsToViewRecursive": "Roo+ bu dizindeki tüm dosyaları özyinelemeli olarak görüntülemek istiyor",
+		"didViewRecursive": "Roo+ bu dizindeki tüm dosyaları özyinelemeli olarak görüntüledi",
+		"wantsToSearch": "Roo+ bu dizinde <code>{{regex}}</code> için arama yapmak istiyor",
+		"didSearch": "Roo+ bu dizinde <code>{{regex}}</code> için arama yaptı",
+		"wantsToSearchOutsideWorkspace": "Roo+ bu dizinde (çalışma alanı dışında) <code>{{regex}}</code> için arama yapmak istiyor",
+		"didSearchOutsideWorkspace": "Roo+ bu dizinde (çalışma alanı dışında) <code>{{regex}}</code> için arama yaptı",
+		"wantsToViewTopLevelOutsideWorkspace": "Roo+ bu dizindeki (çalışma alanı dışında) üst düzey dosyaları görüntülemek istiyor",
+		"didViewTopLevelOutsideWorkspace": "Roo+ bu dizindeki (çalışma alanı dışında) üst düzey dosyaları görüntüledi",
+		"wantsToViewRecursiveOutsideWorkspace": "Roo+ bu dizindeki (çalışma alanı dışında) tüm dosyaları özyinelemeli olarak görüntülemek istiyor",
+		"didViewRecursiveOutsideWorkspace": "Roo+ bu dizindeki (çalışma alanı dışında) tüm dosyaları özyinelemeli olarak görüntüledi",
+		"wantsToViewMultipleDirectories": "Roo+ birden fazla dizini görüntülemek istiyor"
 	},
 	"commandOutput": "Komut Çıktısı",
 	"commandExecution": {
@@ -245,24 +245,24 @@
 	"response": "Yanıt",
 	"arguments": "Argümanlar",
 	"text": {
-		"rooSaid": "Zoo dedi"
+		"rooSaid": "Roo+ dedi"
 	},
 	"feedback": {
 		"youSaid": "Dediniz ki"
 	},
 	"mcp": {
-		"wantsToUseTool": "Zoo {{serverName}} MCP sunucusunda bir araç kullanmak istiyor",
-		"wantsToAccessResource": "Zoo {{serverName}} MCP sunucusundaki bir kaynağa erişmek istiyor"
+		"wantsToUseTool": "Roo+ {{serverName}} MCP sunucusunda bir araç kullanmak istiyor",
+		"wantsToAccessResource": "Roo+ {{serverName}} MCP sunucusundaki bir kaynağa erişmek istiyor"
 	},
 	"modes": {
-		"wantsToSwitch": "Zoo <code>{{mode}}</code> moduna geçmek istiyor",
-		"wantsToSwitchWithReason": "Zoo <code>{{mode}}</code> moduna geçmek istiyor çünkü: {{reason}}",
-		"didSwitch": "Zoo <code>{{mode}}</code> moduna geçti",
-		"didSwitchWithReason": "Zoo <code>{{mode}}</code> moduna geçti çünkü: {{reason}}"
+		"wantsToSwitch": "Roo+ <code>{{mode}}</code> moduna geçmek istiyor",
+		"wantsToSwitchWithReason": "Roo+ <code>{{mode}}</code> moduna geçmek istiyor çünkü: {{reason}}",
+		"didSwitch": "Roo+ <code>{{mode}}</code> moduna geçti",
+		"didSwitchWithReason": "Roo+ <code>{{mode}}</code> moduna geçti çünkü: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Zoo <code>{{mode}}</code> modunda yeni bir alt görev oluşturmak istiyor",
-		"wantsToFinish": "Zoo bu alt görevi bitirmek istiyor",
+		"wantsToCreate": "Roo+ <code>{{mode}}</code> modunda yeni bir alt görev oluşturmak istiyor",
+		"wantsToFinish": "Roo+ bu alt görevi bitirmek istiyor",
 		"newTaskContent": "Alt Görev Talimatları",
 		"completionContent": "Alt Görev Tamamlandı",
 		"resultContent": "Alt Görev Sonuçları",
@@ -330,15 +330,15 @@
 		}
 	},
 	"skill": {
-		"wantsToLoad": "Zoo bir beceri yüklemek istiyor",
-		"didLoad": "Zoo bir beceri yükledi"
+		"wantsToLoad": "Roo+ bir beceri yüklemek istiyor",
+		"didLoad": "Roo+ bir beceri yükledi"
 	},
 	"followUpSuggest": {
 		"copyToInput": "Giriş alanına kopyala (veya Shift + tıklama)",
 		"timerPrefix": "Otomatik onay etkinleştirildi. {{seconds}}s içinde seçim yapılıyor…"
 	},
 	"announcement": {
-		"title": "Zoo Code {{version}} yayınlandı",
+		"title": "Roo+ Code {{version}} yayınlandı",
 		"support": "Lütfen <githubLink>GitHub</githubLink>'da bize yıldız vererek Zoo Code'u destekle.",
 		"release": {
 			"heading": "Yenilikler:",
@@ -379,13 +379,13 @@
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "Otomatik Onaylanan Maliyet Sınırına Ulaşıldı",
-			"description": "Zoo otomatik olarak onaylanmış ${{count}} maliyet sınırına ulaştı. Maliyeti sıfırlamak ve göreve devam etmek ister misiniz?",
+			"description": "Roo+ otomatik olarak onaylanmış ${{count}} maliyet sınırına ulaştı. Maliyeti sıfırlamak ve göreve devam etmek ister misiniz?",
 			"button": "Sıfırla ve Devam Et"
 		}
 	},
 	"codebaseSearch": {
-		"wantsToSearch": "Zoo kod tabanında <code>{{query}}</code> aramak istiyor",
-		"wantsToSearchWithPath": "Zoo <code>{{path}}</code> içinde kod tabanında <code>{{query}}</code> aramak istiyor",
+		"wantsToSearch": "Roo+ kod tabanında <code>{{query}}</code> aramak istiyor",
+		"wantsToSearchWithPath": "Roo+ <code>{{path}}</code> içinde kod tabanında <code>{{query}}</code> aramak istiyor",
 		"didSearch_one": "1 sonuç bulundu",
 		"didSearch_other": "{{count}} sonuç bulundu",
 		"resultTooltip": "Benzerlik puanı: {{score}} (dosyayı açmak için tıklayın)"
@@ -426,7 +426,7 @@
 		"ariaLabel": "Sürüm {{version}} - Sürüm notlarını görüntülemek için tıklayın"
 	},
 	"rooCloudCTA": {
-		"title": "Zoo Code Cloud gelişiyor!",
+		"title": "Roo+ Code Cloud gelişiyor!",
 		"description": "Bulutta uzak ajanlar çalıştırın, görevlerinize her yerden erişin, başkalarıyla işbirliği yapın ve daha fazlası.",
 		"joinWaitlist": "En son güncellemeleri almak için kaydolun."
 	},
@@ -467,8 +467,8 @@
 		"clickToEdit": "Mesajı düzenlemek için tıkla"
 	},
 	"slashCommand": {
-		"wantsToRun": "Zoo bir slash komutu çalıştırmak istiyor",
-		"didRun": "Zoo bir slash komutu çalıştırdı"
+		"wantsToRun": "Roo+ bir slash komutu çalıştırmak istiyor",
+		"didRun": "Roo+ bir slash komutu çalıştırdı"
 	},
 	"todo": {
 		"partial": "{{total}} yapılacaklar listesinden {{completed}} tanesi tamamlandı",
@@ -487,7 +487,7 @@
 		"openMcpSettings": "MCP Ayarlarını Aç"
 	},
 	"readCommandOutput": {
-		"title": "Zoo read command output"
+		"title": "Roo+ read command output"
 	},
 	"retiredProvider": {
 		"title": "Sağlayıcı artık desteklenmiyor",

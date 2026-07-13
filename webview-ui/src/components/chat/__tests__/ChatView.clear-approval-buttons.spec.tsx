@@ -84,11 +84,11 @@ vi.mock("../../common/VersionIndicator", () => ({
 }))
 
 vi.mock("@src/components/welcome/RooTips", () => ({
-	default: () => <div data-testid="roo-tips">Tips content</div>,
+	default: () => <div data-testid="roo-plus-tips">Tips content</div>,
 }))
 
 vi.mock("@src/components/welcome/RooHero", () => ({
-	default: () => <div data-testid="roo-hero">Hero content</div>,
+	default: () => <div data-testid="roo-plus-hero">Hero content</div>,
 }))
 
 vi.mock("../common/TelemetryBanner", () => ({

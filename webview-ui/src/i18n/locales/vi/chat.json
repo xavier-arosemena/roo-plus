@@ -96,7 +96,7 @@
 	"enqueueMessage": "Thêm tin nhắn vào hàng đợi (sẽ gửi sau khi nhiệm vụ hiện tại hoàn tất)",
 	"scrollToBottom": "Cuộn xuống cuối cuộc trò chuyện",
 	"scrollToLatestCheckpoint": "Cuộn đến checkpoint trước đó",
-	"about": "Zoo Code là một đội ngũ phát triển AI đầy đủ trong trình chỉnh sửa của bạn.",
+	"about": "Roo+ Code là một đội ngũ phát triển AI đầy đủ trong trình chỉnh sửa của bạn.",
 	"docs": "Kiểm tra <DocsLink>tài liệu</DocsLink> của chúng tôi để tìm hiểu thêm.",
 	"onboarding": "Danh sách nhiệm vụ của bạn trong không gian làm việc này đang trống.",
 	"rooTips": {
@@ -142,7 +142,7 @@
 	"diffError": {
 		"title": "Chỉnh sửa không thành công"
 	},
-	"troubleMessage": "Zoo đang gặp sự cố...",
+	"troubleMessage": "Roo+ đang gặp sự cố...",
 	"apiRequest": {
 		"title": "Yêu cầu API",
 		"failed": "Yêu cầu API thất bại",
@@ -188,40 +188,40 @@
 		"wantsToFetch": "Roo muốn lấy hướng dẫn chi tiết để hỗ trợ nhiệm vụ hiện tại"
 	},
 	"fileOperations": {
-		"wantsToRead": "Zoo muốn đọc tệp này",
-		"wantsToReadOutsideWorkspace": "Zoo muốn đọc tệp này bên ngoài không gian làm việc",
-		"didRead": "Zoo đã đọc tệp này",
-		"wantsToEdit": "Zoo muốn chỉnh sửa tệp này",
-		"wantsToEditOutsideWorkspace": "Zoo muốn chỉnh sửa tệp này bên ngoài không gian làm việc",
-		"wantsToEditProtected": "Zoo muốn chỉnh sửa tệp cấu hình được bảo vệ",
-		"wantsToCreate": "Zoo muốn tạo một tệp mới",
+		"wantsToRead": "Roo+ muốn đọc tệp này",
+		"wantsToReadOutsideWorkspace": "Roo+ muốn đọc tệp này bên ngoài không gian làm việc",
+		"didRead": "Roo+ đã đọc tệp này",
+		"wantsToEdit": "Roo+ muốn chỉnh sửa tệp này",
+		"wantsToEditOutsideWorkspace": "Roo+ muốn chỉnh sửa tệp này bên ngoài không gian làm việc",
+		"wantsToEditProtected": "Roo+ muốn chỉnh sửa tệp cấu hình được bảo vệ",
+		"wantsToCreate": "Roo+ muốn tạo một tệp mới",
 		"wantsToSearchReplace": "Roo muốn thực hiện tìm kiếm và thay thế trong tệp này",
 		"didSearchReplace": "Roo đã thực hiện tìm kiếm và thay thế trong tệp này",
-		"wantsToInsert": "Zoo muốn chèn nội dung vào tệp này",
-		"wantsToInsertWithLineNumber": "Zoo muốn chèn nội dung vào dòng {{lineNumber}} của tệp này",
-		"wantsToInsertAtEnd": "Zoo muốn thêm nội dung vào cuối tệp này",
-		"wantsToReadAndXMore": "Zoo muốn đọc tệp này và {{count}} tệp khác",
-		"wantsToReadMultiple": "Zoo muốn đọc nhiều tệp",
-		"wantsToApplyBatchChanges": "Zoo muốn áp dụng thay đổi cho nhiều tệp",
-		"wantsToGenerateImage": "Zoo muốn tạo một hình ảnh",
-		"wantsToGenerateImageOutsideWorkspace": "Zoo muốn tạo hình ảnh bên ngoài không gian làm việc",
-		"wantsToGenerateImageProtected": "Zoo muốn tạo hình ảnh ở vị trí được bảo vệ",
-		"didGenerateImage": "Zoo đã tạo một hình ảnh"
+		"wantsToInsert": "Roo+ muốn chèn nội dung vào tệp này",
+		"wantsToInsertWithLineNumber": "Roo+ muốn chèn nội dung vào dòng {{lineNumber}} của tệp này",
+		"wantsToInsertAtEnd": "Roo+ muốn thêm nội dung vào cuối tệp này",
+		"wantsToReadAndXMore": "Roo+ muốn đọc tệp này và {{count}} tệp khác",
+		"wantsToReadMultiple": "Roo+ muốn đọc nhiều tệp",
+		"wantsToApplyBatchChanges": "Roo+ muốn áp dụng thay đổi cho nhiều tệp",
+		"wantsToGenerateImage": "Roo+ muốn tạo một hình ảnh",
+		"wantsToGenerateImageOutsideWorkspace": "Roo+ muốn tạo hình ảnh bên ngoài không gian làm việc",
+		"wantsToGenerateImageProtected": "Roo+ muốn tạo hình ảnh ở vị trí được bảo vệ",
+		"didGenerateImage": "Roo+ đã tạo một hình ảnh"
 	},
 	"directoryOperations": {
-		"wantsToViewTopLevel": "Zoo muốn xem các tệp cấp cao nhất trong thư mục này",
-		"didViewTopLevel": "Zoo đã xem các tệp cấp cao nhất trong thư mục này",
-		"wantsToViewRecursive": "Zoo muốn xem đệ quy tất cả các tệp trong thư mục này",
-		"didViewRecursive": "Zoo đã xem đệ quy tất cả các tệp trong thư mục này",
-		"wantsToSearch": "Zoo muốn tìm kiếm trong thư mục này cho <code>{{regex}}</code>",
-		"didSearch": "Zoo đã tìm kiếm trong thư mục này cho <code>{{regex}}</code>",
-		"wantsToSearchOutsideWorkspace": "Zoo muốn tìm kiếm trong thư mục này (ngoài không gian làm việc) cho <code>{{regex}}</code>",
-		"didSearchOutsideWorkspace": "Zoo đã tìm kiếm trong thư mục này (ngoài không gian làm việc) cho <code>{{regex}}</code>",
-		"wantsToViewTopLevelOutsideWorkspace": "Zoo muốn xem các tệp cấp cao nhất trong thư mục này (ngoài không gian làm việc)",
-		"didViewTopLevelOutsideWorkspace": "Zoo đã xem các tệp cấp cao nhất trong thư mục này (ngoài không gian làm việc)",
-		"wantsToViewRecursiveOutsideWorkspace": "Zoo muốn xem đệ quy tất cả các tệp trong thư mục này (ngoài không gian làm việc)",
-		"didViewRecursiveOutsideWorkspace": "Zoo đã xem đệ quy tất cả các tệp trong thư mục này (ngoài không gian làm việc)",
-		"wantsToViewMultipleDirectories": "Zoo muốn xem nhiều thư mục"
+		"wantsToViewTopLevel": "Roo+ muốn xem các tệp cấp cao nhất trong thư mục này",
+		"didViewTopLevel": "Roo+ đã xem các tệp cấp cao nhất trong thư mục này",
+		"wantsToViewRecursive": "Roo+ muốn xem đệ quy tất cả các tệp trong thư mục này",
+		"didViewRecursive": "Roo+ đã xem đệ quy tất cả các tệp trong thư mục này",
+		"wantsToSearch": "Roo+ muốn tìm kiếm trong thư mục này cho <code>{{regex}}</code>",
+		"didSearch": "Roo+ đã tìm kiếm trong thư mục này cho <code>{{regex}}</code>",
+		"wantsToSearchOutsideWorkspace": "Roo+ muốn tìm kiếm trong thư mục này (ngoài không gian làm việc) cho <code>{{regex}}</code>",
+		"didSearchOutsideWorkspace": "Roo+ đã tìm kiếm trong thư mục này (ngoài không gian làm việc) cho <code>{{regex}}</code>",
+		"wantsToViewTopLevelOutsideWorkspace": "Roo+ muốn xem các tệp cấp cao nhất trong thư mục này (ngoài không gian làm việc)",
+		"didViewTopLevelOutsideWorkspace": "Roo+ đã xem các tệp cấp cao nhất trong thư mục này (ngoài không gian làm việc)",
+		"wantsToViewRecursiveOutsideWorkspace": "Roo+ muốn xem đệ quy tất cả các tệp trong thư mục này (ngoài không gian làm việc)",
+		"didViewRecursiveOutsideWorkspace": "Roo+ đã xem đệ quy tất cả các tệp trong thư mục này (ngoài không gian làm việc)",
+		"wantsToViewMultipleDirectories": "Roo+ muốn xem nhiều thư mục"
 	},
 	"commandOutput": "Kết quả lệnh",
 	"commandExecution": {
@@ -245,24 +245,24 @@
 	"response": "Phản hồi",
 	"arguments": "Tham số",
 	"text": {
-		"rooSaid": "Zoo đã nói"
+		"rooSaid": "Roo+ đã nói"
 	},
 	"feedback": {
 		"youSaid": "Bạn đã nói"
 	},
 	"mcp": {
-		"wantsToUseTool": "Zoo muốn sử dụng một công cụ trên máy chủ MCP {{serverName}}",
-		"wantsToAccessResource": "Zoo muốn truy cập một tài nguyên trên máy chủ MCP {{serverName}}"
+		"wantsToUseTool": "Roo+ muốn sử dụng một công cụ trên máy chủ MCP {{serverName}}",
+		"wantsToAccessResource": "Roo+ muốn truy cập một tài nguyên trên máy chủ MCP {{serverName}}"
 	},
 	"modes": {
-		"wantsToSwitch": "Zoo muốn chuyển sang chế độ <code>{{mode}}</code>",
-		"wantsToSwitchWithReason": "Zoo muốn chuyển sang chế độ <code>{{mode}}</code> vì: {{reason}}",
-		"didSwitch": "Zoo đã chuyển sang chế độ <code>{{mode}}</code>",
-		"didSwitchWithReason": "Zoo đã chuyển sang chế độ <code>{{mode}}</code> vì: {{reason}}"
+		"wantsToSwitch": "Roo+ muốn chuyển sang chế độ <code>{{mode}}</code>",
+		"wantsToSwitchWithReason": "Roo+ muốn chuyển sang chế độ <code>{{mode}}</code> vì: {{reason}}",
+		"didSwitch": "Roo+ đã chuyển sang chế độ <code>{{mode}}</code>",
+		"didSwitchWithReason": "Roo+ đã chuyển sang chế độ <code>{{mode}}</code> vì: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Zoo muốn tạo một nhiệm vụ phụ mới trong chế độ <code>{{mode}}</code>",
-		"wantsToFinish": "Zoo muốn hoàn thành nhiệm vụ phụ này",
+		"wantsToCreate": "Roo+ muốn tạo một nhiệm vụ phụ mới trong chế độ <code>{{mode}}</code>",
+		"wantsToFinish": "Roo+ muốn hoàn thành nhiệm vụ phụ này",
 		"newTaskContent": "Hướng dẫn nhiệm vụ phụ",
 		"completionContent": "Nhiệm vụ phụ đã hoàn thành",
 		"resultContent": "Kết quả nhiệm vụ phụ",
@@ -271,7 +271,7 @@
 		"goToSubtask": "Xem nhiệm vụ"
 	},
 	"questions": {
-		"hasQuestion": "Zoo có một câu hỏi"
+		"hasQuestion": "Roo+ có một câu hỏi"
 	},
 	"taskCompleted": "Nhiệm vụ hoàn thành",
 	"modelResponseIncomplete": "Phản hồi của mô hình không đầy đủ",
@@ -330,15 +330,15 @@
 		}
 	},
 	"skill": {
-		"wantsToLoad": "Zoo muốn tải một kỹ năng",
-		"didLoad": "Zoo đã tải một kỹ năng"
+		"wantsToLoad": "Roo+ muốn tải một kỹ năng",
+		"didLoad": "Roo+ đã tải một kỹ năng"
 	},
 	"followUpSuggest": {
 		"copyToInput": "Sao chép vào ô nhập liệu (hoặc Shift + nhấp chuột)",
 		"timerPrefix": "Phê duyệt tự động được bật. Chọn trong {{seconds}}s…"
 	},
 	"announcement": {
-		"title": "Zoo Code {{version}} đã phát hành",
+		"title": "Roo+ Code {{version}} đã phát hành",
 		"support": "Hãy ủng hộ Zoo Code bằng cách tặng sao cho chúng tôi trên <githubLink>GitHub</githubLink>.",
 		"release": {
 			"heading": "Có gì mới:",
@@ -374,18 +374,18 @@
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Đã Đạt Giới Hạn Yêu Cầu Tự Động Phê Duyệt",
-			"description": "Zoo đã đạt đến giới hạn tự động phê duyệt là {{count}} yêu cầu API. Bạn có muốn đặt lại bộ đếm và tiếp tục nhiệm vụ không?",
+			"description": "Roo+ đã đạt đến giới hạn tự động phê duyệt là {{count}} yêu cầu API. Bạn có muốn đặt lại bộ đếm và tiếp tục nhiệm vụ không?",
 			"button": "Đặt lại và Tiếp tục"
 		},
 		"autoApprovedCostLimitReached": {
 			"button": "Đặt lại và Tiếp tục",
 			"title": "Đã Đạt Giới Hạn Chi Phí Tự Động Phê Duyệt",
-			"description": "Zoo đã đạt đến giới hạn chi phí tự động phê duyệt là ${{count}}. Bạn có muốn đặt lại chi phí và tiếp tục với nhiệm vụ không?"
+			"description": "Roo+ đã đạt đến giới hạn chi phí tự động phê duyệt là ${{count}}. Bạn có muốn đặt lại chi phí và tiếp tục với nhiệm vụ không?"
 		}
 	},
 	"codebaseSearch": {
-		"wantsToSearch": "Zoo muốn tìm kiếm trong cơ sở mã cho <code>{{query}}</code>",
-		"wantsToSearchWithPath": "Zoo muốn tìm kiếm trong cơ sở mã cho <code>{{query}}</code> trong <code>{{path}}</code>",
+		"wantsToSearch": "Roo+ muốn tìm kiếm trong cơ sở mã cho <code>{{query}}</code>",
+		"wantsToSearchWithPath": "Roo+ muốn tìm kiếm trong cơ sở mã cho <code>{{query}}</code> trong <code>{{path}}</code>",
 		"didSearch_one": "Đã tìm thấy 1 kết quả",
 		"didSearch_other": "Đã tìm thấy {{count}} kết quả",
 		"resultTooltip": "Điểm tương tự: {{score}} (nhấp để mở tệp)"
@@ -426,7 +426,7 @@
 		"ariaLabel": "Phiên bản {{version}} - Nhấp để xem ghi chú phát hành"
 	},
 	"rooCloudCTA": {
-		"title": "Zoo Code Cloud đang phát triển!",
+		"title": "Roo+ Code Cloud đang phát triển!",
 		"description": "Chạy các agent từ xa trên cloud, truy cập các tác vụ của bạn từ mọi nơi, cộng tác với người khác và nhiều hơn nữa.",
 		"joinWaitlist": "Đăng ký để nhận các cập nhật mới nhất."
 	},
@@ -467,8 +467,8 @@
 		"clickToEdit": "Nhấp để chỉnh sửa tin nhắn"
 	},
 	"slashCommand": {
-		"wantsToRun": "Zoo muốn chạy lệnh slash",
-		"didRun": "Zoo đã chạy lệnh slash"
+		"wantsToRun": "Roo+ muốn chạy lệnh slash",
+		"didRun": "Roo+ đã chạy lệnh slash"
 	},
 	"todo": {
 		"partial": "{{completed}} trong tổng số {{total}} công việc đã hoàn thành",
@@ -487,7 +487,7 @@
 		"openMcpSettings": "Mở cài đặt MCP"
 	},
 	"readCommandOutput": {
-		"title": "Zoo read command output"
+		"title": "Roo+ read command output"
 	},
 	"retiredProvider": {
 		"title": "Nhà cung cấp không còn được hỗ trợ",

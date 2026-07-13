@@ -280,7 +280,7 @@ function getReasoningBlockText(part: unknown): string | undefined {
 }
 
 /**
- * Non-standard fields Zoo Code attaches to Anthropic message params to
+ * Non-standard fields Roo+ attaches to Anthropic message params to
  * round-trip provider-specific reasoning state (e.g. DeepSeek's
  * `reasoning_content`, which must be echoed back or the API returns a 400).
  */

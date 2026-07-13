@@ -61,7 +61,7 @@ export function trySpawnRipgrep(rgPath: string): Promise<{
 export async function getRipgrepDiagnostic(vscodeAppRoot: string): Promise<string> {
 	const appRootEmpty = !vscodeAppRoot || vscodeAppRoot.trim() === ""
 	const lines: string[] = [
-		`Zoo Code Ripgrep Diagnostic (${new Date().toISOString()})`,
+		`Roo+ Ripgrep Diagnostic (${new Date().toISOString()})`,
 		`vscode.version: ${vscode.version}`,
 		`vscode.env.appRoot: ${appRootEmpty ? "(empty)" : vscodeAppRoot}`,
 		...(appRootEmpty ? [] : [`process.platform/arch: ${process.platform}/${process.arch}`]),
@@ -124,21 +124,21 @@ export async function getRipgrepDiagnostic(vscodeAppRoot: string): Promise<strin
 }
 
 /**
- * Registers the `zoo-code.showRipgrepDiagnostic` command. Thin wrapper —
+ * Registers the `roo-plus.showRipgrepDiagnostic` command. Thin wrapper —
  * runs `getRipgrepDiagnostic`, shows the result in an output channel,
  * copies it to the clipboard, and shows an info toast. The OutputChannel
  * is created once at registration and disposed alongside the command via
  * the composite Disposable returned here.
  */
 export function registerRipgrepDiagnosticCommand(): vscode.Disposable {
-	const channel = vscode.window.createOutputChannel("Zoo Code Ripgrep Diagnostic")
+	const channel = vscode.window.createOutputChannel("Roo+ Ripgrep Diagnostic")
 	const command = vscode.commands.registerCommand(getCommand("showRipgrepDiagnostic"), async () => {
 		const report = await getRipgrepDiagnostic(vscode.env.appRoot)
 		channel.clear()
 		channel.appendLine(report)
 		channel.show(true)
 		await vscode.env.clipboard.writeText(report)
-		await vscode.window.showInformationMessage("Zoo Code: ripgrep diagnostic copied to clipboard.")
+		await vscode.window.showInformationMessage("Roo+: ripgrep diagnostic copied to clipboard.")
 	})
 	return vscode.Disposable.from(command, channel)
 }

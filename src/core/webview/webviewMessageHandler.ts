@@ -2639,8 +2639,8 @@ export const webviewMessageHandler = async (
 		}
 		case "zooCodeSignOut": {
 			try {
-				const { disconnectZooCode } = await import("../../services/zoo-code-auth")
-				await disconnectZooCode()
+				const { disconnectRooPlus } = await import("../../services/roo-plus-auth")
+				await disconnectRooPlus()
 
 				// Clear zooSessionToken from ALL provider profiles with apiProvider === "zoo-gateway".
 				// Profiles are user-renameable, so we cannot rely on a hardcoded name like "Zoo Gateway".
@@ -2697,9 +2697,7 @@ export const webviewMessageHandler = async (
 
 				await provider.postStateToWebview()
 			} catch (error) {
-				provider.log(
-					`Failed to sign out of Zoo Code: ${error instanceof Error ? error.message : String(error)}`,
-				)
+				provider.log(`Failed to sign out of Roo+: ${error instanceof Error ? error.message : String(error)}`)
 			}
 			break
 		}

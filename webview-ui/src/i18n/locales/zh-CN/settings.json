@@ -67,7 +67,7 @@
 		"rooHistoryImport": {
 			"settingLabel": "从 Roo Code 导入历史记录",
 			"cardTitle": "Roo Code 历史记录",
-			"cardDescription": "将保存的 Roo Code 对话复制到 Zoo Code。",
+			"cardDescription": "将保存的 Roo Code 对话复制到 Roo+。",
 			"statusImporting": "正在导入历史记录",
 			"statusFailed": "导入失败",
 			"statusComplete": "导入完成",

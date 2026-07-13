@@ -1,4 +1,4 @@
-// pnpm --filter zoo-code test core/task-persistence/__tests__/TaskHistoryStore.reconciliation.spec.ts
+// pnpm --filter roo-plus test core/task-persistence/__tests__/TaskHistoryStore.reconciliation.spec.ts
 
 import * as fs from "fs/promises"
 import * as path from "path"

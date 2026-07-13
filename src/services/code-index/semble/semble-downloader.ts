@@ -8,7 +8,7 @@ import { spawn } from "child_process"
 
 /**
  * Supported platform/arch combinations for the semble standalone executable.
- * Maps to archive names at https://github.com/Zoo-Code-Org/sembleexec/releases
+ * Maps to archive names at https://github.com/Roo-Plus-Org/sembleexec/releases
  *
  * Uses "fast-start" archives (one-dir builds) for ~20x faster startup
  * compared to single-file binaries.
@@ -25,7 +25,7 @@ const SEMBLE_ARCHIVES: Record<string, { archive: string; binary: string }> = {
  * system-state message so users can see which version is active.
  */
 export const SEMBLE_VERSION = "v0.4.1"
-const DOWNLOAD_BASE_URL = `https://github.com/Zoo-Code-Org/sembleexec/releases/download/${SEMBLE_VERSION}`
+const DOWNLOAD_BASE_URL = `https://github.com/Roo-Plus-Org/sembleexec/releases/download/${SEMBLE_VERSION}`
 const VERSION_FILE = ".semble-version"
 
 /**

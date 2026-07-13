@@ -96,7 +96,7 @@
 	"enqueueMessage": "Добавить сообщение в очередь (будет отправлено после завершения текущей задачи)",
 	"scrollToBottom": "Прокрутить чат вниз",
 	"scrollToLatestCheckpoint": "Прокрутить к предыдущему чекпоинту",
-	"about": "Zoo Code — это целая команда разработчиков ИИ в вашем редакторе.",
+	"about": "Roo+ Code — это целая команда разработчиков ИИ в вашем редакторе.",
 	"docs": "Ознакомьтесь с нашей <DocsLink>документацией</DocsLink>, чтобы узнать больше.",
 	"onboarding": "Ваш список задач в этом рабочем пространстве пуст.",
 	"rooTips": {
@@ -183,40 +183,40 @@
 		"wantsToFetch": "Roo хочет получить подробные инструкции для помощи с текущей задачей"
 	},
 	"fileOperations": {
-		"wantsToRead": "Zoo хочет прочитать этот файл",
-		"wantsToReadOutsideWorkspace": "Zoo хочет прочитать этот файл вне рабочей области",
-		"didRead": "Zoo прочитал этот файл",
-		"wantsToEdit": "Zoo хочет отредактировать этот файл",
-		"wantsToEditOutsideWorkspace": "Zoo хочет отредактировать этот файл вне рабочей области",
-		"wantsToEditProtected": "Zoo хочет отредактировать защищённый файл конфигурации",
-		"wantsToCreate": "Zoo хочет создать новый файл",
+		"wantsToRead": "Roo+ хочет прочитать этот файл",
+		"wantsToReadOutsideWorkspace": "Roo+ хочет прочитать этот файл вне рабочей области",
+		"didRead": "Roo+ прочитал этот файл",
+		"wantsToEdit": "Roo+ хочет отредактировать этот файл",
+		"wantsToEditOutsideWorkspace": "Roo+ хочет отредактировать этот файл вне рабочей области",
+		"wantsToEditProtected": "Roo+ хочет отредактировать защищённый файл конфигурации",
+		"wantsToCreate": "Roo+ хочет создать новый файл",
 		"wantsToSearchReplace": "Roo хочет выполнить поиск и замену в этом файле",
 		"didSearchReplace": "Roo выполнил поиск и замену в этом файле",
-		"wantsToInsert": "Zoo хочет вставить содержимое в этот файл",
-		"wantsToInsertWithLineNumber": "Zoo хочет вставить содержимое в этот файл на строку {{lineNumber}}",
-		"wantsToInsertAtEnd": "Zoo хочет добавить содержимое в конец этого файла",
-		"wantsToReadAndXMore": "Zoo хочет прочитать этот файл и еще {{count}}",
-		"wantsToReadMultiple": "Zoo хочет прочитать несколько файлов",
-		"wantsToApplyBatchChanges": "Zoo хочет применить изменения к нескольким файлам",
-		"wantsToGenerateImage": "Zoo хочет сгенерировать изображение",
-		"wantsToGenerateImageOutsideWorkspace": "Zoo хочет сгенерировать изображение вне рабочего пространства",
-		"wantsToGenerateImageProtected": "Zoo хочет сгенерировать изображение в защищённом месте",
-		"didGenerateImage": "Zoo сгенерировал изображение"
+		"wantsToInsert": "Roo+ хочет вставить содержимое в этот файл",
+		"wantsToInsertWithLineNumber": "Roo+ хочет вставить содержимое в этот файл на строку {{lineNumber}}",
+		"wantsToInsertAtEnd": "Roo+ хочет добавить содержимое в конец этого файла",
+		"wantsToReadAndXMore": "Roo+ хочет прочитать этот файл и еще {{count}}",
+		"wantsToReadMultiple": "Roo+ хочет прочитать несколько файлов",
+		"wantsToApplyBatchChanges": "Roo+ хочет применить изменения к нескольким файлам",
+		"wantsToGenerateImage": "Roo+ хочет сгенерировать изображение",
+		"wantsToGenerateImageOutsideWorkspace": "Roo+ хочет сгенерировать изображение вне рабочего пространства",
+		"wantsToGenerateImageProtected": "Roo+ хочет сгенерировать изображение в защищённом месте",
+		"didGenerateImage": "Roo+ сгенерировал изображение"
 	},
 	"directoryOperations": {
-		"wantsToViewTopLevel": "Zoo хочет просмотреть файлы верхнего уровня в этой директории",
-		"didViewTopLevel": "Zoo просмотрел файлы верхнего уровня в этой директории",
-		"wantsToViewRecursive": "Zoo хочет рекурсивно просмотреть все файлы в этой директории",
-		"didViewRecursive": "Zoo рекурсивно просмотрел все файлы в этой директории",
-		"wantsToSearch": "Zoo хочет выполнить поиск в этой директории по <code>{{regex}}</code>",
-		"didSearch": "Zoo выполнил поиск в этой директории по <code>{{regex}}</code>",
-		"wantsToSearchOutsideWorkspace": "Zoo хочет выполнить поиск в этой директории (вне рабочего пространства) по <code>{{regex}}</code>",
-		"didSearchOutsideWorkspace": "Zoo выполнил поиск в этой директории (вне рабочего пространства) по <code>{{regex}}</code>",
-		"wantsToViewTopLevelOutsideWorkspace": "Zoo хочет просмотреть файлы верхнего уровня в этой директории (вне рабочего пространства)",
-		"didViewTopLevelOutsideWorkspace": "Zoo просмотрел файлы верхнего уровня в этой директории (вне рабочего пространства)",
-		"wantsToViewRecursiveOutsideWorkspace": "Zoo хочет рекурсивно просмотреть все файлы в этой директории (вне рабочего пространства)",
-		"didViewRecursiveOutsideWorkspace": "Zoo рекурсивно просмотрел все файлы в этой директории (вне рабочего пространства)",
-		"wantsToViewMultipleDirectories": "Zoo хочет просмотреть несколько директорий"
+		"wantsToViewTopLevel": "Roo+ хочет просмотреть файлы верхнего уровня в этой директории",
+		"didViewTopLevel": "Roo+ просмотрел файлы верхнего уровня в этой директории",
+		"wantsToViewRecursive": "Roo+ хочет рекурсивно просмотреть все файлы в этой директории",
+		"didViewRecursive": "Roo+ рекурсивно просмотрел все файлы в этой директории",
+		"wantsToSearch": "Roo+ хочет выполнить поиск в этой директории по <code>{{regex}}</code>",
+		"didSearch": "Roo+ выполнил поиск в этой директории по <code>{{regex}}</code>",
+		"wantsToSearchOutsideWorkspace": "Roo+ хочет выполнить поиск в этой директории (вне рабочего пространства) по <code>{{regex}}</code>",
+		"didSearchOutsideWorkspace": "Roo+ выполнил поиск в этой директории (вне рабочего пространства) по <code>{{regex}}</code>",
+		"wantsToViewTopLevelOutsideWorkspace": "Roo+ хочет просмотреть файлы верхнего уровня в этой директории (вне рабочего пространства)",
+		"didViewTopLevelOutsideWorkspace": "Roo+ просмотрел файлы верхнего уровня в этой директории (вне рабочего пространства)",
+		"wantsToViewRecursiveOutsideWorkspace": "Roo+ хочет рекурсивно просмотреть все файлы в этой директории (вне рабочего пространства)",
+		"didViewRecursiveOutsideWorkspace": "Roo+ рекурсивно просмотрел все файлы в этой директории (вне рабочего пространства)",
+		"wantsToViewMultipleDirectories": "Roo+ хочет просмотреть несколько директорий"
 	},
 	"commandOutput": "Вывод команды",
 	"commandExecution": {
@@ -246,18 +246,18 @@
 		"youSaid": "Вы сказали"
 	},
 	"mcp": {
-		"wantsToUseTool": "Zoo хочет использовать инструмент на сервере MCP {{serverName}}",
-		"wantsToAccessResource": "Zoo хочет получить доступ к ресурсу на сервере MCP {{serverName}}"
+		"wantsToUseTool": "Roo+ хочет использовать инструмент на сервере MCP {{serverName}}",
+		"wantsToAccessResource": "Roo+ хочет получить доступ к ресурсу на сервере MCP {{serverName}}"
 	},
 	"modes": {
-		"wantsToSwitch": "Zoo хочет переключиться в режим {{mode}}",
-		"wantsToSwitchWithReason": "Zoo хочет переключиться в режим {{mode}}, потому что: {{reason}}",
-		"didSwitch": "Zoo переключился в режим {{mode}}",
-		"didSwitchWithReason": "Zoo переключился в режим {{mode}}, потому что: {{reason}}"
+		"wantsToSwitch": "Roo+ хочет переключиться в режим {{mode}}",
+		"wantsToSwitchWithReason": "Roo+ хочет переключиться в режим {{mode}}, потому что: {{reason}}",
+		"didSwitch": "Roo+ переключился в режим {{mode}}",
+		"didSwitchWithReason": "Roo+ переключился в режим {{mode}}, потому что: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Zoo хочет создать новую подзадачу в режиме {{mode}}",
-		"wantsToFinish": "Zoo хочет завершить эту подзадачу",
+		"wantsToCreate": "Roo+ хочет создать новую подзадачу в режиме {{mode}}",
+		"wantsToFinish": "Roo+ хочет завершить эту подзадачу",
 		"newTaskContent": "Инструкции по подзадаче",
 		"completionContent": "Подзадача завершена",
 		"resultContent": "Результаты подзадачи",
@@ -346,8 +346,8 @@
 		}
 	},
 	"skill": {
-		"wantsToLoad": "Zoo хочет загрузить навык",
-		"didLoad": "Zoo загрузил навык"
+		"wantsToLoad": "Roo+ хочет загрузить навык",
+		"didLoad": "Roo+ загрузил навык"
 	},
 	"followUpSuggest": {
 		"copyToInput": "Скопировать во ввод (то же, что shift + клик)",
@@ -374,7 +374,7 @@
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Достигнут лимит автоматически одобренных запросов",
-			"description": "Zoo достиг автоматически одобренного лимита в {{count}} API-запрос(ов). Хотите сбросить счетчик и продолжить задачу?",
+			"description": "Roo+ достиг автоматически одобренного лимита в {{count}} API-запрос(ов). Хотите сбросить счетчик и продолжить задачу?",
 			"button": "Сбросить и продолжить"
 		},
 		"autoApprovedCostLimitReached": {
@@ -384,8 +384,8 @@
 		}
 	},
 	"codebaseSearch": {
-		"wantsToSearch": "Zoo хочет выполнить поиск в кодовой базе по <code>{{query}}</code>",
-		"wantsToSearchWithPath": "Zoo хочет выполнить поиск в кодовой базе по <code>{{query}}</code> в <code>{{path}}</code>",
+		"wantsToSearch": "Roo+ хочет выполнить поиск в кодовой базе по <code>{{query}}</code>",
+		"wantsToSearchWithPath": "Roo+ хочет выполнить поиск в кодовой базе по <code>{{query}}</code> в <code>{{path}}</code>",
 		"didSearch_one": "Найден 1 результат",
 		"didSearch_other": "Найдено {{count}} результатов",
 		"resultTooltip": "Оценка схожести: {{score}} (нажмите, чтобы открыть файл)"
@@ -426,7 +426,7 @@
 		"ariaLabel": "Версия {{version}} - Нажмите, чтобы просмотреть примечания к выпуску"
 	},
 	"rooCloudCTA": {
-		"title": "Zoo Code Cloud развивается!",
+		"title": "Roo+ Code Cloud развивается!",
 		"description": "Запускайте удаленные агенты в облаке, получайте доступ к своим задачам из любого места, сотрудничайте с другими и многое другое.",
 		"joinWaitlist": "Зарегистрируйтесь, чтобы получать последние обновления."
 	},
@@ -467,8 +467,8 @@
 		"clickToEdit": "Нажмите, чтобы редактировать сообщение"
 	},
 	"slashCommand": {
-		"wantsToRun": "Zoo хочет выполнить слеш-команду",
-		"didRun": "Zoo выполнил слеш-команду"
+		"wantsToRun": "Roo+ хочет выполнить слеш-команду",
+		"didRun": "Roo+ выполнил слеш-команду"
 	},
 	"todo": {
 		"partial": "{{completed}} из {{total}} задач выполнено",
@@ -487,7 +487,7 @@
 		"openMcpSettings": "Открыть настройки MCP"
 	},
 	"readCommandOutput": {
-		"title": "Zoo read command output"
+		"title": "Roo+ read command output"
 	},
 	"retiredProvider": {
 		"title": "Провайдер больше не поддерживается",

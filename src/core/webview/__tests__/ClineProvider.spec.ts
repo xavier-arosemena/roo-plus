@@ -257,12 +257,12 @@ vi.mock("../../../api/providers/fetchers/modelCache", () => ({
 	getModelsFromCache: vi.fn().mockReturnValue(undefined),
 }))
 
-vi.mock("../../../services/zoo-code-auth", () => ({
-	getZooCodeBaseUrl: vi.fn(() => "https://www.zoocode.dev"),
-	getCachedZooCodeToken: vi.fn(),
+vi.mock("../../../services/roo-plus-auth", () => ({
+	getRooPlusBaseUrl: vi.fn(() => "https://www.zoocode.dev"),
+	getCachedRooPlusToken: vi.fn(),
 	handleAuthCallback: vi.fn(),
-	setZooCodeUserInfo: vi.fn(),
-	disconnectZooCode: vi.fn(),
+	setRooPlusUserInfo: vi.fn(),
+	disconnectRooPlus: vi.fn(),
 }))
 
 vi.mock("../../../shared/modes", () => ({
@@ -3899,13 +3899,13 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 		})
 	})
 
-	describe("Zoo Code auth profile sync", () => {
+	describe("Roo+ auth profile sync", () => {
 		beforeEach(async () => {
-			const { getCachedZooCodeToken } = await import("../../../services/zoo-code-auth")
-			vi.mocked(getCachedZooCodeToken).mockReturnValue("")
+			const { getCachedRooPlusToken } = await import("../../../services/roo-plus-auth")
+			vi.mocked(getCachedRooPlusToken).mockReturnValue("")
 		})
 
-		describe("handleZooCodeCallback", () => {
+		describe("handleRooPlusCallback", () => {
 			it("creates a Zoo Gateway profile when none exists", async () => {
 				vi.spyOn(provider, "getState").mockResolvedValue({
 					apiConfiguration: { zooGatewayModelId: "anthropic/claude-sonnet-4" },
@@ -3923,7 +3923,7 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 					listConfig: vi.fn().mockResolvedValue([]),
 				}
 
-				await provider.handleZooCodeCallback("zoo_ext_token")
+				await provider.handleRooPlusCallback("zoo_ext_token")
 
 				expect(postMessageSpy).toHaveBeenCalledWith({ type: "zooGatewayCredentialsReady" })
 				expect(upsertSpy).toHaveBeenCalledWith(
@@ -3969,7 +3969,7 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 					saveConfig,
 				}
 
-				await provider.handleZooCodeCallback("new-token")
+				await provider.handleRooPlusCallback("new-token")
 
 				expect(upsertSpy).toHaveBeenCalledWith(
 					"Zoo Gateway",
@@ -3995,10 +3995,10 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 					listConfig: vi.fn().mockResolvedValue([]),
 				}
 
-				await provider.handleZooCodeCallback("zoo_ext_token")
+				await provider.handleRooPlusCallback("zoo_ext_token")
 
 				expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
-					expect.stringContaining("[handleZooCodeCallback] Failed to save zoo-gateway profile"),
+					expect.stringContaining("[handleRooPlusCallback] Failed to save zoo-gateway profile"),
 				)
 				// State must still be refreshed even when profile persistence fails.
 				expect(provider.postStateToWebview).toHaveBeenCalled()
@@ -4007,7 +4007,7 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 
 		describe("ensureZooGatewayProfileSeeded", () => {
 			it("does nothing when no cached auth token exists", async () => {
-				const handleSpy = vi.spyOn(provider, "handleZooCodeCallback").mockResolvedValue(undefined)
+				const handleSpy = vi.spyOn(provider, "handleRooPlusCallback").mockResolvedValue(undefined)
 
 				;(provider as any).providerSettingsManager = {
 					listConfig: vi.fn(),
@@ -4019,9 +4019,9 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 			})
 
 			it("skips seeding when every zoo-gateway profile already has the current token and base URL", async () => {
-				const { getCachedZooCodeToken } = await import("../../../services/zoo-code-auth")
-				vi.mocked(getCachedZooCodeToken).mockReturnValue("current-token")
-				const handleSpy = vi.spyOn(provider, "handleZooCodeCallback").mockResolvedValue(undefined)
+				const { getCachedRooPlusToken } = await import("../../../services/roo-plus-auth")
+				vi.mocked(getCachedRooPlusToken).mockReturnValue("current-token")
+				const handleSpy = vi.spyOn(provider, "handleRooPlusCallback").mockResolvedValue(undefined)
 				const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
 
 				;(provider as any).providerSettingsManager = {
@@ -4039,9 +4039,9 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 			})
 
 			it("re-seeds when any zoo-gateway profile has a stale or missing token", async () => {
-				const { getCachedZooCodeToken } = await import("../../../services/zoo-code-auth")
-				vi.mocked(getCachedZooCodeToken).mockReturnValue("fresh-token")
-				const handleSpy = vi.spyOn(provider, "handleZooCodeCallback").mockResolvedValue(undefined)
+				const { getCachedRooPlusToken } = await import("../../../services/roo-plus-auth")
+				vi.mocked(getCachedRooPlusToken).mockReturnValue("fresh-token")
+				const handleSpy = vi.spyOn(provider, "handleRooPlusCallback").mockResolvedValue(undefined)
 
 				;(provider as any).providerSettingsManager = {
 					listConfig: vi.fn().mockResolvedValue([{ name: "Zoo Gateway", apiProvider: "zoo-gateway" }]),
@@ -4057,9 +4057,9 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 			})
 
 			it("re-seeds when any zoo-gateway profile has a stale base URL", async () => {
-				const { getCachedZooCodeToken } = await import("../../../services/zoo-code-auth")
-				vi.mocked(getCachedZooCodeToken).mockReturnValue("current-token")
-				const handleSpy = vi.spyOn(provider, "handleZooCodeCallback").mockResolvedValue(undefined)
+				const { getCachedRooPlusToken } = await import("../../../services/roo-plus-auth")
+				vi.mocked(getCachedRooPlusToken).mockReturnValue("current-token")
+				const handleSpy = vi.spyOn(provider, "handleRooPlusCallback").mockResolvedValue(undefined)
 
 				;(provider as any).providerSettingsManager = {
 					listConfig: vi.fn().mockResolvedValue([{ name: "Zoo Gateway", apiProvider: "zoo-gateway" }]),
