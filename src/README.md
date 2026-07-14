@@ -1,6 +1,7 @@
 <div align="center">
   <img src="./assets/banner.png" alt="Roo+ — 225+ Specialized AI Agents in One Extension" />
 </div>
+<br/>
 
 <p align="center">
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
