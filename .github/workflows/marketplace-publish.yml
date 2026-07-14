@@ -75,8 +75,8 @@ jobs:
         run: |
           package_name=$(node -p "require('./src/package.json').name")
           publisher=$(node -p "require('./src/package.json').publisher")
-
-          test "$package_name" = "zoo-code"
+       
+          test "$package_name" = "roo-plus"
           test "$publisher" = "xavier-arosemena"
 
       - name: Validate publish ref
@@ -128,8 +128,8 @@ jobs:
 
           artifact_name=$(unzip -p "$vsix_path" extension/package.json | jq -r '.name')
           artifact_publisher=$(unzip -p "$vsix_path" extension/package.json | jq -r '.publisher')
-
-          test "$artifact_name" = "zoo-code"
+       
+          test "$artifact_name" = "roo-plus"
           test "$artifact_publisher" = "xavier-arosemena"
 
       - name: Publish to VS Code Marketplace

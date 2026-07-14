@@ -159,12 +159,12 @@ suite("OpenRouter provider", function () {
 			assert.strictEqual(captured.xTitle, "Roo+", "X-Title header should identify the extension as Roo+")
 			assert.strictEqual(
 				captured.httpReferer,
-				"https://github.com/Zoo-Code-Org/Zoo-Code",
+				"https://github.com/Roo-Plus-Org/Roo-Plus",
 				"HTTP-Referer header should point to the Roo+ repository",
 			)
 			assert.ok(
-				captured.userAgent?.startsWith("ZooCode/"),
-				`User-Agent should start with "ZooCode/" — got: ${captured.userAgent}`,
+				captured.userAgent?.startsWith("RooPlus/"),
+				`User-Agent should start with "RooPlus/" — got: ${captured.userAgent}`,
 			)
 		}
 	})
