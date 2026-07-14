@@ -41,16 +41,16 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 			const translations: Record<string, string> = {
 				"chat:announcement.release.heading": "What's New:",
 				"chat:announcement.release.highlight1":
-					"Xiaomi MiMo provider: Added Xiaomi MiMo as a first-class API provider so you can configure MiMo models directly in Zoo Code.",
+					"Xiaomi MiMo provider: Added Xiaomi MiMo as a first-class API provider so you can configure MiMo models directly in Roo+.",
 				"chat:announcement.release.highlight2":
-					"Upstream Zoo Code handoff: Pulled in the latest upstream sunset merge and related platform updates to keep Zoo Code aligned with the community handoff work.",
+					"Upstream Zoo Code handoff: Pulled in the latest upstream sunset merge and related platform updates to keep Roo+ aligned with the community handoff work.",
 				"chat:announcement.release.highlight3":
 					"Stability fixes across chat and providers: Fixed MCP sign-in copy, Gemini full-tool requests, OpenAI temperature handling, and Markdown single-tilde rendering.",
 				"chat:announcement.handoff.heading": "The Roo Code plugin is not going away.",
 			}
 
 			if (key === "chat:announcement.title" || key === "chat:announcement.finalRelease.title") {
-				return `Zoo Code ${options?.version ?? ""} Released`
+				return `Roo+ ${options?.version ?? ""} Released`
 			}
 
 			return translations[key] ?? key
@@ -62,15 +62,15 @@ describe("Announcement", () => {
 	it("renders the announcement title and highlights", () => {
 		render(<Announcement hideAnnouncement={vi.fn()} />)
 
-		expect(screen.getByText("Zoo Code 3.55.0 Released")).toBeInTheDocument()
+		expect(screen.getByText("Roo+ 3.55.0 Released")).toBeInTheDocument()
 		expect(
 			screen.getByText(
-				"Xiaomi MiMo provider: Added Xiaomi MiMo as a first-class API provider so you can configure MiMo models directly in Zoo Code.",
+				"Xiaomi MiMo provider: Added Xiaomi MiMo as a first-class API provider so you can configure MiMo models directly in Roo+.",
 			),
 		).toBeInTheDocument()
 		expect(
 			screen.getByText(
-				"Upstream Zoo Code handoff: Pulled in the latest upstream sunset merge and related platform updates to keep Zoo Code aligned with the community handoff work.",
+				"Upstream Zoo Code handoff: Pulled in the latest upstream sunset merge and related platform updates to keep Roo+ aligned with the community handoff work.",
 			),
 		).toBeInTheDocument()
 		expect(
@@ -86,7 +86,7 @@ describe("Announcement", () => {
 		expect(screen.getAllByRole("listitem")).toHaveLength(3)
 	})
 
-	it("links support users to the Zoo Code GitHub repository", () => {
+	it("links support users to the Roo+ GitHub repository", () => {
 		render(<Announcement hideAnnouncement={vi.fn()} />)
 
 		expect(screen.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", EXTERNAL_LINKS.GITHUB_REPO)

@@ -1130,7 +1130,7 @@ export const ChatRowContent = ({
 								// Non-HTTP-status-code error message - store full text as errorDetails
 								body = t("chat:apiRequest.errorMessage.unknown")
 								docsURL =
-									"mailto:support@zoocode.dev?subject=Unknown API Error&body=[Please include full error details]"
+									"mailto:support@roo.plus?subject=Unknown API Error&body=[Please include full error details]"
 							}
 						}
 

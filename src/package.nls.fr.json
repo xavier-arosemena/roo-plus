@@ -1,6 +1,6 @@
 {
 	"extension.displayName": "Roo+",
-	"extension.description": "The dev team plus for VS Code/Codium.",
+	"extension.description": "Multi-agent AI development assistant with 225+ specialized agents — an entire AI team for coding, DevOps, security, architecture, and more",
 	"command.newTask.title": "Nouvelle Tâche",
 	"command.explainCode.title": "Expliquer le Code",
 	"command.fixCode.title": "Corriger le Code",
@@ -35,7 +35,7 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "Le fournisseur du modèle de langage (ex: copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "La famille du modèle de langage (ex: gpt-4)",
 	"settings.customStoragePath.description": "Chemin de stockage personnalisé. Laisser vide pour utiliser l'emplacement par défaut. Prend en charge les chemins absolus (ex: 'D:\\ZooCodeStorage')",
-	"settings.enableCodeActions.description": "Activer les correctifs rapides de Zoo Code.",
+	"settings.enableCodeActions.description": "Activer les correctifs rapides de Roo+.",
 	"settings.autoImportSettingsPath.description": "Chemin d'accès à un fichier de configuration ZooCode à importer automatiquement au démarrage de l'extension. Prend en charge les chemins absolus et les chemins relatifs au répertoire de base (par exemple, '~/Documents/roo-code-settings.json'). Laisser vide pour désactiver l'importation automatique.",
 	"settings.maximumIndexedFilesForFileSearch.description": "Nombre maximum de fichiers à indexer pour la fonctionnalité de recherche de fichiers @. Des valeurs plus élevées offrent de meilleurs résultats de recherche dans les grands projets mais peuvent consommer plus de mémoire. Par défaut : 10 000.",
 	"settings.useAgentRules.description": "Activer le chargement des fichiers AGENTS.md pour les règles spécifiques à l'agent (voir https://agent-rules.org/)",

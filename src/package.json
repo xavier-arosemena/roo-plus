@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "xavier-arosemena",
-	"version": "3.69.1",
+	"version": "3.69.2",
 	"icon": "assets/icons/icon.png",
 	"galleryBanner": {
 		"color": "#617A91",
@@ -26,8 +26,8 @@
 		"Chat",
 		"Programming Languages",
 		"Education",
-		"Snippets",
-		"Testing"
+		"Testing",
+		"Machine Learning"
 	],
 	"keywords": [
 		"cline",

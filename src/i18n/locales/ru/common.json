@@ -150,8 +150,8 @@
 		"auto_import_failed": "Не удалось автоматически импортировать настройки ZooCode: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "История задач Roo Code для импорта из {{domain}} не найдена.",
-			"alreadyImported_one": "{{count}} история задач Roo Code уже импортирована в Zoo Code.",
-			"alreadyImported_other": "Все {{count}} истории задач Roo Code уже импортированы в Zoo Code."
+			"alreadyImported_one": "{{count}} история задач Roo Code уже импортирована в Roo+.",
+			"alreadyImported_other": "Все {{count}} истории задач Roo Code уже импортированы в Roo+."
 		}
 	},
 	"info": {
@@ -173,8 +173,8 @@
 			"signInUnavailable": "Вход в Roo Code Cloud сейчас недоступен. Настрой другого провайдера, чтобы продолжить."
 		},
 		"rooHistoryImport": {
-			"success_one": "{{count}} история задач Roo Code импортирована в Zoo Code.",
-			"success_other": "{{count}} историй задач Roo Code импортировано в Zoo Code."
+			"success_one": "{{count}} история задач Roo Code импортирована в Roo+.",
+			"success_other": "{{count}} историй задач Roo Code импортировано в Roo+."
 		}
 	},
 	"answers": {
@@ -236,8 +236,8 @@
 	},
 	"mdm": {
 		"errors": {
-			"cloud_auth_required": "Ваша организация требует аутентификации Zoo Code Cloud. Войдите в систему, чтобы продолжить.",
-			"organization_mismatch": "Вы должны быть аутентифицированы с учетной записью Zoo Code Cloud вашей организации.",
+			"cloud_auth_required": "Ваша организация требует аутентификации Roo+ Cloud. Войдите в систему, чтобы продолжить.",
+			"organization_mismatch": "Вы должны быть аутентифицированы с учетной записью Roo+ Cloud вашей организации.",
 			"manual_url_empty": "Введи действительный URL обратного вызова",
 			"manual_url_no_query": "Недействительный URL обратного вызова: отсутствуют параметры запроса",
 			"manual_url_missing_params": "Недействительный URL обратного вызова: отсутствуют обязательные параметры (code и state)",
@@ -268,18 +268,18 @@
 	},
 	"zooAuth": {
 		"errors": {
-			"invalid_token_received": "Zoo Code: Получен недействительный token аутентификации.",
-			"token_verification_failed": "Zoo Code: Не удалось проверить token.",
-			"invalid_token": "Zoo Code: Недействительный token.",
-			"could_not_verify_token": "Zoo Code: Не удалось проверить token.",
-			"session_expired": "Сессия Zoo Code истекла. Войдите снова, чтобы продолжить использовать Zoo Gateway.",
+			"invalid_token_received": "Roo+: Получен недействительный token аутентификации.",
+			"token_verification_failed": "Roo+: Не удалось проверить token.",
+			"invalid_token": "Roo+: Недействительный token.",
+			"could_not_verify_token": "Roo+: Не удалось проверить token.",
+			"session_expired": "Сессия Roo+ истекла. Войдите снова, чтобы продолжить использовать Zoo Gateway.",
 			"out_of_credits": "Zoo Gateway: недостаточно кредитов. Добавьте кредиты, чтобы продолжить.",
 			"account_unavailable": "Zoo Gateway: ваша учётная запись сейчас недоступна. Обратитесь в поддержку.",
 			"budget_exceeded": "Zoo Gateway: лимит использования достигнут. Дождитесь сброса или пополните счёт."
 		},
 		"info": {
-			"connected": "Zoo Code: Успешно подключено! Теперь ты можешь использовать Zoo Code в качестве AI-провайдера.",
-			"disconnected": "Zoo Code: Успешно отключено."
+			"connected": "Roo+: Успешно подключено! Теперь ты можешь использовать Roo+ в качестве AI-провайдера.",
+			"disconnected": "Roo+: Успешно отключено."
 		},
 		"buttons": {
 			"sign_in": "Войти",
@@ -288,9 +288,9 @@
 		}
 	},
 	"codeActions": {
-		"explain": "Объяснить с Zoo Code",
-		"fix": "Исправить с Zoo Code",
-		"improve": "Улучшить с Zoo Code",
-		"addToContext": "Добавить в Zoo Code"
+		"explain": "Объяснить с Roo+",
+		"fix": "Исправить с Roo+",
+		"improve": "Улучшить с Roo+",
+		"addToContext": "Добавить в Roo+"
 	}
 }

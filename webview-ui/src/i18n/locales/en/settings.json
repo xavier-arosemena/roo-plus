@@ -636,7 +636,7 @@
 			}
 		},
 		"zooGateway": {
-			"account": "Zoo Code Account",
+			"account": "Roo+ Account",
 			"signInButton": "Sign in to Roo+ Code",
 			"signInDescription": "Sign in to use Roo+ Gateway with your account",
 			"authenticated": "Authenticated",
@@ -911,7 +911,7 @@
 			"followVscode": "Follow VS Code profile (recommended)",
 			"configureButton": "Choose default profile in VS Code",
 			"noProfiles": "(no path-based profiles found in terminal.integrated.profiles)",
-			"description": "Zoo Code uses the shell configured in VS Code by default. Select a specific terminal profile to override this. Only path-based profiles from terminal.integrated.profiles are listed here. <0>Learn more</0>"
+			"description": "Roo+ uses the shell configured in VS Code by default. Select a specific terminal profile to override this. Only path-based profiles from terminal.integrated.profiles are listed here. <0>Learn more</0>"
 		}
 	},
 	"advancedSettings": {

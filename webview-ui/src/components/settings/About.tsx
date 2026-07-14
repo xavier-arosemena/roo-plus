@@ -119,7 +119,7 @@ export const About = ({ telemetrySetting, setTelemetrySetting, debug, setDebug, 
 						<Trans
 							i18nKey="settings:footer.telemetry.description"
 							components={{
-								privacyLink: <VSCodeLink href="https://www.zoocode.dev/privacy" />,
+								privacyLink: <VSCodeLink href="https://www.roo.plus/privacy" />,
 							}}
 						/>
 					</p>

@@ -633,8 +633,8 @@
 			"maxTokensDescription": "Claude Code yanıtları için maksimum çıktı token sayısı. Varsayılan 8000'dir."
 		},
 		"zooGateway": {
-			"account": "Zoo Code Hesabı",
-			"signInButton": "Zoo Code'a giriş yap",
+			"account": "Roo+ Hesabı",
+			"signInButton": "Roo+'a giriş yap",
 			"signInDescription": "Hesabınızla Roo+ Gateway kullanmak için giriş yapın",
 			"authenticated": "Kimlik doğrulandı",
 			"authenticatedAs": "{{name}} olarak kimlik doğrulandı"
@@ -827,7 +827,7 @@
 			"description": "Ana VS Code işleminden ortam değişkenlerini devralmak için bunu açın. <0>Daha fazla bilgi edinin</0>"
 		},
 		"profile": {
-			"label": "Zoo Code terminal profili",
+			"label": "Roo+ terminal profili",
 			"followVscode": "VS Code profili takip ediliyor (önerilir)",
 			"description": "Varsayılan olarak Roo+ Code, VS Code'da yapılandırılmış kabuğu kullanır. VS Code'un sunduğu yol tabanlı bir kabuk profili seçmek için listeden bir kabuk profili seçin. Yalnızca kaynak profiller (örn. yerleşik PowerShell girişi) burada listelenemez. <0>Daha fazla bilgi</0>",
 			"configureButton": "VS Code'da varsayılan profili seç",
@@ -1058,7 +1058,7 @@
 		},
 		"chatFontSize": {
 			"label": "Sohbet yazı tipi boyutu",
-			"description": "Zoo Code sohbeti için yazı tipi boyutunu (piksel cinsinden) ayarlayın. VS Code yazı tipi boyutuyla eşleşmesi için varsayılan değerde bırakın.",
+			"description": "Roo+ sohbeti için yazı tipi boyutunu (piksel cinsinden) ayarlayın. VS Code yazı tipi boyutuyla eşleşmesi için varsayılan değerde bırakın.",
 			"reset": "VS Code varsayılanını kullan"
 		},
 		"autoCloseZooOpenedFiles": {

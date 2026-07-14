@@ -1,5 +1,5 @@
 {
-	"greeting": "Witamy w Zoo Code!",
+	"greeting": "Witamy w Roo+!",
 	"task": {
 		"title": "Zadanie",
 		"expand": "Rozwiń zadanie",
@@ -160,7 +160,7 @@
 			"500": "Błąd serwera dostawcy. Po stronie dostawcy coś się nie powiodło, w Twoim żądaniu nie ma nic złego.",
 			"docs": "Dokumentacja",
 			"goToSettings": "Ustawienia",
-			"unknown": "Nieznany błąd API. Skontaktuj się z pomocą techniczną Zoo Code.",
+			"unknown": "Nieznany błąd API. Skontaktuj się z pomocą techniczną Roo+.",
 			"connection": "Błąd połączenia. Upewnij się, że masz działające połączenie internetowe.",
 			"claudeCodeNotAuthenticated": "Musisz się zalogować, aby korzystać z Claude Code. Przejdź do Ustawień i kliknij \"Zaloguj się do Claude Code\", aby się uwierzytelnić."
 		}
@@ -338,7 +338,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} wydany",
-		"support": "Wesprzyj Zoo Code, dając nam gwiazdkę na <githubLink>GitHub</githubLink>.",
+		"support": "Wesprzyj Roo+, dając nam gwiazdkę na <githubLink>GitHub</githubLink>.",
 		"release": {
 			"heading": "Co nowego:",
 			"highlight1": "Provider Friendli z obsługą GLM-5.2 — używaj najnowszego modelu GLM przez Friendli.",
@@ -367,7 +367,7 @@
 	"profileViolationWarning": "Bieżący profil nie jest kompatybilny z ustawieniami Twojej organizacji",
 	"shellIntegration": {
 		"title": "Ostrzeżenie wykonania polecenia",
-		"description": "Twoje polecenie jest wykonywane bez integracji powłoki terminala VSCode. Aby ukryć to ostrzeżenie, możesz wyłączyć integrację powłoki w sekcji <strong>Terminal</strong> w <settingsLink>ustawieniach Zoo Code</settingsLink> lub rozwiązać problemy z integracją terminala VSCode korzystając z poniższego linku.",
+		"description": "Twoje polecenie jest wykonywane bez integracji powłoki terminala VSCode. Aby ukryć to ostrzeżenie, możesz wyłączyć integrację powłoki w sekcji <strong>Terminal</strong> w <settingsLink>ustawieniach Roo+</settingsLink> lub rozwiązać problemy z integracją terminala VSCode korzystając z poniższego linku.",
 		"troubleshooting": "Kliknij tutaj, aby zobaczyć dokumentację integracji powłoki."
 	},
 	"ask": {

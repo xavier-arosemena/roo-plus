@@ -1,4 +1,59 @@
-# Zoo Code Changelog
+# Roo+ Changelog
+
+## [3.69.2] — 2026-07-14
+
+### Patch — Rebrand & Attribution
+
+- Complete "Zoo Code" → "Roo+" rebrand across the entire codebase: source code, i18n translations (18 locales), GitHub workflows, issue templates, documentation, and test files
+- Updated extension marketplace categories: removed "Snippets", added "Machine Learning" for better differentiation from upstream
+- Replaced extension short description with: _"Multi-agent AI development assistant with 225+ specialized agents — an entire AI team for coding, DevOps, security, architecture, and more"_
+- Added proper attribution to [`Custom-Modes-Roo-Code`](https://github.com/jtgsystems/Custom-Modes-Roo-Code) by [@jtgsystems](https://github.com/jtgsystems) in README
+- Updated all external links (GitHub, social, support email) to Roo+ equivalents
+- Synced `src/CHANGELOG.md` with root `CHANGELOG.md` by prepending Roo+ fork history (v3.69.1, v3.68.3, v3.68.2)
+- Updated `src/dist/` build artifact copies from updated source files
+
+## [3.69.1] — 2026-07-13
+
+### Major — Custom Modes Library Integration
+
+- Integrated **225 specialized agents** from `Custom-Modes-Roo-Code` as a git submodule (`custom-modes/`)
+- Added **146 custom modes** pre-loaded in `.roomodes` (7 existing + 139 curated agents)
+- Added **233 agents** to the Modes Marketplace catalog (`src/assets/marketplace/modes.yml`)
+- Created curation manifest (`custom-modes/manifest.json`) for controlling which agents are pre-loaded
+- Added conversion script (`scripts/sync-custom-modes.mjs`) to convert agent YAMLs → `.roomodes` + marketplace catalog
+- Added agent catalog generator (`scripts/generate-catalog.mjs`) producing `custom-modes/AGENT_CATALOG.md`
+- Added npm scripts: `sync:custom-modes`, `custom-modes:update`, `custom-modes:catalog`
+- Updated root README.md with full Custom Modes Library documentation:
+    - 🏢 For Organizations section (Product, Marketing, Sales, Legal & Compliance)
+    - 🧠 SOTA 2026 Personas section (11 advanced reasoning personas)
+    - 🛠️ Developer Toolbox section (Core Dev, Languages, DevOps, Security)
+    - ✔ GDPR/EU compliance coverage via Compliance Specialist agent
+    - 📋 Agent Catalog reference with import instructions
+- Published v3.69.1 to Open VSX Registry with updated marketplace description (banner + custom modes details)
+- Updated bundle size: 33.77 MB, 1,932 files
+
+### Notes
+
+- 94 additional agents remain available in the submodule for manual import
+- Custom modes library is independently versioned via git submodule for easy upstream updates
+
+## [3.68.3] — 2026-07-13
+
+### Fix
+
+- Corrected logo SVG mask for proper rendering in all themes
+- Fixed remaining "Zoo" branding strings that were missed in initial rebrand
+- Cleaned up stray references in localization files
+
+## [3.68.2] — 2026-07-13
+
+### Major — Initial Roo+ Fork Release
+
+- Forked from Zoo Code v3.68.0 to create **Roo+**
+- Rebranded all instances of "Roo+" and "Zoo" to "Roo+" and "Roo"
+- Updated all branding assets, logos, icons, and color schemes
+- Updated extension display name, description, and gallery banner
+- Set up Open VSX Registry publishing pipeline
 
 ## [3.68.0]
 
@@ -159,7 +214,7 @@
 - Add Claude Opus 4.8 support across Anthropic, Bedrock, and Vertex providers (PR #386 by @vandre-sales)
 - Add Opencode Go as a first-class provider (#172 by @vijay-0001, PR #319 by @proyectoauraorg)
 - Add glm-5.1, kimi-k2.6, and deepseek-v4-pro models to the Fireworks provider (#198 by @DeCodeTheWeb, PR #231 by @proyectoauraorg)
-- Show Zoo Code identity in outbound provider activity logs (#203 by @yfdyh000, PR #219 by @app/roomote)
+- Show Roo+ identity in outbound provider activity logs (#203 by @yfdyh000, PR #219 by @app/roomote)
 - Fix API requests hanging indefinitely on VS Code 1.122.0+ (#381 by @greatgradz-svg, #382 by @abcxlab, PR #383 by @app/roomote)
 - Fix terminal task cancellation so the running process is terminated when a task is cancelled (#245 by @proyectoauraorg, PR #261 by @proyectoauraorg)
 - Fix terminal Ctrl+C retry so processes that need multiple SIGINT signals are properly stopped (#266 by @edelauna, PR #272 by @proyectoauraorg)
@@ -167,7 +222,7 @@
 - Fix truncated Grok diffs caused by missing diff markers (#186 by @jcalfee, PR #230 by @proyectoauraorg)
 - Fix PowerShell detection on Windows when no shell profile is configured (#82 by @rossdonald, PR #239 by @proyectoauraorg)
 - Fix Vertex AI warning when the Google Cloud Credentials field receives a file path instead of JSON (PR #294 by @0xMink)
-- Rename Zoo Code in VS Code code actions (#328 by @rrewll, PR #329 by @rrewll)
+- Rename Roo+ in VS Code code actions (#328 by @rrewll, PR #329 by @rrewll)
 - Localize VS Code code action commands (#334 by @edelauna, PR #339 by @rrewll)
 - Migrate webview build to Vite 8 (PR #214 by @maxdewald)
 - Add comprehensive unit tests for AskFollowupQuestionTool and ListFilesTool (#206 by @app/roomote, PR #212, #213 by @proyectoauraorg)
@@ -182,18 +237,18 @@
 
 ### Patch Changes
 
-- Fix API requests hanging indefinitely on VS Code 1.122.0+ when Zoo Code could not find the bundled ripgrep binary after the `@vscode/ripgrep-universal` rename (#381 by @greatgradz-svg, PR #248 by @0xMink).
+- Fix API requests hanging indefinitely on VS Code 1.122.0+ when Roo+ could not find the bundled ripgrep binary after the `@vscode/ripgrep-universal` rename (#381 by @greatgradz-svg, PR #248 by @0xMink).
 
-All notable changes to Zoo Code will be documented in this file.
+All notable changes to Roo+ will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Zoo Code uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Roo+ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## 3.55.0
 
 ### Minor Changes
 
 - Add Xiaomi MiMo as a first-class API provider (#80 by @capitanfeeder, PR #81 by @capitanfeeder)
-- Merge the Roo Code upstream sunset into Zoo Code and pull in related handoff updates (PR #123 by @edelauna)
+- Merge the Roo Code upstream sunset into Roo+ and pull in related handoff updates (PR #123 by @edelauna)
 - Fix Gemini requests when users enable the full MCP tool set (PR #148 by @app/roomote)
 - Fix OpenAI requests by omitting temperature for models that do not support it (#215 by @marty-a11y, PR #233 by @proyectoauraorg)
 - Fix the MCP OAuth callback page garbled text after sign-in (#217 by @mabiuroot-art, PR #218 by @app/roomote)
@@ -230,10 +285,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Fix the OpenAI Compatible onboarding form starting above the viewport (PR #113 by @app/roomote)
 - Fix settings and Marketplace access after importing Roo Router settings (PR #109 by @app/roomote)
 - Fix the setup announcement origin and load LM Studio models on first open (PR #97 by @app/roomote)
-- Fix Discord invite links that still pointed to the old Zoo Code server (PR #107 by @app/roomote)
+- Fix Discord invite links that still pointed to the old Roo+ server (PR #107 by @app/roomote)
 - Fix support links that opened the wrong GitHub repository (PR #77 by @app/roomote)
-- Refresh Zoo Code branding across docs and metadata (PR #85 by @taltas)
-- Clarify Zoo Code migration messaging in the README (PR #99 by @taltas)
+- Refresh Roo+ branding across docs and metadata (PR #85 by @taltas)
+- Clarify Roo+ migration messaging in the README (PR #99 by @taltas)
 - Keep settings regression coverage in the webview-ui test suite (PR #95 by @app/roomote)
 - Clean up skipped extension package tests (PR #110 by @app/roomote)
 - Add DeepSeek V4 end-to-end coverage (PR #72 by @app/roomote)
@@ -248,7 +303,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- Publish Zoo Code under the `ZooCodeOrganization.zoo-code` Marketplace identity, continuing from upstream Roo Code `3.53.0`.
+- Publish Roo+ under the `ZooCodeOrganization.zoo-code` Marketplace identity, continuing from upstream Roo Code `3.53.0`.
 - Add stable publishing workflows for the VS Code Marketplace and Open VSX Registry.
 - Add a VS Code Marketplace pre-release workflow.
 
@@ -256,7 +311,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 # Archived Roo Code Changelog
 
-The entries below are preserved from the upstream Roo Code project history before the Zoo Code marketplace handoff.
+The entries below are preserved from the upstream Roo Code project history before the Roo+ marketplace handoff.
 
 ## 3.53.0
 

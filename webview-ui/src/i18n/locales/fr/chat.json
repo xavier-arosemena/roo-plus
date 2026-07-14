@@ -1,5 +1,5 @@
 {
-	"greeting": "Bienvenue sur Zoo Code !",
+	"greeting": "Bienvenue sur Roo+ !",
 	"task": {
 		"title": "Tâche",
 		"expand": "Développer la tâche",
@@ -160,7 +160,7 @@
 			"500": "Erreur du serveur du fournisseur. Quelque chose ne va pas du côté du fournisseur, il n'y a rien de mal avec votre demande.",
 			"docs": "Documentation",
 			"goToSettings": "Paramètres",
-			"unknown": "Erreur API inconnue. Contacte le support Zoo Code.",
+			"unknown": "Erreur API inconnue. Contacte le support Roo+.",
 			"connection": "Erreur de connexion. Assurez-vous que vous avez une connexion Internet fonctionnelle.",
 			"claudeCodeNotAuthenticated": "Vous devez vous connecter pour utiliser Claude Code. Allez dans les Paramètres et cliquez sur \"Se connecter à Claude Code\" pour vous authentifier."
 		}
@@ -338,7 +338,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} est disponible",
-		"support": "Soutiens Zoo Code en nous donnant une étoile sur <githubLink>GitHub</githubLink>.",
+		"support": "Soutiens Roo+ en nous donnant une étoile sur <githubLink>GitHub</githubLink>.",
 		"release": {
 			"heading": "Nouveautés :",
 			"highlight1": "Provider Friendli avec prise en charge de GLM-5.2 — utilise le dernier modèle GLM via Friendli.",
@@ -367,7 +367,7 @@
 	"profileViolationWarning": "Le profil actuel n'est pas compatible avec les paramètres de votre organisation",
 	"shellIntegration": {
 		"title": "Avertissement d'exécution de commande",
-		"description": "Ta commande est exécutée sans l'intégration shell du terminal VSCode. Pour masquer cet avertissement, tu peux désactiver l'intégration shell dans la section <strong>Terminal</strong> des <settingsLink>paramètres de Zoo Code</settingsLink> ou résoudre les problèmes d'intégration du terminal VSCode avec le lien ci-dessous.",
+		"description": "Ta commande est exécutée sans l'intégration shell du terminal VSCode. Pour masquer cet avertissement, tu peux désactiver l'intégration shell dans la section <strong>Terminal</strong> des <settingsLink>paramètres de Roo+</settingsLink> ou résoudre les problèmes d'intégration du terminal VSCode avec le lien ci-dessous.",
 		"troubleshooting": "Cliquez ici pour la documentation d'intégration shell."
 	},
 	"ask": {

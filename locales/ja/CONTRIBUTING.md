@@ -11,9 +11,9 @@
 </sub>
 </div>
 
-# Zoo Codeへの貢献
+# Roo+への貢献
 
-Zoo Codeはコミュニティ主導のプロジェクトであり、すべての貢献を深く評価しています。共同作業を円滑にするため、私たちは[課題第一のアプローチ](#課題第一のアプローチ)で運営しています。つまり、すべての[プルリクエスト（PR）](#プルリクエストの提出)は、まずGitHubの課題にリンクされている必要があります。このガイドを注意深く確認してください。
+Roo+はコミュニティ主導のプロジェクトであり、すべての貢献を深く評価しています。共同作業を円滑にするため、私たちは[課題第一のアプローチ](#課題第一のアプローチ)で運営しています。つまり、すべての[プルリクエスト（PR）](#プルリクエストの提出)は、まずGitHubの課題にリンクされている必要があります。このガイドを注意深く確認してください。
 
 ## 目次
 
@@ -54,7 +54,7 @@ Zoo Codeはコミュニティ主導のプロジェクトであり、すべての
 
 PRでこれらの分野との連携について言及してください。
 
-### 3. Zoo Code コミュニティに参加しよう
+### 3. Roo+ コミュニティに参加しよう
 
 - **Discord:** 私たちの [Discord](https://discord.gg/VxfP4Vx3gX) に参加してください。
 - **Reddit:** 私たちの [Reddit](https://www.reddit.com/r/ZooCode/) に参加してください。
@@ -71,7 +71,7 @@ PRでこれらの分野との連携について言及してください。
 
 すべての貢献は、私たちのスキニーテンプレートを使用してGitHubの課題から始まります。
 
-- **既存の課題を確認する**：[GitHubの課題](https://github.com/Zoo-Code-Org/Zoo-Code/issues)で検索します。
+- **既存の課題を確認する**：[GitHubの課題](https://github.com/xavier-arosemena/roo-plus/issues)で検索します。
 - **課題を作成する**：
     - **機能強化：** 「機能強化リクエスト」テンプレート（ユーザーの利益に焦点を当てた平易な言葉）。
     - **バグ：** 「バグレポート」テンプレート（最小限の再現+期待値と実際値+バージョン）。
@@ -80,17 +80,17 @@ PRでこれらの分野との連携について言及してください。
 
 ### 何に取り組むかを決める
 
-- issue を探すには [GitHub Issues ページ](https://github.com/Zoo-Code-Org/Zoo-Code/issues) を確認してください。
-- ドキュメントについては、[Zoo Codeドキュメント](https://github.com/Zoo-Code-Org/Zoo-Code-Docs)をご覧ください。
+- issue を探すには [GitHub Issues ページ](https://github.com/xavier-arosemena/roo-plus/issues) を確認してください。
+- ドキュメントについては、[Roo+ドキュメント](https://github.com/xavier-arosemena/roo-plus-Docs)をご覧ください。
 
 ### バグの報告
 
 - 最初に既存のレポートを確認してください。
-- 次の情報を含む[「バグレポート」テンプレート](https://github.com/Zoo-Code-Org/Zoo-Code/issues/new/choose)を使用して新しいバグを作成します。
+- 次の情報を含む[「バグレポート」テンプレート](https://github.com/xavier-arosemena/roo-plus/issues/new/choose)を使用して新しいバグを作成します。
     - 明確で番号付きの再現手順
     - 期待される結果と実際の結果
-    - Zoo Codeのバージョン（必須）。関連する場合はAPIプロバイダー/モデル
-- **セキュリティの問題**：[セキュリティアドバイザリ](https://github.com/Zoo-Code-Org/Zoo-Code/security/advisories/new)を介して非公開で報告してください。
+    - Roo+のバージョン（必須）。関連する場合はAPIプロバイダー/モデル
+- **セキュリティの問題**：[セキュリティアドバイザリ](https://github.com/xavier-arosemena/roo-plus/security/advisories/new)を介して非公開で報告してください。
 
 ## 開発と提出のプロセス
 
@@ -166,4 +166,4 @@ PRの作成にAIツールを使用する場合は、以下が必要です。
 
 ## 法務
 
-貢献することにより、あなたの貢献がZoo Codeのライセンスと一致するApache 2.0ライセンスの下でライセンスされることに同意したことになります。
+貢献することにより、あなたの貢献がRoo+のライセンスと一致するApache 2.0ライセンスの下でライセンスされることに同意したことになります。

@@ -1,5 +1,5 @@
 {
-	"greeting": "歡迎使用 Zoo Code！",
+	"greeting": "歡迎使用 Roo+！",
 	"task": {
 		"title": "工作",
 		"expand": "展開工作",
@@ -183,7 +183,7 @@
 			"docs": "說明文件",
 			"goToSettings": "設定",
 			"connection": "連線錯誤。請確保您有可用的網際網路連線。",
-			"unknown": "未知 API 錯誤。請聯絡 Zoo Code 技術支援。",
+			"unknown": "未知 API 錯誤。請聯絡 Roo+ 技術支援。",
 			"claudeCodeNotAuthenticated": "您需要登入才能使用 Claude Code。前往設定並點選「登入 Claude Code」以進行驗證。"
 		}
 	},
@@ -360,7 +360,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} 已發布",
-		"support": "請在 <githubLink>GitHub</githubLink> 上為 Zoo Code 加星支持我們。",
+		"support": "請在 <githubLink>GitHub</githubLink> 上為 Roo+ 加星支持我們。",
 		"release": {
 			"heading": "新增功能：",
 			"highlight1": "支援 GLM-5.2 的 Friendli 供應商 — 透過 Friendli 使用最新的 GLM 模型。",
@@ -397,7 +397,7 @@
 	"profileViolationWarning": "目前設定檔與您的組織設定不相容",
 	"shellIntegration": {
 		"title": "命令執行警告",
-		"description": "命令正在沒有 VS Code 終端機 Shell 整合的情況下執行。若要隱藏此警告，可在 <settingsLink>Zoo Code 設定</settingsLink> 的 <strong>終端機</strong> 區塊中停用 Shell 整合，或使用下方連結排解 VS Code 終端機整合問題。",
+		"description": "命令正在沒有 VS Code 終端機 Shell 整合的情況下執行。若要隱藏此警告，可在 <settingsLink>Roo+ 設定</settingsLink> 的 <strong>終端機</strong> 區塊中停用 Shell 整合，或使用下方連結排解 VS Code 終端機整合問題。",
 		"troubleshooting": "點選此處查看 Shell 整合說明文件。"
 	},
 	"ask": {

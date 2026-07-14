@@ -1,5 +1,5 @@
 {
-	"greeting": "Selamat datang di Zoo Code!",
+	"greeting": "Selamat datang di Roo+!",
 	"task": {
 		"title": "Tugas",
 		"expand": "Perluas tugas",
@@ -185,7 +185,7 @@
 			"500": "Kesalahan server penyedia. Ada yang salah di sisi penyedia, tidak ada yang salah dengan permintaan Anda.",
 			"docs": "Dokumentasi",
 			"goToSettings": "Pengaturan",
-			"unknown": "Kesalahan API yang tidak diketahui. Harap hubungi dukungan Zoo Code.",
+			"unknown": "Kesalahan API yang tidak diketahui. Harap hubungi dukungan Roo+.",
 			"connection": "Kesalahan koneksi. Pastikan Anda memiliki koneksi internet yang berfungsi.",
 			"claudeCodeNotAuthenticated": "Anda perlu masuk untuk menggunakan Claude Code. Buka Pengaturan dan klik \"Masuk ke Claude Code\" untuk mengautentikasi."
 		}
@@ -367,7 +367,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} Dirilis",
-		"support": "Dukung Zoo Code dengan memberi kami bintang di <githubLink>GitHub</githubLink>.",
+		"support": "Dukung Roo+ dengan memberi kami bintang di <githubLink>GitHub</githubLink>.",
 		"release": {
 			"heading": "Yang Baru:",
 			"highlight1": "Provider Friendli dengan dukungan GLM-5.2 — gunakan model GLM terbaru lewat Friendli.",
@@ -404,7 +404,7 @@
 	"profileViolationWarning": "Profil saat ini tidak kompatibel dengan pengaturan organisasi kamu",
 	"shellIntegration": {
 		"title": "Peringatan Eksekusi Perintah",
-		"description": "Perintah kamu dijalankan tanpa integrasi shell terminal VSCode. Untuk menekan peringatan ini kamu bisa menonaktifkan integrasi shell di bagian <strong>Terminal</strong> dari <settingsLink>pengaturan Zoo Code</settingsLink> atau troubleshoot integrasi terminal VSCode menggunakan link di bawah.",
+		"description": "Perintah kamu dijalankan tanpa integrasi shell terminal VSCode. Untuk menekan peringatan ini kamu bisa menonaktifkan integrasi shell di bagian <strong>Terminal</strong> dari <settingsLink>pengaturan Roo+</settingsLink> atau troubleshoot integrasi terminal VSCode menggunakan link di bawah.",
 		"troubleshooting": "Klik di sini untuk dokumentasi integrasi shell."
 	},
 	"ask": {

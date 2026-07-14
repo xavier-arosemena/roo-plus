@@ -27,7 +27,7 @@
 	},
 	"oauth": {
 		"callback": {
-			"title": "OAuth Callback - Zoo Code",
+			"title": "OAuth Callback - Roo+",
 			"success": "Успешно!",
 			"failed": "Ошибка",
 			"auth_failed": "Ошибка аутентификации. Пожалуйста, проверьте логи MCP-сервера.",

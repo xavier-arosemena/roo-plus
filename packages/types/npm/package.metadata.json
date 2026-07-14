@@ -1,20 +1,20 @@
 {
 	"name": "@roo-code/types",
 	"version": "1.115.0",
-	"description": "TypeScript type definitions for Zoo Code.",
+	"description": "TypeScript type definitions for Roo+.",
 	"publishConfig": {
 		"access": "public",
 		"name": "@roo-code/types",
 		"registry": "https://registry.npmjs.org/"
 	},
-	"author": "Zoo Code Team",
+	"author": "Roo+ Team",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/Zoo-Code-Org/Zoo-Code.git"
+		"url": "git+https://github.com/xavier-arosemena/roo-plus.git"
 	},
 	"bugs": {
-		"url": "https://github.com/Zoo-Code-Org/Zoo-Code/issues"
+		"url": "https://github.com/xavier-arosemena/roo-plus/issues"
 	},
 	"homepage": "https://zoocode.dev",
 	"keywords": ["zoo", "zoo-code", "ai"],

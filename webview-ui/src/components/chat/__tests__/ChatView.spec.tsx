@@ -770,7 +770,7 @@ describe("ChatView - Welcome Screen Display Tests", () => {
 		})
 
 		await waitFor(() => {
-			expect(getByTestId("roo-tips")).toBeInTheDocument()
+			expect(getByTestId("roo-plus-tips")).toBeInTheDocument()
 		})
 		expect(queryByTestId("dismissible-upsell")).not.toBeInTheDocument()
 	})
@@ -798,8 +798,8 @@ describe("ChatView - Welcome Screen Display Tests", () => {
 
 		await waitFor(() => {
 			expect(queryByTestId("dismissible-upsell")).not.toBeInTheDocument()
-			expect(queryByTestId("roo-tips")).not.toBeInTheDocument()
-			expect(queryByTestId("roo-hero")).not.toBeInTheDocument()
+			expect(queryByTestId("roo-plus-tips")).not.toBeInTheDocument()
+			expect(queryByTestId("roo-plus-hero")).not.toBeInTheDocument()
 		})
 	})
 })
