@@ -150,8 +150,8 @@
 		"auto_import_failed": "Fehler beim automatischen Import der ZooCode-Einstellungen: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "Es wurde kein Roo Code-Aufgabenverlauf zum Importieren von {{domain}} gefunden.",
-			"alreadyImported_one": "Der {{count}} Roo Code-Aufgabenverlauf wurde bereits in Zoo Code importiert.",
-			"alreadyImported_other": "Alle {{count}} Roo Code-Aufgabenverläufe wurden bereits in Zoo Code importiert."
+			"alreadyImported_one": "Der {{count}} Roo Code-Aufgabenverlauf wurde bereits in Roo+ importiert.",
+			"alreadyImported_other": "Alle {{count}} Roo Code-Aufgabenverläufe wurden bereits in Roo+ importiert."
 		}
 	},
 	"info": {
@@ -173,8 +173,8 @@
 			"signInUnavailable": "Die Anmeldung bei Roo Code Cloud ist derzeit nicht verfügbar. Konfiguriere einen anderen Anbieter, um fortzufahren."
 		},
 		"rooHistoryImport": {
-			"success_one": "{{count}} Roo Code-Aufgabenverlauf in Zoo Code importiert.",
-			"success_other": "{{count}} Roo Code-Aufgabenverläufe in Zoo Code importiert."
+			"success_one": "{{count}} Roo Code-Aufgabenverlauf in Roo+ importiert.",
+			"success_other": "{{count}} Roo Code-Aufgabenverläufe in Roo+ importiert."
 		}
 	},
 	"answers": {
@@ -236,8 +236,8 @@
 	},
 	"mdm": {
 		"errors": {
-			"cloud_auth_required": "Deine Organisation erfordert eine Zoo Code Cloud-Authentifizierung. Bitte melde dich an, um fortzufahren.",
-			"organization_mismatch": "Du musst mit dem Zoo Code Cloud-Konto deiner Organisation authentifiziert sein.",
+			"cloud_auth_required": "Deine Organisation erfordert eine Roo+ Cloud-Authentifizierung. Bitte melde dich an, um fortzufahren.",
+			"organization_mismatch": "Du musst mit dem Roo+ Cloud-Konto deiner Organisation authentifiziert sein.",
 			"verification_failed": "Die Organisationsauthentifizierung konnte nicht verifiziert werden."
 		},
 		"info": {
@@ -263,18 +263,18 @@
 	},
 	"zooAuth": {
 		"errors": {
-			"invalid_token_received": "Zoo Code: Ungültiger Authentifizierungstoken empfangen.",
-			"token_verification_failed": "Zoo Code: Token-Überprüfung fehlgeschlagen.",
-			"invalid_token": "Zoo Code: Ungültiger Token.",
-			"could_not_verify_token": "Zoo Code: Token konnte nicht verifiziert werden.",
-			"session_expired": "Zoo Code-Sitzung abgelaufen. Bitte melde dich erneut an, um Zoo Gateway weiter zu nutzen.",
+			"invalid_token_received": "Roo+: Ungültiger Authentifizierungstoken empfangen.",
+			"token_verification_failed": "Roo+: Token-Überprüfung fehlgeschlagen.",
+			"invalid_token": "Roo+: Ungültiger Token.",
+			"could_not_verify_token": "Roo+: Token konnte nicht verifiziert werden.",
+			"session_expired": "Roo+-Sitzung abgelaufen. Bitte melde dich erneut an, um Zoo Gateway weiter zu nutzen.",
 			"out_of_credits": "Zoo Gateway: Unzureichendes Guthaben. Füge Guthaben hinzu, um fortzufahren.",
 			"account_unavailable": "Zoo Gateway: Dein Konto ist derzeit nicht verfügbar. Bitte kontaktiere den Support.",
 			"budget_exceeded": "Zoo Gateway: Nutzungsbudget erreicht. Warte auf das Zurücksetzen oder lade auf."
 		},
 		"info": {
-			"connected": "Zoo Code: Erfolgreich verbunden! Du kannst Zoo Code jetzt als KI-Anbieter verwenden.",
-			"disconnected": "Zoo Code: Erfolgreich getrennt."
+			"connected": "Roo+: Erfolgreich verbunden! Du kannst Roo+ jetzt als KI-Anbieter verwenden.",
+			"disconnected": "Roo+: Erfolgreich getrennt."
 		},
 		"buttons": {
 			"sign_in": "Anmelden",
@@ -283,9 +283,9 @@
 		}
 	},
 	"codeActions": {
-		"explain": "Mit Zoo Code erklären",
-		"fix": "Mit Zoo Code beheben",
-		"improve": "Mit Zoo Code verbessern",
-		"addToContext": "Zu Zoo Code hinzufügen"
+		"explain": "Mit Roo+ erklären",
+		"fix": "Mit Roo+ beheben",
+		"improve": "Mit Roo+ verbessern",
+		"addToContext": "Zu Roo+ hinzufügen"
 	}
 }

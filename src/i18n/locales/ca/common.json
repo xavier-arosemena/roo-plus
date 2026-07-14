@@ -154,8 +154,8 @@
 		"auto_import_failed": "Ha fallat la importació automàtica de la configuració de ZooCode: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "No s'ha trobat historial de tasques de Roo Code per importar de {{domain}}.",
-			"alreadyImported_one": "Tot l'historial de tasca de Roo Code ({{count}}) ja s'ha importat a Zoo Code.",
-			"alreadyImported_other": "Tots els {{count}} historials de tasques de Roo Code ja s'han importat a Zoo Code."
+			"alreadyImported_one": "Tot l'historial de tasca de Roo Code ({{count}}) ja s'ha importat a Roo+.",
+			"alreadyImported_other": "Tots els {{count}} historials de tasques de Roo Code ja s'han importat a Roo+."
 		}
 	},
 	"info": {
@@ -177,8 +177,8 @@
 			"signInUnavailable": "L'inici de sessió de Roo Code Cloud no està disponible en aquest moment. Configura un altre proveïdor per continuar."
 		},
 		"rooHistoryImport": {
-			"success_one": "S'ha importat {{count}} historial de tasca de Roo Code a Zoo Code.",
-			"success_other": "S'han importat {{count}} historials de tasques de Roo Code a Zoo Code."
+			"success_one": "S'ha importat {{count}} historial de tasca de Roo Code a Roo+.",
+			"success_other": "S'han importat {{count}} historials de tasques de Roo Code a Roo+."
 		}
 	},
 	"answers": {
@@ -236,8 +236,8 @@
 	},
 	"mdm": {
 		"errors": {
-			"cloud_auth_required": "La teva organització requereix autenticació de Zoo Code Cloud. Si us plau, inicia sessió per continuar.",
-			"organization_mismatch": "Has d'estar autenticat amb el compte de Zoo Code Cloud de la teva organització.",
+			"cloud_auth_required": "La teva organització requereix autenticació de Roo+ Cloud. Si us plau, inicia sessió per continuar.",
+			"organization_mismatch": "Has d'estar autenticat amb el compte de Roo+ Cloud de la teva organització.",
 			"manual_url_empty": "Si us plau, introdueix una URL de callback vàlida",
 			"manual_url_no_query": "URL de callback no vàlida: falten paràmetres de consulta",
 			"manual_url_missing_params": "URL de callback no vàlida: falten paràmetres requerits (code i state)",
@@ -268,18 +268,18 @@
 	},
 	"zooAuth": {
 		"errors": {
-			"invalid_token_received": "Zoo Code: S'ha rebut un token d'autenticació no vàlid.",
-			"token_verification_failed": "Zoo Code: Ha fallat la verificació del token.",
-			"invalid_token": "Zoo Code: Token no vàlid.",
-			"could_not_verify_token": "Zoo Code: No s'ha pogut verificar el token.",
-			"session_expired": "Sessió de Zoo Code caducada. Torna a iniciar sessió per continuar utilitzant Zoo Gateway.",
+			"invalid_token_received": "Roo+: S'ha rebut un token d'autenticació no vàlid.",
+			"token_verification_failed": "Roo+: Ha fallat la verificació del token.",
+			"invalid_token": "Roo+: Token no vàlid.",
+			"could_not_verify_token": "Roo+: No s'ha pogut verificar el token.",
+			"session_expired": "Sessió de Roo+ caducada. Torna a iniciar sessió per continuar utilitzant Zoo Gateway.",
 			"out_of_credits": "Zoo Gateway: crèdits insuficients. Afegeix crèdits per continuar.",
 			"account_unavailable": "Zoo Gateway: el teu compte no està disponible. Contacta amb el suport.",
 			"budget_exceeded": "Zoo Gateway: pressupost d'ús assolit. Espera que es restableixi o afegeix crèdits."
 		},
 		"info": {
-			"connected": "Zoo Code: Connectat correctament! Ara podeu utilitzar Zoo Code com a proveïdor d'IA.",
-			"disconnected": "Zoo Code: Desconnectat correctament."
+			"connected": "Roo+: Connectat correctament! Ara podeu utilitzar Roo+ com a proveïdor d'IA.",
+			"disconnected": "Roo+: Desconnectat correctament."
 		},
 		"buttons": {
 			"sign_in": "Inicia sessió",
@@ -288,9 +288,9 @@
 		}
 	},
 	"codeActions": {
-		"explain": "Explica amb Zoo Code",
-		"fix": "Corregeix amb Zoo Code",
-		"improve": "Millora amb Zoo Code",
-		"addToContext": "Afegeix a Zoo Code"
+		"explain": "Explica amb Roo+",
+		"fix": "Corregeix amb Roo+",
+		"improve": "Millora amb Roo+",
+		"addToContext": "Afegeix a Roo+"
 	}
 }

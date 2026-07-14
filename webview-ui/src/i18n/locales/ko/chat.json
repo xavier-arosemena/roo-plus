@@ -160,7 +160,7 @@
 			"500": "공급자 서버 오류입니다. 공급자 쪽에 문제가 있으며 요청에는 문제가 없습니다.",
 			"docs": "문서",
 			"goToSettings": "설정",
-			"unknown": "알 수 없는 API 오류입니다. Zoo Code 지원팀에 문의하세요.",
+			"unknown": "알 수 없는 API 오류입니다. Roo+ 지원팀에 문의하세요.",
 			"connection": "연결 오류입니다. 인터넷 연결이 제대로 작동하는지 확인하세요.",
 			"claudeCodeNotAuthenticated": "Claude Code를 사용하려면 로그인해야 합니다. 설정으로 이동하여 \"Claude Code에 로그인\"을 클릭하여 인증하세요."
 		}
@@ -338,7 +338,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} 출시",
-		"support": "<githubLink>GitHub</githubLink>에서 별표를 눌러 Zoo Code를 응원해 주세요.",
+		"support": "<githubLink>GitHub</githubLink>에서 별표를 눌러 Roo+를 응원해 주세요.",
 		"release": {
 			"heading": "새로운 기능:",
 			"highlight1": "GLM-5.2를 지원하는 Friendli 프로바이더 — Friendli를 통해 최신 GLM 모델을 사용할 수 있습니다.",
@@ -367,7 +367,7 @@
 	"profileViolationWarning": "현재 프로필이 조직 설정과 호환되지 않습니다",
 	"shellIntegration": {
 		"title": "명령 실행 경고",
-		"description": "명령이 VSCode 터미널 쉘 통합 없이 실행되고 있습니다. 이 경고를 숨기려면 <settingsLink>Zoo Code 설정</settingsLink>의 <strong>Terminal</strong> 섹션에서 쉘 통합을 비활성화하거나 아래 링크를 사용하여 VSCode 터미널 통합 문제를 해결하세요.",
+		"description": "명령이 VSCode 터미널 쉘 통합 없이 실행되고 있습니다. 이 경고를 숨기려면 <settingsLink>Roo+ 설정</settingsLink>의 <strong>Terminal</strong> 섹션에서 쉘 통합을 비활성화하거나 아래 링크를 사용하여 VSCode 터미널 통합 문제를 해결하세요.",
 		"troubleshooting": "쉘 통합 문서를 보려면 여기를 클릭하세요."
 	},
 	"ask": {

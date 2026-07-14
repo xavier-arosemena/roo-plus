@@ -1,5 +1,5 @@
 ---
-description: "Prepare a new release of the Zoo Code extension"
+description: "Prepare a new release of the Roo+ extension"
 argument-hint: patch | minor | major
 mode: code
 ---
@@ -25,7 +25,7 @@ mode: code
 4. Summarize the changes. If the user did not specify a release type, ask whether this should be a major, minor, or patch release.
 
     - Before choosing the target release version, treat the nightly pre-release lane as separate from the stable lane.
-    - Zoo Code nightlies should stay on `major.ODD_NUMBER.patch` and use a large patch number for CI-generated pre-releases.
+    - Roo+ nightlies should stay on `major.ODD_NUMBER.patch` and use a large patch number for CI-generated pre-releases.
     - Stable releases should stay on `major.EVEN_NUMBER.patch`.
     - When preparing a stable release after an odd-minor pre-release line, advance to the next even minor instead of reusing the odd-minor pre-release lane.
 
@@ -34,7 +34,7 @@ mode: code
     - Treat root `README.md` as the source of truth for Marketplace content.
     - Update the "What's New" section for the release when appropriate.
     - Do not manually edit `src/README.md`; the extension bundle step copies root `README.md` into `src/README.md`.
-    - Check for stale upstream Roo Code wording that should now say Zoo Code.
+    - Check for stale upstream Zoo Code wording that should now say Roo+.
 
 6. Write the release notes directly into `CHANGELOG.md` on the release branch.
 

@@ -1,6 +1,7 @@
 <div align="center">
-  <img src="./assets/banner.png" alt="Roo+ — The Dev Team Plus for VS Code" />
+  <img src="./assets/banner.png" alt="Roo+ — 225+ Specialized AI Agents in One Extension" />
 </div>
+<br/>
 
 <p align="center">
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
@@ -17,7 +18,7 @@
 <br/>
 
 <h1 align="center">🚀 Roo+</h1>
-<h3 align="center">The Dev Team Plus for VS Code / VS Codium</h3>
+<h3 align="center">Your AI Development Team — 225+ Specialized Agents in One Extension</h3>
 
 <br/>
 
@@ -31,16 +32,16 @@
 
 Roo+ extends the incredible foundation of Zoo Code with **146+ custom modes** (curated from a total of 225 specialized agents available), **enhanced features**, and a personalized configuration tailored for modern development workflows.
 
-| Feature | Description |
+| Feature                       | Description                                                     |
 | ----------------------------- | --------------------------------------------------------------- |
-| 🎯 **Custom Modes Library** | **146+ specialized agents** pre-loaded for every task |
-| 🤖 **AI Agent Team** | Multiple AI agents working together in your editor |
-| 🔌 **MCP Support** | Full Model Context Protocol integration |
-| 🌍 **Multi-Provider** | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers |
-| 🛠️ **Terminal Integration** | Smart terminal with shell integration |
-| 📁 **Tree-Sitter Code Index** | Intelligent code understanding for 30+ languages |
-| 🔒 **Atomic File Writing** | Safe, crash-proof file operations |
-| 🌐 **Localization** | Available in 18+ languages |
+| 🎯 **Custom Modes Library**   | **146+ specialized agents** pre-loaded for every task           |
+| 🤖 **AI Agent Team**          | Multiple AI agents working together in your editor              |
+| 🔌 **MCP Support**            | Full Model Context Protocol integration                         |
+| 🌍 **Multi-Provider**         | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers |
+| 🛠️ **Terminal Integration**   | Smart terminal with shell integration                           |
+| 📁 **Tree-Sitter Code Index** | Intelligent code understanding for 30+ languages                |
+| 🔒 **Atomic File Writing**    | Safe, crash-proof file operations                               |
+| 🌐 **Localization**           | Available in 18+ languages                                      |
 
 <br/>
 
@@ -54,72 +55,73 @@ Roo+ ships with **146+ specialized AI agents** pre-configured and ready to use. 
 
 ### 🏢 For Organizations
 
-| Category | Agents | Description |
-|----------|--------|-------------|
-| 📱 **Product Management** | Product Manager, Product Analytics Scientist | Roadmap planning, feature prioritization, data-driven decisions |
-| 📊 **Business Analysis** | Business Analyst, Data Analyst, Data Engineer | Requirements gathering, process improvement, data insights |
-| 📈 **Marketing** | Marketing Strategist, Content Marketer, Growth Experimentation Lead | Campaign strategy, content creation, A/B testing |
-| 💼 **Sales** | Sales Engineer | Technical pre-sales, solution architecture, proof of concepts |
-| 👥 **Customer Success** | Customer Success Manager | Customer retention, growth, advocacy |
-| 📋 **Project Management** | Project Manager, Scrum Master | Agile facilitation, sprint planning, team coordination |
-| ✍️ **Content & UX** | Technical Writer, UX Researcher, Content Marketer | Documentation, user research, content strategy |
-| 📊 **Business Tools** | Excel Power User, PowerPoint Presenter | Spreadsheet analysis, presentation design |
+| Category                  | Agents                                                              | Description                                                     |
+| ------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
+| 📱 **Product Management** | Product Manager, Product Analytics Scientist                        | Roadmap planning, feature prioritization, data-driven decisions |
+| 📊 **Business Analysis**  | Business Analyst, Data Analyst, Data Engineer                       | Requirements gathering, process improvement, data insights      |
+| 📈 **Marketing**          | Marketing Strategist, Content Marketer, Growth Experimentation Lead | Campaign strategy, content creation, A/B testing                |
+| 💼 **Sales**              | Sales Engineer                                                      | Technical pre-sales, solution architecture, proof of concepts   |
+| 👥 **Customer Success**   | Customer Success Manager                                            | Customer retention, growth, advocacy                            |
+| 📋 **Project Management** | Project Manager, Scrum Master                                       | Agile facilitation, sprint planning, team coordination          |
+| ✍️ **Content & UX**       | Technical Writer, UX Researcher, Content Marketer                   | Documentation, user research, content strategy                  |
+| 📊 **Business Tools**     | Excel Power User, PowerPoint Presenter                              | Spreadsheet analysis, presentation design                       |
 
 ### ⚖️ Legal & Compliance
 
-| Category | Agents | Description |
-|----------|--------|-------------|
-| 🇪🇺 **GDPR / EU / Multi-Jurisdiction** | Compliance Specialist | Analyzes **GDPR, HIPAA, SOX**, and other regulatory frameworks with cross-jurisdiction coverage |
-| 🇺🇸 **US Law** | Corporate Law, Criminal Law, Employment Law, Intellectual Property, Litigation Support, Compliance Specialist | Comprehensive US legal coverage |
-| 🇨🇦 **Canada Law** | Corporate Law (Canada), Criminal Law (Canada), Employment Law (Canada), Intellectual Property (Canada), Litigation Support (Canada), Compliance Auditor (Canada), Compliance Specialist (Canada) | Comprehensive Canadian legal coverage |
-| 🔐 **Compliance Automation** | Compliance Automation Engineer, OSS License Auditor, Policy-as-Code Auditor | Automated compliance enforcement |
+| Category                              | Agents                                                                                                                                                                                           | Description                                                                                     |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| 🇪🇺 **GDPR / EU / Multi-Jurisdiction** | Compliance Specialist                                                                                                                                                                            | Analyzes **GDPR, HIPAA, SOX**, and other regulatory frameworks with cross-jurisdiction coverage |
+| 🇺🇸 **US Law**                         | Corporate Law, Criminal Law, Employment Law, Intellectual Property, Litigation Support, Compliance Specialist                                                                                    | Comprehensive US legal coverage                                                                 |
+| 🇨🇦 **Canada Law**                     | Corporate Law (Canada), Criminal Law (Canada), Employment Law (Canada), Intellectual Property (Canada), Litigation Support (Canada), Compliance Auditor (Canada), Compliance Specialist (Canada) | Comprehensive Canadian legal coverage                                                           |
+| 🔐 **Compliance Automation**          | Compliance Automation Engineer, OSS License Auditor, Policy-as-Code Auditor                                                                                                                      | Automated compliance enforcement                                                                |
 
 ### 🧠 SOTA 2026 Personas
 
 Advanced reasoning personas implementing cutting-edge cognitive patterns:
 
-| Tier | Personas |
-|------|----------|
-| 🏛️ **Foundational Reasoning** | Core Reasoning Architect, Formula Cascade Oracle, Fractal Elaborator |
-| ⚡ **Engineering Excellence** | High-Performance Engineer, SOTA Stack Master, UI/UX Vibe Master |
-| 🛡️ **Quality & Integrity** | Anti-Fiction Sentinel, DevOps Observability Sentinel |
-| 🧩 **Problem-Solving** | Problem Solving Maestro, Cognitive Multi-Thinker, Agentic Swarm Conductor |
+| Tier                          | Personas                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| 🏛️ **Foundational Reasoning** | Core Reasoning Architect, Formula Cascade Oracle, Fractal Elaborator      |
+| ⚡ **Engineering Excellence** | High-Performance Engineer, SOTA Stack Master, UI/UX Vibe Master           |
+| 🛡️ **Quality & Integrity**    | Anti-Fiction Sentinel, DevOps Observability Sentinel                      |
+| 🧩 **Problem-Solving**        | Problem Solving Maestro, Cognitive Multi-Thinker, Agentic Swarm Conductor |
 
 ### 🛠️ Developer Toolbox
 
-| Category | Agents | Description |
-|----------|--------|-------------|
-| 💻 **Core Development** | Full-Stack, Backend, Frontend, API Designer, Architect, Microservices, Electron, Deep Research Protocol | Foundation development roles |
-| 💬 **Language Specialists** | Python, TypeScript, Rust, Go, Java, C#, Kotlin, Swift, Angular, Vue, React, Next.js, C++, .NET, Flutter, Rails, Spring Boot, SQL | 18 language-specific experts |
-| 🏗️ **Infrastructure & DevOps** | AWS, Azure, GCP, Kubernetes, Docker, Terraform, SRE, Platform Engineer, Network Engineer, Security Engineer, Deployment Engineer, DevOps Architect, Observability Architect, Chaos Engineer | Cloud-native infrastructure |
-| 🔐 **Security & Quality** | Cybersecurity Expert, Penetration Tester, Security Auditor, Cloud Security Architect, Zero Trust Strategist, Secrets Auditor, Code Reviewer, Debugger, QA Expert, Tester (TDD) | Security-first development |
-| 🧠 **AI & ML** | Machine Learning Engineer, AI System Architect, Data Scientist, MLOps Engineer, LLM Architect, NLP Specialist, Prompt Engineer, RAG Evaluator, Computer Vision Expert | AI/ML development |
+| Category                       | Agents                                                                                                                                                                                      | Description                  |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| 💻 **Core Development**        | Full-Stack, Backend, Frontend, API Designer, Architect, Microservices, Electron, Deep Research Protocol                                                                                     | Foundation development roles |
+| 💬 **Language Specialists**    | Python, TypeScript, Rust, Go, Java, C#, Kotlin, Swift, Angular, Vue, React, Next.js, C++, .NET, Flutter, Rails, Spring Boot, SQL                                                            | 18 language-specific experts |
+| 🏗️ **Infrastructure & DevOps** | AWS, Azure, GCP, Kubernetes, Docker, Terraform, SRE, Platform Engineer, Network Engineer, Security Engineer, Deployment Engineer, DevOps Architect, Observability Architect, Chaos Engineer | Cloud-native infrastructure  |
+| 🔐 **Security & Quality**      | Cybersecurity Expert, Penetration Tester, Security Auditor, Cloud Security Architect, Zero Trust Strategist, Secrets Auditor, Code Reviewer, Debugger, QA Expert, Tester (TDD)              | Security-first development   |
+| 🧠 **AI & ML**                 | Machine Learning Engineer, AI System Architect, Data Scientist, MLOps Engineer, LLM Architect, NLP Specialist, Prompt Engineer, RAG Evaluator, Computer Vision Expert                       | AI/ML development            |
 
 ### 🔄 Meta-Orchestration
 
-| Agent | Description |
-|-------|-------------|
-| Workflow Orchestrator | Coordinate complex multi-step workflows |
-| Multi-Agent Coordinator | Manage inter-agent communication |
-| Task Distributor | Intelligent work allocation and load balancing |
-| Search Specialist | Advanced information retrieval |
-| Policy-as-Code Auditor | Enforce policy gates on infrastructure |
+| Agent                   | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| Workflow Orchestrator   | Coordinate complex multi-step workflows        |
+| Multi-Agent Coordinator | Manage inter-agent communication               |
+| Task Distributor        | Intelligent work allocation and load balancing |
+| Search Specialist       | Advanced information retrieval                 |
+| Policy-as-Code Auditor  | Enforce policy gates on infrastructure         |
 
 ### 🎯 Specialized Domains
 
-| Domain | Agent |
-|--------|-------|
-| 💰 Fintech | Fintech Engineer |
-| ⛓️ Blockchain | Blockchain Developer |
-| 🎮 Gaming | Game Developer |
-| 📡 IoT | IoT Engineer |
-| 🔍 SEO | SEO Strategist |
-| 💳 Payments | Payment Integration Specialist |
-| 🎨 AI Art | AI Art Director |
+| Domain        | Agent                          |
+| ------------- | ------------------------------ |
+| 💰 Fintech    | Fintech Engineer               |
+| ⛓️ Blockchain | Blockchain Developer           |
+| 🎮 Gaming     | Game Developer                 |
+| 📡 IoT        | IoT Engineer                   |
+| 🔍 SEO        | SEO Strategist                 |
+| 💳 Payments   | Payment Integration Specialist |
+| 🎨 AI Art     | AI Art Director                |
 
 ### How to Use Custom Modes
 
 **Switching modes:**
+
 1. Click the **mode selector** at the bottom of VS Code (or press `Ctrl+Shift+P` → "Roo Code: Switch Mode")
 2. Browse the **146 pre-loaded modes** by name
 3. Select the agent that matches your current task
@@ -128,6 +130,7 @@ Advanced reasoning personas implementing cutting-edge cognitive patterns:
 ### Full Agent Catalog
 
 Browse all **233 agents** with their slug, category, and pre-load status in the **[Agent Catalog](custom-modes/AGENT_CATALOG.md)**. Each entry shows:
+
 - ✅ **Pre-loaded** — already available in the mode selector
 - ⬜ **Available** — in the submodule, ready to import
 
@@ -136,6 +139,7 @@ Browse all **233 agents** with their slug, category, and pre-load status in the 
 The custom modes library contains **233 available agents**. 139 are pre-loaded in [`.roomodes`](.roomodes); the remaining **~94 are in the submodule** and can be added at any time.
 
 **How [`custom-modes/manifest.json`](custom-modes/manifest.json) works:**
+
 - `includeCategories` with `"all"` — includes EVERY agent from that category directory (e.g., `"business-product": "all"` adds all 15 business agents)
 - `includeSlugs` — adds INDIVIDUAL agents by their slug name, regardless of category
 - `excludeSlugs` — removes specific agents (the 3 `legal-advisor*` agents are excluded because legal-compliance has more comprehensive coverage)
@@ -143,25 +147,28 @@ The custom modes library contains **233 available agents**. 139 are pre-loaded i
 Currently **6 categories** are set to `"all"` (business-product, legal-compliance, sota-personas, ai-ml, security-quality, infrastructure-devops) plus **45 individual slugs** — totaling 139 agents.
 
 **Option A — Add via manifest (recommended for multiple agents):**
+
 1. Open the **[Agent Catalog](custom-modes/AGENT_CATALOG.md)** and find agents marked ⬜ Available
 2. Note their `slug` (e.g., `seo-strategist`, `game-developer`)
 3. Open [`custom-modes/manifest.json`](custom-modes/manifest.json) and add the slug(s) to `"includeSlugs"`
 4. Run:
-   ```bash
-   pnpm run sync:custom-modes
-   ```
+    ```bash
+    pnpm run sync:custom-modes
+    ```
 5. Reload VS Code window
 
 **Option B — Add an entire category:**
 Check the **[Agent Catalog](custom-modes/AGENT_CATALOG.md)** to see which categories have many agents you want, then in [`custom-modes/manifest.json`](custom-modes/manifest.json) set that category to `"all"`:
+
 ```json
 {
-  "includeCategories": {
-    "specialized-domains": "all",
-    "meta-orchestration": "all"
-  }
+	"includeCategories": {
+		"specialized-domains": "all",
+		"meta-orchestration": "all"
+	}
 }
 ```
+
 Then run `pnpm run sync:custom-modes`.
 
 **Option C — Add one agent directly to `.roomodes`:**
@@ -252,7 +259,11 @@ git merge upstream/main
 
 ### From Custom Modes Upstream
 
-The custom modes library is independently versioned via git submodule:
+The **146+ custom modes/agents** shipped with Roo+ are sourced from the [**Custom-Modes-Roo-Code**](https://github.com/jtgsystems/Custom-Modes-Roo-Code) repository by [**jtgsystems**](https://github.com/jtgsystems). A huge thank you to the original author for curating and maintaining this comprehensive agent library — this project would not exist without that foundation.
+
+> **📌 Attribution**: [`github.com/jtgsystems/Custom-Modes-Roo-Code`](https://github.com/jtgsystems/Custom-Modes-Roo-Code)
+
+The library is independently versioned via git submodule:
 
 ```bash
 # Pull latest agents and regenerate .roomodes

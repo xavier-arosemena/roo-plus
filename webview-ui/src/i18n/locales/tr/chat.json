@@ -160,7 +160,7 @@
 			"500": "Sağlayıcı sunucu hatası. Sağlayıcı tarafında bir sorun var, isteğinizde sorun yok.",
 			"docs": "Belgeler",
 			"goToSettings": "Ayarlar",
-			"unknown": "Bilinmeyen API hatası. Lütfen Zoo Code desteğiyle iletişime geç.",
+			"unknown": "Bilinmeyen API hatası. Lütfen Roo+ desteğiyle iletişime geç.",
 			"connection": "Bağlantı hatası. Çalışan bir internet bağlantınız olduğundan emin olun.",
 			"claudeCodeNotAuthenticated": "Claude Code'u kullanmak için oturum açmanız gerekiyor. Ayarlar'a gidin ve kimlik doğrulaması yapmak için \"Claude Code'da Oturum Aç\" seçeneğine tıklayın."
 		}
@@ -339,7 +339,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} yayınlandı",
-		"support": "Lütfen <githubLink>GitHub</githubLink>'da bize yıldız vererek Zoo Code'u destekle.",
+		"support": "Lütfen <githubLink>GitHub</githubLink>'da bize yıldız vererek Roo+'u destekle.",
 		"release": {
 			"heading": "Yenilikler:",
 			"highlight1": "GLM-5.2 destekli Friendli sağlayıcısı — en yeni GLM modelini Friendli üzerinden kullan.",
@@ -368,7 +368,7 @@
 	"profileViolationWarning": "Geçerli profil kuruluşunuzun ayarlarıyla uyumlu değil",
 	"shellIntegration": {
 		"title": "Komut Çalıştırma Uyarısı",
-		"description": "Komutunuz VSCode terminal kabuk entegrasyonu olmadan çalıştırılıyor. Bu uyarıyı gizlemek için <settingsLink>Zoo Code ayarları</settingsLink>'nın <strong>Terminal</strong> bölümünden kabuk entegrasyonunu devre dışı bırakabilir veya aşağıdaki bağlantıyı kullanarak VSCode terminal entegrasyonu sorunlarını giderebilirsiniz.",
+		"description": "Komutunuz VSCode terminal kabuk entegrasyonu olmadan çalıştırılıyor. Bu uyarıyı gizlemek için <settingsLink>Roo+ ayarları</settingsLink>'nın <strong>Terminal</strong> bölümünden kabuk entegrasyonunu devre dışı bırakabilir veya aşağıdaki bağlantıyı kullanarak VSCode terminal entegrasyonu sorunlarını giderebilirsiniz.",
 		"troubleshooting": "Kabuk entegrasyonu belgelerini görmek için buraya tıklayın."
 	},
 	"ask": {

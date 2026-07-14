@@ -11,9 +11,9 @@
 </sub>
 </div>
 
-# Contribuindo para o Zoo Code
+# Contribuindo para o Roo+
 
-O Zoo Code é um projeto impulsionado pela comunidade, e valorizamos profundamente cada contribuição. Para agilizar a colaboração, operamos com base em uma [abordagem de "primeiro a issue"](#abordagem-de-primeiro-a-issue), o que significa que todas as [Pull Requests (PRs)](#enviando-uma-pull-request) devem primeiro estar vinculadas a uma Issue do GitHub. Por favor, revise este guia com atenção.
+O Roo+ é um projeto impulsionado pela comunidade, e valorizamos profundamente cada contribuição. Para agilizar a colaboração, operamos com base em uma [abordagem de "primeiro a issue"](#abordagem-de-primeiro-a-issue), o que significa que todas as [Pull Requests (PRs)](#enviando-uma-pull-request) devem primeiro estar vinculadas a uma Issue do GitHub. Por favor, revise este guia com atenção.
 
 ## Índice
 
@@ -54,7 +54,7 @@ Nosso roteiro guia a direção do projeto. Alinhe suas contribuições com estes
 
 Mencione o alinhamento com essas áreas em seus PRs.
 
-### 3. Junte-se à comunidade do Zoo Code
+### 3. Junte-se à comunidade do Roo+
 
 - **Discord:** Entre no nosso [Discord](https://discord.gg/VxfP4Vx3gX).
 - **Reddit:** Entre no nosso [Reddit](https://www.reddit.com/r/ZooCode/).
@@ -71,7 +71,7 @@ Mencione o alinhamento com essas áreas em seus PRs.
 
 Todas as contribuições começam com uma Issue do GitHub usando nossos modelos simplificados.
 
-- **Verifique as issues existentes**: Pesquise nas [Issues do GitHub](https://github.com/Zoo-Code-Org/Zoo-Code/issues).
+- **Verifique as issues existentes**: Pesquise nas [Issues do GitHub](https://github.com/xavier-arosemena/roo-plus/issues).
 - **Crie uma issue** usando:
     - **Melhorias:** modelo "Solicitação de melhoria" (linguagem simples focada no benefício do usuário).
     - **Bugs:** modelo "Relatório de bug" (reprodução mínima + esperado vs. real + versão).
@@ -80,17 +80,17 @@ Todas as contribuições começam com uma Issue do GitHub usando nossos modelos 
 
 ### Decidindo no que trabalhar
 
-- Confira a [página de GitHub Issues](https://github.com/Zoo-Code-Org/Zoo-Code/issues) para ver as issues.
-- Para documentação, visite [Documentação do Zoo Code](https://github.com/Zoo-Code-Org/Zoo-Code-Docs).
+- Confira a [página de GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues) para ver as issues.
+- Para documentação, visite [Documentação do Roo+](https://github.com/xavier-arosemena/roo-plus-Docs).
 
 ### Relatando bugs
 
 - Verifique primeiro os relatórios existentes.
-- Crie um novo bug usando o [modelo "Relatório de bug"](https://github.com/Zoo-Code-Org/Zoo-Code/issues/new/choose) com:
+- Crie um novo bug usando o [modelo "Relatório de bug"](https://github.com/xavier-arosemena/roo-plus/issues/new/choose) com:
     - Passos de reprodução claros e numerados
     - Resultado esperado vs. real
-    - Versão do Zoo Code (obrigatório); provedor/modelo de IA, se relevante
-- **Problemas de segurança**: Relate em particular por meio de [avisos de segurança](https://github.com/Zoo-Code-Org/Zoo-Code/security/advisories/new).
+    - Versão do Roo+ (obrigatório); provedor/modelo de IA, se relevante
+- **Problemas de segurança**: Relate em particular por meio de [avisos de segurança](https://github.com/xavier-arosemena/roo-plus/security/advisories/new).
 
 ## Processo de desenvolvimento e envio
 
@@ -166,4 +166,4 @@ Por favor, não envie mudanças geradas por IA que você não entenda ou que nã
 
 ## Legal
 
-Ao contribuir, você concorda que suas contribuições serão licenciadas sob a Licença Apache 2.0, consistente com o licenciamento do Zoo Code.
+Ao contribuir, você concorda que suas contribuições serão licenciadas sob a Licença Apache 2.0, consistente com o licenciamento do Roo+.

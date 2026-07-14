@@ -235,7 +235,7 @@ export const globalSettingsSchema = z.object({
 	historyPreviewCollapsed: z.boolean().optional(),
 	reasoningBlockCollapsed: z.boolean().optional(),
 	/**
-	 * Font size (in pixels) for the Zoo Code chat/webview UI.
+	 * Font size (in pixels) for the Roo+ chat/webview UI.
 	 * When unset (or `null`), the webview inherits VS Code's `--vscode-font-size`.
 	 */
 	chatFontSize: z.number().int().min(8).max(32).nullish(),

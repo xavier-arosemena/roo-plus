@@ -1,5 +1,5 @@
 {
-	"greeting": "Benvingut a Zoo Code!",
+	"greeting": "Benvingut a Roo+!",
 	"task": {
 		"title": "Tasca",
 		"expand": "Expandir tasca",
@@ -160,7 +160,7 @@
 			"500": "Error del servidor del proveïdor. Quelcom va malament del costat del proveïdor, no hi ha res de malament amb la teva sol·licitud.",
 			"docs": "Documentació",
 			"goToSettings": "Configuració",
-			"unknown": "Error API desconegut. Si us plau, contacta amb el suport de Zoo Code.",
+			"unknown": "Error API desconegut. Si us plau, contacta amb el suport de Roo+.",
 			"connection": "Error de connexió. Assegureu-vos que teniu una connexió a Internet funcional.",
 			"claudeCodeNotAuthenticated": "Has d'iniciar sessió per utilitzar Claude Code. Vés a Configuració i fes clic a \"Iniciar sessió a Claude Code\" per autenticar-te."
 		}
@@ -337,8 +337,8 @@
 		"timerPrefix": "Aprovació automàtica habilitada. Seleccionant en {{seconds}}s…"
 	},
 	"announcement": {
-		"title": "S'ha publicat Zoo Code {{version}}",
-		"support": "Dona suport a Zoo Code fent-nos una estrella a <githubLink>GitHub</githubLink>.",
+		"title": "S'ha publicat Roo+ {{version}}",
+		"support": "Dona suport a Roo+ fent-nos una estrella a <githubLink>GitHub</githubLink>.",
 		"release": {
 			"heading": "Novetats:",
 			"highlight1": "Proveïdor Friendli amb suport per a GLM-5.2 — utilitza el model GLM més recent a través de Friendli.",
@@ -367,7 +367,7 @@
 	"profileViolationWarning": "El perfil actual no és compatible amb la configuració de la teva organització",
 	"shellIntegration": {
 		"title": "Advertència d'execució d'ordres",
-		"description": "La teva ordre s'està executant sense la integració de shell del terminal VSCode. Per suprimir aquest advertiment, pots desactivar la integració de shell a la secció <strong>Terminal</strong> de la <settingsLink>configuració de Zoo Code</settingsLink> o solucionar problemes d'integració del terminal VSCode utilitzant l'enllaç de sota.",
+		"description": "La teva ordre s'està executant sense la integració de shell del terminal VSCode. Per suprimir aquest advertiment, pots desactivar la integració de shell a la secció <strong>Terminal</strong> de la <settingsLink>configuració de Roo+</settingsLink> o solucionar problemes d'integració del terminal VSCode utilitzant l'enllaç de sota.",
 		"troubleshooting": "Fes clic aquí per a la documentació d'integració de shell."
 	},
 	"ask": {

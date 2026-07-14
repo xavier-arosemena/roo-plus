@@ -55,7 +55,7 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 							<SocialLink
 								icon={<SiX className="w-4 h-4" aria-hidden />}
 								label="X"
-								href="https://x.com/ZooCodeDev"
+								href="https://x.com/RooPlusDev"
 							/>
 							<SocialLink
 								icon={<SiDiscord className="w-4 h-4" aria-hidden />}
@@ -65,7 +65,7 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 							<SocialLink
 								icon={<SiReddit className="w-4 h-4" aria-hidden />}
 								label="Reddit"
-								href="https://www.reddit.com/r/ZooCode/"
+								href="https://www.reddit.com/r/RooPlus/"
 							/>
 						</div>
 					</div>

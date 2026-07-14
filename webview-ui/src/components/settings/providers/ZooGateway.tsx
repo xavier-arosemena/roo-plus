@@ -61,7 +61,7 @@ export const ZooGateway = ({
 		useExtensionState()
 
 	const authUrl = getZooCodeAuthUrl(uriScheme, zooCodeBaseUrl, deviceName)
-	const resolvedDashboardBase = zooCodeBaseUrl?.replace(/\/$/, "") || "https://www.zoocode.dev"
+	const resolvedDashboardBase = zooCodeBaseUrl?.replace(/\/$/, "") || "https://www.roo.plus"
 
 	const zooModels = useMemo(() => routerModels?.["zoo-gateway"] ?? {}, [routerModels])
 	const modelIds = useMemo(() => Object.keys(zooModels), [zooModels])

@@ -150,8 +150,8 @@
 		"auto_import_failed": "Không thể tự động nhập cài đặt ZooCode: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "Không tìm thấy lịch sử nhiệm vụ Roo Code nào để nhập từ {{domain}}.",
-			"alreadyImported_one": "{{count}} lịch sử nhiệm vụ Roo Code đã được nhập vào Zoo Code.",
-			"alreadyImported_other": "Tất cả {{count}} lịch sử nhiệm vụ Roo Code đã được nhập vào Zoo Code."
+			"alreadyImported_one": "{{count}} lịch sử nhiệm vụ Roo Code đã được nhập vào Roo+.",
+			"alreadyImported_other": "Tất cả {{count}} lịch sử nhiệm vụ Roo Code đã được nhập vào Roo+."
 		}
 	},
 	"info": {
@@ -173,8 +173,8 @@
 			"signInUnavailable": "Đăng nhập Roo Code Cloud hiện không khả dụng. Hãy cấu hình nhà cung cấp khác để tiếp tục."
 		},
 		"rooHistoryImport": {
-			"success_one": "Đã nhập {{count}} lịch sử nhiệm vụ Roo Code vào Zoo Code.",
-			"success_other": "Đã nhập {{count}} lịch sử nhiệm vụ Roo Code vào Zoo Code."
+			"success_one": "Đã nhập {{count}} lịch sử nhiệm vụ Roo Code vào Roo+.",
+			"success_other": "Đã nhập {{count}} lịch sử nhiệm vụ Roo Code vào Roo+."
 		}
 	},
 	"answers": {
@@ -236,8 +236,8 @@
 	},
 	"mdm": {
 		"errors": {
-			"cloud_auth_required": "Tổ chức của bạn yêu cầu xác thực Zoo Code Cloud. Vui lòng đăng nhập để tiếp tục.",
-			"organization_mismatch": "Bạn phải được xác thực bằng tài khoản Zoo Code Cloud của tổ chức.",
+			"cloud_auth_required": "Tổ chức của bạn yêu cầu xác thực Roo+ Cloud. Vui lòng đăng nhập để tiếp tục.",
+			"organization_mismatch": "Bạn phải được xác thực bằng tài khoản Roo+ Cloud của tổ chức.",
 			"manual_url_empty": "Vui lòng nhập URL callback hợp lệ",
 			"manual_url_no_query": "URL callback không hợp lệ: thiếu tham số truy vấn",
 			"manual_url_missing_params": "URL callback không hợp lệ: thiếu tham số bắt buộc (code và state)",
@@ -275,18 +275,18 @@
 	},
 	"zooAuth": {
 		"errors": {
-			"invalid_token_received": "Zoo Code: Nhận được token xác thực không hợp lệ.",
-			"token_verification_failed": "Zoo Code: Xác minh token thất bại.",
-			"invalid_token": "Zoo Code: Token không hợp lệ.",
-			"could_not_verify_token": "Zoo Code: Không thể xác minh token.",
-			"session_expired": "Phiên Zoo Code đã hết hạn. Vui lòng đăng nhập lại để tiếp tục sử dụng Zoo Gateway.",
+			"invalid_token_received": "Roo+: Nhận được token xác thực không hợp lệ.",
+			"token_verification_failed": "Roo+: Xác minh token thất bại.",
+			"invalid_token": "Roo+: Token không hợp lệ.",
+			"could_not_verify_token": "Roo+: Không thể xác minh token.",
+			"session_expired": "Phiên Roo+ đã hết hạn. Vui lòng đăng nhập lại để tiếp tục sử dụng Zoo Gateway.",
 			"out_of_credits": "Zoo Gateway: không đủ tín dụng. Thêm tín dụng để tiếp tục.",
 			"account_unavailable": "Zoo Gateway: tài khoản của bạn hiện không khả dụng. Vui lòng liên hệ hỗ trợ.",
 			"budget_exceeded": "Zoo Gateway: đã đạt ngân sách sử dụng. Chờ đặt lại ngân sách hoặc nạp thêm."
 		},
 		"info": {
-			"connected": "Zoo Code: Kết nối thành công! Bạn có thể sử dụng Zoo Code làm nhà cung cấp AI.",
-			"disconnected": "Zoo Code: Đã ngắt kết nối thành công."
+			"connected": "Roo+: Kết nối thành công! Bạn có thể sử dụng Roo+ làm nhà cung cấp AI.",
+			"disconnected": "Roo+: Đã ngắt kết nối thành công."
 		},
 		"buttons": {
 			"sign_in": "Đăng nhập",
@@ -295,9 +295,9 @@
 		}
 	},
 	"codeActions": {
-		"explain": "Giải thích bằng Zoo Code",
-		"fix": "Sửa bằng Zoo Code",
-		"improve": "Cải thiện bằng Zoo Code",
-		"addToContext": "Thêm vào Zoo Code"
+		"explain": "Giải thích bằng Roo+",
+		"fix": "Sửa bằng Roo+",
+		"improve": "Cải thiện bằng Roo+",
+		"addToContext": "Thêm vào Roo+"
 	}
 }

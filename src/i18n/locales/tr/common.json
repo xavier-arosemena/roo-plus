@@ -150,8 +150,8 @@
 		"auto_import_failed": "ZooCode ayarları otomatik olarak içe aktarılamadı: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "{{domain}} kaynağından içe aktarılacak Roo Code görev geçmişi bulunamadı.",
-			"alreadyImported_one": "{{count}} Roo Code görev geçmişinin tamamı zaten Zoo Code'a aktarılmış.",
-			"alreadyImported_other": "{{count}} Roo Code görev geçmişinin tamamı zaten Zoo Code'a aktarılmış."
+			"alreadyImported_one": "{{count}} Roo Code görev geçmişinin tamamı zaten Roo+'a aktarılmış.",
+			"alreadyImported_other": "{{count}} Roo Code görev geçmişinin tamamı zaten Roo+'a aktarılmış."
 		}
 	},
 	"info": {
@@ -173,8 +173,8 @@
 			"signInUnavailable": "Roo Code Cloud girişi şu anda kullanılamıyor. Devam etmek için farklı bir sağlayıcı yapılandırın."
 		},
 		"rooHistoryImport": {
-			"success_one": "{{count}} Roo Code görev geçmişi Zoo Code'a aktarıldı.",
-			"success_other": "{{count}} Roo Code görev geçmişi Zoo Code'a aktarıldı."
+			"success_one": "{{count}} Roo Code görev geçmişi Roo+'a aktarıldı.",
+			"success_other": "{{count}} Roo Code görev geçmişi Roo+'a aktarıldı."
 		}
 	},
 	"answers": {
@@ -236,8 +236,8 @@
 	},
 	"mdm": {
 		"errors": {
-			"cloud_auth_required": "Kuruluşunuz Zoo Code Cloud kimlik doğrulaması gerektiriyor. Devam etmek için giriş yapın.",
-			"organization_mismatch": "Kuruluşunuzun Zoo Code Cloud hesabıyla kimlik doğrulaması yapmalısınız.",
+			"cloud_auth_required": "Kuruluşunuz Roo+ Cloud kimlik doğrulaması gerektiriyor. Devam etmek için giriş yapın.",
+			"organization_mismatch": "Kuruluşunuzun Roo+ Cloud hesabıyla kimlik doğrulaması yapmalısınız.",
 			"manual_url_empty": "Lütfen geçerli bir callback URL'si girin",
 			"manual_url_no_query": "Geçersiz callback URL'si: sorgu parametreleri eksik",
 			"manual_url_missing_params": "Geçersiz callback URL'si: gerekli parametreler eksik (code ve state)",
@@ -268,18 +268,18 @@
 	},
 	"zooAuth": {
 		"errors": {
-			"invalid_token_received": "Zoo Code: Geçersiz kimlik doğrulama token'ı alındı.",
-			"token_verification_failed": "Zoo Code: Token doğrulaması başarısız oldu.",
-			"invalid_token": "Zoo Code: Geçersiz token.",
-			"could_not_verify_token": "Zoo Code: Token doğrulanamadı.",
-			"session_expired": "Zoo Code oturumunun süresi doldu. Zoo Gateway'i kullanmaya devam etmek için lütfen tekrar giriş yapın.",
+			"invalid_token_received": "Roo+: Geçersiz kimlik doğrulama token'ı alındı.",
+			"token_verification_failed": "Roo+: Token doğrulaması başarısız oldu.",
+			"invalid_token": "Roo+: Geçersiz token.",
+			"could_not_verify_token": "Roo+: Token doğrulanamadı.",
+			"session_expired": "Roo+ oturumunun süresi doldu. Zoo Gateway'i kullanmaya devam etmek için lütfen tekrar giriş yapın.",
 			"out_of_credits": "Zoo Gateway: yetersiz kredi. Devam etmek için kredi ekleyin.",
 			"account_unavailable": "Zoo Gateway: hesabınız şu anda kullanılamıyor. Lütfen destek ile iletişime geçin.",
 			"budget_exceeded": "Zoo Gateway: kullanım bütçesine ulaşıldı. Sıfırlanmasını bekleyin veya kredi ekleyin."
 		},
 		"info": {
-			"connected": "Zoo Code: Başarıyla bağlandı! Artık Zoo Code'u AI sağlayıcısı olarak kullanabilirsin.",
-			"disconnected": "Zoo Code: Başarıyla bağlantı kesildi."
+			"connected": "Roo+: Başarıyla bağlandı! Artık Roo+'u AI sağlayıcısı olarak kullanabilirsin.",
+			"disconnected": "Roo+: Başarıyla bağlantı kesildi."
 		},
 		"buttons": {
 			"sign_in": "Giriş Yap",
@@ -288,9 +288,9 @@
 		}
 	},
 	"codeActions": {
-		"explain": "Zoo Code ile açıkla",
-		"fix": "Zoo Code ile düzelt",
-		"improve": "Zoo Code ile iyileştir",
-		"addToContext": "Zoo Code'a ekle"
+		"explain": "Roo+ ile açıkla",
+		"fix": "Roo+ ile düzelt",
+		"improve": "Roo+ ile iyileştir",
+		"addToContext": "Roo+'a ekle"
 	}
 }

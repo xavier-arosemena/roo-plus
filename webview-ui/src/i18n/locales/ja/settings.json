@@ -57,7 +57,7 @@
 			"label": "脆弱性を発見しましたか？",
 			"link": "開示プロセスに従ってください"
 		},
-		"community": "ヒントが欲しいですか、または他のZoo Codeユーザーと交流したいですか？<redditLink>reddit.com/r/ZooCode</redditLink>または<discordLink>discord.gg/VxfP4Vx3gX</discordLink>に参加してください",
+		"community": "ヒントが欲しいですか、または他のRoo+ユーザーと交流したいですか？<redditLink>reddit.com/r/ZooCode</redditLink>または<discordLink>discord.gg/VxfP4Vx3gX</discordLink>に参加してください",
 		"contactAndCommunity": "お問い合わせとコミュニティ",
 		"manageSettings": "設定を管理",
 		"debugMode": {
@@ -534,7 +534,7 @@
 			"draftModelDesc": "推論デコーディングが正しく機能するには、ドラフトモデルは同じモデルファミリーから選択する必要があります。",
 			"selectDraftModel": "ドラフトモデルを選択",
 			"noModelsFound": "ドラフトモデルが見つかりません。LM Studioがサーバーモードで実行されていることを確認してください。",
-			"description": "LM Studioを使用すると、ローカルコンピューターでモデルを実行できます。始め方については、<a>クイックスタートガイド</a>をご覧ください。また、この拡張機能で使用するには、LM Studioの<b>ローカルサーバー</b>機能を起動する必要があります。<span>注意：</span>Zoo Codeは複雑なプロンプトを使用し、Claudeモデルで最適に動作します。能力の低いモデルは期待通りに動作しない場合があります。"
+			"description": "LM Studioを使用すると、ローカルコンピューターでモデルを実行できます。始め方については、<a>クイックスタートガイド</a>をご覧ください。また、この拡張機能で使用するには、LM Studioの<b>ローカルサーバー</b>機能を起動する必要があります。<span>注意：</span>Roo+は複雑なプロンプトを使用し、Claudeモデルで最適に動作します。能力の低いモデルは期待通りに動作しない場合があります。"
 		},
 		"ollama": {
 			"baseUrl": "ベースURL（オプション）",
@@ -546,7 +546,7 @@
 			"thinking": "思考を有効化",
 			"thinkingHelp": "推論モデル（例: qwen3、deepseek-r1）に対してOllamaのネイティブな思考を有効にします。有効にすると、モデルの推論が個別にストリーミングおよび表示されます。サポートされていないモデルはこの設定を無視します。",
 			"description": "Ollamaを使用すると、ローカルコンピューターでモデルを実行できます。始め方については、クイックスタートガイドをご覧ください。",
-			"warning": "注意：Zoo Codeは複雑なプロンプトを使用し、Claudeモデルで最適に動作します。能力の低いモデルは期待通りに動作しない場合があります。"
+			"warning": "注意：Roo+は複雑なプロンプトを使用し、Claudeモデルで最適に動作します。能力の低いモデルは期待通りに動作しない場合があります。"
 		},
 		"openRouter": {
 			"providerRouting": {
@@ -634,7 +634,7 @@
 		},
 		"zooGateway": {
 			"account": "Roo+ アカウント",
-			"signInButton": "Zoo Code にサインイン",
+			"signInButton": "Roo+ にサインイン",
 			"signInDescription": "Zoo Gateway をアカウントで使用するにはサインインしてください",
 			"authenticated": "認証済み",
 			"authenticatedAs": "{{name}} として認証済み"
@@ -954,7 +954,7 @@
 		}
 	},
 	"modelPicker": {
-		"automaticFetch": "拡張機能は<serviceLink>{{serviceName}}</serviceLink>で利用可能な最新のモデルリストを自動的に取得します。どのモデルを選ぶべきか迷っている場合、Zoo Codeは<defaultModelLink>{{defaultModelId}}</defaultModelLink>で最適に動作します。また、「free」で検索すると、現在利用可能な無料オプションを見つけることができます。",
+		"automaticFetch": "拡張機能は<serviceLink>{{serviceName}}</serviceLink>で利用可能な最新のモデルリストを自動的に取得します。どのモデルを選ぶべきか迷っている場合、Roo+は<defaultModelLink>{{defaultModelId}}</defaultModelLink>で最適に動作します。また、「free」で検索すると、現在利用可能な無料オプションを見つけることができます。",
 		"label": "モデル",
 		"searchPlaceholder": "検索",
 		"noMatchFound": "一致するものが見つかりません",
@@ -1058,7 +1058,7 @@
 		},
 		"chatFontSize": {
 			"label": "チャットのフォントサイズ",
-			"description": "Zoo Code チャットのフォントサイズ（ピクセル単位）を設定します。VS Code のフォントサイズに合わせるには既定値のままにしてください。",
+			"description": "Roo+ チャットのフォントサイズ（ピクセル単位）を設定します。VS Code のフォントサイズに合わせるには既定値のままにしてください。",
 			"reset": "VS Code の既定値を使用"
 		},
 		"autoCloseZooOpenedFiles": {
