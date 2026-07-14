@@ -150,8 +150,8 @@
 		"auto_import_failed": "Gagal mengimpor pengaturan ZooCode secara otomatis: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "Tidak ada riwayat tugas Roo Code yang ditemukan untuk diimpor dari {{domain}}.",
-			"alreadyImported_one": "Semua {{count}} riwayat tugas Roo Code sudah diimpor ke Zoo Code.",
-			"alreadyImported_other": "Semua {{count}} riwayat tugas Roo Code sudah diimpor ke Zoo Code."
+			"alreadyImported_one": "Semua {{count}} riwayat tugas Roo Code sudah diimpor ke Roo+.",
+			"alreadyImported_other": "Semua {{count}} riwayat tugas Roo Code sudah diimpor ke Roo+."
 		}
 	},
 	"info": {
@@ -173,8 +173,8 @@
 			"signInUnavailable": "Masuk ke Roo Code Cloud saat ini tidak tersedia. Konfigurasikan penyedia lain untuk melanjutkan."
 		},
 		"rooHistoryImport": {
-			"success_one": "{{count}} riwayat tugas Roo Code berhasil diimpor ke Zoo Code.",
-			"success_other": "{{count}} riwayat tugas Roo Code berhasil diimpor ke Zoo Code."
+			"success_one": "{{count}} riwayat tugas Roo Code berhasil diimpor ke Roo+.",
+			"success_other": "{{count}} riwayat tugas Roo Code berhasil diimpor ke Roo+."
 		}
 	},
 	"answers": {
@@ -236,8 +236,8 @@
 	},
 	"mdm": {
 		"errors": {
-			"cloud_auth_required": "Organisasi kamu memerlukan autentikasi Zoo Code Cloud. Silakan masuk untuk melanjutkan.",
-			"organization_mismatch": "Kamu harus diautentikasi dengan akun Zoo Code Cloud organisasi kamu.",
+			"cloud_auth_required": "Organisasi kamu memerlukan autentikasi Roo+ Cloud. Silakan masuk untuk melanjutkan.",
+			"organization_mismatch": "Kamu harus diautentikasi dengan akun Roo+ Cloud organisasi kamu.",
 			"manual_url_empty": "Silakan masukkan URL callback yang valid",
 			"manual_url_no_query": "URL callback tidak valid: parameter query hilang",
 			"manual_url_missing_params": "URL callback tidak valid: parameter yang diperlukan hilang (code dan state)",
@@ -268,18 +268,18 @@
 	},
 	"zooAuth": {
 		"errors": {
-			"invalid_token_received": "Zoo Code: Token autentikasi yang diterima tidak valid.",
-			"token_verification_failed": "Zoo Code: Verifikasi token gagal.",
-			"invalid_token": "Zoo Code: Token tidak valid.",
-			"could_not_verify_token": "Zoo Code: Tidak dapat memverifikasi token.",
-			"session_expired": "Sesi Zoo Code kedaluwarsa. Silakan masuk lagi untuk melanjutkan menggunakan Zoo Gateway.",
+			"invalid_token_received": "Roo+: Token autentikasi yang diterima tidak valid.",
+			"token_verification_failed": "Roo+: Verifikasi token gagal.",
+			"invalid_token": "Roo+: Token tidak valid.",
+			"could_not_verify_token": "Roo+: Tidak dapat memverifikasi token.",
+			"session_expired": "Sesi Roo+ kedaluwarsa. Silakan masuk lagi untuk melanjutkan menggunakan Zoo Gateway.",
 			"out_of_credits": "Zoo Gateway: kredit tidak cukup. Tambahkan kredit untuk melanjutkan.",
 			"account_unavailable": "Zoo Gateway: akun Anda sedang tidak tersedia. Silakan hubungi dukungan.",
 			"budget_exceeded": "Zoo Gateway: anggaran penggunaan tercapai. Tunggu reset anggaran atau isi ulang."
 		},
 		"info": {
-			"connected": "Zoo Code: Berhasil terhubung! Kamu sekarang bisa menggunakan Zoo Code sebagai penyedia AI.",
-			"disconnected": "Zoo Code: Berhasil terputus."
+			"connected": "Roo+: Berhasil terhubung! Kamu sekarang bisa menggunakan Roo+ sebagai penyedia AI.",
+			"disconnected": "Roo+: Berhasil terputus."
 		},
 		"buttons": {
 			"sign_in": "Masuk",
@@ -288,9 +288,9 @@
 		}
 	},
 	"codeActions": {
-		"explain": "Jelaskan dengan Zoo Code",
-		"fix": "Perbaiki dengan Zoo Code",
-		"improve": "Tingkatkan dengan Zoo Code",
-		"addToContext": "Tambahkan ke Zoo Code"
+		"explain": "Jelaskan dengan Roo+",
+		"fix": "Perbaiki dengan Roo+",
+		"improve": "Tingkatkan dengan Roo+",
+		"addToContext": "Tambahkan ke Roo+"
 	}
 }

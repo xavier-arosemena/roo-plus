@@ -18,7 +18,7 @@ vi.mock("react-i18next", () => ({
 }))
 
 describe("IssueFooter", () => {
-	it("links marketplace issue reporting to the Zoo Code repository", () => {
+	it("links marketplace issue reporting to the Roo+ repository", () => {
 		render(<IssueFooter />)
 
 		expect(screen.getByRole("link", { name: "Open a GitHub issue" })).toHaveAttribute(

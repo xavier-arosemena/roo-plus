@@ -25,7 +25,7 @@
 		"invalidImageFormat": "Invalid image format received",
 		"unknownError": "Unknown error occurred",
 		"roo": {
-			"authRequired": "Zoo Code Cloud authentication is required for image generation. Please sign in to Zoo Code Cloud."
+			"authRequired": "Roo+ Cloud authentication is required for image generation. Please sign in to Roo+ Cloud."
 		}
 	}
 }

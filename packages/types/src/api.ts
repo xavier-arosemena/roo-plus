@@ -153,7 +153,7 @@ export interface RooCodeAPI extends EventEmitter<RooCodeAPIEvents> {
 	 */
 	setActiveProfile(name: string): Promise<string | undefined>
 	/**
-	 * Activates a process-wide VS Code terminal profile override for Zoo Code
+	 * Activates a process-wide VS Code terminal profile override for Roo+
 	 * commands. This is intended for trusted extension integrations.
 	 * Passing undefined restores the VS Code default profile behavior and
 	 * closes idle terminals so the next command starts fresh.

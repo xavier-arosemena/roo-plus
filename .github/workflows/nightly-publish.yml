@@ -31,8 +31,8 @@ jobs:
           package_name=$(node -p "require('./src/package.json').name")
           publisher=$(node -p "require('./src/package.json').publisher")
 
-          test "$package_name" = "zoo-code"
-          test "$publisher" = "ZooCodeOrganization"
+          test "$package_name" = "roo-plus"
+          test "$publisher" = "xavier-arosemena"
 
       - name: Validate publish ref
         run: |
@@ -96,25 +96,25 @@ jobs:
         env:
           VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
-          vsix_path="bin/zoo-code-${VERSION_NUMBER}.vsix"
-          unzip -l "$vsix_path" > /tmp/zoo-code-vsix-contents.txt
-          grep -q "extension/package.json" /tmp/zoo-code-vsix-contents.txt
-          grep -q "extension/dist/extension.js" /tmp/zoo-code-vsix-contents.txt
-          grep -q "extension/webview-ui/build/assets/index.js" /tmp/zoo-code-vsix-contents.txt
-          grep -q "extension/webview-ui/audio/celebration.wav" /tmp/zoo-code-vsix-contents.txt
+          vsix_path="bin/roo-plus-${VERSION_NUMBER}.vsix"
+          unzip -l "$vsix_path" > /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/package.json" /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/dist/extension.js" /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/webview-ui/build/assets/index.js" /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/webview-ui/audio/celebration.wav" /tmp/roo-plus-vsix-contents.txt
 
       - name: Validate packaged manifest identity
         if: steps.release-check.outputs.skip != 'true'
         env:
           VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
-          vsix_path="bin/zoo-code-${VERSION_NUMBER}.vsix"
+          vsix_path="bin/roo-plus-${VERSION_NUMBER}.vsix"
 
           artifact_name=$(unzip -p "$vsix_path" extension/package.json | jq -r '.name')
           artifact_publisher=$(unzip -p "$vsix_path" extension/package.json | jq -r '.publisher')
 
-          test "$artifact_name" = "zoo-code"
-          test "$artifact_publisher" = "ZooCodeOrganization"
+          test "$artifact_name" = "roo-plus"
+          test "$artifact_publisher" = "xavier-arosemena"
 
       - name: Publish pre-release to VS Code Marketplace
         if: steps.release-check.outputs.skip != 'true'
@@ -122,8 +122,8 @@ jobs:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
-          npx @vscode/vsce publish --pre-release --skip-duplicate --packagePath "bin/zoo-code-${VERSION_NUMBER}.vsix"
-          echo "Published or skipped existing ZooCodeOrganization.zoo-code ${VERSION_NUMBER} as a VS Code Marketplace pre-release"
+          npx @vscode/vsce publish --pre-release --skip-duplicate --packagePath "bin/roo-plus-${VERSION_NUMBER}.vsix"
+          echo "Published or skipped existing xavier-arosemena.roo-plus ${VERSION_NUMBER} as a VS Code Marketplace pre-release"
 
       # The VSIX built above with `vsce package --pre-release` already carries the
       # Microsoft.VisualStudio.Code.PreRelease manifest property, which is what Open
@@ -143,9 +143,9 @@ jobs:
           VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
           set -o pipefail
-          publish_output=$(pnpm exec ovsx publish "bin/zoo-code-${VERSION_NUMBER}.vsix" --skip-duplicate 2>&1 | tee /dev/stderr)
+          publish_output=$(pnpm exec ovsx publish "bin/roo-plus-${VERSION_NUMBER}.vsix" --skip-duplicate 2>&1 | tee /dev/stderr)
           if echo "$publish_output" | grep -q "is already published"; then
-            echo "ZooCodeOrganization.zoo-code ${VERSION_NUMBER} was already published to Open VSX; skipped."
+            echo "xavier-arosemena.roo-plus ${VERSION_NUMBER} was already published to Open VSX; skipped."
           else
-            echo "Published ZooCodeOrganization.zoo-code ${VERSION_NUMBER} as an Open VSX pre-release"
+            echo "Published xavier-arosemena.roo-plus ${VERSION_NUMBER} as an Open VSX pre-release"
           fi

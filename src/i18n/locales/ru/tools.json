@@ -25,7 +25,7 @@
 		"invalidImageFormat": "Получен недопустимый формат изображения",
 		"unknownError": "Произошла неизвестная ошибка",
 		"roo": {
-			"authRequired": "Для генерации изображений требуется аутентификация Zoo Code Cloud. Войдите в Zoo Code Cloud."
+			"authRequired": "Для генерации изображений требуется аутентификация Roo+ Cloud. Войдите в Roo+ Cloud."
 		}
 	}
 }

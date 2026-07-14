@@ -253,7 +253,7 @@ describe("Model Validation Functions", () => {
 				expect(result).toBe("settings:validation.zooGatewaySignIn")
 			})
 
-			it("returns undefined when Zoo Code auth is active without a profile token", () => {
+			it("returns undefined when Roo+ auth is active without a profile token", () => {
 				const config: ProviderSettings = {
 					apiProvider: "zoo-gateway",
 					zooGatewayModelId: "anthropic/claude-sonnet-4",

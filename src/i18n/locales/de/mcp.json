@@ -27,7 +27,7 @@
 	},
 	"oauth": {
 		"callback": {
-			"title": "OAuth Callback - Zoo Code",
+			"title": "OAuth Callback - Roo+",
 			"success": "Erfolg!",
 			"failed": "Fehlgeschlagen",
 			"auth_failed": "Authentifizierung fehlgeschlagen. Bitte überprüfe die MCP-Server-Logs.",

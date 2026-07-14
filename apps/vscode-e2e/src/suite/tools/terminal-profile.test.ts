@@ -169,14 +169,14 @@ suite("Terminal Profile", function () {
 			const profileTerminal = vscode.window.terminals.find((terminal) => {
 				const options = terminal.creationOptions as vscode.TerminalOptions
 				return (
-					options.name === "Zoo Code" &&
+					options.name === "Roo+" &&
 					options.shellPath === "/bin/bash" &&
 					Array.isArray(options.shellArgs) &&
 					options.shellArgs.includes("--noprofile") &&
 					options.shellArgs.includes("--norc")
 				)
 			})
-			assert.ok(profileTerminal, "Expected a Zoo Code terminal created with the configured Bash profile")
+			assert.ok(profileTerminal, "Expected a Roo+ terminal created with the configured Bash profile")
 		} finally {
 			api.off(RooCodeEventName.Message, messageHandler)
 		}

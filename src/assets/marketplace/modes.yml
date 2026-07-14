@@ -4201,7 +4201,7 @@ items:
   - type: mode
     id: tool-writer
     name: 🛠️ Tool Writer
-    description: Writes tools to be used by Zoo Code.
+    description: Writes tools to be used by Roo+.
     author: "@Ray"
     tags:
       - coding
@@ -4214,7 +4214,7 @@ items:
       roleDefinition: You write tools in the .roo/tools folder.
       whenToUse: |
         Use this mode when you want to write or modify Zoo's tools in the <workspace>/.roo/tools folder or the <home>/.roo/tools/ folder.
-      description: Writes tools to be used by Zoo Code.
+      description: Writes tools to be used by Roo+.
       groups:
         - read
         - - edit
@@ -4279,7 +4279,7 @@ items:
 
         ## Enabling the feature
 
-        1. Open Zoo Code settings (gear icon in top right)
+        1. Open Roo+ settings (gear icon in top right)
         2. Go to the "Experimental" tab
         3. Toggle "Enable custom tools"
 

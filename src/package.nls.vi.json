@@ -1,6 +1,6 @@
 {
 	"extension.displayName": "Roo+",
-	"extension.description": "The dev team plus for VS Code/Codium.",
+	"extension.description": "Multi-agent AI development assistant with 225+ specialized agents — an entire AI team for coding, DevOps, security, architecture, and more",
 	"command.newTask.title": "Tác Vụ Mới",
 	"command.explainCode.title": "Giải Thích Mã",
 	"command.fixCode.title": "Sửa Mã",
@@ -35,7 +35,7 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "Nhà cung cấp mô hình ngôn ngữ (ví dụ: copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "Họ mô hình ngôn ngữ (ví dụ: gpt-4)",
 	"settings.customStoragePath.description": "Đường dẫn lưu trữ tùy chỉnh. Để trống để sử dụng vị trí mặc định. Hỗ trợ đường dẫn tuyệt đối (ví dụ: 'D:\\ZooCodeStorage')",
-	"settings.enableCodeActions.description": "Bật sửa lỗi nhanh Zoo Code.",
+	"settings.enableCodeActions.description": "Bật sửa lỗi nhanh Roo+.",
 	"settings.autoImportSettingsPath.description": "Đường dẫn đến tệp cấu hình ZooCode để tự động nhập khi khởi động tiện ích mở rộng. Hỗ trợ đường dẫn tuyệt đối và đường dẫn tương đối đến thư mục chính (ví dụ: '~/Documents/roo-code-settings.json'). Để trống để tắt tính năng tự động nhập.",
 	"settings.maximumIndexedFilesForFileSearch.description": "Số lượng tệp tối đa để lập chỉ mục cho tính năng tìm kiếm tệp @. Giá trị cao hơn cung cấp kết quả tìm kiếm tốt hơn trong các dự án lớn nhưng có thể sử dụng nhiều bộ nhớ hơn. Mặc định: 10.000.",
 	"settings.useAgentRules.description": "Bật tải tệp AGENTS.md cho các quy tắc dành riêng cho tác nhân (xem https://agent-rules.org/)",

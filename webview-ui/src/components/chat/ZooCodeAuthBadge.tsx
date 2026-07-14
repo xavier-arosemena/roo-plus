@@ -92,7 +92,7 @@ export const ZooCodeAuthBadge: React.FC<ZooCodeAuthBadgeProps> = ({ className })
 						"text-[9px] font-semibold text-[var(--vscode-button-foreground,#ffffff)]",
 				)}
 				style={avatarButtonStyle}
-				title={zooCodeIsAuthenticated ? `Zoo Code: ${zooCodeUserEmail || "Connected"}` : "Sign in to Zoo Code"}>
+				title={zooCodeIsAuthenticated ? `Roo+: ${zooCodeUserEmail || "Connected"}` : "Sign in to Roo+"}>
 				{zooCodeIsAuthenticated ? (
 					showImage ? (
 						<img
@@ -131,7 +131,7 @@ export const ZooCodeAuthBadge: React.FC<ZooCodeAuthBadgeProps> = ({ className })
 					)}>
 					{!zooCodeIsAuthenticated ? (
 						<a href={authUrl} onClick={() => setIsOpen(false)} className={menuItemClasses}>
-							Sign in to Zoo Code
+							Sign in to Roo+
 						</a>
 					) : (
 						<>
@@ -145,7 +145,7 @@ export const ZooCodeAuthBadge: React.FC<ZooCodeAuthBadgeProps> = ({ className })
 								</div>
 							)}
 							<a
-								href={`${zooCodeBaseUrl || "https://www.zoocode.dev"}/dashboard`}
+								href={`${zooCodeBaseUrl || "https://www.roo.plus"}/dashboard`}
 								onClick={() => setIsOpen(false)}
 								className={menuItemClasses}>
 								Go to Dashboard
