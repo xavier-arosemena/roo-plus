@@ -286,7 +286,38 @@ async function main() {
   console.log(`   Individual slugs: ${(manifest.includeSlugs || []).length}`)
   console.log(`   Excluded slugs: ${(manifest.excludeSlugs || []).length}`)
 
-  // 2. Scan ALL agents
+  // 2. Check if agents directory exists (git submodule may not be initialized in CI)
+  console.log("\n🔍 Checking agents directory...")
+  let agentsDirExists = false
+  try {
+    await fs.access(AGENTS_DIR)
+    agentsDirExists = true
+  } catch {
+    agentsDirExists = false
+  }
+
+  if (!agentsDirExists) {
+    // Check if output files already exist (committed to repo)
+    const outputsExist = await Promise.all([
+      fs.access(PRE_INSTALLED_MODES_PATH).then(() => true).catch(() => false),
+      fs.access(MARKETPLACE_MODES_PATH).then(() => true).catch(() => false),
+      fs.access(ROOMODES_PATH).then(() => true).catch(() => false),
+    ])
+
+    if (outputsExist.every(Boolean)) {
+      console.log("   ⚠ Agents directory not found (git submodule not initialized in CI)")
+      console.log("   ✓ All output files already exist — skipping sync")
+      console.log("\n" + "═".repeat(50))
+      console.log("✅ Sync complete (cached artifacts)")
+      return
+    }
+
+    console.warn("\n⚠ Agents directory not found and output files missing.")
+    console.warn("   Run `git submodule update --init` to populate custom-modes/agents/")
+    return
+  }
+
+  // Scan ALL agents
   console.log("\n🔍 Scanning agents directory...")
   const allAgents = await scanAllAgents()
   console.log(`   Found ${allAgents.length} total agents`)
