@@ -137,7 +137,7 @@ describe("TaskHeader", () => {
 		renderTaskHeader()
 		// Button is visible without expanding the task header
 		const buttons = screen.getAllByRole("button")
-		const condenseButton = buttons.find((button) => button.querySelector("svg.lucide-list-chevrons-down-up"))
+		const condenseButton = buttons.find((button) => button.querySelector("svg.lucide-chevrons-down-up"))
 		expect(condenseButton).toBeDefined()
 		expect(condenseButton?.querySelector("svg")).toBeInTheDocument()
 	})
@@ -148,7 +148,7 @@ describe("TaskHeader", () => {
 		fireEvent.click(taskHeader)
 
 		const buttons = screen.getAllByRole("button")
-		const condenseButton = buttons.find((button) => button.querySelector("svg.lucide-list-chevrons-down-up"))
+		const condenseButton = buttons.find((button) => button.querySelector("svg.lucide-chevrons-down-up"))
 		expect(condenseButton).toBeDefined()
 		expect(condenseButton?.querySelector("svg")).toBeInTheDocument()
 	})
@@ -159,7 +159,7 @@ describe("TaskHeader", () => {
 
 		// Button is clickable in collapsed state without expanding first
 		const buttons = screen.getAllByRole("button")
-		const condenseButton = buttons.find((button) => button.querySelector("svg.lucide-list-chevrons-down-up"))
+		const condenseButton = buttons.find((button) => button.querySelector("svg.lucide-chevrons-down-up"))
 		expect(condenseButton).toBeDefined()
 		fireEvent.click(condenseButton!)
 		expect(handleCondenseContext).toHaveBeenCalledWith("test-task-id")
@@ -174,7 +174,7 @@ describe("TaskHeader", () => {
 
 		// Button is disabled in collapsed state without expanding first
 		const buttons = screen.getAllByRole("button")
-		const condenseButton = buttons.find((button) => button.querySelector("svg.lucide-list-chevrons-down-up"))
+		const condenseButton = buttons.find((button) => button.querySelector("svg.lucide-chevrons-down-up"))
 		expect(condenseButton).toBeDefined()
 		expect(condenseButton).toBeDisabled()
 		fireEvent.click(condenseButton!)
