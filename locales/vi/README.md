@@ -16,7 +16,9 @@
 
         ## Chúng tôi là Roo+
 
-> Có thể bạn đã thấy [thông báo gần đây](https://x.com/mattrubens/status/2046636598859559114) từ đội ngũ Roo 🦘🦘🦘. Tóm lại, đội ngũ đang dần giảm việc phát triển Roo Code một cách tích cực để tập trung vào [Roomote](https://roomote.dev/). Tin này thật khó chấp nhận với nhiều người dùng Roo; plugin này có ý nghĩa rất lớn với cộng đồng này.
+> Zoo Code tiếp tục phát triển dự án này sau khi đội ngũ Roo dừng việc phát
+> triển tích cực Roo Code để tập trung vào [Roomote](https://roomote.dev/).
+> Cảm ơn đội ngũ Roo vì tất cả những gì họ đã xây dựng.
 >
 > Chúng tôi muốn cảm ơn toàn bộ đội ngũ Roo vì công sức họ đã dành cho plugin này. Chúng tôi sẽ không nêu tên từng người ở đây, nhưng tất cả chúng ta đều có thể đồng ý rằng họ là những nhà phát triển xuất sắc và, quan trọng không kém, là những con người tuyệt vời. Cảm ơn đội ngũ Roo.
 >
@@ -30,15 +32,15 @@
 
 Bạn có thể xem hướng dẫn nhanh để chuyển từ Roo Code sang Roo+ trong [hướng dẫn chuyển đổi Roo→Zoo](https://docs.zoocode.dev/roo-to-zoo-migration). Chúng tôi muốn hỗ trợ người dùng nhiều nhất có thể trong quá trình chuyển đổi, và đó chính là lý do chúng tôi có [Reddit](https://www.reddit.com/r/ZooCode) và [Discord](https://discord.gg/VxfP4Vx3gX). Nếu bạn gặp vấn đề hoặc có câu hỏi, cứ vào hỏi nhé.
 
-## Điểm mới trong v3.68.0
+## Điểm mới trong v3.70.0
 
-- **Nhà cung cấp Friendli với hỗ trợ GLM-5.2** — dùng mẫu GLM mới nhất qua Friendli.
-- **Hỗ trợ thinking/reasoning gốc cho Ollama** — giữ đầu ra suy luận xuyên suốt khi bạn dùng các mẫu Ollama.
-- **Sửa lỗi `apiModelId` tùy chỉnh của Anthropic** — ID mẫu Anthropic tùy chỉnh giờ sẽ tiếp tục được chọn thay vì âm thầm rơi về `claude-sonnet-4-5`.
-- Sửa lỗi: xử lý kết quả công cụ của nhà cung cấp Ollama và cô đọng ngữ cảnh quá sớm.
-- Sửa lỗi: giữ liên kết cha-con của tác vụ khi một tác vụ con được ủy quyền bị gián đoạn.
-- Cải thiện xử lý khối nội dung Claude trên Anthropic Vertex để có phản hồi đáng tin cậy hơn.
-- Cập nhật CI, phát hành nightly và phụ thuộc/công cụ.
+- **Dòng OpenAI GPT-5.6** — `Sol`, `Terra`, và `Luna` hiện đã có sẵn trên cả hai đường nhà cung cấp OpenAI Codex và OpenAI Native.
+- **Hỗ trợ Grok 4.5** — model chủ lực mới của xAI, cùng với bản sửa lỗi định dạng reasoning-effort cũng mang lại lợi ích cho Grok 4 Mini.
+- **Hỗ trợ nhà cung cấp Kenari** — một cổng AI hạng nhất, tương thích OpenAI, tính phí bằng Rupiah, bao phủ Claude, GPT, DeepSeek, GLM, Kimi và nhiều hơn nữa.
+- Hiển thị nút cô đọng ngữ cảnh và thanh tiến trình cửa sổ ngữ cảnh trong tiêu đề tác vụ đã thu gọn.
+- Sửa lỗi: mất đầu ra terminal và hoàn thành tác vụ quá sớm trên các terminal nguội.
+- Sửa lỗi: đính kèm hình ảnh cho các model Zoo Gateway và Vercel AI Gateway giờ đây tuân theo các thẻ khả năng vision trực tiếp thay vì danh sách cho phép tĩnh.
+- Cập nhật phụ thuộc và công cụ.
 
 ## Roo+ có thể làm gì cho BẠN?
 

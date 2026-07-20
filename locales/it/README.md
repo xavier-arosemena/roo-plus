@@ -16,7 +16,10 @@
 
         ## Siamo Roo+
 
-> Potresti aver visto il [recente annuncio](https://x.com/mattrubens/status/2046636598859559114) del team di Roo 🦘🦘🦘. In breve, il team sta riducendo progressivamente lo sviluppo attivo di Roo Code mentre si concentra su [Roomote](https://roomote.dev/). Questa notizia è stata difficile per molti utenti di Roo; questo plugin significa tantissimo per questa comunità.
+> Zoo Code continua lo sviluppo di questo progetto dopo che il team di Roo
+> ha interrotto lo sviluppo attivo di Roo Code per concentrarsi su
+> [Roomote](https://roomote.dev/). Grazie al team di Roo per tutto quello
+> che hanno costruito.
 >
 > Vogliamo ringraziare tutto il team di Roo per il lavoro che ha dedicato a questo plugin. Non faremo il nome di ogni singola persona qui, ma possiamo tutti concordare sul fatto che siano sviluppatori eccezionali e, cosa altrettanto importante, persone incredibili. Grazie al team di Roo.
 >
@@ -30,15 +33,15 @@
 
 Puoi trovare una guida rapida per passare da Roo Code a Roo+ nella [guida alla migrazione Roo→Zoo](https://docs.zoocode.dev/roo-to-zoo-migration). Vogliamo aiutare gli utenti il più possibile durante la transizione, e per questo abbiamo il nostro [Reddit](https://www.reddit.com/r/ZooCode) e il nostro [Discord](https://discord.gg/VxfP4Vx3gX). Se hai problemi o domande, passa pure e chiedi.
 
-## Novità in v3.68.0
+## Novità in v3.70.0
 
-- **Provider Friendli con supporto GLM-5.2** — usa il modello GLM più recente tramite Friendli.
-- **Supporto nativo thinking/reasoning per Ollama** — conserva l'output di ragionamento end-to-end quando usi i modelli Ollama.
-- **Correzione del `apiModelId` personalizzato di Anthropic** — gli ID modello Anthropic personalizzati ora restano selezionati invece di tornare silenziosamente a `claude-sonnet-4-5`.
-- Correzione: gestione dei risultati degli strumenti del provider Ollama e condensazione prematura del contesto.
-- Correzione: mantieni il collegamento padre-figlio dell'attività quando una sottoattività delegata viene interrotta.
-- Migliora la gestione dei blocchi di contenuto Claude in Anthropic Vertex per risposte più affidabili.
-- Aggiornamenti a CI, pubblicazione nightly e dipendenze/tooling.
+- **Famiglia OpenAI GPT-5.6** — `Sol`, `Terra` e `Luna` sono ora disponibili sia tramite OpenAI Codex sia tramite OpenAI Native.
+- **Supporto Grok 4.5** — il nuovo modello di punta di xAI, oltre a una correzione del formato reasoning-effort che avvantaggia anche Grok 4 Mini.
+- **Supporto provider Kenari** — un AI gateway di prim'ordine, compatibile con OpenAI, fatturato in Rupie, che copre Claude, GPT, DeepSeek, GLM, Kimi e altro ancora.
+- Mostra il pulsante di condensazione del contesto e la barra di avanzamento della finestra di contesto nell'intestazione dell'attività compressa.
+- Correzione: perdita di output del terminale e completamento prematuro delle attività su terminali freddi.
+- Correzione: l'allegato di immagini per i modelli Zoo Gateway e Vercel AI Gateway ora segue i tag di capacità di visione in tempo reale invece di una allowlist statica.
+- Aggiornamenti di dipendenze e tooling.
 
 ## Cosa può fare Roo+ per TE?
 

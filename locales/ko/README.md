@@ -16,7 +16,9 @@
 
         ## 우리는 Roo+입니다
 
-> Roo 팀 🦘🦘🦘의 [최근 발표](https://x.com/mattrubens/status/2046636598859559114)를 봤을지도 몰라. 한줄 요약하면, 팀은 [Roomote](https://roomote.dev/)에 집중하면서 Roo Code의 적극적인 개발을 점차 줄여 나가고 있어. 이 소식은 많은 Roo 사용자들에게 힘들었고, 이 플러그인은 이 커뮤니티에 큰 의미가 있어.
+> Roo 팀이 [Roomote](https://roomote.dev/)에 집중하기 위해 Roo Code의 적극적인
+> 개발을 중단한 뒤, Zoo Code가 이 프로젝트의 개발을 이어가고 있어. 그동안
+> 쌓아 온 모든 것에 대해 Roo 팀에게 고마워.
 >
 > 이 플러그인에 쏟아 준 Roo 팀 전체의 노력에 감사하고 싶어. 여기서 한 사람씩 이름을 부르지는 않겠지만, 모두가 그들이 뛰어난 개발자일 뿐 아니라 정말 멋진 사람들이라는 데 동의할 거야. Roo 팀에게 고마워.
 >
@@ -30,15 +32,15 @@
 
 Roo Code에서 Roo+로 옮겨오는 빠른 가이드는 [Roo→Zoo 마이그레이션 가이드](https://docs.zoocode.dev/roo-to-zoo-migration)에서 확인할 수 있어. 전환하는 동안 사용자들을 최대한 돕고 싶고, 바로 그 지원을 위해 [Reddit](https://www.reddit.com/r/ZooCode)와 [Discord](https://discord.gg/VxfP4Vx3gX)를 운영하고 있어. 문제가 있거나 궁금한 점이 있으면 들어와서 편하게 물어봐.
 
-## v3.68.0의 새로운 기능
+## v3.70.0의 새로운 기능
 
-- **GLM-5.2를 지원하는 Friendli 프로바이더** — Friendli를 통해 최신 GLM 모델을 사용할 수 있습니다.
-- **Ollama용 네이티브 thinking/reasoning 지원** — Ollama 모델을 사용할 때 reasoning 출력을 처음부터 끝까지 유지합니다.
-- **Anthropic 사용자 지정 `apiModelId` 수정** — 사용자 지정 Anthropic 모델 ID가 이제 조용히 `claude-sonnet-4-5`로 되돌아가지 않고 선택된 상태로 유지됩니다.
-- 수정: Ollama 프로바이더의 도구 결과 처리 및 너무 이른 컨텍스트 압축.
-- 수정: 위임된 하위 작업이 중단될 때 부모-자식 작업 연결을 유지합니다.
-- Anthropic Vertex Claude 콘텐츠 블록 처리를 개선해 더 안정적인 응답을 제공합니다.
-- CI, nightly 배포, 의존성/툴링 업데이트.
+- **OpenAI GPT-5.6 패밀리** — `Sol`, `Terra`, `Luna`가 이제 OpenAI Codex와 OpenAI Native 프로바이더 경로 모두에서 사용 가능합니다.
+- **Grok 4.5 지원** — xAI의 새로운 플래그십 모델과, Grok 4 Mini에도 도움이 되는 reasoning-effort 형식 수정.
+- **Kenari 프로바이더 지원** — Claude, GPT, DeepSeek, GLM, Kimi 등을 지원하며 루피아로 청구되는 일류 OpenAI 호환 AI 게이트웨이.
+- 접힌 작업 헤더에 컨텍스트 압축 버튼과 컨텍스트 윈도우 진행률 표시줄을 표시합니다.
+- 수정: 콜드 터미널에서의 터미널 출력 손실 및 조기 작업 완료 문제.
+- 수정: Zoo Gateway 및 Vercel AI Gateway 모델의 이미지 첨부가 이제 정적 허용 목록 대신 실시간 vision 지원 태그를 따릅니다.
+- 의존성 및 툴링 업데이트.
 
 ## Roo+가 당신을 위해 무엇을 할 수 있을까요?
 

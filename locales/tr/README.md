@@ -16,7 +16,10 @@
 
         ## Biz Roo+'uz
 
-> Roo ekibinin 🦘🦘🦘 [son duyurusunu](https://x.com/mattrubens/status/2046636598859559114) görmüş olabilirsin. Kısacası ekip, [Roomote](https://roomote.dev/) üzerine odaklanırken Roo Code'un aktif gelişimini kademeli olarak azaltıyor. Bu haber birçok Roo kullanıcısı için zordu; bu eklenti bu topluluk için çok şey ifade ediyor.
+> Roo ekibi, [Roomote](https://roomote.dev/) üzerine odaklanmak için Roo
+> Code'un aktif geliştirmesini durdurduktan sonra Zoo Code bu projenin
+> geliştirilmesini sürdürüyor. İnşa ettikleri her şey için Roo ekibine
+> teşekkürler.
 >
 > Bu eklentiye verdikleri emek için tüm Roo ekibine teşekkür etmek istiyoruz. Burada herkesin adını tek tek anmayacağız, ama hepimiz onların olağanüstü geliştiriciler ve aynı derecede inanılmaz insanlar olduğu konusunda hemfikiriz. Roo ekibine teşekkürler.
 >
@@ -30,15 +33,15 @@
 
 Roo Code'dan Roo+'a geçmek için hızlı bir rehberi [Roo→Zoo geçiş rehberinde](https://docs.zoocode.dev/roo-to-zoo-migration) bulabilirsin. Geçiş sürecinde kullanıcılara elimizden geldiğince yardımcı olmak istiyoruz ve bunun için [Reddit](https://www.reddit.com/r/ZooCode) ile [Discord](https://discord.gg/VxfP4Vx3gX) topluluklarımız var. Bir sorun yaşarsan ya da sorunun olursa gel ve sor.
 
-## v3.68.0'daki Yenilikler
+## v3.70.0'daki Yenilikler
 
-- **GLM-5.2 destekli Friendli sağlayıcısı** — en yeni GLM modelini Friendli üzerinden kullan.
-- **Ollama için yerel thinking/reasoning desteği** — Ollama modellerini kullanırken reasoning çıktısını uçtan uca koru.
-- **Anthropic özel `apiModelId` düzeltmesi** — özel Anthropic model kimlikleri artık sessizce `claude-sonnet-4-5` modeline geri dönmek yerine seçili kalıyor.
-- Düzeltme: Ollama sağlayıcısında araç sonucu işleme ve erken bağlam yoğunlaştırma.
-- Düzeltme: yetkilendirilen bir alt görev kesintiye uğradığında görev üst-alt bağlantısını koru.
-- Daha güvenilir yanıtlar için Anthropic Vertex Claude içerik bloğu işleme iyileştirildi.
-- CI, nightly yayınlama ve bağımlılık/araç güncellemeleri.
+- **OpenAI GPT-5.6 ailesi** — `Sol`, `Terra` ve `Luna` artık hem OpenAI Codex hem de OpenAI Native sağlayıcı yollarında kullanılabiliyor.
+- **Grok 4.5 desteği** — xAI'nin yeni amiral gemisi modeli, ayrıca Grok 4 Mini'ye de fayda sağlayan bir reasoning-effort format düzeltmesi.
+- **Kenari sağlayıcı desteği** — Claude, GPT, DeepSeek, GLM, Kimi ve daha fazlasını kapsayan, Rupi ile faturalandırılan, OpenAI uyumlu, birinci sınıf bir AI ağ geçidi.
+- Daraltılmış görev başlığında bağlam yoğunlaştırma düğmesi ve bağlam penceresi ilerleme çubuğunu göster.
+- Düzeltme: soğuk terminallerde terminal çıktısı kaybı ve erken görev tamamlanması.
+- Düzeltme: Zoo Gateway ve Vercel AI Gateway modelleri için görsel ekleme artık statik bir izin listesi yerine canlı görme yeteneği etiketlerini takip ediyor.
+- Bağımlılık ve araç güncellemeleri.
 
 ## Roo+ SİZİN İçin Ne Yapabilir?
 
