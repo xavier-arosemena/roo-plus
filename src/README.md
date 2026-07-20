@@ -146,6 +146,18 @@ The custom modes library contains **233 available agents**. 139 are pre-loaded i
 
 Currently **6 categories** are set to `"all"` (business-product, legal-compliance, sota-personas, ai-ml, security-quality, infrastructure-devops) plus **45 individual slugs** — totaling 139 agents.
 
+**Option 0 — Install from the Mode Marketplace (easiest):**
+
+The quickest way to add new modes is directly from the **Mode Marketplace** inside the extension's webview UI:
+
+1. Click the **Mode Marketplace** button in the mode selector (bottom of the VS Code window) or the marketplace tab
+2. Browse available modes — search by name, filter by tags, or sort by popularity
+3. Click **Install** on any mode you want to add
+4. Choose whether to install **globally** (available in all projects) or to the **current project**
+5. The mode is immediately available in your mode selector — no reload needed
+
+The marketplace also supports **MCP servers** and includes bundled modes from the curated 225-agent library.
+
 **Option A — Add via manifest (recommended for multiple agents):**
 
 1. Open the **[Agent Catalog](custom-modes/AGENT_CATALOG.md)** and find agents marked ⬜ Available
