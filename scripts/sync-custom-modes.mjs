@@ -31,6 +31,7 @@ const AGENTS_DIR = path.join(ROOT, "custom-modes", "agents")
 const MANIFEST_PATH = path.join(ROOT, "custom-modes", "manifest.json")
 const ROOMODES_PATH = path.join(ROOT, ".roomodes")
 const MARKETPLACE_MODES_PATH = path.join(ROOT, "src", "assets", "marketplace", "modes.yml")
+const PRE_INSTALLED_MODES_PATH = path.join(ROOT, "src", "assets", "marketplace", "pre-installed-modes.yml")
 
 // Fields allowed in .roomodes mode entries (from modeConfigSchema)
 const ALLOWED_FIELDS = new Set([
@@ -285,7 +286,38 @@ async function main() {
   console.log(`   Individual slugs: ${(manifest.includeSlugs || []).length}`)
   console.log(`   Excluded slugs: ${(manifest.excludeSlugs || []).length}`)
 
-  // 2. Scan ALL agents
+  // 2. Check if agents directory exists (git submodule may not be initialized in CI)
+  console.log("\n🔍 Checking agents directory...")
+  let agentsDirExists = false
+  try {
+    await fs.access(AGENTS_DIR)
+    agentsDirExists = true
+  } catch {
+    agentsDirExists = false
+  }
+
+  if (!agentsDirExists) {
+    // Check if output files already exist (committed to repo)
+    const outputsExist = await Promise.all([
+      fs.access(PRE_INSTALLED_MODES_PATH).then(() => true).catch(() => false),
+      fs.access(MARKETPLACE_MODES_PATH).then(() => true).catch(() => false),
+      fs.access(ROOMODES_PATH).then(() => true).catch(() => false),
+    ])
+
+    if (outputsExist.every(Boolean)) {
+      console.log("   ⚠ Agents directory not found (git submodule not initialized in CI)")
+      console.log("   ✓ All output files already exist — skipping sync")
+      console.log("\n" + "═".repeat(50))
+      console.log("✅ Sync complete (cached artifacts)")
+      return
+    }
+
+    console.warn("\n⚠ Agents directory not found and output files missing.")
+    console.warn("   Run `git submodule update --init` to populate custom-modes/agents/")
+    return
+  }
+
+  // Scan ALL agents
   console.log("\n🔍 Scanning agents directory...")
   const allAgents = await scanAllAgents()
   console.log(`   Found ${allAgents.length} total agents`)
@@ -323,11 +355,18 @@ async function main() {
 
   // Write .roomodes
   const totalModes = existingModes.length + newEntries.length
+  const roomodesYamlContent = newEntries.length > 0
+    ? generateRoomodesYaml(existingModes, newEntries)
+    : generateRoomodesYaml(existingModes, [])
+
   if (newEntries.length > 0) {
     console.log("\n✍️ Writing .roomodes...")
-    const yamlContent = generateRoomodesYaml(existingModes, newEntries)
-    await fs.writeFile(ROOMODES_PATH, yamlContent, "utf-8")
+    await fs.writeFile(ROOMODES_PATH, roomodesYamlContent, "utf-8")
   }
+
+  // Write pre-installed-modes.yml (bundled in VSIX for first-run seeding)
+  console.log("\n📦 Writing pre-installed-modes.yml for extension bundling...")
+  await fs.writeFile(PRE_INSTALLED_MODES_PATH, roomodesYamlContent, "utf-8")
 
   // ===============================
   // PART 2: Generate Modes Marketplace catalog
@@ -349,7 +388,8 @@ async function main() {
   console.log("\n" + "═".repeat(50))
   console.log(`✅ Sync complete!`)
   console.log(`   📄 .roomodes: ${totalModes} custom modes`)
-  console.log(`   🛒 Modes Marketplace: ${originalCount + agentCount} items available`)
+  console.log(`   📦 pre-installed-modes.yml: ${totalModes} modes (for extension bundling)`)
+  console.log(`   � Modes Marketplace: ${originalCount + agentCount} items available`)
   console.log(`      - ${agentCount} agents from custom-modes submodule`)
   console.log(`      - ${originalCount} original marketplace items`)
 

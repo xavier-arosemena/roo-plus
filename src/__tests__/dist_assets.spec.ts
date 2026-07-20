@@ -61,15 +61,22 @@ describe("dist assets", () => {
 	})
 
 	describe("marketplace assets", () => {
-		const marketplaceFiles = ["modes.yml", "mcps.yml"]
+		const marketplaceFiles: Array<{ filename: string; key: string }> = [
+			{ filename: "modes.yml", key: "items" },
+			{ filename: "mcps.yml", key: "items" },
+			{ filename: "pre-installed-modes.yml", key: "customModes" },
+		]
 
-		test.each(marketplaceFiles)("should include bundled %s marketplace asset with multiple items", (filename) => {
-			const assetPath = path.join(marketplaceAssetsPath, filename)
-			expect(fs.existsSync(assetPath)).toBe(true)
+		test.each(marketplaceFiles)(
+			"should include bundled $filename marketplace asset with multiple items",
+			({ filename, key }) => {
+				const assetPath = path.join(marketplaceAssetsPath, filename)
+				expect(fs.existsSync(assetPath)).toBe(true)
 
-			const parsed = yaml.parse(fs.readFileSync(assetPath, "utf-8"))
-			expect(Array.isArray(parsed?.items)).toBe(true)
-			expect(parsed.items.length).toBeGreaterThan(1)
-		})
+				const parsed = yaml.parse(fs.readFileSync(assetPath, "utf-8"))
+				expect(Array.isArray(parsed?.[key])).toBe(true)
+				expect(parsed[key].length).toBeGreaterThan(1)
+			},
+		)
 	})
 })

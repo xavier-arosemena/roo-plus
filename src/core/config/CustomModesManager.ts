@@ -17,6 +17,8 @@ import { ensureSettingsDirectoryExists } from "../../utils/globalContext"
 import { t } from "../../i18n"
 
 const ROOMODES_FILENAME = ".roomodes"
+const PRE_INSTALLED_MODES_KEY = "preInstalledModesSeeded"
+const BUNDLED_MODES_RELATIVE_PATH = path.join("assets", "marketplace", GlobalFileNames.preInstalledModes)
 
 // Type definitions for import/export functionality
 interface RuleFile {
@@ -353,6 +355,60 @@ export class CustomModesManager {
 		}
 	}
 
+	/**
+	 * Seeds pre-installed modes from the bundled extension asset into the global
+	 * settings file on first run. This ensures the 146+ curated modes are available
+	 * immediately after a fresh extension install without requiring the user to
+	 * manually install each mode from the Modes Marketplace.
+	 *
+	 * The seeding happens exactly once per extension installation. The
+	 * `preInstalledModesSeeded` flag in globalState prevents re-seeding on
+	 * extension updates or workspace changes.
+	 */
+	private async seedPreInstalledModes(): Promise<void> {
+		// Skip in test environments — tests mock context without extensionPath
+		if (process.env.NODE_ENV === "test") {
+			return
+		}
+
+		const alreadySeeded = this.context.globalState.get<boolean>(PRE_INSTALLED_MODES_KEY)
+		if (alreadySeeded) {
+			return
+		}
+
+		const bundledPath = path.join(this.context.extensionPath, BUNDLED_MODES_RELATIVE_PATH)
+		let fileExists: boolean
+		try {
+			await fs.access(bundledPath)
+			fileExists = true
+		} catch {
+			fileExists = false
+		}
+
+		if (!fileExists) {
+			// No bundled file — nothing to seed. This can happen in development
+			// (sync-custom-modes hasn't been run) or in test environments.
+			return
+		}
+
+		try {
+			const bundledModes = await this.loadModesFromFile(bundledPath)
+			if (bundledModes.length === 0) {
+				return
+			}
+
+			const settingsPath = await this.getCustomModesFilePath()
+			const settingsContent = yaml.stringify({ customModes: bundledModes }, { lineWidth: 0 })
+			await fs.writeFile(settingsPath, settingsContent, "utf-8")
+
+			await this.context.globalState.update(PRE_INSTALLED_MODES_KEY, true)
+			console.log(`[CustomModesManager] Seeded ${bundledModes.length} pre-installed modes from bundled asset`)
+		} catch (error) {
+			console.error(`[CustomModesManager] Failed to seed pre-installed modes:`, error)
+			// Do NOT set the flag on failure — retry on next activation
+		}
+	}
+
 	public async getCustomModes(): Promise<ModeConfig[]> {
 		// Check if we have a valid cached result.
 		const now = Date.now()
@@ -363,7 +419,16 @@ export class CustomModesManager {
 
 		// Get modes from settings file.
 		const settingsPath = await this.getCustomModesFilePath()
-		const settingsModes = await this.loadModesFromFile(settingsPath)
+		let settingsModes = await this.loadModesFromFile(settingsPath)
+
+		// On first run, settingsModes will be empty. Seed from the bundled
+		// pre-installed modes asset so the 146+ curated modes are available
+		// immediately without requiring manual marketplace installation.
+		if (settingsModes.length === 0) {
+			await this.seedPreInstalledModes()
+			// Re-read after potential seeding
+			settingsModes = await this.loadModesFromFile(settingsPath)
+		}
 
 		// Get modes from .roomodes if it exists.
 		const roomodesPath = await this.getWorkspaceRoomodes()

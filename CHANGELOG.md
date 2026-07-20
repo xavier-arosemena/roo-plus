@@ -55,6 +55,15 @@
 - Updated extension display name, description, and gallery banner
 - Set up Open VSX Registry publishing pipeline
 
+## [3.70.1] — 2026-07-20
+
+### Patch — Pre-Installed Modes Seeding
+
+- **Fix(pre-installed-modes): seed 147 curated modes on first extension activation** — Previously, installing the extension from the marketplace only showed the 5 built-in modes. Now `CustomModesManager` reads a bundled `pre-installed-modes.yml` asset on first run and populates the global settings file with all curated modes automatically. (Closes: #26)
+- **Fix(build): integrate `sync:custom-modes` into `vscode:prepublish`** — The mode compilation script was never included in the VSIX build pipeline, so the bundled asset was missing from packaged extensions entirely.
+- **Fix(ci): make `sync-custom-modes.mjs` tolerate missing git submodule in CI** — The `custom-modes/agents/` submodule is not initialized in CI checkout; the script now gracefully skips regeneration when output files already exist (committed to repo).
+- **Chore(tests): add `pre-installed-modes.yml` to dist asset verification** — Updated `dist_assets.spec.ts` to verify the new bundled asset exists in the build output.
+
 ## [3.70.0]
 
 ### Minor Changes
