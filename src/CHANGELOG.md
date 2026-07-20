@@ -1,5 +1,12 @@
 # Roo+ Changelog
 
+## [3.70.2] — 2026-07-20
+
+### Patch — Mode Marketplace Documentation
+
+- **Docs(README): add Mode Marketplace as the first install option** — Added "Option 0 — Install from the Mode Marketplace (easiest)" as the primary method for adding new modes, ahead of the manifest/submodule options. The marketplace lets users browse, search, filter, and install modes (and MCP servers) with one click directly from the extension's webview UI, with no reload required. (Closes: #27)
+- **Chore(.roomodes): add documentation-writer custom mode** — Added the ✍️ Documentation Writer agent to the pre-loaded custom modes library.
+
 ## [3.69.2] — 2026-07-14
 
 ### Patch — Rebrand & Attribution
