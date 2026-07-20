@@ -1,5 +1,8 @@
 <div align="center">
-  <img src="./assets/banner.png" alt="Roo+ — 225+ Specialized AI Agents in One Extension" />
+  <img src="./assets/banner.png" alt="Roo+ — 233 Specialized AI Agents — 90 Pre-Loaded" />
+</div>
+<div align="center">
+  <img src="./assets/banner.png" alt="Roo+ — 233 Specialized AI Agents — 90 Pre-Loaded" />
 </div>
 <br/>
 
@@ -18,7 +21,7 @@
 <br/>
 
 <h1 align="center">🚀 Roo+</h1>
-<h3 align="center">Your AI Development Team — 225+ Specialized Agents in One Extension</h3>
+<h3 align="center">Your AI Development Team — 233 Specialized Agents — 90 Pre-Loaded</h3>
 
 <br/>
 
@@ -30,11 +33,11 @@
 
 ## ✨ What is Roo+?
 
-Roo+ extends the incredible foundation of Zoo Code with **146+ custom modes** (curated from a total of 225 specialized agents available), **enhanced features**, and a personalized configuration tailored for modern development workflows.
+Roo+ extends the incredible foundation of Zoo Code with **90 custom modes** (curated from a total of 233 specialized agents available), **enhanced features**, and a personalized configuration tailored for modern development workflows.
 
 | Feature                       | Description                                                     |
 | ----------------------------- | --------------------------------------------------------------- |
-| 🎯 **Custom Modes Library**   | **146+ specialized agents** pre-loaded for every task           |
+| 🎯 **Custom Modes Library**   | **90 specialized agents** pre-loaded for every task             |
 | 🤖 **AI Agent Team**          | Multiple AI agents working together in your editor              |
 | 🔌 **MCP Support**            | Full Model Context Protocol integration                         |
 | 🌍 **Multi-Provider**         | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers |
@@ -49,7 +52,7 @@ Roo+ extends the incredible foundation of Zoo Code with **146+ custom modes** (c
 
 ## 🎯 Custom Modes Library
 
-Roo+ ships with **146+ specialized AI agents** pre-configured and ready to use. Switch between them instantly to get expert-level assistance for any task.
+Roo+ ships with **90 specialized AI agents** pre-configured and ready to use. Switch between them instantly to get expert-level assistance for any task.
 
 > **💡 Tip:** Open the mode selector (bottom of the VS Code window) to browse and switch between all available agents.
 
@@ -123,7 +126,7 @@ Advanced reasoning personas implementing cutting-edge cognitive patterns:
 **Switching modes:**
 
 1. Click the **mode selector** at the bottom of VS Code (or press `Ctrl+Shift+P` → "Roo Code: Switch Mode")
-2. Browse the **146 pre-loaded modes** by name
+2. Browse the **90 pre-loaded modes** by name
 3. Select the agent that matches your current task
 4. The agent activates with its specialized role definition and toolset
 
@@ -134,17 +137,17 @@ Browse all **233 agents** with their slug, category, and pre-load status in the 
 - ✅ **Pre-loaded** — already available in the mode selector
 - ⬜ **Available** — in the submodule, ready to import
 
-### Adding More Agents (the remaining ~94)
+### Adding More Agents (the remaining 143)
 
-The custom modes library contains **233 available agents**. 139 are pre-loaded in [`.roomodes`](.roomodes); the remaining **~94 are in the submodule** and can be added at any time.
+The custom modes library contains **233 available agents**. 90 are pre-loaded in [`.roomodes`](.roomodes); the remaining **143 are in the submodule** and can be added at any time.
 
 **How [`custom-modes/manifest.json`](custom-modes/manifest.json) works:**
 
 - `includeCategories` with `"all"` — includes EVERY agent from that category directory (e.g., `"business-product": "all"` adds all 15 business agents)
 - `includeSlugs` — adds INDIVIDUAL agents by their slug name, regardless of category
-- `excludeSlugs` — removes specific agents (the 3 `legal-advisor*` agents are excluded because legal-compliance has more comprehensive coverage)
+- `excludeSlugs` — removes specific agents from the curated list
 
-Currently **6 categories** are set to `"all"` (business-product, legal-compliance, sota-personas, ai-ml, security-quality, infrastructure-devops) plus **45 individual slugs** — totaling 139 agents.
+Currently **0 categories** are set to `"all"` — all curation is via individual slugs. **90 individual slugs** define the curated set.
 
 **Option 0 — Install from the Mode Marketplace (easiest):**
 
@@ -156,7 +159,7 @@ The quickest way to add new modes is directly from the **Mode Marketplace** insi
 4. Choose whether to install **globally** (available in all projects) or to the **current project**
 5. The mode is immediately available in your mode selector — no reload needed
 
-The marketplace also supports **MCP servers** and includes bundled modes from the curated 225-agent library.
+The marketplace also supports **MCP servers** and includes bundled modes from the curated 233-agent library.
 
 **Option A — Add via manifest (recommended for multiple agents):**
 
@@ -213,7 +216,7 @@ ovsx install xavier-arosemena/roo-plus
 git clone https://github.com/xavier-arosemena/roo-plus.git
 cd roo-plus
 
-# Initialize submodules (includes the 225-agent custom modes library)
+# Initialize submodules (includes the 233-agent custom modes library)
 git submodule update --init --recursive
 
 # Install dependencies
@@ -236,8 +239,8 @@ pnpm vsix
 
 ```
 roo-plus/
-├── .roomodes                # 146+ custom modes (auto-generated)
-├── custom-modes/            # Git submodule: 225-agent library
+├── .roomodes                # 90 custom modes (auto-generated)
+├── custom-modes/            # Git submodule: 233-agent library
 │   ├── agents/              # Agent YAML files by category
 │   ├── manifest.json        # Curation manifest
 │   └── README-ROO-PLUS.md   # Submodule documentation
@@ -271,7 +274,7 @@ git merge upstream/main
 
 ### From Custom Modes Upstream
 
-The **146+ custom modes/agents** shipped with Roo+ are sourced from the [**Custom-Modes-Roo-Code**](https://github.com/jtgsystems/Custom-Modes-Roo-Code) repository by [**jtgsystems**](https://github.com/jtgsystems). A huge thank you to the original author for curating and maintaining this comprehensive agent library — this project would not exist without that foundation.
+The **90 custom modes/agents** shipped with Roo+ are sourced from the [**Custom-Modes-Roo-Code**](https://github.com/jtgsystems/Custom-Modes-Roo-Code) repository by [**jtgsystems**](https://github.com/jtgsystems). A huge thank you to the original author for curating and maintaining this comprehensive agent library — this project would not exist without that foundation.
 
 > **📌 Attribution**: [`github.com/jtgsystems/Custom-Modes-Roo-Code`](https://github.com/jtgsystems/Custom-Modes-Roo-Code)
 

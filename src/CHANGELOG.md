@@ -1,5 +1,11 @@
 # Roo+ Changelog
 
+## [3.71.0] — 2026-07-20
+
+### Minor — Curated Mode Library (90 Specialized Agents)
+
+- **Feat(curation): curate pre-enabled modes to 90 specialized agents from 233-agent library** — Refined the pre-loaded custom modes selection from 139 agents across 6 broad categories to 90 individually curated agents. The curation uses precise slug-based inclusion (`includeSlugs` only, no full categories), giving users a focused, high-quality set of agents spanning AI/ML, Business/Product, Core Development, Infrastructure/DevOps, Language Specialists, Legal/Compliance, Meta-Orchestration, Security/Quality, SOTA Personas, and Specialized Domains. Updated all documentation (README root + src, AGENT_CATALOG, marketplace descriptions across 17 languages) and planning docs to reflect the final state: **233 total agents, 90 pre-loaded, 143 available for import**. (Closes: #29)
+
 ## [3.70.3] — 2026-07-20
 
 ### Patch — Diff Tab Re-branding
