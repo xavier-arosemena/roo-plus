@@ -16,13 +16,33 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
+      contents: read
     steps:
+      - name: Check actor permissions
+        id: check_perms
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          permission=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" \
+            --jq '.permission // "none"')
+          echo "Actor ${ACTOR} has permission: ${permission}"
+          echo "permission=${permission}" >> "${GITHUB_OUTPUT}"
+
       - name: Check PR approval status
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           SHA: ${{ github.sha }}
         run: |
+          # Bypass PR approval check for users with write or admin permissions
+          if [ "${{ steps.check_perms.outputs.permission }}" = "write" ] || \
+             [ "${{ steps.check_perms.outputs.permission }}" = "admin" ]; then
+            echo "Actor has ${permission} access — bypassing PR approval check."
+            exit 0
+          fi
+
           pr_number=$(gh api "repos/${REPO}/commits/${SHA}/pulls" \
             --header "Accept: application/vnd.github+json" \
             --jq '.[0].number // empty')
