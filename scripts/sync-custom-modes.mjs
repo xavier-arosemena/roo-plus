@@ -31,6 +31,7 @@ const AGENTS_DIR = path.join(ROOT, "custom-modes", "agents")
 const MANIFEST_PATH = path.join(ROOT, "custom-modes", "manifest.json")
 const ROOMODES_PATH = path.join(ROOT, ".roomodes")
 const MARKETPLACE_MODES_PATH = path.join(ROOT, "src", "assets", "marketplace", "modes.yml")
+const PRE_INSTALLED_MODES_PATH = path.join(ROOT, "src", "assets", "marketplace", "pre-installed-modes.yml")
 
 // Fields allowed in .roomodes mode entries (from modeConfigSchema)
 const ALLOWED_FIELDS = new Set([
@@ -323,11 +324,18 @@ async function main() {
 
   // Write .roomodes
   const totalModes = existingModes.length + newEntries.length
+  const roomodesYamlContent = newEntries.length > 0
+    ? generateRoomodesYaml(existingModes, newEntries)
+    : generateRoomodesYaml(existingModes, [])
+
   if (newEntries.length > 0) {
     console.log("\n✍️ Writing .roomodes...")
-    const yamlContent = generateRoomodesYaml(existingModes, newEntries)
-    await fs.writeFile(ROOMODES_PATH, yamlContent, "utf-8")
+    await fs.writeFile(ROOMODES_PATH, roomodesYamlContent, "utf-8")
   }
+
+  // Write pre-installed-modes.yml (bundled in VSIX for first-run seeding)
+  console.log("\n📦 Writing pre-installed-modes.yml for extension bundling...")
+  await fs.writeFile(PRE_INSTALLED_MODES_PATH, roomodesYamlContent, "utf-8")
 
   // ===============================
   // PART 2: Generate Modes Marketplace catalog
@@ -349,7 +357,8 @@ async function main() {
   console.log("\n" + "═".repeat(50))
   console.log(`✅ Sync complete!`)
   console.log(`   📄 .roomodes: ${totalModes} custom modes`)
-  console.log(`   🛒 Modes Marketplace: ${originalCount + agentCount} items available`)
+  console.log(`   📦 pre-installed-modes.yml: ${totalModes} modes (for extension bundling)`)
+  console.log(`   � Modes Marketplace: ${originalCount + agentCount} items available`)
   console.log(`      - ${agentCount} agents from custom-modes submodule`)
   console.log(`      - ${originalCount} original marketplace items`)
 
