@@ -1,5 +1,50 @@
 # Roo+ Changelog
 
+## [3.72.0] — 2026-07-20
+
+### Minor — Custom Modes Library, New Providers, UX Enhancements
+
+#### 🎯 Custom Modes Library (90 Specialized Agents)
+
+Roo+ now ships with **90 carefully curated AI agents** pre-loaded, selected from a library of 233 total specialized agents. 147 modes are seeded on first activation for instant access. The Mode Marketplace in the webview UI makes discovering and installing additional agents a one-click experience. (Closes: #29)
+
+#### 🤖 New LLM Providers
+
+- **Kenari** — Added as a first-class provider, expanding your model options
+- **Grok 4.5** — Full support with xAI reasoning format fixes
+
+#### 🧠 Smarter Task Management
+
+- **Condense Button** — Collapsed task header shows context usage at a glance, with a one-click condense action to keep conversations focused and within context limits
+- **Task History Locking** — `invalidate()` and `invalidateAll()` now route through `withLock`, preventing race conditions during task history operations
+- **Terminal Reliability** — Fixed output loss on cold terminals by relocating `read()` into `onDidStartTerminalShellExecution`
+
+#### 🎨 UI Polish
+
+- **Diff Tab Re-branding** — All diff tab labels now display "Roo+'s Changes" (complete fork re-brand)
+- **API Enhancement** — `CompletePromptOptions` parameter added to `completePrompt()` for finer-grained API control
+- **Vision Support** — Image attachment works correctly when the active model supports vision capabilities
+
+#### 🔒 Stability & Quality
+
+- **Regression Tests** — Full test coverage (unit + E2E) for interrupted subtask parent-link restoration (issue #566)
+- **20+ dependency updates** across frontend, AI SDKs, and infrastructure
+
+#### 📚 Documentation
+
+- Mode Marketplace documented as the primary install method across all READMEs
+- Updated agent counts and curation documentation
+
+#### 🔧 Other Fixes
+
+- Lucide icon compatibility (`ListChevronsDownUp` → `ChevronsDownUp`)
+- CI resilience for custom-modes sync without git submodule
+- Coverage reports uploaded to GitHub artifacts
+
+---
+
+> 💙 **Love Roo+?** Consider leaving a review on the [Open VSX Registry](https://open-vsx.org/extension/xavier-arosemena/roo-plus) or giving us a ⭐ on [GitHub](https://github.com/xavier-arosemena/roo-plus). Every review and star helps more developers discover their AI development team!
+
 ## [3.71.0] — 2026-07-20
 
 ### Minor — Curated Mode Library (90 Specialized Agents)

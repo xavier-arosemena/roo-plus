@@ -1,9 +1,6 @@
 <div align="center">
   <img src="./assets/banner.png" alt="Roo+ — 233 Specialized AI Agents — 90 Pre-Loaded" />
 </div>
-<div align="center">
-  <img src="./assets/banner.png" alt="Roo+ — 233 Specialized AI Agents — 90 Pre-Loaded" />
-</div>
 <br/>
 
 <p align="center">
