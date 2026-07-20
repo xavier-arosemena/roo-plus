@@ -1,5 +1,11 @@
 # Roo+ Changelog
 
+## [3.70.3] — 2026-07-20
+
+### Patch — Diff Tab Re-branding
+
+- **Fix(DiffViewProvider): rename "Zoo's Changes" to "Roo+'s Changes" in diff tab labels** — The VS Code Diff tab still displayed the upstream repository name ("Zoo's Changes") in tab labels. Updated the `DIFF_VIEW_LABEL_CHANGES` constant to show "Roo+'s Changes" instead, completing the fork re-branding. (Closes: #23)
+
 ## [3.70.2] — 2026-07-20
 
 ### Patch — Mode Marketplace Documentation
