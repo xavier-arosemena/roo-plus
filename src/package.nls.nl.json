@@ -1,6 +1,6 @@
 {
 	"extension.displayName": "Roo+",
-	"extension.description": "Multi-agent AI development assistant with 225+ specialized agents — an entire AI team for coding, DevOps, security, architecture, and more",
+	"extension.description": "Multi-agent AI development assistant with 233 specialized agents (90 pre-loaded) — an entire AI team for coding, DevOps, security, architecture, and more",
 	"views.contextMenu.label": "Roo+",
 	"views.terminalMenu.label": "Roo+",
 	"views.activitybar.title": "Roo+",
