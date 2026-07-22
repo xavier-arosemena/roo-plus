@@ -3,6 +3,12 @@ import { z } from "zod"
 import { modelInfoSchema, reasoningEffortSettingSchema, verbosityLevelsSchema, serviceTierSchema } from "./model.js"
 import { codebaseIndexProviderSchema } from "./codebase-index.js"
 import {
+	providerIdentifiers,
+	retiredProviderIdentifiers,
+	type ProviderIdentifier,
+	type RetiredProviderIdentifier,
+} from "./provider-identifiers.js"
+import {
 	anthropicModels,
 	basetenModels,
 	bedrockModels,
@@ -46,6 +52,7 @@ export const dynamicProviders = [
 	"unbound",
 	"poe",
 	"deepseek",
+	"moonshot",
 	"opencode-go",
 	"kenari",
 ] as const
@@ -110,32 +117,7 @@ export const isFauxProvider = (key: string): key is FauxProvider => fauxProvider
  * ProviderName
  */
 
-export const providerNames = [
-	...dynamicProviders,
-	...localProviders,
-	...internalProviders,
-	...customProviders,
-	...fauxProviders,
-	"anthropic",
-	"bedrock",
-	"baseten",
-	"deepseek",
-	"fireworks",
-	"friendli",
-	"gemini",
-	"gemini-cli",
-	"mistral",
-	"moonshot",
-	"minimax",
-	"mimo",
-	"openai-codex",
-	"openai-native",
-	"qwen-code",
-	"sambanova",
-	"vertex",
-	"xai",
-	"zai",
-] as const
+export const providerNames = Object.values(providerIdentifiers) as [ProviderIdentifier, ...ProviderIdentifier[]]
 
 export const providerNamesSchema = z.enum(providerNames)
 
@@ -148,17 +130,10 @@ export const isProviderName = (key: unknown): key is ProviderName =>
  * RetiredProviderName
  */
 
-export const retiredProviderNames = [
-	"cerebras",
-	"chutes",
-	"deepinfra",
-	"doubao",
-	"featherless",
-	"groq",
-	"huggingface",
-	"io-intelligence",
-	"roo",
-] as const
+export const retiredProviderNames = Object.values(retiredProviderIdentifiers) as [
+	RetiredProviderIdentifier,
+	...RetiredProviderIdentifier[],
+]
 
 export const retiredProviderNamesSchema = z.enum(retiredProviderNames)
 
