@@ -2,9 +2,6 @@
 
 import type * as vscode from "vscode"
 
-// cloudLogger is referenced by extension.ts but no longer provided by @roo-code/cloud
-;(globalThis as any).cloudLogger = vi.fn()
-
 vi.mock("vscode", () => ({
 	window: {
 		createOutputChannel: vi.fn().mockReturnValue({

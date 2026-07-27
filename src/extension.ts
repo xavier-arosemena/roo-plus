@@ -138,7 +138,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 
 	// Initialize MDM service
-	const mdmService = await MdmService.createInstance(cloudLogger)
+	const mdmService = await MdmService.createInstance((...args) => outputChannel.appendLine(args.join(" ")))
 
 	// Initialize i18n for internationalization support.
 	initializeI18n(context.globalState.get("language") ?? formatLanguage(vscode.env.language))
