@@ -211,6 +211,11 @@ describe("semble-downloader", () => {
 			}
 			return mockRequest
 		})
+
+		// Reset fs.unlink to resolve by default — vi.clearAllMocks() does NOT
+		// reset mock implementations, so a test that calls mockRejectedValue
+		// would leak the rejection to every subsequent test.
+		;(fs.unlink as any).mockResolvedValue(undefined)
 	})
 
 	describe("isSembleSupportedPlatform", () => {
@@ -447,19 +452,44 @@ describe("semble-downloader", () => {
 			// No version file
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
-			// First call returns a redirect, second call returns 200
-			let callCount = 0
+			//
+			// The downloadSemble function now calls resolveSembleVersion() early in its
+			// flow (because SEMBLE_VERSION_PATTERN === "latest"), which makes 2 HEAD
+			// requests (one per fallback URL) via fetchLatestVersionFromUrl before any
+			// downloadFile call.  A simple callCount-based mock is therefore fragile:
+			// the first call is no longer the archive download, it is the version
+			// resolution HEAD request.
+			//
+			// Instead we differentiate by URL pattern:
+			//   - URLs containing the archive name → return 302 (redirect)
+			//   - URLs containing "objects.githubusercontent.com" → return 200 (redirect follow)
+			//   - Everything else (resolveSembleVersion HEADs, checksums) → return 200
+			//
 			;(https.get as any).mockImplementation((...args: unknown[]) => {
+				const url = args[0] as string
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
-				callCount++
 				const res = new EventEmitter() as any
-				if (callCount === 1) {
+				//
+				// IMPORTANT: check "objects.githubusercontent.com" BEFORE the archive name,
+				// because the CDN redirect URL (objects.githubusercontent.com/.../semble-...tar.gz)
+				// also ends with the archive filename and would match the first condition,
+				// creating an infinite redirect loop (maxRedirects = 5 → "Too many redirects").
+				//
+				if (url.includes("objects.githubusercontent.com")) {
+					// Redirect follow → return 200
+					res.statusCode = 200
+					res.headers = {}
+					res.pipe = vi.fn()
+					res.destroy = vi.fn()
+				} else if (url.includes("semble-macos-arm64-fast.tar.gz")) {
+					// Archive download URL → return 302 redirect to CDN
 					res.statusCode = 302
 					res.headers = {
 						location: "https://objects.githubusercontent.com/semble-macos-arm64-fast.tar.gz",
 					}
 					res.destroy = vi.fn()
 				} else {
+					// resolveSembleVersion HEAD requests and checksums manifest → return 200
 					res.statusCode = 200
 					res.headers = {}
 					res.pipe = vi.fn()
@@ -485,13 +515,18 @@ describe("semble-downloader", () => {
 				const result = await downloadSemble("/storage")
 
 				expect(result).toBe(path.join("/storage", "semble", "semble"))
-				expect(https.get).toHaveBeenCalledTimes(2)
+				// Total calls: 2 (resolveSembleVersion) + 2 (downloadFile archive + redirect follow) + 1 (downloadChecksums) = 5
+				expect(https.get).toHaveBeenCalledTimes(5)
+				// Verify the redirect URL was actually followed
+				expect(https.get).toHaveBeenCalledWith(
+					expect.stringContaining("objects.githubusercontent.com"),
+					expect.any(Function),
+				)
 			} finally {
 				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
 				if (originalArch) Object.defineProperty(process, "arch", originalArch)
 			}
 		})
-
 		it("should block redirects to untrusted domains", async () => {
 			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
 			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
@@ -504,13 +539,32 @@ describe("semble-downloader", () => {
 			// No version file
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
-			// Redirect to an untrusted domain
+			//
+			// downloadSemble calls resolveSembleVersion() before attempting any download.
+			// resolveSembleVersion makes HEAD requests — these MUST return 200 rather than
+			// a redirect, otherwise fetchLatestVersionFromUrl would enter an infinite
+			// redirect loop (because the mock always returns 302).
+			//
+			// Differentiate by URL pattern:
+			//   - URLs containing the archive name → return 302 to untrusted domain
+			//   - Everything else (resolveSembleVersion HEADs, checksums) → return 200
+			//
 			;(https.get as any).mockImplementation((...args: unknown[]) => {
+				const url = args[0] as string
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = new EventEmitter() as any
-				res.statusCode = 302
-				res.headers = { location: "https://evil.example.com/malicious-binary.tar.gz" }
-				res.destroy = vi.fn()
+				if (url.includes("semble-macos-arm64-fast.tar.gz")) {
+					// Archive download URL → redirect to untrusted domain
+					res.statusCode = 302
+					res.headers = { location: "https://evil.example.com/malicious-binary.tar.gz" }
+					res.destroy = vi.fn()
+				} else {
+					// resolveSembleVersion HEAD requests and checksums → return 200
+					res.statusCode = 200
+					res.headers = {}
+					res.pipe = vi.fn()
+					res.destroy = vi.fn()
+				}
 				if (typeof callback === "function") {
 					setImmediate(() => callback(res))
 				}
@@ -540,13 +594,32 @@ describe("semble-downloader", () => {
 			// No version file
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
-			// Redirect to a domain that suffix-matches "github.com" without a dot boundary
+			//
+			// downloadSemble calls resolveSembleVersion() before attempting any download.
+			// resolveSembleVersion makes HEAD requests — these MUST return 200 rather than
+			// a redirect, otherwise fetchLatestVersionFromUrl would enter an infinite
+			// redirect loop (because the mock always returns 302).
+			//
+			// Differentiate by URL pattern:
+			//   - URLs containing the archive name → return 302 to suffix-match domain
+			//   - Everything else (resolveSembleVersion HEADs, checksums) → return 200
+			//
 			;(https.get as any).mockImplementation((...args: unknown[]) => {
+				const url = args[0] as string
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = new EventEmitter() as any
-				res.statusCode = 302
-				res.headers = { location: "https://evilgithub.com/malicious-binary.tar.gz" }
-				res.destroy = vi.fn()
+				if (url.includes("semble-macos-arm64-fast.tar.gz")) {
+					// Archive download URL → redirect to suffix-match domain
+					res.statusCode = 302
+					res.headers = { location: "https://evilgithub.com/malicious-binary.tar.gz" }
+					res.destroy = vi.fn()
+				} else {
+					// resolveSembleVersion HEAD requests and checksums → return 200
+					res.statusCode = 200
+					res.headers = {}
+					res.pipe = vi.fn()
+					res.destroy = vi.fn()
+				}
 				if (typeof callback === "function") {
 					setImmediate(() => callback(res))
 				}
@@ -662,17 +735,31 @@ describe("semble-downloader", () => {
 			// No version file → triggers download
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
-			// First call fails (404), second call (retry) succeeds (200)
-			let callCount = 0
+			//
+			// downloadSemble calls resolveSembleVersion() before attempting any download
+			// (because SEMBLE_VERSION_PATTERN === "latest").  A simple callCount-based
+			// mock is fragile because the first calls are version-resolution HEAD requests,
+			// not the retry-able archive download.  Differentiate by URL pattern instead:
+			//   - URLs containing the archive name → first attempt fails (404), then succeeds
+			//   - Everything else (resolveSembleVersion HEADs, checksums) → return 200
+			//
+			let archiveCallCount = 0
 			;(https.get as any).mockImplementation((...args: unknown[]) => {
+				const url = args[0] as string
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
-				callCount++
 				const res = Object.assign(new EventEmitter(), {
-					statusCode: callCount === 1 ? 404 : 200,
 					headers: {},
 					pipe: vi.fn(),
 					destroy: vi.fn(),
-				})
+				}) as any
+				if (url.includes("semble-linux-x64-fast.tar.gz")) {
+					// Archive download URL — first call fails, retry succeeds
+					archiveCallCount++
+					res.statusCode = archiveCallCount === 1 ? 404 : 200
+				} else {
+					// resolveSembleVersion HEAD requests and checksums → return 200
+					res.statusCode = 200
+				}
 				if (typeof callback === "function") {
 					setImmediate(() => callback(res))
 				}
@@ -691,8 +778,9 @@ describe("semble-downloader", () => {
 				const result = await downloadSemble("/storage")
 
 				expect(result).toBe(path.join("/storage", "semble", "semble"))
-				// Should have called https.get twice (initial + retry)
-				expect(https.get).toHaveBeenCalledTimes(2)
+				// Total calls: 2 (resolveSembleVersion) + 1 (downloadFile archive attempt 1, fails 404)
+				// + 1 (downloadFile retry, succeeds) + 1 (downloadChecksums) = 5
+				expect(https.get).toHaveBeenCalledTimes(5)
 			} finally {
 				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
 				if (originalArch) Object.defineProperty(process, "arch", originalArch)
@@ -870,9 +958,16 @@ describe("semble-downloader", () => {
 					setImmediate(cb)
 				}
 			})
+// Archive cleanup fails but should not throw (only archive removal after extraction).
+// Use a conditional mock so validateInstallPath (which calls fs.unlink(".write-test"))
+// still succeeds — only the archive cleanup unlink should reject.
+;(fs.unlink as any).mockImplementation((filePath: string) => {
+	if (typeof filePath === "string" && filePath.includes(".write-test")) {
+		return Promise.resolve(undefined)
+	}
+	return Promise.reject(new Error("unlink cleanup failed"))
+})
 
-			// Archive cleanup fails but should not throw (only archive removal after extraction)
-			;(fs.unlink as any).mockRejectedValue(new Error("unlink cleanup failed"))
 
 			try {
 				const result = await downloadSemble("/storage")
