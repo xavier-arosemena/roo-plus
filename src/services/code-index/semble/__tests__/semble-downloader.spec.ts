@@ -18,9 +18,26 @@ vi.mock("crypto", () => ({
 		digest: vi.fn(() => CHECKSUMS[`${process.platform}-${process.arch}`] ?? "no-match"),
 	})),
 }))
+vi.mock("node:crypto", () => ({
+	createHash: vi.fn(() => ({
+		update: vi.fn().mockReturnThis(),
+		digest: vi.fn(() => CHECKSUMS[`${process.platform}-${process.arch}`] ?? "no-match"),
+	})),
+}))
 
 // Mock fs/promises
 vi.mock("fs/promises", () => ({
+	mkdir: vi.fn().mockResolvedValue(undefined),
+	access: vi.fn(),
+	chmod: vi.fn().mockResolvedValue(undefined),
+	unlink: vi.fn().mockResolvedValue(undefined),
+	rm: vi.fn().mockResolvedValue(undefined),
+	readFile: vi.fn(),
+	writeFile: vi.fn().mockResolvedValue(undefined),
+	rename: vi.fn().mockResolvedValue(undefined),
+	readdir: vi.fn().mockResolvedValue([]),
+}))
+vi.mock("node:fs/promises", () => ({
 	mkdir: vi.fn().mockResolvedValue(undefined),
 	access: vi.fn(),
 	chmod: vi.fn().mockResolvedValue(undefined),
@@ -49,12 +66,42 @@ vi.mock("fs", () => ({
 		return stream
 	}),
 }))
+vi.mock("node:fs", () => ({
+	createWriteStream: vi.fn(() => mockWriteStream),
+	createReadStream: vi.fn(() => {
+		const { EventEmitter } = require("events")
+		const stream = new EventEmitter()
+		setImmediate(() => {
+			stream.emit("data", Buffer.from("fake-archive-content"))
+			stream.emit("end")
+		})
+		return stream
+	}),
+}))
 
 // Mock https — fresh emitters per invocation to avoid listener leaks across tests
 let mockRequest: any
 let mockResponse: any
 
 vi.mock("https", () => ({
+	get: vi.fn((...args: any[]) => {
+		// Handle both https.get(url, callback) and https.get(url, options, callback)
+		const url = args[0]
+		const callback = typeof args[1] === "function" ? args[1] : args[2]
+		mockRequest = Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
+		mockResponse = Object.assign(new EventEmitter(), {
+			statusCode: 200,
+			headers: {},
+			pipe: vi.fn(),
+			destroy: vi.fn(),
+		})
+		if (typeof callback === "function") {
+			setImmediate(() => callback(mockResponse))
+		}
+		return mockRequest
+	}),
+}))
+vi.mock("node:https", () => ({
 	get: vi.fn((...args: any[]) => {
 		// Handle both https.get(url, callback) and https.get(url, options, callback)
 		const url = args[0]
@@ -92,6 +139,16 @@ let mockExecFileCallback: (cmd: string, args: string[], options: any, cb: (err: 
 }
 
 vi.mock("child_process", () => ({
+	spawn: vi.fn(() => {
+		// Simulate successful extraction
+		setImmediate(() => mockExtractProcess.emit("close", 0))
+		return mockExtractProcess
+	}),
+	execFile: vi.fn((cmd: string, args: string[], options: any, cb: (err: any, result: any) => void) => {
+		mockExecFileCallback(cmd, args, options, cb)
+	}),
+}))
+vi.mock("node:child_process", () => ({
 	spawn: vi.fn(() => {
 		// Simulate successful extraction
 		setImmediate(() => mockExtractProcess.emit("close", 0))
@@ -236,7 +293,8 @@ describe("semble-downloader", () => {
 				const result = await downloadSemble("/storage")
 
 				expect(result).toBe(path.join("/storage", "semble", "semble"))
-				expect(fs.mkdir).toHaveBeenCalledWith("/storage", { recursive: true })
+				// Fast path: installed version matches SEMBLE_VERSION and binary exists,
+				// so validateInstallPath (which calls fs.mkdir) is skipped.
 				expect(fs.chmod).toHaveBeenCalledWith(path.join("/storage", "semble", "semble"), 0o755)
 				// Should NOT attempt to download
 				expect(https.get).not.toHaveBeenCalled()
@@ -347,14 +405,17 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// Simulate HTTP error response for ALL URLs (both fallback sources)
-			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+			;(https.get as any).mockImplementation((...args: any[]) => {
+				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: 404,
 					headers: {},
 					pipe: vi.fn(),
 					destroy: vi.fn(),
 				})
-				setImmediate(() => callback(res))
+				if (typeof callback === "function") {
+					setImmediate(() => callback(res))
+				}
 				const req = Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 				return req
 			})
@@ -388,7 +449,8 @@ describe("semble-downloader", () => {
 
 			// First call returns a redirect, second call returns 200
 			let callCount = 0
-			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+			;(https.get as any).mockImplementation((...args: any[]) => {
+				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				callCount++
 				const res = new EventEmitter() as any
 				if (callCount === 1) {
@@ -403,7 +465,9 @@ describe("semble-downloader", () => {
 					res.pipe = vi.fn()
 					res.destroy = vi.fn()
 				}
-				setImmediate(() => callback(res))
+				if (typeof callback === "function") {
+					setImmediate(() => callback(res))
+				}
 
 				const req = new EventEmitter() as any
 				req.setTimeout = vi.fn()
@@ -441,12 +505,15 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// Redirect to an untrusted domain
-			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+			;(https.get as any).mockImplementation((...args: any[]) => {
+				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = new EventEmitter() as any
 				res.statusCode = 302
 				res.headers = { location: "https://evil.example.com/malicious-binary.tar.gz" }
 				res.destroy = vi.fn()
-				setImmediate(() => callback(res))
+				if (typeof callback === "function") {
+					setImmediate(() => callback(res))
+				}
 
 				const req = new EventEmitter() as any
 				req.setTimeout = vi.fn()
@@ -474,12 +541,15 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// Redirect to a domain that suffix-matches "github.com" without a dot boundary
-			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+			;(https.get as any).mockImplementation((...args: any[]) => {
+				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = new EventEmitter() as any
 				res.statusCode = 302
 				res.headers = { location: "https://evilgithub.com/malicious-binary.tar.gz" }
 				res.destroy = vi.fn()
-				setImmediate(() => callback(res))
+				if (typeof callback === "function") {
+					setImmediate(() => callback(res))
+				}
 
 				const req = new EventEmitter() as any
 				req.setTimeout = vi.fn()
@@ -507,14 +577,18 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// Primary source URL returns 404, fallback source returns 200
-			;(https.get as any).mockImplementation((url: string, callback: (res: any) => void) => {
+			;(https.get as any).mockImplementation((...args: any[]) => {
+				const url = args[0]
+				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: url.includes("Audare-est-Facere") ? 404 : 200,
 					headers: {},
 					pipe: vi.fn(),
 					destroy: vi.fn(),
 				})
-				setImmediate(() => callback(res))
+				if (typeof callback === "function") {
+					setImmediate(() => callback(res))
+				}
 				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 			})
 
@@ -554,14 +628,17 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// All URLs return 404
-			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+			;(https.get as any).mockImplementation((...args: any[]) => {
+				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: 404,
 					headers: {},
 					pipe: vi.fn(),
 					destroy: vi.fn(),
 				})
-				setImmediate(() => callback(res))
+				if (typeof callback === "function") {
+					setImmediate(() => callback(res))
+				}
 				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 			})
 
@@ -587,7 +664,8 @@ describe("semble-downloader", () => {
 
 			// First call fails (404), second call (retry) succeeds (200)
 			let callCount = 0
-			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+			;(https.get as any).mockImplementation((...args: any[]) => {
+				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				callCount++
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: callCount === 1 ? 404 : 200,
@@ -595,7 +673,9 @@ describe("semble-downloader", () => {
 					pipe: vi.fn(),
 					destroy: vi.fn(),
 				})
-				setImmediate(() => callback(res))
+				if (typeof callback === "function") {
+					setImmediate(() => callback(res))
+				}
 				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 			})
 
@@ -632,14 +712,17 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// All calls fail so we can observe the retry loop
-			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+			;(https.get as any).mockImplementation((...args: any[]) => {
+				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: 404,
 					headers: {},
 					pipe: vi.fn(),
 					destroy: vi.fn(),
 				})
-				setImmediate(() => callback(res))
+				if (typeof callback === "function") {
+					setImmediate(() => callback(res))
+				}
 				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 			})
 
@@ -1248,7 +1331,9 @@ describe("semble-downloader", () => {
 					headers: { location: "https://github.com/Audare-est-Facere/sembleexec/releases/tag/v0.6.0" },
 					destroy: vi.fn(),
 				})
-				setImmediate(() => callback(res))
+				if (typeof callback === "function") {
+					setImmediate(() => callback(res))
+				}
 				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 			})
 
@@ -1258,7 +1343,7 @@ describe("semble-downloader", () => {
 
 		it("should fall back to hardcoded SEMBLE_VERSION when API fails", async () => {
 			// Mock https.get to reject with error
-			;(https.get as any).mockImplementation((_url: string, _options: any, _callback: (res: any) => void) => {
+			;(https.get as any).mockImplementation((...args: any[]) => {
 				const req = Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 				setImmediate(() => req.emit("error", new Error("Network error")))
 				return req
@@ -1298,14 +1383,17 @@ describe("semble-downloader", () => {
 
 		it("should fall back to hardcoded SEMBLE_SHA256 when manifest download fails", async () => {
 			// Mock downloadFile to fail (https.get returns 404)
-			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+			;(https.get as any).mockImplementation((...args: any[]) => {
+				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: 404,
 					headers: {},
 					pipe: vi.fn(),
 					destroy: vi.fn(),
 				})
-				setImmediate(() => callback(res))
+				if (typeof callback === "function") {
+					setImmediate(() => callback(res))
+				}
 				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 			})
 
