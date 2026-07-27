@@ -720,6 +720,7 @@ export interface WebviewMessage {
 		codebaseIndexSearchMaxResults?: number
 		codebaseIndexSearchMinScore?: number
 		codebaseIndexOpenRouterSpecificProvider?: string // OpenRouter provider routing
+		codebaseIndexSembleBinaryPath?: string // Semble binary path override
 
 		// Secret settings
 		codeIndexOpenAiKey?: string

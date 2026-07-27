@@ -51,6 +51,8 @@ export const codebaseIndexConfigSchema = z.object({
 	codebaseIndexBedrockProfile: z.string().optional(),
 	// OpenRouter specific fields
 	codebaseIndexOpenRouterSpecificProvider: z.string().optional(),
+	// Semble specific fields
+	codebaseIndexSembleBinaryPath: z.string().optional(),
 })
 
 export type CodebaseIndexConfig = z.infer<typeof codebaseIndexConfigSchema>

@@ -36,7 +36,7 @@ export class SembleProvider implements ISembleProvider {
 		workspacePath: string,
 		context: vscode.ExtensionContext,
 		stateManager: CodeIndexStateManager,
-		options?: { topK?: number; content?: SembleContentType },
+		options?: { topK?: number; content?: SembleContentType; binaryPath?: string },
 	) {
 		this.workspacePath = workspacePath
 		this.context = context
@@ -45,6 +45,7 @@ export class SembleProvider implements ISembleProvider {
 		this.config = {
 			topK: options?.topK ?? SEMBLE_DEFAULTS.DEFAULT_TOP_K,
 			content: options?.content ?? SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+			binaryPath: options?.binaryPath,
 		}
 	}
 
@@ -93,18 +94,22 @@ export class SembleProvider implements ISembleProvider {
 		try {
 			this.stateManager.setSystemState("Indexing", t("embeddings:semble.downloadingBinary"))
 			const storageDir = this.context.globalStorageUri.fsPath
-			const binaryPath = await downloadSemble(storageDir)
+			const binaryPath = await downloadSemble(storageDir, this.config.binaryPath)
 			if (!binaryPath) {
 				throw new Error("Download returned no path")
 			}
 			this.cli = new SembleCLI(binaryPath)
-		} catch (error: any) {
+		} catch (error) {
 			this._state = "Error"
+			// The fallback chain produces a multi-line error with per-source details.
+			// Truncate to the first line for the UI status message, log full details.
+			const errorMsg = error instanceof Error ? error.message : String(error)
+			const displayMessage = errorMsg.split("\n")[0] || errorMsg
 			this.stateManager.setSystemState(
 				"Error",
-				t("embeddings:semble.downloadFailed", { errorMessage: error?.message || error }),
+				t("embeddings:semble.downloadFailed", { errorMessage: displayMessage }),
 			)
-			console.error("[SembleProvider] Download failed:", error?.message || error)
+			console.error("[SembleProvider] Download failed from all sources:", errorMsg)
 			return
 		}
 
@@ -205,8 +210,8 @@ export class SembleProvider implements ISembleProvider {
 				`[SembleProvider] Search returned ${converted.length} results (raw: ${results.length}). Sample path: ${converted[0]?.payload?.filePath ?? "none"}`,
 			)
 			return converted
-		} catch (error: any) {
-			const errorMessage = error?.message || String(error)
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error)
 			console.error("[SembleProvider] Search failed:", errorMessage)
 
 			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {

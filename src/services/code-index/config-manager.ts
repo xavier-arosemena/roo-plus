@@ -22,6 +22,7 @@ export class CodeIndexConfigManager {
 	private vercelAiGatewayOptions?: { apiKey: string }
 	private bedrockOptions?: { region: string; profile?: string }
 	private openRouterOptions?: { apiKey: string; specificProvider?: string }
+	private _sembleBinaryPath?: string
 	private qdrantUrl?: string = "http://localhost:6333"
 	private qdrantApiKey?: string
 	private searchMinScore?: number
@@ -45,7 +46,7 @@ export class CodeIndexConfigManager {
 	 */
 	private _loadAndSetConfiguration(): void {
 		// Load configuration from storage
-		const codebaseIndexConfig = this.contextProxy?.getGlobalState("codebaseIndexConfig") ?? {
+		const codebaseIndexConfig: Record<string, any> = this.contextProxy?.getGlobalState("codebaseIndexConfig") ?? {
 			codebaseIndexEnabled: false,
 			codebaseIndexQdrantUrl: "http://localhost:6333",
 			codebaseIndexEmbedderProvider: "openai",
@@ -55,6 +56,7 @@ export class CodeIndexConfigManager {
 			codebaseIndexSearchMaxResults: undefined,
 			codebaseIndexBedrockRegion: "us-east-1",
 			codebaseIndexBedrockProfile: "",
+			codebaseIndexSembleBinaryPath: "",
 		}
 
 		const {
@@ -75,6 +77,7 @@ export class CodeIndexConfigManager {
 		const geminiApiKey = this.contextProxy?.getSecret("codebaseIndexGeminiApiKey") ?? ""
 		const mistralApiKey = this.contextProxy?.getSecret("codebaseIndexMistralApiKey") ?? ""
 		const vercelAiGatewayApiKey = this.contextProxy?.getSecret("codebaseIndexVercelAiGatewayApiKey") ?? ""
+		const sembleBinaryPath = codebaseIndexConfig.codebaseIndexSembleBinaryPath ?? ""
 		const bedrockRegion = codebaseIndexConfig.codebaseIndexBedrockRegion ?? "us-east-1"
 		const bedrockProfile = codebaseIndexConfig.codebaseIndexBedrockProfile ?? ""
 		const openRouterApiKey = this.contextProxy?.getSecret("codebaseIndexOpenRouterApiKey") ?? ""
@@ -143,6 +146,7 @@ export class CodeIndexConfigManager {
 		this.geminiOptions = geminiApiKey ? { apiKey: geminiApiKey } : undefined
 		this.mistralOptions = mistralApiKey ? { apiKey: mistralApiKey } : undefined
 		this.vercelAiGatewayOptions = vercelAiGatewayApiKey ? { apiKey: vercelAiGatewayApiKey } : undefined
+		this._sembleBinaryPath = sembleBinaryPath || undefined
 		this.openRouterOptions = openRouterApiKey
 			? { apiKey: openRouterApiKey, specificProvider: openRouterSpecificProvider || undefined }
 			: undefined
@@ -467,6 +471,7 @@ export class CodeIndexConfigManager {
 			qdrantApiKey: this.qdrantApiKey,
 			searchMinScore: this.currentSearchMinScore,
 			searchMaxResults: this.currentSearchMaxResults,
+			sembleBinaryPath: this._sembleBinaryPath,
 		}
 	}
 
@@ -547,5 +552,12 @@ export class CodeIndexConfigManager {
 	 */
 	public get currentSearchMaxResults(): number {
 		return this.searchMaxResults ?? DEFAULT_MAX_SEARCH_RESULTS
+	}
+
+	/**
+	 * Gets the configured semble binary path override, if any.
+	 */
+	public get sembleBinaryPath(): string | undefined {
+		return this._sembleBinaryPath
 	}
 }

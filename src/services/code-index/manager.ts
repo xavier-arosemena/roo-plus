@@ -404,7 +404,9 @@ export class CodeIndexManager {
 
 		// Branch: if provider is "semble", create SembleProvider instead of external services
 		if (this._configManager!.currentEmbedderProvider === "semble") {
-			this._sembleProvider = new SembleProvider(this.workspacePath, this.context, this._stateManager)
+			this._sembleProvider = new SembleProvider(this.workspacePath, this.context, this._stateManager, {
+				binaryPath: this._configManager!.sembleBinaryPath,
+			})
 			await this._sembleProvider.initialize()
 			return
 		}

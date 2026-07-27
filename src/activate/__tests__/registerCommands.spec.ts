@@ -355,7 +355,7 @@ describe("registerCommands handlers", () => {
 		;(mockVisibleProvider as any).evictCurrentTask = evictCurrentTask
 		;(mockVisibleProvider as any).refreshWorkspace = refreshWorkspace
 
-		await handlers["zoo-code.plusButtonClicked"]()
+		await handlers["roo-plus.plusButtonClicked"]()
 
 		expect(evictCurrentTask).toHaveBeenCalledTimes(1)
 	})
@@ -364,6 +364,6 @@ describe("registerCommands handlers", () => {
 		;(ClineProvider.getVisibleInstance as Mock).mockReturnValue(undefined)
 
 		// Should not throw even with no visible provider
-		await handlers["zoo-code.plusButtonClicked"]()
+		await handlers["roo-plus.plusButtonClicked"]()
 	})
 })

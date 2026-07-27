@@ -42,6 +42,7 @@ overrides:
     "@eslint/eslintrc>js-yaml": "^4.3.0"
     "knip>js-yaml": "^4.3.0"
     "mocha>js-yaml": "^4.3.0"
+    "@vscode/vsce>js-yaml": "^4.3.0"
 
     # hono (1 HIGH + 8 MEDIUM)
     hono: "^4.12.27"

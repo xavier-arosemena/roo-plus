@@ -102,6 +102,14 @@ describe("SembleProvider", () => {
 			})
 			expect(p).toBeDefined()
 		})
+
+		it("should create provider with binaryPath option", () => {
+			const p = new SembleProvider("/workspace", mockContext, mockStateManager, {
+				binaryPath: "/custom/path/semble",
+			})
+			expect(p).toBeDefined()
+			expect(p.state).toBe("Standby")
+		})
 	})
 
 	describe("initialize", () => {
@@ -110,12 +118,35 @@ describe("SembleProvider", () => {
 
 			await provider.initialize()
 
-			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage")
+			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined)
 			expect(provider.state).toBe("Indexed")
 			expect(mockStateManager.setSystemState).toHaveBeenCalledWith(
 				"Indexed",
 				"Semble v0.4.1 is ready. Searches index on-the-fly.",
 			)
+		})
+
+		it("should pass binaryPath to downloadSemble when configured", async () => {
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+
+			const customProvider = new SembleProvider("/workspace", mockContext, mockStateManager, {
+				binaryPath: "/custom/path/semble",
+			})
+
+			await customProvider.initialize()
+
+			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", "/custom/path/semble")
+			expect(customProvider.state).toBe("Indexed")
+		})
+
+		it("should pass undefined binaryPath to downloadSemble when not configured", async () => {
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+
+			await provider.initialize()
+
+			// The second argument should be undefined when no binaryPath is provided
+			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined)
+			expect(provider.state).toBe("Indexed")
 		})
 
 		it("should set state to Error when platform is unsupported", async () => {
