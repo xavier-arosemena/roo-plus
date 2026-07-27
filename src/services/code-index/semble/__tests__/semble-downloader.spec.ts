@@ -1336,7 +1336,9 @@ describe("semble-downloader", () => {
 		})
 
 		it("should throw when disk space is insufficient", async () => {
-			mockExecFileImpl = vi.fn().mockResolvedValue({ stdout: "Avail\n100\n" }) // 100KB available
+			mockExecFileCallback = (_cmd, _args, _options, cb) => {
+				cb(null, { stdout: "Avail\n100\n" })
+			} // 100KB available
 
 			await expect(checkDiskSpace("/storage", 150 * 1024 * 1024)).rejects.toThrow("Insufficient disk space")
 		})
