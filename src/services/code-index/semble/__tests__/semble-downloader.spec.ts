@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import * as fs from "fs/promises"
 import * as path from "path"
@@ -24,8 +25,14 @@ vi.mock("node:crypto", () => ({
 		digest: vi.fn(() => CHECKSUMS[`${process.platform}-${process.arch}`] ?? "no-match"),
 	})),
 }))
+vi.mock("node:crypto", () => ({
+	createHash: vi.fn(() => ({
+		update: vi.fn().mockReturnThis(),
+		digest: vi.fn(() => CHECKSUMS[`${process.platform}-${process.arch}`] ?? "no-match"),
+	})),
+}))
 
-// Mock fs/promises
+// Mock fs/promises (dual-register bare + node: for vitest v4 compatibility)
 vi.mock("fs/promises", () => ({
 	mkdir: vi.fn().mockResolvedValue(undefined),
 	access: vi.fn(),
@@ -48,24 +55,24 @@ vi.mock("node:fs/promises", () => ({
 	rename: vi.fn().mockResolvedValue(undefined),
 	readdir: vi.fn().mockResolvedValue([]),
 }))
+vi.mock("node:fs/promises", () => ({
+	mkdir: vi.fn().mockResolvedValue(undefined),
+	access: vi.fn(),
+	chmod: vi.fn().mockResolvedValue(undefined),
+	unlink: vi.fn().mockResolvedValue(undefined),
+	rm: vi.fn().mockResolvedValue(undefined),
+	readFile: vi.fn(),
+	writeFile: vi.fn().mockResolvedValue(undefined),
+	rename: vi.fn().mockResolvedValue(undefined),
+	readdir: vi.fn().mockResolvedValue([]),
+}))
 
-// Mock fs (createWriteStream and createReadStream for checksum verification)
+// Mock fs (dual-register for vitest v4 compatibility)
 const mockWriteStream = {
 	on: vi.fn(),
 	close: vi.fn(),
 }
-vi.mock("fs", () => ({
-	createWriteStream: vi.fn(() => mockWriteStream),
-	createReadStream: vi.fn(() => {
-		const { EventEmitter } = require("events")
-		const stream = new EventEmitter()
-		setImmediate(() => {
-			stream.emit("data", Buffer.from("fake-archive-content"))
-			stream.emit("end")
-		})
-		return stream
-	}),
-}))
+// fs mock must come before const definitions used by test body
 vi.mock("node:fs", () => ({
 	createWriteStream: vi.fn(() => mockWriteStream),
 	createReadStream: vi.fn(() => {
@@ -79,32 +86,14 @@ vi.mock("node:fs", () => ({
 	}),
 }))
 
-// Mock https — fresh emitters per invocation to avoid listener leaks across tests
+// Mock https — dual-register bare + node: for vitest v4 compatibility
 let mockRequest: any
 let mockResponse: any
 
-vi.mock("https", () => ({
-	get: vi.fn((...args: any[]) => {
-		// Handle both https.get(url, callback) and https.get(url, options, callback)
-		const url = args[0]
-		const callback = typeof args[1] === "function" ? args[1] : args[2]
-		mockRequest = Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
-		mockResponse = Object.assign(new EventEmitter(), {
-			statusCode: 200,
-			headers: {},
-			pipe: vi.fn(),
-			destroy: vi.fn(),
-		})
-		if (typeof callback === "function") {
-			setImmediate(() => callback(mockResponse))
-		}
-		return mockRequest
-	}),
-}))
 vi.mock("node:https", () => ({
-	get: vi.fn((...args: any[]) => {
+	get: vi.fn((...args: unknown[]) => {
 		// Handle both https.get(url, callback) and https.get(url, options, callback)
-		const url = args[0]
+		const url = args[0] as string
 		const callback = typeof args[1] === "function" ? args[1] : args[2]
 		mockRequest = Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 		mockResponse = Object.assign(new EventEmitter(), {
@@ -120,7 +109,18 @@ vi.mock("node:https", () => ({
 	}),
 }))
 
-// Mock child_process spawn for tar/unzip extraction and execFile for disk space checks
+// Mock child_process — bare mock for dynamic import("child_process") in checkDiskSpace
+// Also register node:child_process for vitest v4 module resolution
+vi.mock("child_process", () => ({
+	spawn: vi.fn(() => {
+		// Simulate successful extraction
+		setImmediate(() => mockExtractProcess.emit("close", 0))
+		return mockExtractProcess
+	}),
+	execFile: vi.fn((cmd: string, args: string[], options: any, cb: (err: any, result: any) => void) => {
+		mockExecFileCallback(cmd, args, options, cb)
+	}),
+}))
 const mockExtractProcess = new EventEmitter() as any
 mockExtractProcess.stderr = new EventEmitter()
 
@@ -196,7 +196,7 @@ describe("semble-downloader", () => {
 		}
 
 		// Restore the default https.get mock so tests that override it don't leak
-		;(https.get as any).mockImplementation((...args: any[]) => {
+		;(https.get as any).mockImplementation((...args: unknown[]) => {
 			// Handle both https.get(url, callback) and https.get(url, options, callback)
 			const callback = typeof args[1] === "function" ? args[1] : args[2]
 			mockRequest = Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
@@ -405,7 +405,7 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// Simulate HTTP error response for ALL URLs (both fallback sources)
-			;(https.get as any).mockImplementation((...args: any[]) => {
+			;(https.get as any).mockImplementation((...args: unknown[]) => {
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: 404,
@@ -449,7 +449,7 @@ describe("semble-downloader", () => {
 
 			// First call returns a redirect, second call returns 200
 			let callCount = 0
-			;(https.get as any).mockImplementation((...args: any[]) => {
+			;(https.get as any).mockImplementation((...args: unknown[]) => {
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				callCount++
 				const res = new EventEmitter() as any
@@ -505,7 +505,7 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// Redirect to an untrusted domain
-			;(https.get as any).mockImplementation((...args: any[]) => {
+			;(https.get as any).mockImplementation((...args: unknown[]) => {
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = new EventEmitter() as any
 				res.statusCode = 302
@@ -541,7 +541,7 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// Redirect to a domain that suffix-matches "github.com" without a dot boundary
-			;(https.get as any).mockImplementation((...args: any[]) => {
+			;(https.get as any).mockImplementation((...args: unknown[]) => {
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = new EventEmitter() as any
 				res.statusCode = 302
@@ -577,8 +577,8 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// Primary source URL returns 404, fallback source returns 200
-			;(https.get as any).mockImplementation((...args: any[]) => {
-				const url = args[0]
+			;(https.get as any).mockImplementation((...args: unknown[]) => {
+				const url = args[0] as string
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: url.includes("Audare-est-Facere") ? 404 : 200,
@@ -628,7 +628,7 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// All URLs return 404
-			;(https.get as any).mockImplementation((...args: any[]) => {
+			;(https.get as any).mockImplementation((...args: unknown[]) => {
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: 404,
@@ -664,7 +664,7 @@ describe("semble-downloader", () => {
 
 			// First call fails (404), second call (retry) succeeds (200)
 			let callCount = 0
-			;(https.get as any).mockImplementation((...args: any[]) => {
+			;(https.get as any).mockImplementation((...args: unknown[]) => {
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				callCount++
 				const res = Object.assign(new EventEmitter(), {
@@ -712,7 +712,7 @@ describe("semble-downloader", () => {
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
 			// All calls fail so we can observe the retry loop
-			;(https.get as any).mockImplementation((...args: any[]) => {
+			;(https.get as any).mockImplementation((...args: unknown[]) => {
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: 404,
@@ -1343,7 +1343,7 @@ describe("semble-downloader", () => {
 
 		it("should fall back to hardcoded SEMBLE_VERSION when API fails", async () => {
 			// Mock https.get to reject with error
-			;(https.get as any).mockImplementation((...args: any[]) => {
+			;(https.get as any).mockImplementation((...args: unknown[]) => {
 				const req = Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 				setImmediate(() => req.emit("error", new Error("Network error")))
 				return req
@@ -1383,7 +1383,7 @@ describe("semble-downloader", () => {
 
 		it("should fall back to hardcoded SEMBLE_SHA256 when manifest download fails", async () => {
 			// Mock downloadFile to fail (https.get returns 404)
-			;(https.get as any).mockImplementation((...args: any[]) => {
+			;(https.get as any).mockImplementation((...args: unknown[]) => {
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: 404,
