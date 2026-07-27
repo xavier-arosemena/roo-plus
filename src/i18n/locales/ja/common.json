@@ -112,7 +112,6 @@
 			"thinking_complete_recitation": "（思考完了、引用チェックにより出力ブロック）"
 		},
 		"roo": {
-			"authenticationRequired": "Rooプロバイダーはクラウド認証が必要です。Roo Code Cloudにサインインしてください。",
 			"routerRemoved": "Roo Code Router は削除されました。別のプロバイダーを選択して設定してください。"
 		},
 		"api": {
@@ -169,9 +168,6 @@
 		"public_share_link_copied": "公開共有リンクがクリップボードにコピーされました！",
 		"mode_exported": "モード「{{mode}}」が正常にエクスポートされました",
 		"mode_imported": "モードが正常にインポートされました",
-		"roo": {
-			"signInUnavailable": "Roo Code Cloud へのサインインは現在利用できません。続行するには別のプロバイダーを設定してください。"
-		},
 		"rooHistoryImport": {
 			"success_one": "{{count}}件のRoo CodeタスクをRoo+にインポートしました。",
 			"success_other": "{{count}}件のRoo CodeタスクをRoo+にインポートしました。"

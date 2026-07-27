@@ -112,7 +112,6 @@
 			"thinking_complete_recitation": "(생각 완료, 암송 확인으로 출력 차단됨)"
 		},
 		"roo": {
-			"authenticationRequired": "Roo 제공업체는 클라우드 인증이 필요합니다. Roo Code Cloud에 로그인하세요.",
 			"routerRemoved": "Roo Code Router가 제거되었습니다. 다른 제공업체를 선택하고 구성하세요."
 		},
 		"api": {
@@ -169,9 +168,6 @@
 		"public_share_link_copied": "공개 공유 링크가 클립보드에 복사되었습니다!",
 		"mode_exported": "'{{mode}}' 모드가 성공적으로 내보내졌습니다",
 		"mode_imported": "모드를 성공적으로 가져왔습니다",
-		"roo": {
-			"signInUnavailable": "Roo Code Cloud 로그인은 현재 사용할 수 없습니다. 계속하려면 다른 제공업체를 구성하세요."
-		},
 		"rooHistoryImport": {
 			"success_one": "Roo Code 작업 기록 {{count}}개를 Roo+로 가져왔습니다.",
 			"success_other": "Roo Code 작업 기록 {{count}}개를 Roo+로 가져왔습니다."

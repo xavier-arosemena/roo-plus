@@ -112,7 +112,6 @@
 			"thinking_complete_recitation": "(सोचना पूरा हुआ, लेकिन पाठ जाँच के कारण आउटपुट अवरुद्ध कर दिया गया।)"
 		},
 		"roo": {
-			"authenticationRequired": "Roo प्रदाता को क्लाउड प्रमाणीकरण की आवश्यकता है। कृपया Roo Code Cloud में साइन इन करें।",
 			"routerRemoved": "Roo Code Router हटा दिया गया है। कृपया कोई दूसरा प्रदाता चुनें और कॉन्फ़िगर करें।"
 		},
 		"api": {
@@ -169,9 +168,6 @@
 		"public_share_link_copied": "सार्वजनिक साझाकरण लिंक क्लिपबोर्ड में कॉपी किया गया!",
 		"mode_exported": "मोड '{{mode}}' सफलतापूर्वक निर्यात किया गया",
 		"mode_imported": "मोड सफलतापूर्वक आयात किया गया",
-		"roo": {
-			"signInUnavailable": "Roo Code Cloud साइन-इन अभी उपलब्ध नहीं है। जारी रखने के लिए कोई दूसरा प्रदाता कॉन्फ़िगर करें।"
-		},
 		"rooHistoryImport": {
 			"success_one": "{{count}} Roo Code कार्य इतिहास Roo+ में आयात किया।",
 			"success_other": "{{count}} Roo Code कार्य इतिहास Roo+ में आयात किए।"

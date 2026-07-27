@@ -25,7 +25,6 @@ import {
 	providerIdentifiers,
 } from "@roo-code/types"
 import { customToolRegistry } from "@roo-code/core"
-import { CloudService } from "@roo-code/cloud"
 import { TelemetryService } from "@roo-code/telemetry"
 
 import { type ApiMessage } from "../task-persistence/apiMessages"
@@ -57,7 +56,7 @@ import { MessageEnhancer } from "./messageEnhancer"
 
 import { CodeIndexManager } from "../../services/code-index/manager"
 import { checkExistKey } from "../../shared/checkExistApiConfig"
-import { getRouterRemovalMessage, getRouterUnavailableSignInMessage } from "../config/routerRemoval"
+import { getRouterRemovalMessage } from "../config/routerRemoval"
 import { experimentDefault } from "../../shared/experiments"
 import { Terminal } from "../../integrations/terminal/Terminal"
 import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
@@ -114,12 +113,6 @@ export const webviewMessageHandler = async (
 
 	const getCurrentCwd = () => {
 		return provider.getCurrentTask()?.cwd || provider.cwd
-	}
-
-	const isCloudServiceAvailable = () => CloudService.hasInstance()
-
-	const showCloudUnavailableMessage = () => {
-		vscode.window.showInformationMessage(getRouterUnavailableSignInMessage())
 	}
 
 	const resolveCompletionCheckpoint = (currentCline: { clineMessages: ClineMessage[] }) => {
@@ -2577,59 +2570,6 @@ export const webviewMessageHandler = async (
 			await provider.postStateToWebview()
 			break
 		}
-		case "rooCloudSignIn": {
-			if (!isCloudServiceAvailable()) {
-				provider.log("CloudService unavailable; ignoring rooCloudSignIn")
-				showCloudUnavailableMessage()
-				break
-			}
-
-			try {
-				TelemetryService.instance.captureEvent(TelemetryEventName.AUTHENTICATION_INITIATED)
-				// Use provider signup flow if useProviderSignup is explicitly true
-				await CloudService.instance.login(undefined, message.useProviderSignup ?? false)
-			} catch (error) {
-				provider.log(`AuthService#login failed: ${error}`)
-				vscode.window.showErrorMessage("Sign in failed.")
-			}
-
-			break
-		}
-		case "cloudLandingPageSignIn": {
-			if (!isCloudServiceAvailable()) {
-				provider.log("CloudService unavailable; ignoring cloudLandingPageSignIn")
-				showCloudUnavailableMessage()
-				break
-			}
-
-			try {
-				const landingPageSlug = message.text || "supernova"
-				TelemetryService.instance.captureEvent(TelemetryEventName.AUTHENTICATION_INITIATED)
-				await CloudService.instance.login(landingPageSlug)
-			} catch (error) {
-				provider.log(`CloudService#login failed: ${error}`)
-				vscode.window.showErrorMessage("Sign in failed.")
-			}
-			break
-		}
-		case "rooCloudSignOut": {
-			if (!isCloudServiceAvailable()) {
-				await provider.postStateToWebview()
-				provider.postMessageToWebview({ type: "authenticatedUser", userInfo: undefined })
-				break
-			}
-
-			try {
-				await CloudService.instance.logout()
-				await provider.postStateToWebview()
-				provider.postMessageToWebview({ type: "authenticatedUser", userInfo: undefined })
-			} catch (error) {
-				provider.log(`AuthService#logout failed: ${error}`)
-				vscode.window.showErrorMessage("Sign out failed.")
-			}
-
-			break
-		}
 		case "openAiCodexSignIn": {
 			try {
 				const { openAiCodexOAuthManager } = await import("../../integrations/openai-codex/oauth")
@@ -2708,54 +2648,6 @@ export const webviewMessageHandler = async (
 			}
 			break
 		}
-		case "rooCloudManualUrl": {
-			if (!isCloudServiceAvailable()) {
-				provider.log("CloudService unavailable; ignoring rooCloudManualUrl")
-				showCloudUnavailableMessage()
-				break
-			}
-
-			try {
-				if (!message.text) {
-					vscode.window.showErrorMessage(t("common:errors.manual_url_empty"))
-					break
-				}
-
-				// Parse the callback URL to extract parameters
-				const callbackUrl = message.text.trim()
-				const uri = vscode.Uri.parse(callbackUrl)
-
-				if (!uri.query) {
-					throw new Error(t("common:errors.manual_url_no_query"))
-				}
-
-				const query = new URLSearchParams(uri.query)
-				const code = query.get("code")
-				const state = query.get("state")
-				const organizationId = query.get("organizationId")
-
-				if (!code || !state) {
-					throw new Error(t("common:errors.manual_url_missing_params"))
-				}
-
-				// Reuse the existing authentication flow
-				await CloudService.instance.handleAuthCallback(
-					code,
-					state,
-					organizationId === "null" ? null : organizationId,
-				)
-
-				await provider.postStateToWebview()
-			} catch (error) {
-				provider.log(`ManualUrl#handleAuthCallback failed: ${error}`)
-				const errorMessage = error instanceof Error ? error.message : t("common:errors.manual_url_auth_failed")
-
-				// Show error message through VS Code UI
-				vscode.window.showErrorMessage(`${t("common:errors.manual_url_auth_error")}: ${errorMessage}`)
-			}
-
-			break
-		}
 		case "clearCloudAuthSkipModel": {
 			// Clear the flag that indicates auth completed without model selection
 			await provider.context.globalState.update("roo-auth-skip-model", undefined)
@@ -2823,38 +2715,6 @@ export const webviewMessageHandler = async (
 				await provider.postStateToWebview()
 			} catch (error) {
 				provider.log(`Failed to sign out of Roo+: ${error instanceof Error ? error.message : String(error)}`)
-			}
-			break
-		}
-		case "switchOrganization": {
-			try {
-				const organizationId = message.organizationId ?? null
-
-				// Switch to the new organization context
-				await CloudService.instance.switchOrganization(organizationId)
-
-				// Refresh the state to update UI
-				await provider.postStateToWebview()
-
-				// Send success response back to webview
-				await provider.postMessageToWebview({
-					type: "organizationSwitchResult",
-					success: true,
-					organizationId: organizationId,
-				})
-			} catch (error) {
-				provider.log(`Organization switch failed: ${error}`)
-				const errorMessage = error instanceof Error ? error.message : String(error)
-
-				// Send error response back to webview
-				await provider.postMessageToWebview({
-					type: "organizationSwitchResult",
-					success: false,
-					error: errorMessage,
-					organizationId: message.organizationId ?? null,
-				})
-
-				vscode.window.showErrorMessage(`Failed to switch organization: ${errorMessage}`)
 			}
 			break
 		}

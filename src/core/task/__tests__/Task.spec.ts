@@ -2630,8 +2630,6 @@ describe("Cline", () => {
 			})
 
 			// Drain any unrelated console.error noise emitted by async constructor side effects
-			// (CloudService/getState complaints in the test harness) so we only assert on the
-			// abort-path behavior under test.
 			await flushMicrotasks()
 			consoleErrorSpy.mockClear()
 

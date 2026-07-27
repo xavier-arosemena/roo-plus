@@ -56,7 +56,6 @@ import { RateLimitClock, createRateLimitClock } from "../task/RateLimitClock"
 import { TaskRegistry } from "../task/TaskRegistry"
 import { aggregateTaskCostsRecursive, type AggregatedCosts } from "./aggregateTaskCosts"
 import { TelemetryService } from "@roo-code/telemetry"
-import { CloudService, getRooCodeApiUrl } from "@roo-code/cloud"
 
 import { Package } from "../../shared/package"
 import { findLast } from "../../shared/array"
@@ -194,10 +193,6 @@ export class ClineProvider
 		return runDelegationTransition(this.delegationTransitionLocks, parentTaskId, fn)
 	}
 	private readonly pendingEditOperations: PendingEditOperationStore
-
-	private cloudOrganizationsCache: CloudOrganizationMembership[] | null = null
-	private cloudOrganizationsCacheTimestamp: number | null = null
-	private static readonly CLOUD_ORGANIZATIONS_CACHE_DURATION_MS = 5 * 1000 // 5 seconds
 
 	/**
 	 * Monotonically increasing sequence number for clineMessages state pushes.
@@ -431,28 +426,6 @@ export class ClineProvider
 	 * Initialize cloud profile synchronization
 	 */
 	private async initializeCloudProfileSync() {
-		this.log("Cloud profile synchronization is disabled in compatibility mode")
-	}
-
-	/**
-	 * Handle cloud settings updates
-	 */
-	private handleCloudSettingsUpdate = async () => {
-		this.log("Ignoring cloud settings update because cloud profile synchronization is disabled")
-	}
-
-	/**
-	 * Synchronize cloud profiles with local profiles.
-	 */
-	private async syncCloudProfiles() {
-		this.log("Skipping cloud profile synchronization because it is disabled")
-	}
-
-	/**
-	 * Initialize cloud profile synchronization when CloudService is ready
-	 * This method is called externally after CloudService has been initialized
-	 */
-	public async initializeCloudProfileSyncWhenReady(): Promise<void> {
 		this.log("Cloud profile synchronization is disabled in compatibility mode")
 	}
 
@@ -705,11 +678,6 @@ export class ClineProvider
 		}
 
 		this.clearWebviewResources()
-
-		// Clean up cloud service event listener
-		if (CloudService.hasInstance()) {
-			CloudService.instance.off("settings-updated", this.handleCloudSettingsUpdate)
-		}
 
 		while (this.disposables.length) {
 			const x = this.disposables.pop()
@@ -1164,7 +1132,6 @@ export class ClineProvider
 			enableCheckpoints,
 			checkpointTimeout,
 			experiments,
-			cloudUserInfo,
 			taskSyncEnabled,
 			diffFuzzyThreshold,
 		} = await this.getState()
@@ -2341,12 +2308,8 @@ export class ClineProvider
 			reasoningBlockCollapsed,
 			chatFontSize,
 			enterBehavior,
-			cloudUserInfo,
-			cloudIsAuthenticated,
 			sharingEnabled,
 			publicSharingEnabled,
-			organizationAllowList,
-			organizationSettingsVersion,
 			customCondensingPrompt,
 			codebaseIndexConfig,
 			codebaseIndexModels,
@@ -2368,28 +2331,6 @@ export class ClineProvider
 			autoCloseZooOpenedFilesAfterUserEdited,
 			autoCloseZooOpenedNewFiles,
 		} = await this.getState()
-
-		let cloudOrganizations: CloudOrganizationMembership[] = []
-
-		try {
-			if (!CloudService.instance.isCloudAgent) {
-				const now = Date.now()
-
-				if (
-					this.cloudOrganizationsCache !== null &&
-					this.cloudOrganizationsCacheTimestamp !== null &&
-					now - this.cloudOrganizationsCacheTimestamp < ClineProvider.CLOUD_ORGANIZATIONS_CACHE_DURATION_MS
-				) {
-					cloudOrganizations = this.cloudOrganizationsCache!
-				} else {
-					cloudOrganizations = await CloudService.instance.getOrganizationMemberships()
-					this.cloudOrganizationsCache = cloudOrganizations
-					this.cloudOrganizationsCacheTimestamp = now
-				}
-			}
-		} catch (error) {
-			// Ignore this error.
-		}
 
 		const telemetryKey = process.env.POSTHOG_API_KEY
 		const machineId = vscode.env.machineId
@@ -2504,14 +2445,10 @@ export class ClineProvider
 			reasoningBlockCollapsed: reasoningBlockCollapsed ?? true,
 			chatFontSize,
 			enterBehavior: enterBehavior ?? "send",
-			cloudUserInfo,
-			cloudIsAuthenticated: cloudIsAuthenticated ?? false,
 			cloudAuthSkipModel: this.context.globalState.get<boolean>("roo-auth-skip-model") ?? false,
-			cloudOrganizations,
 			sharingEnabled: sharingEnabled ?? false,
 			publicSharingEnabled: publicSharingEnabled ?? false,
-			organizationAllowList,
-			organizationSettingsVersion,
+			organizationAllowList: ORGANIZATION_ALLOW_ALL,
 			customCondensingPrompt,
 			codebaseIndexModels: codebaseIndexModels ?? EMBEDDING_MODEL_PROFILES,
 			codebaseIndexConfig: {
@@ -2532,7 +2469,6 @@ export class ClineProvider
 			// Phase 1 cloud removal: do not let Cloud-auth MDM enforcement force login-only UI flows.
 			mdmCompliant: undefined,
 			profileThresholds: profileThresholds ?? {},
-			cloudApiUrl: getRooCodeApiUrl(),
 			hasOpenedModeSelector: this.getGlobalState("hasOpenedModeSelector") ?? false,
 			lockApiConfigAcrossModes: lockApiConfigAcrossModes ?? false,
 			alwaysAllowFollowupQuestions: alwaysAllowFollowupQuestions ?? false,
@@ -2611,52 +2547,9 @@ export class ClineProvider
 			providerSettings.apiProvider = apiProvider
 		}
 
-		let organizationAllowList = ORGANIZATION_ALLOW_ALL
-
-		try {
-			organizationAllowList = await CloudService.instance.getAllowList()
-		} catch (error) {
-			console.error(
-				`[getState] failed to get organization allow list: ${error instanceof Error ? error.message : String(error)}`,
-			)
-		}
-
-		let cloudUserInfo: CloudUserInfo | null = null
-
-		try {
-			cloudUserInfo = CloudService.instance.getUserInfo()
-		} catch (error) {
-			console.error(
-				`[getState] failed to get cloud user info: ${error instanceof Error ? error.message : String(error)}`,
-			)
-		}
-
-		let cloudIsAuthenticated: boolean = false
-
-		try {
-			cloudIsAuthenticated = CloudService.instance.isAuthenticated()
-		} catch (error) {
-			console.error(
-				`[getState] failed to get cloud authentication state: ${error instanceof Error ? error.message : String(error)}`,
-			)
-		}
-
 		const sharingEnabled: boolean = false
 
 		const publicSharingEnabled: boolean = false
-
-		let organizationSettingsVersion: number = -1
-
-		try {
-			if (CloudService.hasInstance()) {
-				const settings = CloudService.instance.getOrganizationSettings()
-				organizationSettingsVersion = settings?.version ?? -1
-			}
-		} catch (error) {
-			console.error(
-				`[getState] failed to get organization settings version: ${error instanceof Error ? error.message : String(error)}`,
-			)
-		}
 
 		const taskSyncEnabled: boolean = false
 
@@ -2729,12 +2622,9 @@ export class ClineProvider
 			reasoningBlockCollapsed: stateValues.reasoningBlockCollapsed ?? true,
 			chatFontSize: stateValues.chatFontSize,
 			enterBehavior: stateValues.enterBehavior ?? "send",
-			cloudUserInfo,
-			cloudIsAuthenticated,
 			sharingEnabled,
 			publicSharingEnabled,
-			organizationAllowList,
-			organizationSettingsVersion,
+			organizationAllowList: ORGANIZATION_ALLOW_ALL,
 			customCondensingPrompt: stateValues.customCondensingPrompt,
 			codebaseIndexModels: stateValues.codebaseIndexModels ?? EMBEDDING_MODEL_PROFILES,
 			codebaseIndexConfig: {
@@ -2899,18 +2789,6 @@ export class ClineProvider
 
 		if (answer !== t("common:answers.yes")) {
 			return
-		}
-
-		// Log out from cloud if authenticated
-		if (CloudService.hasInstance()) {
-			try {
-				await CloudService.instance.logout()
-			} catch (error) {
-				this.log(
-					`Failed to logout from cloud during reset: ${error instanceof Error ? error.message : String(error)}`,
-				)
-				// Continue with reset even if logout fails
-			}
 		}
 
 		await this.contextProxy.resetAllState()
@@ -3423,23 +3301,6 @@ export class ClineProvider
 		return this._appProperties ?? this.getAppProperties()
 	}
 
-	private getCloudProperties(): CloudAppProperties {
-		let cloudIsAuthenticated: boolean | undefined
-
-		try {
-			if (CloudService.hasInstance()) {
-				cloudIsAuthenticated = CloudService.instance.isAuthenticated()
-			}
-		} catch (error) {
-			// Silently handle errors to avoid breaking telemetry collection.
-			this.log(`[getTelemetryProperties] Failed to get cloud auth state: ${error}`)
-		}
-
-		return {
-			cloudIsAuthenticated,
-		}
-	}
-
 	private async getTaskProperties(): Promise<DynamicAppProperties & TaskProperties> {
 		const { language = "en", mode, apiConfiguration } = await this.getState()
 
@@ -3486,7 +3347,6 @@ export class ClineProvider
 	public async getTelemetryProperties(): Promise<TelemetryProperties> {
 		return {
 			...this.getAppProperties(),
-			...this.getCloudProperties(),
 			...(await this.getTaskProperties()),
 			...(await this.getGitProperties()),
 		}

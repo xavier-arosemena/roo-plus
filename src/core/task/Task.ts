@@ -57,7 +57,6 @@ import {
 	providerIdentifiers,
 } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
-import { CloudService } from "@roo-code/cloud"
 
 // api
 import { ApiHandler, ApiHandlerCreateMessageMetadata, buildApiHandler } from "../../api"
@@ -427,9 +426,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	// Token Usage Throttling - Debounced emit function
 	private readonly TOKEN_USAGE_EMIT_INTERVAL_MS = 2000 // 2 seconds
 	private debouncedEmitTokenUsage: ReturnType<typeof debounce>
-
-	// Historical cloud sync tracking retained only to avoid task resume churn.
-	private cloudSyncedMessageTimestamps: Set<number> = new Set()
 
 	// Initial status for the task's history item (set at creation time to avoid race conditions)
 	private readonly initialStatus?: "active" | "delegated" | "completed" | "interrupted"
@@ -1049,51 +1045,18 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		await provider?.postStateToWebviewWithoutTaskHistory()
 		this.emit(RooCodeEventName.Message, { action: "created", message })
 		await this.saveClineMessages()
-
-		const shouldCaptureMessage = message.partial !== true && CloudService.isEnabled()
-
-		if (shouldCaptureMessage) {
-			CloudService.instance.captureEvent({
-				event: TelemetryEventName.TASK_MESSAGE,
-				properties: { taskId: this.taskId, message },
-			})
-			// Track that this message has been synced to cloud
-			this.cloudSyncedMessageTimestamps.add(message.ts)
-		}
 	}
 
 	public async overwriteClineMessages(newMessages: ClineMessage[]) {
 		this.clineMessages = newMessages
 		restoreTodoListForTask(this)
 		await this.saveClineMessages()
-
-		// When overwriting messages (e.g., during task resume), repopulate the cloud sync tracking Set
-		// with timestamps from all non-partial messages to prevent re-syncing previously synced messages
-		this.cloudSyncedMessageTimestamps.clear()
-		for (const msg of newMessages) {
-			if (msg.partial !== true) {
-				this.cloudSyncedMessageTimestamps.add(msg.ts)
-			}
-		}
 	}
 
 	private async updateClineMessage(message: ClineMessage) {
 		const provider = this.providerRef.deref()
 		await provider?.postMessageToWebview({ type: "messageUpdated", clineMessage: message })
 		this.emit(RooCodeEventName.Message, { action: "updated", message })
-
-		// Check if we should sync to cloud and haven't already synced this message
-		const shouldCaptureMessage = message.partial !== true && CloudService.isEnabled()
-		const hasNotBeenSynced = !this.cloudSyncedMessageTimestamps.has(message.ts)
-
-		if (shouldCaptureMessage && hasNotBeenSynced) {
-			CloudService.instance.captureEvent({
-				event: TelemetryEventName.TASK_MESSAGE,
-				properties: { taskId: this.taskId, message },
-			})
-			// Track that this message has been synced to cloud
-			this.cloudSyncedMessageTimestamps.add(message.ts)
-		}
 	}
 
 	private async saveClineMessages(): Promise<boolean> {

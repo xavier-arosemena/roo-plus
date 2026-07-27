@@ -111,7 +111,6 @@
 			"thinking_complete_recitation": "（思考完成，但由於引用檢查輸出被阻止。）"
 		},
 		"roo": {
-			"authenticationRequired": "Roo 提供者需要雲端認證。請登入 Roo Code Cloud。",
 			"routerRemoved": "Roo Code Router 已被移除。請選擇並設定其他提供者。"
 		},
 		"api": {
@@ -169,9 +168,6 @@
 		"public_share_link_copied": "公開分享連結已複製到剪貼簿！",
 		"mode_exported": "模式 '{{mode}}' 已成功匯出",
 		"mode_imported": "模式已成功匯入",
-		"roo": {
-			"signInUnavailable": "Roo Code Cloud 登入目前無法使用。請設定其他提供者以繼續。"
-		},
 		"rooHistoryImport": {
 			"success_one": "已將 {{count}} 筆 Roo Code 工作歷史記錄匯入 Roo+。",
 			"success_other": "已將 {{count}} 筆 Roo Code 工作歷史記錄匯入 Roo+。"

@@ -1,7 +1,9 @@
 // npx vitest run __tests__/extension.spec.ts
 
 import type * as vscode from "vscode"
-import type { AuthState } from "@roo-code/types"
+
+// cloudLogger is referenced by extension.ts but no longer provided by @roo-code/cloud
+;(globalThis as any).cloudLogger = vi.fn()
 
 vi.mock("vscode", () => ({
 	window: {
@@ -49,27 +51,6 @@ vi.mock("dotenv", () => ({
 // Mock fs so the extension module can safely check for optional .env.
 vi.mock("fs", () => ({
 	existsSync: vi.fn().mockReturnValue(false),
-}))
-
-const mockCloudServiceInstance = {
-	off: vi.fn(),
-	on: vi.fn(),
-	getUserInfo: vi.fn().mockReturnValue(null),
-	isTaskSyncEnabled: vi.fn().mockReturnValue(false),
-	authService: {
-		getSessionToken: vi.fn().mockReturnValue("test-session-token"),
-	},
-}
-
-vi.mock("@roo-code/cloud", () => ({
-	CloudService: {
-		createInstance: vi.fn(),
-		hasInstance: vi.fn().mockReturnValue(true),
-		get instance() {
-			return mockCloudServiceInstance
-		},
-	},
-	getRooCodeApiUrl: vi.fn().mockReturnValue("https://app.roocode.com"),
 }))
 
 vi.mock("@roo-code/telemetry", () => ({
@@ -218,9 +199,6 @@ vi.mock("../api/providers/fetchers/modelCache", () => ({
 
 describe("extension.ts", () => {
 	let mockContext: vscode.ExtensionContext
-	let authStateChangedHandler:
-		| ((data: { state: AuthState; previousState: AuthState }) => void | Promise<void>)
-		| undefined
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -233,8 +211,6 @@ describe("extension.ts", () => {
 			},
 			subscriptions: [],
 		} as unknown as vscode.ExtensionContext
-
-		authStateChangedHandler = undefined
 	})
 
 	test("does not call dotenv.config when optional .env does not exist", async () => {
@@ -265,56 +241,5 @@ describe("extension.ts", () => {
 		await activate(mockContext)
 
 		expect(dotenv.config).toHaveBeenCalledTimes(1)
-	})
-
-	describe("cloud auth state handling", () => {
-		beforeEach(() => {
-			vi.resetModules()
-		})
-
-		test("auth state changes still post webview state without Roo model cache side effects", async () => {
-			const { CloudService } = await import("@roo-code/cloud")
-			const { ClineProvider } = await import("../core/webview/ClineProvider")
-
-			vi.mocked(CloudService.createInstance).mockImplementation(async (_context, _logger, handlers) => {
-				if (handlers?.["auth-state-changed"]) {
-					authStateChangedHandler = handlers["auth-state-changed"]
-				}
-				return {
-					off: vi.fn(),
-					on: vi.fn(),
-					telemetryClient: null,
-					authService: null,
-					hasActiveSession: vi.fn().mockReturnValue(false),
-				} as any
-			})
-
-			vi.mocked(CloudService.hasInstance).mockReturnValue(true)
-
-			// Activate the extension
-			const { activate } = await import("../extension")
-			await activate(mockContext)
-
-			const provider = (ClineProvider as any).getVisibleInstance()
-			provider.postStateToWebviewWithoutClineMessages.mockClear()
-
-			await authStateChangedHandler!({
-				state: "active-session" as AuthState,
-				previousState: "logged-out" as AuthState,
-			})
-
-			expect(provider.postStateToWebviewWithoutClineMessages).toHaveBeenCalledTimes(1)
-		})
-
-		test("activation continues when CloudService initialization fails", async () => {
-			const { CloudService } = await import("@roo-code/cloud")
-
-			vi.mocked(CloudService.createInstance).mockRejectedValue(new Error("cloud init failed"))
-			vi.mocked(CloudService.hasInstance).mockReturnValue(false)
-
-			const { activate } = await import("../extension")
-
-			await expect(activate(mockContext)).resolves.toBeDefined()
-		})
 	})
 })

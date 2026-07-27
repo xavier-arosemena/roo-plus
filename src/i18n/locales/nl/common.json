@@ -112,7 +112,6 @@
 			"thinking_complete_recitation": "(Nadenken voltooid, maar uitvoer is geblokkeerd vanwege recitatiecontrole.)"
 		},
 		"roo": {
-			"authenticationRequired": "Roo provider vereist cloud authenticatie. Log in bij Roo Code Cloud.",
 			"routerRemoved": "Roo Code Router is verwijderd. Selecteer en configureer een andere provider."
 		},
 		"api": {
@@ -169,9 +168,6 @@
 		"public_share_link_copied": "Openbare deel-link gekopieerd naar klembord!",
 		"mode_exported": "Modus '{{mode}}' succesvol geëxporteerd",
 		"mode_imported": "Modus succesvol geïmporteerd",
-		"roo": {
-			"signInUnavailable": "Inloggen bij Roo Code Cloud is momenteel niet beschikbaar. Configureer een andere provider om door te gaan."
-		},
 		"rooHistoryImport": {
 			"success_one": "{{count}} Roo Code-taakgeschiedenis geïmporteerd in Roo+.",
 			"success_other": "{{count}} Roo Code-taakgeschiedenissen geïmporteerd in Roo+."

@@ -9,7 +9,6 @@ import {
 	type TodoItem,
 	type TelemetrySetting,
 	type OrganizationAllowList,
-	type CloudOrganizationMembership,
 	type ExtensionMessage,
 	type ExtensionState,
 	type MarketplaceInstalledMetadata,
@@ -45,9 +44,6 @@ export interface ExtensionStateContextType extends ExtensionState {
 	openedTabs: Array<{ label: string; isActive: boolean; path?: string }>
 	commands: Command[]
 	organizationAllowList: OrganizationAllowList
-	organizationSettingsVersion: number
-	cloudIsAuthenticated: boolean
-	cloudOrganizations?: CloudOrganizationMembership[]
 	sharingEnabled: boolean
 	publicSharingEnabled: boolean
 	mdmCompliant?: boolean
@@ -244,9 +240,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		historyPreviewCollapsed: false, // Initialize the new state (default to expanded)
 		reasoningBlockCollapsed: true, // Default to collapsed
 		enterBehavior: "send", // Default: Enter sends, Shift+Enter creates newline
-		cloudUserInfo: null,
-		cloudIsAuthenticated: false,
-		cloudOrganizations: [],
 		sharingEnabled: false,
 		publicSharingEnabled: false,
 		organizationAllowList: ORGANIZATION_ALLOW_ALL,
@@ -521,9 +514,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		ttsSpeed: state.ttsSpeed,
 		writeDelayMs: state.writeDelayMs,
 		routerModels: extensionRouterModels,
-		cloudIsAuthenticated: state.cloudIsAuthenticated ?? false,
-		cloudOrganizations: state.cloudOrganizations ?? [],
-		organizationSettingsVersion: state.organizationSettingsVersion ?? -1,
 		marketplaceItems,
 		marketplaceInstalledMetadata,
 		profileThresholds: state.profileThresholds ?? {},

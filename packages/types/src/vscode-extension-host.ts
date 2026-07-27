@@ -8,7 +8,7 @@ import type { Experiments } from "./experiment.js"
 import type { ClineMessage, QueuedMessage } from "./message.js"
 import type { MarketplaceItem, MarketplaceInstalledMetadata, InstallMarketplaceItemOptions } from "./marketplace.js"
 import type { TodoItem } from "./todo.js"
-import type { CloudUserInfo, CloudOrganizationMembership, OrganizationAllowList, ShareVisibility } from "./cloud.js"
+import type { CloudUserInfo, OrganizationAllowList, ShareVisibility } from "./cloud.js"
 import type { SerializedCustomToolDefinition } from "./custom-tool.js"
 import type { GitCommit } from "./git.js"
 import type { McpServer } from "./mcp.js"
@@ -363,16 +363,7 @@ export type ExtensionState = Pick<
 	renderContext: "sidebar" | "editor"
 	settingsImportedAt?: number
 	historyPreviewCollapsed?: boolean
-
-	cloudUserInfo: CloudUserInfo | null
-	cloudIsAuthenticated: boolean
-	cloudAuthSkipModel?: boolean // Flag indicating auth completed without model selection (user should pick 3rd-party provider)
-	cloudApiUrl?: string
-	cloudOrganizations?: CloudOrganizationMembership[]
-	sharingEnabled: boolean
-	publicSharingEnabled: boolean
 	organizationAllowList: OrganizationAllowList
-	organizationSettingsVersion?: number
 
 	autoCondenseContext: boolean
 	autoCondenseContextPercent: number

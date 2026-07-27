@@ -117,7 +117,6 @@
 			"thinking_complete_recitation": "（思考完成，但由于引用检查输出被阻止。）"
 		},
 		"roo": {
-			"authenticationRequired": "Roo 提供商需要云认证。请登录 Roo Code Cloud。",
 			"routerRemoved": "Roo Code Router 已被移除。请选择并配置其他提供商。"
 		},
 		"api": {
@@ -174,9 +173,6 @@
 		"public_share_link_copied": "公开分享链接已复制到剪贴板！",
 		"mode_exported": "模式 '{{mode}}' 已成功导出",
 		"mode_imported": "模式已成功导入",
-		"roo": {
-			"signInUnavailable": "Roo Code Cloud 登录当前不可用。请配置其他提供商以继续。"
-		},
 		"rooHistoryImport": {
 			"success_one": "已将 {{count}} 条 Roo Code 任务历史记录导入 Roo+。",
 			"success_other": "已将 {{count}} 条 Roo Code 任务历史记录导入 Roo+。"

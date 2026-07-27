@@ -112,7 +112,6 @@
 			"thinking_complete_recitation": "(Myślenie zakończone, ale dane wyjściowe zostały zablokowane przez kontrolę recytacji.)"
 		},
 		"roo": {
-			"authenticationRequired": "Dostawca Roo wymaga uwierzytelnienia w chmurze. Zaloguj się do Roo Code Cloud.",
 			"routerRemoved": "Roo Code Router został usunięty. Wybierz i skonfiguruj innego dostawcę."
 		},
 		"api": {
@@ -169,9 +168,6 @@
 		"public_share_link_copied": "Publiczny link udostępniania skopiowany do schowka!",
 		"mode_exported": "Tryb '{{mode}}' pomyślnie wyeksportowany",
 		"mode_imported": "Tryb pomyślnie zaimportowany",
-		"roo": {
-			"signInUnavailable": "Logowanie do Roo Code Cloud jest obecnie niedostępne. Skonfiguruj innego dostawcę, aby kontynuować."
-		},
 		"rooHistoryImport": {
 			"success_one": "Zaimportowano {{count}} historię zadania Roo Code do Roo+.",
 			"success_other": "Zaimportowano {{count}} historii zadań Roo Code do Roo+."

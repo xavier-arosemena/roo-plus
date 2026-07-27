@@ -112,7 +112,6 @@
 			"thinking_complete_recitation": "(Đã suy nghĩ xong nhưng kết quả bị chặn do kiểm tra trích dẫn.)"
 		},
 		"roo": {
-			"authenticationRequired": "Nhà cung cấp Roo yêu cầu xác thực đám mây. Vui lòng đăng nhập vào Roo Code Cloud.",
 			"routerRemoved": "Roo Code Router đã bị xóa. Vui lòng chọn và cấu hình một nhà cung cấp khác."
 		},
 		"api": {
@@ -169,9 +168,6 @@
 		"public_share_link_copied": "Liên kết chia sẻ công khai đã được sao chép vào clipboard!",
 		"mode_exported": "Chế độ '{{mode}}' đã được xuất thành công",
 		"mode_imported": "Chế độ đã được nhập thành công",
-		"roo": {
-			"signInUnavailable": "Đăng nhập Roo Code Cloud hiện không khả dụng. Hãy cấu hình nhà cung cấp khác để tiếp tục."
-		},
 		"rooHistoryImport": {
 			"success_one": "Đã nhập {{count}} lịch sử nhiệm vụ Roo Code vào Roo+.",
 			"success_other": "Đã nhập {{count}} lịch sử nhiệm vụ Roo Code vào Roo+."

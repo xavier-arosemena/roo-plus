@@ -1,3 +1,18 @@
+/**
+ * @deprecated This module contains types for the Roo Code Cloud service, which is being removed.
+ * Most cloud-specific types and services are no longer active. These interfaces are retained
+ * only for backward compatibility during the deprecation period and will be removed in a future release.
+ *
+ * Kept types:
+ * - OrganizationSettings / OrganizationAllowList: still used by MDM and provider filtering
+ * - AuthService / SettingsService interfaces: still referenced by service implementations
+ * - CloudUserInfo: still referenced by ExtensionMessage types
+ * - ShareVisibility: still referenced by message payload types
+ *
+ * Planned for removal (no remaining external references):
+ * - CloudServiceEvents (removed)
+ */
+
 import EventEmitter from "events"
 
 import { z } from "zod"
@@ -347,12 +362,6 @@ export interface SettingsService {
 export interface SettingsServiceEvents {
 	"settings-updated": [data: Record<string, never>]
 }
-
-/**
- * CloudServiceEvents
- */
-
-export type CloudServiceEvents = AuthServiceEvents & SettingsServiceEvents
 
 /**
  * ConnectionState

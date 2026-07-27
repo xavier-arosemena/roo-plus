@@ -343,13 +343,9 @@ describe("mergeExtensionState", () => {
 			showRooIgnoredFiles: true,
 			enableSubfolderRules: false,
 			renderContext: "sidebar",
-			cloudUserInfo: null,
 			organizationAllowList: { allowAll: true, providers: {} },
 			autoCondenseContext: true,
 			autoCondenseContextPercent: 100,
-			cloudIsAuthenticated: false,
-			sharingEnabled: false,
-			publicSharingEnabled: false,
 			profileThresholds: {},
 			hasOpenedModeSelector: false, // Add the new required property
 			maxImageFileSize: 5,
@@ -413,13 +409,9 @@ describe("mergeExtensionState", () => {
 			showRooIgnoredFiles: true,
 			enableSubfolderRules: false,
 			renderContext: "sidebar",
-			cloudUserInfo: null,
 			organizationAllowList: { allowAll: true, providers: {} },
 			autoCondenseContext: true,
 			autoCondenseContextPercent: 100,
-			cloudIsAuthenticated: false,
-			sharingEnabled: false,
-			publicSharingEnabled: false,
 			profileThresholds: {},
 			hasOpenedModeSelector: false,
 			maxImageFileSize: 5,
@@ -489,24 +481,6 @@ describe("mergeExtensionState", () => {
 
 			expect(result.clineMessages).toBe(newMessages)
 			expect(result.clineMessagesSeq).toBe(4)
-		})
-
-		it("preserves clineMessages when newState does not include them (cloud event path)", () => {
-			const existingMessages = [makeMessage(1, "hello"), makeMessage(2, "world")]
-
-			const prevState: ExtensionState = {
-				...baseState,
-				clineMessages: existingMessages,
-				clineMessagesSeq: 5,
-			}
-
-			// Simulate a cloud event push that omits clineMessages and clineMessagesSeq
-			const result = mergeExtensionState(prevState, {
-				cloudIsAuthenticated: true,
-			})
-
-			expect(result.clineMessages).toBe(existingMessages)
-			expect(result.clineMessagesSeq).toBe(5)
 		})
 
 		it("applies clineMessages normally when neither state has seq (backward compat)", () => {
