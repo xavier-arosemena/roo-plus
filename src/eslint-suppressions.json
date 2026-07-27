@@ -1359,6 +1359,11 @@
 			"count": 9
 		}
 	},
+	"services/__tests__/roo-plus-auth.test.ts": {
+		"@typescript-eslint/no-explicit-any": {
+			"count": 3
+		}
+	},
 	"services/__tests__/zoo-code-auth.test.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 3
