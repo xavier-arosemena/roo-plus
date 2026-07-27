@@ -392,7 +392,7 @@ async function cleanupStaleArchives(
  * @returns The full path to the semble executable, or undefined if the platform is unsupported.
  */
 export async function downloadSemble(storageDir: string, binaryPathOverride?: string): Promise<string | undefined> {
-	// 1. Check binary path override (already done in Solution B)
+	// 1. Check binary path override — no network calls needed
 	if (binaryPathOverride && binaryPathOverride.length > 0) {
 		try {
 			await fs.access(binaryPathOverride)
@@ -410,20 +410,16 @@ export async function downloadSemble(storageDir: string, binaryPathOverride?: st
 		return undefined
 	}
 
-	// 2. Pre-flight validation — check write permissions and disk space before attempting download
-	await validateInstallPath(storageDir)
-	await checkDiskSpace(storageDir, ESTIMATED_REQUIRED_BYTES)
-
 	const extractDir = path.join(storageDir, "semble")
 	const binaryPath = path.join(extractDir, info.binary)
 
-	// 3. Resolve the semble version (fetches latest from GitHub if SEMBLE_VERSION_PATTERN === "latest")
-	const resolvedVersion = SEMBLE_VERSION_PATTERN === "latest" ? await resolveSembleVersion() : SEMBLE_VERSION
-
-	// 4. Check installed version against the resolved version
+	// 2. Check installed version against hardcoded SEMBLE_VERSION first.
+	//    We defer resolveSembleVersion() until after this check to avoid unnecessary
+	//    HTTP calls when the binary is already up-to-date.
 	const installedVersion = await getInstalledVersion(storageDir)
 
-	if (installedVersion === resolvedVersion) {
+	// 3. Fast path: installed version matches hardcoded version and binary exists
+	if (installedVersion === SEMBLE_VERSION) {
 		try {
 			await fs.access(binaryPath)
 			// Binary exists and version matches — nothing to do
@@ -436,17 +432,38 @@ export async function downloadSemble(storageDir: string, binaryPathOverride?: st
 		}
 	}
 
+	// 4. Pre-flight validation — check write permissions and disk space before attempting download
+	await validateInstallPath(storageDir)
+	await checkDiskSpace(storageDir, ESTIMATED_REQUIRED_BYTES)
+
+	// 5. Resolve the semble version (fetches latest from GitHub if SEMBLE_VERSION_PATTERN === "latest").
+	//    Only called when we actually need to download.
+	const resolvedVersion = SEMBLE_VERSION_PATTERN === "latest" ? await resolveSembleVersion() : SEMBLE_VERSION
+
+	// 6. If the resolved version differs from hardcoded, check against installed version again
+	if (resolvedVersion !== SEMBLE_VERSION && installedVersion === resolvedVersion) {
+		try {
+			await fs.access(binaryPath)
+			if (process.platform !== "win32") {
+				await fs.chmod(binaryPath, 0o755)
+			}
+			return binaryPath
+		} catch {
+			// re-download below
+		}
+	}
+
 	// Version mismatch — log so the user can see what's happening
 	if (installedVersion && installedVersion !== resolvedVersion) {
 		console.log(`[SembleDownloader] Version changed from ${installedVersion} to ${resolvedVersion}, updating...`)
 	}
 
-	// 5. Build dynamic fallback URLs using the resolved version
+	// 7. Build dynamic fallback URLs using the resolved version
 	const dynamicFallbackUrls = DOWNLOAD_FALLBACK_URLS.map((base) =>
 		base.replace(`/download/${SEMBLE_VERSION}`, `/download/${resolvedVersion}`),
 	)
 
-	// 6. Try each source in order
+	// 8. Try each source in order
 	const errors: string[] = []
 	for (const [index, sourceUrl] of dynamicFallbackUrls.entries()) {
 		try {
@@ -457,7 +474,7 @@ export async function downloadSemble(storageDir: string, binaryPathOverride?: st
 		}
 	}
 
-	// 7. All sources failed
+	// 9. All sources failed
 	throw new Error(`Failed to download semble from all sources:\n${errors.join("\n")}`)
 }
 

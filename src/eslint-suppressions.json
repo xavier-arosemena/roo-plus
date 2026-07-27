@@ -1506,12 +1506,12 @@
 	},
 	"services/code-index/semble/__tests__/semble-downloader.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 61
+			"count": 63
 		}
 	},
 	"services/code-index/semble/provider.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 2
+			"count": 0
 		}
 	},
 	"services/code-index/semble/semble-cli.ts": {
@@ -1521,7 +1521,7 @@
 	},
 	"services/code-index/semble/semble-downloader.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 1
+			"count": 0
 		}
 	},
 	"services/code-index/shared/__tests__/validation-helpers.spec.ts": {
