@@ -34,7 +34,7 @@ export function truncateOpenAiCallId(id: string, maxLength: number = OPENAI_CALL
 	const prefixMaxLength = maxLength - separator.length - hashSuffixLength
 
 	// Create hash of the full original ID for uniqueness
-	const hash = crypto.createHash("md5").update(id).digest("hex").slice(0, hashSuffixLength)
+	const hash = crypto.createHash("sha256").update(id).digest("hex").slice(0, hashSuffixLength)
 
 	// Take the prefix and append hash
 	const prefix = id.slice(0, prefixMaxLength)
