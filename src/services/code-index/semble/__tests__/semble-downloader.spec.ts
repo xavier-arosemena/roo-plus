@@ -462,7 +462,7 @@ describe("semble-downloader", () => {
 			//
 			// Instead we differentiate by URL pattern:
 			//   - URLs containing the archive name → return 302 (redirect)
-			//   - URLs containing "objects.githubusercontent.com" → return 200 (redirect follow)
+			//   - URLs with hostname "objects.githubusercontent.com" → return 200 (redirect follow)
 			//   - Everything else (resolveSembleVersion HEADs, checksums) → return 200
 			//
 			;(https.get as any).mockImplementation((...args: unknown[]) => {
@@ -470,12 +470,22 @@ describe("semble-downloader", () => {
 				const callback = typeof args[1] === "function" ? args[1] : args[2]
 				const res = new EventEmitter() as any
 				//
-				// IMPORTANT: check "objects.githubusercontent.com" BEFORE the archive name,
+				// IMPORTANT: check hostname BEFORE the archive name,
 				// because the CDN redirect URL (objects.githubusercontent.com/.../semble-...tar.gz)
 				// also ends with the archive filename and would match the first condition,
 				// creating an infinite redirect loop (maxRedirects = 5 → "Too many redirects").
 				//
-				if (url.includes("objects.githubusercontent.com")) {
+				// Use proper hostname extraction — substring matching via url.includes()
+				// is vulnerable to bypass (e.g. "evil.com/objects.githubusercontent.com").
+				// See isTrustedDownloadUrl() in semble-downloader.ts for the production equivalent.
+				//
+				let hostname = ""
+				try {
+					hostname = new URL(url).hostname
+				} catch {
+					// malformed URL — fall through to archive name check
+				}
+				if (hostname === "objects.githubusercontent.com") {
 					// Redirect follow → return 200
 					res.statusCode = 200
 					res.headers = {}
