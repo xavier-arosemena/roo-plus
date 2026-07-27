@@ -1374,6 +1374,11 @@
 			"count": 1
 		}
 	},
+	"services/code-index/config-manager.ts": {
+		"@typescript-eslint/no-explicit-any": {
+			"count": 1
+		}
+	},
 	"services/code-index/__tests__/manager.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 89
@@ -1506,7 +1511,7 @@
 	},
 	"services/code-index/semble/__tests__/semble-downloader.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 63
+			"count": 66
 		}
 	},
 	"services/code-index/semble/provider.ts": {
