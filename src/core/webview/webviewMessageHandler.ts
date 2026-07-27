@@ -2887,6 +2887,7 @@ export const webviewMessageHandler = async (
 					codebaseIndexSearchMaxResults: settings.codebaseIndexSearchMaxResults,
 					codebaseIndexSearchMinScore: settings.codebaseIndexSearchMinScore,
 					codebaseIndexOpenRouterSpecificProvider: settings.codebaseIndexOpenRouterSpecificProvider,
+					codebaseIndexSembleBinaryPath: settings.codebaseIndexSembleBinaryPath,
 				}
 
 				// Save global state first

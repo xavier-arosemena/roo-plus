@@ -1,5 +1,34 @@
 # Roo+ Changelog
 
+## [3.72.1] — 2026-07-27
+
+### Patch — Semble Binary Download Fix, Configurable Path, Multi-Source Fallback
+
+#### 🐛 Bug Fixes
+
+- **Semble Download 404** — Resolved HTTP 404 error when downloading semble binary. Repository `Roo-Plus-Org/sembleexec` did not exist; migrated to `Audare-est-Facere/sembleexec` with automated CI/CD release pipeline for future builds. (Closes: #42)
+
+#### 🚀 Enhancements
+
+- **Configurable Binary Path** — Added `codebaseIndexSembleBinaryPath` setting allowing users to specify a path to a manually installed semble binary, bypassing auto-download
+- **Multi-Source Fallback** — Download now retries across multiple sources with exponential backoff (2s, 4s) before failing with per-source error details
+- **Dynamic Version Resolution** — Downloader fetches the latest semble release from GitHub API when SEMBLE_VERSION_PATTERN is set to "latest"
+- **Checksum Manifest Support** — Downloads and verifies against `checksums-sha256.txt` release manifest, falling back to hardcoded checksums
+- **Pre-Flight Validation** — Disk space and write permission checks before attempting download to provide clear error messages early
+- **Offline Bundling** — New [`scripts/bundle-semble.sh`](scripts/bundle-semble.sh) allows bundling the semble binary into the VSIX for air-gapped/enterprise environments
+
+#### 🔒 Security
+
+- All SHA-256 checksums verified post-download against hardcoded values and release manifest
+- Redirect chain restricted to trusted domains (`github.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com`)
+
+#### ✅ Quality
+
+- 11 new test cases across downloader, provider, and config-manager test suites
+- All 156+ tests passing
+
+---
+
 ## [3.72.0] — 2026-07-20
 
 ### Minor — Custom Modes Library, New Providers, UX Enhancements

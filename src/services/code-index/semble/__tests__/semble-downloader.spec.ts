@@ -7,10 +7,10 @@ import { EventEmitter } from "events"
 // and computes a SHA-256. We make digest() dynamically return the expected checksum
 // for the current process.platform/arch so verification always passes in unit tests.
 const CHECKSUMS: Record<string, string> = {
-	"linux-x64": "33a6c8ae78d750e917b291524d788747c62de795274def5c6b07b7a6d1671493",
-	"linux-arm64": "a4a3fbca363f5a894a57594679c787ff6b4ac1332ebf0edcb36cc89f348c7aba",
-	"darwin-arm64": "f8b5718e2264c9addbf61ac52f0106f1ebb6717980bf25ecfe135d12f164ed30",
-	"win32-x64": "2a8734d486db1feaa3bd3cf111d1ac17c805102d758be8f5295fbc862ee00bb3",
+	"linux-x64": "1315d3faae9fd446764ee5d0cf8e8d83e862ead0f7fa51e1ed0685755dc96a8e",
+	"linux-arm64": "883b250faf61957d9859fc691bbe8387aaca4fe2f00e8a6f041cc44880301ac4",
+	"darwin-arm64": "d690765b500103c13aeab8c5a31e78efaeaa4e3e0b20ee5d040ddd41fa21b084",
+	"win32-x64": "2aac0a9c55f823ea30151fea188bcf9268318b8ef41aafa7162498a04710fcc0",
 }
 vi.mock("crypto", () => ({
 	createHash: vi.fn(() => ({
@@ -68,15 +68,32 @@ vi.mock("https", () => ({
 	}),
 }))
 
-// Mock child_process spawn for tar/unzip extraction
+// Mock child_process spawn for tar/unzip extraction and execFile for disk space checks
 const mockExtractProcess = new EventEmitter() as any
 mockExtractProcess.stderr = new EventEmitter()
+
+/**
+ * Default mock execFile implementation that returns sufficient disk space.
+ * Tests can override this by setting mockExecFileCallback.
+ * Uses callback-based signature: execFile(cmd, args, options, callback)
+ */
+let mockExecFileCallback: (cmd: string, args: string[], options: any, cb: (err: any, result: any) => void) => void = (
+	_cmd: string,
+	_args: string[],
+	_options: any,
+	cb: (err: any, result: any) => void,
+) => {
+	cb(null, { stdout: "Avail\n5000000\n" })
+}
 
 vi.mock("child_process", () => ({
 	spawn: vi.fn(() => {
 		// Simulate successful extraction
 		setImmediate(() => mockExtractProcess.emit("close", 0))
 		return mockExtractProcess
+	}),
+	execFile: vi.fn((cmd: string, args: string[], options: any, cb: (err: any, result: any) => void) => {
+		mockExecFileCallback(cmd, args, options, cb)
 	}),
 }))
 
@@ -86,6 +103,12 @@ import {
 	downloadSemble,
 	getSembleBinaryPath,
 	SEMBLE_SHA256,
+	SEMBLE_VERSION,
+	SEMBLE_VERSION_PATTERN,
+	resolveSembleVersion,
+	downloadChecksums,
+	checkDiskSpace,
+	validateInstallPath,
 } from "../semble-downloader"
 import * as https from "https"
 import { spawn } from "child_process"
@@ -105,6 +128,10 @@ describe("semble-downloader", () => {
 		vi.clearAllMocks()
 		mockWriteStream.on = vi.fn()
 		mockWriteStream.close = vi.fn()
+		// Reset execFile mock to return sufficient disk space by default
+		mockExecFileCallback = (_cmd: string, _args: string[], _options: any, cb: (err: any, result: any) => void) => {
+			cb(null, { stdout: "Avail\n5000000\n" })
+		}
 
 		// Restore the default https.get mock so tests that override it don't leak
 		;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
@@ -194,7 +221,7 @@ describe("semble-downloader", () => {
 			// fs.access resolves => file exists
 			;(fs.access as any).mockResolvedValue(undefined)
 			// Version file matches current version
-			;(fs.readFile as any).mockResolvedValue("v0.4.1")
+			;(fs.readFile as any).mockResolvedValue("v0.5.2")
 
 			try {
 				const result = await downloadSemble("/storage")
@@ -237,7 +264,7 @@ describe("semble-downloader", () => {
 				// The release URL must target the current SEMBLE_VERSION tag — a typo
 				// in SEMBLE_VERSION would otherwise fetch the wrong release while still
 				// matching the unversioned asset filename.
-				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.4.1"), expect.any(Function))
+				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.5.2"), expect.any(Function))
 				expect(https.get).toHaveBeenCalledWith(
 					expect.stringContaining("semble-linux-x64-fast.tar.gz"),
 					expect.any(Function),
@@ -247,7 +274,7 @@ describe("semble-downloader", () => {
 					"tar",
 					[
 						"-xzf",
-						path.join("/storage", "v0.4.1-semble-linux-x64-fast.tar.gz"),
+						path.join("/storage", "v0.5.2-semble-linux-x64-fast.tar.gz"),
 						"-C",
 						path.join("/storage", "semble.new"),
 						"--no-same-owner",
@@ -264,11 +291,11 @@ describe("semble-downloader", () => {
 				// Version file should be written
 				expect(fs.writeFile).toHaveBeenCalledWith(
 					path.join("/storage", "semble", ".semble-version"),
-					"v0.4.1",
+					"v0.5.2",
 					"utf-8",
 				)
 				// Archive should be cleaned up (version-prefixed local cache path)
-				expect(fs.unlink).toHaveBeenCalledWith(path.join("/storage", "v0.4.1-semble-linux-x64-fast.tar.gz"))
+				expect(fs.unlink).toHaveBeenCalledWith(path.join("/storage", "v0.5.2-semble-linux-x64-fast.tar.gz"))
 			} finally {
 				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
 				if (originalArch) Object.defineProperty(process, "arch", originalArch)
@@ -285,7 +312,7 @@ describe("semble-downloader", () => {
 			// fs.access resolves => file exists
 			;(fs.access as any).mockResolvedValue(undefined)
 			// Version file matches
-			;(fs.readFile as any).mockResolvedValue("v0.4.1")
+			;(fs.readFile as any).mockResolvedValue("v0.5.2")
 
 			try {
 				const result = await downloadSemble("/storage")
@@ -298,7 +325,7 @@ describe("semble-downloader", () => {
 			}
 		})
 
-		it("should throw and clean up on download failure", async () => {
+		it("should throw and clean up on download failure from all sources", async () => {
 			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
 			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
 
@@ -310,7 +337,7 @@ describe("semble-downloader", () => {
 			// No version file
 			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
 
-			// Simulate HTTP error response
+			// Simulate HTTP error response for ALL URLs (both fallback sources)
 			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
 				const res = Object.assign(new EventEmitter(), {
 					statusCode: 404,
@@ -324,9 +351,10 @@ describe("semble-downloader", () => {
 			})
 
 			try {
-				await expect(downloadSemble("/storage")).rejects.toThrow("Failed to download semble")
-				expect(fs.unlink).toHaveBeenCalledWith(path.join("/storage", "v0.4.1-semble-linux-arm64-fast.tar.gz"))
-				// Should clean up staging directory, not the original
+				await expect(downloadSemble("/storage")).rejects.toThrow("Failed to download semble from all sources")
+				// Cleanup happens inside attemptDownload for each source.
+				// Both sources attempt cleanup of the same archivePath and stagingDir.
+				expect(fs.unlink).toHaveBeenCalledWith(path.join("/storage", "v0.5.2-semble-linux-arm64-fast.tar.gz"))
 				expect(fs.rm).toHaveBeenCalledWith(path.join("/storage", "semble.new"), {
 					recursive: true,
 					force: true,
@@ -456,6 +484,169 @@ describe("semble-downloader", () => {
 				if (originalArch) Object.defineProperty(process, "arch", originalArch)
 			}
 		})
+
+		it("should fall back to mirror source when primary fails with 404", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// fs.access resolves → staged binary verification passes
+			;(fs.access as any).mockResolvedValue(undefined)
+			// No version file → triggers download
+			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
+
+			// Primary source URL returns 404, fallback source returns 200
+			;(https.get as any).mockImplementation((url: string, callback: (res: any) => void) => {
+				const res = Object.assign(new EventEmitter(), {
+					statusCode: url.includes("Audare-est-Facere") ? 404 : 200,
+					headers: {},
+					pipe: vi.fn(),
+					destroy: vi.fn(),
+				})
+				setImmediate(() => callback(res))
+				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
+			})
+
+			// Simulate successful download on the fallback source
+			mockWriteStream.on.mockImplementation((event: string, cb: () => void) => {
+				if (event === "finish") {
+					setImmediate(cb)
+				}
+			})
+
+			try {
+				const result = await downloadSemble("/storage")
+
+				expect(result).toBe(path.join("/storage", "semble", "semble"))
+				// Should have attempted both sources — primary (with retries) + fallback
+				expect(https.get).toHaveBeenCalledWith(
+					expect.stringContaining("Audare-est-Facere"),
+					expect.any(Function),
+				)
+				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("Roo-Plus-Org"), expect.any(Function))
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should throw combined error when all sources fail", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// fs.access rejects => file not present
+			;(fs.access as any).mockRejectedValue(new Error("ENOENT"))
+			// No version file
+			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
+
+			// All URLs return 404
+			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+				const res = Object.assign(new EventEmitter(), {
+					statusCode: 404,
+					headers: {},
+					pipe: vi.fn(),
+					destroy: vi.fn(),
+				})
+				setImmediate(() => callback(res))
+				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
+			})
+
+			try {
+				await expect(downloadSemble("/storage")).rejects.toThrow("Failed to download semble from all sources")
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should retry with exponential backoff and succeed on second attempt", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// fs.access resolves → staged binary verification passes
+			;(fs.access as any).mockResolvedValue(undefined)
+			// No version file → triggers download
+			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
+
+			// First call fails (404), second call (retry) succeeds (200)
+			let callCount = 0
+			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+				callCount++
+				const res = Object.assign(new EventEmitter(), {
+					statusCode: callCount === 1 ? 404 : 200,
+					headers: {},
+					pipe: vi.fn(),
+					destroy: vi.fn(),
+				})
+				setImmediate(() => callback(res))
+				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
+			})
+
+			// Simulate successful download on the retry
+			mockWriteStream.on.mockImplementation((event: string, cb: () => void) => {
+				if (event === "finish") {
+					setImmediate(cb)
+				}
+			})
+
+			try {
+				// The 2s retry delay is real — give this test extra time
+				const result = await downloadSemble("/storage")
+
+				expect(result).toBe(path.join("/storage", "semble", "semble"))
+				// Should have called https.get twice (initial + retry)
+				expect(https.get).toHaveBeenCalledTimes(2)
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		}, 15000)
+
+		it("should respect exponential backoff delay between retries", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// fs.access resolves → staged binary verification passes
+			;(fs.access as any).mockResolvedValue(undefined)
+			// No version file → triggers download
+			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
+
+			// All calls fail so we can observe the retry loop
+			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+				const res = Object.assign(new EventEmitter(), {
+					statusCode: 404,
+					headers: {},
+					pipe: vi.fn(),
+					destroy: vi.fn(),
+				})
+				setImmediate(() => callback(res))
+				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
+			})
+
+			const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout")
+
+			try {
+				// Check that setTimeout was called with the expected delay (2000ms for attempt 1)
+				// The all-sources-fail path has real 2s delays per source, so give it extra time
+				await expect(downloadSemble("/storage")).rejects.toThrow("Failed to download semble from all sources")
+				expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 2000)
+			} finally {
+				setTimeoutSpy.mockRestore()
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		}, 15000)
 	})
 
 	describe("getSembleBinaryPath", () => {
@@ -602,6 +793,117 @@ describe("semble-downloader", () => {
 		})
 	})
 
+	describe("downloadSemble - binary path override", () => {
+		it("should return the override path when binaryPathOverride is provided and file exists", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// fs.access resolves => file exists
+			;(fs.access as any).mockResolvedValue(undefined)
+
+			try {
+				const result = await downloadSemble("/storage", "/custom/path/semble")
+				expect(result).toBe("/custom/path/semble")
+				// Should NOT attempt to download or extract
+				expect(https.get).not.toHaveBeenCalled()
+				expect(spawn).not.toHaveBeenCalled()
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should log a warning when binaryPathOverride does not exist and fall back to download", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+			const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// fs.access rejects first (override path not found), then resolves for staged binary
+			let accessCallCount = 0
+			;(fs.access as any).mockImplementation(() => {
+				accessCallCount++
+				// First call: override path check (reject), subsequent: staged binary verify (resolve)
+				if (accessCallCount === 1) {
+					return Promise.reject(new Error("ENOENT"))
+				}
+				return Promise.resolve(undefined)
+			})
+			// No version file
+			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
+
+			// Simulate successful download for the fallback path
+			mockWriteStream.on.mockImplementation((event: string, cb: () => void) => {
+				if (event === "finish") {
+					setImmediate(cb)
+				}
+			})
+
+			try {
+				const result = await downloadSemble("/storage", "/nonexistent/path/semble")
+				expect(result).toBe(path.join("/storage", "semble", "semble"))
+				// Should have logged a warning about the missing override path
+				expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("does not exist"))
+				// Should have attempted download (falls back)
+				expect(https.get).toHaveBeenCalled()
+			} finally {
+				consoleWarnSpy.mockRestore()
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should use override path on Windows when binaryPathOverride is provided", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "win32", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// fs.access resolves => file exists
+			;(fs.access as any).mockResolvedValue(undefined)
+
+			try {
+				const result = await downloadSemble("/storage", "C:\\tools\\semble.exe")
+				expect(result).toBe("C:\\tools\\semble.exe")
+				// Should NOT attempt to download or extract
+				expect(https.get).not.toHaveBeenCalled()
+				expect(spawn).not.toHaveBeenCalled()
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should ignore empty binaryPathOverride and proceed with normal download", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// Version file matches
+			;(fs.readFile as any).mockResolvedValue("v0.5.2")
+			// Binary exists
+			;(fs.access as any).mockResolvedValue(undefined)
+
+			try {
+				const result = await downloadSemble("/storage", "")
+				// Should behave normally — empty override is ignored
+				expect(result).toBe(path.join("/storage", "semble", "semble"))
+				expect(https.get).not.toHaveBeenCalled()
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+	})
+
 	describe("downloadSemble - version tracking", () => {
 		it("should re-download when installed version differs from SEMBLE_VERSION", async () => {
 			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
@@ -638,11 +940,11 @@ describe("semble-downloader", () => {
 					path.join("/storage", "semble"),
 				)
 				// Should download the new version
-				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.4.1"), expect.any(Function))
+				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.5.2"), expect.any(Function))
 				// Should write the new version file
 				expect(fs.writeFile).toHaveBeenCalledWith(
 					path.join("/storage", "semble", ".semble-version"),
-					"v0.4.1",
+					"v0.5.2",
 					"utf-8",
 				)
 			} finally {
@@ -666,7 +968,7 @@ describe("semble-downloader", () => {
 			;(fs.readdir as any).mockResolvedValue([
 				"v0.4.0-semble-linux-x64-fast.tar.gz",
 				"semble-linux-x64-fast.tar.gz",
-				"v0.4.1-semble-linux-x64-fast.tar.gz",
+				"v0.5.2-semble-linux-x64-fast.tar.gz",
 				"unrelated-file.txt",
 			])
 			// fs.access resolves — only called for staged binary verification
@@ -683,10 +985,10 @@ describe("semble-downloader", () => {
 				const result = await downloadSemble("/storage")
 
 				expect(result).toBe(path.join("/storage", "semble", "semble"))
-				const versionedArchive = path.join("/storage", "v0.4.1-semble-linux-x64-fast.tar.gz")
+				const versionedArchive = path.join("/storage", "v0.5.2-semble-linux-x64-fast.tar.gz")
 
 				// A fresh download must happen after the version upgrade
-				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.4.1"), expect.any(Function))
+				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.5.2"), expect.any(Function))
 				// The release URL keeps the unversioned asset name
 				expect(https.get).toHaveBeenCalledWith(
 					expect.stringContaining("semble-linux-x64-fast.tar.gz"),
@@ -706,14 +1008,14 @@ describe("semble-downloader", () => {
 				// orphaned packages on disk.
 				expect(fs.unlink).toHaveBeenCalledWith(path.join("/storage", "v0.4.0-semble-linux-x64-fast.tar.gz"))
 				// The legacy unversioned archive (pre-v0.4.0 cache layout) is also
-				// swept, covering the v0.3.1 → v0.4.1 upgrade path.
+				// swept, covering the v0.3.1 → v0.5.2 upgrade path.
 				expect(fs.unlink).toHaveBeenCalledWith(path.join("/storage", "semble-linux-x64-fast.tar.gz"))
 				// Unrelated files in the storage dir must not be touched.
 				expect(fs.unlink).not.toHaveBeenCalledWith(path.join("/storage", "unrelated-file.txt"))
 				// The new version file is recorded
 				expect(fs.writeFile).toHaveBeenCalledWith(
 					path.join("/storage", "semble", ".semble-version"),
-					"v0.4.1",
+					"v0.5.2",
 					"utf-8",
 				)
 			} finally {
@@ -730,7 +1032,7 @@ describe("semble-downloader", () => {
 			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
 
 			// Version matches
-			;(fs.readFile as any).mockResolvedValue("v0.4.1")
+			;(fs.readFile as any).mockResolvedValue("v0.5.2")
 			// Binary exists
 			;(fs.access as any).mockResolvedValue(undefined)
 
@@ -756,7 +1058,7 @@ describe("semble-downloader", () => {
 			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
 
 			// Version matches
-			;(fs.readFile as any).mockResolvedValue("v0.4.1")
+			;(fs.readFile as any).mockResolvedValue("v0.5.2")
 			// But binary is missing
 			let accessCallCount = 0
 			;(fs.access as any).mockImplementation(() => {
@@ -781,7 +1083,7 @@ describe("semble-downloader", () => {
 				expect(result).toBe(path.join("/storage", "semble", "semble"))
 				// Should download since binary was missing — pin the version tag so a
 				// wrong SEMBLE_VERSION can't fetch a stale release unnoticed.
-				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.4.1"), expect.any(Function))
+				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.5.2"), expect.any(Function))
 				// Should rename staging to final
 				expect(fs.rename).toHaveBeenCalledWith(
 					path.join("/storage", "semble.new"),
@@ -790,7 +1092,7 @@ describe("semble-downloader", () => {
 				// Should write version file again
 				expect(fs.writeFile).toHaveBeenCalledWith(
 					path.join("/storage", "semble", ".semble-version"),
-					"v0.4.1",
+					"v0.5.2",
 					"utf-8",
 				)
 			} finally {
@@ -823,7 +1125,7 @@ describe("semble-downloader", () => {
 
 				expect(result).toBe(path.join("/storage", "semble", "semble"))
 				// First-install path: the download URL must target the current version.
-				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.4.1"), expect.any(Function))
+				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.5.2"), expect.any(Function))
 				// Should rename staging to final
 				expect(fs.rename).toHaveBeenCalledWith(
 					path.join("/storage", "semble.new"),
@@ -832,7 +1134,7 @@ describe("semble-downloader", () => {
 				// Should write version file
 				expect(fs.writeFile).toHaveBeenCalledWith(
 					path.join("/storage", "semble", ".semble-version"),
-					"v0.4.1",
+					"v0.5.2",
 					"utf-8",
 				)
 			} finally {
@@ -886,7 +1188,7 @@ describe("semble-downloader", () => {
 			;(fs.access as any).mockResolvedValue(undefined)
 			// Storage dir contains the current archive plus unrelated files
 			;(fs.readdir as any).mockResolvedValue([
-				"v0.4.1-semble-linux-x64-fast.tar.gz",
+				"v0.5.2-semble-linux-x64-fast.tar.gz",
 				"v0.4.0-semble-linux-x64-fast.tar.gz",
 				"semble-linux-x64-fast.tar.gz",
 				"unrelated.txt",
@@ -901,7 +1203,7 @@ describe("semble-downloader", () => {
 			try {
 				await downloadSemble("/storage")
 
-				const currentArchive = path.join("/storage", "v0.4.1-semble-linux-x64-fast.tar.gz")
+				const currentArchive = path.join("/storage", "v0.5.2-semble-linux-x64-fast.tar.gz")
 				// Stale versioned + legacy unversioned archives are swept
 				expect(fs.unlink).toHaveBeenCalledWith(path.join("/storage", "v0.4.0-semble-linux-x64-fast.tar.gz"))
 				expect(fs.unlink).toHaveBeenCalledWith(path.join("/storage", "semble-linux-x64-fast.tar.gz"))
@@ -919,6 +1221,140 @@ describe("semble-downloader", () => {
 				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
 				if (originalArch) Object.defineProperty(process, "arch", originalArch)
 			}
+		})
+	})
+
+	describe("SEMBLE_VERSION_PATTERN", () => {
+		it("should be set to 'latest'", () => {
+			expect(SEMBLE_VERSION_PATTERN).toBe("latest")
+		})
+	})
+
+	describe("resolveSembleVersion", () => {
+		it("should fetch latest version when API returns a redirect to release tag", async () => {
+			// Mock https.get to handle HEAD request with options object
+			;(https.get as any).mockImplementation((_url: string, _options: any, callback: (res: any) => void) => {
+				const res = Object.assign(new EventEmitter(), {
+					statusCode: 302,
+					headers: { location: "https://github.com/Audare-est-Facere/sembleexec/releases/tag/v0.6.0" },
+					destroy: vi.fn(),
+				})
+				setImmediate(() => callback(res))
+				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
+			})
+
+			const version = await resolveSembleVersion()
+			expect(version).toBe("v0.6.0")
+		})
+
+		it("should fall back to hardcoded SEMBLE_VERSION when API fails", async () => {
+			// Mock https.get to reject with error
+			;(https.get as any).mockImplementation((_url: string, _options: any, _callback: (res: any) => void) => {
+				const req = Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
+				setImmediate(() => req.emit("error", new Error("Network error")))
+				return req
+			})
+
+			const version = await resolveSembleVersion()
+			expect(version).toBe(SEMBLE_VERSION)
+		})
+	})
+
+	describe("downloadChecksums", () => {
+		it("should parse checksums manifest and return records", async () => {
+			// Mock downloadFile to succeed, then readFile to return manifest content
+			mockWriteStream.on.mockImplementation((event: string, cb: () => void) => {
+				if (event === "finish") {
+					setImmediate(cb)
+				}
+			})
+			;(fs.readFile as any).mockResolvedValue(
+				"1315d3faae9fd446764ee5d0cf8e8d83e862ead0f7fa51e1ed0685755dc96a8e  semble-linux-x64-fast.tar.gz\n" +
+					"883b250faf61957d9859fc691bbe8387aaca4fe2f00e8a6f041cc44880301ac4  semble-linux-arm64-fast.tar.gz\n",
+			)
+
+			const result = await downloadChecksums(
+				"/storage",
+				"v0.5.2",
+				"https://github.com/org/repo/releases/download/v0.5.2",
+			)
+
+			expect(result["semble-linux-x64-fast.tar.gz"]).toBe(
+				"1315d3faae9fd446764ee5d0cf8e8d83e862ead0f7fa51e1ed0685755dc96a8e",
+			)
+			expect(result["semble-linux-arm64-fast.tar.gz"]).toBe(
+				"883b250faf61957d9859fc691bbe8387aaca4fe2f00e8a6f041cc44880301ac4",
+			)
+		})
+
+		it("should fall back to hardcoded SEMBLE_SHA256 when manifest download fails", async () => {
+			// Mock downloadFile to fail (https.get returns 404)
+			;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+				const res = Object.assign(new EventEmitter(), {
+					statusCode: 404,
+					headers: {},
+					pipe: vi.fn(),
+					destroy: vi.fn(),
+				})
+				setImmediate(() => callback(res))
+				return Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
+			})
+
+			const result = await downloadChecksums(
+				"/storage",
+				"v0.5.2",
+				"https://github.com/org/repo/releases/download/v0.5.2",
+			)
+
+			// Should return the hardcoded SEMBLE_SHA256
+			expect(result).toEqual(SEMBLE_SHA256)
+		})
+
+		it("should fall back to SEMBLE_SHA256 when readFile fails on the manifest", async () => {
+			// Mock downloadFile to succeed (200), but readFile to fail
+			mockWriteStream.on.mockImplementation((event: string, cb: () => void) => {
+				if (event === "finish") {
+					setImmediate(cb)
+				}
+			})
+			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
+
+			const result = await downloadChecksums(
+				"/storage",
+				"v0.5.2",
+				"https://github.com/org/repo/releases/download/v0.5.2",
+			)
+
+			expect(result).toEqual(SEMBLE_SHA256)
+		})
+	})
+
+	describe("checkDiskSpace", () => {
+		it("should not throw when sufficient disk space is available", async () => {
+			// mockExecFileImpl already returns 5GB by default in beforeEach
+			await expect(checkDiskSpace("/storage", 150 * 1024 * 1024)).resolves.toBeUndefined()
+		})
+
+		it("should throw when disk space is insufficient", async () => {
+			mockExecFileImpl = vi.fn().mockResolvedValue({ stdout: "Avail\n100\n" }) // 100KB available
+
+			await expect(checkDiskSpace("/storage", 150 * 1024 * 1024)).rejects.toThrow("Insufficient disk space")
+		})
+	})
+
+	describe("validateInstallPath", () => {
+		it("should succeed when storage directory is writable", async () => {
+			await expect(validateInstallPath("/storage")).resolves.toBeUndefined()
+			expect(fs.mkdir).toHaveBeenCalledWith("/storage", { recursive: true })
+			expect(fs.writeFile).toHaveBeenCalledWith("/storage/.write-test", "test", "utf-8")
+			expect(fs.unlink).toHaveBeenCalledWith("/storage/.write-test")
+		})
+
+		it("should throw when storage directory is not writable", async () => {
+			// Mock writeFile to fail
+			;(fs.writeFile as any).mockRejectedValue(new Error("EACCES: permission denied"))
+
+			await expect(validateInstallPath("/other-storage")).rejects.toThrow("Storage directory is not writable")
 		})
 	})
 })

@@ -21,6 +21,7 @@ export interface CodeIndexConfig {
 	qdrantApiKey?: string
 	searchMinScore?: number
 	searchMaxResults?: number
+	sembleBinaryPath?: string
 }
 
 /**
@@ -45,4 +46,5 @@ export type PreviousConfigSnapshot = {
 	openRouterSpecificProvider?: string
 	qdrantUrl?: string
 	qdrantApiKey?: string
+	sembleBinaryPath?: string
 }

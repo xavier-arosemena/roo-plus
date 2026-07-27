@@ -108,6 +108,7 @@ describe("CodeIndexConfigManager", () => {
 				qdrantUrl: "http://localhost:6333",
 				qdrantApiKey: "",
 				searchMinScore: 0.4,
+				sembleBinaryPath: undefined,
 			})
 			expect(result.requiresRestart).toBe(false)
 		})
@@ -1190,6 +1191,45 @@ describe("CodeIndexConfigManager", () => {
 
 				const result = await configManager.loadConfiguration()
 				expect(result.requiresRestart).toBe(true)
+			})
+
+			it("should load semble binary path from configuration", async () => {
+				mockContextProxy.getGlobalState.mockReturnValue({
+					codebaseIndexEnabled: true,
+					codebaseIndexEmbedderProvider: "semble",
+					codebaseIndexSembleBinaryPath: "/custom/path/semble",
+				})
+				mockContextProxy.getSecret.mockReturnValue(undefined)
+
+				await configManager.loadConfiguration()
+
+				expect(configManager.sembleBinaryPath).toBe("/custom/path/semble")
+			})
+
+			it("should keep sembleBinaryPath undefined when no path is configured", async () => {
+				mockContextProxy.getGlobalState.mockReturnValue({
+					codebaseIndexEnabled: true,
+					codebaseIndexEmbedderProvider: "semble",
+				})
+				mockContextProxy.getSecret.mockReturnValue(undefined)
+
+				await configManager.loadConfiguration()
+
+				expect(configManager.sembleBinaryPath).toBeUndefined()
+			})
+
+			it("should include sembleBinaryPath in getConfig output", async () => {
+				mockContextProxy.getGlobalState.mockReturnValue({
+					codebaseIndexEnabled: true,
+					codebaseIndexEmbedderProvider: "semble",
+					codebaseIndexSembleBinaryPath: "/custom/path/semble",
+				})
+				mockContextProxy.getSecret.mockReturnValue(undefined)
+
+				await configManager.loadConfiguration()
+
+				const config = configManager.getConfig()
+				expect(config.sembleBinaryPath).toBe("/custom/path/semble")
 			})
 
 			it("should not require restart when semble config stays the same", async () => {

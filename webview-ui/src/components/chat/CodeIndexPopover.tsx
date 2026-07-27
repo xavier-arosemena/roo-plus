@@ -71,6 +71,9 @@ interface LocalCodeIndexSettings {
 	codebaseIndexBedrockRegion?: string
 	codebaseIndexBedrockProfile?: string
 
+	// Semble-specific settings
+	codebaseIndexSembleBinaryPath?: string
+
 	// Secret settings (start empty, will be loaded separately)
 	codeIndexOpenAiKey?: string
 	codeIndexQdrantApiKey?: string
@@ -180,6 +183,7 @@ const createValidationSchema = (provider: EmbedderProvider, t: any) => {
 			// Semble requires no API keys, Qdrant URL, or model selection
 			return z.object({
 				codebaseIndexEnabled: z.boolean(),
+				codebaseIndexSembleBinaryPath: z.string().optional(),
 			})
 
 		default:
@@ -226,6 +230,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 		codebaseIndexSearchMinScore: CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_MIN_SCORE,
 		codebaseIndexBedrockRegion: "",
 		codebaseIndexBedrockProfile: "",
+		codebaseIndexSembleBinaryPath: "",
 		codeIndexOpenAiKey: "",
 		codeIndexQdrantApiKey: "",
 		codebaseIndexOpenAiCompatibleBaseUrl: "",
@@ -275,6 +280,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 				codebaseIndexOpenRouterApiKey: "",
 				codebaseIndexOpenRouterSpecificProvider:
 					codebaseIndexConfig.codebaseIndexOpenRouterSpecificProvider || "",
+				codebaseIndexSembleBinaryPath: codebaseIndexConfig.codebaseIndexSembleBinaryPath || "",
 			}
 			setInitialSettings(settings)
 			setCurrentSettings(settings)
@@ -1443,6 +1449,28 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 													</div>
 												)}
 										</>
+									)}
+
+									{/* Semble Binary Path — shown only for semble */}
+									{currentSettings.codebaseIndexEmbedderProvider === "semble" && (
+										<div className="space-y-2">
+											<label className="text-sm font-medium">
+												{t("settings:codeIndex.sembleBinaryPathLabel")}
+											</label>
+											<VSCodeTextField
+												value={currentSettings.codebaseIndexSembleBinaryPath || ""}
+												onInput={(e: any) =>
+													updateSetting("codebaseIndexSembleBinaryPath", e.target.value)
+												}
+												placeholder={t("settings:codeIndex.sembleBinaryPathPlaceholder")}
+												className="w-full"
+											/>
+											{!formErrors.codebaseIndexSembleBinaryPath && (
+												<p className="text-xs text-vscode-descriptionForeground mt-1 mb-0">
+													{t("settings:codeIndex.sembleBinaryPathDescription")}
+												</p>
+											)}
+										</div>
 									)}
 
 									{/* Qdrant Settings — hidden for semble */}

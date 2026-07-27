@@ -36,7 +36,7 @@ export class SembleProvider implements ISembleProvider {
 		workspacePath: string,
 		context: vscode.ExtensionContext,
 		stateManager: CodeIndexStateManager,
-		options?: { topK?: number; content?: SembleContentType },
+		options?: { topK?: number; content?: SembleContentType; binaryPath?: string },
 	) {
 		this.workspacePath = workspacePath
 		this.context = context
@@ -45,6 +45,7 @@ export class SembleProvider implements ISembleProvider {
 		this.config = {
 			topK: options?.topK ?? SEMBLE_DEFAULTS.DEFAULT_TOP_K,
 			content: options?.content ?? SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+			binaryPath: options?.binaryPath,
 		}
 	}
 
@@ -93,18 +94,21 @@ export class SembleProvider implements ISembleProvider {
 		try {
 			this.stateManager.setSystemState("Indexing", t("embeddings:semble.downloadingBinary"))
 			const storageDir = this.context.globalStorageUri.fsPath
-			const binaryPath = await downloadSemble(storageDir)
+			const binaryPath = await downloadSemble(storageDir, this.config.binaryPath)
 			if (!binaryPath) {
 				throw new Error("Download returned no path")
 			}
 			this.cli = new SembleCLI(binaryPath)
 		} catch (error: any) {
 			this._state = "Error"
+			// The fallback chain produces a multi-line error with per-source details.
+			// Truncate to the first line for the UI status message, log full details.
+			const displayMessage = error?.message?.split("\n")[0] || String(error)
 			this.stateManager.setSystemState(
 				"Error",
-				t("embeddings:semble.downloadFailed", { errorMessage: error?.message || error }),
+				t("embeddings:semble.downloadFailed", { errorMessage: displayMessage }),
 			)
-			console.error("[SembleProvider] Download failed:", error?.message || error)
+			console.error("[SembleProvider] Download failed from all sources:", error?.message)
 			return
 		}
 

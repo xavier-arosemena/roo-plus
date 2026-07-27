@@ -43,6 +43,8 @@ export interface SembleConfig {
 	topK: number
 	/** Content types to index. Default: "code". */
 	content: SembleContentType
+	/** Optional path to a manually installed semble binary. When set, auto-download is skipped. */
+	binaryPath?: string
 }
 
 /**
