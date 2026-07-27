@@ -968,16 +968,15 @@ describe("semble-downloader", () => {
 					setImmediate(cb)
 				}
 			})
-// Archive cleanup fails but should not throw (only archive removal after extraction).
-// Use a conditional mock so validateInstallPath (which calls fs.unlink(".write-test"))
-// still succeeds — only the archive cleanup unlink should reject.
-;(fs.unlink as any).mockImplementation((filePath: string) => {
-	if (typeof filePath === "string" && filePath.includes(".write-test")) {
-		return Promise.resolve(undefined)
-	}
-	return Promise.reject(new Error("unlink cleanup failed"))
-})
-
+			// Archive cleanup fails but should not throw (only archive removal after extraction).
+			// Use a conditional mock so validateInstallPath (which calls fs.unlink(".write-test"))
+			// still succeeds — only the archive cleanup unlink should reject.
+			;(fs.unlink as any).mockImplementation((filePath: string) => {
+				if (typeof filePath === "string" && filePath.includes(".write-test")) {
+					return Promise.resolve(undefined)
+				}
+				return Promise.reject(new Error("unlink cleanup failed"))
+			})
 
 			try {
 				const result = await downloadSemble("/storage")

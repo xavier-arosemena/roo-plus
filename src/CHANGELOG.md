@@ -1,5 +1,52 @@
 # Roo+ Changelog
 
+## [3.73.0] — 2026-07-27
+
+### Minor — Mode Subtitles (Descriptions) Completed
+
+#### 🚀 Enhancements
+
+- **Mode Subtitles** — Added `description:` (subtitle) fields to all 90 custom mode entries in [`.roomodes`](.roomodes) that were missing them. All 97 pre-loaded modes now display descriptive subtitles in the mode selector UI. (Closes: #39)
+- **Agent Source Descriptions** — Added `description:` fields to all 233 agent source YAML files in `custom-modes/agents/`, fixing the root cause where the upstream schema omitted descriptions entirely.
+- **Agent Catalog Alignment** — Audit confirmed 233 total agents: 90 pre-loaded in `.roomodes` (all described), 143 available for import via the `agents/` submodule. See [`custom-modes/AGENT_CATALOG.md`](custom-modes/AGENT_CATALOG.md) for the full list.
+
+#### ✅ Quality
+
+- YAML validation passed — all 97 mode entries parse correctly
+- Lint passed — zero warnings
+- All 425 test files passed (7,103 tests)
+
+---
+
+## [3.72.1] — 2026-07-27
+
+### Patch — Semble Binary Download Fix, Configurable Path, Multi-Source Fallback
+
+#### 🐛 Bug Fixes
+
+- **Semble Download 404** — Resolved HTTP 404 error when downloading semble binary. Repository `Roo-Plus-Org/sembleexec` did not exist; migrated to `Audare-est-Facere/sembleexec` with automated CI/CD release pipeline for future builds. (Closes: #42)
+
+#### 🚀 Enhancements
+
+- **Configurable Binary Path** — Added `codebaseIndexSembleBinaryPath` setting allowing users to specify a path to a manually installed semble binary, bypassing auto-download
+- **Multi-Source Fallback** — Download now retries across multiple sources with exponential backoff (2s, 4s) before failing with per-source error details
+- **Dynamic Version Resolution** — Downloader fetches the latest semble release from GitHub API when SEMBLE_VERSION_PATTERN is set to "latest"
+- **Checksum Manifest Support** — Downloads and verifies against `checksums-sha256.txt` release manifest, falling back to hardcoded checksums
+- **Pre-Flight Validation** — Disk space and write permission checks before attempting download to provide clear error messages early
+- **Offline Bundling** — New [`scripts/bundle-semble.sh`](scripts/bundle-semble.sh) allows bundling the semble binary into the VSIX for air-gapped/enterprise environments
+
+#### 🔒 Security
+
+- All SHA-256 checksums verified post-download against hardcoded values and release manifest
+- Redirect chain restricted to trusted domains (`github.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com`)
+
+#### ✅ Quality
+
+- 11 new test cases across downloader, provider, and config-manager test suites
+- All 156+ tests passing
+
+---
+
 ## [3.72.0] — 2026-07-20
 
 ### Minor — Custom Modes Library, New Providers, UX Enhancements
@@ -127,6 +174,33 @@ Roo+ now ships with **90 carefully curated AI agents** pre-loaded, selected from
 - **Fix(build): integrate `sync:custom-modes` into `vscode:prepublish`** — The mode compilation script was never included in the VSIX build pipeline, so the bundled asset was missing from packaged extensions entirely.
 - **Fix(ci): make `sync-custom-modes.mjs` tolerate missing git submodule in CI** — The `custom-modes/agents/` submodule is not initialized in CI checkout; the script now gracefully skips regeneration when output files already exist (committed to repo).
 - **Chore(tests): add `pre-installed-modes.yml` to dist asset verification** — Updated `dist_assets.spec.ts` to verify the new bundled asset exists in the build output.
+
+## [3.72.0]
+
+### Minor Changes
+
+- Add the Moonshot provider with live model discovery, streaming, model metadata, and a model picker (PR #857 by @grizmin)
+- Add the Kimi Code provider with OAuth device-flow authentication (PR #945 by @taltas)
+- Add Claude Opus 5 support across all providers (PR #1010 by @app/zoomote)
+- Add Kimi K3 to the Moonshot and OpenCode Go providers (#932 by @navedmerchant, PR #996 by @app/zoomote)
+- Add Gemini 3.6 Flash model support (PR #975 by @app/zoomote)
+- Add MiniMax-M3 model support (#888 by @RayWinter0816, PR #946 by @app/zoomote)
+- Add a safe way to abandon interrupted subtasks by severing stale parent-child links and surfacing delegation status (#559 by @edelauna, PR #935 by @edelauna)
+- Add Dart support to codebase indexing (#940 by @WebMad, PR #941 by @WebMad)
+- Fix codebase indexing for plain-text files (#931 by @tool-buddy, PR #938 by @WebMad)
+- Enable image input for DeepSeek V4 models (#964 by @grizmin, PR #963 by @grizmin)
+- Fix ChatGPT OAuth requests for GPT-5.6 Luna being rejected by the Codex backend (PR #889 by @taltas)
+- Preserve `reasoning_content` for known reasoning model families when using LiteLLM (#891 by @daewoongoh, PR #899 by @daewoongoh)
+- Fix task-history cache invalidation races by routing `invalidate()` and `invalidateAll()` through the task-history lock (#698 by @edelauna, PR #912 by @morgan-coded)
+- Fix Settings mode changes by synchronizing the local `cachedState` editing buffer (#914 by @easonLiangWorldedtech, PR #925 by @easonLiangWorldedtech)
+- Dismiss the welcome screen after successful Zoo Gateway sign-in (#961 by @JohnCanty, PR #962 by @JamesRobert20)
+- Add `CompletePromptOptions` to the `completePrompt` API so callers can configure prompt completion (#615 by @edelauna, PR #901 by @easonLiangWorldedtech)
+- Centralize provider identifiers into canonical shared types (#951 by @WebMad, PR #952 by @WebMad)
+- Refactor provider categories to use canonical provider identifiers (PR #989 by @WebMad)
+- Remove obsolete MCP server-creation translations (#895 by @edelauna, PR #943 by @WebMad)
+- Add regression coverage for resuming interrupted subtasks (#566 by @myk1yt, PR #911 by @edelauna)
+- Upload coverage reports as GitHub Actions artifacts to simplify CI debugging (PR #939 by @app/zoomote)
+- Update `esbuild-wasm` to v0.28.1 (PR #829 by @app/renovate)
 
 ## [3.70.0]
 

@@ -1,5 +1,22 @@
 # Roo+ Changelog
 
+## [3.73.0] — 2026-07-27
+
+### Minor — Mode Subtitles (Descriptions) Completed
+
+#### 🚀 Enhancements
+
+- **Mode Descriptions** — Added `description:` (subtitle) fields to all 90 custom mode entries in [`.roomodes`](.roomodes) that were missing them. All 97 pre-loaded modes now display descriptive subtitles in the mode selector UI. (Closes: #39)
+- **Agent Source Descriptions** — Added `description:` fields to all 233 agent source YAML files in `custom-modes/agents/`, fixing the root cause where the upstream schema omitted descriptions entirely.
+- **Agent Catalog Alignment** — Audit confirmed 233 total agents: 90 pre-loaded in `.roomodes` (all described), 143 available for import via the `agents/` submodule. See [`custom-modes/AGENT_CATALOG.md`](custom-modes/AGENT_CATALOG.md) for the full list.
+
+#### ✅ Quality
+
+- YAML validation passed — all 97 mode entries parse correctly
+- Lint passed — zero warnings
+
+---
+
 ## [3.72.1] — 2026-07-27
 
 ### Patch — Semble Binary Download Fix, Configurable Path, Multi-Source Fallback
