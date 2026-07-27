@@ -99,16 +99,17 @@ export class SembleProvider implements ISembleProvider {
 				throw new Error("Download returned no path")
 			}
 			this.cli = new SembleCLI(binaryPath)
-		} catch (error: any) {
+		} catch (error) {
 			this._state = "Error"
 			// The fallback chain produces a multi-line error with per-source details.
 			// Truncate to the first line for the UI status message, log full details.
-			const displayMessage = error?.message?.split("\n")[0] || String(error)
+			const errorMsg = error instanceof Error ? error.message : String(error)
+			const displayMessage = errorMsg.split("\n")[0] || errorMsg
 			this.stateManager.setSystemState(
 				"Error",
 				t("embeddings:semble.downloadFailed", { errorMessage: displayMessage }),
 			)
-			console.error("[SembleProvider] Download failed from all sources:", error?.message)
+			console.error("[SembleProvider] Download failed from all sources:", errorMsg)
 			return
 		}
 
@@ -209,8 +210,8 @@ export class SembleProvider implements ISembleProvider {
 				`[SembleProvider] Search returned ${converted.length} results (raw: ${results.length}). Sample path: ${converted[0]?.payload?.filePath ?? "none"}`,
 			)
 			return converted
-		} catch (error: any) {
-			const errorMessage = error?.message || String(error)
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error)
 			console.error("[SembleProvider] Search failed:", errorMessage)
 
 			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {

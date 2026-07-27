@@ -258,9 +258,9 @@ export async function validateInstallPath(storageDir: string): Promise<void> {
 	try {
 		await fs.writeFile(testFile, "test", "utf-8")
 		await fs.unlink(testFile)
-	} catch (error: any) {
+	} catch (error) {
 		throw new Error(
-			`Storage directory is not writable: ${storageDir}${error?.message ? ` (${error.message})` : ""}`,
+			`Storage directory is not writable: ${storageDir}${error instanceof Error ? ` (${error.message})` : ""}`,
 		)
 	}
 }
@@ -451,8 +451,8 @@ export async function downloadSemble(storageDir: string, binaryPathOverride?: st
 	for (const [index, sourceUrl] of dynamicFallbackUrls.entries()) {
 		try {
 			return await attemptDownload(sourceUrl, storageDir, info, extractDir, binaryPath, resolvedVersion)
-		} catch (error: any) {
-			errors.push(`[Source ${index + 1}] ${error?.message || error}`)
+		} catch (error) {
+			errors.push(`[Source ${index + 1}] ${error instanceof Error ? error.message : String(error)}`)
 			console.warn(`[SembleDownloader] Source ${index + 1} failed, trying next...`)
 		}
 	}
@@ -567,7 +567,7 @@ async function attemptDownload(
 
 		console.log(`[SembleDownloader] Successfully installed semble ${resolvedVersion} to ${binaryPath}`)
 		return binaryPath
-	} catch (error: any) {
+	} catch (error) {
 		// Clean up partial download/staging — leave old installation intact
 		try {
 			await fs.unlink(archivePath)
@@ -579,7 +579,7 @@ async function attemptDownload(
 		} catch {
 			// ignore cleanup errors
 		}
-		console.error(`[SembleDownloader] Failed to download from source: ${error?.message || error}`)
+		console.error(`[SembleDownloader] Failed to download from source: ${error instanceof Error ? error.message : String(error)}`)
 		throw error
 	}
 }

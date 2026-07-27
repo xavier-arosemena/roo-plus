@@ -55,7 +55,10 @@ let mockRequest: any
 let mockResponse: any
 
 vi.mock("https", () => ({
-	get: vi.fn((_url: string, callback: (res: any) => void) => {
+	get: vi.fn((...args: any[]) => {
+		// Handle both https.get(url, callback) and https.get(url, options, callback)
+		const url = args[0]
+		const callback = typeof args[1] === "function" ? args[1] : args[2]
 		mockRequest = Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 		mockResponse = Object.assign(new EventEmitter(), {
 			statusCode: 200,
@@ -63,7 +66,9 @@ vi.mock("https", () => ({
 			pipe: vi.fn(),
 			destroy: vi.fn(),
 		})
-		setImmediate(() => callback(mockResponse))
+		if (typeof callback === "function") {
+			setImmediate(() => callback(mockResponse))
+		}
 		return mockRequest
 	}),
 }))
@@ -134,7 +139,9 @@ describe("semble-downloader", () => {
 		}
 
 		// Restore the default https.get mock so tests that override it don't leak
-		;(https.get as any).mockImplementation((_url: string, callback: (res: any) => void) => {
+		;(https.get as any).mockImplementation((...args: any[]) => {
+			// Handle both https.get(url, callback) and https.get(url, options, callback)
+			const callback = typeof args[1] === "function" ? args[1] : args[2]
 			mockRequest = Object.assign(new EventEmitter(), { setTimeout: vi.fn() })
 			mockResponse = Object.assign(new EventEmitter(), {
 				statusCode: 200,
@@ -142,7 +149,9 @@ describe("semble-downloader", () => {
 				pipe: vi.fn(),
 				destroy: vi.fn(),
 			})
-			setImmediate(() => callback(mockResponse))
+			if (typeof callback === "function") {
+				setImmediate(() => callback(mockResponse))
+			}
 			return mockRequest
 		})
 	})
