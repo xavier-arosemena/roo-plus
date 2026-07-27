@@ -44,8 +44,6 @@ export interface ExtensionStateContextType extends ExtensionState {
 	openedTabs: Array<{ label: string; isActive: boolean; path?: string }>
 	commands: Command[]
 	organizationAllowList: OrganizationAllowList
-	sharingEnabled: boolean
-	publicSharingEnabled: boolean
 	mdmCompliant?: boolean
 	hasOpenedModeSelector: boolean // New property to track if user has opened mode selector
 	setHasOpenedModeSelector: (value: boolean) => void // Setter for the new property
@@ -240,10 +238,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		historyPreviewCollapsed: false, // Initialize the new state (default to expanded)
 		reasoningBlockCollapsed: true, // Default to collapsed
 		enterBehavior: "send", // Default: Enter sends, Shift+Enter creates newline
-		sharingEnabled: false,
-		publicSharingEnabled: false,
 		organizationAllowList: ORGANIZATION_ALLOW_ALL,
-		organizationSettingsVersion: -1,
 		autoCondenseContext: true,
 		autoCondenseContextPercent: 100,
 		profileThresholds: {},

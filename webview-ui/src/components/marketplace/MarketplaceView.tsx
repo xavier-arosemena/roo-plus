@@ -21,19 +21,6 @@ export function MarketplaceView({ stateManager, onDone, targetTab }: Marketplace
 	const [state, manager] = useStateManager(stateManager)
 	const [hasReceivedInitialState, setHasReceivedInitialState] = useState(false)
 	const extensionState = useContext(ExtensionStateContext)
-	const [lastOrganizationSettingsVersion, setLastOrganizationSettingsVersion] = useState<number>(
-		extensionState?.organizationSettingsVersion ?? -1,
-	)
-
-	useEffect(() => {
-		const currentVersion = extensionState?.organizationSettingsVersion ?? -1
-		if (currentVersion !== lastOrganizationSettingsVersion) {
-			vscode.postMessage({
-				type: "fetchMarketplaceData",
-			})
-		}
-		setLastOrganizationSettingsVersion(currentVersion)
-	}, [extensionState?.organizationSettingsVersion, lastOrganizationSettingsVersion])
 
 	// Track when we receive the initial state
 	useEffect(() => {
