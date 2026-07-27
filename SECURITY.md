@@ -2,16 +2,35 @@
 
 ## Supported Versions
 
-We actively patch only the most recent minor release of Zoo Code. Older versions receive fixes at our discretion.
+We release patches for security vulnerabilities in the latest stable version of Roo+.
+Older versions may receive patches on a best-effort basis.
 
 ## Reporting a Vulnerability
 
-Email support@zoocode.dev with:
+We take security vulnerabilities seriously. Please report them responsibly.
 
-- A short summary of the issue
-- Steps to reproduce or a proof of concept
-- Any logs, stack traces, or screenshots that might help us understand the problem
+**Do NOT** open a public GitHub issue for security vulnerabilities.
 
-We acknowledge reports within 48 hours and aim to release a fix or mitigation within 30 days. While we work on a resolution, please keep the details private.
+Instead, please report via one of these channels:
 
-Thank you for helping us keep Zoo Code users safe.
+1. **GitHub Private Vulnerability Disclosure**: Navigate to the repository's "Security" tab and use the "Report a vulnerability" feature.
+2. **Email**: Send details to the repository maintainers via your organization's internal security contact.
+
+When reporting, please include:
+
+- A description of the vulnerability
+- Steps to reproduce
+- Affected versions
+- Any potential mitigations you've identified
+
+We will acknowledge receipt within 48 hours and provide an estimated timeline for a fix.
+Security patches will be fast-tracked through the release process.
+
+## Disclosure Policy
+
+We follow a coordinated disclosure process:
+
+1. The vulnerability is reported privately
+2. A fix is prepared and tested
+3. The fix is released in a new version
+4. The vulnerability is publicly disclosed after the fix is available

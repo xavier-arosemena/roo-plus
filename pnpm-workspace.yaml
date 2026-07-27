@@ -1,5 +1,100 @@
 packages:
-    - "src" # Should be apps/vscode
-    - "webview-ui" # Should be apps/vscode-webview
+    - "src"
+    - "webview-ui"
     - "apps/*"
     - "packages/*"
+
+onlyBuiltDependencies:
+    - "@vscode/ripgrep"
+
+overrides:
+    # ── Already-pinned versions (moved from package.json) ──
+    tar-fs: ">=3.1.1"
+    esbuild: "0.28.1"
+    rollup: "4.60.4"
+    vite: "8.1.0"
+    undici: "6.27.0"
+    form-data: ">=4.0.4"
+    bluebird: ">=3.7.2"
+    glob: "11.1.0"
+    "@types/react": "18.3.31"
+    "@types/react-dom": "18.3.7"
+    csstype: "3.2.3"
+    zod: "3.25.76"
+
+    # ── HIGH severity fixes ──
+
+    # minimatch — path-specific to keep major versions aligned
+    "mocha>minimatch": "^5.1.8"
+    "@typescript-eslint/typescript-estree>minimatch": "^9.0.7"
+    "readdir-glob>minimatch": "^5.1.8"
+    "@eslint/eslintrc>minimatch": "^5.1.8"
+    "@vscode/vsce>minimatch": "^10.0.3"
+
+    # fast-uri (4 HIGH advisories: GHSA-q3j6-qgpj-74h6, GHSA-v39h-62p7-jpjc, …)
+    fast-uri: "^3.1.4"
+
+    # js-yaml — path-specific for different major versions
+    "@changesets/parse>js-yaml": "^4.3.0"
+    "read-yaml-file>js-yaml": "^3.15.0"
+    "gray-matter>js-yaml": "^3.15.0"
+    "rc-config-loader>js-yaml": "^3.15.0"
+    "@eslint/eslintrc>js-yaml": "^4.3.0"
+    "knip>js-yaml": "^4.3.0"
+    "mocha>js-yaml": "^4.3.0"
+
+    # hono (1 HIGH + 8 MEDIUM)
+    hono: "^4.12.27"
+    "@hono/node-server": "^2.0.12"
+
+    # tmp
+    "@vscode/vsce>tmp": "^0.2.6"
+    "ovsx>tmp": "^0.2.7"
+    "exceljs>tmp": "^0.2.7"
+
+    # linkify-it
+    linkify-it: "^5.0.2"
+
+    # shell-quote
+    shell-quote: "^1.9.0"
+
+    # path-to-regexp
+    path-to-regexp: "^8.4.0"
+
+    # serialize-javascript
+    serialize-javascript: "^7.0.5"
+
+    # postcss (new CVE, patched >=8.5.18)
+    postcss: ">=8.5.18"
+
+    # ── HIGH severity fixes (Phase 2) ──
+
+    # brace-expansion (HIGH) — eslint>minimatch brings in ^1.1.x (brace-expansion 1.x),
+    # @eslint/eslintrc>minimatch brings in ^2.0.1 (brace-expansion 2.x).
+    # Neither 1.x nor 2.x are patched — fix requires >=5.0.8
+    brace-expansion: "^5.0.8"
+
+    # @babel/core (LOW) — webview-ui>@vitejs/plugin-react>@babel/core stuck at 7.29.0
+    "@vitejs/plugin-react>@babel/core": "^7.29.6"
+
+    # body-parser (LOW) — src>@modelcontextprotocol/sdk>express>body-parser stuck at 2.2.2
+    "express>body-parser": "^2.3.0"
+
+    # dompurify (LOW) — two paths: webview-ui>mermaid>dompurify AND webview-ui>posthog-js>dompurify
+    "mermaid>dompurify": "^3.4.12"
+    "posthog-js>dompurify": "^3.4.12"
+
+    # ── MEDIUM severity fixes ──
+
+    # mdast-util-to-hast
+    mdast-util-to-hast: "^13.2.1"
+
+    # markdown-it
+    markdown-it: "^14.2.0"
+
+    # uuid — path-specific; exceljs uses uuid@^8, @azure/msal-node uses uuid@^8
+    "exceljs>uuid": "^11.1.1"
+    "@azure/msal-node>uuid": "^11.1.1"
+
+    # protobufjs
+    protobufjs: "^7.6.5"

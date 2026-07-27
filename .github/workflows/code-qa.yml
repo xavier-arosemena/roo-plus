@@ -69,6 +69,16 @@ jobs:
             - name: Verify all translations are complete
               run: node scripts/find-missing-translations.js
 
+    audit-dependencies:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+            - name: Setup Node.js and pnpm
+              uses: ./.github/actions/setup-node-pnpm
+            - name: Run pnpm audit
+              run: pnpm audit --audit-level=high
+
     knip:
         runs-on: ubuntu-latest
         steps:

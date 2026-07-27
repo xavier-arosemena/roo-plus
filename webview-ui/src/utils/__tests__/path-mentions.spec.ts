@@ -1,4 +1,4 @@
-import { escapeSpaces, convertToMentionPath } from "../path-mentions"
+import { escapeSpaces, escapeHtml, convertToMentionPath } from "../path-mentions"
 
 describe("Path Mentions Utilities", () => {
 	describe("escapeSpaces", () => {
@@ -38,6 +38,36 @@ describe("Path Mentions Utilities", () => {
 		})
 	})
 
+	describe("escapeHtml", () => {
+		it("should encode ampersand", () => {
+			expect(escapeHtml("a & b")).toBe("a &amp; b")
+		})
+
+		it("should encode less-than and greater-than", () => {
+			expect(escapeHtml("<script>")).toBe("&lt;script&gt;")
+		})
+
+		it("should encode double quotes", () => {
+			expect(escapeHtml('path"name')).toBe("path&quot;name")
+		})
+
+		it("should encode single quotes", () => {
+			expect(escapeHtml("it's")).toBe("it&#39;s")
+		})
+
+		it("should encode all special characters", () => {
+			expect(escapeHtml("<test&file>'s\"")).toBe("&lt;test&amp;file&gt;&#39;s&quot;")
+		})
+
+		it("should handle strings with no special characters", () => {
+			expect(escapeHtml("/path/to/normal/file.ts")).toBe("/path/to/normal/file.ts")
+		})
+
+		it("should handle empty string", () => {
+			expect(escapeHtml("")).toBe("")
+		})
+	})
+
 	describe("convertToMentionPath", () => {
 		const MOCK_CWD_POSIX = "/Users/test/project"
 		const MOCK_CWD_WIN = "C:\\Users\\test\\project"
@@ -62,7 +92,7 @@ describe("Path Mentions Utilities", () => {
 			const absPath = "/Users/other/file.txt"
 			expect(convertToMentionPath(absPath, MOCK_CWD_POSIX)).toBe("/Users/other/file.txt")
 			// Since we can't control the implementation of path normalization in this test,
-			// let's accept either form of path separators (/ or \) for the Windows path test
+			// let's accept either form of path separators (/ or \\) for the Windows path test
 			const winPath = "D:\\another\\folder\\file.txt"
 			const result = convertToMentionPath(winPath, MOCK_CWD_WIN)
 			// Check that the path was returned without being converted to a mention
@@ -101,6 +131,16 @@ describe("Path Mentions Utilities", () => {
 		it("should return original path if cwd is not provided", () => {
 			const absPath = "/Users/test/project/src/file with spaces.ts"
 			expect(convertToMentionPath(absPath, undefined)).toBe("/Users/test/project/src/file with spaces.ts")
+		})
+
+		it("should encode HTML special characters in path names", () => {
+			const absPath = "/Users/test/project/src/<test>&file's.ts"
+			expect(convertToMentionPath(absPath, MOCK_CWD_POSIX)).toBe("@/src/&lt;test&gt;&amp;file&#39;s.ts")
+		})
+
+		it("should not double-encode already encoded entities", () => {
+			const absPath = "/Users/test/project/src/file.ts"
+			expect(convertToMentionPath(absPath, undefined)).toBe("/Users/test/project/src/file.ts")
 		})
 	})
 })

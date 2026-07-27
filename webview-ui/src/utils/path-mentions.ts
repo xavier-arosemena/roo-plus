@@ -13,6 +13,22 @@ export function escapeSpaces(path: string): string {
 }
 
 /**
+ * Encodes special HTML characters in a string to prevent XSS/injection
+ * when rendering user-provided path strings in the webview UI.
+ *
+ * @param str The string to escape
+ * @returns A string with HTML entities encoded
+ */
+export function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;")
+}
+
+/**
  * Converts an absolute path to a mention-friendly path
  * If the provided path starts with the current working directory,
  * it's converted to a relative path prefixed with @
@@ -53,7 +69,7 @@ export function convertToMentionPath(path: string, cwd?: string): string {
 	let normalizedCwd = cwd ? cwd.replace(/\\/g, "/") : ""
 
 	if (!normalizedCwd) {
-		return pathWithoutProtocol
+		return escapeHtml(pathWithoutProtocol)
 	}
 
 	// Remove trailing slash from cwd if it exists
@@ -73,8 +89,8 @@ export function convertToMentionPath(path: string, cwd?: string): string {
 		// Escape any spaces in the path with backslashes
 		const escapedRelativePath = escapeSpaces(relativePath)
 
-		return "@" + escapedRelativePath
+		return "@" + escapeHtml(escapedRelativePath)
 	}
 
-	return pathWithoutProtocol
+	return escapeHtml(pathWithoutProtocol)
 }
