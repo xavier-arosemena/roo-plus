@@ -1364,22 +1364,12 @@
 			"count": 3
 		}
 	},
-	"services/__tests__/zoo-code-auth.test.ts": {
-		"@typescript-eslint/no-explicit-any": {
-			"count": 3
-		}
-	},
 	"services/checkpoints/__tests__/ShadowCheckpointService.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 1
 		}
 	},
 	"services/code-index/__tests__/config-manager.spec.ts": {
-		"@typescript-eslint/no-explicit-any": {
-			"count": 1
-		}
-	},
-	"services/code-index/config-manager.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 1
 		}
@@ -1397,6 +1387,11 @@
 	"services/code-index/__tests__/service-factory.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 43
+		}
+	},
+	"services/code-index/config-manager.ts": {
+		"@typescript-eslint/no-explicit-any": {
+			"count": 1
 		}
 	},
 	"services/code-index/embedders/__tests__/bedrock.spec.ts": {
@@ -1516,22 +1511,12 @@
 	},
 	"services/code-index/semble/__tests__/semble-downloader.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 66
-		}
-	},
-	"services/code-index/semble/provider.ts": {
-		"@typescript-eslint/no-explicit-any": {
-			"count": 0
+			"count": 106
 		}
 	},
 	"services/code-index/semble/semble-cli.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 3
-		}
-	},
-	"services/code-index/semble/semble-downloader.ts": {
-		"@typescript-eslint/no-explicit-any": {
-			"count": 0
 		}
 	},
 	"services/code-index/shared/__tests__/validation-helpers.spec.ts": {
