@@ -388,6 +388,9 @@ export type ExtensionState = Pick<
 		expiresAt?: number
 		error?: string
 	}
+	sharingEnabled?: boolean
+	publicSharingEnabled?: boolean
+	cloudAuthSkipModel?: boolean
 	zooCodeIsAuthenticated?: boolean
 	zooCodeUserName?: string
 	zooCodeUserEmail?: string

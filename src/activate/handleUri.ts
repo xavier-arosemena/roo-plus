@@ -54,6 +54,12 @@ export const handleUri = async (uri: vscode.Uri) => {
 			}
 			break
 		}
+		case "/auth/clerk/callback": {
+			vscode.window.showInformationMessage(
+				"Roo Code Cloud sign-in is currently unavailable. Configure another provider to continue.",
+			)
+			break
+		}
 		case "/auth-callback": {
 			const token = query.get("token")
 			if (token) {
