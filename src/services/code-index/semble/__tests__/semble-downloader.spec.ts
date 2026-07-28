@@ -1537,6 +1537,15 @@ describe("semble-downloader", () => {
 		})
 
 		it("should throw when disk space is insufficient", async () => {
+			// On Windows, checkDiskSpace skips the df check entirely (returns early)
+			// so the test only applies on non-Windows platforms
+			await vi.isFakeDate() // noop to check if we can import
+			if (process.platform === "win32") {
+				// Windows skips disk space check, so it should always resolve
+				await expect(checkDiskSpace("/storage", 150 * 1024 * 1024)).resolves.toBeUndefined()
+				return
+			}
+
 			mockExecFileCallback = (_cmd, _args, _options, cb) => {
 				cb(null, { stdout: "Avail\n100\n" })
 			} // 100KB available
@@ -1547,10 +1556,12 @@ describe("semble-downloader", () => {
 
 	describe("validateInstallPath", () => {
 		it("should succeed when storage directory is writable", async () => {
+			const storagePath = path.resolve("/storage")
+			const writeTestPath = path.join(storagePath, ".write-test")
 			await expect(validateInstallPath("/storage")).resolves.toBeUndefined()
-			expect(fs.mkdir).toHaveBeenCalledWith("/storage", { recursive: true })
-			expect(fs.writeFile).toHaveBeenCalledWith("/storage/.write-test", "test", "utf-8")
-			expect(fs.unlink).toHaveBeenCalledWith("/storage/.write-test")
+			expect(fs.mkdir).toHaveBeenCalledWith(storagePath, { recursive: true })
+			expect(fs.writeFile).toHaveBeenCalledWith(writeTestPath, "test", "utf-8")
+			expect(fs.unlink).toHaveBeenCalledWith(writeTestPath)
 		})
 
 		it("should throw when storage directory is not writable", async () => {
