@@ -72,24 +72,6 @@ describe("MarketplaceView", () => {
 		}
 	})
 
-	it("should trigger fetchMarketplaceData on mount when no items exist", async () => {
-		// Reset state to have no items
-		stateManager = new MarketplaceViewStateManager()
-
-		render(
-			<ExtensionStateContext.Provider value={mockExtensionState}>
-				<MarketplaceView stateManager={stateManager} />
-			</ExtensionStateContext.Provider>,
-		)
-
-		// Should trigger fetch on mount since there are no items and no initial state received
-		await waitFor(() => {
-			expect(vscode.postMessage).toHaveBeenCalledWith({
-				type: "fetchMarketplaceData",
-			})
-		})
-	})
-
 	it("should not trigger fetchMarketplaceData on mount when items already exist", async () => {
 		render(
 			<ExtensionStateContext.Provider value={mockExtensionState}>
@@ -97,11 +79,38 @@ describe("MarketplaceView", () => {
 			</ExtensionStateContext.Provider>,
 		)
 
-		// Should NOT trigger fetch because items already exist (state is pre-populated)
+		// State already has items from FETCH_COMPLETE, so no fetch should be triggered
+		expect(vscode.postMessage).not.toHaveBeenCalledWith({
+			type: "fetchMarketplaceData",
+		})
+	})
+
+	it("should trigger fetchMarketplaceData on mount when items are empty", async () => {
+		// Create a fresh state manager with no items loaded
+		const emptyStateManager = new MarketplaceViewStateManager()
+
+		render(
+			<ExtensionStateContext.Provider value={mockExtensionState}>
+				<MarketplaceView stateManager={emptyStateManager} />
+			</ExtensionStateContext.Provider>,
+		)
+
+		// Should trigger fetch when no items exist
 		await waitFor(() => {
-			expect(vscode.postMessage).not.toHaveBeenCalledWith({
+			expect(vscode.postMessage).toHaveBeenCalledWith({
 				type: "fetchMarketplaceData",
 			})
 		})
+	})
+
+	it("should display MCP and Modes tabs", () => {
+		const { container } = render(
+			<ExtensionStateContext.Provider value={mockExtensionState}>
+				<MarketplaceView stateManager={stateManager} />
+			</ExtensionStateContext.Provider>,
+		)
+
+		expect(container.textContent).toContain("MCP")
+		expect(container.textContent).toContain("Modes")
 	})
 })

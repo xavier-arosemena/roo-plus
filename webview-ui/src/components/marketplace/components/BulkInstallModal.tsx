@@ -127,9 +127,7 @@ export const BulkInstallModal: React.FC<BulkInstallModalProps> = ({ items, isOpe
 								<div
 									key={result.slug}
 									className={`flex items-start gap-2 p-2 rounded ${
-										result.success
-											? "bg-green-600/10 text-green-400"
-											: "bg-red-600/10 text-red-400"
+										result.success ? "bg-green-600/10 text-green-400" : "bg-red-600/10 text-red-400"
 									}`}>
 									{result.success ? (
 										<CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
