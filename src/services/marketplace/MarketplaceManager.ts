@@ -157,10 +157,10 @@ export class MarketplaceManager {
 	}
 
 	/**
-		* Install multiple marketplace items in bulk.
-		* Iterates through items sequentially, tracking success/failure per item.
-		* Returns aggregated results with per-item status.
-		*/
+	 * Install multiple marketplace items in bulk.
+	 * Iterates through items sequentially, tracking success/failure per item.
+	 * Returns aggregated results with per-item status.
+	 */
 	async installMarketplaceItems(
 		items: MarketplaceItem[],
 		options?: { target?: "global" | "project" },
@@ -183,13 +183,7 @@ export class MarketplaceManager {
 				results.push({ slug: item.id, success: true })
 
 				// Capture telemetry for each successful installation
-				TelemetryService.instance.captureMarketplaceItemInstalled(
-					item.id,
-					item.type,
-					item.name,
-					target,
-					{},
-				)
+				TelemetryService.instance.captureMarketplaceItemInstalled(item.id, item.type, item.name, target, {})
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error)
 				results.push({ slug: item.id, success: false, error: errorMessage })

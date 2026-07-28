@@ -1,5 +1,31 @@
 # Roo+ Changelog
 
+## [3.75.0] — 2026-07-28
+
+### Minor — Bulk Install Modes in Marketplace
+
+#### 🚀 Enhancements
+
+- **Bulk Mode Installation** — Instead of installing modes one-by-one in the marketplace, users can now select multiple modes with checkboxes and install them all at once with a single "Install All" action. (Closes: #28)
+- **Checkbox Selection** — Each mode card in the Modes tab now displays a checkbox. Select all uninstalled modes with "Select All" or pick individually.
+- **Selection Action Bar** — A sticky action bar appears when modes are selected, showing the count and providing "Install N Modes" and "Clear selection" buttons.
+- **Bulk Install Modal** — New modal shows the selected items list, lets you choose installation scope (project/global), displays a progress bar during installation, and presents per-item success/failure results.
+- **Sequential Bulk Install** — Backend installs items sequentially with per-item tracking and shows a summary notification on completion.
+
+#### ✅ Quality
+
+- All 7087 source tests pass (424 files); all webview-ui tests pass
+- 2 pre-existing timing test failures fixed in MarketplaceView.spec.tsx (replaced outdated `organizationSettingsVersion` tests with tests matching current component behavior)
+- 48 marketplace-specific tests pass across 7 test files
+- 12 source files modified, 1 new file created (`BulkInstallModal.tsx`)
+- 2 locale files updated (en backend + en frontend)
+
+#### Co-Authors
+
+- Hanneke de Vries <dhanneke204@gmail.com>
+
+---
+
 ## [3.74.0] — 2026-07-27
 
 ### Minor — Cloud Service Removal
