@@ -1539,7 +1539,6 @@ describe("semble-downloader", () => {
 		it("should throw when disk space is insufficient", async () => {
 			// On Windows, checkDiskSpace skips the df check entirely (returns early)
 			// so the test only applies on non-Windows platforms
-			await vi.isFakeDate() // noop to check if we can import
 			if (process.platform === "win32") {
 				// Windows skips disk space check, so it should always resolve
 				await expect(checkDiskSpace("/storage", 150 * 1024 * 1024)).resolves.toBeUndefined()
