@@ -64,6 +64,9 @@
 		"installError": "Échec de l'installation de \"{{itemName}}\" : {{errorMessage}}",
 		"removing": "Suppression de l'élément : \"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\" supprimé avec succès",
-		"removeError": "Échec de la suppression de \"{{itemName}}\" : {{errorMessage}}"
+		"removeError": "Échec de la suppression de \"{{itemName}}\" : {{errorMessage}}",
+		"bulkInstalling": "Installing {{count}} item(s)...",
+		"bulkInstallSuccess": "Successfully installed {{count}} item(s).",
+		"bulkInstallPartial": "Installed {{success}} item(s), {{failed}} failed."
 	}
 }

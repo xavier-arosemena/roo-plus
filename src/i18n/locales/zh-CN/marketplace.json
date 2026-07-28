@@ -64,6 +64,9 @@
 		"installError": "\"{{itemName}}\" 安装失败：{{errorMessage}}",
 		"removing": "正在移除项目：\"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\" 移除成功",
-		"removeError": "\"{{itemName}}\" 移除失败：{{errorMessage}}"
+		"removeError": "\"{{itemName}}\" 移除失败：{{errorMessage}}",
+		"bulkInstalling": "Installing {{count}} item(s)...",
+		"bulkInstallSuccess": "Successfully installed {{count}} item(s).",
+		"bulkInstallPartial": "Installed {{success}} item(s), {{failed}} failed."
 	}
 }

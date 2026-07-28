@@ -64,6 +64,9 @@
 		"installError": "\"{{itemName}}\" yüklenemedi: {{errorMessage}}",
 		"removing": "Öğe kaldırılıyor: \"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\" başarıyla kaldırıldı",
-		"removeError": "\"{{itemName}}\" kaldırılamadı: {{errorMessage}}"
+		"removeError": "\"{{itemName}}\" kaldırılamadı: {{errorMessage}}",
+		"bulkInstalling": "Installing {{count}} item(s)...",
+		"bulkInstallSuccess": "Successfully installed {{count}} item(s).",
+		"bulkInstallPartial": "Installed {{success}} item(s), {{failed}} failed."
 	}
 }

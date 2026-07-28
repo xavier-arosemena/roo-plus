@@ -64,6 +64,9 @@
 		"installError": "Cài đặt \"{{itemName}}\" thất bại: {{errorMessage}}",
 		"removing": "Đang xóa mục: \"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\" đã được xóa thành công",
-		"removeError": "Xóa \"{{itemName}}\" thất bại: {{errorMessage}}"
+		"removeError": "Xóa \"{{itemName}}\" thất bại: {{errorMessage}}",
+		"bulkInstalling": "Installing {{count}} item(s)...",
+		"bulkInstallSuccess": "Successfully installed {{count}} item(s).",
+		"bulkInstallPartial": "Installed {{success}} item(s), {{failed}} failed."
 	}
 }

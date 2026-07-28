@@ -152,5 +152,25 @@
 	},
 	"footer": {
 		"issueText": "Bạn tìm thấy vấn đề với mục marketplace hoặc có đề xuất cho mục mới? <0>Mở issue GitHub</0> để cho chúng tôi biết!"
+	},
+	"bulkInstall": {
+		"title": "Install {{count}} Modes",
+		"description": "Select the installation scope and install all selected modes at once.",
+		"successTitle": "{{count}} Modes Installed",
+		"successDescription": "All selected modes were installed successfully.",
+		"partialTitle": "{{success}} Installed, {{failed}} Failed",
+		"partialDescription": "Some modes could not be installed. Check the results below.",
+		"scope": "Installation Scope",
+		"project": "Project (current workspace)",
+		"global": "Global (all workspaces)",
+		"itemsToInstall": "Modes to Install ({{count}})",
+		"installButton": "Install All ({{count}})",
+		"progress": "Installing {{current}} of {{total}}...",
+		"cancel": "Cancel",
+		"done": "Done",
+		"selectAll": "Select All",
+		"deselectAll": "Deselect All",
+		"selected": "{{count}} mode(s) selected",
+		"clearSelection": "Clear selection"
 	}
 }

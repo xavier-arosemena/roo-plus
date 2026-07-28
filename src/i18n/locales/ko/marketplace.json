@@ -64,6 +64,9 @@
 		"installError": "\"{{itemName}}\" 설치 실패: {{errorMessage}}",
 		"removing": "항목 제거 중: \"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\" 제거 완료",
-		"removeError": "\"{{itemName}}\" 제거 실패: {{errorMessage}}"
+		"removeError": "\"{{itemName}}\" 제거 실패: {{errorMessage}}",
+		"bulkInstalling": "Installing {{count}} item(s)...",
+		"bulkInstallSuccess": "Successfully installed {{count}} item(s).",
+		"bulkInstallPartial": "Installed {{success}} item(s), {{failed}} failed."
 	}
 }

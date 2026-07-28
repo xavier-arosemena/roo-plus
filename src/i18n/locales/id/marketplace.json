@@ -64,6 +64,9 @@
 		"installError": "Gagal menginstal \"{{itemName}}\": {{errorMessage}}",
 		"removing": "Menghapus item: \"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\" berhasil dihapus",
-		"removeError": "Gagal menghapus \"{{itemName}}\": {{errorMessage}}"
+		"removeError": "Gagal menghapus \"{{itemName}}\": {{errorMessage}}",
+		"bulkInstalling": "Installing {{count}} item(s)...",
+		"bulkInstallSuccess": "Successfully installed {{count}} item(s).",
+		"bulkInstallPartial": "Installed {{success}} item(s), {{failed}} failed."
 	}
 }
