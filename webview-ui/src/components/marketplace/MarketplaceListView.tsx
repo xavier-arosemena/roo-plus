@@ -6,11 +6,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { X, ChevronsUpDown } from "lucide-react"
 import { MarketplaceItemCard } from "./components/MarketplaceItemCard"
+import { MarketplaceItem } from "@roo-code/types"
 import { MarketplaceViewStateManager } from "./MarketplaceViewStateManager"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { useStateManager } from "./useStateManager"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { IssueFooter } from "./IssueFooter"
+import { BulkInstallModal } from "./components/BulkInstallModal"
 
 export interface MarketplaceListViewProps {
 	stateManager: MarketplaceViewStateManager
@@ -22,9 +24,11 @@ export interface MarketplaceListViewProps {
 export function MarketplaceListView({ stateManager, allTags, filteredTags, filterByType }: MarketplaceListViewProps) {
 	const [state, manager] = useStateManager(stateManager)
 	const { t } = useAppTranslation()
-	const { marketplaceInstalledMetadata } = useExtensionState()
+	const { marketplaceInstalledMetadata, cwd } = useExtensionState()
 	const [isTagPopoverOpen, setIsTagPopoverOpen] = React.useState(false)
 	const [tagSearch, setTagSearch] = React.useState("")
+	const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set())
+	const [showBulkInstallModal, setShowBulkInstallModal] = React.useState(false)
 	const allItems = state.displayItems || []
 
 	// NOTE: installed metadata is already synchronized into the state manager via handleMessage("state"/"marketplaceData")
@@ -33,6 +37,42 @@ export function MarketplaceListView({ stateManager, allTags, filteredTags, filte
 	// Filter items by type if specified
 	const items = filterByType ? allItems.filter((item) => item.type === filterByType) : allItems
 	const isEmpty = items.length === 0
+
+	// Selection handlers
+	const handleToggleSelect = (id: string) => {
+		setSelectedIds((prev) => {
+			const next = new Set(prev)
+			if (next.has(id)) {
+				next.delete(id)
+			} else {
+				next.add(id)
+			}
+			return next
+		})
+	}
+
+	const handleSelectAll = () => {
+		// Only select non-installed mode items
+		const selectable = items.filter(
+			(item) =>
+				item.type === "mode" &&
+				!marketplaceInstalledMetadata?.project?.[item.id] &&
+				!marketplaceInstalledMetadata?.global?.[item.id],
+		)
+		setSelectedIds(new Set(selectable.map((item) => item.id)))
+	}
+
+	const handleClearSelection = () => {
+		setSelectedIds(new Set())
+	}
+
+	// Filter selected items to only mode items (only modes can be bulk-installed)
+	const selectedModeItems: MarketplaceItem[] = items.filter(
+		(item) => item.type === "mode" && selectedIds.has(item.id),
+	)
+
+	// Determine if we're only showing modes tab (to show selection bar)
+	const isModesTab = filterByType === "mode"
 
 	return (
 		<>
@@ -217,6 +257,54 @@ export function MarketplaceListView({ stateManager, allTags, filteredTags, filte
 
 			{!state.isFetching && !isEmpty && (
 				<div className="pb-3">
+					{/* Selection action bar (only in modes tab) */}
+					{isModesTab && selectedModeItems.length > 0 && (
+						<div className="sticky top-0 z-20 -mx-3 px-3 py-2 mb-3 bg-vscode-editor-background border-b border-vscode-panel-border">
+							<div className="flex items-center justify-between gap-2">
+								<span className="text-sm font-medium text-vscode-foreground">
+									{t("marketplace:bulkInstall.selected", { count: String(selectedModeItems.length) })}
+								</span>
+								<div className="flex items-center gap-2">
+									<Button
+										size="sm"
+										variant="secondary"
+										className="text-xs h-7 px-3"
+										onClick={handleClearSelection}>
+										{t("marketplace:bulkInstall.clearSelection")}
+									</Button>
+									<Button
+										size="sm"
+										variant="primary"
+										className="text-xs h-7 px-3"
+										onClick={() => setShowBulkInstallModal(true)}>
+										{t("marketplace:bulkInstall.button", { count: String(selectedModeItems.length) })}
+									</Button>
+								</div>
+							</div>
+						</div>
+					)}
+
+					{/* Select All / Deselect All hint (only in modes tab) */}
+					{isModesTab && items.filter((item) => item.type === "mode").length > 0 && (
+						<div className="mb-2 flex items-center gap-2">
+							{selectedIds.size > 0 ? (
+								<Button
+									variant="link"
+									className="text-xs p-0 h-auto text-vscode-textLink"
+									onClick={handleClearSelection}>
+									{t("marketplace:bulkInstall.deselectAll")}
+								</Button>
+							) : (
+								<Button
+									variant="link"
+									className="text-xs p-0 h-auto text-vscode-textLink"
+									onClick={handleSelectAll}>
+									{t("marketplace:bulkInstall.selectAll")}
+								</Button>
+							)}
+						</div>
+					)}
+
 					{items.length > 0 && (
 						<div>
 							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
@@ -235,6 +323,9 @@ export function MarketplaceListView({ stateManager, allTags, filteredTags, filte
 											project: marketplaceInstalledMetadata?.project?.[item.id],
 											global: marketplaceInstalledMetadata?.global?.[item.id],
 										}}
+										selected={selectedIds.has(item.id)}
+										onToggleSelect={() => handleToggleSelect(item.id)}
+										showCheckbox={item.type === "mode"}
 									/>
 								))}
 							</div>
@@ -242,6 +333,17 @@ export function MarketplaceListView({ stateManager, allTags, filteredTags, filte
 					)}
 				</div>
 			)}
+
+			{/* Bulk Install Modal */}
+			<BulkInstallModal
+				items={selectedModeItems}
+				isOpen={showBulkInstallModal}
+				onClose={() => {
+					setShowBulkInstallModal(false)
+					handleClearSelection()
+				}}
+				hasWorkspace={!!cwd}
+			/>
 
 			<IssueFooter />
 		</>

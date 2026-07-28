@@ -72,33 +72,17 @@ describe("MarketplaceView", () => {
 		}
 	})
 
-	it("should trigger fetchMarketplaceData when organization settings version changes", async () => {
-		const { rerender } = render(
+	it("should trigger fetchMarketplaceData on mount when no items exist", async () => {
+		// Reset state to have no items
+		stateManager = new MarketplaceViewStateManager()
+
+		render(
 			<ExtensionStateContext.Provider value={mockExtensionState}>
 				<MarketplaceView stateManager={stateManager} />
 			</ExtensionStateContext.Provider>,
 		)
 
-		// Initial render should not trigger fetch (version hasn't changed)
-		expect(vscode.postMessage).not.toHaveBeenCalledWith({
-			type: "fetchMarketplaceData",
-		})
-
-		// Update the organization settings version
-		mockExtensionState = {
-			...mockExtensionState,
-			organizationSettingsVersion: 2,
-			checkpointTimeout: DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
-		}
-
-		// Re-render with updated context
-		rerender(
-			<ExtensionStateContext.Provider value={mockExtensionState}>
-				<MarketplaceView stateManager={stateManager} />
-			</ExtensionStateContext.Provider>,
-		)
-
-		// Wait for the effect to run
+		// Should trigger fetch on mount since there are no items and no initial state received
 		await waitFor(() => {
 			expect(vscode.postMessage).toHaveBeenCalledWith({
 				type: "fetchMarketplaceData",
@@ -106,57 +90,14 @@ describe("MarketplaceView", () => {
 		})
 	})
 
-	it("should trigger fetchMarketplaceData when organization settings version changes from -1", async () => {
-		// Start with -1 version (default)
-		mockExtensionState = {
-			...mockExtensionState,
-			organizationSettingsVersion: -1,
-		}
-
-		const { rerender } = render(
+	it("should not trigger fetchMarketplaceData on mount when items already exist", async () => {
+		render(
 			<ExtensionStateContext.Provider value={mockExtensionState}>
 				<MarketplaceView stateManager={stateManager} />
 			</ExtensionStateContext.Provider>,
 		)
 
-		// Clear any initial calls
-		vi.clearAllMocks()
-
-		// Update to a defined version
-		mockExtensionState = {
-			...mockExtensionState,
-			organizationSettingsVersion: 1,
-		}
-
-		rerender(
-			<ExtensionStateContext.Provider value={mockExtensionState}>
-				<MarketplaceView stateManager={stateManager} />
-			</ExtensionStateContext.Provider>,
-		)
-
-		// Should trigger fetch when transitioning from -1 to 1
-		await waitFor(() => {
-			expect(vscode.postMessage).toHaveBeenCalledWith({
-				type: "fetchMarketplaceData",
-			})
-		})
-	})
-
-	it("should not trigger fetchMarketplaceData when organization settings version remains the same", async () => {
-		const { rerender } = render(
-			<ExtensionStateContext.Provider value={mockExtensionState}>
-				<MarketplaceView stateManager={stateManager} />
-			</ExtensionStateContext.Provider>,
-		)
-
-		// Re-render with same version
-		rerender(
-			<ExtensionStateContext.Provider value={mockExtensionState}>
-				<MarketplaceView stateManager={stateManager} />
-			</ExtensionStateContext.Provider>,
-		)
-
-		// Should not trigger fetch when version hasn't changed
+		// Should NOT trigger fetch because items already exist (state is pre-populated)
 		await waitFor(() => {
 			expect(vscode.postMessage).not.toHaveBeenCalledWith({
 				type: "fetchMarketplaceData",

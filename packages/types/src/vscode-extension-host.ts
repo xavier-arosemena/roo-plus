@@ -74,6 +74,7 @@ export interface ExtensionMessage {
 		| "indexCleared"
 		| "codebaseIndexConfig"
 		| "marketplaceInstallResult"
+		| "marketplaceBulkInstallResult"
 		| "marketplaceRemoveResult"
 		| "marketplaceData"
 		| "shareTaskSuccess"
@@ -154,6 +155,7 @@ export interface ExtensionMessage {
 	results?:
 		| { path: string; type: "file" | "folder"; label?: string }[]
 		| { name: string; description?: string; argumentHint?: string; source: "global" | "project" | "built-in" }[]
+		| { slug: string; success: boolean; error?: string }[]
 	error?: string
 	setting?: string
 	value?: any // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -609,7 +611,9 @@ export interface WebviewMessage {
 		| "showMdmAuthRequiredNotification"
 		| "fetchMarketplaceData"
 		| "removeInstalledMarketplaceItem"
+		| "installMarketplaceItems"
 		| "marketplaceInstallResult"
+		| "marketplaceBulkInstallResult"
 		| "shareTaskSuccess"
 		| "importRooHistory"
 		// Skills messages
@@ -681,6 +685,7 @@ export interface WebviewMessage {
 	settings?: any
 	url?: string // For openExternal
 	mpItem?: MarketplaceItem
+	mpItems?: MarketplaceItem[]
 	mpInstallOptions?: InstallMarketplaceItemOptions
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	config?: Record<string, any> // Add config to the payload

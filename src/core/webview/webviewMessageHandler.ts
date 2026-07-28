@@ -3146,6 +3146,35 @@ export const webviewMessageHandler = async (
 			break
 		}
 
+		case "installMarketplaceItems": {
+			if (marketplaceManager && message.mpItems && Array.isArray(message.mpItems) && message.mpItems.length > 0) {
+				try {
+					const results = await marketplaceManager.installMarketplaceItems(
+						message.mpItems,
+						message.mpInstallOptions,
+					)
+					await provider.postStateToWebview()
+
+					// Send bulk install results back to webview
+					provider.postMessageToWebview({
+						type: "marketplaceBulkInstallResult",
+						results,
+					})
+				} catch (error) {
+					console.error(`Error installing marketplace items in bulk: ${error}`)
+					provider.postMessageToWebview({
+						type: "marketplaceBulkInstallResult",
+						results: message.mpItems.map((item: { id: string }) => ({
+							slug: item.id,
+							success: false,
+							error: error instanceof Error ? error.message : String(error),
+						})),
+					})
+				}
+			}
+			break
+		}
+
 		case "removeInstalledMarketplaceItem": {
 			if (marketplaceManager && message.mpItem && message.mpInstallOptions) {
 				try {

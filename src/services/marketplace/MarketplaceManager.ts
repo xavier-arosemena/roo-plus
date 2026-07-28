@@ -156,6 +156,65 @@ export class MarketplaceManager {
 		}
 	}
 
+	/**
+		* Install multiple marketplace items in bulk.
+		* Iterates through items sequentially, tracking success/failure per item.
+		* Returns aggregated results with per-item status.
+		*/
+	async installMarketplaceItems(
+		items: MarketplaceItem[],
+		options?: { target?: "global" | "project" },
+	): Promise<{ slug: string; success: boolean; error?: string }[]> {
+		const { target = "project" } = options || {}
+
+		if (items.length === 0) {
+			return []
+		}
+
+		vscode.window.showInformationMessage(
+			t("marketplace:installation.bulkInstalling", { count: String(items.length) }),
+		)
+
+		const results: { slug: string; success: boolean; error?: string }[] = []
+
+		for (const item of items) {
+			try {
+				await this.installer.installItem(item, { target })
+				results.push({ slug: item.id, success: true })
+
+				// Capture telemetry for each successful installation
+				TelemetryService.instance.captureMarketplaceItemInstalled(
+					item.id,
+					item.type,
+					item.name,
+					target,
+					{},
+				)
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : String(error)
+				results.push({ slug: item.id, success: false, error: errorMessage })
+			}
+		}
+
+		// Show summary notification
+		const successCount = results.filter((r) => r.success).length
+		const failCount = results.filter((r) => !r.success).length
+		if (failCount === 0) {
+			vscode.window.showInformationMessage(
+				t("marketplace:installation.bulkInstallSuccess", { count: String(successCount) }),
+			)
+		} else {
+			vscode.window.showWarningMessage(
+				t("marketplace:installation.bulkInstallPartial", {
+					success: String(successCount),
+					failed: String(failCount),
+				}),
+			)
+		}
+
+		return results
+	}
+
 	async removeInstalledMarketplaceItem(
 		item: MarketplaceItem,
 		options?: { target?: "global" | "project" },
