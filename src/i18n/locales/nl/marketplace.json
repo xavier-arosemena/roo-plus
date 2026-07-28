@@ -64,6 +64,9 @@
 		"installError": "Installatie van \"{{itemName}}\" mislukt: {{errorMessage}}",
 		"removing": "Item verwijderen: \"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\" succesvol verwijderd",
-		"removeError": "Verwijdering van \"{{itemName}}\" mislukt: {{errorMessage}}"
+		"removeError": "Verwijdering van \"{{itemName}}\" mislukt: {{errorMessage}}",
+		"bulkInstalling": "Installing {{count}} item(s)...",
+		"bulkInstallSuccess": "Successfully installed {{count}} item(s).",
+		"bulkInstallPartial": "Installed {{success}} item(s), {{failed}} failed."
 	}
 }

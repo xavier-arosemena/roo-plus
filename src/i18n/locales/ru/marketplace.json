@@ -64,6 +64,9 @@
 		"installError": "Не удалось установить \"{{itemName}}\": {{errorMessage}}",
 		"removing": "Удаление элемента: \"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\" успешно удален",
-		"removeError": "Не удалось удалить \"{{itemName}}\": {{errorMessage}}"
+		"removeError": "Не удалось удалить \"{{itemName}}\": {{errorMessage}}",
+		"bulkInstalling": "Installing {{count}} item(s)...",
+		"bulkInstallSuccess": "Successfully installed {{count}} item(s).",
+		"bulkInstallPartial": "Installed {{success}} item(s), {{failed}} failed."
 	}
 }

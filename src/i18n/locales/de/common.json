@@ -112,7 +112,6 @@
 			"thinking_complete_recitation": "(Denken abgeschlossen, aber die Ausgabe wurde aufgrund der Rezitationsprüfung blockiert.)"
 		},
 		"roo": {
-			"authenticationRequired": "Roo-Anbieter erfordert Cloud-Authentifizierung. Bitte melde dich bei Roo Code Cloud an.",
 			"routerRemoved": "Roo Code Router wurde entfernt. Bitte wähle einen anderen Anbieter und konfiguriere ihn."
 		},
 		"openAiCodex": {
@@ -169,9 +168,6 @@
 		"public_share_link_copied": "Öffentlicher Freigabelink in die Zwischenablage kopiert!",
 		"mode_exported": "Modus '{{mode}}' erfolgreich exportiert",
 		"mode_imported": "Modus erfolgreich importiert",
-		"roo": {
-			"signInUnavailable": "Die Anmeldung bei Roo Code Cloud ist derzeit nicht verfügbar. Konfiguriere einen anderen Anbieter, um fortzufahren."
-		},
 		"rooHistoryImport": {
 			"success_one": "{{count}} Roo Code-Aufgabenverlauf in Roo+ importiert.",
 			"success_other": "{{count}} Roo Code-Aufgabenverläufe in Roo+ importiert."

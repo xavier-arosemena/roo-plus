@@ -24,11 +24,6 @@
       "count": 6
     }
   },
-  "__tests__/extension.spec.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
   "__tests__/history-resume-delegation.spec.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 72
@@ -1154,11 +1149,6 @@
       "count": 5
     }
   },
-  "core/webview/__tests__/webviewMessageHandler.cloudAuth.spec.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
   "core/webview/__tests__/webviewMessageHandler.delete.spec.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 9
@@ -1202,11 +1192,6 @@
   "core/webview/webviewMessageHandler.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
-    }
-  },
-  "extension.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
     }
   },
   "extension/__tests__/api-delete-queued-message.spec.ts": {
@@ -1631,7 +1616,7 @@
   },
   "services/mdm/__tests__/MdmService.spec.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 5
+      "count": 3
     }
   },
   "services/ripgrep/__tests__/diagnostic.spec.ts": {

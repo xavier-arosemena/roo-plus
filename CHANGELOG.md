@@ -1,5 +1,23 @@
 # Roo+ Changelog
 
+## [3.74.0] — 2026-07-27
+
+### Minor — Cloud Service Removal
+
+#### 🚀 Enhancements
+
+- **Roo Code Cloud Removed** — Removed the `packages/cloud/` module entirely. The upstream Roo Code Cloud backend (`app.roocode.com`) has been permanently shut down (HTTP 410). All cloud-dependent features (sign-in, settings sync, task sharing, telemetry, retry queue) have been eliminated. (Closes: #31, #39)
+- **Faster Extension Activation** — Extension no longer blocks on cloud service initialization. No more HTTP calls to `app.roocode.com` on startup, eliminating the exponential backoff loop that could stall extension loading.
+- **Smaller Extension Footprint** — Removed ∼400 lines of cloud integration code and eliminated the persisted retry queue (`roo.retryQueue` in extension state) which could grow to 1MB+.
+
+#### ✅ Quality
+
+- All 287 tests pass (268 src + 19 webview-ui) with zero cloud mocks
+- 12 test files updated, 1 cloud auth test file deleted
+- 18 locale files cleaned of `roo.signInUnavailable` i18n key
+
+---
+
 ## [3.73.0] — 2026-07-27
 
 ### Minor — Mode Subtitles (Descriptions) Completed

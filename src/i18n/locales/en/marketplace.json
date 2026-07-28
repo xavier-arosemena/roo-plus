@@ -64,6 +64,9 @@
 		"installError": "Failed to install \"{{itemName}}\": {{errorMessage}}",
 		"removing": "Removing item: \"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\" removed successfully",
-		"removeError": "Failed to remove \"{{itemName}}\": {{errorMessage}}"
+		"removeError": "Failed to remove \"{{itemName}}\": {{errorMessage}}",
+		"bulkInstalling": "Installing {{count}} item(s)...",
+		"bulkInstallSuccess": "Successfully installed {{count}} item(s).",
+		"bulkInstallPartial": "Installed {{success}} item(s), {{failed}} failed."
 	}
 }

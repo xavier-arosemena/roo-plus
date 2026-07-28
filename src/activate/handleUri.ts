@@ -1,6 +1,5 @@
 import * as vscode from "vscode"
 
-import { getRouterUnavailableSignInMessage } from "../core/config/routerRemoval"
 import { ClineProvider } from "../core/webview/ClineProvider"
 import { handleAuthCallback as handleRooPlusAuthCallback, setRooPlusUserInfo } from "../services/roo-plus-auth"
 
@@ -56,7 +55,9 @@ export const handleUri = async (uri: vscode.Uri) => {
 			break
 		}
 		case "/auth/clerk/callback": {
-			vscode.window.showInformationMessage(getRouterUnavailableSignInMessage())
+			vscode.window.showInformationMessage(
+				"Roo Code Cloud sign-in is currently unavailable. Configure another provider to continue.",
+			)
 			break
 		}
 		case "/auth-callback": {

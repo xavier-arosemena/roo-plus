@@ -64,6 +64,9 @@
 		"installError": "\"{{itemName}}\"のインストールに失敗しました: {{errorMessage}}",
 		"removing": "アイテムを削除中: \"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\"の削除が完了しました",
-		"removeError": "\"{{itemName}}\"の削除に失敗しました: {{errorMessage}}"
+		"removeError": "\"{{itemName}}\"の削除に失敗しました: {{errorMessage}}",
+		"bulkInstalling": "Installing {{count}} item(s)...",
+		"bulkInstallSuccess": "Successfully installed {{count}} item(s).",
+		"bulkInstallPartial": "Installed {{success}} item(s), {{failed}} failed."
 	}
 }

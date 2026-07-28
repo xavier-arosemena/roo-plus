@@ -112,7 +112,6 @@
 			"thinking_complete_recitation": "(Berpikir selesai, tetapi output diblokir karena pemeriksaan resitasi.)"
 		},
 		"roo": {
-			"authenticationRequired": "Penyedia Roo memerlukan autentikasi cloud. Silakan masuk ke Roo Code Cloud.",
 			"routerRemoved": "Roo Code Router telah dihapus. Pilih dan konfigurasikan penyedia lain."
 		},
 		"api": {
@@ -169,9 +168,6 @@
 		"public_share_link_copied": "Tautan berbagi publik disalin ke clipboard!",
 		"mode_exported": "Mode '{{mode}}' berhasil diekspor",
 		"mode_imported": "Mode berhasil diimpor",
-		"roo": {
-			"signInUnavailable": "Masuk ke Roo Code Cloud saat ini tidak tersedia. Konfigurasikan penyedia lain untuk melanjutkan."
-		},
 		"rooHistoryImport": {
 			"success_one": "{{count}} riwayat tugas Roo Code berhasil diimpor ke Roo+.",
 			"success_other": "{{count}} riwayat tugas Roo Code berhasil diimpor ke Roo+."

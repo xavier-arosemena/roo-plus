@@ -33,9 +33,20 @@ interface MarketplaceItemCardProps {
 		project: ItemInstalledMetadata | undefined
 		global: ItemInstalledMetadata | undefined
 	}
+	selected?: boolean
+	onToggleSelect?: () => void
+	showCheckbox?: boolean
 }
 
-export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, filters, setFilters, installed }) => {
+export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({
+	item,
+	filters,
+	setFilters,
+	installed,
+	selected = false,
+	onToggleSelect,
+	showCheckbox = false,
+}) => {
 	const { t } = useAppTranslation()
 	const { cwd } = useExtensionState()
 	const [showInstallModal, setShowInstallModal] = useState(false)
@@ -91,10 +102,30 @@ export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, 
 
 	return (
 		<>
-			<div className="border border-vscode-panel-border rounded-xl cursor-default p-3 transition-colors bg-vscode-editor-background hover:bg-vscode-editor-foreground/5">
+			<div
+				className={cn(
+					"border rounded-xl cursor-default p-3 transition-colors bg-vscode-editor-background hover:bg-vscode-editor-foreground/5",
+					{
+						"border-vscode-button-background": selected,
+						"border-vscode-panel-border": !selected,
+					},
+				)}>
 				<div className="flex gap-2 items-start justify-between">
-					<div className="flex gap-2 items-start">
-						<div>
+					<div className="flex gap-2 items-start flex-1 min-w-0">
+						{/* Checkbox for bulk selection (mode items only) */}
+						{showCheckbox && onToggleSelect && (
+							<label
+								className="flex items-center cursor-pointer pt-0.5 shrink-0"
+								onClick={(e) => e.stopPropagation()}>
+								<input
+									type="checkbox"
+									checked={selected}
+									onChange={onToggleSelect}
+									className="w-4 h-4 rounded cursor-pointer accent-vscode-button-background"
+								/>
+							</label>
+						)}
+						<div className="min-w-0">
 							<h3 className="text-lg font-semibold text-vscode-foreground mt-0 mb-1 leading-none">
 								{item.type === "mcp" && item.url && isValidUrl(item.url) ? (
 									<Button

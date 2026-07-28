@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "xavier-arosemena",
-	"version": "3.73.0",
+	"version": "3.74.0",
 	"icon": "assets/icons/icon.png",
 	"galleryBanner": {
 		"color": "#617A91",
@@ -470,7 +470,6 @@
 		"@mistralai/mistralai": "^1.9.18",
 		"@modelcontextprotocol/sdk": "1.29.0",
 		"@qdrant/js-client-rest": "^1.14.0",
-		"@roo-code/cloud": "workspace:^",
 		"@roo-code/core": "workspace:^",
 		"@roo-code/ipc": "workspace:^",
 		"@roo-code/telemetry": "workspace:^",

@@ -112,7 +112,6 @@
 			"thinking_complete_recitation": "(Pensamiento completado, pero la salida fue bloqueada debido a la comprobación de recitación.)"
 		},
 		"roo": {
-			"authenticationRequired": "El proveedor Roo requiere autenticación en la nube. Por favor, inicia sesión en Roo Code Cloud.",
 			"routerRemoved": "Roo Code Router ha sido eliminado. Selecciona y configura un proveedor diferente."
 		},
 		"api": {
@@ -169,9 +168,6 @@
 		"public_share_link_copied": "¡Enlace de compartición pública copiado al portapapeles!",
 		"mode_exported": "Modo '{{mode}}' exportado correctamente",
 		"mode_imported": "Modo importado correctamente",
-		"roo": {
-			"signInUnavailable": "El inicio de sesión de Roo Code Cloud no está disponible en este momento. Configura otro proveedor para continuar."
-		},
 		"rooHistoryImport": {
 			"success_one": "Se importó {{count}} historial de tarea de Roo Code en Roo+.",
 			"success_other": "Se importaron {{count}} historiales de tareas de Roo Code en Roo+."
