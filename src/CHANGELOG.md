@@ -1,12 +1,78 @@
 # Roo+ Changelog
 
+## [3.75.1] — 2026-07-29
+
+### Patch — Zoo Gateway Removal & CI Pipeline Fixes
+
+#### 🐛 Bug Fixes
+
+- **Zoo Gateway Provider Removed** — Completed removal of the Zoo Gateway provider from the codebase. The provider identifier, default model, and all related types have been purged. The provider entry is intentionally blank (`providers/zoo-gateway.ts` is empty). (Closes: #81)
+- **Test Suite Cleanup** — Removed 4 empty test suite stubs leftover from Zoo Gateway removal (`roo-plus-auth.test.ts`, `checkExistApiConfig.spec.ts`, `zoo-gateway.spec.ts` in api/providers and fetchers)
+- **handleUri Tests Updated** — Rewrote handleUri.spec.ts to match the simplified `/auth-callback` handler which no longer calls auth callback functions
+- **Router Model Tests Fixed** — Removed stale `zoo-gateway` references from `ClineProvider.spec.ts` and `webviewMessageHandler.spec.ts` router model assertions
+- **Semble Provider Test Fixed** — Updated `downloadSemble` expectation to include the third `extensionPath` parameter
+
+#### ✅ Quality
+
+- Lint passes (0 errors, 0 warnings) after removing stale eslint suppressions
+- Type checks pass across all 13 packages
+- All 6978 source tests pass (416 test files); all webview-ui tests pass
+- Invisible-chars and translation CI checks pass
+
+#### 🔧 Chores
+
+- Pruned stale eslint suppressions with `--prune-suppressions`
+- Removed unused `validateApiConfiguration` import from webview-ui test
+
+---
+
+## [3.75.0] — 2026-07-28
+
+### Minor — Bulk Install Modes in Marketplace
+
+#### 🚀 Enhancements
+
+- **Bulk Mode Installation** — Instead of installing modes one-by-one in the marketplace, users can now select multiple modes with checkboxes and install them all at once with a single "Install All" action. (Closes: #28)
+- **Checkbox Selection** — Each mode card in the Modes tab now displays a checkbox. Select all uninstalled modes with "Select All" or pick individually.
+- **Selection Action Bar** — A sticky action bar appears when modes are selected, showing the count and providing "Install N Modes" and "Clear selection" buttons.
+- **Bulk Install Modal** — New modal shows the selected items list, lets you choose installation scope (project/global), displays a progress bar during installation, and presents per-item success/failure results.
+- **Sequential Bulk Install** — Backend installs items sequentially with per-item tracking and shows a summary notification on completion.
+
+#### ✅ Quality
+
+- All 7087 source tests pass (424 files); all webview-ui tests pass
+- 2 pre-existing timing test failures fixed in MarketplaceView.spec.tsx (replaced outdated `organizationSettingsVersion` tests with tests matching current component behavior)
+- 48 marketplace-specific tests pass across 7 test files
+- 12 source files modified, 1 new file created (`BulkInstallModal.tsx`)
+- 2 locale files updated (en backend + en frontend)
+
+---
+
+## [3.74.0] — 2026-07-27
+
+### Minor — Cloud Service Removal
+
+#### 🚀 Enhancements
+
+- **Roo Code Cloud Removed** — Removed the `packages/cloud/` module entirely. The upstream Roo Code Cloud backend (`app.roocode.com`) has been permanently shut down (HTTP 410). All cloud-dependent features (sign-in, settings sync, task sharing, telemetry, retry queue) have been eliminated. (Closes: #31, #39)
+- **Faster Extension Activation** — Extension no longer blocks on cloud service initialization. No more HTTP calls to `app.roocode.com` on startup, eliminating the exponential backoff loop that could stall extension loading.
+- **Smaller Extension Footprint** — Removed ∼400 lines of cloud integration code and eliminated the persisted retry queue (`roo.retryQueue` in extension state) which could grow to 1MB+.
+
+#### ✅ Quality
+
+- All 287 tests pass (268 src + 19 webview-ui) with zero cloud mocks
+- 12 test files updated, 1 cloud auth test file deleted
+- 18 locale files cleaned of `roo.signInUnavailable` i18n key
+
+---
+
 ## [3.73.0] — 2026-07-27
 
 ### Minor — Mode Subtitles (Descriptions) Completed
 
 #### 🚀 Enhancements
 
-- **Mode Subtitles** — Added `description:` (subtitle) fields to all 90 custom mode entries in [`.roomodes`](.roomodes) that were missing them. All 97 pre-loaded modes now display descriptive subtitles in the mode selector UI. (Closes: #39)
+- **Mode Descriptions** — Added `description:` (subtitle) fields to all 90 custom mode entries in [`.roomodes`](.roomodes) that were missing them. All 97 pre-loaded modes now display descriptive subtitles in the mode selector UI. (Closes: #39)
 - **Agent Source Descriptions** — Added `description:` fields to all 233 agent source YAML files in `custom-modes/agents/`, fixing the root cause where the upstream schema omitted descriptions entirely.
 - **Agent Catalog Alignment** — Audit confirmed 233 total agents: 90 pre-loaded in `.roomodes` (all described), 143 available for import via the `agents/` submodule. See [`custom-modes/AGENT_CATALOG.md`](custom-modes/AGENT_CATALOG.md) for the full list.
 
@@ -14,7 +80,6 @@
 
 - YAML validation passed — all 97 mode entries parse correctly
 - Lint passed — zero warnings
-- All 425 test files passed (7,103 tests)
 
 ---
 

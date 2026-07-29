@@ -1,5 +1,31 @@
 # Roo+ Changelog
 
+## [3.75.1] — 2026-07-29
+
+### Patch — Zoo Gateway Removal & CI Pipeline Fixes
+
+#### 🐛 Bug Fixes
+
+- **Zoo Gateway Provider Removed** — Completed removal of the Zoo Gateway provider from the codebase. The provider identifier, default model, and all related types have been purged. The provider entry is intentionally blank (`providers/zoo-gateway.ts` is empty). (Closes: #81)
+- **Test Suite Cleanup** — Removed 4 empty test suite stubs leftover from Zoo Gateway removal (`roo-plus-auth.test.ts`, `checkExistApiConfig.spec.ts`, `zoo-gateway.spec.ts` in api/providers and fetchers)
+- **handleUri Tests Updated** — Rewrote handleUri.spec.ts to match the simplified `/auth-callback` handler which no longer calls auth callback functions
+- **Router Model Tests Fixed** — Removed stale `zoo-gateway` references from `ClineProvider.spec.ts` and `webviewMessageHandler.spec.ts` router model assertions
+- **Semble Provider Test Fixed** — Updated `downloadSemble` expectation to include the third `extensionPath` parameter
+
+#### ✅ Quality
+
+- Lint passes (0 errors, 0 warnings) after removing stale eslint suppressions
+- Type checks pass across all 13 packages
+- All 6978 source tests pass (416 test files); all webview-ui tests pass
+- Invisible-chars and translation CI checks pass
+
+#### 🔧 Chores
+
+- Pruned stale eslint suppressions with `--prune-suppressions`
+- Removed unused `validateApiConfiguration` import from webview-ui test
+
+---
+
 ## [3.75.0] — 2026-07-28
 
 ### Minor — Bulk Install Modes in Marketplace
@@ -19,10 +45,6 @@
 - 48 marketplace-specific tests pass across 7 test files
 - 12 source files modified, 1 new file created (`BulkInstallModal.tsx`)
 - 2 locale files updated (en backend + en frontend)
-
-#### Co-Authors
-
-- Hanneke de Vries <dhanneke204@gmail.com>
 
 ---
 

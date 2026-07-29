@@ -371,9 +371,27 @@ export class CustomModesManager {
 			return
 		}
 
+		// Re-seed if the VSIX version has changed, ensuring updated mode
+		// descriptions (and other metadata) are applied on upgrade.
 		const alreadySeeded = this.context.globalState.get<boolean>(PRE_INSTALLED_MODES_KEY)
-		if (alreadySeeded) {
-			return
+		const lastSeededVersion = this.context.globalState.get<string>("preInstalledModesVersion")
+		const currentVersion = this.context.extension.packageJSON.version
+
+		// Check if already seeded AND version hasn't changed AND modes have descriptions
+		if (alreadySeeded && lastSeededVersion === currentVersion) {
+			// Even if version matches, check if existing seeded modes have descriptions
+			const settingsPath = await this.getCustomModesFilePath()
+			try {
+				const existingModes = await this.loadModesFromFile(settingsPath)
+				const hasDescriptions = existingModes.some((m) => m.description && m.description.length > 0)
+				if (hasDescriptions) {
+					return // All good, skip
+				}
+				// No descriptions found — fall through to re-seed
+				console.log("[CustomModesManager] Existing modes lack descriptions, re-seeding...")
+			} catch {
+				return // Can't read settings, skip
+			}
 		}
 
 		const bundledPath = path.join(this.context.extensionPath, BUNDLED_MODES_RELATIVE_PATH)
@@ -402,6 +420,8 @@ export class CustomModesManager {
 			await fs.writeFile(settingsPath, settingsContent, "utf-8")
 
 			await this.context.globalState.update(PRE_INSTALLED_MODES_KEY, true)
+			await this.context.globalState.update("preInstalledModesVersion", currentVersion)
+			this.clearCache()
 			console.log(`[CustomModesManager] Seeded ${bundledModes.length} pre-installed modes from bundled asset`)
 		} catch (error) {
 			console.error(`[CustomModesManager] Failed to seed pre-installed modes:`, error)
@@ -421,14 +441,13 @@ export class CustomModesManager {
 		const settingsPath = await this.getCustomModesFilePath()
 		let settingsModes = await this.loadModesFromFile(settingsPath)
 
-		// On first run, settingsModes will be empty. Seed from the bundled
-		// pre-installed modes asset so the 146+ curated modes are available
-		// immediately without requiring manual marketplace installation.
-		if (settingsModes.length === 0) {
-			await this.seedPreInstalledModes()
-			// Re-read after potential seeding
-			settingsModes = await this.loadModesFromFile(settingsPath)
-		}
+		// Seed from the bundled pre-installed modes asset so the curated modes
+		// are available immediately. The seed method checks version and existing
+		// descriptions internally to decide whether re-seeding is needed, so
+		// it's safe to call even when modes already exist.
+		await this.seedPreInstalledModes()
+		// Re-read after potential seeding/upgrade
+		settingsModes = await this.loadModesFromFile(settingsPath)
 
 		// Get modes from .roomodes if it exists.
 		const roomodesPath = await this.getWorkspaceRoomodes()

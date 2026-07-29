@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roo+ Release Announcement — Visual Rendering</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #1e1e1e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #cccccc;
+  }
+  .modal-overlay {
+    background: rgba(0,0,0,0.5);
+    padding: 40px;
+    border-radius: 12px;
+  }
+  .modal {
+    background: #252526;
+    border: 1px solid #3c3c3c;
+    border-radius: 8px;
+    padding: 24px;
+    width: 540px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .modal h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #3c3c3c;
+  }
+  .whats-new {
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: #cccccc;
+  }
+  ul {
+    list-style: disc;
+    padding-left: 20px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #b0b0b0;
+    margin-bottom: 16px;
+  }
+  ul li { margin-bottom: 4px; }
+  .social-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 12px 0;
+    margin-top: 8px;
+  }
+  .social-link {
+    color: #3794ff;
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .social-link:hover { text-decoration: underline; }
+  .social-icon {
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+  }
+  .github-line {
+    text-align: center;
+    font-size: 13px;
+    color: #969696;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #3c3c3c;
+  }
+  .github-line a {
+    color: #3794ff;
+    text-decoration: none;
+  }
+  .github-line a:hover { text-decoration: underline; }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #3c3c3c;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  .close-btn {
+    color: #969696;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+  }
+  .close-btn:hover { color: #e0e0e0; }
+
+  /* SVG icons inline */
+  .icon-x svg, .icon-discord svg, .icon-reddit svg {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+  }
+
+  /* Legend section */
+  .legend {
+    margin-top: 24px;
+    padding: 16px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #888;
+  }
+  .legend h3 {
+    color: #aaa;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .legend code {
+    background: #2d2d2d;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: #ce9178;
+  }
+  .legend .file {
+    color: #6a9955;
+  }
+</style>
+</head>
+<body>
+
+<div class="modal-overlay">
+  <div class="modal">
+
+    <!-- HEADER with close button -->
+    <div class="header">
+      <h1>🦘 Roo+ Code 3.72.0 Released</h1>
+      <button class="close-btn" title="Close">✕</button>
+    </div>
+
+    <!-- "What's New" heading -->
+    <p class="whats-new"><strong>What's New:</strong></p>
+
+    <!-- 3 highlight bullets -->
+    <ul>
+      <li><strong>Cloud Services-</strong> The bug, which was stalling remote server connections, is fixed. And cloud services eliminated</li>
+      <li><strong>Semble-</strong> Now Semble comes pre-bundled for easy indexing without downloading the binaries</li>
+      <li><strong>Custom modes-</strong> now include a description for easy reference, and can be installed in bulk</li>
+    </ul>
+
+    <!-- Social links row — GitHub + Open VSX -->
+    <div class="social-row">
+      <span class="social-link">
+        <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </span>
+      <span class="social-link">
+        <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open VSX
+      </span>
+    </div>
+
+    <!-- GitHub + Open VSX support text -->
+    <div class="github-line">
+      Please support Roo+ by starring us on <a href="#">GitHub</a> and on the <a href="#">Open VSX Registry</a>.<br/>Every review and star helps more developers discover their AI development team!
+    </div>
+
+  </div>
+
+  <!-- LEGEND: where each piece comes from -->
+  <div class="legend">
+    <h3>📌 Where each piece comes from — edit targets:</h3>
+    <table style="width:100%; border-collapse: collapse; line-height: 1.8;">
+      <tr>
+        <td style="color:#6a9955; width:40px;">①</td>
+        <td style="width:160px;"><strong>Title</strong></td>
+        <td><code>chat:announcement.title</code> → <span class="file">webview-ui/src/i18n/locales/en/chat.json:361</span></td>
+      </tr>
+      <tr>
+        <td style="color:#6a9955;">②</td>
+        <td><strong>"What's New:"</strong></td>
+        <td><code>chat:announcement.release.heading</code> → <span class="file">en/chat.json:364</span></td>
+      </tr>
+      <tr>
+        <td style="color:#6a9955;">③</td>
+        <td><strong>3 bullet points</strong></td>
+        <td><code>highlight1/2/3</code> → <span class="file">en/chat.json:365-367</span></td>
+      </tr>
+      <tr>
+        <td style="color:#6a9955;">④</td>
+        <td><strong>GitHub / Open VSX icons</strong></td>
+        <td>Hardcoded JSX → <span class="file">Announcement.tsx:53-63</span></td>
+      </tr>
+      <tr>
+        <td style="color:#6a9955;">⑤</td>
+        <td><strong>Support text (GitHub + Open VSX)</strong></td>
+        <td><code>chat:announcement.support</code> → <span class="file">en/chat.json:362</span></td>
+      </tr>
+      <tr>
+        <td style="color:#6a9955;">⑥</td>
+        <td><strong>Open VSX component</strong></td>
+        <td><span class="file">Announcement.tsx:113-121</span> — <code>OpenVSXLink</code></td>
+      </tr>
+      <tr>
+        <td style="color:#6a9955;">⑦</td>
+        <td><strong>Open VSX constant</strong></td>
+        <td><span class="file">externalLinks.ts:10</span> — <code>OPEN_VSX_REGISTRY</code></td>
+      </tr>
+      <tr>
+        <td style="color:#6a9955;">⑧</td>
+        <td><strong>When to re-show</strong></td>
+        <td><span class="file">src/core/webview/ClineProvider.ts:205</span> — <code>latestAnnouncementId</code></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

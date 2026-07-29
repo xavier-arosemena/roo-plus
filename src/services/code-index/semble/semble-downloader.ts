@@ -391,7 +391,11 @@ async function cleanupStaleArchives(
  *   If provided and the file exists, the download is skipped entirely.
  * @returns The full path to the semble executable, or undefined if the platform is unsupported.
  */
-export async function downloadSemble(storageDir: string, binaryPathOverride?: string): Promise<string | undefined> {
+export async function downloadSemble(
+	storageDir: string,
+	binaryPathOverride?: string,
+	extensionPath?: string,
+): Promise<string | undefined> {
 	// 1. Check binary path override — no network calls needed
 	if (binaryPathOverride && binaryPathOverride.length > 0) {
 		try {
@@ -412,6 +416,24 @@ export async function downloadSemble(storageDir: string, binaryPathOverride?: st
 
 	const extractDir = path.join(storageDir, "semble")
 	const binaryPath = path.join(extractDir, info.binary)
+
+	// 1.5. Check for pre-bundled binary from VSIX extension directory
+	if (extensionPath) {
+		const bundledBinaryPath = path.join(extensionPath, "services", "code-index", "semble", "bin", info.binary)
+		try {
+			await fs.access(bundledBinaryPath)
+			// Copy bundled binary to storage directory
+			await fs.mkdir(extractDir, { recursive: true })
+			await fs.copyFile(bundledBinaryPath, binaryPath)
+			if (process.platform !== "win32") {
+				await fs.chmod(binaryPath, 0o755)
+			}
+			console.log(`[SembleDownloader] Using pre-bundled binary from ${bundledBinaryPath}`)
+			return binaryPath
+		} catch {
+			// Binary not bundled, continue with normal download
+		}
+	}
 
 	// 2. Check installed version against hardcoded SEMBLE_VERSION first.
 	//    We defer resolveSembleVersion() until after this check to avoid unnecessary
@@ -596,7 +618,9 @@ async function attemptDownload(
 		} catch {
 			// ignore cleanup errors
 		}
-		console.error(`[SembleDownloader] Failed to download from source: ${error instanceof Error ? error.message : String(error)}`)
+		console.error(
+			`[SembleDownloader] Failed to download from source: ${error instanceof Error ? error.message : String(error)}`,
+		)
 		throw error
 	}
 }

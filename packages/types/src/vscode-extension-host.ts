@@ -39,7 +39,6 @@ export interface ExtensionMessage {
 		| "commitSearchResults"
 		| "listApiConfig"
 		| "routerModels"
-		| "zooGatewayCredentialsReady"
 		| "openAiModels"
 		| "ollamaModels"
 		| "lmStudioModels"
@@ -390,15 +389,6 @@ export type ExtensionState = Pick<
 		expiresAt?: number
 		error?: string
 	}
-	sharingEnabled?: boolean
-	publicSharingEnabled?: boolean
-	cloudAuthSkipModel?: boolean
-	zooCodeIsAuthenticated?: boolean
-	zooCodeUserName?: string
-	zooCodeUserEmail?: string
-	zooCodeUserImage?: string
-	zooCodeBaseUrl?: string
-	deviceName?: string
 	debug?: boolean
 
 	/**
@@ -535,17 +525,10 @@ export interface WebviewMessage {
 		| "toggleApiConfigPin"
 		| "hasOpenedModeSelector"
 		| "lockApiConfigAcrossModes"
-		| "clearCloudAuthSkipModel"
-		| "rooCloudSignIn"
-		| "cloudLandingPageSignIn"
-		| "rooCloudSignOut"
-		| "rooCloudManualUrl"
 		| "openAiCodexSignIn"
 		| "openAiCodexSignOut"
 		| "kimiCodeSignIn"
 		| "kimiCodeSignOut"
-		| "zooCodeSignOut"
-		| "switchOrganization"
 		| "condenseTaskContextRequest"
 		| "requestIndexingStatus"
 		| "startIndexing"

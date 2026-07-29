@@ -25,7 +25,6 @@ import { vscode } from "@src/utils/vscode"
 import { validateApiConfigurationExcludingModelErrors, getModelValidationError } from "@src/utils/validate"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { useRouterModels } from "@src/components/ui/hooks/useRouterModels"
-import { useZooGatewayRouterModelsSync } from "@src/components/ui/hooks/useZooGatewayRouterModelsSync"
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
 import { requestLmStudioModels } from "@src/components/ui/hooks/useLmStudioModels"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
@@ -76,7 +75,6 @@ import {
 	VercelAiGateway,
 	OpenCodeGo,
 	Kenari,
-	ZooGateway,
 	MiniMax,
 	Mimo,
 } from "./providers"
@@ -176,7 +174,6 @@ const ApiOptions = ({
 		typeof apiConfiguration.apiProvider === "string" && isRetiredProvider(apiConfiguration.apiProvider)
 
 	const { data: routerModels, refetch: refetchRouterModels } = useRouterModels()
-	useZooGatewayRouterModelsSync()
 
 	const { data: openRouterModelProviders } = useOpenRouterModelProviders(
 		apiConfiguration?.openRouterModelId,
@@ -263,14 +260,6 @@ const ApiOptions = ({
 
 	useEffect(() => {
 		if (isRetiredSelectedProvider) {
-			setErrorMessage(undefined)
-			return
-		}
-
-		// Zoo Gateway renders its own auth-state error inline (sign-in card in
-		// ZooGateway.tsx) so it can react to zooCodeIsAuthenticated changes
-		// without re-running this effect or threading auth state through validation.
-		if (apiConfiguration.apiProvider === "zoo-gateway") {
 			setErrorMessage(undefined)
 			return
 		}
@@ -667,17 +656,6 @@ const ApiOptions = ({
 
 					{selectedProvider === "kenari" && (
 						<Kenari
-							apiConfiguration={apiConfiguration}
-							setApiConfigurationField={setApiConfigurationField}
-							routerModels={routerModels}
-							organizationAllowList={organizationAllowList}
-							modelValidationError={modelValidationError}
-							simplifySettings={fromWelcomeView}
-						/>
-					)}
-
-					{selectedProvider === "zoo-gateway" && (
-						<ZooGateway
 							apiConfiguration={apiConfiguration}
 							setApiConfigurationField={setApiConfigurationField}
 							routerModels={routerModels}

@@ -21,7 +21,6 @@ import {
 	mainlandZAiDefaultModelId,
 	openRouterDefaultModelId,
 	vscodeLlmDefaultModelId,
-	zooGatewayDefaultModelId,
 } from "../providers/index.js"
 
 describe("getProviderDefaultModelId", () => {
@@ -33,11 +32,8 @@ describe("getProviderDefaultModelId", () => {
 		expect(getProviderDefaultModelId(providerIdentifiers.vscodeLm)).toBe(vscodeLlmDefaultModelId)
 	})
 
-	it.each([
-		[providerIdentifiers.kimiCode, kimiCodeDefaultModelId],
-		[providerIdentifiers.zooGateway, zooGatewayDefaultModelId],
-	])("preserves the %s default added on main", (provider, expectedModelId) => {
-		expect(getProviderDefaultModelId(provider)).toBe(expectedModelId)
+	it("preserves the kimi-code default added on main", () => {
+		expect(getProviderDefaultModelId(providerIdentifiers.kimiCode)).toBe(kimiCodeDefaultModelId)
 	})
 
 	it("preserves region-dependent defaults", () => {

@@ -408,15 +408,6 @@ function getSelectedModel({
 			const info = routerModels["kenari"]?.[id] ?? kenariDefaultModelInfo
 			return { id, info }
 		}
-		case "zoo-gateway": {
-			const id = getValidatedModelId(
-				apiConfiguration.zooGatewayModelId,
-				routerModels["zoo-gateway"],
-				defaultModelId,
-			)
-			const info = routerModels["zoo-gateway"]?.[id]
-			return { id, info }
-		}
 		// case "anthropic":
 		// case "fake-ai":
 		default: {

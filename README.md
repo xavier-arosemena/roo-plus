@@ -32,16 +32,18 @@
 
 Roo+ extends the incredible foundation of Zoo Code with **90 custom modes** (curated from a total of 233 specialized agents available), **enhanced features**, and a personalized configuration tailored for modern development workflows.
 
-| Feature                       | Description                                                     |
-| ----------------------------- | --------------------------------------------------------------- |
-| 🎯 **Custom Modes Library**   | **90 specialized agents** pre-loaded for every task             |
-| 🤖 **AI Agent Team**          | Multiple AI agents working together in your editor              |
-| 🔌 **MCP Support**            | Full Model Context Protocol integration                         |
-| 🌍 **Multi-Provider**         | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers |
-| 🛠️ **Terminal Integration**   | Smart terminal with shell integration                           |
-| 📁 **Tree-Sitter Code Index** | Intelligent code understanding for 30+ languages                |
-| 🔒 **Atomic File Writing**    | Safe, crash-proof file operations                               |
-| 🌐 **Localization**           | Available in 18+ languages                                      |
+| Feature                       | Description                                                                                                                |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 🎯 **Custom Modes Library**   | **90 specialized agents** pre-loaded for every task                                                                        |
+| 🤖 **AI Agent Team**          | Multiple AI agents working together in your editor                                                                         |
+| 🔌 **MCP Support**            | Full Model Context Protocol integration                                                                                    |
+| 🌍 **Multi-Provider**         | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                            |
+| 📦 **Bulk Mode Install**      | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0) |
+| 🏷️ **Mode Subtitles**         | All 97 pre-loaded modes display descriptive subtitles in the mode selector UI (v3.73.0)                                    |
+| 🛠️ **Terminal Integration**   | Smart terminal with shell integration                                                                                      |
+| 📁 **Tree-Sitter Code Index** | Intelligent code understanding for 30+ languages                                                                           |
+| 🔒 **Atomic File Writing**    | Safe, crash-proof file operations                                                                                          |
+| 🌐 **Localization**           | Available in 18+ languages                                                                                                 |
 
 <br/>
 
@@ -152,11 +154,15 @@ The quickest way to add new modes is directly from the **Mode Marketplace** insi
 
 1. Click the **Mode Marketplace** button in the mode selector (bottom of the VS Code window) or the marketplace tab
 2. Browse available modes — search by name, filter by tags, or sort by popularity
-3. Click **Install** on any mode you want to add, or **select multiple modes** with checkboxes and click **Install N Modes** to install them all at once
-4. Choose whether to install **globally** (available in all projects) or to the **current project**
+3. For single installs — click **Install** on any mode you want to add
+4. For **bulk installs** (v3.75.0+) — switch to the **Modes** tab, select multiple modes with checkboxes, and click **Install N Modes** to install them all at once
+    - A sticky action bar shows the selection count
+    - Choose installation **scope**: global (all projects) or project-only
+    - A progress bar tracks each installation step
+    - A result summary shows per-item success/failure
 5. The mode(s) are immediately available in your mode selector — no reload needed
 
-The marketplace also supports **MCP servers** and includes bundled modes from the curated 233-agent library. For bulk operations, switch to the **Modes** tab where checkboxes enable multi-select for batch installation.
+The marketplace also supports **MCP servers** and includes bundled modes from the curated 233-agent library.
 
 **Option A — Add via manifest (recommended for multiple agents):**
 

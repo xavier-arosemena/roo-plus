@@ -46,7 +46,6 @@ export const DEFAULT_CONSECUTIVE_MISTAKE_LIMIT = 3
 export const dynamicProviders = [
 	providerIdentifiers.openrouter,
 	providerIdentifiers.vercelAiGateway,
-	providerIdentifiers.zooGateway,
 	providerIdentifiers.litellm,
 	providerIdentifiers.requesty,
 	providerIdentifiers.unbound,
@@ -403,12 +402,6 @@ const kenariSchema = baseProviderSettingsSchema.extend({
 	kenariModelId: z.string().optional(),
 })
 
-const zooGatewaySchema = baseProviderSettingsSchema.extend({
-	zooSessionToken: z.string().optional(),
-	zooGatewayModelId: z.string().optional(),
-	zooGatewayBaseUrl: z.string().optional(),
-})
-
 const basetenSchema = apiModelIdProviderModelSchema.extend({
 	basetenApiKey: z.string().optional(),
 })
@@ -451,7 +444,6 @@ export const providerSettingsSchemaDiscriminated = z.discriminatedUnion("apiProv
 	vercelAiGatewaySchema.merge(z.object({ apiProvider: z.literal("vercel-ai-gateway") })),
 	opencodeGoSchema.merge(z.object({ apiProvider: z.literal("opencode-go") })),
 	kenariSchema.merge(z.object({ apiProvider: z.literal("kenari") })),
-	zooGatewaySchema.merge(z.object({ apiProvider: z.literal("zoo-gateway") })),
 	defaultSchema,
 ])
 
@@ -490,7 +482,6 @@ export const providerSettingsSchema = z.object({
 	...vercelAiGatewaySchema.shape,
 	...opencodeGoSchema.shape,
 	...kenariSchema.shape,
-	...zooGatewaySchema.shape,
 	...codebaseIndexProviderSchema.shape,
 })
 
@@ -523,7 +514,6 @@ export const modelIdKeys = [
 	"vercelAiGatewayModelId",
 	"opencodeGoModelId",
 	"kenariModelId",
-	"zooGatewayModelId",
 ] as const satisfies readonly (keyof ProviderSettings)[]
 
 export type ModelIdKey = (typeof modelIdKeys)[number]
@@ -573,7 +563,6 @@ export const modelIdKeysByProvider: Record<TypicalProvider, ModelIdKey> = {
 	"vercel-ai-gateway": "vercelAiGatewayModelId",
 	"opencode-go": "opencodeGoModelId",
 	kenari: "kenariModelId",
-	"zoo-gateway": "zooGatewayModelId",
 }
 
 /**
@@ -592,13 +581,8 @@ export const getApiProtocol = (provider: ProviderName | undefined, modelId?: str
 		return "anthropic"
 	}
 
-	// Vercel AI Gateway and Zoo Gateway use the anthropic protocol for anthropic models.
-	if (
-		provider &&
-		["vercel-ai-gateway", "zoo-gateway"].includes(provider) &&
-		modelId &&
-		modelId.toLowerCase().startsWith("anthropic/")
-	) {
+	// Vercel AI Gateway uses the anthropic protocol for anthropic models.
+	if (provider && provider === "vercel-ai-gateway" && modelId && modelId.toLowerCase().startsWith("anthropic/")) {
 		return "anthropic"
 	}
 
@@ -718,7 +702,6 @@ export const MODELS_BY_PROVIDER: Record<
 	"vercel-ai-gateway": { id: "vercel-ai-gateway", label: "Vercel AI Gateway", models: [] },
 	"opencode-go": { id: "opencode-go", label: "Opencode Go", models: [] },
 	kenari: { id: "kenari", label: "Kenari", models: [] },
-	"zoo-gateway": { id: "zoo-gateway", label: "Zoo Gateway", models: [] },
 
 	// Local providers; models discovered from localhost endpoints.
 	lmstudio: { id: "lmstudio", label: "LM Studio", models: [] },
