@@ -1,6 +1,6 @@
 import * as fs from "fs"
 import * as path from "path"
-import { execSync } from "child_process"
+import { execFileSync } from "child_process"
 
 import { ViewsContainer, Views, Menus, Configuration, Keybindings, contributesSchema } from "./types.js"
 
@@ -47,11 +47,13 @@ function rmDir(dirPath: string, maxRetries: number = 5): void {
 					// Try to clear readonly flags on Windows.
 					if (process.platform === "win32") {
 						try {
-							// Validate dirPath contains no shell metacharacters before passing to execSync
+							// Validate dirPath contains no shell metacharacters before passing to execFileSync
 							if (/[&|;<>*?`$()[\]{}]/.test(dirPath)) {
 								throw new Error(`Invalid directory path for attrib command: ${dirPath}`)
 							}
-							execSync(`attrib -R "${dirPath}\\*.*" /S /D`, { stdio: "ignore" })
+							execFileSync("attrib", ["-R", `${dirPath}\\*.*`, "/S", "/D"], {
+								stdio: "ignore",
+							})
 						} catch {
 							// Ignore attrib errors.
 						}

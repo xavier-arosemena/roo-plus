@@ -3,13 +3,16 @@
  */
 
 /**
- * Escapes spaces in a path with backslashes
+ * Escapes shell-sensitive characters in a file path.
+ * This prevents misinterpretation when the path is used in shell commands
+ * or rendered in terminal output.
  *
  * @param path The path to escape
- * @returns A path with spaces escaped
+ * @returns A path with special characters escaped
  */
 export function escapeSpaces(path: string): string {
-	return path.replace(/ /g, "\\ ")
+	// Escape spaces and other shell-sensitive characters
+	return path.replace(/[ <>()|&;`'"]/g, (char) => `\\${char}`)
 }
 
 /**

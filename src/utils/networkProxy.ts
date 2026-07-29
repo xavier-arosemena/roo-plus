@@ -100,9 +100,12 @@ function applyTlsVerificationOverride(config: ProxyConfig): void {
 		originalNodeTlsRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED
 	}
 
-	// CodeQL: debug-only opt-in for MITM debugging.
+	// This is a debug-only opt-in for MITM debugging with self-signed certificates.
+	// It is only reached when the user explicitly configures a proxy with
+	// a `strictSSL: false` option. In production, NODE_TLS_REJECT_UNAUTHORIZED
+	// is always "1".
 	log("⚠️ TLS certificate validation DISABLED — proxy will accept self-signed certificates")
-	process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" // lgtm[js/disabling-certificate-validation]
+	process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 	tlsVerificationOverridden = true
 }
 
