@@ -4,9 +4,6 @@ import type { Mock } from "vitest"
 
 // Mock dependencies - must come before imports
 vi.mock("../../../api/providers/fetchers/modelCache")
-vi.mock("../../../services/roo-plus-auth", () => ({
-	disconnectRooPlus: vi.fn().mockResolvedValue(undefined),
-}))
 vi.mock("../../../api/providers/fetchers/lmstudio", () => ({
 	getLMStudioModels: vi.fn(),
 }))

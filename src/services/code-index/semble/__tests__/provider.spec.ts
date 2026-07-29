@@ -82,6 +82,7 @@ describe("SembleProvider", () => {
 
 		mockContext = {
 			globalStorageUri: { fsPath: "/mock/storage" },
+			extensionPath: "/mock/extension/path",
 		}
 
 		provider = new SembleProvider("/workspace", mockContext, mockStateManager)
@@ -118,7 +119,7 @@ describe("SembleProvider", () => {
 
 			await provider.initialize()
 
-			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined)
+			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined, "/mock/extension/path")
 			expect(provider.state).toBe("Indexed")
 			expect(mockStateManager.setSystemState).toHaveBeenCalledWith(
 				"Indexed",

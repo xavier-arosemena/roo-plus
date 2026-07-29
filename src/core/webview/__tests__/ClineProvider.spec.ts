@@ -265,14 +265,6 @@ vi.mock("../../../api/providers/fetchers/lmstudio", () => ({
 	forceFullModelDetailsLoad: vi.fn().mockResolvedValue(undefined),
 }))
 
-vi.mock("../../../services/roo-plus-auth", () => ({
-	getRooPlusBaseUrl: vi.fn(() => "https://www.zoocode.dev"),
-	getCachedRooPlusToken: vi.fn(),
-	handleAuthCallback: vi.fn(),
-	setRooPlusUserInfo: vi.fn(),
-	disconnectRooPlus: vi.fn(),
-}))
-
 vi.mock("../../../shared/modes", () => ({
 	modes: [
 		{

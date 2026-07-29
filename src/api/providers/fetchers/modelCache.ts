@@ -362,8 +362,6 @@ export const refreshModels = async (options: GetModelsOptions): Promise<ModelRec
 			return models
 		} catch (error) {
 			// Log the error for debugging, then return existing cache if available (graceful degradation).
-			// For auth-scoped providers (zoo-gateway) we MUST NOT return cached models from a prior
-			// session, since they could belong to a different user -- return empty instead.
 			console.error(`[refreshModels] Failed to refresh ${cacheKey} models:`, error)
 			if (shouldSkipCache) {
 				return {}
@@ -447,8 +445,6 @@ export const flushModels = async (options: GetModelsOptions, refresh: boolean = 
  * @returns Models from memory cache, disk cache, or undefined if not cached.
  */
 export function getModelsFromCache(options: GetModelsOptions | ProviderName): ModelRecord | undefined {
-	// Auth-scoped providers (e.g. zoo-gateway) must never be served from cache --
-	// their model lists are user-specific and a stale file left over from a previous
 	// session could leak another user's list. Mirror the guards in getModels/refreshModels.
 	const providerName = typeof options === "string" ? options : options.provider
 	if (isAuthScopedProvider(providerName as RouterName)) {

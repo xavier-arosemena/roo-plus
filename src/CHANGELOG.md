@@ -2,27 +2,28 @@
 
 ## [3.75.1] — 2026-07-29
 
-### Patch — Zoo Gateway Removal & CI Pipeline Fixes
+### Patch — Zoo Gateway Removal & Full CI Pipeline Cleanup
 
 #### 🐛 Bug Fixes
 
-- **Zoo Gateway Provider Removed** — Completed removal of the Zoo Gateway provider from the codebase. The provider identifier, default model, and all related types have been purged. The provider entry is intentionally blank (`providers/zoo-gateway.ts` is empty). (Closes: #81)
-- **Test Suite Cleanup** — Removed 4 empty test suite stubs leftover from Zoo Gateway removal (`roo-plus-auth.test.ts`, `checkExistApiConfig.spec.ts`, `zoo-gateway.spec.ts` in api/providers and fetchers)
-- **handleUri Tests Updated** — Rewrote handleUri.spec.ts to match the simplified `/auth-callback` handler which no longer calls auth callback functions
-- **Router Model Tests Fixed** — Removed stale `zoo-gateway` references from `ClineProvider.spec.ts` and `webviewMessageHandler.spec.ts` router model assertions
-- **Semble Provider Test Fixed** — Updated `downloadSemble` expectation to include the third `extensionPath` parameter
+- **Zoo Gateway Provider Fully Removed** — Deleted 8 unused Zoo Gateway files (provider, fetcher, auth service, credentials sync, 3 webview UI components, 1 hook). Pruned stale type references in `modelCache.ts`. Removed `getZooCodeAuthUrl` from webview OAuth URLs. (Closes: #81)
+- **Test Suite Cleanup** — Removed 4 empty test stubs leftover from Zoo Gateway removal; rewrote `handleUri.spec.ts` for simplified `/auth-callback` handler; removed stale `zoo-gateway` references from `ClineProvider.spec.ts` and `webviewMessageHandler.spec.ts` router model tests; removed stale `roo-plus-auth` mocks from both files
+- **Semble Provider Test Fixed** — Added `extensionPath` to mock context so `downloadSemble`'s third parameter matches reality
+- **Knip Cleanup** — Added `ignoreBinaries: ["build"]` to knip config to fix "unlisted binaries" error
 
 #### ✅ Quality
 
-- Lint passes (0 errors, 0 warnings) after removing stale eslint suppressions
-- Type checks pass across all 13 packages
-- All 6978 source tests pass (416 test files); all webview-ui tests pass
-- Invisible-chars and translation CI checks pass
+- **knip** passes (0 error-level issues) after removing 8 unused files
+- **Lint** passes (0 errors, 0 warnings) after pruning stale eslint suppressions
+- **Type checks** pass across all 13 packages
+- **All 6992 source tests pass** (420 files), 38 skipped — zero failures
+- Invisible-chars, translation, and dependency audit CI checks all pass
 
 #### 🔧 Chores
 
 - Pruned stale eslint suppressions with `--prune-suppressions`
 - Removed unused `validateApiConfiguration` import from webview-ui test
+- Updated CHANGELOG.md and synced to src/CHANGELOG.md
 
 ---
 
