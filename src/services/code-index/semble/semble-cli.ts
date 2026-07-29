@@ -1,4 +1,5 @@
 import { spawn } from "child_process"
+import fs from "fs"
 
 import { SembleSearchResult, SembleCheckResult, SembleContentType, SEMBLE_DEFAULTS } from "./types"
 
@@ -27,6 +28,18 @@ export class SembleCLI {
 
 	constructor(semblePath: string) {
 		this.semblePath = semblePath
+
+		// Ensure the binary is executable — fixes EACCES if downloader
+		// couldn't set permissions (e.g. upgrade from older version).
+		// Use synchronous chmod to guarantee permissions are set before
+		// any spawn() call.
+		if (process.platform !== "win32") {
+			try {
+				fs.chmodSync(semblePath, 0o755)
+			} catch {
+				// Silently ignore — spawn will surface the EACCES if it's real
+			}
+		}
 	}
 
 	/**

@@ -61,7 +61,7 @@
   },
   "activate/__tests__/handleUri.spec.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 14
+      "count": 7
     }
   },
   "activate/__tests__/registerCommands.spec.ts": {
@@ -372,11 +372,6 @@
   "api/providers/fetchers/__tests__/vercel-ai-gateway.spec.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
-    }
-  },
-  "api/providers/fetchers/__tests__/zoo-gateway.spec.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
     }
   },
   "api/providers/fetchers/litellm.ts": {
@@ -1101,7 +1096,7 @@
   },
   "core/webview/__tests__/ClineProvider.spec.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 198
+      "count": 181
     }
   },
   "core/webview/__tests__/ClineProvider.sticky-mode.spec.ts": {
@@ -1181,7 +1176,7 @@
   },
   "core/webview/__tests__/webviewMessageHandler.spec.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 35
+      "count": 29
     }
   },
   "core/webview/messageEnhancer.ts": {
@@ -1342,11 +1337,6 @@
   "integrations/theme/getTheme.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 9
-    }
-  },
-  "services/__tests__/roo-plus-auth.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
     }
   },
   "services/checkpoints/__tests__/ShadowCheckpointService.spec.ts": {

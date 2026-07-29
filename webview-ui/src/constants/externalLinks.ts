@@ -7,4 +7,5 @@ export const EXTERNAL_LINKS = {
 	SECURITY_POLICY: "https://github.com/xavier-arosemena/roo-plus/security/policy",
 	REDDIT: "https://www.reddit.com/r/RooPlus/",
 	DISCORD: "https://discord.gg/VxfP4Vx3gX",
+	OPEN_VSX_REGISTRY: "https://open-vsx.org/extension/xavier-arosemena/roo-plus",
 } as const

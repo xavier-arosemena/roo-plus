@@ -280,7 +280,7 @@ describe("getModelsFromCache disk fallback", () => {
 		expect(fsSync.existsSync).not.toHaveBeenCalled()
 	})
 
-	it("isolates authenticated users through the canonical Zoo Gateway identifier", () => {
+	it("isolates authenticated users through the auth-scoped provider", () => {
 		const previousUserModels = {
 			"previous-user/model": {
 				maxTokens: 4096,
@@ -291,7 +291,7 @@ describe("getModelsFromCache disk fallback", () => {
 
 		mockCache.get.mockReturnValue(previousUserModels)
 
-		const result = getModelsFromCache(providerIdentifiers.zooGateway)
+		const result = getModelsFromCache(providerIdentifiers.kimiCode)
 
 		expect(result).toBeUndefined()
 		expect(mockCache.get).not.toHaveBeenCalled()

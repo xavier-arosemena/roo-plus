@@ -265,14 +265,6 @@ vi.mock("../../../api/providers/fetchers/lmstudio", () => ({
 	forceFullModelDetailsLoad: vi.fn().mockResolvedValue(undefined),
 }))
 
-vi.mock("../../../services/roo-plus-auth", () => ({
-	getRooPlusBaseUrl: vi.fn(() => "https://www.zoocode.dev"),
-	getCachedRooPlusToken: vi.fn(),
-	handleAuthCallback: vi.fn(),
-	setRooPlusUserInfo: vi.fn(),
-	disconnectRooPlus: vi.fn(),
-}))
-
 vi.mock("../../../shared/modes", () => ({
 	modes: [
 		{
@@ -2624,7 +2616,6 @@ describe("ClineProvider - Router Models", () => {
 				requesty: mockModels,
 				unbound: mockModels,
 				"vercel-ai-gateway": mockModels,
-				"zoo-gateway": mockModels,
 				litellm: mockModels,
 				ollama: {},
 				lmstudio: {},
@@ -2663,7 +2654,6 @@ describe("ClineProvider - Router Models", () => {
 			.mockRejectedValueOnce(new Error("Requesty API error")) // requesty fail
 			.mockResolvedValueOnce(mockModels) // unbound success
 			.mockResolvedValueOnce(mockModels) // vercel-ai-gateway success
-			.mockResolvedValueOnce(mockModels) // zoo-gateway success
 			.mockRejectedValueOnce(new Error("LiteLLM connection failed")) // litellm fail
 			.mockResolvedValueOnce(mockModels) // opencode-go (public endpoint)
 			.mockResolvedValueOnce(mockModels) // kenari (public endpoint)
@@ -2678,7 +2668,6 @@ describe("ClineProvider - Router Models", () => {
 				requesty: {},
 				unbound: mockModels,
 				"vercel-ai-gateway": mockModels,
-				"zoo-gateway": mockModels,
 				ollama: {},
 				lmstudio: {},
 				litellm: {},
@@ -2778,7 +2767,6 @@ describe("ClineProvider - Router Models", () => {
 				requesty: mockModels,
 				unbound: mockModels,
 				"vercel-ai-gateway": mockModels,
-				"zoo-gateway": mockModels,
 				litellm: {},
 				ollama: {},
 				lmstudio: {},
@@ -3835,183 +3823,6 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 
 			// Restore the spy
 			vi.mocked(fsUtils.fileExistsAtPath).mockRestore()
-		})
-	})
-
-	describe("Zoo Code auth profile sync", () => {
-		beforeEach(async () => {
-			const { getCachedRooPlusToken } = await import("../../../services/roo-plus-auth")
-			vi.mocked(getCachedRooPlusToken).mockReturnValue("")
-		})
-
-		describe("handleRooPlusCallback", () => {
-			it("creates a Zoo Gateway profile when none exists", async () => {
-				vi.spyOn(provider, "getState").mockResolvedValue({
-					apiConfiguration: { zooGatewayModelId: "anthropic/claude-sonnet-4" },
-				} as any)
-				vi.spyOn(provider.contextProxy, "getProviderSettings").mockReturnValue({
-					apiProvider: "anthropic",
-				} as any)
-				vi.spyOn(provider.contextProxy, "getValues").mockReturnValue({
-					currentApiConfigName: "Anthropic",
-				} as any)
-				const upsertSpy = vi.spyOn(provider, "upsertProviderProfile").mockResolvedValue("profile-id")
-				vi.spyOn(provider, "postStateToWebview").mockResolvedValue(undefined)
-				const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
-				;(provider as any).providerSettingsManager = {
-					listConfig: vi.fn().mockResolvedValue([]),
-				}
-
-				await provider.handleRooPlusCallback("zoo_ext_token")
-
-				expect(postMessageSpy).toHaveBeenCalledWith({ type: "zooGatewayCredentialsReady" })
-				expect(upsertSpy).toHaveBeenCalledWith(
-					"Zoo Gateway",
-					expect.objectContaining({
-						apiProvider: "zoo-gateway",
-						zooSessionToken: "zoo_ext_token",
-						zooGatewayBaseUrl: "https://www.zoocode.dev/api/gateway/v1",
-					}),
-					false,
-				)
-			})
-
-			it("updates every zoo-gateway profile and activates only the active one", async () => {
-				vi.spyOn(provider, "getState").mockResolvedValue({
-					apiConfiguration: { zooGatewayModelId: "anthropic/claude-sonnet-4" },
-				} as any)
-				vi.spyOn(provider.contextProxy, "getProviderSettings").mockReturnValue({
-					apiProvider: "zoo-gateway",
-				} as any)
-				vi.spyOn(provider.contextProxy, "getValues").mockReturnValue({
-					currentApiConfigName: "Zoo Gateway",
-				} as any)
-				const upsertSpy = vi.spyOn(provider, "upsertProviderProfile").mockResolvedValue("profile-id")
-				const saveConfig = vi.fn().mockResolvedValue(undefined)
-				vi.spyOn(provider, "postStateToWebview").mockResolvedValue(undefined)
-				;(provider as any).providerSettingsManager = {
-					listConfig: vi.fn().mockResolvedValue([
-						{ name: "Zoo Gateway", apiProvider: "zoo-gateway" },
-						{ name: "Backup Zoo", apiProvider: "zoo-gateway" },
-					]),
-					getProfile: vi
-						.fn()
-						.mockResolvedValueOnce({
-							apiProvider: "zoo-gateway",
-							zooSessionToken: "old-token",
-							zooGatewayBaseUrl: "https://old.example/api/gateway/v1",
-						})
-						.mockResolvedValueOnce({
-							apiProvider: "zoo-gateway",
-							zooSessionToken: "old-token",
-						}),
-					saveConfig,
-				}
-
-				await provider.handleRooPlusCallback("new-token")
-
-				expect(upsertSpy).toHaveBeenCalledWith(
-					"Zoo Gateway",
-					expect.objectContaining({
-						zooSessionToken: "new-token",
-						zooGatewayBaseUrl: "https://www.zoocode.dev/api/gateway/v1",
-					}),
-					true,
-				)
-				expect(saveConfig).toHaveBeenCalledWith(
-					"Backup Zoo",
-					expect.objectContaining({
-						zooSessionToken: "new-token",
-						zooGatewayBaseUrl: "https://www.zoocode.dev/api/gateway/v1",
-					}),
-				)
-			})
-
-			it("logs and posts state when profile persistence fails", async () => {
-				vi.spyOn(provider, "getState").mockRejectedValue(new Error("state unavailable"))
-				vi.spyOn(provider, "postStateToWebview").mockResolvedValue(undefined)
-				;(provider as any).providerSettingsManager = {
-					listConfig: vi.fn().mockResolvedValue([]),
-				}
-
-				await provider.handleRooPlusCallback("zoo_ext_token")
-
-				expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
-					expect.stringContaining("[handleRooPlusCallback] Failed to save zoo-gateway profile"),
-				)
-				// State must still be refreshed even when profile persistence fails.
-				expect(provider.postStateToWebview).toHaveBeenCalled()
-			})
-		})
-
-		describe("ensureZooGatewayProfileSeeded", () => {
-			it("does nothing when no cached auth token exists", async () => {
-				const handleSpy = vi.spyOn(provider, "handleRooPlusCallback").mockResolvedValue(undefined)
-
-				;(provider as any).providerSettingsManager = {
-					listConfig: vi.fn(),
-				}
-
-				await (provider as any).ensureZooGatewayProfileSeeded()
-
-				expect(handleSpy).not.toHaveBeenCalled()
-			})
-
-			it("skips seeding when every zoo-gateway profile already has the current token and base URL", async () => {
-				const { getCachedRooPlusToken } = await import("../../../services/roo-plus-auth")
-				vi.mocked(getCachedRooPlusToken).mockReturnValue("current-token")
-				const handleSpy = vi.spyOn(provider, "handleRooPlusCallback").mockResolvedValue(undefined)
-				const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
-
-				;(provider as any).providerSettingsManager = {
-					listConfig: vi.fn().mockResolvedValue([{ name: "Zoo Gateway", apiProvider: "zoo-gateway" }]),
-					getProfile: vi.fn().mockResolvedValue({
-						zooSessionToken: "current-token",
-						zooGatewayBaseUrl: "https://www.zoocode.dev/api/gateway/v1",
-					}),
-				}
-
-				await (provider as any).ensureZooGatewayProfileSeeded()
-
-				expect(handleSpy).not.toHaveBeenCalled()
-				expect(postMessageSpy).toHaveBeenCalledWith({ type: "zooGatewayCredentialsReady" })
-			})
-
-			it("re-seeds when any zoo-gateway profile has a stale or missing token", async () => {
-				const { getCachedRooPlusToken } = await import("../../../services/roo-plus-auth")
-				vi.mocked(getCachedRooPlusToken).mockReturnValue("fresh-token")
-				const handleSpy = vi.spyOn(provider, "handleRooPlusCallback").mockResolvedValue(undefined)
-
-				;(provider as any).providerSettingsManager = {
-					listConfig: vi.fn().mockResolvedValue([{ name: "Zoo Gateway", apiProvider: "zoo-gateway" }]),
-					getProfile: vi.fn().mockResolvedValue({
-						zooSessionToken: "stale-token",
-						zooGatewayBaseUrl: "https://www.zoocode.dev/api/gateway/v1",
-					}),
-				}
-
-				await (provider as any).ensureZooGatewayProfileSeeded()
-
-				expect(handleSpy).toHaveBeenCalledWith("fresh-token")
-			})
-
-			it("re-seeds when any zoo-gateway profile has a stale base URL", async () => {
-				const { getCachedRooPlusToken } = await import("../../../services/roo-plus-auth")
-				vi.mocked(getCachedRooPlusToken).mockReturnValue("current-token")
-				const handleSpy = vi.spyOn(provider, "handleRooPlusCallback").mockResolvedValue(undefined)
-
-				;(provider as any).providerSettingsManager = {
-					listConfig: vi.fn().mockResolvedValue([{ name: "Zoo Gateway", apiProvider: "zoo-gateway" }]),
-					getProfile: vi.fn().mockResolvedValue({
-						zooSessionToken: "current-token",
-						zooGatewayBaseUrl: "https://staging.zoocode.dev/api/gateway/v1",
-					}),
-				}
-
-				await (provider as any).ensureZooGatewayProfileSeeded()
-
-				expect(handleSpy).toHaveBeenCalledWith("current-token")
-			})
 		})
 	})
 })

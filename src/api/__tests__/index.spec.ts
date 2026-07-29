@@ -62,7 +62,6 @@ import {
 	VsCodeLmHandler,
 	XAIHandler,
 	ZAiHandler,
-	ZooGatewayHandler,
 } from "../providers"
 import { NativeOllamaHandler } from "../providers/native-ollama"
 
@@ -99,7 +98,6 @@ const expectedHandlers = {
 	[providerIdentifiers.vercelAiGateway]: VercelAiGatewayHandler,
 	[providerIdentifiers.opencodeGo]: OpencodeGoHandler,
 	[providerIdentifiers.kenari]: KenariHandler,
-	[providerIdentifiers.zooGateway]: ZooGatewayHandler,
 	[providerIdentifiers.minimax]: MiniMaxHandler,
 	[providerIdentifiers.baseten]: BasetenHandler,
 	[providerIdentifiers.poe]: PoeHandler,

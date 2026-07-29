@@ -359,12 +359,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} Released",
-		"support": "Please support Roo+ by starring us on <githubLink>GitHub</githubLink>.",
+		"support": "Please support Roo+ by starring us on <githubLink>GitHub</githubLink> and on the <openVsxLink>Open VSX Registry</openVsxLink>.<br/>Every review and star helps more developers discover their AI development team!",
 		"release": {
 			"heading": "What's New:",
-			"highlight1": "Moonshot and Kimi Code providers — connect to Moonshot models with live model discovery, or sign in to Kimi Code through its OAuth device flow.",
-			"highlight2": "Latest model support — use Claude Opus 5 across providers, plus Kimi K3, Gemini 3.6 Flash, and MiniMax-M3.",
-			"highlight3": "More reliable workflows — abandon interrupted subtasks cleanly, and index Dart and plain-text files in your codebase."
+			"highlight1": "<bold>Cloud Servides-</bold> The bug, which was stalling remote server connections, is fixed. And cloud services eliminated.",
+			"highlight2": "<bold>Semble-</bold> Now Semble comes pre-bundled for easy indexing without downloading the binaries.",
+			"highlight3": "<bold>Custom modes-</bold> now include a description for easy reference, and can be installed in bulk."
 		},
 		"cloudAgents": {
 			"heading": "New in the Cloud:",

@@ -12,13 +12,3 @@ export function getRequestyAuthUrl(uriScheme?: string) {
 	return `https://app.requesty.ai/oauth/authorize?callback_url=${getCallbackUrl("requesty", uriScheme)}`
 }
 
-const ROO_PLUS_DEFAULT_BASE_URL = "https://www.roo.plus"
-
-export function getZooCodeAuthUrl(uriScheme?: string, baseUrl?: string, deviceName?: string) {
-	const resolvedBaseUrl = baseUrl || ROO_PLUS_DEFAULT_BASE_URL
-	const callbackUri = getCallbackUrl("auth-callback", uriScheme)
-	const resolvedDeviceName = encodeURIComponent(deviceName || "VS Code")
-	const editor = encodeURIComponent("VS Code")
-	const version = Package.version
-	return `${resolvedBaseUrl}/dashboard/connect?device=${resolvedDeviceName}&editor=${editor}&version=${version}&callback_uri=${callbackUri}`
-}

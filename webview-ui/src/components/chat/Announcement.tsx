@@ -1,6 +1,7 @@
 import { memo, type ReactNode, useState } from "react"
 import { Trans } from "react-i18next"
-import { SiDiscord, SiReddit, SiX } from "react-icons/si"
+import { SiGithub } from "react-icons/si"
+import { GoLinkExternal } from "react-icons/go"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 
 import { Package } from "@roo/package"
@@ -53,25 +54,27 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 					<div className="mt-4 text-sm text-center text-vscode-descriptionForeground">
 						<div className="flex items-center justify-center gap-4">
 							<SocialLink
-								icon={<SiX className="w-4 h-4" aria-hidden />}
-								label="X"
-								href="https://x.com/RooPlusDev"
+								icon={<SiGithub className="w-4 h-4" aria-hidden />}
+								label="GitHub"
+								href={EXTERNAL_LINKS.GITHUB_REPO}
 							/>
 							<SocialLink
-								icon={<SiDiscord className="w-4 h-4" aria-hidden />}
-								label="Discord"
-								href="https://discord.gg/VxfP4Vx3gX"
-							/>
-							<SocialLink
-								icon={<SiReddit className="w-4 h-4" aria-hidden />}
-								label="Reddit"
-								href="https://www.reddit.com/r/RooPlus/"
+								icon={<GoLinkExternal className="w-4 h-4" aria-hidden />}
+								label="Open VSX Registry"
+								href={EXTERNAL_LINKS.OPEN_VSX_REGISTRY}
 							/>
 						</div>
 					</div>
 
 					<div className="mt-3 text-sm text-center text-vscode-descriptionForeground">
-						<Trans i18nKey="chat:announcement.support" components={{ githubLink: <GitHubLink /> }} />
+						<Trans
+							i18nKey="chat:announcement.support"
+							components={{
+								githubLink: <GitHubLink />,
+								openVsxLink: <OpenVSXLink />,
+								br: <br />,
+							}}
+						/>
 					</div>
 				</div>
 			</DialogContent>
@@ -98,6 +101,17 @@ const GitHubLink = ({ children }: { children?: ReactNode }) => (
 		onClick={(e) => {
 			e.preventDefault()
 			vscode.postMessage({ type: "openExternal", url: EXTERNAL_LINKS.GITHUB_REPO })
+		}}>
+		{children}
+	</VSCodeLink>
+)
+
+const OpenVSXLink = ({ children }: { children?: ReactNode }) => (
+	<VSCodeLink
+		href={EXTERNAL_LINKS.OPEN_VSX_REGISTRY}
+		onClick={(e) => {
+			e.preventDefault()
+			vscode.postMessage({ type: "openExternal", url: EXTERNAL_LINKS.OPEN_VSX_REGISTRY })
 		}}>
 		{children}
 	</VSCodeLink>

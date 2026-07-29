@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "xavier-arosemena",
-	"version": "3.75.0",
+	"version": "3.75.1",
 	"icon": "assets/icons/icon.png",
 	"galleryBanner": {
 		"color": "#617A91",
@@ -11,7 +11,7 @@
 	},
 	"engines": {
 		"vscode": "^1.100.0",
-		"node": "22.23.1"
+		"node": "^22.22.2"
 	},
 	"author": {
 		"name": "Xavier Arosemena"
@@ -450,8 +450,8 @@
 		"format": "prettier --write .",
 		"bundle": "node esbuild.mjs",
 		"sync:custom-modes": "node ../scripts/sync-custom-modes.mjs",
-		"vscode:prepublish": "pnpm sync:custom-modes && pnpm bundle --production",
-		"vsix": "pnpm sync:custom-modes && mkdirp ../bin && vsce package --no-dependencies --out ../bin",
+		"vscode:prepublish": "cd .. && pnpm --filter @roo-code/types build && pnpm --filter @roo-code/build build && cd webview-ui && pnpm build && cd ../src && pnpm sync:custom-modes && pnpm bundle --production",
+		"vsix": "pnpm sync:custom-modes && cd .. && pnpm --filter @roo-code/types build && pnpm --filter @roo-code/build build && cd webview-ui && pnpm build && cd ../src && bash ../scripts/bundle-semble.sh v0.5.2 && mkdirp ../bin && vsce package --no-dependencies --out ../bin",
 		"publish:vsce": "npx @vscode/vsce publish --packagePath ../bin/roo-plus-$npm_package_version.vsix",
 		"publish:ovsx": "pnpm exec ovsx publish ../bin/roo-plus-$npm_package_version.vsix --skip-duplicate",
 		"publish:marketplace": "pnpm vsix && pnpm publish:vsce && pnpm publish:ovsx",

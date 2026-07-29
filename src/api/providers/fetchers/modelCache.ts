@@ -30,7 +30,6 @@ import { getLMStudioModels } from "./lmstudio"
 import { getPoeModels } from "./poe"
 import { getDeepSeekModels } from "./deepseek"
 import { getMoonshotModels } from "./moonshot"
-import { getZooGatewayModels } from "./zoo-gateway"
 import { getKimiCodeModels } from "./kimi-code"
 
 const memoryCache = new NodeCache({ stdTTL: 5 * 60, checkperiod: 5 * 60 })
@@ -70,10 +69,7 @@ const KEY_SCOPED_PROVIDERS: ReadonlySet<RouterName> = new Set([
 // allowlists or org policies). For these we MUST NOT cache results on disk or
 // in memory: a sign-in/out cycle could otherwise serve a previous user's model
 // list to the next user, and stale data could mask backend allowlist updates.
-const AUTH_SCOPED_PROVIDERS: ReadonlySet<RouterName> = new Set([
-	providerIdentifiers.zooGateway,
-	providerIdentifiers.kimiCode,
-])
+const AUTH_SCOPED_PROVIDERS: ReadonlySet<RouterName> = new Set([providerIdentifiers.kimiCode])
 
 function isAuthScopedProvider(provider: RouterName): boolean {
 	return AUTH_SCOPED_PROVIDERS.has(provider)
@@ -231,9 +227,6 @@ async function fetchModelsFromProvider(options: GetModelsOptions): Promise<Model
 		case providerIdentifiers.moonshot:
 			models = await getMoonshotModels(options.baseUrl, options.apiKey)
 			break
-		case providerIdentifiers.zooGateway:
-			models = await getZooGatewayModels({ zooSessionToken: options.apiKey, zooGatewayBaseUrl: options.baseUrl })
-			break
 		case providerIdentifiers.kimiCode:
 			models = await getKimiCodeModels(options.apiKey)
 			break
@@ -369,8 +362,6 @@ export const refreshModels = async (options: GetModelsOptions): Promise<ModelRec
 			return models
 		} catch (error) {
 			// Log the error for debugging, then return existing cache if available (graceful degradation).
-			// For auth-scoped providers (zoo-gateway) we MUST NOT return cached models from a prior
-			// session, since they could belong to a different user -- return empty instead.
 			console.error(`[refreshModels] Failed to refresh ${cacheKey} models:`, error)
 			if (shouldSkipCache) {
 				return {}
@@ -454,8 +445,6 @@ export const flushModels = async (options: GetModelsOptions, refresh: boolean = 
  * @returns Models from memory cache, disk cache, or undefined if not cached.
  */
 export function getModelsFromCache(options: GetModelsOptions | ProviderName): ModelRecord | undefined {
-	// Auth-scoped providers (e.g. zoo-gateway) must never be served from cache --
-	// their model lists are user-specific and a stale file left over from a previous
 	// session could leak another user's list. Mirror the guards in getModels/refreshModels.
 	const providerName = typeof options === "string" ? options : options.provider
 	if (isAuthScopedProvider(providerName as RouterName)) {

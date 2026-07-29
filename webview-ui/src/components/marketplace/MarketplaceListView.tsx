@@ -277,7 +277,7 @@ export function MarketplaceListView({ stateManager, allTags, filteredTags, filte
 										variant="primary"
 										className="text-xs h-7 px-3"
 										onClick={() => setShowBulkInstallModal(true)}>
-										{t("marketplace:bulkInstall.button", {
+										{t("marketplace:bulkInstall.installButton", {
 											count: String(selectedModeItems.length),
 										})}
 									</Button>
