@@ -9,6 +9,11 @@ import {
 	upsertApiConfigurationMessageSchema,
 	setApiConfigPasswordMessageSchema,
 } from "./providerConfig.js"
+import {
+	installMarketplaceItemMessageSchema,
+	installMarketplaceItemsMessageSchema,
+	installMarketplaceItemWithParametersMessageSchema,
+} from "./marketplace.js"
 
 /**
  * String-literal union of every webview message type.
@@ -35,6 +40,9 @@ export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType
 	saveApiConfiguration: saveApiConfigurationMessageSchema,
 	upsertApiConfiguration: upsertApiConfigurationMessageSchema,
 	setApiConfigPassword: setApiConfigPasswordMessageSchema,
+	installMarketplaceItem: installMarketplaceItemMessageSchema,
+	installMarketplaceItems: installMarketplaceItemsMessageSchema,
+	installMarketplaceItemWithParameters: installMarketplaceItemWithParametersMessageSchema,
 }
 
 /**
@@ -50,6 +58,9 @@ export const webviewMessageSchema = z.discriminatedUnion("type", [
 	saveApiConfigurationMessageSchema,
 	upsertApiConfigurationMessageSchema,
 	setApiConfigPasswordMessageSchema,
+	installMarketplaceItemMessageSchema,
+	installMarketplaceItemsMessageSchema,
+	installMarketplaceItemWithParametersMessageSchema,
 ])
 
 export type ParseWebviewMessageResult = { ok: true; message: WebviewMessage } | { ok: false; error: string }
@@ -102,3 +113,10 @@ export {
 	providerConfigMessageSchema,
 } from "./providerConfig.js"
 export type { ProviderConfigMessage } from "./providerConfig.js"
+export {
+	installMarketplaceItemMessageSchema,
+	installMarketplaceItemsMessageSchema,
+	installMarketplaceItemWithParametersMessageSchema,
+	marketplaceMessageSchema,
+} from "./marketplace.js"
+export type { MarketplaceMessage } from "./marketplace.js"

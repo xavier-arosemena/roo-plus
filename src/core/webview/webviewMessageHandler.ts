@@ -26,6 +26,9 @@ import {
 	updateSettingsMessageSchema,
 	saveApiConfigurationMessageSchema,
 	upsertApiConfigurationMessageSchema,
+	installMarketplaceItemMessageSchema,
+	installMarketplaceItemsMessageSchema,
+	installMarketplaceItemWithParametersMessageSchema,
 	getCompletionCheckpoint,
 	providerIdentifiers,
 } from "@roo-code/types"
@@ -3092,12 +3095,19 @@ export const webviewMessageHandler = async (
 		}
 
 		case "installMarketplaceItem": {
-			if (marketplaceManager && message.mpItem && message.mpInstallOptions) {
+			const result = installMarketplaceItemMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed installMarketplaceItem message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
+			if (marketplaceManager) {
 				try {
-					const configFilePath = await marketplaceManager.installMarketplaceItem(
-						message.mpItem,
-						message.mpInstallOptions,
-					)
+					const configFilePath = await marketplaceManager.installMarketplaceItem(m.mpItem, m.mpInstallOptions)
 					await provider.postStateToWebview()
 					console.log(`Marketplace item installed and config file opened: ${configFilePath}`)
 
@@ -3105,7 +3115,7 @@ export const webviewMessageHandler = async (
 					await provider.postMessageToWebview({
 						type: "marketplaceInstallResult",
 						success: true,
-						slug: message.mpItem.id,
+						slug: m.mpItem.id,
 					})
 				} catch (error) {
 					console.error(`Error installing marketplace item: ${error}`)
@@ -3114,7 +3124,7 @@ export const webviewMessageHandler = async (
 						type: "marketplaceInstallResult",
 						success: false,
 						error: error instanceof Error ? error.message : String(error),
-						slug: message.mpItem.id,
+						slug: m.mpItem.id,
 					})
 				}
 			}
@@ -3122,12 +3132,19 @@ export const webviewMessageHandler = async (
 		}
 
 		case "installMarketplaceItems": {
-			if (marketplaceManager && message.mpItems && Array.isArray(message.mpItems) && message.mpItems.length > 0) {
+			const result = installMarketplaceItemsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed installMarketplaceItems message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
+			if (marketplaceManager) {
 				try {
-					const results = await marketplaceManager.installMarketplaceItems(
-						message.mpItems,
-						message.mpInstallOptions,
-					)
+					const results = await marketplaceManager.installMarketplaceItems(m.mpItems, m.mpInstallOptions)
 					await provider.postStateToWebview()
 
 					// Send bulk install results back to webview
@@ -3139,7 +3156,7 @@ export const webviewMessageHandler = async (
 					console.error(`Error installing marketplace items in bulk: ${error}`)
 					void provider.postMessageToWebview({
 						type: "marketplaceBulkInstallResult",
-						results: message.mpItems.map((item: { id: string }) => ({
+						results: m.mpItems.map((item) => ({
 							slug: item.id,
 							success: false,
 							error: error instanceof Error ? error.message : String(error),
@@ -3200,10 +3217,20 @@ export const webviewMessageHandler = async (
 		}
 
 		case "installMarketplaceItemWithParameters": {
-			if (marketplaceManager && message.payload && "item" in message.payload && "parameters" in message.payload) {
+			const result = installMarketplaceItemWithParametersMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed installMarketplaceItemWithParameters message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
+			if (marketplaceManager) {
 				try {
-					const configFilePath = await marketplaceManager.installMarketplaceItem(message.payload.item, {
-						parameters: message.payload.parameters,
+					const configFilePath = await marketplaceManager.installMarketplaceItem(m.payload.item, {
+						parameters: m.payload.parameters,
 					})
 					await provider.postStateToWebview()
 					console.log(`Marketplace item with parameters installed and config file opened: ${configFilePath}`)

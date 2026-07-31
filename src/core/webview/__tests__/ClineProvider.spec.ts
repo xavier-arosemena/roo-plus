@@ -3888,6 +3888,18 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
 				expect(mockPostMessage).not.toHaveBeenCalled()
 			})
+
+			test("rejects a crafted malformed installMarketplaceItem message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// mpItem must be a valid marketplace item; a string is malformed.
+				await messageHandler({ type: "installMarketplaceItem", mpItem: "nope" })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
 		})
 
 		describe("Operations on Deleted or Non-existent Messages", () => {
