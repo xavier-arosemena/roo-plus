@@ -111,6 +111,7 @@ vi.mock("vscode", () => {
 	const showTextDocument = vi.fn().mockResolvedValue(undefined)
 
 	return {
+		ConfigurationTarget: { Global: 1, Workspace: 2, WorkspaceFolder: 3 },
 		window: {
 			showInformationMessage,
 			showErrorMessage,
@@ -119,7 +120,7 @@ vi.mock("vscode", () => {
 		workspace: {
 			workspaceFolders: [{ uri: { fsPath: "/mock/workspace" } }],
 			openTextDocument,
-			getConfiguration: vi.fn(() => ({ get: vi.fn() })),
+			getConfiguration: vi.fn(() => ({ get: vi.fn(), update: vi.fn() })),
 		},
 		commands: {
 			executeCommand: vi.fn().mockResolvedValue(undefined),
@@ -1176,6 +1177,52 @@ describe("webviewMessageHandler - terminalProfile", () => {
 		expect(Terminal.getTerminalProfile()).toBeUndefined()
 		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("terminalProfile", undefined)
 		expect(closeIdleTerminalsSpy).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe("webviewMessageHandler - command allow/deny", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("persists allowedCommands and filters blank entries", async () => {
+		await webviewMessageHandler(mockClineProvider, {
+			type: "allowedCommands",
+			commands: ["npm test", "  ", ""],
+		})
+
+		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("allowedCommands", ["npm test"])
+	})
+
+	it("persists deniedCommands", async () => {
+		await webviewMessageHandler(mockClineProvider, {
+			type: "deniedCommands",
+			commands: ["rm -rf"],
+		})
+
+		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("deniedCommands", ["rm -rf"])
+	})
+
+	it("rejects a malformed allowedCommands message without side effects", async () => {
+		const malformed = { type: "allowedCommands", commands: "npm test" } as never
+
+		await webviewMessageHandler(mockClineProvider, malformed)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(
+			expect.stringContaining("Rejected malformed allowedCommands message"),
+		)
+		expect(mockClineProvider.contextProxy.setValue).not.toHaveBeenCalled()
+	})
+
+	it("rejects a malformed deniedCommands message without side effects", async () => {
+		const malformed = { type: "deniedCommands", commands: [42] } as never
+
+		await webviewMessageHandler(mockClineProvider, malformed)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(
+			expect.stringContaining("Rejected malformed deniedCommands message"),
+		)
+		expect(mockClineProvider.contextProxy.setValue).not.toHaveBeenCalled()
 	})
 })
 

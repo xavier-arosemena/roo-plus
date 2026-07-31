@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import type { WebviewMessage } from "../vscode-extension-host.js"
 import { checkpointDiffMessageSchema, checkpointRestoreMessageSchema } from "./checkpoint.js"
+import { allowedCommandsMessageSchema, deniedCommandsMessageSchema } from "./commands.js"
 
 /**
  * String-literal union of every webview message type.
@@ -22,6 +23,8 @@ export type WebviewMessageType = WebviewMessage["type"]
 export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType>> = {
 	checkpointDiff: checkpointDiffMessageSchema,
 	checkpointRestore: checkpointRestoreMessageSchema,
+	allowedCommands: allowedCommandsMessageSchema,
+	deniedCommands: deniedCommandsMessageSchema,
 }
 
 /**
@@ -31,6 +34,8 @@ export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType
 export const webviewMessageSchema = z.discriminatedUnion("type", [
 	checkpointDiffMessageSchema,
 	checkpointRestoreMessageSchema,
+	allowedCommandsMessageSchema,
+	deniedCommandsMessageSchema,
 ])
 
 export type ParseWebviewMessageResult = { ok: true; message: WebviewMessage } | { ok: false; error: string }
@@ -72,3 +77,5 @@ export function parseWebviewMessage(raw: unknown): ParseWebviewMessageResult {
 
 export { checkpointDiffMessageSchema, checkpointRestoreMessageSchema } from "./checkpoint.js"
 export type { CheckpointMessage } from "./checkpoint.js"
+export { allowedCommandsMessageSchema, deniedCommandsMessageSchema, commandsMessageSchema } from "./commands.js"
+export type { CommandsMessage } from "./commands.js"

@@ -149,6 +149,7 @@ vi.mock("vscode", () => ({
 	ExtensionContext: vi.fn(),
 	OutputChannel: vi.fn(),
 	WebviewView: vi.fn(),
+	ConfigurationTarget: { Global: 1, Workspace: 2, WorkspaceFolder: 3 },
 	EventEmitter: vi.fn().mockImplementation(function () {
 		return {
 			event: vi.fn(),
@@ -3803,6 +3804,39 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 				await messageHandler({ type: "requestModes" })
 
 				expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+			})
+
+			test("rejects a crafted malformed allowedCommands message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "allowedCommands", commands: "npm test" })
+
+				// Rejected at the boundary: logged, never dispatched.
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed deniedCommands message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "deniedCommands", commands: [123] })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("dispatches a valid allowedCommands message and persists it", async () => {
+				const setValueSpy = vi.spyOn(provider.contextProxy, "setValue")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "allowedCommands", commands: ["npm test"] })
+
+				expect(setValueSpy).toHaveBeenCalledWith("allowedCommands", ["npm test"])
 			})
 		})
 

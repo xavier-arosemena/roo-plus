@@ -121,10 +121,12 @@ describe("parseWebviewMessage", () => {
 		})
 	})
 
-	it("seeds exactly the two checkpoint schemas in the registry", () => {
+	it("seeds the checkpoint schemas and the S1-M3 command schemas in the registry", () => {
 		expect(webviewMessageSchemas.checkpointDiff).toBeDefined()
 		expect(webviewMessageSchemas.checkpointRestore).toBeDefined()
-		expect(Object.keys(webviewMessageSchemas)).toHaveLength(2)
+		expect(webviewMessageSchemas.allowedCommands).toBeDefined()
+		expect(webviewMessageSchemas.deniedCommands).toBeDefined()
+		expect(Object.keys(webviewMessageSchemas)).toHaveLength(4)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

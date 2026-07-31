@@ -21,6 +21,8 @@ import {
 	ExperimentId,
 	checkoutDiffPayloadSchema,
 	checkoutRestorePayloadSchema,
+	allowedCommandsMessageSchema,
+	deniedCommandsMessageSchema,
 	getCompletionCheckpoint,
 	providerIdentifiers,
 } from "@roo-code/types"
@@ -1526,11 +1528,19 @@ export const webviewMessageHandler = async (
 			provider.getCurrentTask()?.cancelAutoApprovalTimeout()
 			break
 		case "allowedCommands": {
-			// Validate and sanitize the commands array
-			const commands = message.commands ?? []
-			const validCommands = Array.isArray(commands)
-				? commands.filter((cmd) => typeof cmd === "string" && cmd.trim().length > 0)
-				: []
+			// The schema guarantees `commands` is a string array; reject malformed
+			// payloads at the boundary before any side effects.
+			const result = allowedCommandsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed allowedCommands message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
+			const validCommands = m.commands.filter((cmd) => cmd.trim().length > 0)
 
 			await updateGlobalState("allowedCommands", validCommands)
 
@@ -1542,11 +1552,17 @@ export const webviewMessageHandler = async (
 			break
 		}
 		case "deniedCommands": {
-			// Validate and sanitize the commands array
-			const commands = message.commands ?? []
-			const validCommands = Array.isArray(commands)
-				? commands.filter((cmd) => typeof cmd === "string" && cmd.trim().length > 0)
-				: []
+			const result = deniedCommandsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed deniedCommands message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
+			const validCommands = m.commands.filter((cmd) => cmd.trim().length > 0)
 
 			await updateGlobalState("deniedCommands", validCommands)
 
