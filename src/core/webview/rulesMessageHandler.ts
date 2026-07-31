@@ -13,11 +13,13 @@ import type { ClineProvider } from "./ClineProvider"
 import { openFile } from "../../integrations/misc/open-file"
 import { createRule, deleteRule, getRules, getRulesDirectoryPath, resolveRuleFile } from "../../services/rules/rules"
 
+export type RulesProvider = Pick<ClineProvider, "getModes" | "postMessageToWebview" | "log">
+
 function getErrorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error)
 }
 
-export async function handleRequestRules(provider: ClineProvider, cwd: string): Promise<RuleMetadata[]> {
+export async function handleRequestRules(provider: RulesProvider, cwd: string): Promise<RuleMetadata[]> {
 	try {
 		const modes = await provider.getModes()
 		const rules = await getRules(cwd, { modes })
@@ -31,7 +33,7 @@ export async function handleRequestRules(provider: ClineProvider, cwd: string): 
 }
 
 export async function handleCreateRule(
-	provider: ClineProvider,
+	provider: RulesProvider,
 	cwd: string,
 	message: WebviewMessage,
 ): Promise<RuleMetadata[] | undefined> {
@@ -57,7 +59,7 @@ export async function handleCreateRule(
 }
 
 export async function handleDeleteRule(
-	provider: ClineProvider,
+	provider: RulesProvider,
 	cwd: string,
 	message: WebviewMessage,
 ): Promise<RuleMetadata[] | undefined> {
@@ -81,7 +83,7 @@ export async function handleDeleteRule(
 	}
 }
 
-export async function handleOpenRuleFile(provider: ClineProvider, cwd: string, message: WebviewMessage): Promise<void> {
+export async function handleOpenRuleFile(provider: RulesProvider, cwd: string, message: WebviewMessage): Promise<void> {
 	try {
 		const input = parseDeleteRuleInput(message)
 		const filePath = await resolveRuleFile(cwd, input)
@@ -98,7 +100,7 @@ export async function handleOpenRuleFile(provider: ClineProvider, cwd: string, m
 }
 
 export async function handleOpenRulesDirectory(
-	provider: ClineProvider,
+	provider: RulesProvider,
 	cwd: string,
 	message: WebviewMessage,
 ): Promise<void> {
@@ -117,7 +119,7 @@ export async function handleOpenRulesDirectory(
 	}
 }
 
-async function refreshRules(provider: ClineProvider, cwd: string): Promise<RuleMetadata[]> {
+async function refreshRules(provider: RulesProvider, cwd: string): Promise<RuleMetadata[]> {
 	const modes = await provider.getModes()
 	const rules = await getRules(cwd, { modes })
 	await provider.postMessageToWebview({ type: "rules", rules })

@@ -20,7 +20,11 @@ export default [
 		},
 	},
 	{
-		files: ["core/assistant-message/presentAssistantMessage.ts", "core/webview/webviewMessageHandler.ts"],
+		files: [
+			"core/assistant-message/presentAssistantMessage.ts",
+			"core/webview/webviewMessageHandler.ts",
+			"core/webview/handlers/*.ts",
+		],
 		rules: {
 			"no-case-declarations": "off",
 		},
