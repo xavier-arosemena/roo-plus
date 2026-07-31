@@ -1165,18 +1165,22 @@ describe("webviewMessageHandler - terminalProfile", () => {
 		expect(closeIdleTerminalsSpy).not.toHaveBeenCalled()
 	})
 
-	it("treats non-string terminalProfile values as unset", async () => {
+	it("rejects a malformed updateSettings message with a non-string terminalProfile", async () => {
 		Terminal.setTerminalProfile("Git Bash")
 		const closeIdleTerminalsSpy = vi.spyOn(TerminalRegistry, "closeIdleTerminals").mockImplementation(() => {})
 
-		await webviewMessageHandler(mockClineProvider, {
-			type: "updateSettings",
-			updatedSettings: { terminalProfile: 42 as any },
-		})
+		const malformed = { type: "updateSettings", updatedSettings: { terminalProfile: 42 } } as never
 
-		expect(Terminal.getTerminalProfile()).toBeUndefined()
-		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("terminalProfile", undefined)
-		expect(closeIdleTerminalsSpy).toHaveBeenCalledTimes(1)
+		await webviewMessageHandler(mockClineProvider, malformed)
+
+		// Malformed payload is rejected before any side effects: profile unchanged,
+		// nothing persisted, no terminal churn.
+		expect(mockClineProvider.log).toHaveBeenCalledWith(
+			expect.stringContaining("Rejected malformed updateSettings message"),
+		)
+		expect(Terminal.getTerminalProfile()).toBe("Git Bash")
+		expect(mockClineProvider.contextProxy.setValue).not.toHaveBeenCalled()
+		expect(closeIdleTerminalsSpy).not.toHaveBeenCalled()
 	})
 })
 

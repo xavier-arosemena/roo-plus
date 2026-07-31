@@ -3838,6 +3838,28 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 
 				expect(setValueSpy).toHaveBeenCalledWith("allowedCommands", ["npm test"])
 			})
+
+			test("rejects a crafted malformed updateSettings message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// terminalProfile must be a string; a number is a malformed known field.
+				await messageHandler({ type: "updateSettings", updatedSettings: { terminalProfile: 42 } })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("dispatches a valid updateSettings message and persists it", async () => {
+				const setValueSpy = vi.spyOn(provider.contextProxy, "setValue")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "updateSettings", updatedSettings: { soundEnabled: true } })
+
+				expect(setValueSpy).toHaveBeenCalledWith("soundEnabled", true)
+			})
 		})
 
 		describe("Operations on Deleted or Non-existent Messages", () => {

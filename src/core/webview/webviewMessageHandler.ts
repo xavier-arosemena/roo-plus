@@ -23,6 +23,7 @@ import {
 	checkoutRestorePayloadSchema,
 	allowedCommandsMessageSchema,
 	deniedCommandsMessageSchema,
+	updateSettingsMessageSchema,
 	getCompletionCheckpoint,
 	providerIdentifiers,
 } from "@roo-code/types"
@@ -674,9 +675,22 @@ export const webviewMessageHandler = async (
 			}
 			break
 
-		case "updateSettings":
-			if (message.updatedSettings) {
-				for (const [key, value] of Object.entries(message.updatedSettings)) {
+		case "updateSettings": {
+			// The schema validates known setting-field types (via rooCodeSettingsSchema)
+			// while retaining unknown future fields (passthrough). Reject malformed
+			// payloads before any side effects.
+			const result = updateSettingsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed updateSettings message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
+			if (m.updatedSettings) {
+				for (const [key, value] of Object.entries(m.updatedSettings)) {
 					let newValue = value
 
 					if (key === "language") {
@@ -782,6 +796,7 @@ export const webviewMessageHandler = async (
 			}
 
 			break
+		}
 
 		case "terminalOperation":
 			if (message.terminalOperation) {

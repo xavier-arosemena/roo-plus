@@ -1156,7 +1156,7 @@
 	},
 	"core/webview/__tests__/webviewMessageHandler.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 29
+			"count": 28
 		}
 	},
 	"core/webview/messageEnhancer.ts": {

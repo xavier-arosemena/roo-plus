@@ -280,7 +280,9 @@ export const GLOBAL_SETTINGS_KEYS = globalSettingsSchema.keyof().options
  * RooCodeSettings
  */
 
-export const rooCodeSettingsSchema = providerSettingsSchema.merge(globalSettingsSchema)
+// `.passthrough()` retains unknown future settings fields so a settings update
+// from the webview never strips forward-compatible keys (S1-M3, updateSettings).
+export const rooCodeSettingsSchema = providerSettingsSchema.merge(globalSettingsSchema).passthrough()
 
 export type RooCodeSettings = GlobalSettings & ProviderSettings
 
