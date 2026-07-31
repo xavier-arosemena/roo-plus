@@ -44,7 +44,10 @@ const MERMAID_THEME = {
 
 mermaid.initialize({
 	startOnLoad: false,
-	securityLevel: "loose",
+	// "strict" escapes HTML in labels so a malicious diagram source cannot
+	// inject scripts/HTML into the rendered SVG. DO NOT relax this back to
+	// "loose" — it is the primary defense for the Mermaid XSS vector.
+	securityLevel: "strict",
 	theme: "dark",
 	suppressErrorRendering: true,
 	themeVariables: {

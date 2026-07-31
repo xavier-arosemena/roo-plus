@@ -3,6 +3,7 @@ import { ArrowRight, Folder } from "lucide-react"
 import type { DisplayHistoryItem } from "./types"
 
 import { vscode } from "@/utils/vscode"
+import { sanitizeHtml } from "@/utils/sanitizeHtml"
 import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 
@@ -81,7 +82,7 @@ const TaskItem = ({
 									!isCompact && isSelectionMode ? "mb-1" : "",
 								)}
 								data-testid="task-content"
-								dangerouslySetInnerHTML={{ __html: item.highlight }}
+								dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.highlight) }}
 							/>
 						) : (
 							<div
