@@ -5,6 +5,7 @@ import { Tab, TabContent, TabHeader } from "../common/Tab"
 import { MarketplaceViewStateManager } from "./MarketplaceViewStateManager"
 import { useStateManager } from "./useStateManager"
 import { useAppTranslation } from "@/i18n/TranslationContext"
+import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 import { MarketplaceListView } from "./MarketplaceListView"
 import { cn } from "@/lib/utils"
@@ -58,6 +59,7 @@ export function MarketplaceView({ stateManager, onDone, targetTab }: Marketplace
 		})
 
 		const handleVisibilityMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type === "webviewVisible" && message.visible === true) {
 				// Data will be automatically fresh when panel becomes visible

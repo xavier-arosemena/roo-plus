@@ -194,8 +194,14 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 						continue
 					}
 
-					// Check for binary file
-					const isBinary = await isBinaryFile(fullPath)
+					// Read text file content with lossy UTF-8 conversion. Read the
+					// file once as a Buffer and derive the binary/text decision from
+					// the buffer contents — avoids a stat-then-read (TOCTOU) race
+					// between isBinaryFile and readFile. Reading as Buffer first also
+					// allows graceful handling of non-UTF8 bytes (they become U+FFFD
+					// replacement characters instead of throwing).
+					const buffer = await fs.readFile(fullPath)
+					const isBinary = await isBinaryFile(buffer)
 
 					if (isBinary) {
 						await this.handleBinaryFile(
@@ -211,10 +217,6 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 						continue
 					}
 
-					// Read text file content with lossy UTF-8 conversion
-					// Reading as Buffer first allows graceful handling of non-UTF8 bytes
-					// (they become U+FFFD replacement characters instead of throwing)
-					const buffer = await fs.readFile(fullPath)
 					const fileContent = buffer.toString("utf-8")
 					const result = this.processTextFile(fileContent, entry)
 
@@ -735,7 +737,11 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 					continue
 				}
 
-				const isBinary = await isBinaryFile(fullPath).catch(() => false)
+				// Read the file once as a Buffer and derive the binary/text decision
+				// from the buffer contents — avoids a stat-then-read (TOCTOU) race
+				// between isBinaryFile and readFile.
+				const rawBuffer = await fs.readFile(fullPath)
+				const isBinary = await isBinaryFile(rawBuffer).catch(() => false)
 
 				if (isBinary) {
 					// Handle binary files (images)
@@ -768,7 +774,7 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 				}
 
 				// Read text file
-				const rawContent = await fs.readFile(fullPath, "utf8")
+				const rawContent = rawBuffer.toString("utf8")
 
 				// Handle line ranges if specified
 				let content: string

@@ -79,12 +79,6 @@ export async function extractTextFromFileWithMetadata(
 	filePath: string,
 	limit: number = DEFAULT_LINE_LIMIT,
 ): Promise<ExtractTextResult> {
-	try {
-		await fs.access(filePath)
-	} catch (error) {
-		throw new Error(`File not found: ${filePath}`)
-	}
-
 	const fileExtension = path.extname(filePath).toLowerCase()
 
 	// Check if we have a specific extractor for this format
@@ -101,11 +95,24 @@ export async function extractTextFromFileWithMetadata(
 		}
 	}
 
-	// Handle other files
-	const isBinary = await isBinaryFile(filePath).catch(() => false)
+	// Handle other files: read the file once as a Buffer and derive the
+	// binary/text decision from the buffer contents. This avoids a
+	// check-then-act (TOCTOU) race between an fs.access/isBinaryFile probe
+	// and the subsequent readFile.
+	let rawBuffer: Buffer
+	try {
+		rawBuffer = await fs.readFile(filePath)
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+			throw new Error(`File not found: ${filePath}`)
+		}
+		throw error
+	}
+
+	const isBinary = await isBinaryFile(rawBuffer)
 
 	if (!isBinary) {
-		const rawContent = await fs.readFile(filePath, "utf8")
+		const rawContent = rawBuffer.toString("utf8")
 		const result = readWithSlice(rawContent, 0, limit)
 
 		return {

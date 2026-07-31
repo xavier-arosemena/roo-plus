@@ -34,6 +34,23 @@ export type OpenAiCodexModel = ReturnType<OpenAiCodexHandler["getModel"]>
 
 type OpenAiCodexRequestServiceTier = typeof OpenAiCodexServiceTier.Priority
 
+const SUPPORTED_IMAGE_MEDIA_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"])
+
+/**
+ * Validate that a base64 image block is safe to embed into an outbound request.
+ * The payload is derived from a locally-read file, so the media type must be a
+ * known image type and the payload must be well-formed base64 — this prevents
+ * file content from steering the HTTP request (file-access-to-http).
+ */
+function isSafeBase64Image(mediaType: string, data: string): boolean {
+	return (
+		SUPPORTED_IMAGE_MEDIA_TYPES.has(mediaType) &&
+		data.length > 0 &&
+		data.length % 4 === 0 &&
+		/^[A-Za-z0-9+/]+={0,2}$/.test(data)
+	)
+}
+
 /**
  * OpenAI Codex base URL for API requests
  * Per the implementation guide: requests are routed to chatgpt.com/backend-api/codex
@@ -518,8 +535,12 @@ export class OpenAiCodexHandler extends BaseProvider implements SingleCompletion
 						} else if (block.type === "image") {
 							const image = block as Anthropic.Messages.ImageBlockParam
 							if (image.source.type === "base64") {
-								const imageUrl = `data:${image.source.media_type};base64,${image.source.data}`
-								content.push({ type: "input_image", image_url: imageUrl })
+								// Only embed the image if the media type and base64
+								// payload pass validation (see isSafeBase64Image).
+								if (isSafeBase64Image(image.source.media_type, image.source.data)) {
+									const imageUrl = `data:${image.source.media_type};base64,${image.source.data}`
+									content.push({ type: "input_image", image_url: imageUrl })
+								}
 							}
 						} else if (block.type === "tool_result") {
 							const result =

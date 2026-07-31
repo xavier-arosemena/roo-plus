@@ -8,6 +8,7 @@ import type { ExtensionMessage, TelemetrySetting } from "@roo-code/types"
 
 import { Package } from "@roo/package"
 
+import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 import { EXTERNAL_LINKS } from "@/constants/externalLinks"
 import { cn } from "@/lib/utils"
@@ -32,6 +33,7 @@ export const About = ({ telemetrySetting, setTelemetrySetting, debug, setDebug, 
 
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type !== "rooHistoryImportProgress" || !message.rooHistoryImportProgress) {
 				return

@@ -115,18 +115,20 @@ function findMissingI18nKeys() {
 	const results = []
 
 	function walk(dir, baseDir, localeDirs, localesDir) {
-		const files = fs.readdirSync(dir)
+		// readdirSync with withFileTypes folds the file-type check into the
+		// readdir result, avoiding a separate statSync + readFileSync
+		// check-then-act (TOCTOU) race.
+		const entries = fs.readdirSync(dir, { withFileTypes: true })
 
-		for (const file of files) {
-			const filePath = path.join(dir, file)
-			const stat = fs.statSync(filePath)
+		for (const entry of entries) {
+			const filePath = path.join(dir, entry.name)
 
 			// Exclude test files and __mocks__ directory
 			if (filePath.includes(".test.") || filePath.includes("__mocks__")) continue
 
-			if (stat.isDirectory()) {
+			if (entry.isDirectory()) {
 				walk(filePath, baseDir, localeDirs, localesDir) // Recursively traverse subdirectories
-			} else if (stat.isFile() && [".ts", ".tsx", ".js", ".jsx"].includes(path.extname(filePath))) {
+			} else if (entry.isFile() && [".ts", ".tsx", ".js", ".jsx"].includes(path.extname(filePath))) {
 				const content = fs.readFileSync(filePath, "utf8")
 
 				// Match all i18n keys

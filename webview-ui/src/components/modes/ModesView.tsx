@@ -24,6 +24,7 @@ import {
 } from "@roo/modes"
 import { TOOL_GROUPS } from "@roo/tools"
 
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 import { buildDocLink } from "@src/utils/docLinks"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
@@ -535,6 +536,7 @@ const ModesView = () => {
 
 	useEffect(() => {
 		const handler = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type === "systemPrompt") {
 				if (message.text) {
@@ -575,10 +577,16 @@ const ModesView = () => {
 				}
 				// Note: Auto-select after import will be handled by PR #9003
 			} else if (message.type === "checkRulesDirectoryResult") {
-				setHasRulesToExport((prev) => ({
-					...prev,
-					[message.slug]: message.hasContent,
-				}))
+				// Validate the slug before using it as a property key — the value
+				// originates from untrusted webview data and must not be able to
+				// pollute the object prototype (remote-property-injection).
+				const slug = message.slug
+				if (typeof slug === "string" && !["__proto__", "prototype", "constructor"].includes(slug)) {
+					setHasRulesToExport((prev) => ({
+						...prev,
+						[slug]: message.hasContent,
+					}))
+				}
 			} else if (message.type === "deleteCustomModeCheck") {
 				// Handle the check response
 				// Use the ref to get the current modeToDelete value

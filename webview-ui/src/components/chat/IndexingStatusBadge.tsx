@@ -4,6 +4,7 @@ import { Database } from "lucide-react"
 import type { IndexingStatus, IndexingStatusUpdateMessage } from "@roo-code/types"
 
 import { cn } from "@src/lib/utils"
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 
@@ -33,6 +34,7 @@ export const IndexingStatusBadge: React.FC<IndexingStatusBadgeProps> = ({ classN
 
 		// Set up message listener for status updates.
 		const handleMessage = (event: MessageEvent<IndexingStatusUpdateMessage>) => {
+			if (!isTrustedMessage(event)) return
 			if (event.data.type === "indexingStatusUpdate") {
 				const status = event.data.values
 				if (!status.workspacePath || status.workspacePath === cwd) {

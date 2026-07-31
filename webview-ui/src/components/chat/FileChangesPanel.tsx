@@ -90,7 +90,12 @@ const FileChangesPanel = memo(({ clineMessages, className }: FileChangesPanelPro
 			if (message.type === "fileContent" && message.fileContent?.path != null) {
 				const fc = message.fileContent
 				pendingPathsRef.current.delete(fc.path)
-				setFinalContentByPath((prev) => ({ ...prev, [fc.path]: fc.content ?? null }))
+				// Validate the path before using it as a property key — the value
+				// originates from untrusted webview data and must not be able to
+				// pollute the object prototype (remote-property-injection).
+				if (typeof fc.path === "string" && !["__proto__", "prototype", "constructor"].includes(fc.path)) {
+					setFinalContentByPath((prev) => ({ ...prev, [fc.path]: fc.content ?? null }))
+				}
 			}
 		}
 		window.addEventListener("message", handler)

@@ -100,10 +100,21 @@ function applyTlsVerificationOverride(config: ProxyConfig): void {
 		originalNodeTlsRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED
 	}
 
-	// This is a debug-only opt-in for MITM debugging with self-signed certificates.
-	// It is only reached when the user explicitly configures a proxy with
-	// a `strictSSL: false` option. In production, NODE_TLS_REJECT_UNAUTHORIZED
-	// is always "1".
+	// SECURITY: Debug-only, explicitly opt-in TLS verification override.
+	//
+	// This is ONLY reachable when ALL of the following hold:
+	//   1. The extension runs in Development mode (F5 debug session):
+	//      `initializeNetworkProxy` returns before proxy init in
+	//      Production/Test modes, and `config.isDebugMode` mirrors that same
+	//      `extensionMode === ExtensionMode.Development` check.
+	//   2. A debug proxy is explicitly enabled by the developer (`config.enabled`).
+	//   3. The developer explicitly set `strictSSL: false` on the proxy config
+	//      (`config.tlsInsecure`) — the default is TLS verification ON.
+	//
+	// This enables MITM debugging against self-signed certificates during
+	// development. Disabling TLS verification must never happen in production;
+	// the early return in `initializeNetworkProxy` guarantees this code path is
+	// unreachable outside Development mode.
 	log("⚠️ TLS certificate validation DISABLED — proxy will accept self-signed certificates")
 	process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 	tlsVerificationOverridden = true

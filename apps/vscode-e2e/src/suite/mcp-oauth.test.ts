@@ -94,7 +94,15 @@ suite("Roo Code MCP OAuth", function () {
 
 		mockServer = http.createServer((req, res) => {
 			const url = req.url || ""
-			console.log(`[MOCK SERVER] ${req.method} ${url}`)
+			// Sanitize newlines/control characters in the request URL before
+			// logging it. The value originates from an untrusted HTTP client and
+			// must not be able to forge log entries (log-injection). Control
+			// characters (U+0000–U+001F and U+007F) are replaced with a space.
+			const sanitizedUrl = url
+				.split("")
+				.map((char) => (char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127 ? " " : char))
+				.join("")
+			console.log(`[MOCK SERVER] ${req.method} ${sanitizedUrl}`)
 
 			// ── MCP endpoint ─────────────────────────────────────────────
 			if (url === "/mcp" || url.startsWith("/mcp?") || url.startsWith("/mcp/")) {

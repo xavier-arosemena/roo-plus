@@ -5,6 +5,7 @@ import type { Worktree, WorktreeListResponse, WorktreeIncludeStatus } from "@roo
 import { Badge, Button, StandardTooltip, ToggleSwitch } from "@/components/ui"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAppTranslation } from "@/i18n/TranslationContext"
+import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 
 import { SectionHeader } from "../settings/SectionHeader"
@@ -47,6 +48,7 @@ export const WorktreesView = () => {
 	// Handle messages from extension
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			switch (message.type) {
 				case "worktreeList": {

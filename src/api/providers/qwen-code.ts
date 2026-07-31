@@ -144,17 +144,37 @@ export class QwenCodeHandler extends BaseProvider implements SingleCompletionHan
 			throw new Error(`Token refresh failed: ${tokenData.error} - ${tokenData.error_description}`)
 		}
 
+		// The response is untrusted remote data. Validate its shape before
+		// building credentials that are persisted to disk, so a malformed or
+		// hostile response cannot inject arbitrary file contents
+		// (http-to-file-access).
+		const accessToken = tokenData.access_token
+		const tokenType = tokenData.token_type
+		const expiresIn = tokenData.expires_in
+		if (
+			typeof accessToken !== "string" ||
+			accessToken.length === 0 ||
+			typeof tokenType !== "string" ||
+			tokenType.length === 0 ||
+			typeof expiresIn !== "number" ||
+			!Number.isFinite(expiresIn) ||
+			expiresIn <= 0
+		) {
+			throw new Error("Token refresh failed: invalid token response")
+		}
+
 		const newCredentials = {
 			...credentials,
-			access_token: tokenData.access_token,
-			token_type: tokenData.token_type,
-			refresh_token: tokenData.refresh_token || credentials.refresh_token,
-			expiry_date: Date.now() + tokenData.expires_in * 1000,
+			access_token: accessToken,
+			token_type: tokenType,
+			refresh_token:
+				typeof tokenData.refresh_token === "string" ? tokenData.refresh_token : credentials.refresh_token,
+			expiry_date: Date.now() + expiresIn * 1000,
 		}
 
 		const filePath = getQwenCachedCredentialPath(this.options.qwenCodeOauthPath)
 		try {
-			await fs.writeFile(filePath, JSON.stringify(newCredentials, null, 2))
+			await fs.writeFile(filePath, JSON.stringify(newCredentials, null, 2), { mode: 0o600 })
 		} catch (error) {
 			console.error("Failed to save refreshed credentials:", error)
 			// Continue with the refreshed token in memory even if file write fails

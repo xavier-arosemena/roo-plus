@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react"
+
+import { isTrustedMessage } from "../../utils/trustedMessages"
+
 import { MarketplaceViewStateManager, ViewState } from "./MarketplaceViewStateManager"
 
 export function useStateManager(existingManager?: MarketplaceViewStateManager) {
@@ -24,6 +27,7 @@ export function useStateManager(existingManager?: MarketplaceViewStateManager) {
 		}
 
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			manager.handleMessage(event.data)
 		}
 

@@ -7,6 +7,7 @@ import { type ProviderSettings, type ExtensionMessage, type ModelRecord, ollamaD
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { useRouterModels } from "@src/components/ui/hooks/useRouterModels"
 import { Button } from "@src/components/ui"
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 
 import { inputEventTransform } from "../transforms"
@@ -40,6 +41,7 @@ export const Ollama = ({ apiConfiguration, setApiConfigurationField }: OllamaPro
 
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message: ExtensionMessage = event.data
 
 			if (message.type === "ollamaModels") {

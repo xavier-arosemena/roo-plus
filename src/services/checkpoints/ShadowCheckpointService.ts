@@ -248,9 +248,12 @@ export abstract class ShadowCheckpointService extends EventEmitter {
 	// shared with the main repo - and won't conflict with user's
 	// .gitignore.
 	protected async writeExcludeFile() {
-		await fs.mkdir(path.join(this.dotGitDir, "info"), { recursive: true })
+		// Write the git-internal exclude file with restrictive permissions so it
+		// cannot be read/written by other local users or raced via a pre-created
+		// symlink in a shared directory.
+		await fs.mkdir(path.join(this.dotGitDir, "info"), { recursive: true, mode: 0o700 })
 		const patterns = await getExcludePatterns(this.workspaceDir)
-		await fs.writeFile(path.join(this.dotGitDir, "info", "exclude"), patterns.join("\n"))
+		await fs.writeFile(path.join(this.dotGitDir, "info", "exclude"), patterns.join("\n"), { mode: 0o600 })
 	}
 
 	private async stageAll(git: SimpleGit) {

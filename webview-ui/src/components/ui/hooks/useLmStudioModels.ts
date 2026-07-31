@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { type ModelRecord, type ExtensionMessage } from "@roo-code/types"
 
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 
 export const requestLmStudioModels = (baseUrl?: string) =>
@@ -22,6 +23,7 @@ const getLmStudioModels = async (baseUrl?: string) =>
 		}, 10000)
 
 		const handler = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message: ExtensionMessage = event.data
 
 			if (message.type === "lmStudioModels") {

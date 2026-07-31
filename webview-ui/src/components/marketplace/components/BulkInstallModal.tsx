@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { MarketplaceItem } from "@roo-code/types"
+import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import {
@@ -48,6 +49,7 @@ export const BulkInstallModal: React.FC<BulkInstallModalProps> = ({ items, isOpe
 	// Listen for bulk install results
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type === "marketplaceBulkInstallResult" && message.results) {
 				setResults(message.results)

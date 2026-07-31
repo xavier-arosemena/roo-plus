@@ -1,4 +1,5 @@
 import { memo, ReactNode, useEffect, useState, useRef } from "react"
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { telemetryClient } from "@src/utils/TelemetryClient"
@@ -58,6 +59,7 @@ const DismissibleUpsell = memo(
 
 			// Listen for the response
 			const handleMessage = (event: MessageEvent) => {
+				if (!isTrustedMessage(event)) return
 				// Only update state if component is still mounted
 				if (!isMountedRef.current) return
 
