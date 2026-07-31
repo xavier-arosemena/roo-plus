@@ -3080,13 +3080,13 @@ export const webviewMessageHandler = async (
 					await provider.postStateToWebview()
 
 					// Send bulk install results back to webview
-					provider.postMessageToWebview({
+					void provider.postMessageToWebview({
 						type: "marketplaceBulkInstallResult",
 						results,
 					})
 				} catch (error) {
 					console.error(`Error installing marketplace items in bulk: ${error}`)
-					provider.postMessageToWebview({
+					void provider.postMessageToWebview({
 						type: "marketplaceBulkInstallResult",
 						results: message.mpItems.map((item: { id: string }) => ({
 							slug: item.id,

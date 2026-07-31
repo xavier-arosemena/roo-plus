@@ -411,12 +411,12 @@ describe("openClineInNewTab", () => {
 		setPanel(undefined, "tab")
 	})
 
-	it("creates a webview panel with title 'Zoo Code'", async () => {
+	it("creates a webview panel with title 'Roo+'", async () => {
 		await openClineInNewTab({ context: mockContext, outputChannel: mockOutputChannel })
 
 		expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
-			"zoo-code.TabPanelProvider",
-			"Zoo Code",
+			ClineProvider.tabPanelId,
+			"Roo+",
 			expect.any(Number),
 			expect.objectContaining({
 				enableScripts: true,

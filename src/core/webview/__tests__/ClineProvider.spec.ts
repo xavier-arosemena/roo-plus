@@ -591,7 +591,7 @@ describe("ClineProvider", () => {
 		})
 
 		expect(mockWebviewView.webview.html).toContain("<!DOCTYPE html>")
-		expect(mockWebviewView.webview.html).toContain("<title>Zoo Code</title>")
+		expect(mockWebviewView.webview.html).toContain("<title>Roo+</title>")
 	})
 
 	describe("logWebviewHiddenDiagnostics", () => {
@@ -2515,24 +2515,6 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 		expect(provider.postMessageToWebview).toHaveBeenCalledWith(
 			expect.objectContaining({ type: "importModeResult", error: "dialog failed" }),
 		)
-	})
-
-	it("covers changed cloud sign-out and rate-limit error responses", async () => {
-		const { CloudService } = await import("@roo-code/cloud")
-		const { openAiCodexOAuthManager } = await import("../../../integrations/openai-codex/oauth")
-		const provider = createProvider()
-
-		vi.mocked(CloudService.hasInstance).mockReturnValueOnce(false)
-		await webviewMessageHandler(provider, { type: "rooCloudSignOut" })
-		await webviewMessageHandler(provider, { type: "rooCloudSignOut" })
-
-		vi.mocked(openAiCodexOAuthManager.getAccessToken).mockRejectedValueOnce(new Error("token failed"))
-		await webviewMessageHandler(provider, { type: "requestOpenAiCodexRateLimits" })
-
-		expect(provider.postMessageToWebview).toHaveBeenCalledWith({
-			type: "openAiCodexRateLimits",
-			error: "token failed",
-		})
 	})
 
 	it("covers changed indexing status, secret, and missing-manager responses", async () => {

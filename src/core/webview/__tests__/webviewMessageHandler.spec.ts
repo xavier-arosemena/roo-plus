@@ -866,6 +866,17 @@ describe("webviewMessageHandler - requestOpenAiCodexRateLimits", () => {
 			},
 		})
 	})
+
+	it("posts error when fetching the access token fails", async () => {
+		mockGetAccessToken.mockRejectedValueOnce(new Error("token failed"))
+
+		await webviewMessageHandler(mockClineProvider, { type: "requestOpenAiCodexRateLimits" })
+
+		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
+			type: "openAiCodexRateLimits",
+			error: "token failed",
+		})
+	})
 })
 
 describe("webviewMessageHandler - deleteCustomMode", () => {
