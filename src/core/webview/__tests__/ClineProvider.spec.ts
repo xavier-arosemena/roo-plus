@@ -669,6 +669,83 @@ describe("ClineProvider", () => {
 		expect(scriptSrcMatch![0]).toContain("'wasm-unsafe-eval'")
 	})
 
+	describe("getHMRHtmlContent (dev mode CSP + Vite identity probe)", () => {
+		const createDevProvider = () =>
+			new ClineProvider(
+				{ ...mockContext, extensionMode: vscode.ExtensionMode.Development },
+				mockOutputChannel,
+				"sidebar",
+				new ContextProxy({ ...mockContext, extensionMode: vscode.ExtensionMode.Development }),
+			)
+
+		beforeEach(() => {
+			// The outer beforeEach only calls vi.clearAllMocks(), which does NOT clear
+			// mockImplementationOnce queues. Reset the axios mock so leftover responses
+			// from earlier tests in this file cannot disturb the probe order below.
+			vi.mocked(axios.get).mockReset()
+		})
+
+		afterEach(() => {
+			// Restore the default axios.get implementation for tests that run after ours.
+			vi.mocked(axios.get).mockResolvedValue({ data: { data: [] } })
+		})
+
+		test("serves HMR HTML when the responder is the Vite dev server, with no https://* in the CSP", async () => {
+			provider = createDevProvider()
+			vi.mocked(axios.get)
+				.mockResolvedValueOnce({ status: 200, data: "root page" })
+				.mockResolvedValueOnce({ status: 200, data: "/* @vite/client */ const vite = true" })
+
+			await provider.resolveWebviewView(mockWebviewView)
+
+			const html = mockWebviewView.webview.html
+			// HMR HTML loads the Vite entry script from the local dev server.
+			expect(html).toContain("http://localhost:5173/src/index.tsx")
+			// The bare https://* wildcard is gone from every HMR CSP directive
+			// (https://*.posthog.com is intentionally allowed for telemetry).
+			expect(html).not.toMatch(/https:\/\/\*(?!\.)/)
+
+			const scriptSrcMatch = html.match(/script-src[^;]*;/)
+			expect(scriptSrcMatch).not.toBeNull()
+			const scriptSrc = scriptSrcMatch![0]
+			expect(scriptSrc).not.toMatch(/https:\/\/\*(?!\.)/)
+			expect(scriptSrc).toContain("'unsafe-eval'") // dev-only, required by Vite HMR
+			expect(scriptSrc).toContain("http://localhost:5173")
+			expect(scriptSrc).toContain("http://0.0.0.0:5173")
+			expect(scriptSrc).toContain("https://*.posthog.com")
+			expect(scriptSrc).toContain("'nonce-")
+		})
+
+		test("falls back to production HTML when /@vite/client is unreachable", async () => {
+			provider = createDevProvider()
+			vi.mocked(axios.get)
+				.mockResolvedValueOnce({ status: 200, data: "root page" })
+				.mockRejectedValueOnce(new Error("Network error"))
+
+			await provider.resolveWebviewView(mockWebviewView)
+
+			const html = mockWebviewView.webview.html
+			expect(html).not.toContain("http://localhost:5173/src/index.tsx")
+			// Production getHtmlContent CSP marker is used instead of the HMR one.
+			expect(html).toContain("'wasm-unsafe-eval'")
+			expect(html).not.toContain("'unsafe-eval'")
+		})
+
+		test("falls back to production HTML when /@vite/client does not identify as Vite", async () => {
+			provider = createDevProvider()
+			vi.mocked(axios.get)
+				.mockResolvedValueOnce({ status: 200, data: "root page" })
+				.mockResolvedValueOnce({ status: 200, data: "<html>some other dev server</html>" })
+
+			await provider.resolveWebviewView(mockWebviewView)
+
+			const html = mockWebviewView.webview.html
+			expect(html).not.toContain("http://localhost:5173/src/index.tsx")
+			expect(html).toContain("'wasm-unsafe-eval'")
+			expect(html).not.toContain("'unsafe-eval'")
+		})
+	})
+
 	test("postMessageToWebview sends message to webview", async () => {
 		await provider.resolveWebviewView(mockWebviewView)
 

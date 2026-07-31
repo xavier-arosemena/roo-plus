@@ -991,6 +991,26 @@ export class ClineProvider
 			return this.getHtmlContent(webview)
 		}
 
+		// Verify the responder on the dev port is actually the Vite dev server
+		// before serving the HMR HTML (which carries a permissive, dev-only CSP).
+		// A rogue process listening on :5173 must not be able to inject scripts
+		// into the webview. GET /@vite/client returns the Vite HMR client module;
+		// require a 2xx response whose body identifies Vite, otherwise fall back
+		// to the production HTML.
+		try {
+			const viteClientResponse = await axios.get(`http://${localServerUrl}/@vite/client`)
+			const body = typeof viteClientResponse.data === "string" ? viteClientResponse.data : ""
+			const isViteDevServer =
+				viteClientResponse.status >= 200 && viteClientResponse.status < 300 && body.includes("vite")
+			if (!isViteDevServer) {
+				vscode.window.showErrorMessage(t("common:errors.hmr_not_running"))
+				return this.getHtmlContent(webview)
+			}
+		} catch (error) {
+			vscode.window.showErrorMessage(t("common:errors.hmr_not_running"))
+			return this.getHtmlContent(webview)
+		}
+
 		const nonce = getNonce()
 
 		// Get the OpenRouter base URL from configuration
@@ -1031,11 +1051,15 @@ export class ClineProvider
 		const csp = [
 			"default-src 'none'",
 			`font-src ${webview.cspSource} data:`,
-			`style-src ${webview.cspSource} 'unsafe-inline' https://* http://${localServerUrl} http://0.0.0.0:${localPort}`,
+			`style-src ${webview.cspSource} 'unsafe-inline' http://${localServerUrl} http://0.0.0.0:${localPort}`,
 			`img-src ${webview.cspSource} https://storage.googleapis.com https://img.clerk.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com data:`,
 			`media-src ${webview.cspSource}`,
-			`script-src 'unsafe-eval' ${webview.cspSource} https://* https://*.posthog.com http://${localServerUrl} http://0.0.0.0:${localPort} 'nonce-${nonce}'`,
-			`connect-src ${webview.cspSource} ${openRouterDomain} https://* https://*.posthog.com ws://${localServerUrl} ws://0.0.0.0:${localPort} http://${localServerUrl} http://0.0.0.0:${localPort}`,
+			// DEV-ONLY: 'unsafe-eval' is required by Vite HMR/react-refresh and must
+			// NEVER be present in getHtmlContent's production CSP. The https://*
+			// wildcard is intentionally removed here — only *.posthog.com (telemetry)
+			// and the local Vite origins are allowed to execute scripts.
+			`script-src 'unsafe-eval' ${webview.cspSource} https://*.posthog.com http://${localServerUrl} http://0.0.0.0:${localPort} 'nonce-${nonce}'`,
+			`connect-src ${webview.cspSource} ${openRouterDomain} https://*.posthog.com ws://${localServerUrl} ws://0.0.0.0:${localPort} http://${localServerUrl} http://0.0.0.0:${localPort}`,
 		]
 
 		return /*html*/ `
