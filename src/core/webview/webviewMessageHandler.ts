@@ -1,5 +1,7 @@
 import type { WebviewMessage, WebviewMessageType } from "@roo-code/types"
+import * as vscode from "vscode"
 
+import { Package } from "../../shared/package"
 import type { ClineProvider } from "./ClineProvider"
 import type { MarketplaceManager } from "../../services/marketplace"
 
@@ -119,29 +121,11 @@ export const webviewMessageHandler = async (
 	if (handler) {
 		await handler(provider, marketplaceManager, message)
 	} else {
-		// console.log(`Unhandled message type: ${message.type}`)
-		//
-		// Currently unhandled:
-		//
-		// "currentApiConfigName" |
-		// "codebaseIndexEnabled" |
-		// "enhancedPrompt" |
-		// "systemPrompt" |
-		// "exportModeResult" |
-		// "importModeResult" |
-		// "checkRulesDirectoryResult" |
-		// "browserConnectionResult" |
-		// "vsCodeSetting" |
-		// "indexingStatusUpdate" |
-		// "indexCleared" |
-		// "marketplaceInstallResult" |
-		// "shareTaskSuccess" |
-		// "playSound" |
-		// "draggedImages" |
-		// "setApiConfigPassword" |
-		// "setopenAiCustomModelInfo" |
-		// "marketplaceButtonClicked" |
-		// "cancelMarketplaceInstall" |
-		// "imageGenerationSettings"
+		// Debug-only observability: unhandled/transitional message types are dropped
+		// by design during the S1 typed-protocol migration, but a debug log gives
+		// visibility into protocol regressions (e.g. a misspelled message type).
+		if (vscode.workspace.getConfiguration(Package.name).get<boolean>("debug", false)) {
+			provider.log(`[webview router] Unhandled message type: ${message.type}`)
+		}
 	}
 }

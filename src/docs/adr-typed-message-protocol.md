@@ -31,16 +31,16 @@ The chosen approach:
 
 - **S1-M1 — Foundation** in [`packages/types/src/webview-messages/`](packages/types/src/webview-messages/index.ts): per-domain zod modules, registry `webviewMessageSchemas`, `parseWebviewMessage`, and `webviewMessageSchema = z.discriminatedUnion("type", …)` for the fully-typed subset.
 - **S1-M2 — Boundary validation** at `ClineProvider.setWebviewMessageListener` and the CLI (closes the Input Gap; = X3).
-- **S1-M3 — Security-sensitive domains first** (17 types): checkpoint, allowed/deniedCommands, updateSettings, provider config (save/upsert/setApiConfigPassword), marketplace installs, message queue, todos, custom modes.
+- **S1-M3 — Security-sensitive domains first** (16 types): checkpoint, allowed/deniedCommands, updateSettings, provider config (save/upsert), marketplace installs, message queue, todos, custom modes.
 - **S1-M4 — Ratchet + broaden** ([`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs) wired into [`.github/workflows/code-qa.yml`](.github/workflows/code-qa.yml)).
 
 Each domain's sender, handler, and tests migrate in the **same PR**; the `WebviewMessage` interface name and construction sites are preserved until a domain is fully migrated, so no sender breaks mid-transition.
 
 ## What Shipped
 
-- **17 security-sensitive message types** fully typed + runtime-validated (checkpoint, allowed/deniedCommands, updateSettings, provider config, marketplace installs, message queue, todos, custom modes).
+- **16 security-sensitive message types** fully typed + runtime-validated (checkpoint, allowed/deniedCommands, updateSettings, provider config, marketplace installs, message queue, todos, custom modes).
 - **10 direction-mixed types** moved from `WebviewMessage` into `ExtensionMessage`.
-- **CI ratchet** enforces the 17 baseline types stay registered and the untyped count (149 of 166 total `WebviewMessage.type` members) never increases.
+- **CI ratchet** enforces the 16 baseline types stay registered and the untyped count (149 of 165 total `WebviewMessage.type` members) never increases.
 
 This decision unlocked **S2** (domain-split dispatcher under [`src/core/webview/handlers/`](src/core/webview/handlers/)) and **S3** (slimmed `ClineProvider` with extracted services in [`src/core/services/`](src/core/services/)), documented in the changelog.
 
@@ -54,7 +54,7 @@ This decision unlocked **S2** (domain-split dispatcher under [`src/core/webview/
 ### Positive
 
 - Malformed or crafted webview messages are rejected at the boundary instead of dispatched (closes the runtime Input Gap).
-- 17 security-sensitive domains (command allow/deny, provider config, marketplace installs, user message queue, todos, custom modes) now have schema-typed payloads with no `as any` casts.
+- 16 security-sensitive domains (command allow/deny, provider config, marketplace installs, user message queue, todos, custom modes) now have schema-typed payloads with no `as any` casts.
 - Types and schemas cannot drift — the TypeScript type is derived from the schema.
 - The CI ratchet makes protocol hygiene enforced and prevents regression.
 

@@ -36,6 +36,7 @@ vi.mock("node:crypto", () => ({
 vi.mock("fs/promises", () => ({
 	mkdir: vi.fn().mockResolvedValue(undefined),
 	access: vi.fn(),
+	stat: vi.fn().mockResolvedValue({ isFile: () => true }),
 	chmod: vi.fn().mockResolvedValue(undefined),
 	unlink: vi.fn().mockResolvedValue(undefined),
 	rm: vi.fn().mockResolvedValue(undefined),
@@ -47,6 +48,7 @@ vi.mock("fs/promises", () => ({
 vi.mock("node:fs/promises", () => ({
 	mkdir: vi.fn().mockResolvedValue(undefined),
 	access: vi.fn(),
+	stat: vi.fn().mockResolvedValue({ isFile: () => true }),
 	chmod: vi.fn().mockResolvedValue(undefined),
 	unlink: vi.fn().mockResolvedValue(undefined),
 	rm: vi.fn().mockResolvedValue(undefined),
@@ -58,6 +60,7 @@ vi.mock("node:fs/promises", () => ({
 vi.mock("node:fs/promises", () => ({
 	mkdir: vi.fn().mockResolvedValue(undefined),
 	access: vi.fn(),
+	stat: vi.fn().mockResolvedValue({ isFile: () => true }),
 	chmod: vi.fn().mockResolvedValue(undefined),
 	unlink: vi.fn().mockResolvedValue(undefined),
 	rm: vi.fn().mockResolvedValue(undefined),
@@ -216,6 +219,15 @@ describe("semble-downloader", () => {
 		// reset mock implementations, so a test that calls mockRejectedValue
 		// would leak the rejection to every subsequent test.
 		;(fs.unlink as any).mockResolvedValue(undefined)
+
+		// Reset fs.stat to report a regular file by default — the binary resolver
+		// treats a directory as "not a binary", so leaky stat mocks would break
+		// the fast-path resolution in later tests.
+		;(fs.stat as any).mockResolvedValue({ isFile: () => true })
+		// Reset fs.readdir to an empty listing — a leaked stale-archive listing
+		// (array of strings) would otherwise crash findFileNamed (which expects
+		// Dirent entries) and corrupt the recursive fallback in later tests.
+		;(fs.readdir as any).mockResolvedValue([])
 	})
 
 	describe("isSembleSupportedPlatform", () => {
@@ -368,6 +380,82 @@ describe("semble-downloader", () => {
 				)
 				// Archive should be cleaned up (version-prefixed local cache path)
 				expect(fs.unlink).toHaveBeenCalledWith(path.join("/storage", "v0.5.2-semble-linux-x64-fast.tar.gz"))
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should resolve the nested executable in a one-dir (PyInstaller) archive", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// No version file → triggers a fresh download
+			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
+			// Staged binary verification passes after extraction
+			;(fs.access as any).mockResolvedValue(undefined)
+
+			// PyInstaller one-dir layout: <staging>/semble is a wrapper DIRECTORY,
+			// <staging>/semble/semble is the real executable FILE.
+			;(fs.stat as any).mockImplementation((p: string) => {
+				if (p === path.join("/storage", "semble.new", "semble")) {
+					return Promise.resolve({ isFile: () => false })
+				}
+				return Promise.resolve({ isFile: () => true })
+			})
+
+			// Simulate successful download
+			mockWriteStream.on.mockImplementation((event: string, cb: () => void) => {
+				if (event === "finish") {
+					setImmediate(cb)
+				}
+			})
+
+			try {
+				const result = await downloadSemble("/storage")
+
+				// The returned path must point at the real executable AFTER the
+				// staging → extractDir rename: <storage>/semble/semble/semble.
+				expect(result).toBe(path.join("/storage", "semble", "semble", "semble"))
+				// chmod must target the real FILE in staging — not the wrapper dir
+				expect(fs.chmod).toHaveBeenCalledWith(path.join("/storage", "semble.new", "semble", "semble"), 0o755)
+				expect(fs.chmod).not.toHaveBeenCalledWith(path.join("/storage", "semble.new", "semble"), 0o755)
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should keep working for flat archives (<staging>/semble is the file)", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// No version file → triggers a fresh download
+			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
+			// Staged binary verification passes after extraction
+			;(fs.access as any).mockResolvedValue(undefined)
+			// Flat layout: <staging>/semble is a regular file
+			;(fs.stat as any).mockResolvedValue({ isFile: () => true })
+
+			// Simulate successful download
+			mockWriteStream.on.mockImplementation((event: string, cb: () => void) => {
+				if (event === "finish") {
+					setImmediate(cb)
+				}
+			})
+
+			try {
+				const result = await downloadSemble("/storage")
+
+				// No regression: flat archives still resolve to <storage>/semble/semble
+				expect(result).toBe(path.join("/storage", "semble", "semble"))
+				expect(fs.chmod).toHaveBeenCalledWith(path.join("/storage", "semble.new", "semble"), 0o755)
 			} finally {
 				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
 				if (originalArch) Object.defineProperty(process, "arch", originalArch)
@@ -863,7 +951,7 @@ describe("semble-downloader", () => {
 
 			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
 			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
-			;(fs.access as any).mockRejectedValue(new Error("ENOENT"))
+			;(fs.stat as any).mockRejectedValue(new Error("ENOENT"))
 
 			try {
 				const result = await getSembleBinaryPath("/storage")
@@ -901,6 +989,50 @@ describe("semble-downloader", () => {
 			try {
 				const result = await getSembleBinaryPath("/storage")
 				expect(result).toBe(path.join("/storage", "semble", "semble.exe"))
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should return the nested executable when <storage>/semble/<binary> is a directory", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// <storage>/semble/semble is a wrapper directory, the real binary is nested
+			;(fs.stat as any).mockImplementation((p: string) => {
+				if (p === path.join("/storage", "semble", "semble")) {
+					return Promise.resolve({ isFile: () => false })
+				}
+				return Promise.resolve({ isFile: () => true })
+			})
+
+			try {
+				const result = await getSembleBinaryPath("/storage")
+				expect(result).toBe(path.join("/storage", "semble", "semble", "semble"))
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should return undefined when nothing under <storage>/semble is a regular file", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// Only directories — no regular file named "semble" anywhere (the
+			// recursive fallback hits the default empty readdir listing)
+			;(fs.stat as any).mockResolvedValue({ isFile: () => false })
+
+			try {
+				const result = await getSembleBinaryPath("/storage")
+				expect(result).toBeUndefined()
 			} finally {
 				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
 				if (originalArch) Object.defineProperty(process, "arch", originalArch)
@@ -1246,6 +1378,41 @@ describe("semble-downloader", () => {
 			}
 		})
 
+		it("should self-heal a prior broken one-dir install without re-downloading", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// Version matches
+			;(fs.readFile as any).mockResolvedValue("v0.5.2")
+
+			// Prior broken install: <storage>/semble/semble is a wrapper DIRECTORY
+			// and the real executable is at <storage>/semble/semble/semble.
+			;(fs.stat as any).mockImplementation((p: string) => {
+				if (p === path.join("/storage", "semble", "semble")) {
+					return Promise.resolve({ isFile: () => false })
+				}
+				return Promise.resolve({ isFile: () => true })
+			})
+
+			try {
+				const result = await downloadSemble("/storage")
+
+				// The resolver finds the nested real executable — no download needed
+				expect(result).toBe(path.join("/storage", "semble", "semble", "semble"))
+				// The nested real file is made executable (the wrapper dir is not)
+				expect(fs.chmod).toHaveBeenCalledWith(path.join("/storage", "semble", "semble", "semble"), 0o755)
+				expect(fs.chmod).not.toHaveBeenCalledWith(path.join("/storage", "semble", "semble"), 0o755)
+				// No archive download and no version-resolution HTTP calls
+				expect(https.get).not.toHaveBeenCalled()
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
 		it("should re-download when version matches but binary is missing", async () => {
 			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
 			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
@@ -1255,16 +1422,18 @@ describe("semble-downloader", () => {
 
 			// Version matches
 			;(fs.readFile as any).mockResolvedValue("v0.5.2")
-			// But binary is missing
-			let accessCallCount = 0
-			;(fs.access as any).mockImplementation(() => {
-				accessCallCount++
-				// First call: binary path check (miss), subsequent: staged binary verify (pass)
-				if (accessCallCount === 1) {
-					return Promise.reject(new Error("ENOENT"))
+			// But the installed binary is missing — resolveSembleBinary finds no
+			// regular FILE at <extractDir>/semble (nor nested), so the fast path is
+			// skipped and a fresh download happens. After extraction the staged
+			// binary IS a regular file.
+			;(fs.stat as any).mockImplementation((p: string) => {
+				if (p.startsWith(path.join("/storage", "semble.new"))) {
+					return Promise.resolve({ isFile: () => true })
 				}
-				return Promise.resolve(undefined)
+				return Promise.resolve({ isFile: () => false })
 			})
+			// Staged binary verification passes after extraction
+			;(fs.access as any).mockResolvedValue(undefined)
 
 			// Simulate successful download
 			mockWriteStream.on.mockImplementation((event: string, cb: () => void) => {

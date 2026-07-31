@@ -3,7 +3,6 @@ import { describe, it, expect } from "vitest"
 import {
 	saveApiConfigurationMessageSchema,
 	upsertApiConfigurationMessageSchema,
-	setApiConfigPasswordMessageSchema,
 	parseWebviewMessage,
 } from "../index.js"
 
@@ -57,30 +56,6 @@ describe("upsertApiConfigurationMessageSchema", () => {
 				type: "upsertApiConfiguration",
 				text: 123,
 				apiConfiguration: validApiConfig,
-			}).success,
-		).toBe(false)
-	})
-})
-
-describe("setApiConfigPasswordMessageSchema", () => {
-	it("accepts a minimal valid message", () => {
-		expect(setApiConfigPasswordMessageSchema.safeParse({ type: "setApiConfigPassword" }).success).toBe(true)
-	})
-
-	it("accepts text + apiConfiguration", () => {
-		const result = setApiConfigPasswordMessageSchema.safeParse({
-			type: "setApiConfigPassword",
-			text: "test-config",
-			apiConfiguration: validApiConfig,
-		})
-		expect(result.success).toBe(true)
-	})
-
-	it("rejects a clearly-wrong apiConfiguration shape", () => {
-		expect(
-			setApiConfigPasswordMessageSchema.safeParse({
-				type: "setApiConfigPassword",
-				apiConfiguration: "nope",
 			}).success,
 		).toBe(false)
 	})

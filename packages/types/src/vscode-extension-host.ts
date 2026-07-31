@@ -500,7 +500,6 @@ export interface WebviewMessage {
 		| "editMessageConfirm"
 		| "taskSyncEnabled"
 		| "searchCommits"
-		| "setApiConfigPassword"
 		| "mode"
 		| "updatePrompt"
 		| "getSystemPrompt"

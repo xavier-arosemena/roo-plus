@@ -94,7 +94,7 @@ export class SembleProvider implements ISembleProvider {
 		try {
 			this.stateManager.setSystemState("Indexing", t("embeddings:semble.downloadingBinary"))
 			const storageDir = this.context.globalStorageUri.fsPath
-			const binaryPath = await downloadSemble(storageDir, this.config.binaryPath, this.context.extensionPath)
+			const binaryPath = await downloadSemble(storageDir, this.config.binaryPath)
 			if (!binaryPath) {
 				throw new Error("Download returned no path")
 			}

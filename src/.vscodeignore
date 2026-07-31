@@ -32,6 +32,3 @@
 !assets/icons/**
 !assets/images/**
 !assets/marketplace/**
-
-# Include bundled semble binary for offline/air-gapped installations
-!services/code-index/semble/bin/**

@@ -82,7 +82,6 @@ describe("SembleProvider", () => {
 
 		mockContext = {
 			globalStorageUri: { fsPath: "/mock/storage" },
-			extensionPath: "/mock/extension/path",
 		}
 
 		provider = new SembleProvider("/workspace", mockContext, mockStateManager)
@@ -119,7 +118,7 @@ describe("SembleProvider", () => {
 
 			await provider.initialize()
 
-			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined, "/mock/extension/path")
+			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined)
 			expect(provider.state).toBe("Indexed")
 			expect(mockStateManager.setSystemState).toHaveBeenCalledWith(
 				"Indexed",
@@ -136,7 +135,7 @@ describe("SembleProvider", () => {
 
 			await customProvider.initialize()
 
-			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", "/custom/path/semble", "/mock/extension/path")
+			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", "/custom/path/semble")
 			expect(customProvider.state).toBe("Indexed")
 		})
 
@@ -146,7 +145,7 @@ describe("SembleProvider", () => {
 			await provider.initialize()
 
 			// The second argument should be undefined when no binaryPath is provided
-			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined, "/mock/extension/path")
+			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined)
 			expect(provider.state).toBe("Indexed")
 		})
 

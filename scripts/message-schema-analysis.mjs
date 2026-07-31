@@ -24,7 +24,6 @@ export const MESSAGE_SCHEMA_BASELINE = [
 	"updateSettings",
 	"saveApiConfiguration",
 	"upsertApiConfiguration",
-	"setApiConfigPassword",
 	"installMarketplaceItem",
 	"installMarketplaceItems",
 	"installMarketplaceItemWithParameters",
@@ -40,8 +39,8 @@ export const MESSAGE_SCHEMA_BASELINE = [
  * Maximum permitted number of UNTYPED message types (WebviewMessageType members
  * without a schema in the registry).
  *
- * This is the current count as of S1-M4: 166 literal members of the
- * `WebviewMessage.type` union minus 17 registered = 149. It must only ever
+ * This is the current count as of S1-M4: 165 literal members of the
+ * `WebviewMessage.type` union minus 16 registered = 149. It must only ever
  * DECREASE as domains migrate; increasing it is a ratchet regression (the guard
  * goal is "the count of untyped message types must not increase").
  */

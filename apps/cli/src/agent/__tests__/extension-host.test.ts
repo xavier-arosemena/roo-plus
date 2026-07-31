@@ -427,6 +427,28 @@ describe("ExtensionHost", () => {
 					callPrivate(host, "restoreConsole")
 				}).not.toThrow()
 			})
+
+			it("should remove the process warning listener added by setupQuietMode", () => {
+				// Capture the baseline warning listener count before any setup.
+				const baselineListenerCount = process.listenerCount("warning")
+
+				// Create host with integrationTest: true to prevent constructor from suppressing
+				const host = createTestHost({ integrationTest: true })
+
+				// Override integrationTest to false to actually suppress
+				const options = getPrivate<ExtensionHostOptions>(host, "options")
+				options.integrationTest = false
+
+				callPrivate(host, "setupQuietMode")
+
+				// setupQuietMode should have added exactly one "warning" listener.
+				expect(process.listenerCount("warning")).toBe(baselineListenerCount + 1)
+
+				callPrivate(host, "restoreConsole")
+
+				// The listener must be removed, returning to the prior baseline.
+				expect(process.listenerCount("warning")).toBe(baselineListenerCount)
+			})
 		})
 	})
 

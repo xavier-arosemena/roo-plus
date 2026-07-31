@@ -89,8 +89,11 @@ export function convertToMentionPath(path: string, cwd?: string): string {
 		// Ensure there's a slash after the @ symbol when we create the mention path
 		relativePath = relativePath.startsWith("/") ? relativePath : "/" + relativePath
 
-		// Escape any spaces in the path with backslashes
-		const escapedRelativePath = escapeSpaces(relativePath)
+		// Escape spaces in the path with backslashes, then HTML-encode the
+		// result. `escapeHtml` must run last so HTML special characters
+		// (`<`, `>`, `&`, `'`) are entity-encoded rather than shell-escaped;
+		// the shell-sensitive `escapeSpaces` is reserved for query contexts.
+		const escapedRelativePath = relativePath.replace(/ /g, "\\ ")
 
 		return "@" + escapeHtml(escapedRelativePath)
 	}

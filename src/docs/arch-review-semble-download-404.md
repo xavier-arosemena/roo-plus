@@ -170,16 +170,24 @@ Beyond Solution B, add:
 - Publish verification manifest (checksums + signatures) as a separate release asset
 - Bundle the semble binary as a VS Code extension dependency (if licensing permits)
 
+> **Superseded (2026-07-31)**: Bundling the semble runtime into the VSIX was evaluated
+> and **rejected** — the PyInstaller one-dir runtime is ~140 MB per platform (130 MB
+> `_internal/` + 9.2 MB launcher), so a platform-universal VSIX would balloon to ~552 MB,
+> and a launcher-only bundle (without `_internal/`) is non-functional. The bundled-binary
+> mechanism was removed; the checksum-verified download path is now the sole installation
+> mechanism. Offline/air-gapped users set `codebaseIndexSembleBinaryPath` to point at a
+> manually-installed binary.
+
 ---
 
 ## 6. Implementation Priority
 
-| Priority | Solution                         | Effort    | User Impact                    |
-| -------- | -------------------------------- | --------- | ------------------------------ |
-| 🔴 P0    | **A — Publish sembleexec repo**  | 1-2 hrs   | Unblocks all users immediately |
-| 🟡 P1    | **B — Configurable binary path** | 1-2 days  | Prevents future occurrences    |
-| 🟢 P2    | **C — Multi-source fallback**    | 3-5 days  | Defensive hardening            |
-| 🔵 P3    | **D — Offline/bundled support**  | 1-2 weeks | Enterprise/air-gapped          |
+| Priority | Solution                         | Effort   | User Impact                               |
+| -------- | -------------------------------- | -------- | ----------------------------------------- |
+| 🔴 P0    | **A — Publish sembleexec repo**  | 1-2 hrs  | Unblocks all users immediately            |
+| 🟡 P1    | **B — Configurable binary path** | 1-2 days | Prevents future occurrences               |
+| 🟢 P2    | **C — Multi-source fallback**    | 3-5 days | Defensive hardening                       |
+| ⛔ P3    | **D — Offline/bundled support**  | Rejected | Not practical (~140 MB/platform) — see §5 |
 
 ---
 

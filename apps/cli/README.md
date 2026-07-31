@@ -8,6 +8,8 @@ This CLI uses the `@roo-code/vscode-shim` package to provide a VSCode API compat
 
 ## Installation
 
+> **⚠️ Warning:** This CLI README is inherited from the upstream Zoo Code project. The one-line install script below points to the upstream `RooCodeInc/Roo-Code` repository, so running it installs the upstream Zoo Code CLI rather than the Roo+ CLI. Roo+ users who want the Roo+ CLI build should build from source using the [Development Installation](#development-installation) section below, or check the Roo+ GitHub releases for a Roo+ distribution.
+
 ### Quick Install (Recommended)
 
 Install the Roo Code CLI with a single command:

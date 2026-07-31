@@ -4,11 +4,7 @@ import type { WebviewMessage } from "../vscode-extension-host.js"
 import { checkpointDiffMessageSchema, checkpointRestoreMessageSchema } from "./checkpoint.js"
 import { allowedCommandsMessageSchema, deniedCommandsMessageSchema } from "./commands.js"
 import { updateSettingsMessageSchema } from "./settings.js"
-import {
-	saveApiConfigurationMessageSchema,
-	upsertApiConfigurationMessageSchema,
-	setApiConfigPasswordMessageSchema,
-} from "./providerConfig.js"
+import { saveApiConfigurationMessageSchema, upsertApiConfigurationMessageSchema } from "./providerConfig.js"
 import {
 	installMarketplaceItemMessageSchema,
 	installMarketplaceItemsMessageSchema,
@@ -49,7 +45,6 @@ export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType
 	updateSettings: updateSettingsMessageSchema,
 	saveApiConfiguration: saveApiConfigurationMessageSchema,
 	upsertApiConfiguration: upsertApiConfigurationMessageSchema,
-	setApiConfigPassword: setApiConfigPasswordMessageSchema,
 	installMarketplaceItem: installMarketplaceItemMessageSchema,
 	installMarketplaceItems: installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParameters: installMarketplaceItemWithParametersMessageSchema,
@@ -73,7 +68,6 @@ export const webviewMessageSchema = z.discriminatedUnion("type", [
 	updateSettingsMessageSchema,
 	saveApiConfigurationMessageSchema,
 	upsertApiConfigurationMessageSchema,
-	setApiConfigPasswordMessageSchema,
 	installMarketplaceItemMessageSchema,
 	installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParametersMessageSchema,
@@ -131,7 +125,6 @@ export type { SettingsMessage } from "./settings.js"
 export {
 	saveApiConfigurationMessageSchema,
 	upsertApiConfigurationMessageSchema,
-	setApiConfigPasswordMessageSchema,
 	providerConfigMessageSchema,
 } from "./providerConfig.js"
 export type { ProviderConfigMessage } from "./providerConfig.js"

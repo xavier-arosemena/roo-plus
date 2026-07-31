@@ -659,11 +659,6 @@
 			"count": 5
 		}
 	},
-	"core/config/__tests__/CustomModesManager.spec.ts": {
-		"@typescript-eslint/no-explicit-any": {
-			"count": 12
-		}
-	},
 	"core/config/__tests__/CustomModesManager.yamlEdgeCases.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 1
@@ -1159,14 +1154,14 @@
 			"count": 28
 		}
 	},
-	"core/webview/messageEnhancer.ts": {
-		"@typescript-eslint/no-explicit-any": {
-			"count": 1
-		}
-	},
 	"core/webview/handlers/chat.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 4
+		}
+	},
+	"core/webview/messageEnhancer.ts": {
+		"@typescript-eslint/no-explicit-any": {
+			"count": 1
 		}
 	},
 	"extension/__tests__/api-delete-queued-message.spec.ts": {

@@ -135,6 +135,7 @@ export class ExtensionHost extends EventEmitter implements ExtensionHostInterfac
 	} | null = null
 
 	private originalProcessEmitWarning: typeof process.emitWarning | null = null
+	private originalWarningListener: (() => void) | null = null
 
 	// Ephemeral storage.
 	private ephemeralStorageDir: string | null = null
@@ -314,7 +315,8 @@ export class ExtensionHost extends EventEmitter implements ExtensionHostInterfac
 		// Suppress node warnings.
 		this.originalProcessEmitWarning = process.emitWarning
 		process.emitWarning = () => {}
-		process.on("warning", () => {})
+		this.originalWarningListener = () => {}
+		process.on("warning", this.originalWarningListener)
 
 		// Suppress console output.
 		this.originalConsole = {
@@ -346,6 +348,11 @@ export class ExtensionHost extends EventEmitter implements ExtensionHostInterfac
 		if (this.originalProcessEmitWarning) {
 			process.emitWarning = this.originalProcessEmitWarning
 			this.originalProcessEmitWarning = null
+		}
+
+		if (this.originalWarningListener) {
+			process.removeListener("warning", this.originalWarningListener)
+			this.originalWarningListener = null
 		}
 	}
 
@@ -477,15 +484,7 @@ export class ExtensionHost extends EventEmitter implements ExtensionHostInterfac
 
 	private waitForTaskCompletion(): Promise<void> {
 		return new Promise((resolve, reject) => {
-			const completeHandler = () => {
-				cleanup()
-				resolve()
-			}
-
-			const errorHandler = (error: Error) => {
-				cleanup()
-				reject(error)
-			}
+			let messageHandler: ((msg: ClineMessage) => void) | null = null
 
 			const cleanup = () => {
 				this.client.off("taskCompleted", completeHandler)
@@ -496,10 +495,18 @@ export class ExtensionHost extends EventEmitter implements ExtensionHostInterfac
 				}
 			}
 
+			const completeHandler = () => {
+				cleanup()
+				resolve()
+			}
+
+			const errorHandler = (error: Error) => {
+				cleanup()
+				reject(error)
+			}
+
 			// When exitOnError is enabled, listen for api_req_retry_delayed messages
 			// (sent by Task.ts during auto-approval retry backoff) and exit immediately.
-			let messageHandler: ((msg: ClineMessage) => void) | null = null
-
 			if (this.options.exitOnError) {
 				messageHandler = (msg: ClineMessage) => {
 					if (msg.type === "say" && msg.say === "api_req_retry_delayed") {

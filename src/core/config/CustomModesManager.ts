@@ -361,9 +361,13 @@ export class CustomModesManager {
 	 * immediately after a fresh extension install without requiring the user to
 	 * manually install each mode from the Modes Marketplace.
 	 *
-	 * The seeding happens exactly once per extension installation. The
-	 * `preInstalledModesSeeded` flag in globalState prevents re-seeding on
-	 * extension updates or workspace changes.
+	 * Seeding happens once per install and is re-run on version upgrades or when
+	 * ANY bundled mode in the settings file is missing its description (a partial
+	 * seed is repaired rather than skipped). The merge-fill approach never
+	 * overwrites user-added modes or user edits: existing fields (name,
+	 * roleDefinition, groups, customInstructions) are preserved, only empty
+	 * descriptions are back-filled from the bundle, and new bundled modes are
+	 * added only on a version change (upgrade / fresh install).
 	 */
 	private async seedPreInstalledModes(): Promise<void> {
 		// Skip in test environments — tests mock context without extensionPath
@@ -371,28 +375,9 @@ export class CustomModesManager {
 			return
 		}
 
-		// Re-seed if the VSIX version has changed, ensuring updated mode
-		// descriptions (and other metadata) are applied on upgrade.
 		const alreadySeeded = this.context.globalState.get<boolean>(PRE_INSTALLED_MODES_KEY)
 		const lastSeededVersion = this.context.globalState.get<string>("preInstalledModesVersion")
 		const currentVersion = this.context.extension.packageJSON.version
-
-		// Check if already seeded AND version hasn't changed AND modes have descriptions
-		if (alreadySeeded && lastSeededVersion === currentVersion) {
-			// Even if version matches, check if existing seeded modes have descriptions
-			const settingsPath = await this.getCustomModesFilePath()
-			try {
-				const existingModes = await this.loadModesFromFile(settingsPath)
-				const hasDescriptions = existingModes.some((m) => m.description && m.description.length > 0)
-				if (hasDescriptions) {
-					return // All good, skip
-				}
-				// No descriptions found — fall through to re-seed
-				console.log("[CustomModesManager] Existing modes lack descriptions, re-seeding...")
-			} catch {
-				return // Can't read settings, skip
-			}
-		}
 
 		const bundledPath = path.join(this.context.extensionPath, BUNDLED_MODES_RELATIVE_PATH)
 		let fileExists: boolean
@@ -416,13 +401,50 @@ export class CustomModesManager {
 			}
 
 			const settingsPath = await this.getCustomModesFilePath()
-			const settingsContent = yaml.stringify({ customModes: bundledModes }, { lineWidth: 0 })
+			const existingModes = await this.loadModesFromFile(settingsPath)
+
+			const bundledBySlug = new Map<string, ModeConfig>(bundledModes.map((m) => [m.slug, m]))
+
+			const versionChanged = !alreadySeeded || lastSeededVersion !== currentVersion
+			const needsDescriptionFill = existingModes.some((m) => bundledBySlug.has(m.slug) && !m.description)
+
+			if (!versionChanged && !needsDescriptionFill) {
+				return // No-op: nothing to repair or add
+			}
+
+			// Merge-fill — never overwrite. Back-fill descriptions on existing
+			// bundled modes only; every other user field is preserved as-is.
+			const mergedModes = existingModes.map((mode) => {
+				if (mode.description) {
+					return { ...mode }
+				}
+				const bundled = bundledBySlug.get(mode.slug)
+				return bundled?.description ? { ...mode, description: bundled.description } : { ...mode }
+			})
+
+			// On version change (upgrade / fresh install) also add any bundled modes
+			// the user hasn't explicitly removed. Never drop a user mode.
+			if (versionChanged) {
+				const existingSlugs = new Set(existingModes.map((m) => m.slug))
+				for (const bundled of bundledModes) {
+					if (!existingSlugs.has(bundled.slug)) {
+						mergedModes.push({ ...bundled })
+					}
+				}
+			}
+
+			// Only write back when the merged set actually differs from what's on disk.
+			if (JSON.stringify(mergedModes) === JSON.stringify(existingModes)) {
+				return
+			}
+
+			const settingsContent = yaml.stringify({ customModes: mergedModes }, { lineWidth: 0 })
 			await fs.writeFile(settingsPath, settingsContent, "utf-8")
 
 			await this.context.globalState.update(PRE_INSTALLED_MODES_KEY, true)
 			await this.context.globalState.update("preInstalledModesVersion", currentVersion)
 			this.clearCache()
-			console.log(`[CustomModesManager] Seeded ${bundledModes.length} pre-installed modes from bundled asset`)
+			console.log(`[CustomModesManager] Seeded ${mergedModes.length} pre-installed modes from bundled asset`)
 		} catch (error) {
 			console.error(`[CustomModesManager] Failed to seed pre-installed modes:`, error)
 			// Do NOT set the flag on failure — retry on next activation

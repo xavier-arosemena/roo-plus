@@ -18,7 +18,7 @@ vi.mock("../config-dir.js", () => ({
 }))
 
 // Import after mocking
-import { saveToken, loadToken, loadCredentials, clearToken, hasToken, getCredentialsPath } from "../credentials.js"
+import { loadToken, loadCredentials, clearToken, hasToken, getCredentialsPath } from "../credentials.js"
 
 // Re-derive the test config dir for use in tests (must match the hoisted one)
 const actualTestConfigDir = getTestConfigDir()
@@ -36,60 +36,22 @@ describe("Token Storage", () => {
 		await fs.rm(actualTestConfigDir, { recursive: true, force: true })
 	})
 
+	// Write a legacy credentials fixture directly on disk, since saveToken was removed.
+	async function writeCredentialsFile(data: Record<string, unknown>): Promise<void> {
+		await fs.mkdir(actualTestConfigDir, { recursive: true })
+		await fs.writeFile(expectedCredentialsFile, JSON.stringify(data))
+	}
+
 	describe("getCredentialsPath", () => {
 		it("should return the correct credentials file path", () => {
 			expect(getCredentialsPath()).toBe(expectedCredentialsFile)
 		})
 	})
 
-	describe("saveToken", () => {
-		it("should save token to disk", async () => {
-			const token = "test-token-123"
-			await saveToken(token)
-
-			const savedData = await fs.readFile(expectedCredentialsFile, "utf-8")
-			const credentials = JSON.parse(savedData)
-
-			expect(credentials.token).toBe(token)
-			expect(credentials.createdAt).toBeDefined()
-		})
-
-		it("should save token with user info", async () => {
-			const token = "test-token-456"
-			await saveToken(token, { userId: "user_123", orgId: "org_456" })
-
-			const savedData = await fs.readFile(expectedCredentialsFile, "utf-8")
-			const credentials = JSON.parse(savedData)
-
-			expect(credentials.token).toBe(token)
-			expect(credentials.userId).toBe("user_123")
-			expect(credentials.orgId).toBe("org_456")
-		})
-
-		it("should create config directory if it doesn't exist", async () => {
-			const token = "test-token-789"
-			await saveToken(token)
-
-			const dirStats = await fs.stat(actualTestConfigDir)
-			expect(dirStats.isDirectory()).toBe(true)
-		})
-
-		// Unix file permissions don't apply on Windows - skip this test
-		it.skipIf(process.platform === "win32")("should set restrictive file permissions", async () => {
-			const token = "test-token-perms"
-			await saveToken(token)
-
-			const stats = await fs.stat(expectedCredentialsFile)
-			// Check that only owner has read/write (mode 0o600)
-			const mode = stats.mode & 0o777
-			expect(mode).toBe(0o600)
-		})
-	})
-
 	describe("loadToken", () => {
 		it("should load saved token", async () => {
 			const token = "test-token-abc"
-			await saveToken(token)
+			await writeCredentialsFile({ token, createdAt: "2026-01-01T00:00:00.000Z" })
 
 			const loaded = await loadToken()
 			expect(loaded).toBe(token)
@@ -104,7 +66,7 @@ describe("Token Storage", () => {
 	describe("loadCredentials", () => {
 		it("should load full credentials", async () => {
 			const token = "test-token-def"
-			await saveToken(token, { userId: "user_789" })
+			await writeCredentialsFile({ token, createdAt: "2026-01-01T00:00:00.000Z", userId: "user_789" })
 
 			const credentials = await loadCredentials()
 
@@ -123,7 +85,7 @@ describe("Token Storage", () => {
 	describe("clearToken", () => {
 		it("should remove saved token", async () => {
 			const token = "test-token-ghi"
-			await saveToken(token)
+			await writeCredentialsFile({ token, createdAt: "2026-01-01T00:00:00.000Z" })
 
 			await clearToken()
 
@@ -138,7 +100,7 @@ describe("Token Storage", () => {
 
 	describe("hasToken", () => {
 		it("should return true if token exists", async () => {
-			await saveToken("test-token-jkl")
+			await writeCredentialsFile({ token: "test-token-jkl", createdAt: "2026-01-01T00:00:00.000Z" })
 
 			const exists = await hasToken()
 			expect(exists).toBe(true)

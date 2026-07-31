@@ -130,7 +130,6 @@ describe("parseWebviewMessage", () => {
 			"updateSettings",
 			"saveApiConfiguration",
 			"upsertApiConfiguration",
-			"setApiConfigPassword",
 			"installMarketplaceItem",
 			"installMarketplaceItems",
 			"installMarketplaceItemWithParameters",
@@ -145,7 +144,7 @@ describe("parseWebviewMessage", () => {
 		for (const type of expected) {
 			expect(webviewMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(webviewMessageSchemas)).toHaveLength(17)
+		expect(Object.keys(webviewMessageSchemas)).toHaveLength(16)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

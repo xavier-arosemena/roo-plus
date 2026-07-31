@@ -81,12 +81,6 @@ describe("getApiProtocol", () => {
 	})
 
 	describe("Gateway providers", () => {
-		it("uses the canonical Zoo Gateway identifier for Anthropic model protocol selection", () => {
-			expect(getApiProtocol(providerIdentifiers.zooGateway, "anthropic/claude-3-opus")).toBe(
-				ANTHROPIC_API_PROTOCOL,
-			)
-		})
-
 		it("should return 'anthropic' for vercel-ai-gateway provider with anthropic models", () => {
 			expect(getApiProtocol(providerIdentifiers.vercelAiGateway, "anthropic/claude-3-opus")).toBe(
 				ANTHROPIC_API_PROTOCOL,

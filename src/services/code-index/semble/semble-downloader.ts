@@ -311,6 +311,51 @@ function getArchiveInfo(platform?: string, arch?: string): { archive: string; bi
 }
 
 /**
+ * Resolve the actual semble executable under `baseDir`.
+ * Handles flat archives (<base>/semble) AND PyInstaller one-dir archives
+ * (<base>/semble/semble). Returns undefined when no regular FILE named
+ * `binaryName` is found (a directory at <base>/<binaryName> is NOT a binary —
+ * spawning a directory yields EACCES).
+ */
+async function resolveSembleBinary(baseDir: string, binaryName: string): Promise<string | undefined> {
+	const direct = path.join(baseDir, binaryName)
+	try {
+		if ((await fs.stat(direct)).isFile()) return direct
+	} catch {
+		// not present
+	}
+
+	const nested = path.join(direct, binaryName)
+	try {
+		if ((await fs.stat(nested)).isFile()) return nested
+	} catch {
+		// not present
+	}
+
+	// Bounded recursive fallback (max depth ~4) for renamed wrapper dirs.
+	return findFileNamed(baseDir, binaryName, 0, 4)
+}
+
+async function findFileNamed(dir: string, name: string, depth: number, maxDepth: number): Promise<string | undefined> {
+	if (depth > maxDepth) return undefined
+	let entries: import("fs").Dirent[]
+	try {
+		entries = await fs.readdir(dir, { withFileTypes: true })
+	} catch {
+		return undefined
+	}
+	for (const entry of entries) {
+		const full = path.join(dir, entry.name)
+		if (entry.isFile() && entry.name === name) return full
+		if (entry.isDirectory()) {
+			const found = await findFileNamed(full, name, depth + 1, maxDepth)
+			if (found) return found
+		}
+	}
+	return undefined
+}
+
+/**
  * Reads the locally installed version from the version metadata file.
  * Returns undefined if no version file exists (first install or legacy).
  */
@@ -391,11 +436,7 @@ async function cleanupStaleArchives(
  *   If provided and the file exists, the download is skipped entirely.
  * @returns The full path to the semble executable, or undefined if the platform is unsupported.
  */
-export async function downloadSemble(
-	storageDir: string,
-	binaryPathOverride?: string,
-	extensionPath?: string,
-): Promise<string | undefined> {
+export async function downloadSemble(storageDir: string, binaryPathOverride?: string): Promise<string | undefined> {
 	// 1. Check binary path override — no network calls needed
 	if (binaryPathOverride && binaryPathOverride.length > 0) {
 		try {
@@ -415,43 +456,26 @@ export async function downloadSemble(
 	}
 
 	const extractDir = path.join(storageDir, "semble")
-	const binaryPath = path.join(extractDir, info.binary)
-
-	// 1.5. Check for pre-bundled binary from VSIX extension directory
-	if (extensionPath) {
-		const bundledBinaryPath = path.join(extensionPath, "services", "code-index", "semble", "bin", info.binary)
-		try {
-			await fs.access(bundledBinaryPath)
-			// Copy bundled binary to storage directory
-			await fs.mkdir(extractDir, { recursive: true })
-			await fs.copyFile(bundledBinaryPath, binaryPath)
-			if (process.platform !== "win32") {
-				await fs.chmod(binaryPath, 0o755)
-			}
-			console.log(`[SembleDownloader] Using pre-bundled binary from ${bundledBinaryPath}`)
-			return binaryPath
-		} catch {
-			// Binary not bundled, continue with normal download
-		}
-	}
 
 	// 2. Check installed version against hardcoded SEMBLE_VERSION first.
 	//    We defer resolveSembleVersion() until after this check to avoid unnecessary
 	//    HTTP calls when the binary is already up-to-date.
 	const installedVersion = await getInstalledVersion(storageDir)
 
-	// 3. Fast path: installed version matches hardcoded version and binary exists
+	// 3. Fast path: installed version matches hardcoded version and binary exists.
+	//    Resolution requires a regular FILE — a directory is not runnable (spawning
+	//    it yields EACCES). This also self-heals prior broken one-dir installs where
+	//    the real executable lives at <extractDir>/semble/semble (see resolveSembleBinary).
 	if (installedVersion === SEMBLE_VERSION) {
-		try {
-			await fs.access(binaryPath)
+		const existingBinary = await resolveSembleBinary(extractDir, info.binary)
+		if (existingBinary) {
 			// Binary exists and version matches — nothing to do
 			if (process.platform !== "win32") {
-				await fs.chmod(binaryPath, 0o755)
+				await fs.chmod(existingBinary, 0o755)
 			}
-			return binaryPath
-		} catch {
-			// Binary missing despite version file — re-download below
+			return existingBinary
 		}
+		// Binary missing despite version file — re-download below
 	}
 
 	// 4. Pre-flight validation — check write permissions and disk space before attempting download
@@ -464,15 +488,14 @@ export async function downloadSemble(
 
 	// 6. If the resolved version differs from hardcoded, check against installed version again
 	if (resolvedVersion !== SEMBLE_VERSION && installedVersion === resolvedVersion) {
-		try {
-			await fs.access(binaryPath)
+		const existingBinary = await resolveSembleBinary(extractDir, info.binary)
+		if (existingBinary) {
 			if (process.platform !== "win32") {
-				await fs.chmod(binaryPath, 0o755)
+				await fs.chmod(existingBinary, 0o755)
 			}
-			return binaryPath
-		} catch {
-			// re-download below
+			return existingBinary
 		}
+		// re-download below
 	}
 
 	// Version mismatch — log so the user can see what's happening
@@ -489,7 +512,7 @@ export async function downloadSemble(
 	const errors: string[] = []
 	for (const [index, sourceUrl] of dynamicFallbackUrls.entries()) {
 		try {
-			return await attemptDownload(sourceUrl, storageDir, info, extractDir, binaryPath, resolvedVersion)
+			return await attemptDownload(sourceUrl, storageDir, info, extractDir, resolvedVersion)
 		} catch (error) {
 			errors.push(`[Source ${index + 1}] ${error instanceof Error ? error.message : String(error)}`)
 			console.warn(`[SembleDownloader] Source ${index + 1} failed, trying next...`)
@@ -508,7 +531,6 @@ export async function downloadSemble(
  * @param storageDir - Directory to store the extracted binary
  * @param info - Archive info for the current platform
  * @param extractDir - Directory to extract the archive into
- * @param binaryPath - Expected path of the extracted binary
  * @returns The binary path on success
  */
 async function attemptDownload(
@@ -516,7 +538,6 @@ async function attemptDownload(
 	storageDir: string,
 	info: { archive: string; binary: string },
 	extractDir: string,
-	binaryPath: string,
 	version?: string,
 ): Promise<string> {
 	const resolvedVersion = version || SEMBLE_VERSION
@@ -530,7 +551,6 @@ async function attemptDownload(
 	// Stage the new installation in a temporary directory. The old binary stays
 	// intact until the new one is fully verified, preventing broken state on failure.
 	const stagingDir = extractDir + ".new"
-	const stagedBinaryPath = path.join(stagingDir, info.binary)
 	console.log(`[SembleDownloader] Downloading semble ${resolvedVersion} from ${url}`)
 
 	try {
@@ -574,6 +594,16 @@ async function attemptDownload(
 			await extractZip(archivePath, stagingDir)
 		}
 
+		// Resolve the actual executable. Fast archives are PyInstaller one-dir
+		// builds wrapped in a top-level directory (staging/semble/semble), not a
+		// flat file — resolveSembleBinary finds the real file in either layout.
+		const stagedBinaryPath = await resolveSembleBinary(stagingDir, info.binary)
+		if (!stagedBinaryPath) {
+			throw new Error(
+				`Extracted archive did not contain expected binary "${info.binary}" (checked flat and one-dir layouts)`,
+			)
+		}
+
 		// Make binary executable on unix platforms
 		if (process.platform !== "win32") {
 			await fs.chmod(stagedBinaryPath, 0o755)
@@ -583,12 +613,17 @@ async function attemptDownload(
 		await fs.access(stagedBinaryPath)
 
 		// Atomic swap: remove old installation, rename staging → final
+		const relativeBinaryPath = path.relative(stagingDir, stagedBinaryPath)
 		try {
 			await fs.rm(extractDir, { recursive: true, force: true })
 		} catch {
 			// ignore — may not exist on first install
 		}
 		await fs.rename(stagingDir, extractDir)
+
+		// The final binary path is relative to the renamed (final) install dir,
+		// so it stays correct after the staging → extractDir rename.
+		const finalBinaryPath = path.join(extractDir, relativeBinaryPath)
 
 		// Record the installed version
 		await writeInstalledVersion(storageDir, resolvedVersion)
@@ -604,8 +639,8 @@ async function attemptDownload(
 		// so a version upgrade doesn't accumulate stale packages on disk.
 		await cleanupStaleArchives(storageDir, info.archive, archivePath)
 
-		console.log(`[SembleDownloader] Successfully installed semble ${resolvedVersion} to ${binaryPath}`)
-		return binaryPath
+		console.log(`[SembleDownloader] Successfully installed semble ${resolvedVersion} to ${finalBinaryPath}`)
+		return finalBinaryPath
 	} catch (error) {
 		// Clean up partial download/staging — leave old installation intact
 		try {
@@ -658,14 +693,9 @@ export async function getSembleBinaryPath(storageDir: string): Promise<string | 
 		return undefined
 	}
 
-	const binaryPath = path.join(storageDir, "semble", info.binary)
-
-	try {
-		await fs.access(binaryPath)
-		return binaryPath
-	} catch {
-		return undefined
-	}
+	// Resolve the actual executable FILE — a directory at
+	// <storageDir>/semble/<binary> is not runnable (spawning it yields EACCES).
+	return resolveSembleBinary(path.join(storageDir, "semble"), info.binary)
 }
 
 /**

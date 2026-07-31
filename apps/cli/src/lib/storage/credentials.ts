@@ -1,3 +1,11 @@
+/**
+ * Legacy Roo auth token storage — READ/DELETE only.
+ *
+ * Roo Code Router has been removed, so nothing writes credentials anymore.
+ * These functions only read or delete a legacy `cli-credentials.json` file
+ * left behind by older releases, so `roo auth status` and `roo auth logout`
+ * can report on and clean up leftover tokens.
+ */
 import fs from "fs/promises"
 import path from "path"
 
@@ -5,26 +13,13 @@ import { getConfigDir } from "./index.js"
 
 const CREDENTIALS_FILE = path.join(getConfigDir(), "cli-credentials.json")
 
+// Only used to parse legacy credential files; the fields must remain so old
+// files written by previous releases still parse correctly.
 export interface Credentials {
 	token: string
 	createdAt: string
 	userId?: string
 	orgId?: string
-}
-
-export async function saveToken(token: string, options?: { userId?: string; orgId?: string }): Promise<void> {
-	await fs.mkdir(getConfigDir(), { recursive: true })
-
-	const credentials: Credentials = {
-		token,
-		createdAt: new Date().toISOString(),
-		userId: options?.userId,
-		orgId: options?.orgId,
-	}
-
-	await fs.writeFile(CREDENTIALS_FILE, JSON.stringify(credentials, null, 2), {
-		mode: 0o600, // Read/write for owner only
-	})
 }
 
 export async function loadToken(): Promise<string | null> {

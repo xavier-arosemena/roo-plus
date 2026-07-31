@@ -1786,3 +1786,34 @@ describe("webviewMessageHandler - kimiCodeSignOut", () => {
 		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith("Kimi Code sign out failed.")
 	})
 })
+
+describe("webviewMessageHandler - unhandled message observability", () => {
+	const unhandledMessage = { type: "someUnregisteredMessageType" } as never
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+		// Default: roo-plus.debug is OFF.
+		vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+			get: vi.fn(),
+			update: vi.fn(),
+		} as unknown as vscode.WorkspaceConfiguration)
+	})
+
+	it("drops an unhandled type silently when debug is disabled", async () => {
+		await webviewMessageHandler(mockClineProvider, unhandledMessage)
+
+		expect(mockClineProvider.log).not.toHaveBeenCalled()
+	})
+
+	it("logs the unhandled type when debug is enabled", async () => {
+		vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+			get: vi.fn((key: string, defaultValue?: boolean) => (key === "debug" ? true : defaultValue)),
+			update: vi.fn(),
+		} as unknown as vscode.WorkspaceConfiguration)
+
+		await webviewMessageHandler(mockClineProvider, unhandledMessage)
+
+		expect(mockClineProvider.log).toHaveBeenCalledTimes(1)
+		expect(mockClineProvider.log).toHaveBeenCalledWith(expect.stringContaining("someUnregisteredMessageType"))
+	})
+})
