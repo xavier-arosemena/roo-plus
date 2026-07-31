@@ -4,6 +4,11 @@ import type { WebviewMessage } from "../vscode-extension-host.js"
 import { checkpointDiffMessageSchema, checkpointRestoreMessageSchema } from "./checkpoint.js"
 import { allowedCommandsMessageSchema, deniedCommandsMessageSchema } from "./commands.js"
 import { updateSettingsMessageSchema } from "./settings.js"
+import {
+	saveApiConfigurationMessageSchema,
+	upsertApiConfigurationMessageSchema,
+	setApiConfigPasswordMessageSchema,
+} from "./providerConfig.js"
 
 /**
  * String-literal union of every webview message type.
@@ -27,6 +32,9 @@ export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType
 	allowedCommands: allowedCommandsMessageSchema,
 	deniedCommands: deniedCommandsMessageSchema,
 	updateSettings: updateSettingsMessageSchema,
+	saveApiConfiguration: saveApiConfigurationMessageSchema,
+	upsertApiConfiguration: upsertApiConfigurationMessageSchema,
+	setApiConfigPassword: setApiConfigPasswordMessageSchema,
 }
 
 /**
@@ -39,6 +47,9 @@ export const webviewMessageSchema = z.discriminatedUnion("type", [
 	allowedCommandsMessageSchema,
 	deniedCommandsMessageSchema,
 	updateSettingsMessageSchema,
+	saveApiConfigurationMessageSchema,
+	upsertApiConfigurationMessageSchema,
+	setApiConfigPasswordMessageSchema,
 ])
 
 export type ParseWebviewMessageResult = { ok: true; message: WebviewMessage } | { ok: false; error: string }
@@ -84,3 +95,10 @@ export { allowedCommandsMessageSchema, deniedCommandsMessageSchema, commandsMess
 export type { CommandsMessage } from "./commands.js"
 export { updateSettingsMessageSchema } from "./settings.js"
 export type { SettingsMessage } from "./settings.js"
+export {
+	saveApiConfigurationMessageSchema,
+	upsertApiConfigurationMessageSchema,
+	setApiConfigPasswordMessageSchema,
+	providerConfigMessageSchema,
+} from "./providerConfig.js"
+export type { ProviderConfigMessage } from "./providerConfig.js"

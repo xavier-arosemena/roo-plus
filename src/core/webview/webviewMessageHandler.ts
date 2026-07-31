@@ -24,6 +24,8 @@ import {
 	allowedCommandsMessageSchema,
 	deniedCommandsMessageSchema,
 	updateSettingsMessageSchema,
+	saveApiConfigurationMessageSchema,
+	upsertApiConfigurationMessageSchema,
 	getCompletionCheckpoint,
 	providerIdentifiers,
 } from "@roo-code/types"
@@ -2108,25 +2110,43 @@ export const webviewMessageHandler = async (
 
 			break
 		}
-		case "saveApiConfiguration":
-			if (message.text && message.apiConfiguration) {
-				try {
-					await provider.providerSettingsManager.saveConfig(message.text, message.apiConfiguration)
-					const listApiConfig = await provider.providerSettingsManager.listConfig()
-					await updateGlobalState("listApiConfigMeta", listApiConfig)
-				} catch (error) {
-					provider.log(
-						`Error save api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
-					)
-					vscode.window.showErrorMessage(t("common:errors.save_api_config"))
-				}
+		case "saveApiConfiguration": {
+			const result = saveApiConfigurationMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed saveApiConfiguration message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
+			try {
+				await provider.providerSettingsManager.saveConfig(m.text, m.apiConfiguration)
+				const listApiConfig = await provider.providerSettingsManager.listConfig()
+				await updateGlobalState("listApiConfigMeta", listApiConfig)
+			} catch (error) {
+				provider.log(
+					`Error save api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+				)
+				vscode.window.showErrorMessage(t("common:errors.save_api_config"))
 			}
 			break
-		case "upsertApiConfiguration":
-			if (message.text && message.apiConfiguration) {
-				await provider.upsertProviderProfile(message.text, message.apiConfiguration)
+		}
+		case "upsertApiConfiguration": {
+			const result = upsertApiConfigurationMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed upsertApiConfiguration message: ${result.error.message}`,
+				)
+				break
 			}
+
+			const m = result.data
+			await provider.upsertProviderProfile(m.text, m.apiConfiguration)
 			break
+		}
 		case "renameApiConfiguration":
 			if (message.values && message.apiConfiguration) {
 				try {

@@ -3860,6 +3860,34 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 
 				expect(setValueSpy).toHaveBeenCalledWith("soundEnabled", true)
 			})
+
+			test("rejects a crafted malformed saveApiConfiguration message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// apiConfiguration must be an object; a string is clearly malformed.
+				await messageHandler({ type: "saveApiConfiguration", text: "cfg", apiConfiguration: "nope" })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed upsertApiConfiguration message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// Unknown apiProvider is rejected by the provider-settings enum.
+				await messageHandler({
+					type: "upsertApiConfiguration",
+					text: "cfg",
+					apiConfiguration: { apiProvider: "bogus-provider" },
+				})
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
 		})
 
 		describe("Operations on Deleted or Non-existent Messages", () => {
