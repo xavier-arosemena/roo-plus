@@ -50,3 +50,49 @@ describe("parseWebviewMessage boundary for updateSettings", () => {
 		}
 	})
 })
+
+describe("updateSettings sender compatibility (no sender breakage)", () => {
+	it("accepts the CLI extension-host initialSettings shape", () => {
+		const cliInitialSettings = {
+			mode: "code",
+			consecutiveMistakeLimit: 3,
+			commandExecutionTimeout: 300,
+			enableCheckpoints: false,
+			experiments: { customTools: true },
+			apiProvider: "anthropic",
+			apiKey: "test-key",
+			autoApprovalEnabled: true,
+			alwaysAllowReadOnly: true,
+			alwaysAllowReadOnlyOutsideWorkspace: true,
+			alwaysAllowWrite: true,
+			alwaysAllowWriteOutsideWorkspace: true,
+			alwaysAllowWriteProtected: true,
+			alwaysAllowMcp: true,
+			alwaysAllowModeSwitch: true,
+			alwaysAllowSubtasks: true,
+			alwaysAllowExecute: true,
+			allowedCommands: ["*"],
+		}
+		const result = parseWebviewMessage({ type: "updateSettings", updatedSettings: cliInitialSettings })
+		expect(result.ok).toBe(true)
+	})
+
+	it("accepts the webview SettingsView handleSubmit payload shape (incl. nullable/edge fields)", () => {
+		const webviewSettings = {
+			language: "en",
+			allowedCommands: [],
+			deniedCommands: [],
+			allowedMaxRequests: null,
+			allowedMaxCost: null,
+			terminalProfile: "",
+			chatFontSize: null,
+			enterBehavior: "send",
+			terminalOutputPreviewSize: "medium",
+			customSupportPrompts: { summarize: "..." },
+			profileThresholds: { "config-1": 76 },
+			experiments: { customTools: true },
+		}
+		const result = parseWebviewMessage({ type: "updateSettings", updatedSettings: webviewSettings })
+		expect(result.ok).toBe(true)
+	})
+})
