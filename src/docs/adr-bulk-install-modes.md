@@ -107,3 +107,9 @@ User selects modes in Modes tab
 - Checkbox selection only available in Modes tab (not All/MCP tabs) to avoid confusion
 - "Select All" only applies to visible (filtered) modes, not the full catalog
 - Single-install "Install" button remains on mode cards for users who prefer one-by-one
+
+---
+
+## Update (2026-07-31)
+
+As part of the typed-message-protocol work (see [`adr-typed-message-protocol.md`](adr-typed-message-protocol.md)), the `WebviewMessage` message types referenced above now live in `@roo-code/types` ([`packages/types/src/webview-messages/`](../packages/types/src/webview-messages/index.ts)); [`src/shared/WebviewMessage.ts`](../src/shared/WebviewMessage.ts) re-exports from the package. The `marketplaceBulkInstallResult` response type was also moved to the outbound `ExtensionMessage` union during the direction cleanup. `installMarketplaceItems` is among the 17 baseline types now strictly validated at the boundary.

@@ -1,5 +1,39 @@
 # Roo+ Changelog
 
+## [Unreleased]
+
+### Release Readiness & Architecture Program — Typed Message Protocol, Domain-Split Dispatcher, Slim ClineProvider
+
+#### 🐛 Bug Fixes
+
+- **Stale Cloud Test Removed** — Removed a test that imported the deleted `@roo-code/cloud` package and referenced the removed `rooCloudSignOut` message, restoring a clean typecheck and runtime test suite
+- **Marketplace Floating Promises Fixed** — Resolved 2 floating-promise lint errors in the marketplace bulk-install path
+- **"Zoo Code" Rebrand Completed** — Replaced the remaining user-facing "Zoo Code" strings with "Roo+" (webview `<title>`, VS Code panel title, tests)
+
+#### 🚀 Enhancements
+
+- **Custom Modes Descriptions Committed** — Committed the previously-dirty `custom-modes` git submodule (a user-friendly mode-description rewrite: 675 files, ~138k insertions / ~190k deletions) and bumped the parent pointer. Added a reproducibility guard ([`scripts/verify-roomodes-sync.mjs`](scripts/verify-roomodes-sync.mjs)) that regenerates `.roomodes` from committed content and fails on drift
+
+#### 🔒 Security
+
+- **Typed + Runtime-Validated Webview Message Protocol** — New zod schema registry in `packages/types/src/webview-messages/` (`webviewMessageSchemas`, `webviewMessageSchema`, `parseWebviewMessage`) closes the runtime "input gap": the extension boundary (`ClineProvider.setWebviewMessageListener`) and the CLI (`apps/cli/src/agent/message-processor.ts`) now validate inbound messages and reject malformed ones before dispatch. 17 security-sensitive message types (checkpoint, allowed/deniedCommands, updateSettings, provider config save/upsert/password, marketplace installs, message queue, todos, custom modes) are fully typed + validated
+- **Webview HTML Sanitization** — Added a DOMPurify-based sanitizer ([`webview-ui/src/utils/sanitizeHtml.ts`](webview-ui/src/utils/sanitizeHtml.ts)) applied to every `dangerouslySetInnerHTML` site (terminal output, Mermaid blocks with `securityLevel: "strict"`, task-item highlights); `escapeXML` pinned by regression test
+- **HMR CSP Hardening** — Removed the `https://*` wildcard from the dev HMR webview CSP and added a Vite-identity probe (`/@vite/client`) so a rogue localhost process cannot serve scripts to the webview
+
+#### ✅ Quality
+
+- **Domain-Split Webview Dispatcher** — The ~4,000-line `switch` in `src/core/webview/webviewMessageHandler.ts` was decomposed into 15 per-domain handler modules under `src/core/webview/handlers/` behind a thin router, with dependency-inverted `Pick<ClineProvider, …>` provider types
+- **Slim ClineProvider** — Extracted `TaskHistoryService`, `ProviderProfileService`, `MarketplaceService`, and `TaskOrchestrator` into `src/core/services/`; `ClineProvider` shrank from ~3,800 to ~2,500 lines and is now a thin facade (webview lifecycle + state assembly + delegates). All public method signatures preserved
+- **Direction-Mixing Cleanup** — Moved 10 outbound-only message types from `WebviewMessage` into `ExtensionMessage`
+- **CI Message-Schema Ratchet** — New [`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs) (wired into `code-qa.yml`) enforces the 17 baseline types stay registered and the untyped message count (149) never increases
+- **Test Counts** — 7,119 src tests, 410 webview-ui tests, 284 `packages/types` tests, and the CLI suite all pass; `tsc --noEmit` clean across `src`, `packages/types`, `webview-ui`, and `apps/cli`; eslint `--max-warnings=0` clean; `src/eslint-suppressions.json` counts only decreased
+
+#### 🔧 Chores
+
+- Updated CHANGELOG.md and synced to src/CHANGELOG.md
+
+---
+
 ## [3.75.1] — 2026-07-29
 
 ### Patch — Zoo Gateway Removal & Full CI Pipeline Cleanup

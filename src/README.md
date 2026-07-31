@@ -231,7 +231,7 @@ pnpm run sync:custom-modes
 # Build the VSIX
 pnpm vsix
 
-# The VSIX will be at: bin/roo-plus-3.68.0.vsix
+# The VSIX will be at: bin/roo-plus-<version>.vsix
 ```
 
 <br/>
