@@ -48,10 +48,19 @@ vi.mock("../rulesMessageHandler", () => ({
 	handleOpenRulesDirectory: vi.fn(),
 }))
 
+vi.mock("../../tools/UpdateTodoListTool", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("../../tools/UpdateTodoListTool")>()
+	return {
+		...actual,
+		setPendingTodoList: vi.fn(),
+	}
+})
+
 import type { ModelRecord } from "@roo-code/types"
 
 import { webviewMessageHandler } from "../webviewMessageHandler"
 import type { ClineProvider } from "../ClineProvider"
+import { setPendingTodoList } from "../../tools/UpdateTodoListTool"
 import { flushModels, getModels } from "../../../api/providers/fetchers/modelCache"
 import { getLMStudioModels } from "../../../api/providers/fetchers/lmstudio"
 import { getCommands } from "../../../services/command/commands"
@@ -72,6 +81,7 @@ const mockGetCommands = vi.mocked(getCommands)
 const mockGetAccessToken = vi.mocked(openAiCodexOAuthManager.getAccessToken)
 const mockGetAccountId = vi.mocked(openAiCodexOAuthManager.getAccountId)
 const mockFetchOpenAiCodexRateLimitInfo = vi.mocked(fetchOpenAiCodexRateLimitInfo)
+const mockSetPendingTodoList = vi.mocked(setPendingTodoList)
 
 // Mock ClineProvider
 const mockClineProvider = {
@@ -1289,6 +1299,32 @@ describe("webviewMessageHandler - message queue", () => {
 
 		expect(mockClineProvider.log).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed queueMessage"))
 		expect(messageQueueService.addMessage).not.toHaveBeenCalled()
+	})
+})
+
+describe("webviewMessageHandler - updateTodoList", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("sets the pending todo list from a valid message", async () => {
+		await webviewMessageHandler(mockClineProvider, {
+			type: "updateTodoList",
+			payload: { todos: [{ id: "t1", content: "Task", status: "pending" }] },
+		})
+
+		expect(mockSetPendingTodoList).toHaveBeenCalledWith([{ id: "t1", content: "Task", status: "pending" }])
+	})
+
+	it("rejects a malformed updateTodoList message without side effects", async () => {
+		const malformed = { type: "updateTodoList", payload: { todos: "nope" } } as never
+
+		await webviewMessageHandler(mockClineProvider, malformed)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(
+			expect.stringContaining("Rejected malformed updateTodoList message"),
+		)
+		expect(mockSetPendingTodoList).not.toHaveBeenCalled()
 	})
 })
 

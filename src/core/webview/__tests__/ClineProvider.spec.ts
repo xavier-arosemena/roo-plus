@@ -2115,6 +2115,7 @@ describe("ClineProvider", () => {
 			// Test updating a custom mode
 			await messageHandler({
 				type: "updateCustomMode",
+				slug: "test-mode",
 				modeConfig: {
 					slug: "test-mode",
 					name: "Test Mode",
@@ -3908,6 +3909,30 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 
 				// text must be a string; a number is malformed.
 				await messageHandler({ type: "queueMessage", text: 42 })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed updateTodoList message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// todos must be an array of valid todo items.
+				await messageHandler({ type: "updateTodoList", payload: { todos: "nope" } })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed updateCustomMode message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// modeConfig is required and must be a valid mode config.
+				await messageHandler({ type: "updateCustomMode", slug: "test-mode" })
 
 				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
 				expect(mockPostMessage).not.toHaveBeenCalled()

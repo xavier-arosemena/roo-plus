@@ -19,6 +19,11 @@ import {
 	removeQueuedMessageMessageSchema,
 	editQueuedMessageMessageSchema,
 } from "./messageQueue.js"
+import {
+	updateTodoListMessageSchema,
+	updateCustomModeMessageSchema,
+	deleteCustomModeMessageSchema,
+} from "./customModes.js"
 
 /**
  * String-literal union of every webview message type.
@@ -51,6 +56,9 @@ export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType
 	queueMessage: queueMessageMessageSchema,
 	removeQueuedMessage: removeQueuedMessageMessageSchema,
 	editQueuedMessage: editQueuedMessageMessageSchema,
+	updateTodoList: updateTodoListMessageSchema,
+	updateCustomMode: updateCustomModeMessageSchema,
+	deleteCustomMode: deleteCustomModeMessageSchema,
 }
 
 /**
@@ -72,6 +80,9 @@ export const webviewMessageSchema = z.discriminatedUnion("type", [
 	queueMessageMessageSchema,
 	removeQueuedMessageMessageSchema,
 	editQueuedMessageMessageSchema,
+	updateTodoListMessageSchema,
+	updateCustomModeMessageSchema,
+	deleteCustomModeMessageSchema,
 ])
 
 export type ParseWebviewMessageResult = { ok: true; message: WebviewMessage } | { ok: false; error: string }
@@ -138,3 +149,10 @@ export {
 	messageQueueMessageSchema,
 } from "./messageQueue.js"
 export type { MessageQueueMessage } from "./messageQueue.js"
+export {
+	updateTodoListMessageSchema,
+	updateCustomModeMessageSchema,
+	deleteCustomModeMessageSchema,
+	customModesMessageSchema,
+} from "./customModes.js"
+export type { CustomModesMessage } from "./customModes.js"

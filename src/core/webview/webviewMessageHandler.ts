@@ -31,6 +31,9 @@ import {
 	queueMessageMessageSchema,
 	removeQueuedMessageMessageSchema,
 	editQueuedMessageMessageSchema,
+	updateTodoListMessageSchema,
+	updateCustomModeMessageSchema,
+	deleteCustomModeMessageSchema,
 	getCompletionCheckpoint,
 	providerIdentifiers,
 } from "@roo-code/types"
@@ -2089,11 +2092,17 @@ export const webviewMessageHandler = async (
 			break
 		}
 		case "updateTodoList": {
-			const payload = message.payload as { todos?: any[] }
-			const todos = payload?.todos
-			if (Array.isArray(todos)) {
-				await setPendingTodoList(todos)
+			const result = updateTodoListMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed updateTodoList message: ${result.error.message}`,
+				)
+				break
 			}
+
+			const m = result.data
+			await setPendingTodoList(m.payload.todos)
 			break
 		}
 		case "refreshCustomTools": {
@@ -2296,117 +2305,132 @@ export const webviewMessageHandler = async (
 				}
 			}
 			break
-		case "updateCustomMode":
-			if (message.modeConfig) {
-				try {
-					// Check if this is a new mode or an update to an existing mode
-					const existingModes = await provider.customModesManager.getCustomModes()
-					const isNewMode = !existingModes.some((mode) => mode.slug === message.modeConfig?.slug)
+		case "updateCustomMode": {
+			const result = updateCustomModeMessageSchema.safeParse(message)
 
-					await provider.customModesManager.updateCustomMode(message.modeConfig.slug, message.modeConfig)
-					// Update state after saving the mode
-					const customModes = await provider.customModesManager.getCustomModes()
-					await updateGlobalState("customModes", customModes)
-					await updateGlobalState("mode", message.modeConfig.slug)
-					await provider.postStateToWebview()
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed updateCustomMode message: ${result.error.message}`,
+				)
+				break
+			}
 
-					// Track telemetry for custom mode creation or update
-					if (TelemetryService.hasInstance()) {
-						if (isNewMode) {
-							// This is a new custom mode
-							TelemetryService.instance.captureCustomModeCreated(
-								message.modeConfig.slug,
-								message.modeConfig.name,
-							)
-						} else {
-							// Determine which setting was changed by comparing objects
-							const existingMode = existingModes.find((mode) => mode.slug === message.modeConfig?.slug)
-							const changedSettings = existingMode
-								? Object.keys(message.modeConfig).filter(
-										(key) =>
-											JSON.stringify((existingMode as Record<string, unknown>)[key]) !==
-											JSON.stringify((message.modeConfig as Record<string, unknown>)[key]),
-									)
-								: []
+			const m = result.data
+			try {
+				// Check if this is a new mode or an update to an existing mode
+				const existingModes = await provider.customModesManager.getCustomModes()
+				const isNewMode = !existingModes.some((mode) => mode.slug === m.modeConfig.slug)
 
-							if (changedSettings.length > 0) {
-								TelemetryService.instance.captureModeSettingChanged(changedSettings[0])
-							}
+				await provider.customModesManager.updateCustomMode(m.modeConfig.slug, m.modeConfig)
+				// Update state after saving the mode
+				const customModes = await provider.customModesManager.getCustomModes()
+				await updateGlobalState("customModes", customModes)
+				await updateGlobalState("mode", m.modeConfig.slug)
+				await provider.postStateToWebview()
+
+				// Track telemetry for custom mode creation or update
+				if (TelemetryService.hasInstance()) {
+					if (isNewMode) {
+						// This is a new custom mode
+						TelemetryService.instance.captureCustomModeCreated(m.modeConfig.slug, m.modeConfig.name)
+					} else {
+						// Determine which setting was changed by comparing objects
+						const existingMode = existingModes.find((mode) => mode.slug === m.modeConfig.slug)
+						const changedSettings = existingMode
+							? Object.keys(m.modeConfig).filter(
+									(key) =>
+										JSON.stringify((existingMode as Record<string, unknown>)[key]) !==
+										JSON.stringify((m.modeConfig as Record<string, unknown>)[key]),
+								)
+							: []
+
+						if (changedSettings.length > 0) {
+							TelemetryService.instance.captureModeSettingChanged(changedSettings[0])
 						}
 					}
-				} catch (error) {
-					// Error already shown to user by updateCustomMode
-					// Just prevent unhandled rejection and skip state updates
 				}
+			} catch (error) {
+				// Error already shown to user by updateCustomMode
+				// Just prevent unhandled rejection and skip state updates
 			}
 			break
-		case "deleteCustomMode":
-			if (message.slug) {
-				// Get the mode details to determine source and rules folder path
-				const customModes = await provider.customModesManager.getCustomModes()
-				const modeToDelete = customModes.find((mode) => mode.slug === message.slug)
+		}
+		case "deleteCustomMode": {
+			const result = deleteCustomModeMessageSchema.safeParse(message)
 
-				if (!modeToDelete) {
-					break
-				}
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed deleteCustomMode message: ${result.error.message}`,
+				)
+				break
+			}
 
-				// Determine the scope based on source (project or global)
-				const scope = modeToDelete.source || "global"
+			const m = result.data
+			// Get the mode details to determine source and rules folder path
+			const customModes = await provider.customModesManager.getCustomModes()
+			const modeToDelete = customModes.find((mode) => mode.slug === m.slug)
 
-				// Determine the rules folder path
-				let rulesFolderPath: string
-				if (scope === "project") {
-					const workspacePath = getWorkspacePath()
-					if (workspacePath) {
-						rulesFolderPath = path.join(workspacePath, ".roo", `rules-${message.slug}`)
-					} else {
-						rulesFolderPath = path.join(".roo", `rules-${message.slug}`)
-					}
+			if (!modeToDelete) {
+				break
+			}
+
+			// Determine the scope based on source (project or global)
+			const scope = modeToDelete.source || "global"
+
+			// Determine the rules folder path
+			let rulesFolderPath: string
+			if (scope === "project") {
+				const workspacePath = getWorkspacePath()
+				if (workspacePath) {
+					rulesFolderPath = path.join(workspacePath, ".roo", `rules-${m.slug}`)
 				} else {
-					// Global scope - use OS home directory
-					const homeDir = os.homedir()
-					rulesFolderPath = path.join(homeDir, ".roo", `rules-${message.slug}`)
+					rulesFolderPath = path.join(".roo", `rules-${m.slug}`)
 				}
-
-				// Check if the rules folder exists
-				const rulesFolderExists = await fileExistsAtPath(rulesFolderPath)
-
-				// If this is a check request, send back the folder info
-				if (message.checkOnly) {
-					await provider.postMessageToWebview({
-						type: "deleteCustomModeCheck",
-						slug: message.slug,
-						rulesFolderPath: rulesFolderExists ? rulesFolderPath : undefined,
-					})
-					break
-				}
-
-				// Delete the mode
-				await provider.customModesManager.deleteCustomMode(message.slug)
-
-				// Delete the rules folder if it exists
-				if (rulesFolderExists) {
-					try {
-						await fs.rm(rulesFolderPath, { recursive: true, force: true })
-						provider.log(`Deleted rules folder for mode ${message.slug}: ${rulesFolderPath}`)
-					} catch (error) {
-						provider.log(`Failed to delete rules folder for mode ${message.slug}: ${error}`)
-						// Notify the user about the failure
-						vscode.window.showErrorMessage(
-							t("common:errors.delete_rules_folder_failed", {
-								rulesFolderPath,
-								error: error instanceof Error ? error.message : String(error),
-							}),
-						)
-						// Continue with mode deletion even if folder deletion fails
-					}
-				}
-
-				// Switch back to default mode after deletion
-				await updateGlobalState("mode", defaultModeSlug)
-				await provider.postStateToWebview()
+			} else {
+				// Global scope - use OS home directory
+				const homeDir = os.homedir()
+				rulesFolderPath = path.join(homeDir, ".roo", `rules-${m.slug}`)
 			}
+
+			// Check if the rules folder exists
+			const rulesFolderExists = await fileExistsAtPath(rulesFolderPath)
+
+			// If this is a check request, send back the folder info
+			if (m.checkOnly) {
+				await provider.postMessageToWebview({
+					type: "deleteCustomModeCheck",
+					slug: m.slug,
+					rulesFolderPath: rulesFolderExists ? rulesFolderPath : undefined,
+				})
+				break
+			}
+
+			// Delete the mode
+			await provider.customModesManager.deleteCustomMode(m.slug)
+
+			// Delete the rules folder if it exists
+			if (rulesFolderExists) {
+				try {
+					await fs.rm(rulesFolderPath, { recursive: true, force: true })
+					provider.log(`Deleted rules folder for mode ${m.slug}: ${rulesFolderPath}`)
+				} catch (error) {
+					provider.log(`Failed to delete rules folder for mode ${m.slug}: ${error}`)
+					// Notify the user about the failure
+					vscode.window.showErrorMessage(
+						t("common:errors.delete_rules_folder_failed", {
+							rulesFolderPath,
+							error: error instanceof Error ? error.message : String(error),
+						}),
+					)
+					// Continue with mode deletion even if folder deletion fails
+				}
+			}
+
+			// Switch back to default mode after deletion
+			await updateGlobalState("mode", defaultModeSlug)
+			await provider.postStateToWebview()
 			break
+		}
 		case "exportMode":
 			if (message.slug) {
 				try {

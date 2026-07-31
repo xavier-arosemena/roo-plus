@@ -1166,7 +1166,7 @@
 	},
 	"core/webview/webviewMessageHandler.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 5
+			"count": 4
 		}
 	},
 	"extension/__tests__/api-delete-queued-message.spec.ts": {
