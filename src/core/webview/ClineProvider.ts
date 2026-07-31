@@ -83,6 +83,7 @@ import { CodeIndexManager } from "../../services/code-index/manager"
 import type { IndexProgressUpdate } from "../../services/code-index/interfaces/manager"
 import { MdmService } from "../../services/mdm/MdmService"
 import { SkillsManager } from "../../services/skills/SkillsManager"
+import { TaskHistoryService } from "../services/TaskHistoryService"
 
 import { fileExistsAtPath } from "../../utils/fs"
 import { setTtsEnabled, setTtsSpeed } from "../../utils/tts"
@@ -192,8 +193,7 @@ export class ClineProvider
 	private recentTasksCache?: string[]
 	public readonly taskHistoryStore: TaskHistoryStore
 	private taskHistoryStoreInitialized = false
-	private globalStateWriteThroughTimer: ReturnType<typeof setTimeout> | null = null
-	private static readonly GLOBAL_STATE_WRITE_THROUGH_DEBOUNCE_MS = 5000 // 5 seconds
+	private readonly taskHistoryService: TaskHistoryService
 	private static readonly PENDING_OPERATION_TIMEOUT_MS = 30000 // 30 seconds
 
 	private runDelegationTransition<T>(parentTaskId: string, fn: () => Promise<T>): Promise<T> {
@@ -238,7 +238,20 @@ export class ClineProvider
 		// since per-task files are authoritative and globalState is only for downgrade compat.
 		this.taskHistoryStore = new TaskHistoryStore(this.contextProxy.globalStorageUri.fsPath, {
 			onWrite: async () => {
-				this.scheduleGlobalStateWriteThrough()
+				this.taskHistoryService.scheduleGlobalStateWriteThrough()
+			},
+		})
+		this.taskHistoryService = new TaskHistoryService({
+			taskHistoryStore: this.taskHistoryStore,
+			isViewLaunched: () => this.isViewLaunched,
+			postMessageToWebview: (message) => this.postMessageToWebview(message),
+			log: (message) => this.log(message),
+			writeGlobalTaskHistory: (items) => this.updateGlobalState("taskHistory", items),
+			recentTasksCache: {
+				get: () => this.recentTasksCache,
+				set: (cache) => {
+					this.recentTasksCache = cache
+				},
 			},
 		})
 		this.initializeTaskHistoryStore().catch((error) => {
@@ -708,7 +721,7 @@ export class ClineProvider
 		await this.marketplaceManager?.cleanup()
 		this.customModesManager?.dispose()
 		this.taskHistoryStore.dispose()
-		this.flushGlobalStateWriteThrough()
+		this.taskHistoryService.flushGlobalStateWriteThrough()
 		this.log("Disposed all disposables")
 		ClineProvider.activeInstances.delete(this)
 
@@ -2512,87 +2525,24 @@ export class ClineProvider
 
 	/**
 	 * Updates a task in the task history and optionally broadcasts the updated history to the webview.
-	 * Now delegates to TaskHistoryStore for per-task file persistence.
+	 * Delegates to {@link TaskHistoryService}.
 	 *
 	 * @param item The history item to update or add
 	 * @param options.broadcast Whether to broadcast the updated history to the webview (default: true)
 	 * @returns The updated task history array
 	 */
 	async updateTaskHistory(item: HistoryItem, options: { broadcast?: boolean } = {}): Promise<HistoryItem[]> {
-		const { broadcast = true } = options
-
-		const history = await this.taskHistoryStore.upsert(item)
-		this.recentTasksCache = undefined
-
-		// Broadcast the updated history to the webview if requested.
-		// Prefer per-item updates to avoid repeatedly cloning/sending the full history.
-		if (broadcast && this.isViewLaunched) {
-			const updatedItem = this.taskHistoryStore.get(item.id) ?? item
-			await this.postMessageToWebview({ type: "taskHistoryItemUpdated", taskHistoryItem: updatedItem })
-		}
-
-		return history
-	}
-
-	/**
-	 * Schedule a debounced write-through of task history to globalState.
-	 * Only used for backward compatibility during the transition period.
-	 * Per-task files are authoritative; globalState is the downgrade fallback.
-	 */
-	private scheduleGlobalStateWriteThrough(): void {
-		if (this.globalStateWriteThroughTimer) {
-			clearTimeout(this.globalStateWriteThroughTimer)
-		}
-
-		this.globalStateWriteThroughTimer = setTimeout(async () => {
-			this.globalStateWriteThroughTimer = null
-			try {
-				const items = this.taskHistoryStore.getAll()
-				await this.updateGlobalState("taskHistory", items)
-			} catch (err) {
-				this.log(
-					`[scheduleGlobalStateWriteThrough] Failed: ${err instanceof Error ? err.message : String(err)}`,
-				)
-			}
-		}, ClineProvider.GLOBAL_STATE_WRITE_THROUGH_DEBOUNCE_MS)
-	}
-
-	/**
-	 * Flush any pending debounced globalState write-through immediately.
-	 */
-	private flushGlobalStateWriteThrough(): void {
-		if (this.globalStateWriteThroughTimer) {
-			clearTimeout(this.globalStateWriteThroughTimer)
-			this.globalStateWriteThroughTimer = null
-		}
-
-		const items = this.taskHistoryStore.getAll()
-		this.updateGlobalState("taskHistory", items).catch((err) => {
-			this.log(`[flushGlobalStateWriteThrough] Failed: ${err instanceof Error ? err.message : String(err)}`)
-		})
+		return this.taskHistoryService.updateTaskHistory(item, options)
 	}
 
 	/**
 	 * Broadcasts a task history update to the webview.
 	 * This sends a lightweight message with just the task history, rather than the full state.
+	 * Delegates to {@link TaskHistoryService}.
 	 * @param history The task history to broadcast (if not provided, reads from the store)
 	 */
 	public async broadcastTaskHistoryUpdate(history?: HistoryItem[]): Promise<void> {
-		if (!this.isViewLaunched) {
-			return
-		}
-
-		const taskHistory = history ?? this.taskHistoryStore.getAll()
-
-		// Sort and filter the history the same way as getStateToPostToWebview
-		const sortedHistory = taskHistory
-			.filter((item: HistoryItem) => item.ts && item.task)
-			.sort((a: HistoryItem, b: HistoryItem) => b.ts - a.ts)
-
-		await this.postMessageToWebview({
-			type: "taskHistoryUpdated",
-			taskHistory: sortedHistory,
-		})
+		await this.taskHistoryService.broadcastTaskHistoryUpdate(history)
 	}
 
 	// ContextProxy
@@ -2770,48 +2720,7 @@ export class ClineProvider
 	}
 
 	public getRecentTasks(): string[] {
-		if (this.recentTasksCache) {
-			return this.recentTasksCache
-		}
-
-		const history = this.taskHistoryStore.getAll()
-		const workspaceTasks: HistoryItem[] = []
-
-		for (const item of history) {
-			if (!item.ts || !item.task || item.workspace !== this.cwd) {
-				continue
-			}
-
-			workspaceTasks.push(item)
-		}
-
-		if (workspaceTasks.length === 0) {
-			this.recentTasksCache = []
-			return this.recentTasksCache
-		}
-
-		workspaceTasks.sort((a, b) => b.ts - a.ts)
-		let recentTaskIds: string[] = []
-
-		if (workspaceTasks.length >= 100) {
-			// If we have at least 100 tasks, return tasks from the last 7 days.
-			const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
-
-			for (const item of workspaceTasks) {
-				// Stop when we hit tasks older than 7 days.
-				if (item.ts < sevenDaysAgo) {
-					break
-				}
-
-				recentTaskIds.push(item.id)
-			}
-		} else {
-			// Otherwise, return the most recent 100 tasks (or all if less than 100).
-			recentTaskIds = workspaceTasks.slice(0, Math.min(100, workspaceTasks.length)).map((item) => item.id)
-		}
-
-		this.recentTasksCache = recentTaskIds
-		return this.recentTasksCache
+		return this.taskHistoryService.getRecentTasks(this.cwd)
 	}
 
 	// When initializing a new task, (not from history but from a tool command
