@@ -21,7 +21,7 @@
 
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
-import { fileURLToPath } from "node:url"
+import { fileURLToPath, pathToFileURL } from "node:url"
 import * as yaml from "yaml"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -406,7 +406,22 @@ async function main() {
   console.log("\n💡 Tip: Open the Modes Marketplace to browse all available agents")
 }
 
-main().catch((err) => {
-  console.error("\n❌ Sync failed:", err.message)
-  process.exit(1)
-})
+// Only run when executed directly (not when imported, e.g. by verify-roomodes-sync.mjs).
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
+if (isMain) {
+  main().catch((err) => {
+    console.error("\n❌ Sync failed:", err.message)
+    process.exit(1)
+  })
+}
+
+export {
+  loadManifest,
+  scanAllAgents,
+  filterCuratedAgents,
+  convertToRoomodesEntry,
+  generateRoomodesYaml,
+  AGENTS_DIR,
+  MANIFEST_PATH,
+  ROOMODES_PATH,
+}
