@@ -14,6 +14,11 @@ import {
 	installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParametersMessageSchema,
 } from "./marketplace.js"
+import {
+	queueMessageMessageSchema,
+	removeQueuedMessageMessageSchema,
+	editQueuedMessageMessageSchema,
+} from "./messageQueue.js"
 
 /**
  * String-literal union of every webview message type.
@@ -43,6 +48,9 @@ export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType
 	installMarketplaceItem: installMarketplaceItemMessageSchema,
 	installMarketplaceItems: installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParameters: installMarketplaceItemWithParametersMessageSchema,
+	queueMessage: queueMessageMessageSchema,
+	removeQueuedMessage: removeQueuedMessageMessageSchema,
+	editQueuedMessage: editQueuedMessageMessageSchema,
 }
 
 /**
@@ -61,6 +69,9 @@ export const webviewMessageSchema = z.discriminatedUnion("type", [
 	installMarketplaceItemMessageSchema,
 	installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParametersMessageSchema,
+	queueMessageMessageSchema,
+	removeQueuedMessageMessageSchema,
+	editQueuedMessageMessageSchema,
 ])
 
 export type ParseWebviewMessageResult = { ok: true; message: WebviewMessage } | { ok: false; error: string }
@@ -120,3 +131,10 @@ export {
 	marketplaceMessageSchema,
 } from "./marketplace.js"
 export type { MarketplaceMessage } from "./marketplace.js"
+export {
+	queueMessageMessageSchema,
+	removeQueuedMessageMessageSchema,
+	editQueuedMessageMessageSchema,
+	messageQueueMessageSchema,
+} from "./messageQueue.js"
+export type { MessageQueueMessage } from "./messageQueue.js"

@@ -15,7 +15,6 @@ import {
 	type ModelRecord,
 	type Command as SlashCommand,
 	type WebviewMessage,
-	type EditQueuedMessagePayload,
 	TelemetryEventName,
 	RooCodeSettings,
 	ExperimentId,
@@ -29,6 +28,9 @@ import {
 	installMarketplaceItemMessageSchema,
 	installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParametersMessageSchema,
+	queueMessageMessageSchema,
+	removeQueuedMessageMessageSchema,
+	editQueuedMessageMessageSchema,
 	getCompletionCheckpoint,
 	providerIdentifiers,
 } from "@roo-code/types"
@@ -3506,20 +3508,45 @@ export const webviewMessageHandler = async (
 		 */
 
 		case "queueMessage": {
-			const resolved = await resolveIncomingImages({ text: message.text, images: message.images })
+			const result = queueMessageMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed queueMessage message: ${result.error.message}`)
+				break
+			}
+
+			const m = result.data
+			const resolved = await resolveIncomingImages({ text: m.text, images: m.images })
 			provider.getCurrentTask()?.messageQueueService.addMessage(resolved.text, resolved.images)
 			break
 		}
 		case "removeQueuedMessage": {
-			provider.getCurrentTask()?.messageQueueService.removeMessage(message.text ?? "")
+			const result = removeQueuedMessageMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed removeQueuedMessage message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
+			provider.getCurrentTask()?.messageQueueService.removeMessage(m.text)
 			break
 		}
 		case "editQueuedMessage": {
-			if (message.payload) {
-				const { id, text, images } = message.payload as EditQueuedMessagePayload
-				provider.getCurrentTask()?.messageQueueService.updateMessage(id, text, images)
+			const result = editQueuedMessageMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed editQueuedMessage message: ${result.error.message}`,
+				)
+				break
 			}
 
+			const m = result.data
+			const { id, text, images } = m.payload
+			provider.getCurrentTask()?.messageQueueService.updateMessage(id, text, images)
 			break
 		}
 

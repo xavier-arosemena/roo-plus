@@ -1230,6 +1230,68 @@ describe("webviewMessageHandler - command allow/deny", () => {
 	})
 })
 
+describe("webviewMessageHandler - message queue", () => {
+	const mockTaskWithQueue = () => {
+		const messageQueueService = {
+			addMessage: vi.fn(),
+			removeMessage: vi.fn(),
+			updateMessage: vi.fn(),
+		}
+		vi.mocked(mockClineProvider.getCurrentTask).mockReturnValue({
+			messageQueueService,
+		} as unknown as ReturnType<ClineProvider["getCurrentTask"]>)
+		return messageQueueService
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("queues a message with resolved images", async () => {
+		const messageQueueService = mockTaskWithQueue()
+
+		await webviewMessageHandler(mockClineProvider, {
+			type: "queueMessage",
+			text: "hello",
+			images: ["data:image/png;base64,abc"],
+		})
+
+		expect(messageQueueService.addMessage).toHaveBeenCalledWith("hello", [
+			"data:image/png;base64,abc",
+			"data:image/png;base64,from-mention",
+		])
+	})
+
+	it("removes a queued message by id", async () => {
+		const messageQueueService = mockTaskWithQueue()
+
+		await webviewMessageHandler(mockClineProvider, { type: "removeQueuedMessage", text: "id-1" })
+
+		expect(messageQueueService.removeMessage).toHaveBeenCalledWith("id-1")
+	})
+
+	it("edits a queued message", async () => {
+		const messageQueueService = mockTaskWithQueue()
+
+		await webviewMessageHandler(mockClineProvider, {
+			type: "editQueuedMessage",
+			payload: { id: "id-1", text: "new text", images: [] },
+		})
+
+		expect(messageQueueService.updateMessage).toHaveBeenCalledWith("id-1", "new text", [])
+	})
+
+	it("rejects a malformed queueMessage without side effects", async () => {
+		const messageQueueService = mockTaskWithQueue()
+		const malformed = { type: "queueMessage", text: 42 } as never
+
+		await webviewMessageHandler(mockClineProvider, malformed)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed queueMessage"))
+		expect(messageQueueService.addMessage).not.toHaveBeenCalled()
+	})
+})
+
 describe("webviewMessageHandler - requestTerminalProfiles", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()

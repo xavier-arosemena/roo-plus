@@ -121,7 +121,7 @@ describe("parseWebviewMessage", () => {
 		})
 	})
 
-	it("seeds the checkpoint schemas and the S1-M3 command/settings/provider/marketplace schemas in the registry", () => {
+	it("seeds the checkpoint schemas and the S1-M3 command/settings/provider/marketplace/queue schemas in the registry", () => {
 		expect(webviewMessageSchemas.checkpointDiff).toBeDefined()
 		expect(webviewMessageSchemas.checkpointRestore).toBeDefined()
 		expect(webviewMessageSchemas.allowedCommands).toBeDefined()
@@ -133,7 +133,10 @@ describe("parseWebviewMessage", () => {
 		expect(webviewMessageSchemas.installMarketplaceItem).toBeDefined()
 		expect(webviewMessageSchemas.installMarketplaceItems).toBeDefined()
 		expect(webviewMessageSchemas.installMarketplaceItemWithParameters).toBeDefined()
-		expect(Object.keys(webviewMessageSchemas)).toHaveLength(11)
+		expect(webviewMessageSchemas.queueMessage).toBeDefined()
+		expect(webviewMessageSchemas.removeQueuedMessage).toBeDefined()
+		expect(webviewMessageSchemas.editQueuedMessage).toBeDefined()
+		expect(Object.keys(webviewMessageSchemas)).toHaveLength(14)
 	})
 
 	it("builds a discriminated union over the registered types", () => {
