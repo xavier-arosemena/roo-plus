@@ -83,6 +83,7 @@ import { CodeIndexManager } from "../../services/code-index/manager"
 import type { IndexProgressUpdate } from "../../services/code-index/interfaces/manager"
 import { MdmService } from "../../services/mdm/MdmService"
 import { SkillsManager } from "../../services/skills/SkillsManager"
+import { ProviderProfileService } from "../services/ProviderProfileService"
 import { TaskHistoryService } from "../services/TaskHistoryService"
 
 import { fileExistsAtPath } from "../../utils/fs"
@@ -213,6 +214,7 @@ export class ClineProvider
 	public readonly latestAnnouncementId = "jul-2026-v3.75.0" // v3.75.0 Semble, no cloud services, and improved modes
 	public readonly providerSettingsManager: ProviderSettingsManager
 	public readonly customModesManager: CustomModesManager
+	private readonly providerProfileService: ProviderProfileService
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
@@ -268,6 +270,21 @@ export class ClineProvider
 		this._workspaceTracker = new WorkspaceTracker(this)
 
 		this.providerSettingsManager = new ProviderSettingsManager(this.context)
+
+		this.providerProfileService = new ProviderProfileService({
+			contextProxy: this.contextProxy,
+			getProviderSettingsManager: () => this.providerSettingsManager,
+			postStateToWebview: () => this.postStateToWebview(),
+			updateTaskHistory: (...args) => this.updateTaskHistory(...args),
+			getMode: () => this.getMode(),
+			getCurrentTask: () => this.getCurrentTask(),
+			updateTaskApiHandlerIfNeeded: (providerSettings, options) =>
+				this.updateTaskApiHandlerIfNeeded(providerSettings, options),
+			getTaskHistoryItem: (taskId) => this.taskHistoryStore.get(taskId),
+			getGlobalTaskHistory: () => this.getGlobalState("taskHistory") ?? [],
+			log: (message) => this.log(message),
+			onProviderProfileChanged: (event) => this.emit(RooCodeEventName.ProviderProfileChanged, event),
+		})
 
 		this.customModesManager = new CustomModesManager(this.context, async () => {
 			await this.postStateToWebviewWithoutClineMessages()
@@ -1562,15 +1579,15 @@ export class ClineProvider
 	}
 
 	getProviderProfileEntries(): ProviderSettingsEntry[] {
-		return this.contextProxy.getValues().listApiConfigMeta || []
+		return this.providerProfileService.getProviderProfileEntries()
 	}
 
 	getProviderProfileEntry(name: string): ProviderSettingsEntry | undefined {
-		return this.getProviderProfileEntries().find((profile) => profile.name === name)
+		return this.providerProfileService.getProviderProfileEntry(name)
 	}
 
 	public hasProviderProfileEntry(name: string): boolean {
-		return !!this.getProviderProfileEntry(name)
+		return this.providerProfileService.hasProviderProfileEntry(name)
 	}
 
 	async upsertProviderProfile(
@@ -1578,143 +1595,18 @@ export class ClineProvider
 		providerSettings: ProviderSettings,
 		activate: boolean = true,
 	): Promise<string | undefined> {
-		try {
-			// TODO: Do we need to be calling `activateProfile`? It's not
-			// clear to me what the source of truth should be; in some cases
-			// we rely on the `ContextProxy`'s data store and in other cases
-			// we rely on the `ProviderSettingsManager`'s data store. It might
-			// be simpler to unify these two.
-			const id = await this.providerSettingsManager.saveConfig(name, providerSettings)
-
-			if (activate) {
-				const { mode } = await this.getState()
-
-				// These promises do the following:
-				// 1. Adds or updates the list of provider profiles.
-				// 2. Sets the current provider profile.
-				// 3. Sets the current mode's provider profile.
-				// 4. Copies the provider settings to the context.
-				//
-				// Note: 1, 2, and 4 can be done in one `ContextProxy` call:
-				// this.contextProxy.setValues({ ...providerSettings, listApiConfigMeta: ..., currentApiConfigName: ... })
-				// We should probably switch to that and verify that it works.
-				// I left the original implementation in just to be safe.
-				await Promise.all([
-					this.updateGlobalState("listApiConfigMeta", await this.providerSettingsManager.listConfig()),
-					this.updateGlobalState("currentApiConfigName", name),
-					this.providerSettingsManager.setModeConfig(mode, id),
-					this.contextProxy.setProviderSettings(providerSettings),
-				])
-
-				// Change the provider for the current task.
-				// TODO: We should rename `buildApiHandler` for clarity (e.g. `getProviderClient`).
-				this.updateTaskApiHandlerIfNeeded(providerSettings, { forceRebuild: true })
-
-				// Keep the current task's sticky provider profile in sync with the newly-activated profile.
-				await this.persistStickyProviderProfileToCurrentTask(name)
-			} else {
-				await this.updateGlobalState("listApiConfigMeta", await this.providerSettingsManager.listConfig())
-			}
-
-			await this.postStateToWebview()
-			return id
-		} catch (error) {
-			this.log(
-				`Error create new api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
-			)
-
-			vscode.window.showErrorMessage(t("common:errors.create_api_config"))
-			return undefined
-		}
+		return this.providerProfileService.upsertProviderProfile(name, providerSettings, activate)
 	}
 
 	async deleteProviderProfile(profileToDelete: ProviderSettingsEntry) {
-		const globalSettings = this.contextProxy.getValues()
-		let profileToActivate: string | undefined = globalSettings.currentApiConfigName
-
-		if (profileToDelete.name === profileToActivate) {
-			profileToActivate = this.getProviderProfileEntries().find(({ name }) => name !== profileToDelete.name)?.name
-		}
-
-		if (!profileToActivate) {
-			throw new Error("You cannot delete the last profile")
-		}
-
-		const entries = this.getProviderProfileEntries().filter(({ name }) => name !== profileToDelete.name)
-
-		await this.contextProxy.setValues({
-			...globalSettings,
-			currentApiConfigName: profileToActivate,
-			listApiConfigMeta: entries,
-		})
-
-		await this.postStateToWebview()
-	}
-
-	private async persistStickyProviderProfileToCurrentTask(apiConfigName: string): Promise<void> {
-		const task = this.getCurrentTask()
-		if (!task) {
-			return
-		}
-
-		try {
-			// Update in-memory state immediately so sticky behavior works even before the task has
-			// been persisted into taskHistory (it will be captured on the next save).
-			task.setTaskApiConfigName(apiConfigName)
-
-			const taskHistoryItem =
-				this.taskHistoryStore.get(task.taskId) ??
-				(this.getGlobalState("taskHistory") ?? []).find((item) => item.id === task.taskId)
-
-			if (taskHistoryItem) {
-				await this.updateTaskHistory({ ...taskHistoryItem, apiConfigName })
-			}
-		} catch (error) {
-			// If persistence fails, log the error but don't fail the profile switch.
-			this.log(
-				`Failed to persist provider profile switch for task ${task.taskId}: ${
-					error instanceof Error ? error.message : String(error)
-				}`,
-			)
-		}
+		return this.providerProfileService.deleteProviderProfile(profileToDelete)
 	}
 
 	async activateProviderProfile(
 		args: { name: string } | { id: string },
 		options?: { persistModeConfig?: boolean; persistTaskHistory?: boolean },
 	) {
-		const { name, id, ...providerSettings } = await this.providerSettingsManager.activateProfile(args)
-
-		const persistModeConfig = options?.persistModeConfig ?? true
-		const persistTaskHistory = options?.persistTaskHistory ?? true
-
-		// See `upsertProviderProfile` for a description of what this is doing.
-		await Promise.all([
-			this.contextProxy.setValue("listApiConfigMeta", await this.providerSettingsManager.listConfig()),
-			this.contextProxy.setValue("currentApiConfigName", name),
-			this.contextProxy.setProviderSettings(providerSettings),
-		])
-
-		const { mode } = await this.getState()
-
-		if (id && persistModeConfig) {
-			await this.providerSettingsManager.setModeConfig(mode, id)
-		}
-
-		// Change the provider for the current task.
-		this.updateTaskApiHandlerIfNeeded(providerSettings, { forceRebuild: true })
-
-		// Update the current task's sticky provider profile, unless this activation is
-		// being used purely as a non-persisting restoration (e.g., reopening a task from history).
-		if (persistTaskHistory) {
-			await this.persistStickyProviderProfileToCurrentTask(name)
-		}
-
-		await this.postStateToWebview()
-
-		if (providerSettings.apiProvider) {
-			this.emit(RooCodeEventName.ProviderProfileChanged, { name, provider: providerSettings.apiProvider })
-		}
+		return this.providerProfileService.activateProviderProfile(args, options)
 	}
 
 	async updateCustomInstructions(instructions?: string) {
