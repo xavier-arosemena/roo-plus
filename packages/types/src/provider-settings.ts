@@ -1,6 +1,12 @@
 import { z } from "zod"
 
-import { modelInfoSchema, reasoningEffortSettingSchema, verbosityLevelsSchema, serviceTierSchema } from "./model.js"
+import {
+	modelInfoSchema,
+	openAiCodexServiceTierSchema,
+	reasoningEffortSettingSchema,
+	verbosityLevelsSchema,
+	serviceTierSchema,
+} from "./model.js"
 import { codebaseIndexProviderSchema } from "./codebase-index.js"
 import {
 	providerIdentifiers,
@@ -29,6 +35,8 @@ import {
 	minimaxModels,
 	mimoModels,
 	isOpencodeGoAnthropicFormatModel,
+	ANTHROPIC_API_PROTOCOL,
+	OPENAI_API_PROTOCOL,
 } from "./providers/index.js"
 
 /**
@@ -36,6 +44,7 @@ import {
  */
 
 export const DEFAULT_CONSECUTIVE_MISTAKE_LIMIT = 3
+export const OPEN_AI_CODEX_SERVICE_TIER_KEY = "openAiCodexServiceTier"
 
 /**
  * DynamicProvider
@@ -276,7 +285,8 @@ const geminiCliSchema = apiModelIdProviderModelSchema.extend({
 })
 
 const openAiCodexSchema = apiModelIdProviderModelSchema.extend({
-	// No additional settings needed - uses OAuth authentication
+	// Codex "Fast" mode maps to the Responses API priority service tier.
+	[OPEN_AI_CODEX_SERVICE_TIER_KEY]: openAiCodexServiceTierSchema.optional(),
 })
 
 const openAiNativeSchema = apiModelIdProviderModelSchema.extend({
@@ -570,20 +580,39 @@ export const modelIdKeysByProvider: Record<TypicalProvider, ModelIdKey> = {
  */
 
 // Providers that use Anthropic-style API protocol.
-export const ANTHROPIC_STYLE_PROVIDERS: ProviderName[] = ["anthropic", "bedrock", "minimax"]
+export const ANTHROPIC_STYLE_PROVIDERS: ProviderName[] = [
+	providerIdentifiers.anthropic,
+	providerIdentifiers.bedrock,
+	providerIdentifiers.minimax,
+]
+
+const ANTHROPIC_MODEL_GATEWAY_PROVIDERS: ProviderName[] = [providerIdentifiers.vercelAiGateway]
+
+const ANTHROPIC_MODEL_ID_PREFIX = "anthropic/"
+const CLAUDE_MODEL_ID_FRAGMENT = "claude"
 
 export const getApiProtocol = (provider: ProviderName | undefined, modelId?: string): "anthropic" | "openai" => {
 	if (provider && ANTHROPIC_STYLE_PROVIDERS.includes(provider)) {
-		return "anthropic"
+		return ANTHROPIC_API_PROTOCOL
 	}
 
-	if (provider && provider === "vertex" && modelId && modelId.toLowerCase().includes("claude")) {
-		return "anthropic"
+	if (
+		provider &&
+		provider === providerIdentifiers.vertex &&
+		modelId &&
+		modelId.toLowerCase().includes(CLAUDE_MODEL_ID_FRAGMENT)
+	) {
+		return ANTHROPIC_API_PROTOCOL
 	}
 
 	// Vercel AI Gateway uses the anthropic protocol for anthropic models.
-	if (provider && provider === "vercel-ai-gateway" && modelId && modelId.toLowerCase().startsWith("anthropic/")) {
-		return "anthropic"
+	if (
+		provider &&
+		ANTHROPIC_MODEL_GATEWAY_PROVIDERS.includes(provider) &&
+		modelId &&
+		modelId.toLowerCase().startsWith(ANTHROPIC_MODEL_ID_PREFIX)
+	) {
+		return ANTHROPIC_API_PROTOCOL
 	}
 
 	// Opencode Go routes a subset of its models (Qwen, MiniMax) through the
@@ -593,11 +622,16 @@ export const getApiProtocol = (provider: ProviderName | undefined, modelId?: str
 	// models must use the anthropic protocol so token/cost aggregation adds the
 	// cache tokens back into the input total — otherwise the cached prefix is
 	// dropped from `contextTokens`, undercounting context-window usage.
-	if (provider && provider === "opencode-go" && modelId && isOpencodeGoAnthropicFormatModel(modelId)) {
-		return "anthropic"
+	if (
+		provider &&
+		provider === providerIdentifiers.opencodeGo &&
+		modelId &&
+		isOpencodeGoAnthropicFormatModel(modelId)
+	) {
+		return ANTHROPIC_API_PROTOCOL
 	}
 
-	return "openai"
+	return OPENAI_API_PROTOCOL
 }
 
 /**
