@@ -1076,7 +1076,7 @@
 	},
 	"core/webview/__tests__/ClineProvider.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 181
+			"count": 180
 		}
 	},
 	"core/webview/__tests__/ClineProvider.sticky-mode.spec.ts": {

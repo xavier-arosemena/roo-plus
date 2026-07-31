@@ -40,6 +40,7 @@ import {
 	RooCodeEventName,
 	requestyDefaultModelId,
 	openRouterDefaultModelId,
+	parseWebviewMessage,
 	DEFAULT_WRITE_DELAY_MS,
 	DEFAULT_DIFF_FUZZY_THRESHOLD,
 	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES,
@@ -65,7 +66,6 @@ import { GlobalFileNames } from "../../shared/globalFileNames"
 import { Mode, defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import { experimentDefault } from "../../shared/experiments"
 import { formatLanguage } from "../../shared/language"
-import { WebviewMessage } from "../../shared/WebviewMessage"
 import { EMBEDDING_MODEL_PROFILES } from "../../shared/embeddingModels"
 import { ProfileValidator } from "../../shared/ProfileValidator"
 
@@ -1404,9 +1404,15 @@ export class ClineProvider
 	 * @param webview A reference to the extension webview
 	 */
 	private setWebviewMessageListener(webview: vscode.Webview) {
-		const onReceiveMessage = async (message: WebviewMessage) =>
-			webviewMessageHandler(this, message, this.marketplaceManager)
+		const onReceiveMessage = async (message: unknown) => {
+			const parsed = parseWebviewMessage(message)
+			if (!parsed.ok) {
+				this.log(`[webview boundary] Rejected message: ${parsed.error}`)
+				return
+			}
 
+			await webviewMessageHandler(this, parsed.message, this.marketplaceManager)
+		}
 		const messageDisposable = webview.onDidReceiveMessage(onReceiveMessage)
 		this.webviewDisposables.push(messageDisposable)
 	}

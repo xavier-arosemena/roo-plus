@@ -3710,16 +3710,18 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 				expect(vscode.window.showInformationMessage).not.toHaveBeenCalled()
 			})
 
-			test("handles invalid message formats", async () => {
-				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as any).mock.calls[0][0]
+			test("rejects invalid message formats at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
 
-				// Test with null message - should throw error
-				await expect(messageHandler(null)).rejects.toThrow()
+				// Test with null message - rejected at the boundary, no dispatch
+				await expect(messageHandler(null)).resolves.toBeUndefined()
 
-				// Test with undefined message - should throw error
-				await expect(messageHandler(undefined)).rejects.toThrow()
+				// Test with undefined message - rejected at the boundary, no dispatch
+				await expect(messageHandler(undefined)).resolves.toBeUndefined()
 
-				// Test with message missing type
+				// Test with message missing type - rejected at the boundary, no dispatch
 				await expect(
 					messageHandler({
 						value: 2000,
@@ -3727,7 +3729,8 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 					}),
 				).resolves.toBeUndefined()
 
-				// Should handle gracefully without errors
+				// The boundary logs the rejection instead of throwing to the webview runtime
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
 				expect(vscode.window.showInformationMessage).not.toHaveBeenCalled()
 			})
 
@@ -3759,6 +3762,47 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 
 				// Invalid timestamps may still trigger confirmation dialog
 				// This is expected behavior as the system tries to process the message
+			})
+		})
+
+		describe("webview message boundary validation", () => {
+			beforeEach(async () => {
+				await provider.resolveWebviewView(mockWebviewView)
+				mockPostMessage.mockClear()
+			})
+
+			test("rejects a malformed registered message without dispatching", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// checkpointDiff is registered; this payload is missing commitHash.
+				await messageHandler({ type: "checkpointDiff", payload: { mode: "full" } })
+
+				// Rejected at the boundary: logged, never dispatched.
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("dispatches a valid registered message", async () => {
+				const mockTask = { checkpointDiff: vi.fn().mockResolvedValue(undefined) }
+				vi.spyOn(provider, "getCurrentTask").mockReturnValue(mockTask as unknown as Task)
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "checkpointDiff", payload: { mode: "full", commitHash: "abc123" } })
+
+				expect(mockTask.checkpointDiff).toHaveBeenCalledWith({ mode: "full", commitHash: "abc123" })
+			})
+
+			test("passes through unregistered messages without boundary rejection", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "requestModes" })
+
+				expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
 			})
 		})
 
