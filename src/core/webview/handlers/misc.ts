@@ -481,12 +481,14 @@ export async function handleMiscMessages(
 		case "openMarkdownPreview": {
 			if (message.text) {
 				try {
-					const tmpDir = os.tmpdir()
-					const timestamp = Date.now()
-					const tempFileName = `roo-preview-${timestamp}.md`
-					const tempFilePath = path.join(tmpDir, tempFileName)
+					// Create a private temporary directory (mode 0700) so the temp
+					// file is not written with a predictable name into the shared
+					// os.tmpdir(). mkdtemp creates a unique directory atomically,
+					// avoiding insecure temp-file creation and symlink attacks.
+					const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "roo-preview-"))
+					const tempFilePath = path.join(tmpDir, "preview.md")
 
-					await fs.writeFile(tempFilePath, message.text, "utf8")
+					await fs.writeFile(tempFilePath, message.text, { encoding: "utf8", mode: 0o600 })
 
 					const doc = await vscode.workspace.openTextDocument(tempFilePath)
 					await vscode.commands.executeCommand("markdown.showPreview", doc.uri)

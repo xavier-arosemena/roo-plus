@@ -224,21 +224,22 @@ export async function handleCommandsMessages(
 
 				const filePath = path.join(commandsDir, `${commandName}.md`)
 
-				// Check if file already exists
-				if (
-					await fs
-						.access(filePath)
-						.then(() => true)
-						.catch(() => false)
-				) {
-					vscode.window.showErrorMessage(t("common:errors.command_already_exists", { commandName }))
-					break
-				}
-
-				// Create the command file with template content
+				// Create the command file with template content. Use the "wx"
+				// exclusive flag so the write fails atomically if the file already
+				// exists, avoiding a check-then-act (TOCTOU) race between an
+				// fs.access probe and the write.
 				const templateContent = t("common:errors.command_template_content")
 
-				await fs.writeFile(filePath, templateContent, "utf8")
+				try {
+					await fs.writeFile(filePath, templateContent, { encoding: "utf8", flag: "wx" })
+				} catch (error) {
+					const code = (error as NodeJS.ErrnoException).code
+					if (code === "EEXIST") {
+						vscode.window.showErrorMessage(t("common:errors.command_already_exists", { commandName }))
+						break
+					}
+					throw error
+				}
 				provider.log(`Created new command file: ${filePath}`)
 
 				// Open the new file in the editor

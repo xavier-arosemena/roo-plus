@@ -58,13 +58,15 @@ export async function handleDebugMessages(
 				// Prettify the JSON
 				const prettifiedContent = JSON.stringify(jsonContent, null, 2)
 
-				// Create a temporary file
-				const tmpDir = os.tmpdir()
-				const timestamp = Date.now()
-				const tempFileName = `roo-debug-${message.type === "openDebugApiHistory" ? "api" : "ui"}-${currentTask.taskId.slice(0, 8)}-${timestamp}.json`
+				// Create a private temporary directory (mode 0700) so the temp
+				// file is not written with a predictable name into the shared
+				// os.tmpdir(). mkdtemp creates a unique directory atomically,
+				// avoiding insecure temp-file creation and symlink attacks.
+				const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "roo-debug-"))
+				const tempFileName = `${message.type === "openDebugApiHistory" ? "api" : "ui"}_conversation_history.json`
 				const tempFilePath = path.join(tmpDir, tempFileName)
 
-				await fs.writeFile(tempFilePath, prettifiedContent, "utf8")
+				await fs.writeFile(tempFilePath, prettifiedContent, { encoding: "utf8", mode: 0o600 })
 
 				// Open the temp file in VS Code
 				const doc = await vscode.workspace.openTextDocument(tempFilePath)

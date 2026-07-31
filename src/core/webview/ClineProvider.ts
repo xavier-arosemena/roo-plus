@@ -970,8 +970,19 @@ export class ClineProvider
 			const portFilePath = path.resolve(__dirname, "../../.vite-port")
 
 			if (fs.existsSync(portFilePath)) {
-				localPort = fs.readFileSync(portFilePath, "utf8").trim()
-				console.log(`[ClineProvider:Vite] Using Vite server port from ${portFilePath}: ${localPort}`)
+				// The port file is written by the local Vite dev server. Validate
+				// it is a plain numeric port (1-65535) before interpolating it
+				// into the request URL — the file must not be able to steer the
+				// dev-only HMR probe to an arbitrary host/URL.
+				const rawPort = fs.readFileSync(portFilePath, "utf8").trim()
+				if (/^\d{1,5}$/.test(rawPort) && Number(rawPort) >= 1 && Number(rawPort) <= 65535) {
+					localPort = rawPort
+					console.log(`[ClineProvider:Vite] Using Vite server port from ${portFilePath}: ${localPort}`)
+				} else {
+					console.warn(
+						`[ClineProvider:Vite] Invalid port in ${portFilePath} ("${rawPort}"), using default port: ${localPort}`,
+					)
+				}
 			} else {
 				console.log(
 					`[ClineProvider:Vite] Port file not found at ${portFilePath}, using default port: ${localPort}`,
