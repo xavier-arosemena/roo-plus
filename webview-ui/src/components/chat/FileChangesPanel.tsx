@@ -21,13 +21,13 @@ const FileChangesPanel = memo(({ clineMessages, className }: FileChangesPanelPro
 	const { t } = useTranslation()
 	const [panelExpanded, setPanelExpanded] = useState(false)
 	const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set())
-	const [finalContentByPath, setFinalContentByPath] = useState<Record<string, string | null>>({})
+	const [finalContentByPath, setFinalContentByPath] = useState<Map<string, string | null>>(new Map())
 	const pendingPathsRef = useRef<Set<string>>(new Set())
 
 	// Reset expanded file rows and final content cache when switching to a different task
 	useEffect(() => {
 		setExpandedPaths(new Set())
-		setFinalContentByPath({})
+		setFinalContentByPath(new Map())
 		pendingPathsRef.current = new Set()
 	}, [clineMessages])
 
@@ -74,7 +74,7 @@ const FileChangesPanel = memo(({ clineMessages, className }: FileChangesPanelPro
 			const lookupPath = path.startsWith("./") ? path.slice(2) : path
 			if (
 				originalContent !== undefined &&
-				!(lookupPath in finalContentByPath) &&
+				!finalContentByPath.has(lookupPath) &&
 				!pendingPathsRef.current.has(lookupPath)
 			) {
 				pendingPathsRef.current.add(lookupPath)
@@ -90,11 +90,15 @@ const FileChangesPanel = memo(({ clineMessages, className }: FileChangesPanelPro
 			if (message.type === "fileContent" && message.fileContent?.path != null) {
 				const fc = message.fileContent
 				pendingPathsRef.current.delete(fc.path)
-				// Validate the path before using it as a property key — the value
-				// originates from untrusted webview data and must not be able to
-				// pollute the object prototype (remote-property-injection).
-				if (typeof fc.path === "string" && !["__proto__", "prototype", "constructor"].includes(fc.path)) {
-					setFinalContentByPath((prev) => ({ ...prev, [fc.path]: fc.content ?? null }))
+				// Store by Map key rather than an object property. Paths arrive from
+				// untrusted webview data; a Map cannot be polluted through its keys
+				// the way an object's prototype can (remote-property-injection).
+				if (typeof fc.path === "string") {
+					setFinalContentByPath((prev) => {
+						const next = new Map(prev)
+						next.set(fc.path, fc.content ?? null)
+						return next
+					})
 				}
 			}
 		}
@@ -140,7 +144,7 @@ const FileChangesPanel = memo(({ clineMessages, className }: FileChangesPanelPro
 					{Array.from(byPath.entries()).map(([path, entries]) => {
 						const originalContent = entries[0].originalContent
 						const lookupPath = path.startsWith("./") ? path.slice(2) : path
-						const finalContent = finalContentByPath[lookupPath]
+						const finalContent = finalContentByPath.get(lookupPath)
 						const hasMergedDiff =
 							originalContent !== undefined && finalContent != null && finalContent !== ""
 						const displayDiff = hasMergedDiff

@@ -1,7 +1,8 @@
 {
 	"compilerOptions": {
 		"module": "CommonJS",
-		"moduleResolution": "Node",
+		"moduleResolution": "Node10",
+		"ignoreDeprecations": "5.0",
 		"esModuleInterop": true,
 		"target": "ES2022",
 		"lib": ["ES2022", "ESNext.Disposable", "DOM"],
@@ -9,7 +10,8 @@
 		"strict": true,
 		"skipLibCheck": true,
 		"useUnknownInCatchVariables": false,
-		"outDir": "out"
+		"outDir": "out",
+		"rootDir": "src"
 	},
 	"include": ["src"],
 	"exclude": [".vscode-test", "**/node_modules/**", "out"]

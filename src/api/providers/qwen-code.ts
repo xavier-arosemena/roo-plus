@@ -144,13 +144,18 @@ export class QwenCodeHandler extends BaseProvider implements SingleCompletionHan
 			throw new Error(`Token refresh failed: ${tokenData.error} - ${tokenData.error_description}`)
 		}
 
-		// The response is untrusted remote data. Validate its shape before
-		// building credentials that are persisted to disk, so a malformed or
-		// hostile response cannot inject arbitrary file contents
-		// (http-to-file-access).
+		// The response is untrusted remote data. Validate every field's shape
+		// before building credentials that are persisted to disk, so a malformed
+		// or hostile response cannot inject arbitrary file contents
+		// (http-to-file-access). Only validated string/number primitives are
+		// serialized below.
 		const accessToken = tokenData.access_token
 		const tokenType = tokenData.token_type
 		const expiresIn = tokenData.expires_in
+		const refreshToken =
+			typeof tokenData.refresh_token === "string" && tokenData.refresh_token.length > 0
+				? tokenData.refresh_token
+				: credentials.refresh_token
 		if (
 			typeof accessToken !== "string" ||
 			accessToken.length === 0 ||
@@ -167,8 +172,7 @@ export class QwenCodeHandler extends BaseProvider implements SingleCompletionHan
 			...credentials,
 			access_token: accessToken,
 			token_type: tokenType,
-			refresh_token:
-				typeof tokenData.refresh_token === "string" ? tokenData.refresh_token : credentials.refresh_token,
+			refresh_token: refreshToken,
 			expiry_date: Date.now() + expiresIn * 1000,
 		}
 

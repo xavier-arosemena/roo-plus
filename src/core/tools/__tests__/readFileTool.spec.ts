@@ -43,6 +43,7 @@ vi.mock("path", async () => {
 vi.mock("fs/promises", () => ({
 	readFile: vi.fn(),
 	stat: vi.fn(),
+	open: vi.fn(),
 }))
 
 vi.mock("isbinaryfile")
@@ -120,6 +121,7 @@ vi.mock("../../prompts/responses", () => ({
 const fsPromises = await import("fs/promises")
 const mockedFsReadFile = vi.mocked(fsPromises.readFile)
 const mockedFsStat = vi.mocked(fsPromises.stat)
+const mockedFsOpen = vi.mocked(fsPromises.open)
 
 const mockedIsBinaryFile = vi.mocked(isBinaryFile)
 const mockedExtractTextFromFile = vi.mocked(extractTextFromFile)
@@ -190,6 +192,15 @@ describe("ReadFileTool", () => {
 		mockedFsStat.mockResolvedValue({ isDirectory: () => false } as any)
 		mockedIsBinaryFile.mockResolvedValue(false)
 		mockedFsReadFile.mockResolvedValue(Buffer.from("test content"))
+		// ReadFileTool opens a single handle and stats/reads through it (TOCTOU-safe).
+		mockedFsOpen.mockImplementation(async () => {
+			const handle: unknown = {
+				stat: mockedFsStat,
+				readFile: mockedFsReadFile,
+				close: vi.fn().mockResolvedValue(undefined),
+			}
+			return handle as Awaited<ReturnType<typeof fsPromises.open>>
+		})
 		mockedReadWithSlice.mockReturnValue({
 			content: "1 | test content",
 			returnedLines: 1,
