@@ -6,6 +6,7 @@ import { createElement } from "react"
 import pWaitFor from "p-wait-for"
 
 import { setLogger } from "@roo-code/vscode-shim"
+import { DebugLogger, setDebugLogEnabled } from "@roo-code/core/cli"
 
 import {
 	FlagOptions,
@@ -35,6 +36,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SIGNAL_ONLY_EXIT_KEEPALIVE_MS = 60_000
 const STREAM_RESUME_WAIT_TIMEOUT_MS = 2_000
 
+// File-based logger for vscode-shim diagnostics. Writes to ~/.roo/cli-debug.log
+// only when debug logging is enabled (see setDebugLogEnabled in run()), so
+// non-debug runs remain silent.
+const shimLogger = new DebugLogger("vscode-shim")
+
 async function bootstrapResumeForStdinStream(host: ExtensionHost, sessionId: string): Promise<void> {
 	host.sendToExtension({ type: "showTaskWithId", text: sessionId })
 
@@ -49,12 +55,26 @@ function normalizeError(error: unknown): Error {
 	return error instanceof Error ? error : new Error(String(error))
 }
 
+// Prefix the shim's context label (e.g. "OutputChannel") onto the message so it
+// survives in the debug log, mirroring the shim's default ConsoleLogger format.
+function withShimContext(context: string | undefined, message: string): string {
+	return context ? `[${context}] ${message}` : message
+}
+
 export async function run(promptArg: string | undefined, flagOptions: FlagOptions) {
+	// Enable file-based debug logging before setLogger so shim diagnostics
+	// emitted during ExtensionHost construction are captured too. When debug is
+	// off this is skipped and DebugLogger no-ops internally, matching today's
+	// silent behavior.
+	if (flagOptions.debug) {
+		setDebugLogEnabled(true)
+	}
+
 	setLogger({
-		info: () => {},
-		warn: () => {},
-		error: () => {},
-		debug: () => {},
+		info: (message, context, meta) => shimLogger.info(withShimContext(context, message), meta),
+		warn: (message, context, meta) => shimLogger.warn(withShimContext(context, message), meta),
+		error: (message, context, meta) => shimLogger.error(withShimContext(context, message), meta),
+		debug: (message, context, meta) => shimLogger.debug(withShimContext(context, message), meta),
 	})
 
 	let prompt = promptArg

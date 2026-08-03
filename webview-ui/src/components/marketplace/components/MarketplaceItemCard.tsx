@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react"
 import { MarketplaceItem, TelemetryEventName } from "@roo-code/types"
+import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 import { telemetryClient } from "@/utils/TelemetryClient"
 import { ViewState } from "../MarketplaceViewStateManager"
@@ -57,6 +58,7 @@ export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({
 	// Listen for removal result messages
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type === "marketplaceRemoveResult" && message.slug === item.id) {
 				if (message.success) {

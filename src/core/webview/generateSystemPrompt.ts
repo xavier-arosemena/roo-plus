@@ -7,9 +7,14 @@ import { SYSTEM_PROMPT } from "../prompts/system"
 import { MultiSearchReplaceDiffStrategy } from "../diff/strategies/multi-search-replace"
 import { Package } from "../../shared/package"
 
-import { ClineProvider } from "./ClineProvider"
+import type { ClineProvider } from "./ClineProvider"
 
-export const generateSystemPrompt = async (provider: ClineProvider, message: WebviewMessage) => {
+export type SystemPromptProvider = Pick<
+	ClineProvider,
+	"getState" | "cwd" | "customModesManager" | "getCurrentTask" | "context" | "getMcpHub" | "getSkillsManager"
+>
+
+export const generateSystemPrompt = async (provider: SystemPromptProvider, message: WebviewMessage) => {
 	const {
 		apiConfiguration,
 		customModePrompts,

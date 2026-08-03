@@ -5,9 +5,12 @@ import OpenAI from "openai"
 
 import {
 	type ModelInfo,
+	OPEN_AI_CODEX_SERVICE_TIER_KEY,
+	OpenAiCodexServiceTier,
 	openAiCodexDefaultModelId,
 	OpenAiCodexModelId,
 	openAiCodexModels,
+	SERVICE_TIER_KEY,
 	type ReasoningEffort,
 	type ReasoningEffortExtended,
 	ApiProviderError,
@@ -29,6 +32,25 @@ import { t } from "../../i18n"
 
 export type OpenAiCodexModel = ReturnType<OpenAiCodexHandler["getModel"]>
 
+type OpenAiCodexRequestServiceTier = typeof OpenAiCodexServiceTier.Priority
+
+const SUPPORTED_IMAGE_MEDIA_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"])
+
+/**
+ * Validate that a base64 image block is safe to embed into an outbound request.
+ * The payload is derived from a locally-read file, so the media type must be a
+ * known image type and the payload must be well-formed base64 — this prevents
+ * file content from steering the HTTP request (file-access-to-http).
+ */
+function isSafeBase64Image(mediaType: string, data: string): boolean {
+	return (
+		SUPPORTED_IMAGE_MEDIA_TYPES.has(mediaType) &&
+		data.length > 0 &&
+		data.length % 4 === 0 &&
+		/^[A-Za-z0-9+/]+={0,2}$/.test(data)
+	)
+}
+
 /**
  * OpenAI Codex base URL for API requests
  * Per the implementation guide: requests are routed to chatgpt.com/backend-api/codex
@@ -36,6 +58,11 @@ export type OpenAiCodexModel = ReturnType<OpenAiCodexHandler["getModel"]>
 const CODEX_API_BASE_URL = "https://chatgpt.com/backend-api/codex"
 const LUNA_MODEL_ID = "gpt-5.6-luna"
 const LUNA_CODEX_VERSION = "0.144.0"
+
+const getOpenAiCodexServiceTier = (options: ApiHandlerOptions): OpenAiCodexRequestServiceTier | undefined =>
+	options[OPEN_AI_CODEX_SERVICE_TIER_KEY] === OpenAiCodexServiceTier.Priority
+		? OpenAiCodexServiceTier.Priority
+		: undefined
 
 function stripInputImageDetail(value: any): any {
 	if (Array.isArray(value)) {
@@ -365,6 +392,7 @@ export class OpenAiCodexHandler extends BaseProvider implements SingleCompletion
 			model: string
 			input: Array<{ role: "user" | "assistant"; content: any[] } | { type: string; content: string }>
 			stream: boolean
+			[SERVICE_TIER_KEY]?: OpenAiCodexRequestServiceTier
 			reasoning?: { effort?: ReasoningEffortExtended; summary?: "auto" }
 			temperature?: number
 			store?: boolean
@@ -383,12 +411,14 @@ export class OpenAiCodexHandler extends BaseProvider implements SingleCompletion
 
 		// Per the implementation guide: Codex backend may reject max_output_tokens
 		// and prompt_cache_retention, so we omit them
+		const serviceTier = getOpenAiCodexServiceTier(this.options)
 		const body: ResponsesRequestBody = {
 			model: model.id,
 			input: formattedInput,
 			stream: true,
 			store: false,
 			instructions: systemPrompt,
+			...(serviceTier ? { [SERVICE_TIER_KEY]: serviceTier } : {}),
 			// Only include encrypted reasoning content when reasoning effort is set
 			...(reasoningEffort ? { include: ["reasoning.encrypted_content"] } : {}),
 			...(reasoningEffort
@@ -505,8 +535,12 @@ export class OpenAiCodexHandler extends BaseProvider implements SingleCompletion
 						} else if (block.type === "image") {
 							const image = block as Anthropic.Messages.ImageBlockParam
 							if (image.source.type === "base64") {
-								const imageUrl = `data:${image.source.media_type};base64,${image.source.data}`
-								content.push({ type: "input_image", image_url: imageUrl })
+								// Only embed the image if the media type and base64
+								// payload pass validation (see isSafeBase64Image).
+								if (isSafeBase64Image(image.source.media_type, image.source.data)) {
+									const imageUrl = `data:${image.source.media_type};base64,${image.source.data}`
+									content.push({ type: "input_image", image_url: imageUrl })
+								}
 							}
 						} else if (block.type === "tool_result") {
 							const result =
@@ -1261,6 +1295,7 @@ export class OpenAiCodexHandler extends BaseProvider implements SingleCompletion
 			}
 
 			const reasoningEffort = this.getReasoningEffort(model)
+			const serviceTier = getOpenAiCodexServiceTier(this.options)
 
 			const baseRequestBody: any = {
 				model: model.id,
@@ -1272,6 +1307,7 @@ export class OpenAiCodexHandler extends BaseProvider implements SingleCompletion
 				],
 				stream: false,
 				store: false,
+				...(serviceTier ? { [SERVICE_TIER_KEY]: serviceTier } : {}),
 				...(reasoningEffort ? { include: ["reasoning.encrypted_content"] } : {}),
 			}
 

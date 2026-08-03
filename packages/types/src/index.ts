@@ -37,3 +37,4 @@ export * from "./worktree.js"
 export * from "./providers/index.js"
 
 export * from "./utils/looksLikeFilePath.js"
+export * from "./webview-messages/index.js"

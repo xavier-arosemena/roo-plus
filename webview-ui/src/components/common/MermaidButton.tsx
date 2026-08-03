@@ -2,6 +2,7 @@ import { useState, useCallback } from "react"
 import { useCopyToClipboard } from "@src/utils/clipboard"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { vscode } from "@src/utils/vscode"
+import { sanitizeHtml } from "@src/utils/sanitizeHtml"
 import { MermaidActionButtons } from "./MermaidActionButtons"
 import { Modal } from "./Modal"
 import { TabButton } from "./TabButton"
@@ -193,7 +194,15 @@ export function MermaidButton({ containerRef, code, isLoading, svgToPng, childre
 								onMouseUp={() => setIsDragging(false)}
 								onMouseLeave={() => setIsDragging(false)}>
 								{containerRef.current && containerRef.current.innerHTML && (
-									<div dangerouslySetInnerHTML={{ __html: containerRef.current.innerHTML }} />
+									// Mermaid's rendered SVG is re-injected into the modal here so the
+									// original diagram node stays untouched (zoom/drag transform must not
+									// detach it from the inline chat view). Sanitize the copied HTML so a
+									// malicious diagram cannot smuggle scripts into the modal.
+									<div
+										dangerouslySetInnerHTML={{
+											__html: sanitizeHtml(containerRef.current.innerHTML),
+										}}
+									/>
 								)}
 							</div>
 							<div className="absolute bottom-4 left-4 bg-vscode-editor-background border border-vscode-editorGroup-border rounded px-2 py-1 text-xs text-vscode-descriptionForeground pointer-events-none opacity-80">

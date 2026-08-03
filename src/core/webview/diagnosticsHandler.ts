@@ -70,13 +70,14 @@ export async function generateErrorDiagnostics(params: GenerateDiagnosticsParams
 		const jsonContent = JSON.stringify(diagnostics, null, 2)
 		const fullContent = headerComment + jsonContent
 
-		// Create a temporary diagnostics file
-		const tmpDir = os.tmpdir()
-		const timestamp = Date.now()
-		const tempFileName = `zoo-diagnostics-${taskId.slice(0, 8)}-${timestamp}.json`
-		const tempFilePath = path.join(tmpDir, tempFileName)
+		// Create a private temporary directory (mode 0700) so the temp file is
+		// not written with a predictable name into the shared os.tmpdir().
+		// mkdtemp creates a unique directory atomically, avoiding insecure
+		// temp-file creation and symlink attacks.
+		const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "zoo-diagnostics-"))
+		const tempFilePath = path.join(tmpDir, "diagnostics.json")
 
-		await fs.writeFile(tempFilePath, fullContent, "utf8")
+		await fs.writeFile(tempFilePath, fullContent, { encoding: "utf8", mode: 0o600 })
 
 		// Open the diagnostics file in VS Code
 		const doc = await vscode.workspace.openTextDocument(tempFilePath)

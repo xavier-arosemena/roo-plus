@@ -11,6 +11,7 @@ import {
 
 import { RouterName } from "@roo/api"
 
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
@@ -43,6 +44,7 @@ export const LiteLLM = ({
 
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type === "singleRouterModelFetchResponse" && !message.success) {
 				const providerName = message.values?.provider as RouterName

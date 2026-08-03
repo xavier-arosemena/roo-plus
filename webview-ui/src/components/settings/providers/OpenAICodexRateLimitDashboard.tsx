@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react"
 import type { OpenAiCodexRateLimitInfo } from "@roo-code/types"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 
 interface OpenAICodexRateLimitDashboardProps {
@@ -103,6 +104,7 @@ export const OpenAICodexRateLimitDashboard: React.FC<OpenAICodexRateLimitDashboa
 
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type === "openAiCodexRateLimits") {
 				setIsLoading(false)

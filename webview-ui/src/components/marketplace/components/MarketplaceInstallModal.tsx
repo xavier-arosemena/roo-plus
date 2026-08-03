@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react"
 import { MarketplaceItem, McpParameter, McpInstallationMethod } from "@roo-code/types"
+import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import {
@@ -130,6 +131,7 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 	// Listen for installation result messages
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type === "marketplaceInstallResult" && message.slug === item?.id) {
 				if (message.success) {

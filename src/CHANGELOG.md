@@ -1,5 +1,49 @@
 # Roo+ Changelog
 
+## [3.76.0] — 2026-07-31
+
+### Minor — Release Readiness & Architecture Program (Typed Message Protocol, Domain-Split Dispatcher, Slim ClineProvider)
+
+#### 🐛 Bug Fixes
+
+- **Stale Cloud Test Removed** — Removed a test that imported the deleted `@roo-code/cloud` package and referenced the removed `rooCloudSignOut` message, restoring a clean typecheck and runtime test suite
+- **Marketplace Floating Promises Fixed** — Resolved 2 floating-promise lint errors in the marketplace bulk-install path
+- **"Zoo Code" Rebrand Completed** — Replaced the remaining user-facing "Zoo Code" strings with "Roo+" (webview `<title>`, VS Code panel title, tests)
+- **CLI Event-Listener Leak Fixed** — `ExtensionHost.setupQuietMode()` registered an anonymous `process.on("warning")` listener that was never removed, accumulating per prompt cycle in interactive/TUI mode. Now stored on the instance and removed in `restoreConsole()`; regression test asserts `process.listenerCount("warning")` returns to baseline. ([`apps/cli/src/agent/extension-host.ts`](apps/cli/src/agent/extension-host.ts))
+- **Webview Router Unhandled-Message Observability** — Unhandled/unregistered webview message types were silently dropped. Now debug-gated (`roo-plus.debug`) `provider.log()` in `webviewMessageHandler` for protocol-regression visibility. ([`src/core/webview/webviewMessageHandler.ts`](src/core/webview/webviewMessageHandler.ts))
+- **Legacy CLI Credential Write Path Retired** — Removed the dead `saveToken` plaintext write path from [`apps/cli/src/lib/storage/credentials.ts`](apps/cli/src/lib/storage/credentials.ts); the module is now read/delete-only for legacy Roo auth token cleanup (`roo auth status`/`auth logout`). Nothing writes credentials anymore.
+- **CLI `vscode-shim` Logger Wired to DebugLogger** — Replaced the no-op `setLogger` in [`apps/cli/src/commands/cli/run.ts`](apps/cli/src/commands/cli/run.ts) with per-level forwarding to the CLI `DebugLogger`, enabled when `--debug` is passed (non-debug runs remain silent).
+- **CLI `waitForTaskCompletion` TDZ Hazard Fixed** — Reordered declarations so `messageHandler`/`cleanup` are declared before the closures referencing them (no behavior change). ([`apps/cli/src/agent/extension-host.ts`](apps/cli/src/agent/extension-host.ts))
+
+#### 🚀 Enhancements
+
+- **Custom Modes Descriptions Committed** — Committed the previously-dirty `custom-modes` git submodule (a user-friendly mode-description rewrite: 675 files, ~138k insertions / ~190k deletions) and bumped the parent pointer. Added a reproducibility guard ([`scripts/verify-roomodes-sync.mjs`](scripts/verify-roomodes-sync.mjs)) that regenerates `.roomodes` from committed content and fails on drift
+- **Semble EACCES Fixed (one-dir layout)** — Root-caused and fixed the persistent `spawn …/semble/semble EACCES`: the v0.5.2 release archives are PyInstaller **one-dir** builds wrapped in a `semble/` directory, so the downloader was returning the wrapper _directory_ (spawn of a directory → EACCES). New `resolveSembleBinary`/`findFileNamed` resolve the real executable (`…/semble/semble/semble`) in both fresh downloads and existing installs (self-heals broken installs), and `getSembleBinaryPath` is file-only. Reproduced end-to-end against the real archive. ([`src/services/code-index/semble/semble-downloader.ts`](src/services/code-index/semble/semble-downloader.ts))
+- **Bundled Semble Binary Removed** — The launcher-only 9.2 MB bundle (without its ~130 MB `_internal` runtime) was non-functional. Removed `bin/semble`, the `.vscodeignore` include, the `extensionPath` bundled-copy path in `downloadSemble`, and `scripts/bundle-semble.sh` (plus its `vsix` invocation). Semble is now **download-only**; offline users use the existing `codebaseIndexSembleBinaryPath` setting.
+- **Pre-installed Mode Descriptions Always Present** — Rewrote `CustomModesManager.seedPreInstalledModes()` to merge-fill: the old `.some()` guard only re-seeded when ZERO modes had descriptions (partial seeds never repaired) and the version-change path **overwrote the user's entire customModes file**. Now: triggers repair when ANY bundled mode lacks a description, back-fills only empty descriptions, preserves user modes/edits, adds bundled modes only on version change, and writes only on change. 4 regression tests. ([`src/core/config/CustomModesManager.ts`](src/core/config/CustomModesManager.ts))
+- **CLI README Upstream Install Warning** — [`apps/cli/README.md`](apps/cli/README.md) install commands point at the upstream `RooCodeInc/Roo-Code` repo; added a prominent warning callout documenting the fork divergence (Roo+ users build from source or use the manual binary path).
+
+#### 🔒 Security
+
+- **Typed + Runtime-Validated Webview Message Protocol** — New zod schema registry in `packages/types/src/webview-messages/` (`webviewMessageSchemas`, `webviewMessageSchema`, `parseWebviewMessage`) closes the runtime "input gap": the extension boundary (`ClineProvider.setWebviewMessageListener`) and the CLI (`apps/cli/src/agent/message-processor.ts`) now validate inbound messages and reject malformed ones before dispatch. 16 security-sensitive message types (checkpoint, allowed/deniedCommands, updateSettings, provider config, marketplace installs, message queue, todos, custom modes) are fully typed + validated
+- **Webview HTML Sanitization** — Added a DOMPurify-based sanitizer ([`webview-ui/src/utils/sanitizeHtml.ts`](webview-ui/src/utils/sanitizeHtml.ts)) applied to every `dangerouslySetInnerHTML` site (terminal output, Mermaid blocks with `securityLevel: "strict"`, task-item highlights); `escapeXML` pinned by regression test
+- **HMR CSP Hardening** — Removed the `https://*` wildcard from the dev HMR webview CSP and added a Vite-identity probe (`/@vite/client`) so a rogue localhost process cannot serve scripts to the webview
+- **Dead `setApiConfigPassword` Message Type Removed** — The no-op security-sensitive message type was removed from the zod registry, `WebviewMessage` union, exports, and tests; message-schema baseline updated (16 registered of 165 total, 149 untyped). ([`packages/types/src/webview-messages/providerConfig.ts`](packages/types/src/webview-messages/providerConfig.ts))
+
+#### ✅ Quality
+
+- **Domain-Split Webview Dispatcher** — The ~4,000-line `switch` in `src/core/webview/webviewMessageHandler.ts` was decomposed into 15 per-domain handler modules under `src/core/webview/handlers/` behind a thin router, with dependency-inverted `Pick<ClineProvider, …>` provider types
+- **Slim ClineProvider** — Extracted `TaskHistoryService`, `ProviderProfileService`, `MarketplaceService`, and `TaskOrchestrator` into `src/core/services/`; `ClineProvider` shrank from ~3,800 to ~2,500 lines and is now a thin facade (webview lifecycle + state assembly + delegates). All public method signatures preserved
+- **Direction-Mixing Cleanup** — Moved 10 outbound-only message types from `WebviewMessage` into `ExtensionMessage`
+- **CI Message-Schema Ratchet** — New [`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs) (wired into `code-qa.yml`) enforces the 16 baseline types stay registered and the untyped message count (149) never increases
+- **Test Counts** — 7,119 src tests, 410 webview-ui tests, 284 `packages/types` tests, and the CLI suite all pass; `tsc --noEmit` clean across `src`, `packages/types`, `webview-ui`, and `apps/cli`; eslint `--max-warnings=0` clean; `src/eslint-suppressions.json` counts only decreased
+
+#### 🔧 Chores
+
+- Updated CHANGELOG.md and synced to src/CHANGELOG.md
+
+---
+
 ## [3.75.1] — 2026-07-29
 
 ### Patch — Zoo Gateway Removal & Full CI Pipeline Cleanup

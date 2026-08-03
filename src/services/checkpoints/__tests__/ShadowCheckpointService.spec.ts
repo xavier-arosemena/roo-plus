@@ -13,7 +13,10 @@ import * as fileSearch from "../../../services/search/file-search"
 import { RepoPerTaskCheckpointService } from "../RepoPerTaskCheckpointService"
 import { BLOCKED_ENV_KEYS } from "../ShadowCheckpointService"
 
-const tmpDir = path.join(os.tmpdir(), "CheckpointService")
+// A unique, private temp directory (mkdtemp, mode 0700) is used instead of a
+// fixed predictable path under os.tmpdir(), avoiding insecure temp-file
+// creation and symlink attacks. Initialized in beforeAll below.
+let tmpDir!: string
 
 // simple-git ≥3.36 blocks env vars it considers code-execution vectors.
 // Strip them for the duration of this test suite so tests pass for developers
@@ -22,7 +25,9 @@ const tmpDir = path.join(os.tmpdir(), "CheckpointService")
 // would be fragile under "threads" pool where workers share the same process.
 const savedEnv: Partial<Record<string, string>> = {}
 
-beforeAll(() => {
+beforeAll(async () => {
+	tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "CheckpointService-"))
+
 	for (const key of BLOCKED_ENV_KEYS) {
 		savedEnv[key] = process.env[key]
 		delete process.env[key]

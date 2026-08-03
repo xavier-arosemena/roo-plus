@@ -5,8 +5,13 @@ import * as vscode from "vscode"
 import pWaitFor from "p-wait-for"
 import { t } from "../../i18n"
 
+export type CheckpointRestoreProvider = Pick<
+	ClineProvider,
+	"setPendingEditOperation" | "contextProxy" | "getTaskWithId" | "createTaskWithHistoryItem" | "getCurrentTask"
+>
+
 export interface CheckpointRestoreConfig {
-	provider: ClineProvider
+	provider: CheckpointRestoreProvider
 	currentCline: Task
 	messageTs: number
 	messageIndex: number
@@ -91,7 +96,10 @@ export async function handleCheckpointRestoreOperation(config: CheckpointRestore
  * Common checkpoint restore validation and initialization utility.
  * This can be used by any checkpoint restore flow that needs to wait for initialization.
  */
-export async function waitForClineInitialization(provider: ClineProvider, timeoutMs: number = 3000): Promise<boolean> {
+export async function waitForClineInitialization(
+	provider: CheckpointRestoreProvider,
+	timeoutMs: number = 3000,
+): Promise<boolean> {
 	try {
 		await pWaitFor(() => provider.getCurrentTask()?.isInitialized === true, {
 			timeout: timeoutMs,

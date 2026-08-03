@@ -1,6 +1,12 @@
-const { execSync } = require("child_process")
+const { spawnSync } = require("child_process")
 const fs = require("fs")
 const readline = require("readline")
+
+// Allowlist of supported editor CLI commands. The value may be supplied via the
+// interactive prompt or --editor=<name>; restricting it to this allowlist
+// prevents shell-command injection through the editor argument
+// (indirect-command-line-injection).
+const SUPPORTED_EDITOR_COMMANDS = new Set(["code", "code-insiders", "cursor"])
 
 // detect "yes" flags
 const autoYes = process.argv.includes("-y")
@@ -77,10 +83,26 @@ async function main() {
 			process.exit(0)
 		}
 
+		// Validate the editor command against the allowlist before using it.
+		if (!SUPPORTED_EDITOR_COMMANDS.has(editorCommand)) {
+			console.error(
+				`\n❌ Unsupported editor command '${editorCommand}'. Supported commands: ${[
+					...SUPPORTED_EDITOR_COMMANDS,
+				].join(", ")}`,
+			)
+			rl.close()
+			process.exit(1)
+		}
+
 		console.log(`\nProceeding with installation using '${editorCommand}' command...`)
 
 		try {
-			execSync(`${editorCommand} --uninstall-extension ${extensionId}`, { stdio: "inherit" })
+			// Use spawnSync with an args array (no shell) so the user-supplied
+			// editor command cannot inject additional shell arguments.
+			const uninstall = spawnSync(editorCommand, ["--uninstall-extension", extensionId], { stdio: "inherit" })
+			if (uninstall.status !== 0 || uninstall.error) {
+				throw uninstall.error ?? new Error(`uninstall-extension exited with status ${uninstall.status}`)
+			}
 		} catch (e) {
 			console.log("Extension not installed, skipping uninstall step")
 		}
@@ -92,7 +114,10 @@ async function main() {
 			process.exit(1)
 		}
 
-		execSync(`${editorCommand} --install-extension ${vsixFileName}`, { stdio: "inherit" })
+		const install = spawnSync(editorCommand, ["--install-extension", vsixFileName], { stdio: "inherit" })
+		if (install.status !== 0 || install.error) {
+			throw install.error ?? new Error(`install-extension exited with status ${install.status}`)
+		}
 
 		console.log(`\n✅ Successfully installed extension from ${vsixFileName}`)
 		console.log("\n⚠️  IMPORTANT: You need to restart VS Code for the changes to take effect.")

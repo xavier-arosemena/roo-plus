@@ -3,6 +3,7 @@ import { VSCodeTextArea, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react
 
 import { supportPrompt, SupportPromptType } from "@roo/support-prompt"
 
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
@@ -52,6 +53,7 @@ const PromptsSettings = ({
 
 	useEffect(() => {
 		const handler = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type === "enhancedPrompt") {
 				if (message.text) {

@@ -1969,16 +1969,16 @@ export class McpHub {
 			configPath = await this.getMcpSettingsFilePath()
 		}
 
-		// Ensure the settings file exists and is accessible
+		// Read and parse the config file. Read directly and let readFile throw
+		// when the file is missing, rather than doing an fs.access pre-check
+		// (avoids a check-then-act / TOCTOU race).
+		let content: string
 		try {
-			await fs.access(configPath)
+			content = await fs.readFile(configPath, "utf-8")
 		} catch (error) {
 			console.error("Settings file not accessible:", error)
 			throw new Error("Settings file not accessible")
 		}
-
-		// Read and parse the config file
-		const content = await fs.readFile(configPath, "utf-8")
 		const config = JSON.parse(content)
 
 		// Validate the config structure
@@ -2021,16 +2021,16 @@ export class McpHub {
 			configPath = await this.getMcpSettingsFilePath()
 		}
 
-		// Ensure the settings file exists and is accessible
+		// Read and parse the config file. Read directly and let readFile throw
+		// when the file is missing, rather than doing an fs.access pre-check
+		// (avoids a check-then-act / TOCTOU race).
+		let content: string
 		try {
-			await fs.access(configPath)
+			content = await fs.readFile(configPath, "utf-8")
 		} catch (error) {
 			console.error("Settings file not accessible:", error)
 			throw new Error("Settings file not accessible")
 		}
-
-		// Read and parse the config file
-		const content = await fs.readFile(configPath, "utf-8")
 		const config = JSON.parse(content)
 
 		// Validate the config structure
@@ -2127,14 +2127,15 @@ export class McpHub {
 				configPath = await this.getMcpSettingsFilePath()
 			}
 
-			// Ensure the settings file exists and is accessible
+			// Read directly and let readFile throw when the file is missing,
+			// rather than doing an fs.access pre-check (avoids a check-then-act
+			// / TOCTOU race).
+			let content: string
 			try {
-				await fs.access(configPath)
+				content = await fs.readFile(configPath, "utf-8")
 			} catch (error) {
 				throw new Error("Settings file not accessible")
 			}
-
-			const content = await fs.readFile(configPath, "utf-8")
 			const config = JSON.parse(content)
 
 			// Validate the config structure

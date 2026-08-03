@@ -59,10 +59,26 @@ interface ImagesApiOptions {
 }
 
 /**
+ * Validate that an input image reference is safe to send to a remote image
+ * API. Only inline `data:` URIs (e.g. produced by reading a local file) and
+ * explicit `http(s)://` URLs are accepted; a `file://` URL or bare local path
+ * would otherwise be interpreted by the remote service as a URL to fetch,
+ * redirecting an HTTP request to a local/arbitrary resource
+ * (file-access-to-http / SSRF).
+ */
+function isSafeImageReference(value: string): boolean {
+	return /^data:image\//.test(value) || /^https?:\/\//i.test(value)
+}
+
+/**
  * Shared image generation implementation for OpenRouter and Roo+ Cloud providers
  */
 export async function generateImageWithProvider(options: ImageGenerationOptions): Promise<ImageGenerationResult> {
 	const { baseURL, authToken, model, prompt, inputImage } = options
+
+	// Only forward image references that are safe to send to the remote API
+	// (data: URIs or explicit http(s) URLs) — see isSafeImageReference.
+	const safeInputImage = inputImage && isSafeImageReference(inputImage) ? inputImage : undefined
 
 	try {
 		const response = await fetch(`${baseURL}/chat/completions`, {
@@ -78,7 +94,7 @@ export async function generateImageWithProvider(options: ImageGenerationOptions)
 				messages: [
 					{
 						role: "user",
-						content: inputImage
+						content: safeInputImage
 							? [
 									{
 										type: "text",
@@ -87,7 +103,7 @@ export async function generateImageWithProvider(options: ImageGenerationOptions)
 									{
 										type: "image_url",
 										image_url: {
-											url: inputImage,
+											url: safeInputImage,
 										},
 									},
 								]
@@ -202,8 +218,11 @@ export async function generateImageWithImagesApi(options: ImagesApiOptions): Pro
 			requestBody.providerOptions = {
 				blackForestLabs: {
 					outputFormat: outputFormat,
-					// inputImage: Base64 encoded image or URL of image to use as reference
-					...(inputImage && { inputImage }),
+					// inputImage: Base64 encoded image or URL of image to use as
+					// reference. Only forward references that are safe to send to the
+					// remote API (data: URIs or explicit http(s) URLs) — see
+					// isSafeImageReference.
+					...(inputImage && isSafeImageReference(inputImage) ? { inputImage } : {}),
 				},
 			}
 		} else {

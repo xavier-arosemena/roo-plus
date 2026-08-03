@@ -48,10 +48,19 @@ vi.mock("../rulesMessageHandler", () => ({
 	handleOpenRulesDirectory: vi.fn(),
 }))
 
+vi.mock("../../tools/UpdateTodoListTool", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("../../tools/UpdateTodoListTool")>()
+	return {
+		...actual,
+		setPendingTodoList: vi.fn(),
+	}
+})
+
 import type { ModelRecord } from "@roo-code/types"
 
 import { webviewMessageHandler } from "../webviewMessageHandler"
 import type { ClineProvider } from "../ClineProvider"
+import { setPendingTodoList } from "../../tools/UpdateTodoListTool"
 import { flushModels, getModels } from "../../../api/providers/fetchers/modelCache"
 import { getLMStudioModels } from "../../../api/providers/fetchers/lmstudio"
 import { getCommands } from "../../../services/command/commands"
@@ -72,6 +81,7 @@ const mockGetCommands = vi.mocked(getCommands)
 const mockGetAccessToken = vi.mocked(openAiCodexOAuthManager.getAccessToken)
 const mockGetAccountId = vi.mocked(openAiCodexOAuthManager.getAccountId)
 const mockFetchOpenAiCodexRateLimitInfo = vi.mocked(fetchOpenAiCodexRateLimitInfo)
+const mockSetPendingTodoList = vi.mocked(setPendingTodoList)
 
 // Mock ClineProvider
 const mockClineProvider = {
@@ -111,6 +121,7 @@ vi.mock("vscode", () => {
 	const showTextDocument = vi.fn().mockResolvedValue(undefined)
 
 	return {
+		ConfigurationTarget: { Global: 1, Workspace: 2, WorkspaceFolder: 3 },
 		window: {
 			showInformationMessage,
 			showErrorMessage,
@@ -119,7 +130,7 @@ vi.mock("vscode", () => {
 		workspace: {
 			workspaceFolders: [{ uri: { fsPath: "/mock/workspace" } }],
 			openTextDocument,
-			getConfiguration: vi.fn(() => ({ get: vi.fn() })),
+			getConfiguration: vi.fn(() => ({ get: vi.fn(), update: vi.fn() })),
 		},
 		commands: {
 			executeCommand: vi.fn().mockResolvedValue(undefined),
@@ -866,6 +877,17 @@ describe("webviewMessageHandler - requestOpenAiCodexRateLimits", () => {
 			},
 		})
 	})
+
+	it("posts error when fetching the access token fails", async () => {
+		mockGetAccessToken.mockRejectedValueOnce(new Error("token failed"))
+
+		await webviewMessageHandler(mockClineProvider, { type: "requestOpenAiCodexRateLimits" })
+
+		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
+			type: "openAiCodexRateLimits",
+			error: "token failed",
+		})
+	})
 })
 
 describe("webviewMessageHandler - deleteCustomMode", () => {
@@ -1153,18 +1175,156 @@ describe("webviewMessageHandler - terminalProfile", () => {
 		expect(closeIdleTerminalsSpy).not.toHaveBeenCalled()
 	})
 
-	it("treats non-string terminalProfile values as unset", async () => {
+	it("rejects a malformed updateSettings message with a non-string terminalProfile", async () => {
 		Terminal.setTerminalProfile("Git Bash")
 		const closeIdleTerminalsSpy = vi.spyOn(TerminalRegistry, "closeIdleTerminals").mockImplementation(() => {})
 
+		const malformed = { type: "updateSettings", updatedSettings: { terminalProfile: 42 } } as never
+
+		await webviewMessageHandler(mockClineProvider, malformed)
+
+		// Malformed payload is rejected before any side effects: profile unchanged,
+		// nothing persisted, no terminal churn.
+		expect(mockClineProvider.log).toHaveBeenCalledWith(
+			expect.stringContaining("Rejected malformed updateSettings message"),
+		)
+		expect(Terminal.getTerminalProfile()).toBe("Git Bash")
+		expect(mockClineProvider.contextProxy.setValue).not.toHaveBeenCalled()
+		expect(closeIdleTerminalsSpy).not.toHaveBeenCalled()
+	})
+})
+
+describe("webviewMessageHandler - command allow/deny", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("persists allowedCommands and filters blank entries", async () => {
 		await webviewMessageHandler(mockClineProvider, {
-			type: "updateSettings",
-			updatedSettings: { terminalProfile: 42 as any },
+			type: "allowedCommands",
+			commands: ["npm test", "  ", ""],
 		})
 
-		expect(Terminal.getTerminalProfile()).toBeUndefined()
-		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("terminalProfile", undefined)
-		expect(closeIdleTerminalsSpy).toHaveBeenCalledTimes(1)
+		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("allowedCommands", ["npm test"])
+	})
+
+	it("persists deniedCommands", async () => {
+		await webviewMessageHandler(mockClineProvider, {
+			type: "deniedCommands",
+			commands: ["rm -rf"],
+		})
+
+		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("deniedCommands", ["rm -rf"])
+	})
+
+	it("rejects a malformed allowedCommands message without side effects", async () => {
+		const malformed = { type: "allowedCommands", commands: "npm test" } as never
+
+		await webviewMessageHandler(mockClineProvider, malformed)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(
+			expect.stringContaining("Rejected malformed allowedCommands message"),
+		)
+		expect(mockClineProvider.contextProxy.setValue).not.toHaveBeenCalled()
+	})
+
+	it("rejects a malformed deniedCommands message without side effects", async () => {
+		const malformed = { type: "deniedCommands", commands: [42] } as never
+
+		await webviewMessageHandler(mockClineProvider, malformed)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(
+			expect.stringContaining("Rejected malformed deniedCommands message"),
+		)
+		expect(mockClineProvider.contextProxy.setValue).not.toHaveBeenCalled()
+	})
+})
+
+describe("webviewMessageHandler - message queue", () => {
+	const mockTaskWithQueue = () => {
+		const messageQueueService = {
+			addMessage: vi.fn(),
+			removeMessage: vi.fn(),
+			updateMessage: vi.fn(),
+		}
+		vi.mocked(mockClineProvider.getCurrentTask).mockReturnValue({
+			messageQueueService,
+		} as unknown as ReturnType<ClineProvider["getCurrentTask"]>)
+		return messageQueueService
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("queues a message with resolved images", async () => {
+		const messageQueueService = mockTaskWithQueue()
+
+		await webviewMessageHandler(mockClineProvider, {
+			type: "queueMessage",
+			text: "hello",
+			images: ["data:image/png;base64,abc"],
+		})
+
+		expect(messageQueueService.addMessage).toHaveBeenCalledWith("hello", [
+			"data:image/png;base64,abc",
+			"data:image/png;base64,from-mention",
+		])
+	})
+
+	it("removes a queued message by id", async () => {
+		const messageQueueService = mockTaskWithQueue()
+
+		await webviewMessageHandler(mockClineProvider, { type: "removeQueuedMessage", text: "id-1" })
+
+		expect(messageQueueService.removeMessage).toHaveBeenCalledWith("id-1")
+	})
+
+	it("edits a queued message", async () => {
+		const messageQueueService = mockTaskWithQueue()
+
+		await webviewMessageHandler(mockClineProvider, {
+			type: "editQueuedMessage",
+			payload: { id: "id-1", text: "new text", images: [] },
+		})
+
+		expect(messageQueueService.updateMessage).toHaveBeenCalledWith("id-1", "new text", [])
+	})
+
+	it("rejects a malformed queueMessage without side effects", async () => {
+		const messageQueueService = mockTaskWithQueue()
+		const malformed = { type: "queueMessage", text: 42 } as never
+
+		await webviewMessageHandler(mockClineProvider, malformed)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed queueMessage"))
+		expect(messageQueueService.addMessage).not.toHaveBeenCalled()
+	})
+})
+
+describe("webviewMessageHandler - updateTodoList", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("sets the pending todo list from a valid message", async () => {
+		await webviewMessageHandler(mockClineProvider, {
+			type: "updateTodoList",
+			payload: { todos: [{ id: "t1", content: "Task", status: "pending" }] },
+		})
+
+		expect(mockSetPendingTodoList).toHaveBeenCalledWith([{ id: "t1", content: "Task", status: "pending" }])
+	})
+
+	it("rejects a malformed updateTodoList message without side effects", async () => {
+		const malformed = { type: "updateTodoList", payload: { todos: "nope" } } as never
+
+		await webviewMessageHandler(mockClineProvider, malformed)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(
+			expect.stringContaining("Rejected malformed updateTodoList message"),
+		)
+		expect(mockSetPendingTodoList).not.toHaveBeenCalled()
 	})
 })
 
@@ -1624,5 +1784,36 @@ describe("webviewMessageHandler - kimiCodeSignOut", () => {
 		await webviewMessageHandler(mockClineProvider, { type: "kimiCodeSignOut" })
 
 		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith("Kimi Code sign out failed.")
+	})
+})
+
+describe("webviewMessageHandler - unhandled message observability", () => {
+	const unhandledMessage = { type: "someUnregisteredMessageType" } as never
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+		// Default: roo-plus.debug is OFF.
+		vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+			get: vi.fn(),
+			update: vi.fn(),
+		} as unknown as vscode.WorkspaceConfiguration)
+	})
+
+	it("drops an unhandled type silently when debug is disabled", async () => {
+		await webviewMessageHandler(mockClineProvider, unhandledMessage)
+
+		expect(mockClineProvider.log).not.toHaveBeenCalled()
+	})
+
+	it("logs the unhandled type when debug is enabled", async () => {
+		vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+			get: vi.fn((key: string, defaultValue?: boolean) => (key === "debug" ? true : defaultValue)),
+			update: vi.fn(),
+		} as unknown as vscode.WorkspaceConfiguration)
+
+		await webviewMessageHandler(mockClineProvider, unhandledMessage)
+
+		expect(mockClineProvider.log).toHaveBeenCalledTimes(1)
+		expect(mockClineProvider.log).toHaveBeenCalledWith(expect.stringContaining("someUnregisteredMessageType"))
 	})
 })

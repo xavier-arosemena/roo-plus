@@ -14,6 +14,7 @@ import { TriangleAlert } from "lucide-react"
 
 import { type IndexingStatus, type EmbedderProvider, CODEBASE_INDEX_DEFAULTS } from "@roo-code/types"
 
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
@@ -297,6 +298,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 			vscode.postMessage({ type: "requestCodeIndexSecretStatus" })
 		}
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			if (event.data.type === "workspaceUpdated") {
 				// When workspace changes, request updated indexing status
 				if (open) {
@@ -317,6 +319,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 	// Listen for indexing status updates and save responses
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent<any>) => {
+			if (!isTrustedMessage(event)) return
 			if (event.data.type === "indexingStatusUpdate") {
 				if (!event.data.values.workspacePath || event.data.values.workspacePath === cwd) {
 					setIndexingStatus({
@@ -359,6 +362,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 	// Listen for secret status
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			if (event.data.type === "codeIndexSecretStatus") {
 				// Update settings to show placeholders for existing secrets
 				const secretStatus = event.data.values

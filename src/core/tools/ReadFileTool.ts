@@ -181,48 +181,57 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 				const entry = fileResult.entry!
 
 				try {
-					// Check if path is a directory
-					const stats = await fs.stat(fullPath)
-					if (stats.isDirectory()) {
-						const errorMsg = `Cannot read '${relPath}' because it is a directory. Use list_files tool instead.`
+					// Open the file once and stat/read through the same handle so
+					// the directory and binary/text decisions cannot race a
+					// concurrent replacement of the file (TOCTOU).
+					const fileHandle = await fs.open(fullPath, "r")
+					try {
+						const stats = await fileHandle.stat()
+						if (stats.isDirectory()) {
+							const errorMsg = `Cannot read '${relPath}' because it is a directory. Use list_files tool instead.`
+							updateFileResult(relPath, {
+								status: "error",
+								error: errorMsg,
+								nativeContent: `File: ${relPath}\nError: ${errorMsg}`,
+							})
+							await task.say("error", `Error reading file ${relPath}: ${errorMsg}`)
+							continue
+						}
+
+						// Read text file content with lossy UTF-8 conversion. Read the
+						// file once as a Buffer and derive the binary/text decision from
+						// the buffer contents — avoids a stat-then-read (TOCTOU) race
+						// between isBinaryFile and readFile. Reading as Buffer first also
+						// allows graceful handling of non-UTF8 bytes (they become U+FFFD
+						// replacement characters instead of throwing).
+						const buffer = await fileHandle.readFile()
+						const isBinary = await isBinaryFile(buffer)
+
+						if (isBinary) {
+							await this.handleBinaryFile(
+								task,
+								relPath,
+								fullPath,
+								supportsImages,
+								maxImageFileSize,
+								maxTotalImageSize,
+								imageMemoryTracker,
+								updateFileResult,
+							)
+							continue
+						}
+
+						const fileContent = buffer.toString("utf-8")
+						const result = this.processTextFile(fileContent, entry)
+
+						await task.fileContextTracker.trackFileContext(relPath, "read_tool" as RecordSource)
+
 						updateFileResult(relPath, {
-							status: "error",
-							error: errorMsg,
-							nativeContent: `File: ${relPath}\nError: ${errorMsg}`,
+							nativeContent: `File: ${relPath}\n${result}`,
 						})
-						await task.say("error", `Error reading file ${relPath}: ${errorMsg}`)
-						continue
+					} finally {
+						await fileHandle.close()
 					}
-
-					// Check for binary file
-					const isBinary = await isBinaryFile(fullPath)
-
-					if (isBinary) {
-						await this.handleBinaryFile(
-							task,
-							relPath,
-							fullPath,
-							supportsImages,
-							maxImageFileSize,
-							maxTotalImageSize,
-							imageMemoryTracker,
-							updateFileResult,
-						)
-						continue
-					}
-
-					// Read text file content with lossy UTF-8 conversion
-					// Reading as Buffer first allows graceful handling of non-UTF8 bytes
-					// (they become U+FFFD replacement characters instead of throwing)
-					const buffer = await fs.readFile(fullPath)
-					const fileContent = buffer.toString("utf-8")
-					const result = this.processTextFile(fileContent, entry)
-
-					await task.fileContextTracker.trackFileContext(relPath, "read_tool" as RecordSource)
-
-					updateFileResult(relPath, {
-						nativeContent: `File: ${relPath}\n${result}`,
-					})
 				} catch (error) {
 					const errorMsg = error instanceof Error ? error.message : String(error)
 					updateFileResult(relPath, {
@@ -724,81 +733,94 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 			if (text) await task.say("user_feedback", text, images)
 
 			try {
-				// Check if the path is a directory
-				const stats = await fs.stat(fullPath)
-				if (stats.isDirectory()) {
-					const errorMsg = `Cannot read '${relPath}' because it is a directory.`
-					results.push(`File: ${relPath}\nError: ${errorMsg}`)
-					await task.say("error", `Error reading file ${relPath}: ${errorMsg}`)
-					// Mirror the native path: a failed read marks the tool turn as failed.
-					task.didToolFailInCurrentTurn = true
-					continue
-				}
+				// Open the file once and stat/read through the same handle so the
+				// directory and binary/text decisions cannot race a concurrent
+				// replacement of the file (TOCTOU).
+				const fileHandle = await fs.open(fullPath, "r")
+				try {
+					const stats = await fileHandle.stat()
+					if (stats.isDirectory()) {
+						const errorMsg = `Cannot read '${relPath}' because it is a directory.`
+						results.push(`File: ${relPath}\nError: ${errorMsg}`)
+						await task.say("error", `Error reading file ${relPath}: ${errorMsg}`)
+						// Mirror the native path: a failed read marks the tool turn as failed.
+						task.didToolFailInCurrentTurn = true
+						continue
+					}
 
-				const isBinary = await isBinaryFile(fullPath).catch(() => false)
+					// Read the file once as a Buffer and derive the binary/text decision
+					// from the buffer contents — avoids a stat-then-read (TOCTOU) race
+					// between isBinaryFile and readFile.
+					const rawBuffer = await fileHandle.readFile()
+					const isBinary = await isBinaryFile(rawBuffer).catch(() => false)
 
-				if (isBinary) {
-					// Handle binary files (images)
-					const fileExtension = path.extname(relPath).toLowerCase()
-					if (supportsImages && isSupportedImageFormat(fileExtension)) {
-						const state = await task.providerRef.deref()?.getState()
-						const {
-							maxImageFileSize = DEFAULT_MAX_IMAGE_FILE_SIZE_MB,
-							maxTotalImageSize = DEFAULT_MAX_TOTAL_IMAGE_SIZE_MB,
-						} = state ?? {}
-						const validation = await validateImageForProcessing(
-							fullPath,
-							supportsImages,
-							maxImageFileSize,
-							maxTotalImageSize,
-							0, // Legacy path doesn't track cumulative memory
-						)
-						if (!validation.isValid) {
-							results.push(`File: ${relPath}\nNotice: ${validation.notice ?? "Image validation failed"}`)
-							continue
+					if (isBinary) {
+						// Handle binary files (images)
+						const fileExtension = path.extname(relPath).toLowerCase()
+						if (supportsImages && isSupportedImageFormat(fileExtension)) {
+							const state = await task.providerRef.deref()?.getState()
+							const {
+								maxImageFileSize = DEFAULT_MAX_IMAGE_FILE_SIZE_MB,
+								maxTotalImageSize = DEFAULT_MAX_TOTAL_IMAGE_SIZE_MB,
+							} = state ?? {}
+							const validation = await validateImageForProcessing(
+								fullPath,
+								supportsImages,
+								maxImageFileSize,
+								maxTotalImageSize,
+								0, // Legacy path doesn't track cumulative memory
+							)
+							if (!validation.isValid) {
+								results.push(
+									`File: ${relPath}\nNotice: ${validation.notice ?? "Image validation failed"}`,
+								)
+								continue
+							}
+							const imageResult = await processImageFile(fullPath)
+							if (imageResult) {
+								results.push(`File: ${relPath}\n[Image file - content processed for vision model]`)
+							}
+						} else {
+							results.push(`File: ${relPath}\nError: Cannot read binary file`)
 						}
-						const imageResult = await processImageFile(fullPath)
-						if (imageResult) {
-							results.push(`File: ${relPath}\n[Image file - content processed for vision model]`)
+						continue
+					}
+
+					// Read text file
+					const rawContent = rawBuffer.toString("utf8")
+
+					// Handle line ranges if specified
+					let content: string
+					if (entry.lineRanges && entry.lineRanges.length > 0) {
+						const lines = rawContent.split("\n")
+						const selectedLines: string[] = []
+
+						for (const range of entry.lineRanges) {
+							// Convert to 0-based index, ranges are 1-based inclusive
+							const startIdx = Math.max(0, range.start - 1)
+							const endIdx = Math.min(lines.length - 1, range.end - 1)
+
+							for (let i = startIdx; i <= endIdx; i++) {
+								selectedLines.push(`${i + 1} | ${lines[i]}`)
+							}
 						}
+						content = selectedLines.join("\n")
 					} else {
-						results.push(`File: ${relPath}\nError: Cannot read binary file`)
-					}
-					continue
-				}
-
-				// Read text file
-				const rawContent = await fs.readFile(fullPath, "utf8")
-
-				// Handle line ranges if specified
-				let content: string
-				if (entry.lineRanges && entry.lineRanges.length > 0) {
-					const lines = rawContent.split("\n")
-					const selectedLines: string[] = []
-
-					for (const range of entry.lineRanges) {
-						// Convert to 0-based index, ranges are 1-based inclusive
-						const startIdx = Math.max(0, range.start - 1)
-						const endIdx = Math.min(lines.length - 1, range.end - 1)
-
-						for (let i = startIdx; i <= endIdx; i++) {
-							selectedLines.push(`${i + 1} | ${lines[i]}`)
+						// Read with default limits using slice mode
+						const result = readWithSlice(rawContent, 0, DEFAULT_LINE_LIMIT)
+						content = result.content
+						if (result.wasTruncated) {
+							content += `\n\n[File truncated: showing ${result.returnedLines} of ${result.totalLines} total lines]`
 						}
 					}
-					content = selectedLines.join("\n")
-				} else {
-					// Read with default limits using slice mode
-					const result = readWithSlice(rawContent, 0, DEFAULT_LINE_LIMIT)
-					content = result.content
-					if (result.wasTruncated) {
-						content += `\n\n[File truncated: showing ${result.returnedLines} of ${result.totalLines} total lines]`
-					}
+
+					results.push(`File: ${relPath}\n${content}`)
+
+					// Track file in context
+					await task.fileContextTracker.trackFileContext(relPath, "read_tool")
+				} finally {
+					await fileHandle.close()
 				}
-
-				results.push(`File: ${relPath}\n${content}`)
-
-				// Track file in context
-				await task.fileContextTracker.trackFileContext(relPath, "read_tool")
 			} catch (error) {
 				const errorMsg = error instanceof Error ? error.message : String(error)
 				results.push(`File: ${relPath}\nError: ${errorMsg}`)

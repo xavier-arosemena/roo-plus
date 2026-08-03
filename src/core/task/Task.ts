@@ -2725,6 +2725,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 				await this.diffViewProvider.reset()
 
+				await this.safeEnsureModelFetched()
+
 				// Cache model info once per API request to avoid repeated calls during streaming
 				// This is especially important for tools and background usage collection
 				this.cachedStreamingModel = this.api.getModel()
@@ -3800,11 +3802,28 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		)
 	}
 
+	/**
+	 * Ensures router-provider model metadata is loaded before getModel() is used for
+	 * context management or streaming. Failures fall back to hardcoded defaults rather
+	 * than aborting the task.
+	 */
+	private async safeEnsureModelFetched(): Promise<void> {
+		try {
+			await this.api.ensureModelFetched?.()
+		} catch (error) {
+			console.error(
+				`[Task#${this.taskId}] Failed to fetch model metadata:`,
+				error instanceof Error ? error.message : error,
+			)
+		}
+	}
+
 	private async handleContextWindowExceededError(): Promise<void> {
 		const state = await this.providerRef.deref()?.getState()
 		const { profileThresholds = {}, mode, apiConfiguration } = state ?? {}
 
 		const { contextTokens } = this.getTokenUsage()
+		await this.safeEnsureModelFetched()
 		const modelInfo = this.api.getModel().info
 
 		const maxTokens = getModelMaxOutputTokens({
@@ -4005,6 +4024,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		const { contextTokens } = this.getTokenUsage()
 
 		if (contextTokens) {
+			await this.safeEnsureModelFetched()
 			const modelInfo = this.api.getModel().info
 
 			const maxTokens = getModelMaxOutputTokens({

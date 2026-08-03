@@ -42,6 +42,7 @@ import {
 	ImageGenerationProvider,
 } from "@roo-code/types"
 
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 import { cn } from "@src/lib/utils"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
@@ -580,6 +581,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	// Effect to scroll when the webview becomes visible
 	useLayoutEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type === "action" && message.action === "didBecomeVisible") {
 				scrollToActiveTab()

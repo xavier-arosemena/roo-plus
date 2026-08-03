@@ -17,7 +17,7 @@
  * - "invoke": Command invocations
  */
 
-import { ExtensionMessage, ClineMessage } from "@roo-code/types"
+import { ExtensionMessage, ClineMessage, parseWebviewMessage } from "@roo-code/types"
 import { debugLog } from "@roo-code/core/cli"
 
 import type { StateStore } from "./state-store.js"
@@ -93,12 +93,31 @@ export class MessageProcessor {
 	/**
 	 * Process an incoming message from the extension host.
 	 *
-	 * This is the main entry point for all extension messages.
-	 * It routes messages to the appropriate handler based on type.
+	 * This is the main entry point for all extension messages. Every inbound
+	 * message is routed through the shared zod boundary (`parseWebviewMessage`)
+	 * first: registered types are strictly validated, unregistered ones pass
+	 * through structurally, and malformed input (non-object / missing type) is
+	 * rejected without being dispatched.
 	 *
 	 * @param message - The raw message from the extension
 	 */
-	processMessage(message: ExtensionMessage): void {
+	processMessage(raw: unknown): void {
+		const parsed = parseWebviewMessage(raw)
+		if (!parsed.ok) {
+			if (this.options.debug) {
+				debugLog("[MessageProcessor] Rejected invalid message", { error: parsed.error })
+			}
+			return
+		}
+
+		// The zod registry types webview->extension messages; CLI inbound traffic
+		// is extension->CLI (ExtensionMessage), whose types are not yet registered
+		// and therefore pass the boundary structurally. Narrow back to the shape
+		// the dispatcher below expects.
+		this.processValidatedMessage(parsed.message as unknown as ExtensionMessage)
+	}
+
+	private processValidatedMessage(message: ExtensionMessage): void {
 		if (this.options.debug) {
 			debugLog("[MessageProcessor] Received message", { type: message.type })
 		}
@@ -137,7 +156,7 @@ export class MessageProcessor {
 	/**
 	 * Process an array of messages (for batch updates).
 	 */
-	processMessages(messages: ExtensionMessage[]): void {
+	processMessages(messages: unknown[]): void {
 		for (const message of messages) {
 			this.processMessage(message)
 		}

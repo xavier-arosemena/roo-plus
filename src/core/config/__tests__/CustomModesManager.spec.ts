@@ -16,15 +16,22 @@ import { GlobalFileNames } from "../../../shared/globalFileNames"
 
 import { CustomModesManager } from "../CustomModesManager"
 
-vi.mock("vscode", () => ({
-	workspace: {
-		workspaceFolders: [],
+// Hoisted mutable doubles so tests can reconfigure the vscode workspace
+// without casting through `any`.
+const { mockWorkspace, mockWindow } = vi.hoisted(() => ({
+	mockWorkspace: {
+		workspaceFolders: [] as { uri: { fsPath: string } }[],
 		onDidSaveTextDocument: vi.fn(),
 		createFileSystemWatcher: vi.fn(),
 	},
-	window: {
+	mockWindow: {
 		showErrorMessage: vi.fn(),
 	},
+}))
+
+vi.mock("vscode", () => ({
+	workspace: mockWorkspace,
+	window: mockWindow,
 }))
 
 vi.mock("fs/promises", () => ({
@@ -34,6 +41,7 @@ vi.mock("fs/promises", () => ({
 	stat: vi.fn(),
 	readdir: vi.fn(),
 	rm: vi.fn(),
+	access: vi.fn(),
 }))
 
 vi.mock("../../../utils/fs")
@@ -50,6 +58,8 @@ describe("CustomModesManager", () => {
 	const mockSettingsPath = path.join(mockStoragePath, "settings", GlobalFileNames.customModes)
 	const mockWorkspacePath = path.resolve("/mock/workspace")
 	const mockRoomodes = path.join(mockWorkspacePath, ".roomodes")
+	const mockExtensionPath = `${path.sep}mock${path.sep}extension`
+	const mockSeededVersion = "2.0.0"
 
 	beforeEach(() => {
 		mockOnUpdate = vi.fn()
@@ -63,11 +73,13 @@ describe("CustomModesManager", () => {
 			globalStorageUri: {
 				fsPath: mockStoragePath,
 			},
+			extensionPath: mockExtensionPath,
+			extension: { packageJSON: { version: mockSeededVersion } },
 		} as unknown as vscode.ExtensionContext
 
 		// mockWorkspacePath is now defined at the top level
 		mockWorkspaceFolders = [{ uri: { fsPath: mockWorkspacePath } }]
-		;(vscode.workspace as any).workspaceFolders = mockWorkspaceFolders
+		mockWorkspace.workspaceFolders = mockWorkspaceFolders
 		;(vscode.workspace.onDidSaveTextDocument as Mock).mockReturnValue({ dispose: vi.fn() })
 		;(getWorkspacePath as Mock).mockReturnValue(mockWorkspacePath)
 		;(fileExistsAtPath as Mock).mockImplementation(async (path: string) => {
@@ -527,7 +539,7 @@ describe("CustomModesManager", () => {
 			}
 
 			// Mock .roomodes to not exist initially
-			let roomodesContent: any = null
+			let roomodesContent: { customModes: ModeConfig[] } | null = null
 			;(fileExistsAtPath as Mock).mockImplementation(async (path: string) => {
 				return path === mockSettingsPath
 			})
@@ -678,7 +690,7 @@ describe("CustomModesManager", () => {
 				dispose: vi.fn(),
 			}
 			const createFileSystemWatcherMock = vi.fn().mockReturnValue(mockWatcher)
-			;(vscode.workspace as any).createFileSystemWatcher = createFileSystemWatcherMock
+			mockWorkspace.createFileSystemWatcher = createFileSystemWatcherMock
 
 			// Temporarily set NODE_ENV to allow file watching
 			const originalNodeEnv = process.env.NODE_ENV
@@ -716,9 +728,192 @@ describe("CustomModesManager", () => {
 		})
 	})
 
+	describe("seedPreInstalledModes", () => {
+		const mockBundledPath = path.join(mockExtensionPath, "assets", "marketplace", GlobalFileNames.preInstalledModes)
+
+		const bundledModes: ModeConfig[] = [
+			{
+				slug: "mode-a",
+				name: "Mode A",
+				roleDefinition: "Role A",
+				description: "Bundled description A",
+				groups: ["read"],
+			},
+			{
+				slug: "mode-b",
+				name: "Mode B",
+				roleDefinition: "Role B",
+				description: "Bundled description B",
+				groups: ["read", "edit"],
+			},
+		]
+
+		const setupSeeding = (options: {
+			alreadySeeded: boolean
+			lastSeededVersion: string | undefined
+			settingsModes: ModeConfig[]
+		}) => {
+			;(mockContext.globalState.get as Mock).mockImplementation((key: string) => {
+				if (key === "preInstalledModesSeeded") {
+					return options.alreadySeeded
+				}
+				if (key === "preInstalledModesVersion") {
+					return options.lastSeededVersion
+				}
+				return undefined
+			})
+			;(fs.access as Mock).mockResolvedValue(undefined)
+			;(fs.readFile as Mock).mockImplementation(async (filePath: string) => {
+				if (filePath === mockSettingsPath) {
+					return yaml.stringify({ customModes: options.settingsModes })
+				}
+				if (filePath === mockBundledPath) {
+					return yaml.stringify({ customModes: bundledModes })
+				}
+				throw new Error("File not found")
+			})
+		}
+
+		const writtenModesToSettings = (): ModeConfig[] | undefined => {
+			const writeCall = (fs.writeFile as Mock).mock.calls.find(
+				([filePath, , encoding]) => filePath === mockSettingsPath && encoding === "utf-8",
+			)
+			if (!writeCall) {
+				return undefined
+			}
+			return yaml.parse(writeCall[1])?.customModes
+		}
+
+		const runSeeding = async () => {
+			const originalNodeEnv = process.env.NODE_ENV
+			process.env.NODE_ENV = "development"
+			try {
+				await manager.getCustomModes()
+			} finally {
+				process.env.NODE_ENV = originalNodeEnv
+			}
+		}
+
+		it("repairs a partial seed by back-filling only the missing description (Bug A)", async () => {
+			const settingsModes: ModeConfig[] = [
+				{
+					slug: "mode-a",
+					name: "User Mode A",
+					roleDefinition: "User role A",
+					description: "User kept description A",
+					groups: ["read"],
+				},
+				{
+					slug: "mode-b",
+					name: "User Mode B",
+					roleDefinition: "User role B",
+					groups: ["read", "edit"],
+				},
+			]
+			setupSeeding({ alreadySeeded: true, lastSeededVersion: mockSeededVersion, settingsModes })
+
+			await runSeeding()
+
+			const written = writtenModesToSettings()
+			expect(written).toBeDefined()
+			expect(written).toHaveLength(2)
+			const modeA = written!.find((m) => m.slug === "mode-a")
+			const modeB = written!.find((m) => m.slug === "mode-b")
+			// modeA already had a description — untouched
+			expect(modeA?.description).toBe("User kept description A")
+			expect(modeA?.name).toBe("User Mode A")
+			expect(modeA?.roleDefinition).toBe("User role A")
+			// modeB lacked a description — filled from the bundle, other fields kept
+			expect(modeB?.description).toBe("Bundled description B")
+			expect(modeB?.name).toBe("User Mode B")
+			expect(modeB?.roleDefinition).toBe("User role B")
+		})
+
+		it("preserves user-added modes on upgrade while adding bundled modes and filling descriptions (Bug B)", async () => {
+			const settingsModes: ModeConfig[] = [
+				{
+					slug: "mode-a",
+					name: "User Mode A",
+					roleDefinition: "User role A",
+					groups: ["read"],
+				},
+				{
+					slug: "user-custom",
+					name: "User Custom Mode",
+					roleDefinition: "User custom role",
+					customInstructions: "User custom instructions",
+					groups: ["read", "edit"],
+				},
+			]
+			setupSeeding({ alreadySeeded: true, lastSeededVersion: "1.0.0", settingsModes })
+
+			await runSeeding()
+
+			const written = writtenModesToSettings()
+			expect(written).toBeDefined()
+			const slugs = written!.map((m) => m.slug)
+			// bundled modes present after upgrade
+			expect(slugs).toContain("mode-a")
+			expect(slugs).toContain("mode-b")
+			// user-added mode preserved with all fields intact
+			expect(slugs).toContain("user-custom")
+			const userCustom = written!.find((m) => m.slug === "user-custom")
+			expect(userCustom?.name).toBe("User Custom Mode")
+			expect(userCustom?.roleDefinition).toBe("User custom role")
+			expect(userCustom?.customInstructions).toBe("User custom instructions")
+			expect(userCustom?.groups).toEqual(["read", "edit"])
+			// missing description filled on upgrade, user fields win
+			const modeA = written!.find((m) => m.slug === "mode-a")
+			expect(modeA?.description).toBe("Bundled description A")
+			expect(modeA?.roleDefinition).toBe("User role A")
+		})
+
+		it("does not write or bump the version flag when everything is already seeded (no-op)", async () => {
+			const settingsModes: ModeConfig[] = [
+				{
+					slug: "mode-a",
+					name: "Mode A",
+					roleDefinition: "Role A",
+					description: "Bundled description A",
+					groups: ["read"],
+				},
+				{
+					slug: "mode-b",
+					name: "Mode B",
+					roleDefinition: "Role B",
+					description: "Bundled description B",
+					groups: ["read", "edit"],
+				},
+			]
+			setupSeeding({ alreadySeeded: true, lastSeededVersion: mockSeededVersion, settingsModes })
+
+			await runSeeding()
+
+			expect((fs.writeFile as Mock).mock.calls.some(([filePath]) => filePath === mockSettingsPath)).toBe(false)
+			expect(mockContext.globalState.update).not.toHaveBeenCalledWith(
+				"preInstalledModesVersion",
+				mockSeededVersion,
+			)
+		})
+
+		it("seeds all bundled modes with descriptions on a fresh install", async () => {
+			setupSeeding({ alreadySeeded: false, lastSeededVersion: undefined, settingsModes: [] })
+
+			await runSeeding()
+
+			const written = writtenModesToSettings()
+			expect(written).toBeDefined()
+			expect(written).toHaveLength(2)
+			expect(written!.map((m) => m.slug)).toEqual(["mode-a", "mode-b"])
+			for (const mode of written!) {
+				expect(mode.description?.length).toBeGreaterThan(0)
+			}
+		})
+	})
+
 	describe("deleteCustomMode", () => {
 		it("deletes mode from settings file", async () => {
-			const existingMode = {
+			const existingMode: ModeConfig = {
 				slug: "mode-to-delete",
 				name: "Mode To Delete",
 				roleDefinition: "Test role",
@@ -741,7 +936,7 @@ describe("CustomModesManager", () => {
 			})
 
 			// Mock the global state update to actually update the settingsContent
-			;(mockContext.globalState.update as Mock).mockImplementation((key: string, value: any) => {
+			;(mockContext.globalState.update as Mock).mockImplementation((key: string, value: ModeConfig[]) => {
 				if (key === "customModes") {
 					settingsContent.customModes = value
 				}
@@ -850,7 +1045,7 @@ describe("CustomModesManager", () => {
 					],
 				})
 
-				let roomodesContent: any = null
+				let roomodesContent: { customModes: ModeConfig[] } | null = null
 				;(fs.readFile as Mock).mockImplementation(async (path: string) => {
 					if (path === mockSettingsPath) {
 						return yaml.stringify({ customModes: [] })
@@ -899,7 +1094,7 @@ describe("CustomModesManager", () => {
 					],
 				})
 
-				let roomodesContent: any = null
+				let roomodesContent: { customModes: ModeConfig[] } | null = null
 				const writtenFiles: Record<string, string> = {}
 				;(fs.readFile as Mock).mockImplementation(async (path: string) => {
 					if (path === mockSettingsPath) {
@@ -971,7 +1166,7 @@ describe("CustomModesManager", () => {
 					],
 				})
 
-				let roomodesContent: any = null
+				let roomodesContent: { customModes: ModeConfig[] } | null = null
 				;(fs.readFile as Mock).mockImplementation(async (path: string) => {
 					if (path === mockSettingsPath) {
 						return yaml.stringify({ customModes: [] })
@@ -991,9 +1186,9 @@ describe("CustomModesManager", () => {
 				const result = await manager.importModeWithRules(importYaml)
 
 				expect(result.success).toBe(true)
-				expect(roomodesContent.customModes).toHaveLength(2)
-				expect(roomodesContent.customModes[0].slug).toBe("mode1")
-				expect(roomodesContent.customModes[1].slug).toBe("mode2")
+				expect(roomodesContent!.customModes).toHaveLength(2)
+				expect(roomodesContent!.customModes[0].slug).toBe("mode1")
+				expect(roomodesContent!.customModes[1].slug).toBe("mode2")
 			})
 
 			it("should handle import errors gracefully", async () => {
@@ -1142,7 +1337,7 @@ describe("CustomModesManager", () => {
 					],
 				})
 
-				let roomodesContent: any = null
+				let roomodesContent: { customModes: ModeConfig[] } | null = null
 				;(fs.readFile as Mock).mockImplementation(async (path: string) => {
 					if (path === mockSettingsPath) {
 						return yaml.stringify({ customModes: [] })
@@ -1196,7 +1391,7 @@ describe("CustomModesManager", () => {
 					],
 				})
 
-				let roomodesContent: any = null
+				let roomodesContent: { customModes: ModeConfig[] } | null = null
 				const writtenFiles: Record<string, string> = {}
 				;(fs.readFile as Mock).mockImplementation(async (path: string) => {
 					if (path === mockSettingsPath) {
@@ -1378,7 +1573,7 @@ describe("CustomModesManager", () => {
 			const freshManager = new CustomModesManager(mockContext, mockOnUpdate)
 
 			// Mock no workspace folders
-			;(vscode.workspace as any).workspaceFolders = []
+			mockWorkspace.workspaceFolders = []
 			;(getWorkspacePath as Mock).mockReturnValue(null)
 			;(fileExistsAtPath as Mock).mockResolvedValue(false)
 			;(fs.readFile as Mock).mockImplementation(async (path: string) => {
@@ -1665,7 +1860,7 @@ describe("CustomModesManager", () => {
 			const freshManager = new CustomModesManager(mockContext, mockOnUpdate)
 
 			// Mock no workspace folders
-			;(vscode.workspace as any).workspaceFolders = []
+			mockWorkspace.workspaceFolders = []
 			;(getWorkspacePath as Mock).mockReturnValue(null)
 			;(fs.readFile as Mock).mockImplementation(async (path: string) => {
 				if (path === mockSettingsPath) {
@@ -1745,7 +1940,7 @@ describe("CustomModesManager", () => {
 			expect(rulesFiles.length).toBe(2)
 
 			// Check that all paths use forward slashes and do NOT include the rules-{slug} prefix
-			rulesFiles.forEach((file: any) => {
+			rulesFiles.forEach((file: { relativePath: string }) => {
 				expect(file.relativePath).not.toContain("\\")
 				// The PR excludes the rules-{slug} folder from paths
 				expect(file.relativePath).not.toMatch(/^rules-test-mode\//)

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "child_process"
-import { existsSync, writeFileSync } from "fs"
+import { writeFileSync } from "fs"
 
 if (process.env.BOOTSTRAP_IN_PROGRESS) {
 	console.log("⏭️  Bootstrap already in progress, continuing with normal installation...")
@@ -33,9 +33,18 @@ function runPnpmInstall(pnpmCommand) {
  * Create a temporary package.json if it doesn't exist.
  */
 function ensurePackageJson() {
-	if (!existsSync("package.json")) {
+	// Use the "wx" exclusive flag so the write fails atomically if the file
+	// already exists, instead of a check-then-act (TOCTOU) race between
+	// existsSync and writeFileSync.
+	try {
+		writeFileSync("package.json", JSON.stringify({ name: "temp", private: true }, null, 2), { flag: "wx" })
 		console.log("📦 Creating temporary package.json...")
-		writeFileSync("package.json", JSON.stringify({ name: "temp", private: true }, null, 2))
+	} catch (error) {
+		if (error.code === "EEXIST") {
+			// File already exists — nothing to do.
+			return
+		}
+		throw error
 	}
 }
 

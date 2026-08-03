@@ -24,6 +24,7 @@ import {
 } from "@roo/modes"
 import { TOOL_GROUPS } from "@roo/tools"
 
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 import { buildDocLink } from "@src/utils/docLinks"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
@@ -99,7 +100,7 @@ const ModesView = () => {
 	const [isImporting, setIsImporting] = useState(false)
 	const [showImportDialog, setShowImportDialog] = useState(false)
 	const [importLevel, setImportLevel] = useState<"global" | "project">("project")
-	const [hasRulesToExport, setHasRulesToExport] = useState<Record<string, boolean>>({})
+	const [hasRulesToExport, setHasRulesToExport] = useState<Map<string, boolean>>(new Map())
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const [modeToDelete, setModeToDelete] = useState<{
 		slug: string
@@ -316,7 +317,7 @@ const ModesView = () => {
 	// Check rules directory when mode changes
 	useEffect(() => {
 		const currentMode = getCurrentMode()
-		if (currentMode?.slug && hasRulesToExport[currentMode.slug] === undefined) {
+		if (currentMode?.slug && hasRulesToExport.get(currentMode.slug) === undefined) {
 			checkRulesDirectory(currentMode.slug)
 		}
 	}, [getCurrentMode, checkRulesDirectory, hasRulesToExport])
@@ -535,6 +536,7 @@ const ModesView = () => {
 
 	useEffect(() => {
 		const handler = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 			if (message.type === "systemPrompt") {
 				if (message.text) {
@@ -575,10 +577,17 @@ const ModesView = () => {
 				}
 				// Note: Auto-select after import will be handled by PR #9003
 			} else if (message.type === "checkRulesDirectoryResult") {
-				setHasRulesToExport((prev) => ({
-					...prev,
-					[message.slug]: message.hasContent,
-				}))
+				// Store by Map key rather than an object property. The slug arrives
+				// from untrusted webview data; a Map cannot be polluted through its
+				// keys the way an object's prototype can (remote-property-injection).
+				const slug = message.slug
+				if (typeof slug === "string") {
+					setHasRulesToExport((prev) => {
+						const next = new Map(prev)
+						next.set(slug, message.hasContent)
+						return next
+					})
+				}
 			} else if (message.type === "deleteCustomModeCheck") {
 				// Handle the check response
 				// Use the ref to get the current modeToDelete value

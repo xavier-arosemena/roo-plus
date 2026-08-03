@@ -18,6 +18,29 @@ import { BaseTool, ToolCallbacks } from "./BaseTool"
 import type { ToolUse } from "../../shared/tools"
 import { t } from "../../i18n"
 
+/**
+ * Verify that a decoded buffer begins with the magic bytes of a supported
+ * image format. This validates that data originating from the remote image API
+ * is genuinely an image before it is written to disk, so remote content cannot
+ * be used to write arbitrary file contents (http-to-file-access).
+ */
+function isValidImageBuffer(buffer: Buffer): boolean {
+	if (buffer.length < 4) {
+		return false
+	}
+	const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47
+	const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff
+	const isGif = buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38
+	const isWebp =
+		buffer.length >= 12 &&
+		buffer[0] === 0x52 &&
+		buffer[1] === 0x49 &&
+		buffer[2] === 0x46 &&
+		buffer[3] === 0x46 &&
+		buffer.subarray(8, 12).toString("ascii") === "WEBP"
+	return isPng || isJpeg || isGif || isWebp
+}
+
 export class GenerateImageTool extends BaseTool<"generate_image"> {
 	readonly name = "generate_image" as const
 
@@ -229,6 +252,16 @@ export class GenerateImageTool extends BaseTool<"generate_image"> {
 			}
 
 			const imageBuffer = Buffer.from(base64Data, "base64")
+
+			// The image payload originates from the remote image API response.
+			// Verify the decoded bytes are a genuine image before writing them to
+			// disk (see isValidImageBuffer).
+			if (!isValidImageBuffer(imageBuffer)) {
+				await task.say("error", "Generated image data is not a valid image")
+				task.didToolFailInCurrentTurn = true
+				pushToolResult(formatResponse.toolError("Generated image data is not a valid image"))
+				return
+			}
 
 			const absolutePath = path.resolve(task.cwd, finalPath)
 			const directory = path.dirname(absolutePath)

@@ -89,6 +89,12 @@ describe("Announcement", () => {
 	it("links support users to the Roo+ GitHub repository", () => {
 		render(<Announcement hideAnnouncement={vi.fn()} />)
 
-		expect(screen.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", EXTERNAL_LINKS.GITHUB_REPO)
+		// The announcement renders a GitHub link both in the social-link row and
+		// in the support/Trans footer — every one must point at the repo.
+		const githubLinks = screen.getAllByRole("link", { name: "GitHub" })
+		expect(githubLinks.length).toBeGreaterThan(0)
+		for (const link of githubLinks) {
+			expect(link).toHaveAttribute("href", EXTERNAL_LINKS.GITHUB_REPO)
+		}
 	})
 })

@@ -149,6 +149,7 @@ vi.mock("vscode", () => ({
 	ExtensionContext: vi.fn(),
 	OutputChannel: vi.fn(),
 	WebviewView: vi.fn(),
+	ConfigurationTarget: { Global: 1, Workspace: 2, WorkspaceFolder: 3 },
 	EventEmitter: vi.fn().mockImplementation(function () {
 		return {
 			event: vi.fn(),
@@ -591,7 +592,7 @@ describe("ClineProvider", () => {
 		})
 
 		expect(mockWebviewView.webview.html).toContain("<!DOCTYPE html>")
-		expect(mockWebviewView.webview.html).toContain("<title>Zoo Code</title>")
+		expect(mockWebviewView.webview.html).toContain("<title>Roo+</title>")
 	})
 
 	describe("logWebviewHiddenDiagnostics", () => {
@@ -666,6 +667,83 @@ describe("ClineProvider", () => {
 		expect(scriptSrcMatch![0]).toContain("'nonce-")
 		// Verify wasm-unsafe-eval is present for Shiki syntax highlighting
 		expect(scriptSrcMatch![0]).toContain("'wasm-unsafe-eval'")
+	})
+
+	describe("getHMRHtmlContent (dev mode CSP + Vite identity probe)", () => {
+		const createDevProvider = () =>
+			new ClineProvider(
+				{ ...mockContext, extensionMode: vscode.ExtensionMode.Development },
+				mockOutputChannel,
+				"sidebar",
+				new ContextProxy({ ...mockContext, extensionMode: vscode.ExtensionMode.Development }),
+			)
+
+		beforeEach(() => {
+			// The outer beforeEach only calls vi.clearAllMocks(), which does NOT clear
+			// mockImplementationOnce queues. Reset the axios mock so leftover responses
+			// from earlier tests in this file cannot disturb the probe order below.
+			vi.mocked(axios.get).mockReset()
+		})
+
+		afterEach(() => {
+			// Restore the default axios.get implementation for tests that run after ours.
+			vi.mocked(axios.get).mockResolvedValue({ data: { data: [] } })
+		})
+
+		test("serves HMR HTML when the responder is the Vite dev server, with no https://* in the CSP", async () => {
+			provider = createDevProvider()
+			vi.mocked(axios.get)
+				.mockResolvedValueOnce({ status: 200, data: "root page" })
+				.mockResolvedValueOnce({ status: 200, data: "/* @vite/client */ const vite = true" })
+
+			await provider.resolveWebviewView(mockWebviewView)
+
+			const html = mockWebviewView.webview.html
+			// HMR HTML loads the Vite entry script from the local dev server.
+			expect(html).toContain("http://localhost:5173/src/index.tsx")
+			// The bare https://* wildcard is gone from every HMR CSP directive
+			// (https://*.posthog.com is intentionally allowed for telemetry).
+			expect(html).not.toMatch(/https:\/\/\*(?!\.)/)
+
+			const scriptSrcMatch = html.match(/script-src[^;]*;/)
+			expect(scriptSrcMatch).not.toBeNull()
+			const scriptSrc = scriptSrcMatch![0]
+			expect(scriptSrc).not.toMatch(/https:\/\/\*(?!\.)/)
+			expect(scriptSrc).toContain("'unsafe-eval'") // dev-only, required by Vite HMR
+			expect(scriptSrc).toContain("http://localhost:5173")
+			expect(scriptSrc).toContain("http://0.0.0.0:5173")
+			expect(scriptSrc).toContain("https://*.posthog.com")
+			expect(scriptSrc).toContain("'nonce-")
+		})
+
+		test("falls back to production HTML when /@vite/client is unreachable", async () => {
+			provider = createDevProvider()
+			vi.mocked(axios.get)
+				.mockResolvedValueOnce({ status: 200, data: "root page" })
+				.mockRejectedValueOnce(new Error("Network error"))
+
+			await provider.resolveWebviewView(mockWebviewView)
+
+			const html = mockWebviewView.webview.html
+			expect(html).not.toContain("http://localhost:5173/src/index.tsx")
+			// Production getHtmlContent CSP marker is used instead of the HMR one.
+			expect(html).toContain("'wasm-unsafe-eval'")
+			expect(html).not.toContain("'unsafe-eval'")
+		})
+
+		test("falls back to production HTML when /@vite/client does not identify as Vite", async () => {
+			provider = createDevProvider()
+			vi.mocked(axios.get)
+				.mockResolvedValueOnce({ status: 200, data: "root page" })
+				.mockResolvedValueOnce({ status: 200, data: "<html>some other dev server</html>" })
+
+			await provider.resolveWebviewView(mockWebviewView)
+
+			const html = mockWebviewView.webview.html
+			expect(html).not.toContain("http://localhost:5173/src/index.tsx")
+			expect(html).toContain("'wasm-unsafe-eval'")
+			expect(html).not.toContain("'unsafe-eval'")
+		})
 	})
 
 	test("postMessageToWebview sends message to webview", async () => {
@@ -2114,6 +2192,7 @@ describe("ClineProvider", () => {
 			// Test updating a custom mode
 			await messageHandler({
 				type: "updateCustomMode",
+				slug: "test-mode",
 				modeConfig: {
 					slug: "test-mode",
 					name: "Test Mode",
@@ -2515,24 +2594,6 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 		expect(provider.postMessageToWebview).toHaveBeenCalledWith(
 			expect.objectContaining({ type: "importModeResult", error: "dialog failed" }),
 		)
-	})
-
-	it("covers changed cloud sign-out and rate-limit error responses", async () => {
-		const { CloudService } = await import("@roo-code/cloud")
-		const { openAiCodexOAuthManager } = await import("../../../integrations/openai-codex/oauth")
-		const provider = createProvider()
-
-		vi.mocked(CloudService.hasInstance).mockReturnValueOnce(false)
-		await webviewMessageHandler(provider, { type: "rooCloudSignOut" })
-		await webviewMessageHandler(provider, { type: "rooCloudSignOut" })
-
-		vi.mocked(openAiCodexOAuthManager.getAccessToken).mockRejectedValueOnce(new Error("token failed"))
-		await webviewMessageHandler(provider, { type: "requestOpenAiCodexRateLimits" })
-
-		expect(provider.postMessageToWebview).toHaveBeenCalledWith({
-			type: "openAiCodexRateLimits",
-			error: "token failed",
-		})
 	})
 
 	it("covers changed indexing status, secret, and missing-manager responses", async () => {
@@ -3728,16 +3789,18 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 				expect(vscode.window.showInformationMessage).not.toHaveBeenCalled()
 			})
 
-			test("handles invalid message formats", async () => {
-				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as any).mock.calls[0][0]
+			test("rejects invalid message formats at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
 
-				// Test with null message - should throw error
-				await expect(messageHandler(null)).rejects.toThrow()
+				// Test with null message - rejected at the boundary, no dispatch
+				await expect(messageHandler(null)).resolves.toBeUndefined()
 
-				// Test with undefined message - should throw error
-				await expect(messageHandler(undefined)).rejects.toThrow()
+				// Test with undefined message - rejected at the boundary, no dispatch
+				await expect(messageHandler(undefined)).resolves.toBeUndefined()
 
-				// Test with message missing type
+				// Test with message missing type - rejected at the boundary, no dispatch
 				await expect(
 					messageHandler({
 						value: 2000,
@@ -3745,7 +3808,8 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 					}),
 				).resolves.toBeUndefined()
 
-				// Should handle gracefully without errors
+				// The boundary logs the rejection instead of throwing to the webview runtime
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
 				expect(vscode.window.showInformationMessage).not.toHaveBeenCalled()
 			})
 
@@ -3777,6 +3841,178 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 
 				// Invalid timestamps may still trigger confirmation dialog
 				// This is expected behavior as the system tries to process the message
+			})
+		})
+
+		describe("webview message boundary validation", () => {
+			beforeEach(async () => {
+				await provider.resolveWebviewView(mockWebviewView)
+				mockPostMessage.mockClear()
+			})
+
+			test("rejects a malformed registered message without dispatching", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// checkpointDiff is registered; this payload is missing commitHash.
+				await messageHandler({ type: "checkpointDiff", payload: { mode: "full" } })
+
+				// Rejected at the boundary: logged, never dispatched.
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("dispatches a valid registered message", async () => {
+				const mockTask = { checkpointDiff: vi.fn().mockResolvedValue(undefined) }
+				vi.spyOn(provider, "getCurrentTask").mockReturnValue(mockTask as unknown as Task)
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "checkpointDiff", payload: { mode: "full", commitHash: "abc123" } })
+
+				expect(mockTask.checkpointDiff).toHaveBeenCalledWith({ mode: "full", commitHash: "abc123" })
+			})
+
+			test("passes through unregistered messages without boundary rejection", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "requestModes" })
+
+				expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+			})
+
+			test("rejects a crafted malformed allowedCommands message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "allowedCommands", commands: "npm test" })
+
+				// Rejected at the boundary: logged, never dispatched.
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed deniedCommands message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "deniedCommands", commands: [123] })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("dispatches a valid allowedCommands message and persists it", async () => {
+				const setValueSpy = vi.spyOn(provider.contextProxy, "setValue")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "allowedCommands", commands: ["npm test"] })
+
+				expect(setValueSpy).toHaveBeenCalledWith("allowedCommands", ["npm test"])
+			})
+
+			test("rejects a crafted malformed updateSettings message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// terminalProfile must be a string; a number is a malformed known field.
+				await messageHandler({ type: "updateSettings", updatedSettings: { terminalProfile: 42 } })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("dispatches a valid updateSettings message and persists it", async () => {
+				const setValueSpy = vi.spyOn(provider.contextProxy, "setValue")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				await messageHandler({ type: "updateSettings", updatedSettings: { soundEnabled: true } })
+
+				expect(setValueSpy).toHaveBeenCalledWith("soundEnabled", true)
+			})
+
+			test("rejects a crafted malformed saveApiConfiguration message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// apiConfiguration must be an object; a string is clearly malformed.
+				await messageHandler({ type: "saveApiConfiguration", text: "cfg", apiConfiguration: "nope" })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed upsertApiConfiguration message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// Unknown apiProvider is rejected by the provider-settings enum.
+				await messageHandler({
+					type: "upsertApiConfiguration",
+					text: "cfg",
+					apiConfiguration: { apiProvider: "bogus-provider" },
+				})
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed installMarketplaceItem message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// mpItem must be a valid marketplace item; a string is malformed.
+				await messageHandler({ type: "installMarketplaceItem", mpItem: "nope" })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed queueMessage message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// text must be a string; a number is malformed.
+				await messageHandler({ type: "queueMessage", text: 42 })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed updateTodoList message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// todos must be an array of valid todo items.
+				await messageHandler({ type: "updateTodoList", payload: { todos: "nope" } })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed updateCustomMode message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// modeConfig is required and must be a valid mode config.
+				await messageHandler({ type: "updateCustomMode", slug: "test-mode" })
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
 			})
 		})
 

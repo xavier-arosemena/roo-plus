@@ -20,6 +20,8 @@ import { worktreeService, worktreeIncludeService, type CopyProgressCallback } fr
 
 import type { ClineProvider } from "../ClineProvider"
 
+export type WorktreeProvider = Pick<ClineProvider, "cwd" | "log" | "contextProxy">
+
 /**
  * Generate a random alphanumeric suffix for branch/folder names.
  */
@@ -49,7 +51,7 @@ async function isWorkspaceSubfolder(cwd: string): Promise<boolean> {
 	return normalizedCwd !== normalizedGitRoot && normalizedCwd.startsWith(normalizedGitRoot)
 }
 
-export async function handleListWorktrees(provider: ClineProvider): Promise<WorktreeListResponse> {
+export async function handleListWorktrees(provider: WorktreeProvider): Promise<WorktreeListResponse> {
 	const workspaceFolders = vscode.workspace.workspaceFolders
 	const isMultiRoot = workspaceFolders ? workspaceFolders.length > 1 : false
 
@@ -129,7 +131,7 @@ export async function handleListWorktrees(provider: ClineProvider): Promise<Work
 }
 
 export async function handleCreateWorktree(
-	provider: ClineProvider,
+	provider: WorktreeProvider,
 	options: {
 		path: string
 		branch?: string
@@ -172,7 +174,7 @@ export async function handleCreateWorktree(
 }
 
 export async function handleDeleteWorktree(
-	provider: ClineProvider,
+	provider: WorktreeProvider,
 	worktreePath: string,
 	force = false,
 ): Promise<WorktreeResult> {
@@ -181,7 +183,7 @@ export async function handleDeleteWorktree(
 }
 
 export async function handleSwitchWorktree(
-	provider: ClineProvider,
+	provider: WorktreeProvider,
 	worktreePath: string,
 	newWindow: boolean,
 ): Promise<WorktreeResult> {
@@ -215,13 +217,13 @@ export async function handleSwitchWorktree(
 	}
 }
 
-export async function handleGetAvailableBranches(provider: ClineProvider): Promise<BranchInfo> {
+export async function handleGetAvailableBranches(provider: WorktreeProvider): Promise<BranchInfo> {
 	const cwd = provider.cwd
 	// Include branches already in worktrees since we use this for base branch selection
 	return worktreeService.getAvailableBranches(cwd, true)
 }
 
-export async function handleGetWorktreeDefaults(provider: ClineProvider): Promise<WorktreeDefaultsResponse> {
+export async function handleGetWorktreeDefaults(provider: WorktreeProvider): Promise<WorktreeDefaultsResponse> {
 	const suffix = generateRandomSuffix()
 	const workspaceFolders = vscode.workspace.workspaceFolders
 	const projectName = workspaceFolders?.[0]?.name || "project"
@@ -235,17 +237,20 @@ export async function handleGetWorktreeDefaults(provider: ClineProvider): Promis
 	}
 }
 
-export async function handleGetWorktreeIncludeStatus(provider: ClineProvider): Promise<WorktreeIncludeStatus> {
+export async function handleGetWorktreeIncludeStatus(provider: WorktreeProvider): Promise<WorktreeIncludeStatus> {
 	const cwd = provider.cwd
 	return worktreeIncludeService.getStatus(cwd)
 }
 
-export async function handleCheckBranchWorktreeInclude(provider: ClineProvider, branch: string): Promise<boolean> {
+export async function handleCheckBranchWorktreeInclude(provider: WorktreeProvider, branch: string): Promise<boolean> {
 	const cwd = provider.cwd
 	return worktreeIncludeService.branchHasWorktreeInclude(cwd, branch)
 }
 
-export async function handleCreateWorktreeInclude(provider: ClineProvider, content: string): Promise<WorktreeResult> {
+export async function handleCreateWorktreeInclude(
+	provider: WorktreeProvider,
+	content: string,
+): Promise<WorktreeResult> {
 	const cwd = provider.cwd
 
 	try {
@@ -273,7 +278,7 @@ export async function handleCreateWorktreeInclude(provider: ClineProvider, conte
 	}
 }
 
-export async function handleCheckoutBranch(provider: ClineProvider, branch: string): Promise<WorktreeResult> {
+export async function handleCheckoutBranch(provider: WorktreeProvider, branch: string): Promise<WorktreeResult> {
 	const cwd = provider.cwd
 	return worktreeService.checkoutBranch(cwd, branch)
 }

@@ -1,10 +1,16 @@
 import React, { useMemo } from "react"
 import Convert from "ansi-to-html"
+import { sanitizeHtml } from "@src/utils/sanitizeHtml"
 
 interface TerminalOutputProps {
 	content: string
 	className?: string
 }
+
+// Pin this to true: escaping the ANSI→HTML conversion output is the primary XSS
+// defense for terminal output. There is a regression test asserting this stays
+// true — do not relax it (DOMPurify sanitization is only belt-and-suspenders).
+export const TERMINAL_OUTPUT_ESCAPE_XML = true
 
 // Create a single converter instance with sensible defaults
 const converter = new Convert({
@@ -29,7 +35,7 @@ const converter = new Convert({
 		14: "var(--vscode-terminal-ansiBrightCyan, #29b8db)",
 		15: "var(--vscode-terminal-ansiBrightWhite, #e5e5e5)",
 	},
-	escapeXML: true, // Prevent XSS — escape HTML entities in the content
+	escapeXML: TERMINAL_OUTPUT_ESCAPE_XML, // Prevent XSS — escape HTML entities in the content
 	newline: false, // We handle newlines ourselves via <pre>
 })
 
@@ -45,7 +51,10 @@ const converter = new Convert({
 export const TerminalOutput: React.FC<TerminalOutputProps> = ({ content, className }) => {
 	const html = useMemo(() => {
 		try {
-			return converter.toHtml(content)
+			// escapeXML: true is pinned above and is the primary defense; DOMPurify
+			// sanitization below is belt-and-suspenders in case the converter's
+			// escaping is ever weakened.
+			return sanitizeHtml(converter.toHtml(content))
 		} catch {
 			// Fallback: if conversion fails, show raw text (stripped of ANSI)
 			// eslint-disable-next-line no-control-regex

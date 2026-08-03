@@ -39,7 +39,7 @@ Roo+ extends the incredible foundation of Zoo Code with **90 custom modes** (cur
 | 🔌 **MCP Support**            | Full Model Context Protocol integration                                                                                    |
 | 🌍 **Multi-Provider**         | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                            |
 | 📦 **Bulk Mode Install**      | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0) |
-| 🏷️ **Mode Subtitles**         | All 97 pre-loaded modes display descriptive subtitles in the mode selector UI (v3.73.0)                                    |
+| 🏷️ **Mode Subtitles**         | All 90 pre-loaded modes display descriptive subtitles in the mode selector UI (v3.73.0)                                    |
 | 🛠️ **Terminal Integration**   | Smart terminal with shell integration                                                                                      |
 | 📁 **Tree-Sitter Code Index** | Intelligent code understanding for 30+ languages                                                                           |
 | 🔒 **Atomic File Writing**    | Safe, crash-proof file operations                                                                                          |
@@ -231,7 +231,7 @@ pnpm run sync:custom-modes
 # Build the VSIX
 pnpm vsix
 
-# The VSIX will be at: bin/roo-plus-3.68.0.vsix
+# The VSIX will be at: bin/roo-plus-<version>.vsix
 ```
 
 <br/>

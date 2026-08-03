@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 
 import type { Worktree } from "@roo-code/types"
 
+import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Button, Checkbox } from "@/components/ui"
@@ -23,6 +24,7 @@ export const DeleteWorktreeModal = ({ open, onClose, worktree, onSuccess }: Dele
 
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
+			if (!isTrustedMessage(event)) return
 			const message = event.data
 
 			if (message.type === "worktreeResult") {
