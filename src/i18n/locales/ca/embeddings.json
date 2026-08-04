@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble no és compatible amb aquesta plataforma ({{platform}}-{{arch}}).",
 		"downloadFailed": "Error en descarregar semble: {{errorMessage}}",
 		"checkFailed": "Comprovació de semble fallida: {{errorMessage}}",
+		"searchFailed": "La cerca de Semble ha fallat: {{errorMessage}}",
 		"providerReset": "Proveïdor de Semble restablert. La memòria cau al disc es conserva fins a la propera reconstrucció."
 	}
 }

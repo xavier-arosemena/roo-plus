@@ -243,7 +243,8 @@
 			"standby": "Bekleme",
 			"indexing": "İndeksleniyor",
 			"indexed": "İndekslendi",
-			"error": "Hata"
+			"error": "Hata",
+			"stopping": "İndeksleme durduruluyor..."
 		},
 		"close": "Kapat",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "Bu çalışma alanı için indekslemeyi etkinleştir",
 		"workspaceDisabledMessage": "İndeksleme yapılandırıldı ancak bu çalışma alanı için etkinleştirilmedi.",
 		"autoEnableDefaultLabel": "Yeni çalışma alanları için indekslemeyi otomatik etkinleştir",
-		"sembleProvider": "Semble - Yerel"
+		"sembleProvider": "Semble - Yerel",
+		"sembleBinaryPathLabel": "Semble İkili Dosya Yolu (isteğe bağlı)",
+		"sembleBinaryPathPlaceholder": "örn. /usr/local/bin/semble (otomatik indirme için boş bırakın)",
+		"sembleBinaryPathDescription": "Elle kurulan semble ikili dosyasının yolu. Ayarlandığında otomatik indirme atlanır. Otomatik indirilen ikili dosyayı kullanmak için boş bırakın."
 	},
 	"autoApprove": {
 		"toggleShortcut": "<SettingsLink>IDE tercihlerinizde</SettingsLink> bu ayar için genel bir kısayol yapılandırabilirsiniz.",

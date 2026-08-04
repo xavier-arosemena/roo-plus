@@ -2188,7 +2188,7 @@ describe("GPT-5 streaming event coverage (additional)", () => {
 					role: "user",
 					content: [
 						{ type: "text", text: "Look at this:" },
-						{ type: "image", source: { type: "base64", media_type: "image/png", data: "abc123" } },
+						{ type: "image", source: { type: "base64", media_type: "image/png", data: "abc12345" } },
 					],
 				},
 			]
@@ -2203,7 +2203,7 @@ describe("GPT-5 streaming event coverage (additional)", () => {
 			const userMsg = parsedBody.input[0]
 			expect(userMsg.content).toContainEqual({
 				type: "input_image",
-				image_url: "data:image/png;base64,abc123",
+				image_url: "data:image/png;base64,abc12345",
 			})
 		})
 	})

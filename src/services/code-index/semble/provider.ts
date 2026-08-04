@@ -4,8 +4,13 @@ import * as vscode from "vscode"
 import { IndexingState } from "../interfaces/manager"
 import { VectorStoreSearchResult } from "../interfaces/vector-store"
 import { CodeIndexStateManager } from "../state-manager"
-import { SembleCLI } from "./semble-cli"
-import { downloadSemble, isSembleSupportedPlatform, SEMBLE_VERSION } from "./semble-downloader"
+import { SembleCLI, supportsMaxSnippetLinesFlag } from "./semble-cli"
+import {
+	downloadSemble,
+	getInstalledSembleVersion,
+	isSembleSupportedPlatform,
+	SEMBLE_VERSION,
+} from "./semble-downloader"
 import { ISembleProvider, SembleConfig, SembleContentType, SembleSearchResult, SEMBLE_DEFAULTS } from "./types"
 import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
@@ -28,15 +33,29 @@ export class SembleProvider implements ISembleProvider {
 	private readonly stateManager: CodeIndexStateManager
 	private readonly context: vscode.ExtensionContext
 
-	private _state: IndexingState = "Standby"
 	private _isInitialized = false
+	private _initFailed = false
 	private _initPromise: Promise<void> | undefined
+	/** The version actually installed on disk (from the .semble-version file), or SEMBLE_VERSION when unknown. */
+	private _installedVersion: string | undefined
+	/**
+	 * Once-per-provider-instance guard for the raw score distribution log, so a
+	 * single search session never spams the console with per-query noise.
+	 */
+	private _loggedRawScoreDistribution = false
 
 	constructor(
 		workspacePath: string,
 		context: vscode.ExtensionContext,
 		stateManager: CodeIndexStateManager,
-		options?: { topK?: number; content?: SembleContentType; binaryPath?: string },
+		options?: {
+			topK?: number
+			content?: SembleContentType
+			binaryPath?: string
+			searchMinScore?: number
+			searchMaxResults?: number
+			maxSnippetLines?: number
+		},
 	) {
 		this.workspacePath = workspacePath
 		this.context = context
@@ -46,16 +65,26 @@ export class SembleProvider implements ISembleProvider {
 			topK: options?.topK ?? SEMBLE_DEFAULTS.DEFAULT_TOP_K,
 			content: options?.content ?? SEMBLE_DEFAULTS.DEFAULT_CONTENT,
 			binaryPath: options?.binaryPath,
+			searchMinScore: options?.searchMinScore,
+			searchMaxResults: options?.searchMaxResults,
+			maxSnippetLines: options?.maxSnippetLines,
 		}
 	}
 
 	get state(): IndexingState {
-		return this._state
+		// Single source of truth: the shared CodeIndexStateManager is the only
+		// place system state lives, so this can never drift from the
+		// CodeIndexManager's view (manager.state reads the same stateManager).
+		return this.stateManager.state
 	}
 
 	/**
 	 * Initializes the provider: downloads semble, then validates it works.
 	 * Uses an _initPromise to prevent concurrent initialization races.
+	 *
+	 * Once initialization has completed (success OR failure) the result is
+	 * cached, so repeated calls do not re-run the (potentially slow) download
+	 * pipeline. Use {@link reset} to explicitly retry after a failure.
 	 */
 	async initialize(): Promise<void> {
 		if (this._isInitialized) {
@@ -81,7 +110,8 @@ export class SembleProvider implements ISembleProvider {
 	private async _doInitialize(): Promise<void> {
 		// Check platform support
 		if (!isSembleSupportedPlatform()) {
-			this._state = "Error"
+			this._isInitialized = true
+			this._initFailed = true
 			this.stateManager.setSystemState(
 				"Error",
 				t("embeddings:semble.unsupportedPlatform", { platform: process.platform, arch: process.arch }),
@@ -98,9 +128,15 @@ export class SembleProvider implements ISembleProvider {
 			if (!binaryPath) {
 				throw new Error("Download returned no path")
 			}
+			// Surface the actually-installed version (may differ from SEMBLE_VERSION
+			// when the opt-in "latest" resolution resolves a newer tag). Fall back to
+			// SEMBLE_VERSION when no version metadata exists (e.g. a manual
+			// binaryPathOverride with no prior download).
+			this._installedVersion = (await getInstalledSembleVersion(storageDir)) ?? SEMBLE_VERSION
 			this.cli = new SembleCLI(binaryPath)
 		} catch (error) {
-			this._state = "Error"
+			this._isInitialized = true
+			this._initFailed = true
 			// The fallback chain produces a multi-line error with per-source details.
 			// Truncate to the first line for the UI status message, log full details.
 			const errorMsg = error instanceof Error ? error.message : String(error)
@@ -118,7 +154,8 @@ export class SembleProvider implements ISembleProvider {
 
 		if (!checkResult.installed) {
 			const errorMsg = checkResult.error || "Semble binary is not functional"
-			this._state = "Error"
+			this._isInitialized = true
+			this._initFailed = true
 			this.stateManager.setSystemState("Error", t("embeddings:semble.checkFailed", { errorMessage: errorMsg }))
 			console.error("[SembleProvider] Semble check failed:", errorMsg)
 			return
@@ -129,8 +166,11 @@ export class SembleProvider implements ISembleProvider {
 		// Semble indexes on-the-fly, so we mark as "Indexed" (ready for search).
 		// The version is included in the status message so the UI (CodeIndexPopover)
 		// surfaces which semble release is active.
-		this._state = "Indexed"
-		this.stateManager.setSystemState("Indexed", t("embeddings:semble.ready", { version: SEMBLE_VERSION }))
+		this._initFailed = false
+		this.stateManager.setSystemState(
+			"Indexed",
+			t("embeddings:semble.ready", { version: this._installedVersion ?? SEMBLE_VERSION }),
+		)
 
 		this._isInitialized = true
 	}
@@ -138,20 +178,29 @@ export class SembleProvider implements ISembleProvider {
 	/**
 	 * Starts indexing. Since semble indexes on-the-fly with each search,
 	 * this just validates the installation and marks as ready.
+	 *
+	 * If a previous initialization failed, the failure is cached and this
+	 * returns immediately instead of re-running the full download pipeline.
 	 */
 	async startIndexing(): Promise<void> {
+		if (this._initFailed) {
+			return
+		}
+
 		if (!this._isInitialized) {
 			await this.initialize()
 		}
 
-		if (this._state === "Error") {
+		if (this.state === "Error") {
 			return
 		}
 
 		// Semble indexes on-the-fly — no separate indexing step needed.
 		// Mark as indexed/ready.
-		this._state = "Indexed"
-		this.stateManager.setSystemState("Indexed", t("embeddings:semble.ready", { version: SEMBLE_VERSION }))
+		this.stateManager.setSystemState(
+			"Indexed",
+			t("embeddings:semble.ready", { version: this._installedVersion ?? SEMBLE_VERSION }),
+		)
 	}
 
 	/**
@@ -175,7 +224,7 @@ export class SembleProvider implements ISembleProvider {
 			return []
 		}
 
-		if (this._state === "Error") {
+		if (this.state === "Error") {
 			return []
 		}
 
@@ -185,10 +234,45 @@ export class SembleProvider implements ISembleProvider {
 			// resolved absolute path), so passing subdirectories would create
 			// redundant indexes and waste disk space.
 			console.log(`[SembleProvider] Searching in ${this.workspacePath}`)
+
+			// Reference-aligned (Zoo-Code SembleProvider): request exactly the
+			// configured topK. NO min-score filter and NO max-results slice are
+			// applied to Semble results — searchMinScore/searchMaxResults are
+			// consumed ONLY by the Qdrant path (search-service.ts / qdrant-client.ts).
+			// The 0.4 score filter this repo previously added (to "mirror the Qdrant
+			// path") was the most likely cause of F1: recurring empty search results
+			// whenever Semble's raw scores sat below the Qdrant-tuned threshold.
+			//
+			// Roo+ addition beyond the reference: bound the per-result snippet size
+			// via --max-snippet-lines (defaulting to a sane cap) so each result
+			// carries a small `content` payload instead of a full code chunk. This
+			// is defensive hardening only — it does not change result-count
+			// semantics (topK only).
+			//
+			// The flag is version-gated: only forwarded when the installed binary
+			// advertises it (>= v0.4.1). Older binaries reject unknown flags, which
+			// would fail every search loudly. Omitting it only means full-chunk
+			// snippets, which _truncateSnippet caps defensively at MAX_SNIPPET_CHARS.
+			const maxSnippetLines = supportsMaxSnippetLinesFlag(this._installedVersion)
+				? (this.config.maxSnippetLines ?? SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES)
+				: undefined
 			const results = await this.cli.search(query, this.workspacePath, {
 				topK: this.config.topK,
 				content: this.config.content,
+				maxSnippetLines,
 			})
+
+			// One-time raw score diagnostics (Roo+ addition beyond the reference).
+			// Semble's score semantics are undocumented in this repo. Log the RAW
+			// CLI score distribution once per provider instance (first search with
+			// results) so a scale mismatch is visible to a log scan / VSIX test.
+			// Skipped when the CLI returned nothing (nothing to diagnose).
+			if (!this._loggedRawScoreDistribution && results.length > 0) {
+				this._loggedRawScoreDistribution = true
+				console.log(
+					`[SembleProvider] Raw score distribution (first search, before filtering): ${this._describeScoreDistribution(results)}`,
+				)
+			}
 
 			// Semble returns file paths relative to the search path (workspace root).
 			// We join against workspacePath to produce correct absolute paths.
@@ -206,6 +290,11 @@ export class SembleProvider implements ISembleProvider {
 				)
 			}
 
+			// NOTE: searchMinScore/searchMaxResults are intentionally NOT applied
+			// here. They are consumed only by the Qdrant path (search-service.ts /
+			// qdrant-client.ts); the reference Zoo-Code SembleProvider applies no
+			// score filter and no result cap to Semble results.
+
 			console.log(
 				`[SembleProvider] Search returned ${converted.length} results (raw: ${results.length}). Sample path: ${converted[0]?.payload?.filePath ?? "none"}`,
 			)
@@ -220,7 +309,15 @@ export class SembleProvider implements ISembleProvider {
 				location: "SembleProvider.searchIndex",
 			})
 
-			return []
+			// A genuine search failure must not be masked as an empty result — the
+			// agent tool would otherwise report "no relevant snippets" and the UI
+			// would stay "Indexed". Surface the error to the caller (CodebaseSearchTool)
+			// and flip the provider/system state to Error so the CodeIndexPopover
+			// reflects the failure. Subsequent searches short-circuit to [] via the
+			// state guard above until the user resets/retries the provider.
+			this.stateManager.setSystemState("Error", t("embeddings:semble.searchFailed", { errorMessage }))
+
+			throw error
 		}
 	}
 
@@ -230,8 +327,23 @@ export class SembleProvider implements ISembleProvider {
 	 * delete semble's on-disk cache — use `semble clear-cache` for that.
 	 */
 	async clearIndexData(): Promise<void> {
-		this._state = "Standby"
 		this.stateManager.setSystemState("Standby", t("embeddings:semble.providerReset"))
+	}
+
+	/**
+	 * Explicit retry path: clears the cached initialization/failure state so a
+	 * subsequent initialize() re-runs the download/validation pipeline. Use this
+	 * instead of silent re-attempts — e.g. after the user fixes the network and
+	 * clicks a "Reset/Retry Semble" action.
+	 */
+	reset(): void {
+		this._isInitialized = false
+		this._initFailed = false
+		this._initPromise = undefined
+		// Reflect the reset in the shared state without firing a progress event,
+		// so the UI doesn't flash a transient "Standby" before the retried
+		// initialize() re-runs the download/validation pipeline.
+		this.stateManager.setSystemStateSilent("Standby")
 	}
 
 	/**
@@ -239,6 +351,13 @@ export class SembleProvider implements ISembleProvider {
 	 */
 	dispose(): void {
 		this._isInitialized = false
+		// Terminate any in-flight semble child process (search/check). Without
+		// this, disposal on manager teardown or a provider switch
+		// (_recreateServices) would leave an orphaned child running for up to
+		// its 120s timeout, consuming memory/CPU and holding file descriptors
+		// in the extension host. Safe no-op when the CLI hasn't been created
+		// yet (e.g. dispose during initialization) or no child is active.
+		this.cli?.abort()
 	}
 
 	// --- Private Helpers ---
@@ -281,7 +400,7 @@ export class SembleProvider implements ISembleProvider {
 				score: r.score,
 				payload: {
 					filePath,
-					codeChunk: r.content ?? "",
+					codeChunk: this._truncateSnippet(r.content),
 					startLine: r.start_line ?? 0,
 					endLine: r.end_line ?? 0,
 				},
@@ -289,5 +408,47 @@ export class SembleProvider implements ISembleProvider {
 		}
 
 		return converted
+	}
+
+	/**
+	 * Bounds a single snippet to SEMBLE_DEFAULTS.MAX_SNIPPET_CHARS characters.
+	 *
+	 * This is the defensive hard cap that guarantees a single search can never
+	 * return unbounded snippet content, independent of the `--max-snippet-lines`
+	 * CLI flag. It stays a ceiling: typical short snippets pass through
+	 * unchanged, and only oversized chunks are cut.
+	 */
+	private _truncateSnippet(content?: string): string {
+		if (!content) {
+			return ""
+		}
+		return content.length > SEMBLE_DEFAULTS.MAX_SNIPPET_CHARS
+			? content.slice(0, SEMBLE_DEFAULTS.MAX_SNIPPET_CHARS)
+			: content
+	}
+
+	/**
+	 * Builds a compact, cheap description of a raw score distribution: count,
+	 * min, max, and a percentile sketch (p25 / median / p75) of the numeric
+	 * scores. Used by the once-per-session raw score diagnostics (Roo+ addition
+	 * beyond the reference). Runs on the CLI result set (bounded by topK), so
+	 * the O(n log n) sort is negligible.
+	 */
+	private _describeScoreDistribution(results: SembleSearchResult[]): string {
+		const scores = results
+			.map((r) => r.score)
+			.filter((s): s is number => typeof s === "number" && Number.isFinite(s))
+			.sort((a, b) => a - b)
+
+		if (scores.length === 0) {
+			return "count=0 (no numeric scores)"
+		}
+
+		const percentile = (p: number): number => {
+			const index = Math.min(scores.length - 1, Math.floor((p / 100) * scores.length))
+			return scores[index]
+		}
+
+		return `count=${scores.length} min=${scores[0]} p25=${percentile(25)} median=${percentile(50)} p75=${percentile(75)} max=${scores[scores.length - 1]}`
 	}
 }

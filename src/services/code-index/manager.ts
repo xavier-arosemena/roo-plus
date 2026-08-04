@@ -23,6 +23,7 @@ export class CodeIndexManager {
 
 	// Specialized class instances
 	private _configManager: CodeIndexConfigManager | undefined
+	private _contextProxy: ContextProxy | undefined
 	private readonly _stateManager: CodeIndexStateManager
 	private _serviceFactory: CodeIndexServiceFactory | undefined
 	private _orchestrator: CodeIndexOrchestrator | undefined
@@ -33,12 +34,29 @@ export class CodeIndexManager {
 	// Flag to prevent race conditions during error recovery
 	private _isRecoveringFromError = false
 
+	// In-flight guard so concurrent initialize() calls (e.g. two rapid
+	// "Start Indexing" clicks while a background init is still running) share a
+	// single run instead of recreating services / starting indexing twice.
+	private _initializePromise: Promise<{ requiresRestart: boolean }> | undefined
+
 	public static getInstance(context: vscode.ExtensionContext, workspacePath?: string): CodeIndexManager | undefined {
 		// Resolve the workspace folder to get both fsPath and the real URI
 		let folder: vscode.WorkspaceFolder | undefined
 
 		if (workspacePath) {
+			// Exact workspace-folder match first (fast path, avoids a URI round-trip).
 			folder = vscode.workspace.workspaceFolders?.find((f) => f.uri.fsPath === workspacePath)
+			// When workspacePath is a contained path (e.g. a project subdirectory) rather than
+			// a workspace-folder root, resolve it to its containing folder so every call site
+			// (tool filtering, activation, webview, search tool) converges on the SAME instance
+			// keyed by the real workspace root. Without this, a subdirectory cwd would create a
+			// separate, never-initialized instance keyed by the subdir path (F3).
+			if (!folder) {
+				folder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(workspacePath))
+			}
+			if (folder) {
+				workspacePath = folder.uri.fsPath
+			}
 		} else {
 			const activeEditor = vscode.window.activeTextEditor
 			if (activeEditor) {
@@ -55,8 +73,11 @@ export class CodeIndexManager {
 		}
 
 		if (!CodeIndexManager.instances.has(workspacePath)) {
-			// folder may be undefined when workspacePath was provided but doesn't match
-			// any workspace folder (e.g. cwd passed from a tool). Fall back to file:// URI.
+			// folder is undefined here only when workspacePath was provided but doesn't resolve
+			// to any workspace folder (e.g. a path outside all open workspaces). Fall back to a
+			// synthetic file:// URI so the standalone instance still works. A typed double-cast is
+			// used because vscode.Uri is an opaque class and there is no typed factory for a
+			// guaranteed out-of-workspace URI — the fallback is a structural stand-in only.
 			const folderUri =
 				folder?.uri ??
 				({
@@ -140,11 +161,11 @@ export class CodeIndexManager {
 		if (!this.isFeatureEnabled) {
 			return "Standby"
 		}
-		if (this._sembleProvider) {
-			return this._sembleProvider.state
-		}
-		this.assertInitialized()
-		return this._orchestrator!.state
+		// Single source of truth: both the orchestrator and the SembleProvider
+		// write to the shared state manager, so this can never diverge from
+		// getCurrentStatus().systemStatus — and it never throws when the manager
+		// has not been initialized yet.
+		return this._stateManager.state
 	}
 
 	public get isFeatureEnabled(): boolean {
@@ -167,12 +188,37 @@ export class CodeIndexManager {
 	/**
 	 * Initializes the manager with configuration and dependent services.
 	 * Must be called before using any other methods.
+	 *
+	 * Concurrent calls are coalesced onto a single in-flight run so rapid
+	 * user actions (e.g. two "Start Indexing" clicks) cannot recreate the
+	 * service stack or start indexing twice.
 	 * @returns Object indicating if a restart is needed
 	 */
 	public async initialize(contextProxy: ContextProxy): Promise<{ requiresRestart: boolean }> {
+		// Serialize concurrent initialize() calls onto one shared run.
+		if (this._initializePromise) {
+			return this._initializePromise
+		}
+
+		// Keep the ContextProxy around so handleSettingsChange() can lazily create
+		// the config manager when this manager was never initialized.
+		this._contextProxy = contextProxy
+
+		this._initializePromise = this._initializeInternal()
+		try {
+			return await this._initializePromise
+		} finally {
+			this._initializePromise = undefined
+		}
+	}
+
+	/**
+	 * Internal initialization logic, executed under the shared in-flight guard.
+	 */
+	private async _initializeInternal(): Promise<{ requiresRestart: boolean }> {
 		// 1. ConfigManager Initialization and Configuration Loading
 		if (!this._configManager) {
-			this._configManager = new CodeIndexConfigManager(contextProxy)
+			this._configManager = new CodeIndexConfigManager(this._contextProxy!)
 		}
 		// Load configuration once to get current state and restart requirements
 		const { requiresRestart } = await this._configManager.loadConfiguration()
@@ -208,7 +254,8 @@ export class CodeIndexManager {
 		}
 
 		// 6. Determine if Core Services Need Recreation
-		const needsServiceRecreation = (!this._serviceFactory && !this._sembleProvider) || requiresRestart
+		const needsServiceRecreation =
+			(!this._serviceFactory && !this._sembleProvider) || requiresRestart || !this._serviceStateMatchesConfig()
 
 		if (needsServiceRecreation) {
 			await this._recreateServices()
@@ -243,11 +290,21 @@ export class CodeIndexManager {
 	 */
 	public async startIndexing(): Promise<void> {
 		if (!this.isFeatureEnabled || !this.isWorkspaceEnabled) {
+			console.warn(
+				`[CodeIndexManager] startIndexing short-circuit: enabled=${this.isFeatureEnabled}, workspaceEnabled=${this.isWorkspaceEnabled}, status=${JSON.stringify(this.getCurrentStatus())}`,
+			)
 			return
 		}
 
 		// Delegate to semble provider if active
 		if (this._sembleProvider) {
+			// A cached init failure (e.g. a transient download/network error) is
+			// sticky by design so status polls don't re-run the slow download, but
+			// an explicit user-initiated start must be able to retry. Reset the
+			// provider so the download/validation pipeline runs again.
+			if (this._stateManager.state === "Error") {
+				this._sembleProvider.reset()
+			}
 			await this._sembleProvider.startIndexing()
 			return
 		}
@@ -385,6 +442,19 @@ export class CodeIndexManager {
 	}
 
 	/**
+	 * Reconciliation check: does the currently active service set match the
+	 * configured embedder provider? If the config says "semble" but no
+	 * SembleProvider is active (or vice versa), services must be recreated.
+	 */
+	private _serviceStateMatchesConfig(): boolean {
+		const provider = this._configManager?.currentEmbedderProvider
+		if (provider === "semble") {
+			return !!this._sembleProvider
+		}
+		return !this._sembleProvider && !!this._orchestrator && !!this._searchService
+	}
+
+	/**
 	 * Private helper method to recreate services with current configuration.
 	 * Used by both initialize() and handleSettingsChange().
 	 */
@@ -404,6 +474,10 @@ export class CodeIndexManager {
 
 		// Branch: if provider is "semble", create SembleProvider instead of external services
 		if (this._configManager!.currentEmbedderProvider === "semble") {
+			// Reference-aligned (Zoo-Code): do NOT forward searchMinScore /
+			// searchMaxResults to the Semble provider. The Semble search path
+			// applies no score filter and no result cap — those settings are
+			// consumed only by the Qdrant path (search-service.ts / qdrant-client.ts).
 			this._sembleProvider = new SembleProvider(this.workspacePath, this.context, this._stateManager, {
 				binaryPath: this._configManager!.sembleBinaryPath,
 			})
@@ -490,43 +564,71 @@ export class CodeIndexManager {
 	 * This method should be called when code index settings are updated
 	 * to ensure the CodeIndexConfigManager picks up the new configuration.
 	 * If the configuration changes require a restart, the service will be restarted.
+	 *
+	 * The config manager is created lazily when missing so a settings save always
+	 * loads the current configuration — even if this manager was never initialized
+	 * (e.g. a swallowed background init or a fresh remote session).
 	 */
-	public async handleSettingsChange(): Promise<void> {
-		if (this._configManager) {
-			const { requiresRestart } = await this._configManager.loadConfiguration()
-
-			const isFeatureEnabled = this.isFeatureEnabled
-			const isFeatureConfigured = this.isFeatureConfigured
-
-			// If feature is disabled, stop the service (including any active scan)
-			if (!isFeatureEnabled) {
-				this.stopIndexing()
-				this._stateManager.setSystemState("Standby", "Code indexing is disabled")
+	public async handleSettingsChange(contextProxy?: ContextProxy): Promise<void> {
+		if (!this._configManager) {
+			const resolvedContextProxy = contextProxy ?? this._contextProxy
+			if (!resolvedContextProxy) {
+				console.error(
+					"[CodeIndexManager] handleSettingsChange called without a ContextProxy; cannot load configuration.",
+				)
+				TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
+					error: "handleSettingsChange called without a ContextProxy",
+					location: "handleSettingsChange",
+				})
 				return
 			}
+			this._configManager = new CodeIndexConfigManager(resolvedContextProxy)
+		}
 
-			if (requiresRestart && isFeatureEnabled && isFeatureConfigured) {
-				try {
-					// Ensure cacheManager is initialized before recreating services
-					if (!this._cacheManager) {
-						this._cacheManager = new CacheManager(this.context, this.workspacePath)
-						await this._cacheManager.initialize()
-					}
+		const { requiresRestart, configSnapshot, currentConfig } = await this._configManager.loadConfiguration()
 
-					// Recreate services with new configuration
-					await this._recreateServices()
-				} catch (error) {
-					// Error state already set in _recreateServices
-					console.error("Failed to recreate services:", error)
-					TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-						error: error instanceof Error ? error.message : String(error),
-						stack: error instanceof Error ? error.stack : undefined,
-						location: "handleSettingsChange",
-					})
-					// Re-throw the error so the caller knows validation failed
-					throw error
+		const isFeatureEnabled = this.isFeatureEnabled
+
+		// If feature is disabled, stop the service (including any active scan)
+		if (!isFeatureEnabled) {
+			console.warn(
+				`[CodeIndexManager] handleSettingsChange short-circuit: feature disabled. status=${JSON.stringify(this.getCurrentStatus())}`,
+			)
+			this.stopIndexing()
+			this._stateManager.setSystemState("Standby", "Code indexing is disabled")
+			return
+		}
+
+		// A provider change always forces service recreation — even when the new
+		// provider is not yet configured — so stale providers (e.g. an old Semble
+		// provider) are disposed and the UI reflects the actual embedder.
+		const providerChanged = configSnapshot?.embedderProvider !== currentConfig?.embedderProvider
+
+		if (requiresRestart || providerChanged) {
+			try {
+				// Ensure cacheManager is initialized before recreating services
+				if (!this._cacheManager) {
+					this._cacheManager = new CacheManager(this.context, this.workspacePath)
+					await this._cacheManager.initialize()
 				}
+
+				// Recreate services with new configuration
+				await this._recreateServices()
+			} catch (error) {
+				// Error state already set in _recreateServices
+				console.error("Failed to recreate services:", error)
+				TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
+					error: error instanceof Error ? error.message : String(error),
+					stack: error instanceof Error ? error.stack : undefined,
+					location: "handleSettingsChange",
+				})
+				// Re-throw the error so the caller knows validation failed
+				throw error
 			}
+		} else {
+			console.warn(
+				`[CodeIndexManager] handleSettingsChange no-op: no restart required and provider unchanged. status=${JSON.stringify(this.getCurrentStatus())}`,
+			)
 		}
 	}
 }

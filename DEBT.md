@@ -6,38 +6,18 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 
 ## 🔴 High Priority
 
-### 1. CLI `README.md` References Upstream Repository
-
-**Location**: [`apps/cli/README.md`](apps/cli/README.md)
-**Issue**: The CLI README still references `https://github.com/RooCodeInc/Roo-Code` (upstream Zoo Code) for installation scripts, links, and documentation. As a fork, Roo+ should either mirror the CLI install infrastructure or clearly document the fork divergence.
-**Impact**: Users following the CLI install script may end up installing upstream Zoo Code instead of Roo+.
-**Suggested Fix**: Either:
-
-- Fork the install script to the Roo+ org and update URLs, or
-- Add a clear warning that the CLI README is inherited from upstream and the install script points to Zoo Code.
-
-### 2. Upstream Merge Drift
+### 1. Upstream Merge Drift
 
 **Location**: [`Merge upstream/main into master (sync fork)`](https://github.com/xavier-arosemena/roo-plus/commits/master)
 **Issue**: The fork has diverged significantly from upstream Zoo Code. Each merge requires resolving conflicts across 50+ files. The `Merge remote-tracking branch 'origin/master'` pattern in git history shows manual merge overhead.
 **Impact**: Integrating upstream security fixes and features requires significant manual effort per merge.
 **Suggested Fix**: Consider using `git merge --squash` for upstream syncs, or set up automated merge conflict detection.
 
-### 3. CLI Event-Listener Leak (F1 — Architecture Review 2026-07-31)
-
-**Location**: [`apps/cli/src/agent/extension-host.ts`](apps/cli/src/agent/extension-host.ts:308)
-
-**Issue**: `setupQuietMode()` registers `process.on("warning", () => {})` with an **anonymous handler that is never removed** by `restoreConsole()`. In interactive/TUI mode the `PromptManager` cycles quiet-mode per prompt, so the `process` listener accumulates over a long session (silent memory/listener growth).
-
-**Impact**: Resource leak in long-lived CLI processes; listeners accumulate across prompt cycles.
-
-**Suggested Fix**: Keep a named handler reference and `process.removeListener("warning", handler)` in `restoreConsole()`.
-
 ---
 
 ## 🟡 Medium Priority
 
-### 3. Package CHANGELOGs Out of Sync
+### 2. Package CHANGELOGs Out of Sync
 
 **Locations**:
 
@@ -50,79 +30,59 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 **Impact**: Developers and downstream consumers of these packages cannot track historical changes.
 **Suggested Fix**: Automate changelog generation for packages using changesets or a commit-based generator.
 
-### 4. `apps/cli/CHANGELOG.md` Stale Since March 2026
+### 3. `apps/cli/CHANGELOG.md` Stale Since March 2026
 
 **Location**: [`apps/cli/CHANGELOG.md`](apps/cli/CHANGELOG.md)
 **Issue**: The CLI changelog stops at `0.1.17` (2026-03-04). Multiple CLI features (zoo command, autonomous orchestrator, autonomous mode coverage) have been added since but are not documented.
 **Impact**: CLI users cannot track what's new.
 **Suggested Fix**: Audit CLI commits since March 2026 and update the changelog, or automate from git history.
 
-### 5. Duplicate README Files
+### 4. Duplicate README Files
 
 **Locations**: [`README.md`](README.md) and [`src/README.md`](src/README.md)
 **Issue**: The root and `src/` README files are nearly identical (both document the full custom modes library, project structure, etc.). The `src/` copy exists because VS Code extension packaging includes `src/` as the root. However, this creates a maintenance burden — both must be updated in lockstep.
 **Impact**: Documentation drift is likely; the `src/` copy was already behind the root on the Option 0 marketplace instructions.
 **Suggested Fix**: Consider consolidating the `src/README.md` to reference the root README, or add a build step that copies `README.md` → `src/README.md`.
 
-### 6. Webview Message Protocol — Transitional (Untyped) Types
+### 5. Webview Message Protocol — Transitional (Untyped) Types
 
 **Location**: [`packages/types/src/webview-messages/`](packages/types/src/webview-messages/index.ts)
 **Issue**: 149 of 165 `WebviewMessage.type` members remain unregistered — they have no zod schema and rely on the transitional pass-through in `parseWebviewMessage`. The CI ratchet ([`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs)) enforces the untyped count never increases, but broadening is ongoing.
 **Impact**: Untyped message types still lack runtime validation and payload-type coupling; a crafted webview can send any shape for these types.
 **Suggested Fix**: Migrate remaining domains into the registry per [`plans/s1-message-protocol.md`](plans/s1-message-protocol.md) (S1-M4): worktree ×12, marketplace ×7, skills ×6, rules ×5, code-index ×10, terminal ×9, images ×4, debug ×4, misc.
 
-### 7. Outbound `ExtensionMessage` Not Yet Typed/Validated
+### 6. Outbound `ExtensionMessage` Not Yet Typed/Validated
 
 **Location**: [`packages/types/src/vscode-extension-host.ts`](packages/types/src/vscode-extension-host.ts)
 **Issue**: The outbound `ExtensionMessage` union (87 types) has not received the same discriminated-union/zod treatment as `WebviewMessage`. Webview consumers must still trust the producer's shape.
 **Impact**: No schema-driven type safety on the extension→webview direction; the "Type Lie" is only half-closed.
 **Suggested Fix**: Apply the same `z.infer` registry + boundary-parse treatment (e.g., `parseExtensionMessage`). Lower priority — the extension is the trusted producer.
 
-### 8. Silent Drop of Unregistered Webview Messages (F2 — Architecture Review 2026-07-31)
-
-**Location**: [`src/core/webview/webviewMessageHandler.ts`](src/core/webview/webviewMessageHandler.ts:119)
-
-**Issue**: The router fall-through for unregistered/unhandled message types is a silent no-op — the `console.log` is commented out. Unregistered types pass the zod boundary structurally (by design), then vanish here with zero observability. A misspelled or regressed message type fails silently.
-
-**Impact**: No observability for protocol regressions; silent functional no-ops.
-
-**Suggested Fix**: Add a debug-level log in the fall-through branch.
-
-### 9. Legacy CLI Credential Write Path (F4 — Architecture Review 2026-07-31)
-
-**Location**: [`apps/cli/src/lib/storage/credentials.ts`](apps/cli/src/lib/storage/credentials.ts:15)
-
-**Issue**: `saveToken()` persists the legacy Roo auth token as plaintext JSON (mode `0o600`) at `cli-credentials.json`. Roo Code Router was removed — normal CLI usage is login-free, so nothing should ever write a token; `saveToken` is dead code outside tests. A leftover plaintext write path is an unnecessary secret-at-rest surface.
-
-**Impact**: Unnecessary plaintext secret storage surface; dead code.
-
-**Suggested Fix**: Remove the dead `saveToken` write path (and its test), retaining read-only `auth status`/`auth logout` for legacy token cleanup.
-
 ---
 
 ## 🟢 Low Priority
 
-### 8. CI Test Coverage Threshold
+### 7. CI Test Coverage Threshold
 
 **Issue**: While test counts are reported in changelogs (e.g., "All 7119 source tests pass"), there is no CI-enforced minimum code coverage threshold.
 **Impact**: Coverage could regress between releases without visibility.
 **Suggested Fix**: Add a `coverage` threshold in vitest config (e.g., 80% branch coverage) and enforce in CI.
 
-### 9. Locale README Files Out of Sync
+### 8. Locale README Files Out of Sync
 
 **Locations**: `locales/*/README.md` (17 locale directories)
 **Issue**: Localized README files exist but are not maintained in lockstep with the English root README. The agent count, feature list, and installation instructions may be stale in non-English READMEs.
 **Impact**: Non-English users may see outdated documentation.
 **Suggested Fix**: Add a CI check that compares locale README structure against the English README, or generate locale READMEs from templates.
 
-### 10. `scripts/` Directory Documentation
+### 9. `scripts/` Directory Documentation
 
 **Location**: `scripts/` directory
 **Issue**: Several utility scripts exist (`sync-custom-modes.mjs`, `verify-roomodes-sync.mjs`, `verify-message-schemas.mjs`, `generate-catalog.mjs`, `find-missing-i18n-key.js`, etc.) but there is no single document explaining what each script does, when to run it, and its dependencies.
 **Impact**: New contributors and maintainers must read script source to understand purpose.
 **Suggested Fix**: Add a `scripts/README.md` with a table of scripts, their purpose, and usage.
 
-### 11. Large Webview Components
+### 10. Large Webview Components
 
 **Locations**:
 
@@ -135,41 +95,14 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 **Impact**: Hard to test and maintain; risk of regressions when extending features.
 **Suggested Fix**: Decompose into hooks and smaller subcomponents; add unit tests at the narrowest layer.
 
-### 12. Residual `as any` / `@ts-ignore` Counts
+### 11. Residual `as any` / `@ts-ignore` Counts
 
 **Locations**: `src/`, `packages/types/`, `webview-ui/`
 **Issue**: Scattered type-escape hatches (`as any`, `@ts-ignore`) remain across the codebase. There is no tracked baseline or CI-enforced ceiling — lint blocks new `as any` in changed files, but existing occurrences persist (handlers previously relied on `message.values as any`).
 **Impact**: Undermines type safety and complicates the typed-message-protocol effort.
 **Suggested Fix**: Track per-file counts (extend the `src/eslint-suppressions.json` pattern), reduce over time, and prefer typed APIs.
 
-### 13. Hardcoded `SEMBLE_VERSION` in Downloader
-
-**Location**: [`src/services/code-index/semble/semble-downloader.ts`](src/services/code-index/semble/semble-downloader.ts)
-**Issue**: The semble binary version is hardcoded as a constant. While a "latest" mode and configurable binary path were added in v3.72.1, the default version is still a compile-time constant.
-**Impact**: Version bumps require a source code change even when "latest" mode is available as an opt-in.
-**Suggested Fix**: Make "latest" the default behavior for the semble download version.
-
-### 14. No-Op `vscode-shim` Logger in CLI (F5 — Architecture Review 2026-07-31)
-
-**Location**: [`apps/cli/src/commands/cli/run.ts`](apps/cli/src/commands/cli/run.ts:53)
-
-**Issue**: `run()` calls `setLogger` with all no-op functions, collapsing `vscode-shim` diagnostics. Combined with quiet-mode console suppression, CLI error observability is limited.
-
-**Impact**: Shim-layer errors are invisible; difficult debugging for extension-host shim issues.
-
-**Suggested Fix**: Route shim logs through the CLI `DebugLogger` (or a `--debug`-gated channel) instead of discarding them.
-
-### 15. Fragile Closure Ordering in `waitForTaskCompletion` (F6 — Architecture Review 2026-07-31)
-
-**Location**: [`apps/cli/src/agent/extension-host.ts`](apps/cli/src/agent/extension-host.ts:478)
-
-**Issue**: `waitForTaskCompletion` references `cleanup`/`messageHandler` in closures before their `const`/`let` declarations. Functionally correct due to temporal ordering, but a TDZ hazard for future edits.
-
-**Impact**: Future refactors could introduce a runtime `ReferenceError`.
-
-**Suggested Fix**: Declare `messageHandler` and `cleanup` before the closures that reference them.
-
-### 16. `sync-custom-modes.mjs` Preserves Stale `.roomodes` Entries (Architecture Review 2026-07-31)
+### 12. `sync-custom-modes.mjs` Preserves Stale `.roomodes` Entries (Architecture Review 2026-07-31)
 
 **Location**: [`scripts/sync-custom-modes.mjs`](scripts/sync-custom-modes.mjs:347)
 
@@ -179,24 +112,45 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 
 **Suggested Fix**: In `sync-custom-modes.mjs`, on slug conflict prefer the freshly-generated entry's `description` when the existing entry's is empty (merge descriptions into existing), so re-running sync repairs stale fields while preserving manual edits.
 
+### 13. Playwright Visual Regression Baseline Maintenance (v3.76.0)
+
+**Location**: [`webview-ui/playwright-ct.config.ts`](webview-ui/playwright-ct.config.ts), [`webview-ui/playwright/TranslationContext.ts`](webview-ui/playwright/TranslationContext.ts), [`webview-ui/src/components/settings/__tests__/ModelInfoView.visual.tsx`](webview-ui/src/components/settings/__tests__/ModelInfoView.visual.tsx)
+
+**Issue**: The v3.76.0 Playwright Component-Testing visual regression harness ships static PNG baselines (e.g. `model-info-service-tier-pricing-dark.png`) and `TranslationContext`-wrapped CT fixtures. Any intentional UI change requires regenerating and committing new baselines; without discipline, baselines silently drift out of sync or the CT suite becomes flaky in headless CI.
+
+**Impact**: Out-of-date baselines mask regressions or fail CI unexpectedly; visual coverage may be skipped if flaky.
+
+**Suggested Fix**: Wire the visual CT suite into CI (code-qa), document a baseline-regeneration workflow (`npx playwright test --update-snapshots`), and gate intentional baseline changes in PRs.
+
 ---
 
 ## ✅ Recently Resolved Debt
 
 | Debt                                                                   | Resolution                                                                                                                                                                           | Version    |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
-| Dead `setApiConfigPassword` webview message type                       | Removed schema, registry entry, exports, type-union member, and tests (dead protocol surface)                                                                                        | Unreleased |
-| Webview message "Type Lie" (flat interface, payloads untied to type)   | Zod schema registry in `packages/types/src/webview-messages/`; `z.infer` types; 16 security-sensitive domains typed + validated                                                      | Unreleased |
-| Missing runtime validation at webview→extension boundary ("Input Gap") | `parseWebviewMessage` at `ClineProvider.setWebviewMessageListener` + CLI `message-processor.ts`; malformed messages rejected before dispatch                                         | Unreleased |
-| God-object `ClineProvider` (~3,800 lines)                              | Slimmed to ~2,500 lines; extracted `TaskHistoryService`, `ProviderProfileService`, `MarketplaceService`, `TaskOrchestrator` into `src/core/services/`                                | Unreleased |
-| God-switch webview dispatcher (~4,000-line switch)                     | 15 per-domain handler modules in `src/core/webview/handlers/` behind a thin router                                                                                                   | Unreleased |
-| `dangerouslySetInnerHTML` XSS sites                                    | DOMPurify `sanitizeHtml.ts` applied to all sites; Mermaid `securityLevel: "strict"`; `escapeXML` pinned                                                                              | Unreleased |
-| Relaxed HMR CSP (`https://*` wildcard)                                 | Wildcard removed; Vite-identity probe (`/@vite/client`) added                                                                                                                        | Unreleased |
-| Stale cloud test + floating-promise lint readiness issues              | Removed stale `@roo-code/cloud` test; fixed 2 floating promises; completed "Zoo Code" rebrand                                                                                        | Unreleased |
-| `.roomodes` could drift from committed content                         | [`scripts/verify-roomodes-sync.mjs`](scripts/verify-roomodes-sync.mjs) regenerates `.roomodes` and fails on drift                                                                    | Unreleased |
-| Semble bundled launcher (broken, no runtime)                           | Removed; download-only mechanism; manual binary via `codebaseIndexSembleBinaryPath`                                                                                                  | Unreleased |
-| Semble EACCES (one-dir archive layout)                                 | `resolveSembleBinary` resolves the real executable; self-heals existing installs                                                                                                     | Unreleased |
-| Pre-installed mode descriptions missing / "not always present"         | Rewrote `seedPreInstalledModes` to merge-fill: `.some()`→ any-bundled-mode check repairs partial seeds; never overwrites user modes/edits; adds bundled modes only on version change | Unreleased |
+| Dead `setApiConfigPassword` webview message type                       | Removed schema, registry entry, exports, type-union member, and tests (dead protocol surface)                                                                                        | v3.76.0    |
+| Webview message "Type Lie" (flat interface, payloads untied to type)   | Zod schema registry in `packages/types/src/webview-messages/`; `z.infer` types; 16 security-sensitive domains typed + validated                                                      | v3.76.0    |
+| Missing runtime validation at webview→extension boundary ("Input Gap") | `parseWebviewMessage` at `ClineProvider.setWebviewMessageListener` + CLI `message-processor.ts`; malformed messages rejected before dispatch                                         | v3.76.0    |
+| God-object `ClineProvider` (~3,800 lines)                              | Slimmed to ~2,500 lines; extracted `TaskHistoryService`, `ProviderProfileService`, `MarketplaceService`, `TaskOrchestrator` into `src/core/services/`                                | v3.76.0    |
+| God-switch webview dispatcher (~4,000-line switch)                     | 15 per-domain handler modules in `src/core/webview/handlers/` behind a thin router                                                                                                   | v3.76.0    |
+| `dangerouslySetInnerHTML` XSS sites                                    | DOMPurify `sanitizeHtml.ts` applied to all sites; Mermaid `securityLevel: "strict"`; `escapeXML` pinned                                                                              | v3.76.0    |
+| Relaxed HMR CSP (`https://*` wildcard)                                 | Wildcard removed; Vite-identity probe (`/@vite/client`) added                                                                                                                        | v3.76.0    |
+| Stale cloud test + floating-promise lint readiness issues              | Removed stale `@roo-code/cloud` test; fixed 2 floating promises; completed "Zoo Code" rebrand                                                                                        | v3.76.0    |
+| `.roomodes` could drift from committed content                         | [`scripts/verify-roomodes-sync.mjs`](scripts/verify-roomodes-sync.mjs) regenerates `.roomodes` and fails on drift                                                                    | v3.76.0    |
+| Semble bundled launcher (broken, no runtime)                           | Removed; download-only mechanism; manual binary via `codebaseIndexSembleBinaryPath`                                                                                                  | v3.76.0    |
+| Semble EACCES (one-dir archive layout)                                 | `resolveSembleBinary` resolves the real executable; self-heals existing installs                                                                                                     | v3.76.0    |
+| Pre-installed mode descriptions missing / "not always present"         | Rewrote `seedPreInstalledModes` to merge-fill: `.some()`→ any-bundled-mode check repairs partial seeds; never overwrites user modes/edits; adds bundled modes only on version change | v3.76.0    |
+| CLI README references upstream repo                                    | Prominent warning callout added documenting fork divergence; users directed to build-from-source or release binaries                                                                 | v3.76.0    |
+| CLI `process` event-listener leak in quiet mode (F1)                   | Named handler stored on instance; removed in `restoreConsole()`; regression test asserts `process.listenerCount("warning")` baseline                                                 | v3.76.0    |
+| Silent drop of unregistered webview messages (F2)                      | Debug-gated (`roo-plus.debug`) `provider.log()` added in router fall-through                                                                                                         | v3.76.0    |
+| Legacy CLI credential plaintext write path (F4)                        | `saveToken` write path retired; module is read/delete-only for legacy token cleanup                                                                                                  | v3.76.0    |
+| No-op `vscode-shim` logger in CLI (F5)                                 | Wired to CLI `DebugLogger` per-level when `--debug` is passed                                                                                                                        | v3.76.0    |
+| Fragile closure ordering in `waitForTaskCompletion` (F6)               | Declarations reordered before referencing closures; TDZ hazard removed                                                                                                               | v3.76.0    |
+| 7 new + ~100 pre-existing CodeQL code-scanning alerts                  | Fixed port-validation, temp-file handling, command-race, and path-escaping findings on the release branch                                                                            | v3.76.0    |
+| Semble empty search results (0.4 min-score filter on Semble path)      | Removed the score filter; Semble path reference-aligned with Zoo Code (no filter, no cap); `searchMinScore`/`searchMaxResults` are Qdrant-only                                       | Unreleased |
+| Fabricated 1-token context window in task header                       | `TaskHeader` only trusts a real finite positive window; token rows hidden when model info is unavailable; `ContextWindowProgress` clamps segments to ≤100%                           | Unreleased |
+| Dead `ICodeIndexManager` interface                                     | Removed (nothing implemented it; stale `searchIndex` contract)                                                                                                                       | Unreleased |
+| `SEMBLE_VERSION` default resolution (hardcoded constant)               | Version pinned by default for deterministic installs; "latest" is opt-in via `SEMBLE_RESOLVE_LATEST`; `SEMBLE_SHA256` checksums regenerated                                          | Unreleased |
 | Roo Code Cloud dead code (`packages/cloud/`)                           | Removed entirely (~400 lines)                                                                                                                                                        | v3.74.0    |
 | Semble binary download 404 (hardcoded single source)                   | Added multi-source fallback, configurable binary path, checksum manifest                                                                                                             | v3.72.1    |
 | 46 Dependabot advisories + 7 code scanning alerts                      | Resolved via dependency updates and code fixes                                                                                                                                       | v3.72.0    |

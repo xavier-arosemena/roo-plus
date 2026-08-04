@@ -32,18 +32,19 @@
 
 Roo+ extends the incredible foundation of Zoo Code with **90 custom modes** (curated from a total of 233 specialized agents available), **enhanced features**, and a personalized configuration tailored for modern development workflows.
 
-| Feature                       | Description                                                                                                                |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| 🎯 **Custom Modes Library**   | **90 specialized agents** pre-loaded for every task                                                                        |
-| 🤖 **AI Agent Team**          | Multiple AI agents working together in your editor                                                                         |
-| 🔌 **MCP Support**            | Full Model Context Protocol integration                                                                                    |
-| 🌍 **Multi-Provider**         | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                            |
-| 📦 **Bulk Mode Install**      | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0) |
-| 🏷️ **Mode Subtitles**         | All 90 pre-loaded modes display descriptive subtitles in the mode selector UI (v3.73.0)                                    |
-| 🛠️ **Terminal Integration**   | Smart terminal with shell integration                                                                                      |
-| 📁 **Tree-Sitter Code Index** | Intelligent code understanding for 30+ languages                                                                           |
-| 🔒 **Atomic File Writing**    | Safe, crash-proof file operations                                                                                          |
-| 🌐 **Localization**           | Available in 18+ languages                                                                                                 |
+| Feature                        | Description                                                                                                                |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| 🎯 **Custom Modes Library**    | **90 specialized agents** pre-loaded for every task                                                                        |
+| 🤖 **AI Agent Team**           | Multiple AI agents working together in your editor                                                                         |
+| 🔌 **MCP Support**             | Full Model Context Protocol integration                                                                                    |
+| 🌍 **Multi-Provider**          | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                            |
+| 📦 **Bulk Mode Install**       | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0) |
+| 🏷️ **Mode Subtitles**          | All 90 pre-loaded modes display descriptive subtitles in the mode selector UI (v3.73.0)                                    |
+| 🛠️ **Terminal Integration**    | Smart terminal with shell integration                                                                                      |
+| 📁 **Tree-Sitter Code Index**  | Intelligent code understanding for 30+ languages with reliable Semble search and diagnostics (v3.77.0)                     |
+| 🧮 **Accurate Context Window** | Trusted, real context-window metrics with no fabricated token counts in the task header (v3.77.0)                          |
+| 🔒 **Atomic File Writing**     | Safe, crash-proof file operations                                                                                          |
+| 🌐 **Localization**            | Available in 18+ languages                                                                                                 |
 
 <br/>
 
@@ -213,6 +214,8 @@ ovsx install xavier-arosemena/roo-plus
 ```
 
 ### Install from VSIX
+
+> **Prerequisite:** Node.js 22+ (`^22.22.2`, see [`.nvmrc`](.nvmrc)) and `pnpm`. Building the extension from source requires the Node.js v22 LTS toolchain (see the [Node.js v22 ADR](src/docs/adr-nodejs-v22.md)).
 
 ```bash
 # Clone the repo

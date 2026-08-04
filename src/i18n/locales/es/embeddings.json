@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble no es compatible con esta plataforma ({{platform}}-{{arch}}).",
 		"downloadFailed": "Error al descargar semble: {{errorMessage}}",
 		"checkFailed": "Verificación de semble fallida: {{errorMessage}}",
+		"searchFailed": "La búsqueda de Semble falló: {{errorMessage}}",
 		"providerReset": "Proveedor de Semble restablecido. La caché en disco se conserva hasta la próxima reconstrucción."
 	}
 }

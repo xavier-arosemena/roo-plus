@@ -243,7 +243,8 @@
 			"standby": "En espera",
 			"indexing": "Indexant",
 			"indexed": "Indexat",
-			"error": "Error"
+			"error": "Error",
+			"stopping": "Aturant la indexació..."
 		},
 		"close": "Tancar",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "Activar la indexació per a aquest espai de treball",
 		"workspaceDisabledMessage": "La indexació està configurada però no habilitada per a aquest espai de treball.",
 		"autoEnableDefaultLabel": "Habilitar automàticament la indexació per a nous espais de treball",
-		"sembleProvider": "Semble - Local"
+		"sembleProvider": "Semble - Local",
+		"sembleBinaryPathLabel": "Ruta del binari de Semble (opcional)",
+		"sembleBinaryPathPlaceholder": "p. ex. /usr/local/bin/semble (deixa-ho buit per descarregar automàticament)",
+		"sembleBinaryPathDescription": "Ruta d'un binari de semble instal·lat manualment. Quan s'estableix, es salta la descàrrega automàtica. Deixa-ho buit per utilitzar el binari descarregat automàticament."
 	},
 	"autoApprove": {
 		"toggleShortcut": "Pots configurar una drecera global per a aquesta configuració <SettingsLink>a les preferències del teu IDE</SettingsLink>.",

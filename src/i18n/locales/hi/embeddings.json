@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "इस प्लेटफ़ॉर्म पर Semble समर्थित नहीं है ({{platform}}-{{arch}})।",
 		"downloadFailed": "semble डाउनलोड करने में विफल: {{errorMessage}}",
 		"checkFailed": "Semble जाँच विफल: {{errorMessage}}",
+		"searchFailed": "Semble खोज विफल: {{errorMessage}}",
 		"providerReset": "Semble प्रदाता रीसेट किया गया। डिस्क कैश अगले रीबिल्ड तक बना रहता है।"
 	}
 }

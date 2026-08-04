@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "xavier-arosemena",
-	"version": "3.76.0",
+	"version": "3.77.0",
 	"icon": "assets/icons/icon.png",
 	"galleryBanner": {
 		"color": "#617A91",
@@ -521,7 +521,7 @@
 		"strip-bom": "^5.0.0",
 		"tiktoken": "^1.0.21",
 		"tree-sitter-wasms": "^0.1.13",
-		"undici": "^6.21.3",
+		"undici": "^6.28.0",
 		"uuid": "^14.0.0",
 		"vscode-material-icons": "^0.1.1",
 		"web-tree-sitter": "^0.25.6",

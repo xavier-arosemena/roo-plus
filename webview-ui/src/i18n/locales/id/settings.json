@@ -243,7 +243,8 @@
 			"standby": "Siaga",
 			"indexing": "Mengindeks",
 			"indexed": "Terindeks",
-			"error": "Error"
+			"error": "Error",
+			"stopping": "Menghentikan pengindeksan..."
 		},
 		"close": "Tutup",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "Aktifkan pengindeksan untuk ruang kerja ini",
 		"workspaceDisabledMessage": "Pengindeksan dikonfigurasi tetapi tidak diaktifkan untuk ruang kerja ini.",
 		"autoEnableDefaultLabel": "Aktifkan pengindeksan secara otomatis untuk ruang kerja baru",
-		"sembleProvider": "Semble - Lokal"
+		"sembleProvider": "Semble - Lokal",
+		"sembleBinaryPathLabel": "Jalur Biner Semble (opsional)",
+		"sembleBinaryPathPlaceholder": "mis. /usr/local/bin/semble (biarkan kosong untuk mengunduh otomatis)",
+		"sembleBinaryPathDescription": "Jalur ke biner semble yang diinstal secara manual. Jika diatur, unduhan otomatis dilewati. Biarkan kosong untuk menggunakan biner yang diunduh secara otomatis."
 	},
 	"autoApprove": {
 		"toggleShortcut": "Anda dapat mengonfigurasi pintasan global untuk pengaturan ini <SettingsLink>di preferensi IDE Anda</SettingsLink>.",

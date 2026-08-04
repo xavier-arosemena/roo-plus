@@ -14,6 +14,10 @@ interface ContextWindowProgressProps {
 export const ContextWindowProgress = ({ contextWindow, contextTokens, maxTokens }: ContextWindowProgressProps) => {
 	const { t } = useTranslation()
 
+	// Only a real, finite, positive window can be represented on the bar. When it is
+	// missing (0, negative, NaN, Infinity), render a neutral/empty bar instead.
+	const hasValidWindow = Number.isFinite(contextWindow) && contextWindow > 0
+
 	// Use the shared utility function to calculate all token distribution values
 	const tokenDistribution = useMemo(
 		() => calculateTokenDistribution(contextWindow, contextTokens, maxTokens),
@@ -22,6 +26,13 @@ export const ContextWindowProgress = ({ contextWindow, contextTokens, maxTokens 
 
 	// Destructure the values we need
 	const { currentPercent, reservedPercent, availableSize, reservedForOutput, availablePercent } = tokenDistribution
+
+	// Guard: with no usable window, force every segment to 0% so the bar renders
+	// empty instead of overflowing or appearing full. Combined with the utility's
+	// clamped math, the three widths can never sum above 100%.
+	const usedPercent = hasValidWindow ? currentPercent : 0
+	const reservedWidthPercent = hasValidWindow ? reservedPercent : 0
+	const availableWidthPercent = hasValidWindow ? availablePercent : 0
 
 	// For display purposes
 	const safeContextWindow = Math.max(0, contextWindow)
@@ -64,7 +75,7 @@ export const ContextWindowProgress = ({ contextWindow, contextTokens, maxTokens 
 							{/* Current tokens container */}
 							<div
 								className="relative h-full"
-								style={{ width: `${currentPercent}%` }}
+								style={{ width: `${usedPercent}%` }}
 								data-testid="context-tokens-used">
 								{/* Current tokens used - darkest */}
 								<div className="h-full w-full bg-[var(--vscode-foreground)] transition-width duration-300 ease-out" />
@@ -73,17 +84,17 @@ export const ContextWindowProgress = ({ contextWindow, contextTokens, maxTokens 
 							{/* Container for reserved tokens */}
 							<div
 								className="relative h-full"
-								style={{ width: `${reservedPercent}%` }}
+								style={{ width: `${reservedWidthPercent}%` }}
 								data-testid="context-reserved-tokens">
 								{/* Reserved for output section - medium gray */}
 								<div className="h-full w-full bg-[color-mix(in_srgb,var(--vscode-foreground)_30%,transparent)] transition-width duration-300 ease-out" />
 							</div>
 
 							{/* Empty section (if any) */}
-							{availablePercent > 0 && (
+							{availableWidthPercent > 0 && (
 								<div
 									className="relative h-full"
-									style={{ width: `${availablePercent}%` }}
+									style={{ width: `${availableWidthPercent}%` }}
 									data-testid="context-available-space-section">
 									{/* Available space - transparent */}
 								</div>

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { EventEmitter } from "events"
-import { SembleCLI } from "../semble-cli"
+import { SembleCLI, isVersionAtLeast, supportsMaxSnippetLinesFlag } from "../semble-cli"
 
 // Mock spawn
 const mockSpawn = vi.fn()
@@ -42,6 +42,20 @@ function createErrorProcess(errorMessage: string) {
 	return proc
 }
 
+/**
+ * Creates a mock child process that stays alive until the test drives it, so
+ * the abort() path can be exercised while a spawn is still in-flight. Built
+ * via Object.assign so the fake stays fully typed (no `any` casts).
+ */
+function createPendingProcess() {
+	const proc = Object.assign(new EventEmitter(), {
+		stdout: new EventEmitter(),
+		stderr: new EventEmitter(),
+		kill: vi.fn(() => true),
+	})
+	return proc
+}
+
 describe("SembleCLI", () => {
 	let cli: SembleCLI
 
@@ -58,13 +72,46 @@ describe("SembleCLI", () => {
 	})
 
 	describe("checkInstalled", () => {
-		it("should return installed: true when --help succeeds", async () => {
-			mockSpawn.mockReturnValueOnce(createMockProcess("usage: semble ...", "", 0))
+		it("should return installed: true when --help succeeds and mentions search", async () => {
+			// Reference v0.4.1 help output advertises the `search` subcommand.
+			mockSpawn.mockReturnValueOnce(
+				createMockProcess("usage: semble [-h] {search,clear,find-related,...}", "", 0),
+			)
 
 			const result = await cli.checkInstalled()
 
 			expect(result).toEqual({ installed: true })
 			expect(mockSpawn).toHaveBeenCalledWith("semble", ["--help"], expect.objectContaining({ shell: false }))
+		})
+
+		it("should return installed: true when --help exits 0 and output mentions search (case-insensitive)", async () => {
+			mockSpawn.mockReturnValueOnce(
+				createMockProcess("USAGE: semble [-h] {SEARCH,CLEAR,FIND-RELATED,...}", "", 0),
+			)
+
+			const result = await cli.checkInstalled()
+
+			expect(result).toEqual({ installed: true })
+		})
+
+		it("should return installed: false when --help exits 0 with no usable output", async () => {
+			// A corrupted PyInstaller build (e.g. v0.5.2) exits 0 silently with no output.
+			mockSpawn.mockReturnValueOnce(createMockProcess("", "", 0))
+
+			const result = await cli.checkInstalled()
+
+			expect(result.installed).toBe(false)
+			expect(result.error).toContain("Semble binary is not functional")
+			expect(result.error).toContain("--help")
+		})
+
+		it("should return installed: false when --help exits 0 but does not advertise search", async () => {
+			mockSpawn.mockReturnValueOnce(createMockProcess("usage: semble [-h] {clear,find-related,...}", "", 0))
+
+			const result = await cli.checkInstalled()
+
+			expect(result.installed).toBe(false)
+			expect(result.error).toContain("Semble binary is not functional")
 		})
 
 		it("should return installed: false when semble --help fails", async () => {
@@ -146,94 +193,34 @@ describe("SembleCLI", () => {
 			)
 		})
 
+		it("should add --max-snippet-lines flag when configured", async () => {
+			mockSpawn.mockReturnValue(createMockProcess(JSON.stringify({ query: "test", results: [] }), "", 0))
+
+			await cli.search("test", "/repo", { maxSnippetLines: 150 })
+
+			expect(mockSpawn).toHaveBeenCalledWith(
+				"semble",
+				["search", "test", "/repo", "-k", "10", "--max-snippet-lines", "150"],
+				expect.any(Object),
+			)
+		})
+
+		it("should omit --max-snippet-lines flag when not configured", async () => {
+			mockSpawn.mockReturnValue(createMockProcess(JSON.stringify({ query: "test", results: [] }), "", 0))
+
+			await cli.search("test", "/repo")
+
+			expect(mockSpawn).toHaveBeenCalledWith(
+				"semble",
+				["search", "test", "/repo", "-k", "10"],
+				expect.any(Object),
+			)
+		})
+
 		it("should throw error when semble search fails", async () => {
 			mockSpawn.mockReturnValue(createMockProcess("", "Error: something went wrong", 1))
 
 			await expect(cli.search("test", "/repo")).rejects.toThrow("Semble search failed")
-		})
-	})
-
-	describe("findRelated", () => {
-		it("should build correct args with default options", async () => {
-			mockSpawn.mockReturnValue(createMockProcess(JSON.stringify({ query: "related", results: [] }), "", 0))
-
-			await cli.findRelated("src/auth.ts", 42, "/repo")
-
-			expect(mockSpawn).toHaveBeenCalledWith(
-				"semble",
-				["find-related", "src/auth.ts", "42", "/repo", "-k", "10"],
-				expect.any(Object),
-			)
-		})
-
-		it("should build correct args with custom topK and content", async () => {
-			mockSpawn.mockReturnValue(createMockProcess(JSON.stringify({ query: "related", results: [] }), "", 0))
-
-			await cli.findRelated("src/auth.ts", 42, "/repo", { topK: 3, content: "all" })
-
-			expect(mockSpawn).toHaveBeenCalledWith(
-				"semble",
-				["find-related", "src/auth.ts", "42", "/repo", "-k", "3", "--content", "all"],
-				expect.any(Object),
-			)
-		})
-
-		it("should not add --content flag for code (default)", async () => {
-			mockSpawn.mockReturnValue(createMockProcess(JSON.stringify({ query: "related", results: [] }), "", 0))
-
-			await cli.findRelated("src/auth.ts", 42, "/repo", { content: "code" })
-
-			expect(mockSpawn).toHaveBeenCalledWith(
-				"semble",
-				["find-related", "src/auth.ts", "42", "/repo", "-k", "10"],
-				expect.any(Object),
-			)
-		})
-
-		it("should add --content flag for docs content type", async () => {
-			mockSpawn.mockReturnValue(createMockProcess(JSON.stringify({ query: "related", results: [] }), "", 0))
-
-			await cli.findRelated("src/auth.ts", 42, "/repo", { content: "docs" })
-
-			expect(mockSpawn).toHaveBeenCalledWith(
-				"semble",
-				["find-related", "src/auth.ts", "42", "/repo", "-k", "10", "--content", "docs"],
-				expect.any(Object),
-			)
-		})
-
-		it("should throw error when semble find-related fails", async () => {
-			mockSpawn.mockReturnValue(createMockProcess("", "Error: no chunk found", 1))
-
-			await expect(cli.findRelated("src/auth.ts", 42, "/repo")).rejects.toThrow("Semble find-related failed")
-		})
-
-		it("should throw with message when find-related fails with empty stderr", async () => {
-			mockSpawn.mockReturnValue(createMockProcess("", "", 1))
-
-			await expect(cli.findRelated("src/auth.ts", 42, "/repo")).rejects.toThrow("Semble find-related failed")
-		})
-
-		it("should parse results from find-related", async () => {
-			const jsonResponse = {
-				query: "related",
-				results: [
-					{
-						content: "related code",
-						file_path: "src/related.ts",
-						start_line: 1,
-						end_line: 10,
-						score: 0.85,
-					},
-				],
-			}
-			mockSpawn.mockReturnValue(createMockProcess(JSON.stringify(jsonResponse), "", 0))
-
-			const results = await cli.findRelated("src/auth.ts", 42, "/repo")
-
-			expect(results).toHaveLength(1)
-			expect(results[0].file_path).toBe("src/related.ts")
-			expect(results[0].score).toBe(0.85)
 		})
 	})
 
@@ -359,5 +346,106 @@ describe("SembleCLI", () => {
 
 			await expect(cli.search("test", "/repo")).rejects.toThrow("EACCES: permission denied")
 		})
+	})
+
+	describe("abort", () => {
+		it("should kill the active child and reject the pending promise on abort", async () => {
+			const proc = createPendingProcess()
+			mockSpawn.mockReturnValue(proc)
+
+			const pending = cli.search("test", "/repo")
+			cli.abort()
+
+			// The pending search rejects cleanly (wrapped by search's error handling).
+			await expect(pending).rejects.toThrow("Semble process aborted")
+			expect(proc.kill).toHaveBeenCalled()
+		})
+
+		it("should be a safe no-op when no child is active", () => {
+			expect(() => cli.abort()).not.toThrow()
+		})
+
+		it("should not double-settle when the killed process later emits close/error", async () => {
+			const proc = createPendingProcess()
+			mockSpawn.mockReturnValue(proc)
+
+			const pending = cli.search("test", "/repo")
+			cli.abort()
+
+			// Emulate Node emitting close/error after a manual kill — the killed
+			// guard must swallow these so the promise settles exactly once.
+			proc.emit("close", null)
+			proc.emit("error", new Error("killed"))
+
+			await expect(pending).rejects.toThrow("Semble process aborted")
+			expect(proc.kill).toHaveBeenCalledTimes(1)
+		})
+
+		it("should abort a previously-tracked child when a new spawn starts", async () => {
+			const proc1 = createPendingProcess()
+			const proc2 = createPendingProcess()
+			mockSpawn.mockReturnValueOnce(proc1).mockReturnValueOnce(proc2)
+
+			const first = cli.search("test", "/repo")
+			const second = cli.search("test2", "/repo")
+
+			// Starting a second spawn aborts the first so it can't orphan.
+			expect(proc1.kill).toHaveBeenCalled()
+
+			cli.abort()
+
+			await expect(first).rejects.toThrow("Semble process aborted")
+			await expect(second).rejects.toThrow("Semble process aborted")
+			expect(proc2.kill).toHaveBeenCalled()
+		})
+	})
+})
+
+describe("isVersionAtLeast", () => {
+	it("compares dotted-numeric versions", () => {
+		expect(isVersionAtLeast("v0.4.1", "v0.4.1")).toBe(true)
+		expect(isVersionAtLeast("v0.4.2", "v0.4.1")).toBe(true)
+		expect(isVersionAtLeast("v0.5.2", "v0.4.1")).toBe(true)
+		expect(isVersionAtLeast("v0.10.0", "v0.4.1")).toBe(true)
+		expect(isVersionAtLeast("v0.4.0", "v0.4.1")).toBe(false)
+		expect(isVersionAtLeast("v0.3.9", "v0.4.1")).toBe(false)
+		expect(isVersionAtLeast("v0.4.1", "v0.4.0")).toBe(true)
+	})
+
+	it("handles bare and v-prefixed versions interchangeably", () => {
+		expect(isVersionAtLeast("0.5.2", "v0.4.1")).toBe(true)
+		expect(isVersionAtLeast("v0.4.1", "0.4.1")).toBe(true)
+		expect(isVersionAtLeast("0.3.1", "v0.4.1")).toBe(false)
+	})
+
+	it("returns false (conservative) for empty or unparseable input", () => {
+		expect(isVersionAtLeast(undefined, "v0.4.1")).toBe(false)
+		expect(isVersionAtLeast("", "v0.4.1")).toBe(false)
+		expect(isVersionAtLeast("latest", "v0.4.1")).toBe(false)
+		expect(isVersionAtLeast("v0.4.1-beta", "v0.4.1")).toBe(false)
+		expect(isVersionAtLeast("not-a-version", "v0.4.1")).toBe(false)
+	})
+})
+
+describe("supportsMaxSnippetLinesFlag", () => {
+	it("returns true for v0.4.1 and newer", () => {
+		expect(supportsMaxSnippetLinesFlag("v0.4.1")).toBe(true)
+		expect(supportsMaxSnippetLinesFlag("v0.4.2")).toBe(true)
+		expect(supportsMaxSnippetLinesFlag("v0.5.2")).toBe(true)
+		expect(supportsMaxSnippetLinesFlag("v0.10.0")).toBe(true)
+		expect(supportsMaxSnippetLinesFlag("0.4.1")).toBe(true)
+	})
+
+	it("returns false for versions older than v0.4.1", () => {
+		expect(supportsMaxSnippetLinesFlag("v0.3.1")).toBe(false)
+		expect(supportsMaxSnippetLinesFlag("v0.4.0")).toBe(false)
+		expect(supportsMaxSnippetLinesFlag("v0.3.10")).toBe(false)
+	})
+
+	it("returns false (conservative) for empty or unknown versions", () => {
+		expect(supportsMaxSnippetLinesFlag(undefined)).toBe(false)
+		expect(supportsMaxSnippetLinesFlag("")).toBe(false)
+		expect(supportsMaxSnippetLinesFlag("latest")).toBe(false)
+		expect(supportsMaxSnippetLinesFlag("unknown")).toBe(false)
 	})
 })

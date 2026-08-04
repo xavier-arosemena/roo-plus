@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "このプラットフォームではSembleはサポートされていません ({{platform}}-{{arch}})。",
 		"downloadFailed": "sembleのダウンロードに失敗しました: {{errorMessage}}",
 		"checkFailed": "Sembleの確認に失敗しました: {{errorMessage}}",
+		"searchFailed": "Sembleの検索に失敗しました: {{errorMessage}}",
 		"providerReset": "Sembleプロバイダーをリセットしました。次回の再構築までディスクキャッシュは残ります。"
 	}
 }

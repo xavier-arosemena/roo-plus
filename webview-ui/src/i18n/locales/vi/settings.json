@@ -243,7 +243,8 @@
 			"standby": "Chờ",
 			"indexing": "Đang lập chỉ mục",
 			"indexed": "Đã lập chỉ mục",
-			"error": "Lỗi"
+			"error": "Lỗi",
+			"stopping": "Đang dừng lập chỉ mục..."
 		},
 		"close": "Đóng",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "Bật lập chỉ mục cho không gian làm việc này",
 		"workspaceDisabledMessage": "Lập chỉ mục đã được cấu hình nhưng chưa được bật cho không gian làm việc này.",
 		"autoEnableDefaultLabel": "Tự động bật lập chỉ mục cho không gian làm việc mới",
-		"sembleProvider": "Semble - Cục bộ"
+		"sembleProvider": "Semble - Cục bộ",
+		"sembleBinaryPathLabel": "Đường dẫn tệp nhị phân Semble (tùy chọn)",
+		"sembleBinaryPathPlaceholder": "ví dụ: /usr/local/bin/semble (để trống để tự động tải xuống)",
+		"sembleBinaryPathDescription": "Đường dẫn đến tệp nhị phân semble được cài đặt thủ công. Khi được đặt, quá trình tự động tải xuống sẽ bị bỏ qua. Để trống để sử dụng tệp nhị phân được tải xuống tự động."
 	},
 	"autoApprove": {
 		"toggleShortcut": "Bạn có thể định cấu hình một phím tắt chung cho cài đặt này <SettingsLink>trong tùy chọn IDE của bạn</SettingsLink>.",

@@ -281,6 +281,9 @@
 		"openRouterProviderRoutingLabel": "OpenRouter Provider Routing",
 		"openRouterProviderRoutingDescription": "OpenRouter routes requests to the best available providers for your embedding model. By default, requests are load balanced across the top providers to maximize uptime. However, you can choose a specific provider to use for this model.",
 		"sembleProvider": "Semble - Local",
+		"sembleBinaryPathLabel": "Semble Binary Path (optional)",
+		"sembleBinaryPathPlaceholder": "e.g. /usr/local/bin/semble (leave empty to auto-download)",
+		"sembleBinaryPathDescription": "Path to a manually installed semble binary. When set, auto-download is skipped. Leave empty to use the automatically downloaded binary.",
 		"openaiCompatibleProvider": "OpenAI Compatible",
 		"openAiKeyLabel": "OpenAI API Key",
 		"openAiKeyPlaceholder": "Enter your OpenAI API key",
@@ -331,7 +334,8 @@
 			"standby": "Standby",
 			"indexing": "Indexing",
 			"indexed": "Indexed",
-			"error": "Error"
+			"error": "Error",
+			"stopping": "Stopping indexing..."
 		},
 		"close": "Close",
 		"validation": {

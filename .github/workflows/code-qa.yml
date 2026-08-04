@@ -57,6 +57,15 @@ jobs:
               run: |
                   pnpm --filter @roo-code/types build
                   node scripts/verify-message-schemas.mjs
+            # Release-readiness gate for the Semble code-index feature: confirms
+            # the GitHub release tagged at SEMBLE_VERSION ships a
+            # checksums-sha256.txt manifest whose hashes match the hardcoded
+            # SEMBLE_SHA256 table. Non-strict (default) so transient network
+            # errors don't block CI, but it FAILS (exit 1) on a checksum,
+            # version, or archive mismatch — i.e. if SEMBLE_VERSION drifts from
+            # SEMBLE_SHA256 / SEMBLE_ARCHIVES.
+            - name: Verify Semble release checksums (release-readiness gate)
+              run: node scripts/verify-semble-checksums.mjs
 
     audit-dependencies:
         runs-on: ubuntu-latest

@@ -20,7 +20,7 @@ curl -fsSL https://raw.githubusercontent.com/RooCodeInc/Roo-Code/main/apps/cli/i
 
 **Requirements:**
 
-- Node.js 20 or higher
+- Node.js 22 or higher (`^22.22.2`)
 - macOS Apple Silicon (M1/M2/M3/M4) or Linux x64
 
 **Custom installation directory:**

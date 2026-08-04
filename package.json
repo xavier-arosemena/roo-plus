@@ -28,7 +28,9 @@
 		"npm:publish:types": "pnpm --filter @roo-code/types npm:publish",
 		"sync:custom-modes": "node scripts/sync-custom-modes.mjs",
 		"custom-modes:update": "cd custom-modes && git pull && cd .. && node scripts/sync-custom-modes.mjs",
-		"custom-modes:catalog": "node scripts/generate-catalog.mjs"
+		"custom-modes:catalog": "node scripts/generate-catalog.mjs",
+		"smoke:semble": "node scripts/semble-smoke.mjs",
+		"smoke:semble:test": "node --test scripts/semble-smoke.spec.mjs"
 	},
 	"devDependencies": {
 		"@changesets/cli": "2.31.0",

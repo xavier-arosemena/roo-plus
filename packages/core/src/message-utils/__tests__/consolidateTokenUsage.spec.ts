@@ -96,6 +96,30 @@ describe("consolidateTokenUsage", () => {
 			expect(result.contextTokens).toBe(5000)
 			expect(result.totalCost).toBeCloseTo(0.05)
 		})
+
+		it("includes cache tokens already folded into tokensIn without double-counting", () => {
+			// `tokensIn` is the stored `costResult.totalInputTokens` (Task.ts), which is
+			// cache-inclusive for both protocols: Anthropic =
+			// input + cacheCreation + cacheRead, OpenAI = inputTokens already include cache.
+			// So cacheWrites/cacheReads are reported separately for the cache rows but must
+			// NOT be added to contextTokens again.
+			const messages: ClineMessage[] = [
+				createApiReqMessage(1000, {
+					tokensIn: 1500, // total input, already includes 1000 cached tokens
+					tokensOut: 200,
+					cacheWrites: 400,
+					cacheReads: 600,
+				}),
+			]
+
+			const result = consolidateTokenUsage(messages)
+
+			// contextTokens = tokensIn + tokensOut (cache NOT added twice)
+			expect(result.contextTokens).toBe(1700)
+			// Cache figures are still reported separately.
+			expect(result.totalCacheWrites).toBe(400)
+			expect(result.totalCacheReads).toBe(600)
+		})
 	})
 
 	describe("invalid data handling", () => {

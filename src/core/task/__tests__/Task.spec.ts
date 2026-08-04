@@ -118,8 +118,18 @@ vi.mock("vscode", () => {
 	const mockTextEditor = { document: mockTextDocument }
 	const mockTab = { input: { uri: { fsPath: "/mock/workspace/path/file.ts" } } }
 	const mockTabGroup = { tabs: [mockTab] }
+	const mockWorkspaceFolder = { uri: { fsPath: "/mock/workspace/path" }, name: "mock-workspace", index: 0 }
 
 	return {
+		Uri: {
+			file: vi.fn((fsPath: string) => ({
+				fsPath,
+				scheme: "file",
+				authority: "",
+				path: fsPath,
+				toString: () => `file://${fsPath}`,
+			})),
+		},
 		TabInputTextDiff: vi.fn(),
 		CodeActionKind: {
 			QuickFix: { value: "quickfix" },
@@ -138,13 +148,10 @@ vi.mock("vscode", () => {
 			showErrorMessage: vi.fn(),
 		},
 		workspace: {
-			workspaceFolders: [
-				{
-					uri: { fsPath: "/mock/workspace/path" },
-					name: "mock-workspace",
-					index: 0,
-				},
-			],
+			workspaceFolders: [mockWorkspaceFolder],
+			getWorkspaceFolder: vi.fn((uri: { fsPath?: string } | undefined) =>
+				uri?.fsPath?.startsWith(mockWorkspaceFolder.uri.fsPath) ? mockWorkspaceFolder : undefined,
+			),
 			createFileSystemWatcher: vi.fn(() => ({
 				onDidCreate: vi.fn(() => mockDisposable),
 				onDidDelete: vi.fn(() => mockDisposable),

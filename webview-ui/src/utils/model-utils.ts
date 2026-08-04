@@ -56,25 +56,32 @@ export const calculateTokenDistribution = (
 	// Calculate sizes directly without buffer display
 	const availableSize = Math.max(0, safeContextWindow - safeContextTokens - reservedForOutput)
 
-	// Calculate percentages - ensure they sum to exactly 100%
-	// Use the ratio of each part to the total context window
-	const total = safeContextTokens + reservedForOutput + availableSize
-
-	// Safeguard against division by zero
-	if (total <= 0) {
+	// Defensive: a missing, zero, or non-finite window leaves nothing meaningful to
+	// draw. Return all-zero values so the bar renders empty instead of overflowing.
+	if (!Number.isFinite(safeContextWindow) || safeContextWindow <= 0) {
 		return {
 			currentPercent: 0,
 			reservedPercent: 0,
 			availablePercent: 0,
-			reservedForOutput,
-			availableSize,
+			reservedForOutput: 0,
+			availableSize: 0,
 		}
 	}
 
+	// Percentages are always relative to the real context window. Clamp current to
+	// 100 so cache + output tokens exceeding the window can never overflow the bar.
+	const currentPercent = Math.min((safeContextTokens / safeContextWindow) * 100, 100)
+
+	// Only reserve output room within the width left after the used section, so the
+	// three segments never overlap and never exceed 100% of the bar width.
+	const remainingPercent = Math.max(0, 100 - currentPercent)
+	const reservedPercent = Math.min((reservedForOutput / safeContextWindow) * 100, remainingPercent)
+	const availablePercent = Math.max(0, remainingPercent - reservedPercent)
+
 	return {
-		currentPercent: (safeContextTokens / total) * 100,
-		reservedPercent: (reservedForOutput / total) * 100,
-		availablePercent: (availableSize / total) * 100,
+		currentPercent,
+		reservedPercent,
+		availablePercent,
 		reservedForOutput,
 		availableSize,
 	}

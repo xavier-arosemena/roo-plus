@@ -3,6 +3,7 @@
 import { render, screen, fireEvent } from "@/utils/test-utils"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
+import { ContextWindowProgress } from "@src/components/chat/ContextWindowProgress"
 import TaskHeader from "@src/components/chat/TaskHeader"
 
 // Mock formatLargeNumber function
@@ -135,5 +136,30 @@ describe("ContextWindowProgress", () => {
 
 		// Verify the flex container has the expected structure
 		expect(progressBarContainer?.querySelector(".flex-1.relative")).toBeInTheDocument()
+	})
+
+	it("never overflows the bar when tokens exceed the context window", () => {
+		render(<ContextWindowProgress contextWindow={4000} contextTokens={5000} />)
+
+		const used = screen.getByTestId("context-tokens-used")
+		const reserved = screen.getByTestId("context-reserved-tokens")
+
+		// Used tokens are clamped to 100% and reserved does not push past the window
+		expect(used.style.width).toBe("100%")
+		expect(reserved.style.width).toBe("0%")
+		// No remaining space, so the available section is omitted
+		expect(screen.queryByTestId("context-available-space-section")).not.toBeInTheDocument()
+
+		// The rendered segments never sum above 100% of the bar width
+		const totalWidth = [used, reserved].reduce((sum, el) => sum + parseFloat(el.style.width), 0)
+		expect(totalWidth).toBeLessThanOrEqual(100)
+	})
+
+	it("renders a neutral empty bar when the context window is unavailable", () => {
+		render(<ContextWindowProgress contextWindow={0} contextTokens={1000} />)
+
+		expect(screen.getByTestId("context-tokens-used").style.width).toBe("0%")
+		expect(screen.getByTestId("context-reserved-tokens").style.width).toBe("0%")
+		expect(screen.queryByTestId("context-available-space-section")).not.toBeInTheDocument()
 	})
 })

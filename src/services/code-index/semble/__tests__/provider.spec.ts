@@ -8,20 +8,28 @@ import { SEMBLE_DEFAULTS } from "../types"
 const sharedMockCli = {
 	checkInstalled: vi.fn(),
 	search: vi.fn(),
-	findRelated: vi.fn(),
+	abort: vi.fn(),
 }
 
-vi.mock("../semble-cli", () => ({
-	SembleCLI: vi.fn().mockImplementation(function () {
-		return sharedMockCli
-	}),
-}))
+vi.mock("../semble-cli", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("../semble-cli")>()
+	return {
+		...actual,
+		// Only the class is faked — the pure version-gating helpers
+		// (supportsMaxSnippetLinesFlag) stay real so searchIndex's gating logic
+		// is exercised against the actual implementation.
+		SembleCLI: vi.fn().mockImplementation(function () {
+			return sharedMockCli
+		}),
+	}
+})
 
 // Mock semble-downloader
 vi.mock("../semble-downloader", () => ({
 	isSembleSupportedPlatform: vi.fn().mockReturnValue(true),
 	downloadSemble: vi.fn().mockResolvedValue("/mock/storage/semble/semble"),
-	SEMBLE_VERSION: "v0.4.1",
+	getInstalledSembleVersion: vi.fn().mockResolvedValue("v0.5.2"),
+	SEMBLE_VERSION: "v0.5.2",
 }))
 
 // Mock TelemetryService
@@ -53,6 +61,8 @@ vi.mock("../../../../i18n", () => ({
 				return `Failed to download semble: ${params?.errorMessage ?? ""}`
 			case "embeddings:semble.checkFailed":
 				return `Semble check failed: ${params?.errorMessage ?? ""}`
+			case "embeddings:semble.searchFailed":
+				return `Semble search failed: ${params?.errorMessage ?? ""}`
 			case "embeddings:semble.providerReset":
 				return "Semble provider reset. On-disk cache remains until next rebuild."
 			default:
@@ -63,7 +73,7 @@ vi.mock("../../../../i18n", () => ({
 
 import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
-import { isSembleSupportedPlatform, downloadSemble } from "../semble-downloader"
+import { getInstalledSembleVersion, isSembleSupportedPlatform, downloadSemble } from "../semble-downloader"
 
 describe("SembleProvider", () => {
 	let provider: SembleProvider
@@ -75,9 +85,23 @@ describe("SembleProvider", () => {
 		vi.clearAllMocks()
 		;(isSembleSupportedPlatform as any).mockReturnValue(true)
 		;(downloadSemble as any).mockResolvedValue("/mock/storage/semble/semble")
+		vi.mocked(getInstalledSembleVersion).mockResolvedValue("v0.5.2")
 
+		// Closure-backed shared state: provider.state is now a passthrough to the
+		// state manager, so the mock must track state itself for the assertions to
+		// observe transitions. setSystemStateSilent mirrors the real manager's
+		// "update without firing a progress event" method used by reset().
+		let currentState = "Standby"
 		mockStateManager = {
-			setSystemState: vi.fn(),
+			get state() {
+				return currentState
+			},
+			setSystemState: vi.fn((newState: string, _message?: string) => {
+				currentState = newState
+			}),
+			setSystemStateSilent: vi.fn((newState: string) => {
+				currentState = newState
+			}),
 		}
 
 		mockContext = {
@@ -110,6 +134,15 @@ describe("SembleProvider", () => {
 			expect(p).toBeDefined()
 			expect(p.state).toBe("Standby")
 		})
+
+		it("should create provider with search config options", () => {
+			const p = new SembleProvider("/workspace", mockContext, mockStateManager, {
+				searchMinScore: 0.5,
+				searchMaxResults: 25,
+			})
+			expect(p).toBeDefined()
+			expect(p.state).toBe("Standby")
+		})
 	})
 
 	describe("initialize", () => {
@@ -122,7 +155,7 @@ describe("SembleProvider", () => {
 			expect(provider.state).toBe("Indexed")
 			expect(mockStateManager.setSystemState).toHaveBeenCalledWith(
 				"Indexed",
-				"Semble v0.4.1 is ready. Searches index on-the-fly.",
+				"Semble v0.5.2 is ready. Searches index on-the-fly.",
 			)
 		})
 
@@ -204,7 +237,23 @@ describe("SembleProvider", () => {
 
 			// The ready message interpolates the active SEMBLE_VERSION so the UI
 			// (CodeIndexPopover) surfaces which release is installed.
-			expect(mockStateManager.setSystemState).toHaveBeenCalledWith("Indexed", expect.stringContaining("v0.4.1"))
+			expect(mockStateManager.setSystemState).toHaveBeenCalledWith("Indexed", expect.stringContaining("v0.5.2"))
+		})
+
+		it("should surface the actually-installed version when it differs from SEMBLE_VERSION", async () => {
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+			// Simulate a "latest" install that resolved to a newer tag than the
+			// hardcoded SEMBLE_VERSION — the ready message must reflect the real one.
+			vi.mocked(getInstalledSembleVersion).mockResolvedValue("v0.6.0")
+
+			await provider.initialize()
+
+			expect(getInstalledSembleVersion).toHaveBeenCalledWith("/mock/storage")
+			expect(mockStateManager.setSystemState).toHaveBeenCalledWith("Indexed", expect.stringContaining("v0.6.0"))
+			expect(mockStateManager.setSystemState).not.toHaveBeenCalledWith(
+				"Indexed",
+				expect.stringContaining("v0.5.2"),
+			)
 		})
 	})
 
@@ -233,6 +282,47 @@ describe("SembleProvider", () => {
 			await provider.startIndexing()
 
 			expect(provider.state).toBe("Indexed")
+		})
+	})
+
+	describe("failure caching (R6)", () => {
+		it("should cache an init failure and not re-run the download on repeat startIndexing", async () => {
+			vi.mocked(downloadSemble).mockRejectedValue(new Error("network error"))
+
+			await provider.initialize()
+			expect(provider.state).toBe("Error")
+			expect(downloadSemble).toHaveBeenCalledTimes(1)
+
+			// Repeated startIndexing must NOT re-run the full download pipeline
+			await provider.startIndexing()
+			await provider.startIndexing()
+			expect(downloadSemble).toHaveBeenCalledTimes(1)
+		})
+
+		it("should cache an init failure and not re-download on repeat initialize", async () => {
+			vi.mocked(downloadSemble).mockRejectedValue(new Error("network error"))
+
+			await provider.initialize()
+			expect(downloadSemble).toHaveBeenCalledTimes(1)
+
+			await provider.initialize()
+			expect(downloadSemble).toHaveBeenCalledTimes(1)
+		})
+
+		it("should allow an explicit retry via reset() after a failure", async () => {
+			vi.mocked(downloadSemble).mockRejectedValue(new Error("network error"))
+
+			await provider.initialize()
+			expect(provider.state).toBe("Error")
+
+			// User fixes the network and retries explicitly
+			provider.reset()
+			vi.mocked(downloadSemble).mockResolvedValue("/mock/storage/semble/semble")
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+
+			await provider.initialize()
+			expect(provider.state).toBe("Indexed")
+			expect(downloadSemble).toHaveBeenCalledTimes(2)
 		})
 	})
 
@@ -281,6 +371,7 @@ describe("SembleProvider", () => {
 			expect(mockCli.search).toHaveBeenCalledWith("authentication", "/workspace", {
 				topK: SEMBLE_DEFAULTS.DEFAULT_TOP_K,
 				content: SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+				maxSnippetLines: SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES,
 			})
 
 			expect(results).toHaveLength(2)
@@ -348,6 +439,7 @@ describe("SembleProvider", () => {
 			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
 				topK: SEMBLE_DEFAULTS.DEFAULT_TOP_K,
 				content: SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+				maxSnippetLines: SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES,
 			})
 		})
 
@@ -360,6 +452,7 @@ describe("SembleProvider", () => {
 			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
 				topK: SEMBLE_DEFAULTS.DEFAULT_TOP_K,
 				content: SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+				maxSnippetLines: SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES,
 			})
 		})
 
@@ -423,12 +516,20 @@ describe("SembleProvider", () => {
 			expect(results).toHaveLength(2)
 		})
 
-		it("should return empty array on search error and log telemetry", async () => {
+		it("should surface a genuine search failure: rethrow, log telemetry, and set Error state", async () => {
+			// Use a fresh provider so the Error state doesn't leak into the shared
+			// instance used by the surrounding tests.
+			const freshProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
+			await freshProvider.initialize()
+
 			mockCli.search.mockRejectedValue(new Error("Search failed"))
 
-			const results = await provider.searchIndex("test")
+			await expect(freshProvider.searchIndex("test")).rejects.toThrow("Search failed")
 
-			expect(results).toEqual([])
+			// The provider must flip to Error so the UI (CodeIndexPopover) reflects
+			// the failure instead of staying "Indexed".
+			expect(freshProvider.state).toBe("Error")
+			expect(mockStateManager.setSystemState).toHaveBeenCalledWith("Error", "Semble search failed: Search failed")
 			expect(TelemetryService.instance.captureEvent).toHaveBeenCalledWith(
 				TelemetryEventName.CODE_INDEX_ERROR,
 				expect.objectContaining({
@@ -437,14 +538,18 @@ describe("SembleProvider", () => {
 			)
 		})
 
-		it("should capture stack only when error is an Error instance", async () => {
+		it("should set Error state and surface the original value for non-Error rejections", async () => {
 			// A non-Error rejection exercises the `error instanceof Error` false
 			// branch of the telemetry payload (stack: undefined).
+			const freshProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
+			await freshProvider.initialize()
+
 			mockCli.search.mockRejectedValue("string error")
 
-			const results = await provider.searchIndex("test")
+			await expect(freshProvider.searchIndex("test")).rejects.toBe("string error")
 
-			expect(results).toEqual([])
+			expect(freshProvider.state).toBe("Error")
+			expect(mockStateManager.setSystemState).toHaveBeenCalledWith("Error", "Semble search failed: string error")
 			expect(TelemetryService.instance.captureEvent).toHaveBeenCalledWith(
 				TelemetryEventName.CODE_INDEX_ERROR,
 				expect.objectContaining({
@@ -462,6 +567,19 @@ describe("SembleProvider", () => {
 			;(isSembleSupportedPlatform as any).mockReturnValue(true) // reset for other tests
 			const results = await errorProvider.searchIndex("test")
 			expect(results).toEqual([])
+		})
+
+		it("should return empty array for genuine 'no results' and keep Indexed state", async () => {
+			// A genuine "no results" (e.g. semble JSON {"error": "No results found."})
+			// surfaces as [] from the CLI — the empty-array contract must be preserved.
+			mockCli.search.mockResolvedValue([])
+
+			const results = await provider.searchIndex("test")
+
+			expect(results).toEqual([])
+			// Not an error: state remains Indexed and no error telemetry is captured.
+			expect(provider.state).toBe("Indexed")
+			expect(TelemetryService.instance.captureEvent).not.toHaveBeenCalled()
 		})
 	})
 
@@ -490,6 +608,20 @@ describe("SembleProvider", () => {
 			// After dispose, searchIndex should return empty array
 			const results = await provider.searchIndex("test")
 			expect(results).toEqual([])
+		})
+
+		it("should abort the CLI to terminate any in-flight child process", async () => {
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+			await provider.initialize()
+
+			provider.dispose()
+
+			expect(mockCli.abort).toHaveBeenCalled()
+		})
+
+		it("should be safe when disposed before initialization (no CLI yet)", () => {
+			expect(() => provider.dispose()).not.toThrow()
+			expect(mockCli.abort).not.toHaveBeenCalled()
 		})
 	})
 
@@ -648,6 +780,91 @@ describe("SembleProvider", () => {
 			expect(results[1].id).toBe("semble-1")
 			expect(results[2].id).toBe("semble-2")
 		})
+
+		it("should truncate oversized code chunks to the hard character cap", async () => {
+			const oversized = "x".repeat(SEMBLE_DEFAULTS.MAX_SNIPPET_CHARS + 100)
+			const mockResults = [
+				{
+					content: oversized,
+					file_path: "src/file.ts",
+					start_line: 1,
+					end_line: 2,
+					score: 0.9,
+				},
+				{
+					content: "short snippet",
+					file_path: "src/short.ts",
+					start_line: 1,
+					end_line: 2,
+					score: 0.8,
+				},
+			]
+
+			mockCli.search.mockResolvedValue(mockResults)
+
+			const results = await provider.searchIndex("test")
+
+			// Defense-in-depth: even if the CLI ignored --max-snippet-lines, an
+			// oversized chunk is capped to MAX_SNIPPET_CHARS while short snippets
+			// pass through unchanged — a single search never yields unbounded content.
+			expect(results[0].payload?.codeChunk).toHaveLength(SEMBLE_DEFAULTS.MAX_SNIPPET_CHARS)
+			expect(results[0].payload?.codeChunk).toBe(oversized.slice(0, SEMBLE_DEFAULTS.MAX_SNIPPET_CHARS))
+			expect(results[1].payload?.codeChunk).toBe("short snippet")
+		})
+
+		it("should pass maxSnippetLines default when installed version supports --max-snippet-lines (v0.4.1+)", async () => {
+			vi.mocked(getInstalledSembleVersion).mockResolvedValue("v0.4.1")
+			const gateProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+			await gateProvider.initialize()
+			mockCli.search.mockResolvedValue([])
+
+			await gateProvider.searchIndex("test")
+
+			// v0.4.1 is the documented minimum for the flag — the default 150-line
+			// snippet bound still applies.
+			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
+				topK: SEMBLE_DEFAULTS.DEFAULT_TOP_K,
+				content: SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+				maxSnippetLines: SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES,
+			})
+		})
+
+		it("should omit maxSnippetLines when installed version predates --max-snippet-lines (v0.4.1)", async () => {
+			vi.mocked(getInstalledSembleVersion).mockResolvedValue("v0.3.1")
+			const gateProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+			await gateProvider.initialize()
+			mockCli.search.mockResolvedValue([])
+
+			await gateProvider.searchIndex("test")
+
+			// Older binaries reject unknown flags — the provider must not forward
+			// a snippet bound, or every search would fail loudly.
+			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
+				topK: SEMBLE_DEFAULTS.DEFAULT_TOP_K,
+				content: SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+				maxSnippetLines: undefined,
+			})
+		})
+
+		it("should fall back to SEMBLE_VERSION and pass maxSnippetLines when version metadata is absent", async () => {
+			vi.mocked(getInstalledSembleVersion).mockResolvedValue(undefined)
+			const gateProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+			await gateProvider.initialize()
+			mockCli.search.mockResolvedValue([])
+
+			await gateProvider.searchIndex("test")
+
+			// _installedVersion falls back to SEMBLE_VERSION (v0.5.2), which
+			// advertises --max-snippet-lines, so the default bound still applies.
+			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
+				topK: SEMBLE_DEFAULTS.DEFAULT_TOP_K,
+				content: SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+				maxSnippetLines: SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES,
+			})
+		})
 	})
 
 	describe("initialize error edge cases", () => {
@@ -694,6 +911,7 @@ describe("SembleProvider", () => {
 			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
 				topK: 5,
 				content: "code",
+				maxSnippetLines: SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES,
 			})
 		})
 
@@ -711,7 +929,134 @@ describe("SembleProvider", () => {
 			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
 				topK: 10,
 				content: "all",
+				maxSnippetLines: SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES,
 			})
+		})
+
+		it("should pass custom maxSnippetLines to CLI search", async () => {
+			const customProvider = new SembleProvider("/workspace", mockContext, mockStateManager, {
+				maxSnippetLines: 200,
+			})
+
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+			await customProvider.initialize()
+			mockCli.search.mockResolvedValue([])
+
+			await customProvider.searchIndex("test")
+
+			// The provider forwards the configured snippet cap to the CLI so
+			// --max-snippet-lines bounds each result's content payload.
+			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
+				topK: 10,
+				content: "code",
+				maxSnippetLines: 200,
+			})
+		})
+	})
+
+	describe("search config (reference alignment: min score / max results ignored)", () => {
+		it("should keep all results when no min score or max results configured", async () => {
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+			await provider.initialize()
+
+			mockCli.search.mockResolvedValue([
+				{ content: "a", file_path: "a.ts", start_line: 1, end_line: 2, score: 0.9 },
+				{ content: "b", file_path: "b.ts", start_line: 1, end_line: 2, score: 0.5 },
+				{ content: "c", file_path: "c.ts", start_line: 1, end_line: 2, score: 0.2 },
+			])
+
+			const results = await provider.searchIndex("test")
+
+			// No score threshold and no cap when config is unset — all converted
+			// results (up to the default topK) are returned, as before.
+			expect(results).toHaveLength(3)
+			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
+				topK: SEMBLE_DEFAULTS.DEFAULT_TOP_K,
+				content: SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+				maxSnippetLines: SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES,
+			})
+		})
+
+		it("should return results regardless of their score — even when searchMinScore is configured (Zoo-Code reference)", async () => {
+			// The Semble path applies NO score threshold, matching Zoo-Code. A raw
+			// response with scores far below the (Qdrant-tuned) 0.4 threshold is
+			// returned in full — this is the regression guard for F1, where the
+			// previously-added 0.4 score filter produced recurring empty results.
+			const customProvider = new SembleProvider("/workspace", mockContext, mockStateManager, {
+				searchMinScore: 0.4,
+			})
+
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+			await customProvider.initialize()
+
+			mockCli.search.mockResolvedValue([
+				{ content: "a", file_path: "a.ts", start_line: 1, end_line: 2, score: 0.1 },
+				{ content: "b", file_path: "b.ts", start_line: 1, end_line: 2, score: 0.2 },
+				{ content: "c", file_path: "c.ts", start_line: 1, end_line: 2, score: 0.3 },
+			])
+
+			const results = await customProvider.searchIndex("test")
+
+			expect(results).toHaveLength(3)
+			expect(results.map((r) => r.score)).toEqual([0.1, 0.2, 0.3])
+			// Plain topK is forwarded even though searchMinScore is configured.
+			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
+				topK: SEMBLE_DEFAULTS.DEFAULT_TOP_K,
+				content: SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+				maxSnippetLines: SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES,
+			})
+		})
+
+		it("should NOT over-fetch or cap when searchMaxResults is configured (Zoo-Code reference)", async () => {
+			const customProvider = new SembleProvider("/workspace", mockContext, mockStateManager, {
+				searchMaxResults: 2,
+			})
+
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+			await customProvider.initialize()
+
+			mockCli.search.mockResolvedValue([
+				{ content: "a", file_path: "a.ts", start_line: 1, end_line: 2, score: 0.9 },
+				{ content: "b", file_path: "b.ts", start_line: 1, end_line: 2, score: 0.8 },
+				{ content: "c", file_path: "c.ts", start_line: 1, end_line: 2, score: 0.7 },
+			])
+
+			const results = await customProvider.searchIndex("test")
+
+			// No cap: all 3 raw results are returned (up to the plain topK).
+			expect(results).toHaveLength(3)
+			// No over-fetch: plain topK is forwarded, not searchMaxResults.
+			expect(mockCli.search).toHaveBeenCalledWith("test", "/workspace", {
+				topK: SEMBLE_DEFAULTS.DEFAULT_TOP_K,
+				content: SEMBLE_DEFAULTS.DEFAULT_CONTENT,
+				maxSnippetLines: SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES,
+			})
+		})
+
+		it("should log the raw score distribution once per provider instance on the first search", async () => {
+			const logSpy = vi.spyOn(console, "log").mockImplementation(() => {})
+			const customProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
+
+			mockCli.checkInstalled.mockResolvedValue({ installed: true })
+			await customProvider.initialize()
+
+			mockCli.search.mockResolvedValue([
+				{ content: "a", file_path: "a.ts", start_line: 1, end_line: 2, score: 0.9 },
+				{ content: "b", file_path: "b.ts", start_line: 1, end_line: 2, score: 0.5 },
+			])
+
+			await customProvider.searchIndex("first query")
+			await customProvider.searchIndex("second query")
+
+			const distributionLogs = logSpy.mock.calls.filter(
+				(call) => typeof call[0] === "string" && call[0].includes("Raw score distribution"),
+			)
+			// Logged exactly once (first search only), not per-query.
+			expect(distributionLogs).toHaveLength(1)
+			expect(distributionLogs[0][0]).toContain("count=2")
+			expect(distributionLogs[0][0]).toContain("min=0.5")
+			expect(distributionLogs[0][0]).toContain("max=0.9")
+			logSpy.mockRestore()
 		})
 	})
 })

@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble wird auf dieser Plattform nicht unterstützt ({{platform}}-{{arch}}).",
 		"downloadFailed": "Fehler beim Herunterladen von Semble: {{errorMessage}}",
 		"checkFailed": "Semble-Überprüfung fehlgeschlagen: {{errorMessage}}",
+		"searchFailed": "Semble-Suche fehlgeschlagen: {{errorMessage}}",
 		"providerReset": "Semble-Anbieter zurückgesetzt. Der Cache auf der Festplatte bleibt bis zum nächsten Neuaufbau erhalten."
 	}
 }

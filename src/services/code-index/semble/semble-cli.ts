@@ -1,7 +1,73 @@
-import { spawn } from "child_process"
+import { spawn, type ChildProcess } from "child_process"
 import fs from "fs"
 
 import { SembleSearchResult, SembleCheckResult, SembleContentType, SEMBLE_DEFAULTS } from "./types"
+
+/**
+ * Minimum semble release that advertises the `--max-snippet-lines` flag.
+ * Verified in `semble search --help` for the reference v0.4.1 binary.
+ *
+ * Older binaries reject unknown flags, so this flag must never be sent to a
+ * version below this threshold — an unsupported flag fails every search loudly.
+ */
+export const SEMBLE_MIN_MAX_SNIPPET_LINES_VERSION = "v0.4.1"
+
+/**
+ * Parses a semble version string into numeric parts, stripping an optional
+ * leading "v" (e.g. "v0.4.1" → [0, 4, 1], "0.5.2" → [0, 5, 2]). Returns
+ * undefined for empty or non-numeric input (including pre-release suffixes),
+ * so callers can resolve an unknown version conservatively.
+ */
+function parseSembleVersion(version: string | undefined): number[] | undefined {
+	if (!version) {
+		return undefined
+	}
+	const normalized = version.trim().replace(/^v/i, "")
+	// Require a strictly dotted-numeric string; reject pre-release suffixes.
+	if (!/^\d+(\.\d+)*$/.test(normalized)) {
+		return undefined
+	}
+	return normalized.split(".").map((part) => Number.parseInt(part, 10))
+}
+
+/**
+ * Returns true when `version` is at least `minimum` (dotted-numeric versions,
+ * optionally `v`-prefixed). Unknown/unparseable versions return false — the
+ * conservative default, since a caller must never assume a newer capability
+ * than what the installed binary advertises.
+ */
+export function isVersionAtLeast(version: string | undefined, minimum: string): boolean {
+	const versionParts = parseSembleVersion(version)
+	const minimumParts = parseSembleVersion(minimum)
+	if (!versionParts || !minimumParts) {
+		return false
+	}
+	const length = Math.max(versionParts.length, minimumParts.length)
+	for (let i = 0; i < length; i++) {
+		const a = versionParts[i] ?? 0
+		const b = minimumParts[i] ?? 0
+		if (a !== b) {
+			return a > b
+		}
+	}
+	return true
+}
+
+/**
+ * Whether the installed semble binary supports the `--max-snippet-lines` flag.
+ *
+ * The flag was introduced in v0.4.1 (the documented minimum for the flat JSON
+ * output + flag). Older binaries reject unknown flags and would fail every
+ * search loudly, so the provider must version-gate before forwarding the flag —
+ * never probe the runtime, always use the installed version metadata.
+ *
+ * Conservative default: unknown/unparseable versions return false so the flag
+ * is never sent. Omitting it only means full-chunk snippets, which the provider
+ * already hard-caps defensively (MAX_SNIPPET_CHARS).
+ */
+export function supportsMaxSnippetLinesFlag(version: string | undefined): boolean {
+	return isVersionAtLeast(version, SEMBLE_MIN_MAX_SNIPPET_LINES_VERSION)
+}
 
 /**
  * Wraps the `semble` CLI for programmatic access.
@@ -26,6 +92,15 @@ import { SembleSearchResult, SembleCheckResult, SembleContentType, SEMBLE_DEFAUL
 export class SembleCLI {
 	private readonly semblePath: string
 
+	/** The currently-spawned semble child process, if any. */
+	private _activeChild?: ChildProcess
+
+	/**
+	 * Aborts the currently-tracked child: kills it and rejects its pending
+	 * _spawn promise exactly once. Cleared when the child settles or is replaced.
+	 */
+	private _abortActiveChild?: () => void
+
 	constructor(semblePath: string) {
 		this.semblePath = semblePath
 
@@ -44,10 +119,26 @@ export class SembleCLI {
 
 	/**
 	 * Checks whether the semble binary is functional by running `semble --help`.
+	 *
+	 * Exit code 0 alone is not enough: a corrupted PyInstaller build (e.g. the
+	 * v0.5.2 release) exits 0 on every invocation with no output. Require the
+	 * help text to actually advertise the `search` subcommand so a silent-exit-0
+	 * stub is reported as broken instead of "installed/ready".
 	 */
 	async checkInstalled(): Promise<SembleCheckResult> {
 		try {
-			await this._spawn(["--help"], { timeout: 10_000 })
+			const { stdout } = await this._spawn(["--help"], { timeout: 10_000 })
+
+			// Case-insensitive check for the `search` subcommand in the trimmed
+			// help output (reference v0.4.1 prints `usage: semble [-h] {search,...}`).
+			const help = stdout.trim()
+			if (!help.toLowerCase().includes("search")) {
+				return {
+					installed: false,
+					error: "Semble binary is not functional: --help produced no usable output",
+				}
+			}
+
 			return { installed: true }
 		} catch (error: any) {
 			return {
@@ -60,17 +151,22 @@ export class SembleCLI {
 	/**
 	 * Searches a codebase. Semble indexes on-the-fly during search.
 	 *
-	 * Usage: semble search <query> [path] [-k N] [--content TYPE [TYPE ...]]
+	 * Usage: semble search <query> [path] [-k N] [--content TYPE [TYPE ...]] [--max-snippet-lines N]
 	 */
 	async search(
 		query: string,
 		repoPath: string,
-		options?: { topK?: number; content?: SembleContentType },
+		options?: { topK?: number; content?: SembleContentType; maxSnippetLines?: number },
 	): Promise<SembleSearchResult[]> {
 		const topK = options?.topK ?? SEMBLE_DEFAULTS.DEFAULT_TOP_K
 		const args = ["search", query, repoPath, "-k", String(topK)]
 		if (options?.content && options.content !== "code") {
 			args.push("--content", options.content)
+		}
+		// Bound the per-result snippet size via --max-snippet-lines. Omitted when
+		// not set so callers that opt out keep the CLI's full-chunk default.
+		if (options?.maxSnippetLines !== undefined) {
+			args.push("--max-snippet-lines", String(options.maxSnippetLines))
 		}
 
 		try {
@@ -84,30 +180,16 @@ export class SembleCLI {
 	}
 
 	/**
-	 * Finds code similar to a known location.
-	 *
-	 * Usage: semble find-related <file_path> <line> [path] [-k N] [--content TYPE [TYPE ...]]
+	 * Terminates any in-flight semble child process (search/check). Safe no-op
+	 * when no child is active. Kills the process and rejects its pending _spawn
+	 * promise; the killed guard prevents the close/error handlers from
+	 * double-settling the promise.
 	 */
-	async findRelated(
-		filePath: string,
-		line: number,
-		repoPath: string,
-		options?: { topK?: number; content?: SembleContentType },
-	): Promise<SembleSearchResult[]> {
-		const topK = options?.topK ?? SEMBLE_DEFAULTS.DEFAULT_TOP_K
-		const args = ["find-related", filePath, String(line), repoPath, "-k", String(topK)]
-		if (options?.content && options.content !== "code") {
-			args.push("--content", options.content)
-		}
-
-		try {
-			const { stdout } = await this._spawn(args, { timeout: 120_000 })
-			return this._parseOutput(stdout)
-		} catch (error: any) {
-			const stderr = error?.stderr?.trim() || ""
-			const message = error?.message || String(error)
-			throw new Error(`Semble find-related failed: ${stderr || message}`)
-		}
+	abort(): void {
+		const abortActive = this._abortActiveChild
+		this._activeChild = undefined
+		this._abortActiveChild = undefined
+		abortActive?.()
 	}
 
 	/**
@@ -132,6 +214,20 @@ export class SembleCLI {
 			let stderrBytes = 0
 			let killed = false
 
+			// Track this child so abort() can terminate an in-flight search/check.
+			// Searches are sequential, but guard against overlap by aborting any
+			// previously-tracked child so it can't orphan if a new spawn starts.
+			this.abort()
+			this._activeChild = child
+			this._abortActiveChild = () => {
+				if (killed) {
+					return // already settled (timeout / overflow / error)
+				}
+				killed = true
+				child.kill()
+				reject({ message: "Semble process aborted", stderr })
+			}
+
 			child.stdout?.on("data", (data: Buffer) => {
 				stdoutBytes += data.length
 				if (stdoutBytes <= MAX_BUFFER_BYTES) {
@@ -139,6 +235,7 @@ export class SembleCLI {
 				} else if (!killed) {
 					killed = true
 					child.kill()
+					this._clearActiveChild(child)
 					reject({
 						message: `stdout exceeded ${MAX_BUFFER_BYTES} bytes — process killed to protect extension host`,
 						stderr,
@@ -153,6 +250,7 @@ export class SembleCLI {
 				} else if (!killed) {
 					killed = true
 					child.kill()
+					this._clearActiveChild(child)
 					reject({
 						message: `stderr exceeded ${MAX_BUFFER_BYTES} bytes — process killed to protect extension host`,
 						stderr,
@@ -161,12 +259,14 @@ export class SembleCLI {
 			})
 
 			child.on("error", (err: Error) => {
+				this._clearActiveChild(child)
 				if (!killed) {
 					reject({ message: err.message, stderr })
 				}
 			})
 
 			child.on("close", (code: number | null) => {
+				this._clearActiveChild(child)
 				if (killed) {
 					return // already rejected
 				}
@@ -177,6 +277,17 @@ export class SembleCLI {
 				}
 			})
 		})
+	}
+
+	/**
+	 * Clears the tracked child reference if it still refers to `child`, so a
+	 * settled/aborted child never clobbers a newer spawn's reference.
+	 */
+	private _clearActiveChild(child: ChildProcess): void {
+		if (this._activeChild === child) {
+			this._activeChild = undefined
+			this._abortActiveChild = undefined
+		}
 	}
 
 	/**

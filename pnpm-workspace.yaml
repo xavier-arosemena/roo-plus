@@ -13,7 +13,7 @@ overrides:
     esbuild: "0.28.1"
     rollup: "4.60.4"
     vite: "8.1.0"
-    undici: "6.27.0"
+    undici: "6.28.0"
     form-data: ">=4.0.4"
     bluebird: ">=3.7.2"
     glob: "11.1.0"
@@ -32,7 +32,11 @@ overrides:
     "@vscode/vsce>minimatch": "^10.0.3"
 
     # fast-uri (4 HIGH advisories: GHSA-q3j6-qgpj-74h6, GHSA-v39h-62p7-jpjc, …)
-    fast-uri: "^3.1.4"
+    fast-uri: "^3.1.5"
+
+    # ip-address (1 HIGH + 2 MEDIUM: GHSA-mwp4-54f8-5fhr, …) — transitive via
+    # @modelcontextprotocol/sdk>express-rate-limit>ip-address
+    ip-address: "^10.3.1"
 
     # js-yaml — path-specific for different major versions
     "@changesets/parse>js-yaml": "^4.3.0"
@@ -45,7 +49,7 @@ overrides:
     "@vscode/vsce>js-yaml": "^4.3.0"
 
     # hono (1 HIGH + 8 MEDIUM)
-    hono: "^4.12.27"
+    hono: "^4.12.34"
     "@hono/node-server": "^2.0.12"
 
     # tmp
@@ -72,8 +76,8 @@ overrides:
 
     # brace-expansion (HIGH) — eslint>minimatch brings in ^1.1.x (brace-expansion 1.x),
     # @eslint/eslintrc>minimatch brings in ^2.0.1 (brace-expansion 2.x).
-    # Neither 1.x nor 2.x are patched — fix requires >=5.0.8
-    brace-expansion: "^5.0.8"
+    # Neither 1.x nor 2.x are patched — fix requires >=5.0.9
+    brace-expansion: "^5.0.9"
 
     # @babel/core (LOW) — webview-ui>@vitejs/plugin-react>@babel/core stuck at 7.29.0
     "@vitejs/plugin-react>@babel/core": "^7.29.6"

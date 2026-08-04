@@ -243,7 +243,8 @@
 			"standby": "スタンバイ",
 			"indexing": "インデックス中",
 			"indexed": "インデックス済み",
-			"error": "エラー"
+			"error": "エラー",
+			"stopping": "インデックス作成を停止中..."
 		},
 		"close": "閉じる",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "このワークスペースのインデックス作成を有効にする",
 		"workspaceDisabledMessage": "インデックス作成は設定済みですが、このワークスペースでは有効になっていません。",
 		"autoEnableDefaultLabel": "新しいワークスペースのインデックス作成を自動的に有効にする",
-		"sembleProvider": "Semble - ローカル"
+		"sembleProvider": "Semble - ローカル",
+		"sembleBinaryPathLabel": "Semble バイナリのパス（任意）",
+		"sembleBinaryPathPlaceholder": "例: /usr/local/bin/semble（空の場合は自動ダウンロード）",
+		"sembleBinaryPathDescription": "手動でインストールした semble バイナリへのパス。設定すると自動ダウンロードがスキップされます。自動ダウンロードされたバイナリを使用する場合は空のままにします。"
 	},
 	"autoApprove": {
 		"toggleShortcut": "<SettingsLink>IDEの環境設定</SettingsLink>で、この設定のグローバルショートカットを設定できます。",

@@ -344,6 +344,10 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 
 					vscode.postMessage({ type: "requestCodeIndexSecretStatus" })
 
+					// Re-request indexing status so the UI reflects the true backend state
+					// after a provider switch (e.g. Semble) rather than a stale Standby.
+					vscode.postMessage({ type: "requestIndexingStatus" })
+
 					setSaveStatus("idle")
 				} else {
 					setSaveStatus("error")
@@ -670,7 +674,13 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 						{/* Status Section */}
 						<div className="space-y-2">
 							<h4 className="text-sm font-medium">{t("settings:codeIndex.statusTitle")}</h4>
-							<div className="text-sm text-vscode-descriptionForeground">
+							<div
+								className={cn(
+									"text-sm",
+									indexingStatus.systemStatus === "Error"
+										? "text-vscode-errorForeground"
+										: "text-vscode-descriptionForeground",
+								)}>
 								<span
 									className={cn("inline-block w-3 h-3 rounded-full mr-2", {
 										"bg-gray-400": indexingStatus.systemStatus === "Standby",
@@ -1701,11 +1711,24 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 								{currentSettings.codebaseIndexEnabled &&
 									(indexingStatus.systemStatus === "Error" ||
 										indexingStatus.systemStatus === "Standby") && (
-										<Button
-											onClick={() => vscode.postMessage({ type: "startIndexing" })}
-											disabled={saveStatus === "saving" || hasUnsavedChanges}>
-											{t("settings:codeIndex.startIndexingButton")}
-										</Button>
+										<StandardTooltip
+											content={
+												hasUnsavedChanges
+													? t("settings:codeIndex.unsavedSettingsMessage")
+													: undefined
+											}>
+											<span>
+												<Button
+													onClick={() => vscode.postMessage({ type: "startIndexing" })}
+													disabled={saveStatus === "saving" || hasUnsavedChanges}
+													className={cn(
+														(saveStatus === "saving" || hasUnsavedChanges) &&
+															"pointer-events-none",
+													)}>
+													{t("settings:codeIndex.startIndexingButton")}
+												</Button>
+											</span>
+										</StandardTooltip>
 									)}
 
 								{currentSettings.codebaseIndexEnabled && indexingStatus.systemStatus === "Indexing" && (

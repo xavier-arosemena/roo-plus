@@ -2613,13 +2613,10 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 		expect(provider.log).toHaveBeenCalledWith("Cannot start indexing: No workspace folder open")
 	})
 
-	it("catches both start-indexing calls during error recovery", async () => {
+	it("logs a start-indexing failure during recovery without double-starting", async () => {
 		const manager = createIndexManager({
 			isInitialized: false,
-			startIndexing: vi
-				.fn()
-				.mockRejectedValueOnce(new Error("first failure"))
-				.mockRejectedValueOnce(new Error("second failure")),
+			startIndexing: vi.fn().mockRejectedValue(new Error("first failure")),
 		})
 		const provider = createProvider({
 			getCurrentWorkspaceCodeIndexManager: vi.fn().mockReturnValue(manager),
@@ -2628,9 +2625,12 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 		await webviewMessageHandler(provider, { type: "startIndexing" })
 		await Promise.resolve()
 
-		expect(manager.startIndexing).toHaveBeenCalledTimes(2)
+		// R1: initialize() runs unconditionally first, so startIndexing is invoked
+		// exactly once — the old double-start was a workaround for the
+		// initialize-after-check ordering bug.
+		expect(manager.initialize).toHaveBeenCalled()
+		expect(manager.startIndexing).toHaveBeenCalledTimes(1)
 		expect(provider.log).toHaveBeenCalledWith("Indexing error: Error: first failure")
-		expect(provider.log).toHaveBeenCalledWith("Indexing error: Error: second failure")
 	})
 
 	it("covers changed stop, toggle, and detached toggle rejection paths", async () => {

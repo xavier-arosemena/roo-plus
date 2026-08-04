@@ -243,7 +243,8 @@
 			"standby": "Gotowość",
 			"indexing": "Indeksowanie",
 			"indexed": "Zaindeksowane",
-			"error": "Błąd"
+			"error": "Błąd",
+			"stopping": "Zatrzymywanie indeksowania..."
 		},
 		"close": "Zamknij",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "Włącz indeksowanie dla tego workspace'a",
 		"workspaceDisabledMessage": "Indeksowanie jest skonfigurowane, ale nie włączone dla tego workspace'a.",
 		"autoEnableDefaultLabel": "Automatycznie włączaj indeksowanie dla nowych workspace'ów",
-		"sembleProvider": "Semble - Lokalny"
+		"sembleProvider": "Semble - Lokalny",
+		"sembleBinaryPathLabel": "Ścieżka do pliku binarnego Semble (opcjonalnie)",
+		"sembleBinaryPathPlaceholder": "np. /usr/local/bin/semble (pozostaw puste, aby pobrać automatycznie)",
+		"sembleBinaryPathDescription": "Ścieżka do ręcznie zainstalowanego pliku binarnego semble. Po ustawieniu automatyczne pobieranie jest pomijane. Pozostaw puste, aby użyć automatycznie pobranego pliku binarnego."
 	},
 	"autoApprove": {
 		"toggleShortcut": "Możesz skonfigurować globalny skrót dla tego ustawienia <SettingsLink>w preferencjach swojego IDE</SettingsLink>.",

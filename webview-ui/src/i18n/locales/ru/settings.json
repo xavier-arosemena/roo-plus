@@ -243,7 +243,8 @@
 			"standby": "Ожидание",
 			"indexing": "Индексация",
 			"indexed": "Проиндексировано",
-			"error": "Ошибка"
+			"error": "Ошибка",
+			"stopping": "Остановка индексации..."
 		},
 		"close": "Закрыть",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "Включить индексацию для этого рабочего пространства",
 		"workspaceDisabledMessage": "Индексация настроена, но не включена для этого рабочего пространства.",
 		"autoEnableDefaultLabel": "Автоматически включать индексацию для новых рабочих пространств",
-		"sembleProvider": "Semble - Локальный"
+		"sembleProvider": "Semble - Локальный",
+		"sembleBinaryPathLabel": "Путь к бинарному файлу Semble (необязательно)",
+		"sembleBinaryPathPlaceholder": "напр., /usr/local/bin/semble (оставьте пустым для автоматической загрузки)",
+		"sembleBinaryPathDescription": "Путь к вручную установленному бинарному файлу semble. Если задан, автоматическая загрузка пропускается. Оставьте пустым, чтобы использовать автоматически загруженный файл."
 	},
 	"autoApprove": {
 		"toggleShortcut": "Вы можете настроить глобальное сочетание клавиш для этого параметра <SettingsLink>в настройках вашей IDE</SettingsLink>.",

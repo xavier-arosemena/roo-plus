@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble không được hỗ trợ trên nền tảng này ({{platform}}-{{arch}}).",
 		"downloadFailed": "Tải xuống semble thất bại: {{errorMessage}}",
 		"checkFailed": "Kiểm tra semble thất bại: {{errorMessage}}",
+		"searchFailed": "Tìm kiếm Semble thất bại: {{errorMessage}}",
 		"providerReset": "Nhà cung cấp Semble đã đặt lại. Bộ nhớ đệm trên đĩa vẫn còn cho đến lần xây dựng lại tiếp theo."
 	}
 }

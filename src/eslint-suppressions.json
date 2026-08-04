@@ -1461,7 +1461,7 @@
 	},
 	"services/code-index/semble/semble-cli.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 3
+			"count": 2
 		}
 	},
 	"services/code-index/shared/__tests__/validation-helpers.spec.ts": {

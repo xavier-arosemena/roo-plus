@@ -26,11 +26,17 @@ import {
 	friendliModels,
 	basetenModels,
 	qwenCodeModels,
+	getPoeDefaultModelInfo,
+	kenariDefaultModelInfo,
 	kimiCodeDefaultModelInfo,
 	litellmDefaultModelInfo,
 	lMStudioDefaultModelInfo,
+	ollamaDefaultModelInfo,
 	opencodeGoDefaultModelInfo,
-	kenariDefaultModelInfo,
+	openRouterDefaultModelInfo,
+	requestyDefaultModelInfo,
+	unboundDefaultModelInfo,
+	vercelAiGatewayDefaultModelInfo,
 	BEDROCK_1M_CONTEXT_MODEL_IDS,
 	VERTEX_1M_CONTEXT_MODEL_IDS,
 	isDynamicProvider,
@@ -54,6 +60,18 @@ function getValidatedModelId(
 	defaultModelId: string,
 ): string {
 	return configuredId && availableModels?.[configuredId] ? configuredId : defaultModelId
+}
+
+/**
+ * Resolve a ModelInfo entry from a provider's static model table, preferring the
+ * requested model ID and falling back to the provider's default entry (and, as a
+ * last resort, `openAiModelInfoSaneDefaults`) so a configured ID that isn't in the
+ * curated table never yields `undefined` for a valid configured provider. The
+ * default IDs are typed as keys of their tables, so the default lookup is always
+ * populated; the sane-defaults tail is purely defensive.
+ */
+function getTableModelInfo(table: Record<string, ModelInfo>, id: string, defaultModelId: string): ModelInfo {
+	return table[id] ?? table[defaultModelId] ?? openAiModelInfoSaneDefaults
 }
 
 export const useSelectedModel = (apiConfiguration?: ProviderSettings) => {
@@ -81,22 +99,13 @@ export const useSelectedModel = (apiConfiguration?: ProviderSettings) => {
 	const needLmStudio = typeof lmStudioModelId !== "undefined"
 	const needOllama = typeof ollamaModelId !== "undefined"
 
-	const hasValidRouterData =
-		needRouterModels && dynamicProvider
-			? routerModels.data &&
-				routerModels.data[dynamicProvider] !== undefined &&
-				typeof routerModels.data[dynamicProvider] === "object" &&
-				!routerModels.isLoading
-			: true
-
-	const isReady =
-		(!needLmStudio || typeof lmStudioModels.data !== "undefined") &&
-		(!needOllama || typeof ollamaModels.data !== "undefined") &&
-		hasValidRouterData &&
-		(!needOpenRouterProviders || typeof openRouterModelProviders.data !== "undefined")
-
+	// Resolve the selected model for any configured provider even while data is still
+	// loading: `getSelectedModel` now falls back to a defined provider default, so a
+	// valid configured provider never yields `info: undefined` (which broke the
+	// task-header token display). `info: undefined` is reserved for the true "no
+	// configuration / retired provider" case below.
 	const { id, info } =
-		apiConfiguration && isReady && activeProvider
+		apiConfiguration && activeProvider
 			? getSelectedModel({
 					provider: activeProvider,
 					apiConfiguration,
@@ -105,12 +114,7 @@ export const useSelectedModel = (apiConfiguration?: ProviderSettings) => {
 					lmStudioModels: (lmStudioModels.data || undefined) as ModelRecord | undefined,
 					ollamaModels: (ollamaModels.data || undefined) as ModelRecord | undefined,
 				})
-			: activeProvider === "kimi-code" && apiConfiguration
-				? {
-						id: apiConfiguration.apiModelId || getProviderDefaultModelId("kimi-code"),
-						info: kimiCodeDefaultModelInfo,
-					}
-				: { id: getProviderDefaultModelId(activeProvider ?? "openrouter"), info: undefined }
+			: { id: getProviderDefaultModelId(activeProvider ?? "openrouter"), info: undefined }
 
 	return {
 		provider,
@@ -151,16 +155,16 @@ function getSelectedModel({
 	switch (provider) {
 		case providerIdentifiers.openrouter: {
 			const id = getValidatedModelId(apiConfiguration.openRouterModelId, routerModels.openrouter, defaultModelId)
-			let info = routerModels.openrouter?.[id]
+			// Fall back to the provider default while the model list is loading/empty
+			// or the selected model isn't present, so the header always has a real window.
+			let info = routerModels.openrouter?.[id] ?? openRouterDefaultModelInfo
 			const specificProvider = apiConfiguration.openRouterSpecificProvider
 
 			if (specificProvider && openRouterModelProviders[specificProvider]) {
 				// Overwrite the info with the specific provider info. Some
 				// fields are missing the model info for `openRouterModelProviders`
 				// so we need to merge the two.
-				info = info
-					? { ...info, ...openRouterModelProviders[specificProvider] }
-					: openRouterModelProviders[specificProvider]
+				info = { ...info, ...openRouterModelProviders[specificProvider] }
 			}
 
 			return { id, info }
@@ -168,12 +172,12 @@ function getSelectedModel({
 		case providerIdentifiers.requesty: {
 			const id = getValidatedModelId(apiConfiguration.requestyModelId, routerModels.requesty, defaultModelId)
 			const routerInfo = routerModels.requesty?.[id]
-			return { id, info: routerInfo }
+			return { id, info: routerInfo ?? requestyDefaultModelInfo }
 		}
 		case providerIdentifiers.unbound: {
 			const id = getValidatedModelId(apiConfiguration.unboundModelId, routerModels.unbound, defaultModelId)
 			const routerInfo = routerModels.unbound?.[id]
-			return { id, info: routerInfo }
+			return { id, info: routerInfo ?? unboundDefaultModelInfo }
 		}
 		case providerIdentifiers.litellm: {
 			// When the model list is empty (not yet loaded or still loading),
@@ -190,13 +194,11 @@ function getSelectedModel({
 		}
 		case providerIdentifiers.xai: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = xaiModels[id as keyof typeof xaiModels]
-			return info ? { id, info } : { id, info: undefined }
+			return { id, info: getTableModelInfo(xaiModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.baseten: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = basetenModels[id as keyof typeof basetenModels]
-			return { id, info }
+			return { id, info: getTableModelInfo(basetenModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.bedrock: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
@@ -220,7 +222,7 @@ function getSelectedModel({
 				return { id, info }
 			}
 
-			return { id, info: baseInfo }
+			return { id, info: baseInfo ?? bedrockModels[defaultModelId as keyof typeof bedrockModels] }
 		}
 		case providerIdentifiers.vertex: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
@@ -243,12 +245,11 @@ function getSelectedModel({
 				}
 			}
 
-			return { id, info: baseInfo }
+			return { id, info: baseInfo ?? vertexModels[defaultModelId as keyof typeof vertexModels] }
 		}
 		case providerIdentifiers.gemini: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = geminiModels[id as keyof typeof geminiModels]
-			return { id, info }
+			return { id, info: getTableModelInfo(geminiModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.deepseek: {
 			const availableModels = routerModels.deepseek
@@ -257,7 +258,10 @@ function getSelectedModel({
 			const id = getValidatedModelId(apiConfiguration.apiModelId, availableModels, defaultModelId)
 			const routerInfo = routerModels.deepseek?.[id]
 			const staticInfo = deepSeekModels[id as keyof typeof deepSeekModels]
-			return { id, info: routerInfo ?? staticInfo }
+			return {
+				id,
+				info: routerInfo ?? staticInfo ?? deepSeekModels[defaultModelId as keyof typeof deepSeekModels],
+			}
 		}
 		case providerIdentifiers.moonshot: {
 			const availableModels = routerModels.moonshot
@@ -266,7 +270,10 @@ function getSelectedModel({
 			const id = getValidatedModelId(apiConfiguration.apiModelId, availableModels, defaultModelId)
 			const routerInfo = routerModels.moonshot?.[id]
 			const staticInfo = moonshotModels[id as keyof typeof moonshotModels]
-			return { id, info: routerInfo ?? staticInfo }
+			return {
+				id,
+				info: routerInfo ?? staticInfo ?? moonshotModels[defaultModelId as keyof typeof moonshotModels],
+			}
 		}
 		case providerIdentifiers.kimiCode: {
 			const configuredId = apiConfiguration.apiModelId
@@ -276,8 +283,7 @@ function getSelectedModel({
 		}
 		case providerIdentifiers.minimax: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = minimaxModels[id as keyof typeof minimaxModels]
-			return { id, info }
+			return { id, info: getTableModelInfo(minimaxModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.mimo: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
@@ -289,18 +295,15 @@ function getSelectedModel({
 			const models = isChina ? mainlandZAiModels : internationalZAiModels
 			const defaultModelId = getProviderDefaultModelId(provider, { isChina })
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = models[id as keyof typeof models]
-			return { id, info }
+			return { id, info: getTableModelInfo(models, id, defaultModelId) }
 		}
 		case providerIdentifiers.openaiNative: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = openAiNativeModels[id as keyof typeof openAiNativeModels]
-			return { id, info }
+			return { id, info: getTableModelInfo(openAiNativeModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.mistral: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = mistralModels[id as keyof typeof mistralModels]
-			return { id, info }
+			return { id, info: getTableModelInfo(mistralModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.openai: {
 			const id = apiConfiguration.openAiModelId ?? ""
@@ -321,7 +324,9 @@ function getSelectedModel({
 
 			return {
 				id,
-				info: adjustedInfo || undefined,
+				// Fall back to the provider default so a model missing from the fetched
+				// list (or a still-loading list) never yields `info: undefined`.
+				info: adjustedInfo || ollamaDefaultModelInfo,
 			}
 		}
 		case providerIdentifiers.lmstudio: {
@@ -329,7 +334,9 @@ function getSelectedModel({
 			const modelInfo = lmStudioModels && lmStudioModels[apiConfiguration.lmStudioModelId!]
 			return {
 				id,
-				info: modelInfo ? { ...lMStudioDefaultModelInfo, ...modelInfo } : undefined,
+				// Fall back to the provider default when the model list is empty or the
+				// selected model isn't present (e.g. while the server is still loading).
+				info: modelInfo ? { ...lMStudioDefaultModelInfo, ...modelInfo } : lMStudioDefaultModelInfo,
 			}
 		}
 		case providerIdentifiers.vscodeLm: {
@@ -354,33 +361,28 @@ function getSelectedModel({
 		}
 		case providerIdentifiers.sambanova: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = sambaNovaModels[id as keyof typeof sambaNovaModels]
-			return { id, info }
+			return { id, info: getTableModelInfo(sambaNovaModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.fireworks: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = fireworksModels[id as keyof typeof fireworksModels]
-			return { id, info }
+			return { id, info: getTableModelInfo(fireworksModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.friendli: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = friendliModels[id as keyof typeof friendliModels]
-			return { id, info }
+			return { id, info: getTableModelInfo(friendliModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.poe: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = routerModels.poe?.[id]
-			return { id, info }
+			// Fall back to the provider default while the dynamic model list is loading.
+			return { id, info: routerModels.poe?.[id] ?? getPoeDefaultModelInfo() }
 		}
 		case providerIdentifiers.qwenCode: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = qwenCodeModels[id as keyof typeof qwenCodeModels]
-			return { id, info }
+			return { id, info: getTableModelInfo(qwenCodeModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.openaiCodex: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
-			const info = openAiCodexModels[id as keyof typeof openAiCodexModels]
-			return { id, info }
+			return { id, info: getTableModelInfo(openAiCodexModels, id, defaultModelId) }
 		}
 		case providerIdentifiers.vercelAiGateway: {
 			const id = getValidatedModelId(
@@ -388,7 +390,7 @@ function getSelectedModel({
 				routerModels["vercel-ai-gateway"],
 				defaultModelId,
 			)
-			const info = routerModels["vercel-ai-gateway"]?.[id]
+			const info = routerModels["vercel-ai-gateway"]?.[id] ?? vercelAiGatewayDefaultModelInfo
 			return { id, info }
 		}
 		case providerIdentifiers.opencodeGo: {
@@ -450,7 +452,7 @@ function getSelectedModel({
 				}
 			}
 
-			return { id, info: baseInfo }
+			return { id, info: baseInfo ?? anthropicModels[defaultModelId as keyof typeof anthropicModels] }
 		}
 		default: {
 			provider satisfies never

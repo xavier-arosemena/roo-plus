@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble n'est pas pris en charge sur cette plateforme ({{platform}}-{{arch}}).",
 		"downloadFailed": "Échec du téléchargement de semble : {{errorMessage}}",
 		"checkFailed": "Vérification de semble échouée : {{errorMessage}}",
+		"searchFailed": "La recherche Semble a échoué : {{errorMessage}}",
 		"providerReset": "Fournisseur Semble réinitialisé. Le cache sur disque reste jusqu'à la prochaine reconstruction."
 	}
 }

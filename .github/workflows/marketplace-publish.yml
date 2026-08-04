@@ -117,6 +117,10 @@ jobs:
             exit 1
           fi
 
+      - name: Verify Semble checksums (SEMBLE_VERSION lockstep)
+        run: |
+          node scripts/verify-semble-checksums.mjs --strict
+
       - name: Build workspace packages
         run: |
           pnpm --filter @roo-code/build build
