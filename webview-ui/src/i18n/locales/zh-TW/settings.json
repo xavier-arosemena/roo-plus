@@ -277,7 +277,8 @@
 			"standby": "待命",
 			"indexing": "索引中",
 			"indexed": "已索引",
-			"error": "錯誤"
+			"error": "錯誤",
+			"stopping": "正在停止索引..."
 		},
 		"close": "關閉",
 		"validation": {
@@ -306,7 +307,10 @@
 		"workspaceToggleLabel": "為此工作區啟用索引",
 		"workspaceDisabledMessage": "索引已設定，但尚未為此工作區啟用。",
 		"autoEnableDefaultLabel": "自動為新工作區啟用索引",
-		"sembleProvider": "Semble - 本機"
+		"sembleProvider": "Semble - 本機",
+		"sembleBinaryPathLabel": "Semble 二進位檔案路徑（選填）",
+		"sembleBinaryPathPlaceholder": "例如：/usr/local/bin/semble（留空以自動下載）",
+		"sembleBinaryPathDescription": "手動安裝的 semble 二進位檔案的路徑。設定後，將略過自動下載。留空以使用自動下載的二進位檔案。"
 	},
 	"autoApprove": {
 		"description": "無需詢問許可即可執行下列動作。請僅在您完全信任且了解安全風險的情況下啟用此功能。",

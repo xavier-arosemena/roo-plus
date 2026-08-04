@@ -45,14 +45,32 @@ export interface SembleConfig {
 	content: SembleContentType
 	/** Optional path to a manually installed semble binary. When set, auto-download is skipped. */
 	binaryPath?: string
+	/**
+	 * Minimum similarity score (0-1). KEPT for API stability / future providers
+	 * — NOT applied by the Semble search path, which (matching the reference
+	 * Zoo-Code provider) applies no score filter. Consumed only by the Qdrant
+	 * path (`codebaseIndexSearchMinScore`).
+	 */
+	searchMinScore?: number
+	/**
+	 * Maximum number of results. KEPT for API stability / future providers —
+	 * NOT applied by the Semble search path, which (matching the reference
+	 * Zoo-Code provider) applies no result cap. Consumed only by the Qdrant
+	 * path (`codebaseIndexSearchMaxResults`).
+	 */
+	searchMaxResults?: number
+	/**
+	 * Maximum number of snippet lines per result passed to the CLI via
+	 * `--max-snippet-lines`. Bounds the size of each `content` payload so a
+	 * single search never floods the agent context. Defaults to
+	 * `SEMBLE_DEFAULTS.DEFAULT_MAX_SNIPPET_LINES`. Independent of the
+	 * result-count semantics (`topK` / `searchMaxResults`).
+	 */
+	maxSnippetLines?: number
 }
 
 /**
  * Interface for the SembleProvider that wraps the semble CLI.
- *
- * Note: `findRelated` is available on SembleCLI but not yet exposed through
- * this provider or CodeIndexManager. It's reserved for future use — e.g., a
- * "find similar code" tool or context menu action.
  */
 export interface ISembleProvider {
 	/** Initializes the provider — checks semble is installed. */
@@ -83,4 +101,17 @@ export interface ISembleProvider {
 export const SEMBLE_DEFAULTS = {
 	DEFAULT_TOP_K: 10,
 	DEFAULT_CONTENT: "code" as SembleContentType,
+	/**
+	 * Default `--max-snippet-lines` value passed to `semble search`. Keeps
+	 * per-result snippets useful (~150 lines) without flooding the agent
+	 * context (Roo+ addition beyond the reference provider).
+	 */
+	DEFAULT_MAX_SNIPPET_LINES: 150,
+	/**
+	 * Defensive hard cap on the character length of a single `codeChunk`.
+	 * Applied in the provider regardless of the CLI flag so a single search
+	 * can never return unbounded snippet content (e.g. if the CLI ignores
+	 * `--max-snippet-lines` or an older binary returns full chunks).
+	 */
+	MAX_SNIPPET_CHARS: 4000,
 }

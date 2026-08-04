@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble nie jest obsługiwany na tej platformie ({{platform}}-{{arch}}).",
 		"downloadFailed": "Nie udało się pobrać semble: {{errorMessage}}",
 		"checkFailed": "Sprawdzenie semble nie powiodło się: {{errorMessage}}",
+		"searchFailed": "Wyszukiwanie Semble nie powiodło się: {{errorMessage}}",
 		"providerReset": "Dostawca Semble zresetowany. Pamięć podręczna na dysku pozostaje do kolejnej przebudowy."
 	}
 }

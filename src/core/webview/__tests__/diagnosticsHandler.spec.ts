@@ -33,14 +33,18 @@ vi.mock("../../../utils/fs", () => ({
 vi.mock("fs/promises", () => {
 	const mockReadFile = vi.fn()
 	const mockWriteFile = vi.fn().mockResolvedValue(undefined)
+	// generateErrorDiagnostics writes into a private temp dir via mkdtemp
+	const mockMkdtemp = vi.fn().mockResolvedValue("/mock/tmp/zoo-diagnostics-test-task-id")
 
 	return {
 		default: {
 			readFile: mockReadFile,
 			writeFile: mockWriteFile,
+			mkdtemp: mockMkdtemp,
 		},
 		readFile: mockReadFile,
 		writeFile: mockWriteFile,
+		mkdtemp: mockMkdtemp,
 	}
 })
 

@@ -243,7 +243,8 @@
 			"standby": "Bereitschaft",
 			"indexing": "Indexierung",
 			"indexed": "Indexiert",
-			"error": "Fehler"
+			"error": "Fehler",
+			"stopping": "Indexierung wird gestoppt..."
 		},
 		"close": "Schließen",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "Indexierung für diesen Arbeitsbereich aktivieren",
 		"workspaceDisabledMessage": "Indexierung ist konfiguriert, aber nicht für diesen Arbeitsbereich aktiviert.",
 		"autoEnableDefaultLabel": "Indexierung für neue Arbeitsbereiche automatisch aktivieren",
-		"sembleProvider": "Semble - Lokal"
+		"sembleProvider": "Semble - Lokal",
+		"sembleBinaryPathLabel": "Semble-Binärpfad (optional)",
+		"sembleBinaryPathPlaceholder": "z. B. /usr/local/bin/semble (leer lassen, um automatisch herunterzuladen)",
+		"sembleBinaryPathDescription": "Pfad zu einem manuell installierten semble-Binary. Wenn gesetzt, wird der automatische Download übersprungen. Leer lassen, um das automatisch heruntergeladene Binary zu verwenden."
 	},
 	"autoApprove": {
 		"toggleShortcut": "Du kannst <SettingsLink>in deinen IDE-Einstellungen</SettingsLink> einen globalen Shortcut für diese Einstellung konfigurieren.",

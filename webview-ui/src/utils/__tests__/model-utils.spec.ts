@@ -27,23 +27,31 @@ describe("calculateTokenDistribution", () => {
 		expect(result.availableSize).toBe(6808) // 20000 - 5000 - 8192
 	})
 
-	it("should handle negative or zero inputs by using positive fallbacks", () => {
+	it("should handle negative or zero inputs by returning all-zero values", () => {
 		const result = calculateTokenDistribution(-1000, -500)
 
-		expect(result.currentPercent).toBe(0)
-		expect(result.reservedPercent).toBe(100) // 8192 / 8192 = 100%
-		expect(result.availablePercent).toBe(0)
-		expect(result.reservedForOutput).toBe(8192) // Uses ANTHROPIC_DEFAULT_MAX_TOKENS
-		expect(result.availableSize).toBe(0) // max(0, 0 - 0 - 8192) = 0
+		// An invalid (non-positive) window leaves nothing meaningful to draw: every
+		// value is zero so the UI renders an empty bar instead of a full/overflowing one.
+		expect(result).toEqual({
+			currentPercent: 0,
+			reservedPercent: 0,
+			availablePercent: 0,
+			reservedForOutput: 0,
+			availableSize: 0,
+		})
 	})
 
 	it("should handle zero context window without division by zero errors", () => {
 		const result = calculateTokenDistribution(0, 0)
 
-		expect(result.currentPercent).toBe(0)
-		expect(result.reservedPercent).toBe(100) // When contextWindow is 0, reserved gets 100%
-		expect(result.availablePercent).toBe(0)
-		expect(result.reservedForOutput).toBe(8192) // Uses ANTHROPIC_DEFAULT_MAX_TOKENS when no maxTokens provided
-		expect(result.availableSize).toBe(0)
+		// When contextWindow is 0, all values are zero (empty bar) rather than
+		// fabricating a full/overflowing bar.
+		expect(result).toEqual({
+			currentPercent: 0,
+			reservedPercent: 0,
+			availablePercent: 0,
+			reservedForOutput: 0,
+			availableSize: 0,
+		})
 	})
 })

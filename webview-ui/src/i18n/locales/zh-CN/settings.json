@@ -243,7 +243,8 @@
 			"standby": "待机",
 			"indexing": "索引中",
 			"indexed": "已索引",
-			"error": "错误"
+			"error": "错误",
+			"stopping": "正在停止索引..."
 		},
 		"close": "关闭",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "为此工作区启用索引",
 		"workspaceDisabledMessage": "索引已配置，但尚未为此工作区启用。",
 		"autoEnableDefaultLabel": "自动为新工作区启用索引",
-		"sembleProvider": "Semble - 本地"
+		"sembleProvider": "Semble - 本地",
+		"sembleBinaryPathLabel": "Semble 二进制文件路径（可选）",
+		"sembleBinaryPathPlaceholder": "例如：/usr/local/bin/semble（留空以自动下载）",
+		"sembleBinaryPathDescription": "手动安装的 semble 二进制文件的路径。设置后，将跳过自动下载。留空以使用自动下载的二进制文件。"
 	},
 	"autoApprove": {
 		"toggleShortcut": "您可以<SettingsLink>在 IDE 首选项中</SettingsLink>为此设置配置全局快捷方式。",

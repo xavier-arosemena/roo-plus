@@ -237,7 +237,7 @@ describe("OpenAiCodexHandler.createMessage", () => {
 				role: "user",
 				content: [
 					{ type: "text", text: "Look at this:" },
-					{ type: "image", source: { type: "base64", media_type: "image/png", data: "abc123" } },
+					{ type: "image", source: { type: "base64", media_type: "image/png", data: "abc12345" } },
 				],
 			},
 		]
@@ -250,7 +250,7 @@ describe("OpenAiCodexHandler.createMessage", () => {
 		const userMsg = capturedInput.find((item: any) => item.role === "user")
 		expect(userMsg?.content).toContainEqual({
 			type: "input_image",
-			image_url: "data:image/png;base64,abc123",
+			image_url: "data:image/png;base64,abc12345",
 		})
 	})
 })

@@ -81,40 +81,79 @@ describe("ContextWindowProgress Logic", () => {
 		expect(result.availablePercent).toBeCloseTo(18.08) // 1808/10000 * 100 = 18.08%
 	})
 
-	test("handles zero context window gracefully", () => {
-		const contextWindow = 0
-		const contextTokens = 1000
+	test("computes current percent relative to the real context window when tokens < window", () => {
+		const contextWindow = 20000
+		const contextTokens = 5000
 
 		const result = calculateTokenDistribution(contextWindow, contextTokens)
 
-		// With zero context window, the function uses ANTHROPIC_DEFAULT_MAX_TOKENS but available size becomes 0
-		expect(result.reservedForOutput).toBe(8192) // ANTHROPIC_DEFAULT_MAX_TOKENS
-		expect(result.availableSize).toBe(0) // max(0, 0 - 1000 - 8192) = 0
-
-		// The percentages maintain total of 100% even with zero context window
-		// due to how the division handles this edge case
-		const totalPercentage = result.currentPercent + result.reservedPercent + result.availablePercent
-		expect(totalPercentage).toBeCloseTo(100)
+		// currentPercent is always contextTokens / contextWindow * 100
+		expect(result.currentPercent).toBe(25)
+		// reserved + available fill the remaining width without exceeding 100%
+		expect(result.reservedPercent).toBeCloseTo((8192 / 20000) * 100)
+		expect(result.availablePercent).toBeCloseTo(100 - 25 - (8192 / 20000) * 100)
+		expect(result.currentPercent + result.reservedPercent + result.availablePercent).toBeCloseTo(100)
 	})
 
-	test("handles case where tokens exceed context window", () => {
+	test("shows 100% current and 0 available when tokens fill the context window", () => {
+		const contextWindow = 10000
+		const contextTokens = 10000
+
+		const result = calculateTokenDistribution(contextWindow, contextTokens)
+
+		expect(result.currentPercent).toBe(100)
+		expect(result.reservedPercent).toBe(0)
+		expect(result.availablePercent).toBe(0)
+		expect(result.availableSize).toBe(0)
+	})
+
+	test("clamps to 100% without overflow when tokens exceed the context window", () => {
 		const contextWindow = 10000
 		const contextTokens = 12000 // More tokens than the window size
 
 		const result = calculateTokenDistribution(contextWindow, contextTokens)
 
-		// Expected calculations:
 		// reservedForOutput = 8192 (ANTHROPIC_DEFAULT_MAX_TOKENS)
 		// availableSize = Math.max(0, 10000 - 12000 - 8192) = 0
 		expect(result.reservedForOutput).toBe(8192)
 		expect(result.availableSize).toBe(0)
 
-		// Percentages should be calculated based on total (12000 + 8192 + 0 = 20192)
-		expect(result.currentPercent).toBeCloseTo((12000 / 20192) * 100)
-		expect(result.reservedPercent).toBeCloseTo((8192 / 20192) * 100)
-		expect(result.availablePercent).toBeCloseTo(0)
+		// The bar is always relative to the real context window: current is clamped
+		// to 100% and reserved never pushes past the end of the bar.
+		expect(result.currentPercent).toBe(100)
+		expect(result.reservedPercent).toBe(0)
+		expect(result.availablePercent).toBe(0)
 
-		// Verify percentages sum to 100%
-		expect(result.currentPercent + result.reservedPercent + result.availablePercent).toBeCloseTo(100)
+		// The three sections never exceed 100% of the bar width
+		expect(result.currentPercent + result.reservedPercent + result.availablePercent).toBe(100)
+	})
+
+	test("returns all-zero values when the context window is zero", () => {
+		const contextWindow = 0
+		const contextTokens = 1000
+
+		const result = calculateTokenDistribution(contextWindow, contextTokens)
+
+		// No meaningful window means no meaningful bar: every value is zero so the
+		// UI renders an empty bar instead of a full/overflowing one.
+		expect(result).toEqual({
+			currentPercent: 0,
+			reservedPercent: 0,
+			availablePercent: 0,
+			reservedForOutput: 0,
+			availableSize: 0,
+		})
+	})
+
+	test("returns all-zero values for a non-finite context window", () => {
+		const result = calculateTokenDistribution(Number.NaN, 1000)
+
+		expect(result).toEqual({
+			currentPercent: 0,
+			reservedPercent: 0,
+			availablePercent: 0,
+			reservedForOutput: 0,
+			availableSize: 0,
+		})
 	})
 })

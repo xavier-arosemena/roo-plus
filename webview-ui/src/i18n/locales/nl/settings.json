@@ -243,7 +243,8 @@
 			"standby": "Stand-by",
 			"indexing": "Indexeren",
 			"indexed": "Geïndexeerd",
-			"error": "Fout"
+			"error": "Fout",
+			"stopping": "Indexering wordt gestopt..."
 		},
 		"close": "Sluiten",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "Indexering inschakelen voor deze werkruimte",
 		"workspaceDisabledMessage": "Indexering is geconfigureerd maar niet ingeschakeld voor deze werkruimte.",
 		"autoEnableDefaultLabel": "Indexering automatisch inschakelen voor nieuwe werkruimtes",
-		"sembleProvider": "Semble - Lokaal"
+		"sembleProvider": "Semble - Lokaal",
+		"sembleBinaryPathLabel": "Semble-binairepad (optioneel)",
+		"sembleBinaryPathPlaceholder": "bijv. /usr/local/bin/semble (leeg laten om automatisch te downloaden)",
+		"sembleBinaryPathDescription": "Pad naar een handmatig geïnstalleerde semble-binary. Wanneer ingesteld, wordt automatisch downloaden overgeslagen. Leeg laten om de automatisch gedownloade binary te gebruiken."
 	},
 	"autoApprove": {
 		"toggleShortcut": "U kunt een globale sneltoets voor deze instelling configureren <SettingsLink>in de voorkeuren van uw IDE</SettingsLink>.",

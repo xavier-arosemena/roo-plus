@@ -13,7 +13,7 @@ import { spawn } from "child_process"
  * Uses "fast-start" archives (one-dir builds) for ~20x faster startup
  * compared to single-file binaries.
  */
-const SEMBLE_ARCHIVES: Record<string, { archive: string; binary: string }> = {
+export const SEMBLE_ARCHIVES: Record<string, { archive: string; binary: string }> = {
 	"linux-x64": { archive: "semble-linux-x64-fast.tar.gz", binary: "semble" },
 	"linux-arm64": { archive: "semble-linux-arm64-fast.tar.gz", binary: "semble" },
 	"darwin-arm64": { archive: "semble-macos-arm64-fast.tar.gz", binary: "semble" },
@@ -27,27 +27,54 @@ const SEMBLE_ARCHIVES: Record<string, { archive: string; binary: string }> = {
 export const SEMBLE_VERSION = "v0.5.2"
 
 /**
- * Version resolution pattern. When set to "latest", the downloader fetches the
- * latest release tag from GitHub API before downloading. Supports wildcard
- * patterns for future expansion.
+ * Version resolution pattern. Pinned to a concrete release tag (SEMBLE_VERSION)
+ * so fresh installs download exactly the version this repo tests against — no
+ * runtime HEAD requests, no drift from upstream.
+ *
+ * The "latest" mechanism (fetch the newest GitHub release tag before
+ * downloading) is retained but DISABLED by default: it is only used when this
+ * constant is "latest" OR the SEMBLE_RESOLVE_LATEST env var is set. Opting in
+ * means a future upstream release could be auto-pulled and verified against
+ * this repo's CLI contract and checksums WITHOUT prior testing — SEMBLE_SHA256
+ * must be regenerated for any new tag first.
  */
-export const SEMBLE_VERSION_PATTERN = "latest" // "latest" = fetch latest release, or use wildcards
+// Typed as `string` (not the literal `"v0.5.2"`) so the `=== "latest"` opt-in
+// check in shouldResolveLatest() remains valid.
+export const SEMBLE_VERSION_PATTERN: string = SEMBLE_VERSION
+
+/**
+ * Env var that opts into resolving the latest GitHub release tag at install
+ * time (see SEMBLE_VERSION_PATTERN). Defaults to off so installs stay
+ * deterministic and network-independent.
+ */
+const RESOLVE_LATEST_ENV = "SEMBLE_RESOLVE_LATEST"
+
+/**
+ * Returns true only when the "latest" version-resolution mechanism is
+ * explicitly opted into — via SEMBLE_VERSION_PATTERN === "latest" or the
+ * SEMBLE_RESOLVE_LATEST env var being set to "1"/"true".
+ */
+function shouldResolveLatest(): boolean {
+	if (SEMBLE_VERSION_PATTERN === "latest") {
+		return true
+	}
+	const raw = process.env[RESOLVE_LATEST_ENV]
+	return raw === "1" || raw?.toLowerCase() === "true"
+}
 
 const DOWNLOAD_BASE_URL = `https://github.com/Audare-est-Facere/sembleexec/releases/download/${SEMBLE_VERSION}`
 const VERSION_FILE = ".semble-version"
 
 /**
- * Ordered list of fallback download sources for the semble binary.
- * Each entry is a base URL pointing to a GitHub release directory for the
- * current SEMBLE_VERSION. The archive filename is appended by the download
- * logic.
+ * Ordered list of download sources for the semble binary. Each entry is a
+ * base URL pointing to a GitHub release directory for the current
+ * SEMBLE_VERSION. The archive filename is appended by the download logic.
  *
- * Sources are tried in order: if the primary fails, the next mirror is used.
+ * Sources are tried in order; if a source fails, the download moves to the
+ * next. Only the primary source is currently configured.
  */
 const DOWNLOAD_FALLBACK_URLS = [
 	DOWNLOAD_BASE_URL, // primary: Audare-est-Facere/sembleexec
-	// Mirror: fallback to original Roo-Plus-Org if it ever gets created
-	`https://github.com/Roo-Plus-Org/sembleexec/releases/download/${SEMBLE_VERSION}`,
 ]
 
 /**
@@ -58,10 +85,10 @@ const DOWNLOAD_FALLBACK_URLS = [
  * To regenerate: `shasum -a 256 <archive-file>`
  */
 export const SEMBLE_SHA256: Record<string, string> = {
-	"linux-x64": "1315d3faae9fd446764ee5d0cf8e8d83e862ead0f7fa51e1ed0685755dc96a8e",
-	"linux-arm64": "883b250faf61957d9859fc691bbe8387aaca4fe2f00e8a6f041cc44880301ac4",
-	"darwin-arm64": "d690765b500103c13aeab8c5a31e78efaeaa4e3e0b20ee5d040ddd41fa21b084",
-	"win32-x64": "2aac0a9c55f823ea30151fea188bcf9268318b8ef41aafa7162498a04710fcc0",
+	"linux-x64": "bd5be465659c220335f1e2d4e1afe117288ae7f8ceab93902ac737662e9309d3",
+	"linux-arm64": "2f7fae09d5144eb5f58f566f7c507c7feea3ba0b1cee9972f97ae992234a5a1f",
+	"darwin-arm64": "f79e0d52cdd6b9680e31ceba8dbaacfa6ea93fa21785f84cc04d13fb782e5881",
+	"win32-x64": "c793051829fd440939f7d9735649e6027bb42182f19f1c324dbeb0ed6c9118ad",
 }
 
 /**
@@ -84,6 +111,13 @@ const LATEST_RELEASE_SUFFIX = "/releases/latest"
  * @returns The resolved version string (e.g. "v0.5.2")
  */
 export async function resolveSembleVersion(): Promise<string> {
+	// Deterministic fast path: when the pattern is pinned (the default), return
+	// the pinned SEMBLE_VERSION directly — no HEAD requests, no network I/O.
+	// Fresh installs are therefore network-independent and identical every time.
+	if (!shouldResolveLatest()) {
+		return SEMBLE_VERSION
+	}
+
 	// Build latest-release URLs from the fallback base URLs
 	const urls = DOWNLOAD_FALLBACK_URLS.map((base) => {
 		// Replace /download/{version} with /latest
@@ -118,7 +152,7 @@ async function fetchLatestVersionFromUrl(apiUrl: string): Promise<string | undef
 			apiUrl,
 			{
 				method: "HEAD",
-				timeout: 10_000,
+				timeout: 3_000,
 			},
 			(response) => {
 				// Follow redirects manually
@@ -356,10 +390,14 @@ async function findFileNamed(dir: string, name: string, depth: number, maxDepth:
 }
 
 /**
- * Reads the locally installed version from the version metadata file.
- * Returns undefined if no version file exists (first install or legacy).
+ * Reads the locally installed semble version from the version metadata file
+ * (`<storageDir>/semble/.semble-version`). Returns undefined if no version file
+ * exists (first install, legacy, or a manual binaryPathOverride with no prior
+ * download). Exposed so the provider can surface the actually-installed version
+ * in its ready message when the opt-in "latest" resolution resolves a different
+ * tag than the hardcoded SEMBLE_VERSION.
  */
-async function getInstalledVersion(storageDir: string): Promise<string | undefined> {
+export async function getInstalledSembleVersion(storageDir: string): Promise<string | undefined> {
 	try {
 		const versionPath = path.join(storageDir, "semble", VERSION_FILE)
 		const version = (await fs.readFile(versionPath, "utf-8")).trim()
@@ -423,11 +461,10 @@ async function cleanupStaleArchives(
  * The archive is extracted into `storageDir/semble/` and the binary path
  * is `storageDir/semble/<binary>`.
  *
- * Uses a multi-source fallback chain:
+ * Uses a source chain:
  *   1. Try user-configured binary path (binaryPathOverride) → return if valid
- *   2. Try primary GitHub release (Audare-est-Facere/sembleexec)
- *   3. Try alternative/mirror source (configurable URL pattern)
- *   4. If all fail: provide helpful error with per-source details
+ *   2. Try the primary GitHub release (Audare-est-Facere/sembleexec)
+ *   3. If all sources fail: provide helpful error with per-source details
  *
  * Each source is retried with exponential backoff before moving to the next.
  *
@@ -437,12 +474,20 @@ async function cleanupStaleArchives(
  * @returns The full path to the semble executable, or undefined if the platform is unsupported.
  */
 export async function downloadSemble(storageDir: string, binaryPathOverride?: string): Promise<string | undefined> {
-	// 1. Check binary path override — no network calls needed
+	// 1. Check binary path override — no network calls needed.
+	//    Require a regular FILE: a directory passes fs.access but cannot be
+	//    spawned (EACCES), so also require fs.stat().isFile() === true.
 	if (binaryPathOverride && binaryPathOverride.length > 0) {
 		try {
 			await fs.access(binaryPathOverride)
-			console.log(`[SembleDownloader] Using manually configured binary at ${binaryPathOverride}`)
-			return binaryPathOverride
+			const stat = await fs.stat(binaryPathOverride)
+			if (stat.isFile()) {
+				console.log(`[SembleDownloader] Using manually configured binary at ${binaryPathOverride}`)
+				return binaryPathOverride
+			}
+			console.warn(
+				`[SembleDownloader] Binary path override "${binaryPathOverride}" is not a regular file, falling back to auto-download...`,
+			)
 		} catch {
 			console.warn(
 				`[SembleDownloader] Binary path override "${binaryPathOverride}" does not exist, falling back to auto-download...`,
@@ -460,7 +505,7 @@ export async function downloadSemble(storageDir: string, binaryPathOverride?: st
 	// 2. Check installed version against hardcoded SEMBLE_VERSION first.
 	//    We defer resolveSembleVersion() until after this check to avoid unnecessary
 	//    HTTP calls when the binary is already up-to-date.
-	const installedVersion = await getInstalledVersion(storageDir)
+	const installedVersion = await getInstalledSembleVersion(storageDir)
 
 	// 3. Fast path: installed version matches hardcoded version and binary exists.
 	//    Resolution requires a regular FILE — a directory is not runnable (spawning
@@ -482,9 +527,12 @@ export async function downloadSemble(storageDir: string, binaryPathOverride?: st
 	await validateInstallPath(storageDir)
 	await checkDiskSpace(storageDir, ESTIMATED_REQUIRED_BYTES)
 
-	// 5. Resolve the semble version (fetches latest from GitHub if SEMBLE_VERSION_PATTERN === "latest").
-	//    Only called when we actually need to download.
-	const resolvedVersion = SEMBLE_VERSION_PATTERN === "latest" ? await resolveSembleVersion() : SEMBLE_VERSION
+	// 5. Resolve the semble version. With the default pinned pattern this is a
+	//    pure constant — no network calls. The "latest" mechanism is only used
+	//    when explicitly opted in (SEMBLE_VERSION_PATTERN === "latest" or
+	//    SEMBLE_RESOLVE_LATEST=1), so a fresh install never depends on GitHub
+	//    HEAD requests or an upstream tag that hasn't been tested/checksummed.
+	const resolvedVersion = shouldResolveLatest() ? await resolveSembleVersion() : SEMBLE_VERSION
 
 	// 6. If the resolved version differs from hardcoded, check against installed version again
 	if (resolvedVersion !== SEMBLE_VERSION && installedVersion === resolvedVersion) {
@@ -577,9 +625,14 @@ async function attemptDownload(
 		// Download checksums manifest and merge with hardcoded checksums
 		const checksums = await downloadChecksums(storageDir, resolvedVersion, sourceBaseUrl)
 
-		// Verify archive integrity before extraction
+		// Verify archive integrity before extraction. The checksums manifest
+		// (from downloadChecksums) is keyed by archive FILENAME (e.g.
+		// "semble-linux-x64-fast.tar.gz"), NOT by platform key ("linux-x64").
+		// Look up by info.archive so a fetched manifest is actually honored;
+		// fall back to the hardcoded SEMBLE_SHA256 table (platform-keyed) only
+		// when the manifest has no entry for this archive.
 		const platformKey = `${process.platform}-${process.arch}`
-		const expectedChecksum = checksums[platformKey] || SEMBLE_SHA256[platformKey]
+		const expectedChecksum = checksums[info.archive] || SEMBLE_SHA256[platformKey]
 		if (!expectedChecksum) {
 			throw new Error(`No checksum configured for platform ${platformKey} at ${resolvedVersion}`)
 		}
@@ -685,25 +738,126 @@ async function attemptDownloadWithRetry(url: string, destPath: string, maxRetrie
 }
 
 /**
- * Returns the path to the semble binary if it's already been downloaded, or undefined.
+ * Archive format discriminator used to select the entry-listing command.
  */
-export async function getSembleBinaryPath(storageDir: string): Promise<string | undefined> {
-	const info = getArchiveInfo()
-	if (!info) {
-		return undefined
-	}
+type ArchiveKind = "zip" | "tar.gz"
 
-	// Resolve the actual executable FILE — a directory at
-	// <storageDir>/semble/<binary> is not runnable (spawning it yields EACCES).
-	return resolveSembleBinary(path.join(storageDir, "semble"), info.binary)
+/**
+ * Rejects an archive entry name that could escape the extraction directory
+ * (zip-slip / tar path traversal).
+ *
+ * We normalize with `path.posix.normalize` AFTER mapping `\` to `/`, so
+ * Windows-style separators and drive-letter roots are handled identically on
+ * every platform. `path.posix` is used unconditionally (not `path` or
+ * `path.win32`) so the verdict depends only on the archive's OWN separators,
+ * never on the host OS:
+ *   - interior traversal like `semble/../../evil` collapses to `../evil` and is
+ *     caught even though no literal `..` starts the raw name;
+ *   - absolute paths (`/etc/passwd`, `\etc\passwd`) are rejected outright;
+ *   - a Windows drive-letter prefix (`C:\...`, `C:/...`) is rejected because
+ *     `path.posix.normalize("C:/evil")` yields `C:/evil`, which POSIX does not
+ *     treat as absolute.
+ *
+ * The `\`→`/` normalization also provides the equivalent of a "reject any
+ * backslash on non-Windows" guard uniformly on every platform (including
+ * Windows, where a backslash is a real separator and matters most).
+ *
+ * @throws If `entry` is an absolute path or escapes above the extraction root.
+ */
+export function assertSafeArchiveEntry(entry: string): void {
+	const forwardSlashed = entry.replace(/\\/g, "/")
+	if (forwardSlashed.startsWith("/") || /^[a-zA-Z]:(\/|$)/.test(forwardSlashed)) {
+		throw new Error(`Unsafe archive entry rejected (absolute path): ${entry}`)
+	}
+	const normalized = path.posix.normalize(forwardSlashed)
+	if (path.posix.isAbsolute(normalized) || normalized === ".." || normalized.startsWith("../")) {
+		throw new Error(`Unsafe archive entry rejected (path traversal): ${entry}`)
+	}
+}
+
+/**
+ * Lists the entries of an archive using the platform-appropriate listing tool:
+ *   - zip:    `unzip -Z1 <archive>` (PowerShell ZipFile listing on Windows, since
+ *     `unzip` is not installed by default there)
+ *   - tar.gz: `tar -tzf <archive>`
+ *
+ * Kept shell-safe: the command is spawned as an argv array with `shell: false`.
+ * Rejects if the listing tool itself fails (see assertSafeArchiveListing).
+ */
+function listArchiveEntries(archivePath: string, kind: ArchiveKind): Promise<string[]> {
+	return new Promise((resolve, reject) => {
+		let cmd: string
+		let args: string[]
+		if (kind === "zip") {
+			if (process.platform === "win32") {
+				cmd = "powershell"
+				args = [
+					"-NoProfile",
+					"-NonInteractive",
+					"-Command",
+					`Add-Type -AssemblyName System.IO.Compression.FileSystem; ` +
+						`[System.IO.Compression.ZipFile]::OpenRead('${escapePowerShellLiteral(archivePath)}').Entries | ForEach-Object { $_.FullName }`,
+				]
+			} else {
+				cmd = "unzip"
+				args = ["-Z1", archivePath]
+			}
+		} else {
+			cmd = "tar"
+			args = ["-tzf", archivePath]
+		}
+
+		const child = spawn(cmd, args, { shell: false, stdio: ["ignore", "pipe", "pipe"] })
+
+		let stdout = ""
+		let stderr = ""
+		child.stdout?.on("data", (data: Buffer) => {
+			stdout += data.toString()
+		})
+		child.stderr?.on("data", (data: Buffer) => {
+			stderr += data.toString()
+		})
+
+		child.on("error", reject)
+		child.on("close", (code) => {
+			if (code === 0) {
+				resolve(
+					stdout
+						.split("\n")
+						.map((line) => line.trim())
+						.filter(Boolean),
+				)
+			} else {
+				reject(new Error(`${cmd} archive listing failed (code ${code}): ${stderr.trim()}`))
+			}
+		})
+	})
+}
+
+/**
+ * Validates that every entry in an archive is safe to extract BEFORE any file is
+ * written, closing the zip-slip / tar-traversal hole on both extractors.
+ *
+ * Runs once per download (kept cheap). Fails CLOSED: if the listing command
+ * itself fails we cannot prove the archive is safe, so we reject rather than
+ * fall through to extraction.
+ */
+async function assertSafeArchiveListing(archivePath: string, kind: ArchiveKind): Promise<void> {
+	const entries = await listArchiveEntries(archivePath, kind)
+	for (const entry of entries) {
+		assertSafeArchiveEntry(entry)
+	}
 }
 
 /**
  * Extracts a .tar.gz archive into the destination directory using the system `tar` command.
  * Uses --no-same-owner to avoid issues with permission elevation,
  * strips absolute paths and blocks directory overwrites to prevent path traversal attacks.
+ * Entry paths are validated for traversal BEFORE extraction (see assertSafeArchiveListing).
  */
-function extractTarGz(archivePath: string, destDir: string): Promise<void> {
+async function extractTarGz(archivePath: string, destDir: string): Promise<void> {
+	await assertSafeArchiveListing(archivePath, "tar.gz")
+
 	return new Promise((resolve, reject) => {
 		const args = ["-xzf", archivePath, "-C", destDir, "--no-same-owner"]
 		// GNU tar: --no-overwrite-dir adds defense-in-depth against ../relative traversal.
@@ -744,8 +898,11 @@ function escapePowerShellLiteral(value: string): string {
 /**
  * Extracts a .zip archive into the destination directory.
  * Uses PowerShell on Windows, unzip on other platforms.
+ * Entry paths are validated for traversal BEFORE extraction (see assertSafeArchiveListing).
  */
-function extractZip(archivePath: string, destDir: string): Promise<void> {
+async function extractZip(archivePath: string, destDir: string): Promise<void> {
+	await assertSafeArchiveListing(archivePath, "zip")
+
 	return new Promise((resolve, reject) => {
 		let child
 

@@ -83,9 +83,17 @@ export function consolidateTokenUsage(messages: ClineMessage[]): TokenUsage {
 				const parsedText: ParsedApiReqStartedTextType = JSON.parse(message.text)
 				const { tokensIn, tokensOut } = parsedText
 
-				// Since tokensIn now stores TOTAL input tokens (including cache tokens),
-				// we no longer need to add cacheWrites and cacheReads separately.
-				// This applies to both Anthropic and OpenAI protocols.
+				// `tokensIn` stores the cache-inclusive total: Task.ts writes
+				// `costResult.totalInputTokens`, which for the Anthropic protocol is
+				// `inputTokens + cacheCreation + cacheRead` (see src/shared/cost.ts
+				// calculateApiCostAnthropic) and for the OpenAI protocol is the raw
+				// `inputTokens` that already includes cached tokens (see
+				// calculateApiCostOpenAI). We therefore intentionally do NOT add
+				// cacheWrites/cacheReads again — that would double-count them.
+				// Adding `tokensOut` gives the total window consumption of the last
+				// request (cache + output are real context-window consumers). The UI
+				// clamps the resulting percentage to 0-100, so this cannot overflow the
+				// header bar even when cache+output exceed the input window.
 				result.contextTokens = (tokensIn || 0) + (tokensOut || 0)
 			} catch {
 				// Ignore JSON parse errors

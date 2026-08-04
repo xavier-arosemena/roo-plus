@@ -243,7 +243,8 @@
 			"standby": "स्टैंडबाई",
 			"indexing": "इंडेक्सिंग",
 			"indexed": "इंडेक्स किया गया",
-			"error": "त्रुटि"
+			"error": "त्रुटि",
+			"stopping": "इंडेक्सिंग रोक रहा है..."
 		},
 		"close": "बंद करें",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "इस वर्कस्पेस के लिए इंडेक्सिंग सक्षम करें",
 		"workspaceDisabledMessage": "इंडेक्सिंग कॉन्फ़िगर की गई है लेकिन इस वर्कस्पेस के लिए सक्षम नहीं है।",
 		"autoEnableDefaultLabel": "नए वर्कस्पेस के लिए स्वचालित रूप से इंडेक्सिंग सक्षम करें",
-		"sembleProvider": "Semble - स्थानीय"
+		"sembleProvider": "Semble - स्थानीय",
+		"sembleBinaryPathLabel": "Semble बाइनरी पथ (वैकल्पिक)",
+		"sembleBinaryPathPlaceholder": "जैसे /usr/local/bin/semble (स्वतः डाउनलोड करने के लिए खाली छोड़ें)",
+		"sembleBinaryPathDescription": "मैन्युअल रूप से स्थापित semble बाइनरी का पथ। सेट होने पर, स्वतः डाउनलोड छोड़ दिया जाता है। स्वतः डाउनलोड किए गए बाइनरी का उपयोग करने के लिए खाली छोड़ें।"
 	},
 	"autoApprove": {
 		"toggleShortcut": "आप <SettingsLink>अपनी आईडीई वरीयताओं में</SettingsLink> इस सेटिंग के लिए एक वैश्विक शॉर्टकट कॉन्फ़िगर कर सकते हैं।",

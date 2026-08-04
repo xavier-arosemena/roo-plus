@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble tidak didukung di platform ini ({{platform}}-{{arch}}).",
 		"downloadFailed": "Gagal mengunduh semble: {{errorMessage}}",
 		"checkFailed": "Pemeriksaan semble gagal: {{errorMessage}}",
+		"searchFailed": "Pencarian Semble gagal: {{errorMessage}}",
 		"providerReset": "Penyedia Semble direset. Cache di disk tetap ada hingga pembangunan ulang berikutnya."
 	}
 }

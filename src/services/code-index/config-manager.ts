@@ -335,20 +335,23 @@ export class CodeIndexConfigManager {
 			return true
 		}
 
-		// 3. If wasn't ready before and isn't ready now, no restart needed
+		// 3. A provider change is ALWAYS a restart when the feature is (or was)
+		// enabled — even if neither the previous nor the new config was "ready".
+		// This ensures the manager disposes stale providers (e.g. an old Semble
+		// provider) and rebuilds the services for the actual embedder.
+		if (prevProvider !== this.embedderProvider && (this.codebaseIndexEnabled || prevEnabled)) {
+			return true
+		}
+
+		// 4. If wasn't ready before and isn't ready now, no restart needed
 		if ((!prevEnabled || !prevConfigured) && (!this.codebaseIndexEnabled || !nowConfigured)) {
 			return false
 		}
 
-		// 4. CRITICAL CHANGES - Always restart for these
+		// 5. CRITICAL CHANGES - Always restart for these
 		// Only check for critical changes if feature is enabled
 		if (!this.codebaseIndexEnabled) {
 			return false
-		}
-
-		// Provider change
-		if (prevProvider !== this.embedderProvider) {
-			return true
 		}
 
 		// Authentication changes (API keys)

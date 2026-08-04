@@ -1,6 +1,45 @@
 # Roo+ Changelog
 
-## [3.76.0] — 2026-07-31
+## [Unreleased]
+
+## [3.77.0] — 2026-08-04
+
+### Minor — Code Index Reliability & Context Window Accuracy (VSIX package testing, dependency audit)
+
+#### 🐛 Bug Fixes
+
+- **Semble Empty Search Results Fixed (F1)** — Removed the `0.4` min-score filter from the Semble search path. It was mirrored from the Qdrant-tuned threshold, but Semble's raw scores frequently sit below it, producing recurring empty results. The Semble path is now reference-aligned with Zoo Code: no score filter and no result cap are applied; `searchMinScore`/`searchMaxResults` are consumed **only** by the Qdrant path. ([`src/services/code-index/semble/provider.ts`](src/services/code-index/semble/provider.ts))
+- **Fabricated 1-Token Context Window Fixed** — [`TaskHeader`](webview-ui/src/components/chat/TaskHeader.tsx) fabricated a `1`-token window (`model?.contextWindow || 1`) when model info was unavailable, driving the broken "4050600%" context bar. It now only trusts a real, finite, positive window and hides the token rows when model info is missing.
+- **Context-Window Bar Overflow Fixed** — [`ContextWindowProgress`](webview-ui/src/components/chat/ContextWindowProgress.tsx) now renders an empty/neutral bar for a missing/zero/`NaN`/`Infinity` window, and the used/reserved/available segments are clamped so their widths can never sum above 100%.
+- **Hidden Broken Index Surfaced (F4)** — A genuinely-failing code-index search (manager state `"Error"`) was reported to the agent as "no relevant snippets". [`CodebaseSearchTool`](src/core/tools/CodebaseSearchTool.ts) now surfaces the actionable error message (e.g. Semble binary / network) instead of masking the failure.
+- **Multi-Root / Subdirectory Instance Mismatch Fixed (F2/F3)** — [`CodebaseSearchTool`](src/core/tools/CodebaseSearchTool.ts) now passes the resolved `workspacePath`, and [`CodeIndexManager.getInstance`](src/services/code-index/manager.ts) resolves a subdirectory `cwd` to its containing workspace folder — so tool filtering, activation, webview, and the search tool all converge on the **same** manager instance.
+- **Concurrent Double-Init Fixed** — [`CodeIndexManager.initialize()`](src/services/code-index/manager.ts) now coalesces concurrent calls onto a single in-flight run, so rapid "Start Indexing" clicks no longer recreate services or start indexing twice.
+- **Sticky Semble Init Failure Retryable** — A cached Semble initialization failure (e.g. transient download/network error) is sticky for status polls, but an explicit user-initiated start now calls `SembleProvider.reset()` so the download/validation pipeline retries.
+- **Semble CLI Orphaned-Process / Silent-Stub Detection** — [`SembleCLI`](src/services/code-index/semble/semble-cli.ts) now tracks and aborts the active child process exactly once (kills it and rejects the pending spawn), and a corrupted PyInstaller build that exits `0` with no output is detected by requiring `--help` to advertise the `search` subcommand.
+- **Semble Version Drift Eliminated** — [`semble-downloader.ts`](src/services/code-index/semble/semble-downloader.ts) pins `SEMBLE_VERSION_PATTERN` to the concrete `SEMBLE_VERSION` by default for deterministic installs; "latest" resolution is opt-in via the `SEMBLE_RESOLVE_LATEST` env var. `SEMBLE_SHA256` checksums were regenerated for the pinned release.
+
+#### 🚀 Enhancements
+
+- **Semble Snippet Hardening** — Added a version-gated `--max-snippet-lines` flag (semble ≥ v0.4.1) to bound per-result snippet payloads, with `_truncateSnippet` capping at `MAX_SNIPPET_CHARS` as a defensive backstop. New `embeddings:semble.searchFailed` i18n key added across all locales.
+- **Semble Raw-Score Diagnostics** — Logs the raw CLI score distribution once per provider instance (first search with results) to make any scale mismatch visible to log scans and tests.
+- **CodeIndexManager Reconciliation** — New `_serviceStateMatchesConfig()` forces service recreation when the active service set does not match the configured embedder; a provider change now always restarts when the feature is (or was) enabled, disposing stale providers.
+- **Shared-State Single Source of Truth** — `manager.state` and `SembleProvider.state` now both read the shared [`CodeIndexStateManager`](src/services/code-index/state-manager.ts) (no drift, no throw when uninitialized); `setSystemStateSilent()` lets a provider reset update state without spamming the UI.
+- **Model Info Resolved During Load** — [`useSelectedModel`](webview-ui/src/components/ui/hooks/useSelectedModel.ts) now resolves the selected model even while provider data is still loading, falling back to provider defaults (OpenRouter, Requesty, Unbound, xAI, Baseten, Poe, Kenari, Ollama, Vercel) so the task header always has a real context window.
+- **Semble Binary Path Setting i18n** — New `sembleBinaryPathLabel`/placeholder/description keys and a `stopping` index-state label added across all locale files.
+- **CI Release-Readiness Gate** — New [`scripts/verify-semble-checksums.mjs`](scripts/verify-semble-checksums.mjs) confirms the GitHub release tagged at `SEMBLE_VERSION` ships a `checksums-sha256.txt` matching `SEMBLE_SHA256`; non-strict in [`code-qa.yml`](.github/workflows/code-qa.yml), `--strict` in [`marketplace-publish.yml`](.github/workflows/marketplace-publish.yml). New `smoke:semble` / `smoke:semble:test` scripts in [`package.json`](package.json).
+
+#### ✅ Quality
+
+- Removed the dead `ICodeIndexManager` interface (nothing implemented it; it documented a stale `searchIndex` contract). ([`src/services/code-index/interfaces/manager.ts`](src/services/code-index/interfaces/manager.ts))
+- Clarified [`consolidateTokenUsage`](packages/core/src/message-utils/consolidateTokenUsage.ts) semantics: `tokensIn` is cache-inclusive (`totalInputTokens`), `tokensOut` is added for total window consumption, and the UI clamps the percentage to 0–100.
+- Added ~2,000 lines of new/expanded tests across the code-index manager, Semble provider/downloader/CLI, `TaskHeader`, `ContextWindowProgress`, `useSelectedModel`, and `model-utils`.
+- `src/eslint-suppressions.json` rebalanced (no net count increase).
+- **Dependency audit remediation** — upgraded transitive dependencies to patched versions via [`pnpm-workspace.yaml`](pnpm-workspace.yaml) overrides (`undici@6.28.0`, `fast-uri@3.1.5`, `ip-address@10.3.1`, `brace-expansion@5.0.9`, `hono@4.12.34`, `@hono/node-server@2.x`, `serialize-javascript@7.0.7`, `uuid@11.1.1`) and bumped `undici` in [`src/package.json`](src/package.json) to `^6.28.0`; `pnpm audit` is now clean (0 known vulnerabilities).
+- **Test reliability fixes** — updated the `fs/promises` mock in [`diagnosticsHandler.spec.ts`](src/core/webview/__tests__/diagnosticsHandler.spec.ts) to provide `mkdtemp`, added `Uri.file`/`workspace.getWorkspaceFolder` to the vscode mock in [`Task.spec.ts`](src/core/task/__tests__/Task.spec.ts), used valid base64 PNG fixtures in the OpenAI codex/native provider specs and [`generateImageTool.test.ts`](src/core/tools/__tests__/generateImageTool.test.ts) so tests reflect the security-hardened image validation.
+
+---
+
+## [3.76.0] — 2026-08-03
 
 ### Minor — Release Readiness & Architecture Program (Typed Message Protocol, Domain-Split Dispatcher, Slim ClineProvider)
 
@@ -14,6 +53,8 @@
 - **Legacy CLI Credential Write Path Retired** — Removed the dead `saveToken` plaintext write path from [`apps/cli/src/lib/storage/credentials.ts`](apps/cli/src/lib/storage/credentials.ts); the module is now read/delete-only for legacy Roo auth token cleanup (`roo auth status`/`auth logout`). Nothing writes credentials anymore.
 - **CLI `vscode-shim` Logger Wired to DebugLogger** — Replaced the no-op `setLogger` in [`apps/cli/src/commands/cli/run.ts`](apps/cli/src/commands/cli/run.ts) with per-level forwarding to the CLI `DebugLogger`, enabled when `--debug` is passed (non-debug runs remain silent).
 - **CLI `waitForTaskCompletion` TDZ Hazard Fixed** — Reordered declarations so `messageHandler`/`cleanup` are declared before the closures referencing them (no behavior change). ([`apps/cli/src/agent/extension-host.ts`](apps/cli/src/agent/extension-host.ts))
+- **Router-Provider Model Metadata Fetch Fixed** — The router provider now fetches model metadata before making context-management decisions. `ensureModelFetched` is single-flighted and invoked earlier in the call path, so context decisions no longer race against (or double-fetch) model metadata. ([`src/api/providers/router-provider.ts`](src/api/providers/router-provider.ts))
+- **Flaky Subtask E2E Fixed** — The mocked subtask e2e suite could inherit a cancelled delayed mock stream from the previous test, causing flaky parent-resume assertions. The delayed stream is now drained deterministically between tests, with the drain invariants documented in the suite. ([`apps/vscode-e2e/`](apps/vscode-e2e/))
 
 #### 🚀 Enhancements
 
@@ -22,6 +63,10 @@
 - **Bundled Semble Binary Removed** — The launcher-only 9.2 MB bundle (without its ~130 MB `_internal` runtime) was non-functional. Removed `bin/semble`, the `.vscodeignore` include, the `extensionPath` bundled-copy path in `downloadSemble`, and `scripts/bundle-semble.sh` (plus its `vsix` invocation). Semble is now **download-only**; offline users use the existing `codebaseIndexSembleBinaryPath` setting.
 - **Pre-installed Mode Descriptions Always Present** — Rewrote `CustomModesManager.seedPreInstalledModes()` to merge-fill: the old `.some()` guard only re-seeded when ZERO modes had descriptions (partial seeds never repaired) and the version-change path **overwrote the user's entire customModes file**. Now: triggers repair when ANY bundled mode lacks a description, back-fills only empty descriptions, preserves user modes/edits, adds bundled modes only on version change, and writes only on change. 4 regression tests. ([`src/core/config/CustomModesManager.ts`](src/core/config/CustomModesManager.ts))
 - **CLI README Upstream Install Warning** — [`apps/cli/README.md`](apps/cli/README.md) install commands point at the upstream `RooCodeInc/Roo-Code` repo; added a prominent warning callout documenting the fork divergence (Roo+ users build from source or use the manual binary path).
+- **Canonical Provider Identifier Refactor Completed** — Finished the canonical provider-identifier audit across the webview, API, and shared packages (PRs #1023, #1030, continuing the #952/#989 work from v3.72.0). Anthropic/OpenAI protocol values and keyless provider identifiers are centralized into canonical shared constants; the webview model-selection and routing paths now use them exclusively, with brittle identifier-mutation tests replaced by explicit provider coverage (incl. Anthropic Opus 1M tier, Kimi Code).
+- **Service-Tier Primitives Centralized** — Centralized service-tier primitives in the API layer (PR #1040): OpenAI-native completion/streaming tier resolution, flex-tier handling, and tier fallbacks consolidated into shared helpers with expanded test coverage for omitted/resolved tiers.
+- **OpenAI-Compatible Max Reasoning Effort** — Added a **maximum reasoning effort** option to the OpenAI-compatible provider (PR #882/#1051), so users can cap reasoning effort independently of the requested level.
+- **OpenAI Codex Fast Priority Mode** — The OpenAI Codex provider now persists and sends the **Fast** priority mode (PR #1063), with service-tier types aligned across the codex provider paths.
 
 #### 🔒 Security
 
@@ -29,6 +74,7 @@
 - **Webview HTML Sanitization** — Added a DOMPurify-based sanitizer ([`webview-ui/src/utils/sanitizeHtml.ts`](webview-ui/src/utils/sanitizeHtml.ts)) applied to every `dangerouslySetInnerHTML` site (terminal output, Mermaid blocks with `securityLevel: "strict"`, task-item highlights); `escapeXML` pinned by regression test
 - **HMR CSP Hardening** — Removed the `https://*` wildcard from the dev HMR webview CSP and added a Vite-identity probe (`/@vite/client`) so a rogue localhost process cannot serve scripts to the webview
 - **Dead `setApiConfigPassword` Message Type Removed** — The no-op security-sensitive message type was removed from the zod registry, `WebviewMessage` union, exports, and tests; message-schema baseline updated (16 registered of 165 total, 149 untyped). ([`packages/types/src/webview-messages/providerConfig.ts`](packages/types/src/webview-messages/providerConfig.ts))
+- **CodeQL Alert Remediation** — Fixed 7 new CodeQL code-scanning alerts plus ~100 pre-existing alerts flagged on the release branch (port validation, temp-file handling, command-race, and path-escaping findings), bringing the release branch to a clean code-scanning state. ([`src/`](src/), [`apps/cli/`](apps/cli/))
 
 #### ✅ Quality
 
@@ -36,6 +82,7 @@
 - **Slim ClineProvider** — Extracted `TaskHistoryService`, `ProviderProfileService`, `MarketplaceService`, and `TaskOrchestrator` into `src/core/services/`; `ClineProvider` shrank from ~3,800 to ~2,500 lines and is now a thin facade (webview lifecycle + state assembly + delegates). All public method signatures preserved
 - **Direction-Mixing Cleanup** — Moved 10 outbound-only message types from `WebviewMessage` into `ExtensionMessage`
 - **CI Message-Schema Ratchet** — New [`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs) (wired into `code-qa.yml`) enforces the 16 baseline types stay registered and the untyped message count (149) never increases
+- **Playwright Visual Regression Harness** — Added a Playwright Component-Testing visual regression harness ([`webview-ui/playwright-ct.config.ts`](webview-ui/playwright-ct.config.ts)) with a `ModelInfoView` model-info/service-tier snapshot baseline; screenshots regenerate on intentional UI change
 - **Test Counts** — 7,119 src tests, 410 webview-ui tests, 284 `packages/types` tests, and the CLI suite all pass; `tsc --noEmit` clean across `src`, `packages/types`, `webview-ui`, and `apps/cli`; eslint `--max-warnings=0` clean; `src/eslint-suppressions.json` counts only decreased
 
 #### 🔧 Chores

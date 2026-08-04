@@ -35,23 +35,38 @@ export class CodeIndexStateManager {
 			newState !== this._systemStatus || (message !== undefined && message !== this._statusMessage)
 
 		if (stateChanged) {
-			this._systemStatus = newState
-			if (message !== undefined) {
-				this._statusMessage = message
-			}
-
-			// Reset progress counters if moving to a non-indexing state or starting fresh
-			if (newState !== "Indexing") {
-				this._processedItems = 0
-				this._totalItems = 0
-				this._currentItemUnit = "blocks" // Reset to default unit
-				// Optionally clear the message or set a default for non-indexing states
-				if (newState === "Standby" && message === undefined) this._statusMessage = "Ready."
-				if (newState === "Indexed" && message === undefined) this._statusMessage = "Index up-to-date."
-				if (newState === "Error" && message === undefined) this._statusMessage = "An error occurred."
-			}
-
+			this._applySystemState(newState, message)
 			this._progressEmitter.fire(this.getCurrentStatus())
+		}
+	}
+
+	/**
+	 * Updates the system state without firing the progress event.
+	 *
+	 * Intended for transitions that must stay in the shared state (single source
+	 * of truth) but should not spam the UI — e.g. SembleProvider.reset(), which
+	 * clears a cached failure before the next initialize() re-runs the download
+	 * pipeline. Counters are still reset exactly as setSystemState() would.
+	 */
+	public setSystemStateSilent(newState: IndexingState, message?: string): void {
+		this._applySystemState(newState, message)
+	}
+
+	private _applySystemState(newState: IndexingState, message?: string): void {
+		this._systemStatus = newState
+		if (message !== undefined) {
+			this._statusMessage = message
+		}
+
+		// Reset progress counters if moving to a non-indexing state or starting fresh
+		if (newState !== "Indexing") {
+			this._processedItems = 0
+			this._totalItems = 0
+			this._currentItemUnit = "blocks" // Reset to default unit
+			// Optionally clear the message or set a default for non-indexing states
+			if (newState === "Standby" && message === undefined) this._statusMessage = "Ready."
+			if (newState === "Indexed" && message === undefined) this._statusMessage = "Index up-to-date."
+			if (newState === "Error" && message === undefined) this._statusMessage = "An error occurred."
 		}
 	}
 

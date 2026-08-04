@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "此平台不支持 Semble ({{platform}}-{{arch}})。",
 		"downloadFailed": "下载 semble 失败：{{errorMessage}}",
 		"checkFailed": "Semble 检查失败：{{errorMessage}}",
+		"searchFailed": "Semble 搜索失败：{{errorMessage}}",
 		"providerReset": "Semble 提供程序已重置。磁盘缓存将保留至下次重建。"
 	}
 }

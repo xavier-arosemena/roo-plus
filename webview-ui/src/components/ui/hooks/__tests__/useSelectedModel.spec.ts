@@ -11,9 +11,12 @@ import {
 	anthropicModels,
 	BEDROCK_1M_CONTEXT_MODEL_IDS,
 	litellmDefaultModelInfo,
+	lMStudioDefaultModelInfo,
 	kenariDefaultModelId,
 	kenariDefaultModelInfo,
+	ollamaDefaultModelInfo,
 	openAiModelInfoSaneDefaults,
+	openRouterDefaultModelInfo,
 	minimaxDefaultModelId,
 	minimaxModels,
 	friendliDefaultModelId,
@@ -24,18 +27,31 @@ import {
 	moonshotDefaultModelId,
 	moonshotModels,
 	kimiCodeDefaultModelInfo,
+	xaiDefaultModelId,
+	xaiModels,
 	providerIdentifiers,
 } from "@roo-code/types"
 
 import { useSelectedModel } from "../useSelectedModel"
 import { useRouterModels } from "../useRouterModels"
 import { useOpenRouterModelProviders } from "../useOpenRouterModelProviders"
+import { useLmStudioModels } from "../useLmStudioModels"
+import { useOllamaModels } from "../useOllamaModels"
 
 vi.mock("../useRouterModels")
 vi.mock("../useOpenRouterModelProviders")
+vi.mock("../useLmStudioModels")
+vi.mock("../useOllamaModels")
 
 const mockUseRouterModels = useRouterModels as Mock<typeof useRouterModels>
 const mockUseOpenRouterModelProviders = useOpenRouterModelProviders as Mock<typeof useOpenRouterModelProviders>
+const mockUseLmStudioModels = useLmStudioModels as Mock<typeof useLmStudioModels>
+const mockUseOllamaModels = useOllamaModels as Mock<typeof useOllamaModels>
+
+// These local-provider lists are only consulted when the provider is lmstudio/ollama;
+// a stable default keeps every other provider's result deterministic.
+mockUseLmStudioModels.mockReturnValue({ data: undefined, isLoading: false, isError: false } as any)
+mockUseOllamaModels.mockReturnValue({ data: undefined, isLoading: false, isError: false } as any)
 
 const createWrapper = () => {
 	const queryClient = new QueryClient({
@@ -1216,6 +1232,101 @@ describe("useSelectedModel", () => {
 
 			expect(result.current.id).toBe("kimi-k2-turbo-preview")
 			expect(result.current.info).toEqual(moonshotModels["kimi-k2-turbo-preview"])
+		})
+	})
+
+	describe("provider fallbacks never return undefined info", () => {
+		beforeEach(() => {
+			mockUseRouterModels.mockReturnValue({
+				data: { openrouter: {}, requesty: {}, litellm: {} },
+				isLoading: false,
+				isError: false,
+			} as any)
+
+			mockUseOpenRouterModelProviders.mockReturnValue({
+				data: {},
+				isLoading: false,
+				isError: false,
+			} as any)
+		})
+
+		it("openrouter returns a defined default ModelInfo when the model list is empty", () => {
+			const apiConfiguration: ProviderSettings = {
+				apiProvider: providerIdentifiers.openrouter,
+				openRouterModelId: "some-model", // not present in the empty list
+			}
+
+			const wrapper = createWrapper()
+			const { result } = renderHook(() => useSelectedModel(apiConfiguration), { wrapper })
+
+			// Falls back to the provider default model ID + info instead of `undefined`.
+			expect(result.current.id).toBe(openRouterDefaultModelId)
+			expect(result.current.info).toEqual(openRouterDefaultModelInfo)
+		})
+
+		it("openrouter returns a defined default ModelInfo while the model list is still loading", () => {
+			// `isReady` is false here (models not loaded yet), but a valid configured
+			// provider must still expose a usable default window rather than `info: undefined`.
+			mockUseRouterModels.mockReturnValue({
+				data: undefined,
+				isLoading: true,
+				isError: false,
+			} as any)
+
+			mockUseOpenRouterModelProviders.mockReturnValue({
+				data: undefined,
+				isLoading: true,
+				isError: false,
+			} as any)
+
+			const apiConfiguration: ProviderSettings = {
+				apiProvider: providerIdentifiers.openrouter,
+			}
+
+			const wrapper = createWrapper()
+			const { result } = renderHook(() => useSelectedModel(apiConfiguration), { wrapper })
+
+			expect(result.current.isLoading).toBe(true)
+			expect(result.current.info).toEqual(openRouterDefaultModelInfo)
+		})
+
+		it("lmstudio falls back to lMStudioDefaultModelInfo when the selected model is missing", () => {
+			const apiConfiguration: ProviderSettings = {
+				apiProvider: providerIdentifiers.lmstudio,
+				lmStudioModelId: "missing-model",
+			}
+
+			const wrapper = createWrapper()
+			const { result } = renderHook(() => useSelectedModel(apiConfiguration), { wrapper })
+
+			expect(result.current.id).toBe("missing-model")
+			expect(result.current.info).toEqual(lMStudioDefaultModelInfo)
+		})
+
+		it("ollama falls back to ollamaDefaultModelInfo when the selected model is missing", () => {
+			const apiConfiguration: ProviderSettings = {
+				apiProvider: providerIdentifiers.ollama,
+				ollamaModelId: "missing-model",
+			}
+
+			const wrapper = createWrapper()
+			const { result } = renderHook(() => useSelectedModel(apiConfiguration), { wrapper })
+
+			expect(result.current.id).toBe("missing-model")
+			expect(result.current.info).toEqual(ollamaDefaultModelInfo)
+		})
+
+		it("xai falls back to its static default entry when the configured ID is not in the curated table", () => {
+			const apiConfiguration: ProviderSettings = {
+				apiProvider: providerIdentifiers.xai,
+				apiModelId: "grok-not-in-table",
+			}
+
+			const wrapper = createWrapper()
+			const { result } = renderHook(() => useSelectedModel(apiConfiguration), { wrapper })
+
+			expect(result.current.id).toBe("grok-not-in-table")
+			expect(result.current.info).toEqual(xaiModels[xaiDefaultModelId])
 		})
 	})
 })

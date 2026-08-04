@@ -1,6 +1,11 @@
 import { CodeIndexManager } from "../manager"
 import { CodeIndexServiceFactory } from "../service-factory"
+import { CodeIndexConfigManager } from "../config-manager"
+import { CacheManager } from "../cache-manager"
+import { SembleProvider } from "../semble"
+import type { ContextProxy } from "../../../core/config/ContextProxy"
 import type { MockedClass } from "vitest"
+import type { ExtensionContext, WorkspaceFolder } from "vscode"
 import * as path from "path"
 
 // Helper: create a mock vscode.Uri from an fsPath
@@ -91,14 +96,49 @@ vi.mock("ignore", () => ({
 
 vi.mock("../state-manager", () => ({
 	CodeIndexStateManager: vi.fn().mockImplementation(function () {
+		// Closure-backed state so manager.state / getCurrentStatus() reflect the
+		// shared state manager (single source of truth) in tests.
+		let currentState = "Standby"
+		let currentMessage = ""
 		return {
 			onProgressUpdate: vi.fn(),
-			getCurrentStatus: vi.fn(),
+			get state() {
+				return currentState
+			},
+			getCurrentStatus: vi.fn().mockImplementation(() => ({
+				systemStatus: currentState,
+				message: currentMessage,
+				processedItems: 0,
+				totalItems: 0,
+				currentItemUnit: "items",
+			})),
 			dispose: vi.fn(),
-			setSystemState: vi.fn(),
+			setSystemState: vi.fn().mockImplementation((newState: string, message?: string) => {
+				currentState = newState
+				if (message !== undefined) currentMessage = message
+			}),
 		}
 	}),
 }))
+
+// Mock the Semble provider so _recreateServices can exercise the semble branch.
+vi.mock("../semble", () => {
+	const mockSembleProvider = {
+		initialize: vi.fn().mockResolvedValue(undefined),
+		startIndexing: vi.fn().mockResolvedValue(undefined),
+		stopIndexing: vi.fn(),
+		searchIndex: vi.fn().mockResolvedValue([]),
+		clearIndexData: vi.fn().mockResolvedValue(undefined),
+		reset: vi.fn(),
+		dispose: vi.fn(),
+		state: "Indexed",
+	}
+	return {
+		SembleProvider: vi.fn().mockImplementation(function () {
+			return mockSembleProvider
+		}),
+	}
+})
 
 // Mock TelemetryService
 vi.mock("@roo-code/telemetry", () => ({
@@ -813,5 +853,411 @@ describe("CodeIndexManager - handleSettingsChange regression", () => {
 			expect(mockOrchestrator.stopIndexing).toHaveBeenCalled()
 			expect(mockStateManager.setSystemState).toHaveBeenCalledWith("Standby", "Code indexing is disabled")
 		})
+	})
+
+	describe("R2: handleSettingsChange lazy config manager", () => {
+		it("should lazily create the config manager when missing (with contextProxy)", async () => {
+			// Simulate a manager that was never initialized (swallowed background init)
+			manager["_configManager"] = undefined
+			manager["_contextProxy"] = undefined
+
+			const mockContextProxy = {
+				getGlobalState: vi.fn().mockReturnValue({ codebaseIndexEnabled: false }),
+				getSecret: vi.fn().mockReturnValue(undefined),
+				refreshSecrets: vi.fn().mockResolvedValue(undefined),
+			}
+
+			await manager.handleSettingsChange(mockContextProxy as unknown as ContextProxy)
+
+			// A settings save must always load config by creating the config manager
+			expect(manager["_configManager"]).toBeDefined()
+		})
+
+		it("should reuse the stored contextProxy from initialize() when none is passed", async () => {
+			manager["_configManager"] = undefined
+
+			const mockContextProxy = {
+				getGlobalState: vi.fn().mockReturnValue({ codebaseIndexEnabled: false }),
+				getSecret: vi.fn().mockReturnValue(undefined),
+				refreshSecrets: vi.fn().mockResolvedValue(undefined),
+			}
+			await manager.initialize(mockContextProxy as unknown as ContextProxy)
+			expect(manager["_configManager"]).toBeDefined()
+
+			// Clear the config manager to force lazy recreation from the stored proxy
+			manager["_configManager"] = undefined
+
+			await manager.handleSettingsChange()
+			expect(manager["_configManager"]).toBeDefined()
+		})
+	})
+
+	describe("R3: provider change forces service recreation", () => {
+		it("should dispose a stale Semble provider when switching to an unconfigured target", async () => {
+			const disposeSpy = vi.fn()
+			manager["_sembleProvider"] = {
+				dispose: disposeSpy,
+				stopIndexing: vi.fn(),
+			} as unknown as SembleProvider
+
+			const mockConfigManager = {
+				loadConfiguration: vi.fn().mockResolvedValue({
+					requiresRestart: false,
+					configSnapshot: { embedderProvider: "semble" },
+					currentConfig: { embedderProvider: "gemini" },
+				}),
+				isFeatureEnabled: true,
+				isFeatureConfigured: false, // unconfigured target
+				currentEmbedderProvider: "gemini",
+				getConfig: vi.fn().mockReturnValue({}),
+			}
+			manager["_configManager"] = mockConfigManager as unknown as CodeIndexConfigManager
+			manager["_cacheManager"] = {
+				initialize: vi.fn().mockResolvedValue(undefined),
+				clearCacheFile: vi.fn(),
+			} as unknown as CacheManager
+
+			const mockServiceFactoryInstance = {
+				createServices: vi.fn().mockReturnValue({
+					embedder: { embedderInfo: { name: "gemini" } },
+					vectorStore: {},
+					scanner: {},
+					fileWatcher: {
+						onDidStartBatchProcessing: vi.fn(),
+						onBatchProgressUpdate: vi.fn(),
+						watch: vi.fn(),
+						stopWatcher: vi.fn(),
+						dispose: vi.fn(),
+					},
+				}),
+				validateEmbedder: vi.fn().mockResolvedValue({ valid: true }),
+			}
+			MockedCodeIndexServiceFactory.mockImplementation(function () {
+				// Test-only factory double for the external-provider path.
+				return mockServiceFactoryInstance as unknown as CodeIndexServiceFactory
+			})
+
+			await manager.handleSettingsChange()
+
+			// Stale provider is disposed even though the new provider is unconfigured
+			expect(disposeSpy).toHaveBeenCalled()
+			expect(manager["_sembleProvider"]).toBeUndefined()
+			// External gemini services are rebuilt
+			expect(mockServiceFactoryInstance.createServices).toHaveBeenCalled()
+			expect(manager["_orchestrator"]).toBeDefined()
+		})
+
+		it("should create a SembleProvider when switching to semble", async () => {
+			manager["_sembleProvider"] = undefined
+			manager["_cacheManager"] = {
+				initialize: vi.fn().mockResolvedValue(undefined),
+				clearCacheFile: vi.fn(),
+			} as unknown as CacheManager
+
+			const mockConfigManager = {
+				loadConfiguration: vi.fn().mockResolvedValue({
+					requiresRestart: false,
+					configSnapshot: { embedderProvider: "openai" },
+					currentConfig: { embedderProvider: "semble" },
+				}),
+				isFeatureEnabled: true,
+				isFeatureConfigured: true,
+				currentEmbedderProvider: "semble",
+				sembleBinaryPath: undefined,
+				getConfig: vi.fn().mockReturnValue({}),
+			}
+			manager["_configManager"] = mockConfigManager as unknown as CodeIndexConfigManager
+
+			await manager.handleSettingsChange()
+
+			// Reference-aligned (Zoo-Code): the Semble provider is created WITHOUT
+			// searchMinScore/searchMaxResults — the Semble path applies no score
+			// filter / result cap; those settings are consumed only by the Qdrant path.
+			expect(SembleProvider).toHaveBeenCalledWith(
+				manager["workspacePath"],
+				manager["context"],
+				manager["_stateManager"],
+				expect.objectContaining({
+					binaryPath: undefined,
+				}),
+			)
+			expect(SembleProvider).not.toHaveBeenCalledWith(
+				manager["workspacePath"],
+				manager["context"],
+				manager["_stateManager"],
+				expect.objectContaining({
+					searchMinScore: expect.anything(),
+				}),
+			)
+			expect(manager["_sembleProvider"]).toBeDefined()
+		})
+	})
+
+	describe("R5: unified state source of truth", () => {
+		it("should not throw when feature is enabled but the manager is uninitialized", () => {
+			vi.spyOn(manager, "isFeatureEnabled", "get").mockReturnValue(true)
+			manager["_sembleProvider"] = undefined
+			manager["_orchestrator"] = undefined
+
+			expect(() => manager.state).not.toThrow()
+			expect(manager.state).toBe("Standby")
+		})
+
+		it("should return Standby when feature is disabled and uninitialized", () => {
+			vi.spyOn(manager, "isFeatureEnabled", "get").mockReturnValue(false)
+			manager["_sembleProvider"] = undefined
+			manager["_orchestrator"] = undefined
+
+			expect(() => manager.state).not.toThrow()
+			expect(manager.state).toBe("Standby")
+		})
+
+		it("should always mirror the shared state manager (single source of truth)", () => {
+			vi.spyOn(manager, "isFeatureEnabled", "get").mockReturnValue(true)
+			const mockStateManager = manager["_stateManager"]
+
+			mockStateManager.setSystemState("Indexing", "Working...")
+			expect(manager.state).toBe("Indexing")
+			expect(manager.getCurrentStatus().systemStatus).toBe("Indexing")
+
+			mockStateManager.setSystemState("Indexed", "Done")
+			expect(manager.state).toBe("Indexed")
+			expect(manager.getCurrentStatus().systemStatus).toBe("Indexed")
+		})
+	})
+
+	describe("R7: Semble failed-init retry", () => {
+		it("should reset and retry a failed Semble init on explicit startIndexing", async () => {
+			manager["_configManager"] = {
+				isFeatureEnabled: true,
+				isFeatureConfigured: true,
+			} as unknown as CodeIndexConfigManager
+
+			const reset = vi.fn()
+			const startIndexing = vi.fn().mockResolvedValue(undefined)
+			manager["_sembleProvider"] = {
+				reset,
+				startIndexing,
+				stopIndexing: vi.fn(),
+				dispose: vi.fn(),
+				state: "Error",
+			} as unknown as SembleProvider
+
+			// Shared state manager reflects a failed Semble init (Error)
+			;(manager["_stateManager"] as { setSystemState: (s: string, m?: string) => void }).setSystemState(
+				"Error",
+				"download failed",
+			)
+
+			await manager.startIndexing()
+
+			// An explicit user action must retry the previously-failed download
+			expect(reset).toHaveBeenCalled()
+			expect(startIndexing).toHaveBeenCalled()
+		})
+
+		it("should not reset a healthy Semble provider on startIndexing", async () => {
+			manager["_configManager"] = {
+				isFeatureEnabled: true,
+				isFeatureConfigured: true,
+			} as unknown as CodeIndexConfigManager
+
+			const reset = vi.fn()
+			const startIndexing = vi.fn().mockResolvedValue(undefined)
+			manager["_sembleProvider"] = {
+				reset,
+				startIndexing,
+				stopIndexing: vi.fn(),
+				dispose: vi.fn(),
+				state: "Indexed",
+			} as unknown as SembleProvider
+			;(manager["_stateManager"] as { setSystemState: (s: string, m?: string) => void }).setSystemState(
+				"Indexed",
+				"ready",
+			)
+
+			await manager.startIndexing()
+
+			expect(reset).not.toHaveBeenCalled()
+			expect(startIndexing).toHaveBeenCalled()
+		})
+	})
+
+	describe("R8: concurrent initialize() coalescing", () => {
+		it("should serialize concurrent initialize() calls into one service recreation", async () => {
+			manager["_configManager"] = {
+				loadConfiguration: vi.fn().mockResolvedValue({ requiresRestart: false }),
+				isFeatureEnabled: true,
+				isFeatureConfigured: true,
+				currentEmbedderProvider: "semble",
+				getConfig: vi.fn().mockReturnValue({}),
+			} as unknown as CodeIndexConfigManager
+			manager["_cacheManager"] = {
+				initialize: vi.fn().mockResolvedValue(undefined),
+				clearCacheFile: vi.fn(),
+			} as unknown as CacheManager
+			manager["_sembleProvider"] = undefined
+
+			// Clear prior constructor counts so the assertion below is isolated to
+			// this test (the module mock is shared across tests in this file).
+			vi.mocked(SembleProvider).mockClear()
+
+			const mockContextProxy = { getValue: vi.fn() } as unknown as ContextProxy
+
+			// Two rapid calls without awaiting the first — must share one in-flight run,
+			// so the provider is constructed (and services recreated) exactly once.
+			const p1 = manager.initialize(mockContextProxy)
+			const p2 = manager.initialize(mockContextProxy)
+			await Promise.all([p1, p2])
+
+			expect(SembleProvider).toHaveBeenCalledTimes(1)
+		})
+	})
+
+	describe("searchIndex Semble error contract", () => {
+		it("should propagate a genuine Semble search failure (not mask it as [])", async () => {
+			manager["_configManager"] = {
+				isFeatureEnabled: true,
+				isFeatureConfigured: true,
+			} as unknown as CodeIndexConfigManager
+
+			const searchError = new Error("Semble search failed: spawn EACCES")
+			manager["_sembleProvider"] = {
+				searchIndex: vi.fn().mockRejectedValue(searchError),
+				stopIndexing: vi.fn(),
+				dispose: vi.fn(),
+			} as unknown as SembleProvider
+
+			// A genuine CLI/search failure must reach the caller (CodebaseSearchTool
+			// routes it through handleError) rather than being masked as an empty
+			// result — consistent with the Qdrant path (CodeIndexSearchService)
+			// which already throws.
+			await expect(manager.searchIndex("query")).rejects.toThrow("spawn EACCES")
+		})
+
+		it("should return [] for a genuine 'no results' from the Semble provider", async () => {
+			manager["_configManager"] = {
+				isFeatureEnabled: true,
+				isFeatureConfigured: true,
+			} as unknown as CodeIndexConfigManager
+
+			manager["_sembleProvider"] = {
+				searchIndex: vi.fn().mockResolvedValue([]),
+				stopIndexing: vi.fn(),
+				dispose: vi.fn(),
+			} as unknown as SembleProvider
+
+			await expect(manager.searchIndex("query")).resolves.toEqual([])
+		})
+
+		it("should return [] when the feature is disabled", async () => {
+			manager["_configManager"] = {
+				isFeatureEnabled: false,
+				isFeatureConfigured: true,
+			} as unknown as CodeIndexConfigManager
+			manager["_sembleProvider"] = {
+				searchIndex: vi.fn().mockResolvedValue([]),
+				stopIndexing: vi.fn(),
+				dispose: vi.fn(),
+			} as unknown as SembleProvider
+
+			await expect(manager.searchIndex("query")).resolves.toEqual([])
+		})
+	})
+})
+
+describe("getInstance workspace-folder resolution (F2/F3)", () => {
+	// Matches the workspace folder path used by the vscode mock in this file.
+	const workspacePath = path.join(path.sep, "test", "workspace")
+
+	let testContext: ExtensionContext
+
+	beforeEach(async () => {
+		CodeIndexManager.disposeAll()
+
+		const workspaceStateStore: Record<string, unknown> = {}
+		const globalStateStore: Record<string, unknown> = {}
+		// Minimal ExtensionContext double — getInstance only stores it on the instance.
+		testContext = {
+			subscriptions: [],
+			workspaceState: {
+				get: vi.fn((key: string, defaultValue?: unknown) => workspaceStateStore[key] ?? defaultValue),
+				update: vi.fn(async (key: string, value: unknown) => {
+					workspaceStateStore[key] = value
+				}),
+			},
+			globalState: {
+				get: vi.fn((key: string, defaultValue?: unknown) => globalStateStore[key] ?? defaultValue),
+				update: vi.fn(async (key: string, value: unknown) => {
+					globalStateStore[key] = value
+				}),
+			},
+		} as unknown as ExtensionContext
+
+		const vscode = await import("vscode")
+		// Restore a single workspace folder root and a "no containing folder" default so
+		// earlier tests that mutated workspace.workspaceFolders don't leak in here.
+		;(vscode.workspace as unknown as { workspaceFolders: WorkspaceFolder[] | undefined }).workspaceFolders = [
+			{
+				uri: vscode.Uri.file(workspacePath),
+				name: "test",
+				index: 0,
+			},
+		]
+		vi.mocked(vscode.workspace.getWorkspaceFolder).mockReset()
+	})
+
+	afterEach(() => {
+		CodeIndexManager.disposeAll()
+	})
+
+	it("resolves a subdirectory path to the SAME instance as its workspace-folder root (F3)", async () => {
+		const vscode = await import("vscode")
+		const subdirPath = path.join(workspacePath, "packages", "app")
+
+		// getWorkspaceFolder(Uri.file(subdirPath)) → the containing workspace folder
+		// (the root), exactly as VS Code does for a project subdirectory.
+		const containingFolder: WorkspaceFolder = {
+			uri: vscode.Uri.file(workspacePath),
+			name: "test",
+			index: 0,
+		}
+		vi.mocked(vscode.workspace.getWorkspaceFolder).mockImplementation((uri) =>
+			uri.fsPath === subdirPath ? containingFolder : undefined,
+		)
+
+		const rootManager = CodeIndexManager.getInstance(testContext, workspacePath)!
+		const subdirManager = CodeIndexManager.getInstance(testContext, subdirPath)!
+
+		// F3 regression: the subdir call must NOT create a duplicate, never-initialized
+		// instance keyed by the subdir path — both resolve to the workspace-root instance.
+		expect(subdirManager).toBe(rootManager)
+		expect(CodeIndexManager.getAllInstances()).toHaveLength(1)
+	})
+
+	it("creates a standalone instance for a path outside all workspaces (synthetic URI fallback)", async () => {
+		const vscode = await import("vscode")
+		const outsidePath = path.join(path.sep, "outside", "project")
+
+		// No workspace folder contains the outside path.
+		vi.mocked(vscode.workspace.getWorkspaceFolder).mockImplementation(() => undefined)
+
+		const outsideManager = CodeIndexManager.getInstance(testContext, outsidePath)!
+		const rootManager = CodeIndexManager.getInstance(testContext, workspacePath)!
+
+		// Standalone fallback preserved: distinct from the workspace-root instance and
+		// stable across repeat calls (cached by the outside path).
+		expect(outsideManager).toBeDefined()
+		expect(CodeIndexManager.getInstance(testContext, outsidePath)).toBe(outsideManager)
+		expect(outsideManager).not.toBe(rootManager)
+		expect(CodeIndexManager.getAllInstances()).toHaveLength(2)
+	})
+
+	it("resolves to the first workspace folder when no workspacePath is given", async () => {
+		const manager = CodeIndexManager.getInstance(testContext)!
+		expect(manager).toBeDefined()
+		expect(manager["workspacePath"]).toBe(workspacePath)
+		// Same instance as explicitly resolving the workspace root.
+		expect(CodeIndexManager.getInstance(testContext, workspacePath)).toBe(manager)
 	})
 })

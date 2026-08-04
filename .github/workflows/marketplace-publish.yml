@@ -117,6 +117,42 @@ jobs:
             exit 1
           fi
 
+      - name: Validate VS Code Marketplace PAT
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::error::The VSCE_PAT secret is not configured for the marketplace-production environment."
+            echo "::error::Generate a Personal Access Token with 'Manage' permission for publisher 'xavier-arosemena' at:"
+            echo "::error::https://marketplace.visualstudio.com/manage/publishers/xavier-arosemena"
+            echo "::error::Then add it as the VSCE_PAT secret (Settings -> Environments -> marketplace-production -> Secrets)."
+            exit 1
+          fi
+          if ! npx @vscode/vsce verify-pat xavier-arosemena > /tmp/vsce-pat.log 2>&1; then
+            echo "::error::VSCE_PAT is invalid, expired, or lacks 'Manage' permission for publisher 'xavier-arosemena'."
+            echo "::error::Regenerate a PAT at https://marketplace.visualstudio.com/manage/publishers/xavier-arosemena (Marketplace -> Manage)."
+            echo "::error::Update the VSCE_PAT secret in the marketplace-production environment, then re-run."
+            cat /tmp/vsce-pat.log
+            exit 1
+          fi
+          echo "VS Code Marketplace PAT verified for publisher xavier-arosemena"
+
+      - name: Validate Open VSX access token
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::error::The OVSX_PAT secret is not configured for the marketplace-production environment."
+            echo "::error::Create an access token at https://open-vsx.org/user-settings/tokens (publisher 'xavier-arosemena')."
+            echo "::error::Then add it as the OVSX_PAT secret (Settings -> Environments -> marketplace-production -> Secrets)."
+            exit 1
+          fi
+          echo "Open VSX access token configured"
+
+      - name: Verify Semble checksums (SEMBLE_VERSION lockstep)
+        run: |
+          node scripts/verify-semble-checksums.mjs --strict
+
       - name: Build workspace packages
         run: |
           pnpm --filter @roo-code/build build

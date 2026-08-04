@@ -243,7 +243,8 @@
 			"standby": "En attente",
 			"indexing": "Indexation",
 			"indexed": "Indexé",
-			"error": "Erreur"
+			"error": "Erreur",
+			"stopping": "Arrêt de l'indexation..."
 		},
 		"close": "Fermer",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "Activer l'indexation pour cet espace de travail",
 		"workspaceDisabledMessage": "L'indexation est configurée mais non activée pour cet espace de travail.",
 		"autoEnableDefaultLabel": "Activer automatiquement l'indexation pour les nouveaux espaces de travail",
-		"sembleProvider": "Semble - Local"
+		"sembleProvider": "Semble - Local",
+		"sembleBinaryPathLabel": "Chemin du binaire Semble (optionnel)",
+		"sembleBinaryPathPlaceholder": "p. ex. /usr/local/bin/semble (laissez vide pour un téléchargement automatique)",
+		"sembleBinaryPathDescription": "Chemin vers un binaire semble installé manuellement. Lorsqu'il est défini, le téléchargement automatique est ignoré. Laissez vide pour utiliser le binaire téléchargé automatiquement."
 	},
 	"autoApprove": {
 		"toggleShortcut": "Vous pouvez configurer un raccourci global pour ce paramètre <SettingsLink>dans les préférences de votre IDE</SettingsLink>.",

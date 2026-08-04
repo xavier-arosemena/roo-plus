@@ -120,7 +120,7 @@ export async function handleCodeIndexMessages(
 					if (embedderProviderChanged) {
 						try {
 							// Force handleSettingsChange which will trigger validation
-							await currentCodeIndexManager.handleSettingsChange()
+							await currentCodeIndexManager.handleSettingsChange(provider.contextProxy)
 						} catch (error) {
 							// Validation failed - the error state is already set by handleSettingsChange
 							provider.log(
@@ -137,7 +137,7 @@ export async function handleCodeIndexMessages(
 					} else {
 						// No provider change, just handle settings normally
 						try {
-							await currentCodeIndexManager.handleSettingsChange()
+							await currentCodeIndexManager.handleSettingsChange(provider.contextProxy)
 						} catch (error) {
 							// Log but don't fail - settings are saved
 							provider.log(
@@ -276,23 +276,40 @@ export async function handleCodeIndexMessages(
 				// "Start Indexing" implicitly enables the workspace
 				await manager.setWorkspaceEnabled(true)
 
-				if (manager.isFeatureEnabled && manager.isFeatureConfigured) {
-					await manager.initialize(provider.contextProxy)
+				// Initialize unconditionally (idempotent) BEFORE evaluating feature
+				// flags, so a manager that was never initialized (fresh remote session,
+				// swallowed background init, post recoverFromError) reflects real config.
+				await manager.initialize(provider.contextProxy)
 
+				if (manager.isFeatureEnabled && manager.isFeatureConfigured) {
 					const currentState = manager.state
 					if (currentState === "Standby" || currentState === "Error") {
 						void manager.startIndexing().catch((err) => provider.log(`Indexing error: ${err}`))
-
-						if (!manager.isInitialized) {
-							await manager.initialize(provider.contextProxy)
-							if (manager.state === "Standby" || manager.state === "Error") {
-								void manager.startIndexing().catch((err) => provider.log(`Indexing error: ${err}`))
-							}
-						}
+					} else {
+						provider.log(
+							`[CodeIndex] startIndexing: already in state ${currentState}, not restarting. status=${JSON.stringify(manager.getCurrentStatus())}`,
+						)
 					}
+				} else {
+					provider.log(
+						`[CodeIndex] startIndexing skipped: enabled=${manager.isFeatureEnabled}, configured=${manager.isFeatureConfigured}, status=${JSON.stringify(manager.getCurrentStatus())}`,
+					)
 				}
+
+				// Always reflect the actual state to the UI (not only via the emitter)
+				await provider.postMessageToWebview({
+					type: "indexingStatusUpdate",
+					values: manager.getCurrentStatus(),
+				})
 			} catch (error) {
 				provider.log(`Error starting indexing: ${error instanceof Error ? error.message : String(error)}`)
+				const manager = provider.getCurrentWorkspaceCodeIndexManager()
+				if (manager) {
+					await provider.postMessageToWebview({
+						type: "indexingStatusUpdate",
+						values: manager.getCurrentStatus(),
+					})
+				}
 			}
 			break
 		}
@@ -310,6 +327,13 @@ export async function handleCodeIndexMessages(
 				})
 			} catch (error) {
 				provider.log(`Error stopping indexing: ${error instanceof Error ? error.message : String(error)}`)
+				const manager = provider.getCurrentWorkspaceCodeIndexManager()
+				if (manager) {
+					await provider.postMessageToWebview({
+						type: "indexingStatusUpdate",
+						values: manager.getCurrentStatus(),
+					})
+				}
 			}
 			break
 		}
@@ -322,11 +346,16 @@ export async function handleCodeIndexMessages(
 				}
 				const enabled = message.bool ?? false
 				await manager.setWorkspaceEnabled(enabled)
+				// Initialize unconditionally (idempotent) before evaluating feature flags
+				await manager.initialize(provider.contextProxy)
 				if (enabled && manager.isFeatureEnabled && manager.isFeatureConfigured) {
-					await manager.initialize(provider.contextProxy)
 					void manager.startIndexing().catch((err) => provider.log(`Indexing error: ${err}`))
 				} else if (!enabled) {
 					manager.stopIndexing()
+				} else {
+					provider.log(
+						`[CodeIndex] toggleWorkspaceIndexing skipped: enabled=${manager.isFeatureEnabled}, configured=${manager.isFeatureConfigured}, status=${JSON.stringify(manager.getCurrentStatus())}`,
+					)
 				}
 				await provider.postMessageToWebview({
 					type: "indexingStatusUpdate",
@@ -336,6 +365,13 @@ export async function handleCodeIndexMessages(
 				provider.log(
 					`Error toggling workspace indexing: ${error instanceof Error ? error.message : String(error)}`,
 				)
+				const manager = provider.getCurrentWorkspaceCodeIndexManager()
+				if (manager) {
+					await provider.postMessageToWebview({
+						type: "indexingStatusUpdate",
+						values: manager.getCurrentStatus(),
+					})
+				}
 			}
 			break
 		}
@@ -356,9 +392,16 @@ export async function handleCodeIndexMessages(
 					const isNowEnabled = m.isWorkspaceEnabled
 					if (wasEnabled && !isNowEnabled) {
 						m.stopIndexing()
-					} else if (!wasEnabled && isNowEnabled && m.isFeatureEnabled && m.isFeatureConfigured) {
+					} else if (!wasEnabled && isNowEnabled) {
+						// Initialize unconditionally (idempotent) before evaluating feature flags
 						await m.initialize(provider.contextProxy)
-						void m.startIndexing().catch((err) => provider.log(`Indexing error: ${err}`))
+						if (m.isFeatureEnabled && m.isFeatureConfigured) {
+							void m.startIndexing().catch((err) => provider.log(`Indexing error: ${err}`))
+						} else {
+							provider.log(
+								`[CodeIndex] setAutoEnableDefault: manager not started, enabled=${m.isFeatureEnabled}, configured=${m.isFeatureConfigured}, status=${JSON.stringify(m.getCurrentStatus())}`,
+							)
+						}
 					}
 				}
 				await provider.postMessageToWebview({
@@ -369,6 +412,13 @@ export async function handleCodeIndexMessages(
 				provider.log(
 					`Error setting auto-enable default: ${error instanceof Error ? error.message : String(error)}`,
 				)
+				const currentManager = provider.getCurrentWorkspaceCodeIndexManager()
+				if (currentManager) {
+					await provider.postMessageToWebview({
+						type: "indexingStatusUpdate",
+						values: currentManager.getCurrentStatus(),
+					})
+				}
 			}
 			break
 		}

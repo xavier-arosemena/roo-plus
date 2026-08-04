@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble is not supported on this platform ({{platform}}-{{arch}}).",
 		"downloadFailed": "Failed to download semble: {{errorMessage}}",
 		"checkFailed": "Semble check failed: {{errorMessage}}",
+		"searchFailed": "Semble search failed: {{errorMessage}}",
 		"providerReset": "Semble provider reset. On-disk cache remains until next rebuild."
 	}
 }

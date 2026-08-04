@@ -57,7 +57,11 @@ export class CodebaseSearchTool extends BaseTool<"codebase_search"> {
 				throw new Error("Extension context is not available.")
 			}
 
-			const manager = CodeIndexManager.getInstance(context)
+			// Pass the resolved workspacePath so the search tool hits the SAME manager instance
+			// used by tool filtering (system.ts / build-tools.ts), which are keyed by the task
+			// cwd/workspace root. Omitting it here would let a multi-root or subdirectory cwd
+			// resolve to a different (or never-initialized) instance (F2).
+			const manager = CodeIndexManager.getInstance(context, workspacePath)
 
 			if (!manager) {
 				throw new Error("CodeIndexManager is not available.")
@@ -73,6 +77,19 @@ export class CodebaseSearchTool extends BaseTool<"codebase_search"> {
 			const searchResults: VectorStoreSearchResult[] = await manager.searchIndex(query, directoryPrefix)
 
 			if (!searchResults || searchResults.length === 0) {
+				// F4: a genuinely-failing search flips the shared state manager to
+				// "Error" (Semble provider and Qdrant search-service both do this).
+				// In that case the empty result is a masked failure, not a real "no
+				// matches" — surface the actionable error instead of a false "no
+				// relevant snippets" that would hide a broken index from the agent.
+				if (manager.state === "Error") {
+					const status = manager.getCurrentStatus()
+					const statusMessage = status.message?.trim() || "unknown error"
+					pushToolResult(
+						`Code index is in an error state: ${statusMessage}. Resolve the error (e.g. check the Semble binary / network) and retry.`,
+					)
+					return
+				}
 				pushToolResult(`No relevant code snippets found for the query: "${query}"`)
 				return
 			}

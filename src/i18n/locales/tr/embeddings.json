@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble bu platformda desteklenmiyor ({{platform}}-{{arch}}).",
 		"downloadFailed": "semble indirilemedi: {{errorMessage}}",
 		"checkFailed": "Semble kontrolü başarısız: {{errorMessage}}",
+		"searchFailed": "Semble araması başarısız oldu: {{errorMessage}}",
 		"providerReset": "Semble sağlayıcısı sıfırlandı. Diskteki önbellek bir sonraki yeniden yapılandırmaya kadar korunur."
 	}
 }

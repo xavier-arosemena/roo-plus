@@ -243,7 +243,8 @@
 			"standby": "In attesa",
 			"indexing": "Indicizzazione",
 			"indexed": "Indicizzato",
-			"error": "Errore"
+			"error": "Errore",
+			"stopping": "Interruzione dell'indicizzazione..."
 		},
 		"close": "Chiudi",
 		"validation": {
@@ -279,7 +280,10 @@
 		"workspaceToggleLabel": "Abilita l'indicizzazione per questo workspace",
 		"workspaceDisabledMessage": "L'indicizzazione è configurata ma non abilitata per questo workspace.",
 		"autoEnableDefaultLabel": "Abilita automaticamente l'indicizzazione per i nuovi workspace",
-		"sembleProvider": "Semble - Locale"
+		"sembleProvider": "Semble - Locale",
+		"sembleBinaryPathLabel": "Percorso del binario Semble (opzionale)",
+		"sembleBinaryPathPlaceholder": "es. /usr/local/bin/semble (lascia vuoto per scaricare automaticamente)",
+		"sembleBinaryPathDescription": "Percorso di un binario semble installato manualmente. Se impostato, il download automatico viene saltato. Lascia vuoto per usare il binario scaricato automaticamente."
 	},
 	"autoApprove": {
 		"toggleShortcut": "Puoi configurare una scorciatoia globale per questa impostazione <SettingsLink>nelle preferenze del tuo IDE</SettingsLink>.",

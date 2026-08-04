@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble не поддерживается на этой платформе ({{platform}}-{{arch}}).",
 		"downloadFailed": "Не удалось загрузить semble: {{errorMessage}}",
 		"checkFailed": "Проверка semble не удалась: {{errorMessage}}",
+		"searchFailed": "Не удалось выполнить поиск Semble: {{errorMessage}}",
 		"providerReset": "Провайдер Semble сброшен. Дисковый кеш сохраняется до следующей пересборки."
 	}
 }

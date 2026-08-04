@@ -144,7 +144,9 @@ describe("generateImageTool", () => {
 			// Mock the OpenRouterHandler generateImage method
 			const mockGenerateImage = vi.fn().mockResolvedValue({
 				success: true,
-				imageData: "data:image/png;base64,fakebase64data",
+				// Real 1x1 PNG so the generated image passes isValidImageBuffer
+				imageData:
+					"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
 			})
 
 			vi.mocked(OpenRouterHandler).mockImplementation(function () {
@@ -187,7 +189,9 @@ describe("generateImageTool", () => {
 			// Mock the OpenRouterHandler generateImage method
 			const mockGenerateImage = vi.fn().mockResolvedValue({
 				success: true,
-				imageData: "data:image/png;base64,fakebase64data",
+				// Real 1x1 PNG so the generated image passes isValidImageBuffer
+				imageData:
+					"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
 			})
 
 			vi.mocked(OpenRouterHandler).mockImplementation(function () {

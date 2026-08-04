@@ -90,6 +90,14 @@ vi.mock("@roo/api", () => ({
 }))
 
 describe("TaskHeader", () => {
+	// Default to a model with a known context window so the header rows (cost, condense
+	// button, token progress) render. Regression tests override this to undefined to
+	// verify the hidden-state behavior.
+	beforeEach(() => {
+		mockModelInfo = { contextWindow: 200000, maxTokens: 8192 }
+		mockMaxOutputTokens = 8192
+	})
+
 	const defaultProps: TaskHeaderProps = {
 		task: { type: "say", ts: Date.now(), text: "Test task", images: [] },
 		tokensIn: 100,
@@ -333,6 +341,49 @@ describe("TaskHeader", () => {
 			renderTaskHeader({ contextTokens: 250 })
 
 			expect(screen.getByText("25%")).toBeInTheDocument()
+		})
+
+		it("hides the percentage and progress row when the model context window is unavailable", () => {
+			// Regression: undefined model info previously fabricated a 1-token window, producing a
+			// nonsense "4050600%" percentage and a "40.5k / 1" progress bar.
+			mockModelInfo = undefined
+			mockMaxOutputTokens = 0
+
+			renderTaskHeader({ contextTokens: 40506 })
+
+			// No percentage text at all (would have been 4050600% with the fabricated window).
+			expect(screen.queryByText(/\d+%/)).not.toBeInTheDocument()
+			expect(screen.queryByText(/4050600%/)).not.toBeInTheDocument()
+			// No fabricated "40.5k / 1" progress bar.
+			expect(screen.queryByTestId("context-window-size")).not.toBeInTheDocument()
+			expect(screen.queryByTestId("context-tokens-count")).not.toBeInTheDocument()
+		})
+
+		it("shows a sane percentage and progress row when the model context window is available", () => {
+			// Regression: a real 200000-token window with 40506 context tokens must show a sane
+			// ~20% value instead of an exploded percentage, and render the real window (not "x / 1").
+			mockModelInfo = { contextWindow: 200000, maxTokens: 8192 }
+			mockMaxOutputTokens = 8192
+
+			renderTaskHeader({ contextTokens: 40506 })
+
+			// Available input space = 200000 - 8192 = 191808 → 40506 / 191808 * 100 ≈ 21%
+			expect(screen.getByText("21%")).toBeInTheDocument()
+			expect(screen.queryByText(/4050600%/)).not.toBeInTheDocument()
+			// Progress bar renders the real 200k window and 40.5k tokens.
+			expect(screen.getByTestId("context-window-size")).toHaveTextContent("200")
+			expect(screen.getByTestId("context-tokens-count")).toHaveTextContent("40")
+		})
+
+		it("clamps the percentage to 100 when context tokens exceed the available input space", () => {
+			mockModelInfo = { contextWindow: 1000, maxTokens: 200 }
+			mockMaxOutputTokens = 200
+
+			// Available input space = 800; 5000 tokens would be 625% without the clamp.
+			renderTaskHeader({ contextTokens: 5000 })
+
+			expect(screen.getByText("100%")).toBeInTheDocument()
+			expect(screen.queryByText(/625%/)).not.toBeInTheDocument()
 		})
 	})
 })

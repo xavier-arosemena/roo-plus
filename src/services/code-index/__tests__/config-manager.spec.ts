@@ -1660,6 +1660,30 @@ describe("CodeIndexConfigManager", () => {
 			const result = configManager.doesConfigChangeRequireRestart(previousSnapshot)
 			expect(result).toBe(false)
 		})
+
+		it("should return true when provider changes while enabled even if the previous config was not ready", async () => {
+			// Initial state: enabled but NOT configured (missing API key), provider openai
+			mockContextProxy.getGlobalState.mockReturnValue({
+				codebaseIndexEnabled: true,
+				codebaseIndexEmbedderProvider: "openai",
+				codebaseIndexQdrantUrl: "http://localhost:6333",
+			})
+			mockContextProxy.getSecret.mockReturnValue(undefined)
+			configManager = new CodeIndexConfigManager(mockContextProxy)
+			await configManager.loadConfiguration()
+
+			// Switch provider to gemini while still enabled and unconfigured
+			mockContextProxy.getGlobalState.mockReturnValue({
+				codebaseIndexEnabled: true,
+				codebaseIndexEmbedderProvider: "gemini",
+				codebaseIndexQdrantUrl: "http://localhost:6333",
+			})
+
+			const { requiresRestart } = await configManager.loadConfiguration()
+			// Regression: a provider change must restart even when neither config was "ready",
+			// so the manager disposes stale providers and rebuilds for the new embedder.
+			expect(requiresRestart).toBe(true)
+		})
 	})
 
 	describe("loadConfiguration", () => {

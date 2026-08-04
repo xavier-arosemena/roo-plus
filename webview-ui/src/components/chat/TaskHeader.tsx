@@ -1,6 +1,14 @@
 import { memo, useRef, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { ChevronUp, ChevronDown, HardDriveDownload, HardDriveUpload, ChevronsDownUp, ArrowLeft, ArrowRight } from "lucide-react"
+import {
+	ChevronUp,
+	ChevronDown,
+	HardDriveDownload,
+	HardDriveUpload,
+	ChevronsDownUp,
+	ArrowLeft,
+	ArrowRight,
+} from "lucide-react"
 import prettyBytes from "pretty-bytes"
 
 import type { ClineMessage } from "@roo-code/types"
@@ -61,7 +69,13 @@ const TaskHeader = ({
 
 	const textContainerRef = useRef<HTMLDivElement>(null)
 	const textRef = useRef<HTMLDivElement>(null)
-	const contextWindow = model?.contextWindow || 1
+	// Only trust a real, finite, positive window from the selected model. When model info is
+	// unavailable (e.g. undefined), leave contextWindow undefined so the collapsed/expanded
+	// token rows stay hidden instead of fabricating a 1-token window (see #4050600% bug).
+	const contextWindow =
+		typeof model?.contextWindow === "number" && Number.isFinite(model.contextWindow) && model.contextWindow > 0
+			? model.contextWindow
+			: undefined
 
 	// Calculate maxTokens (reserved for output) once for reuse in percentage and tooltip
 	const maxTokens = useMemo(
@@ -193,7 +207,7 @@ const TaskHeader = ({
 						</div>
 					</div>
 				</div>
-				{!isTaskExpanded && contextWindow > 0 && (
+				{!isTaskExpanded && typeof contextWindow === "number" && contextWindow > 0 && (
 					<div
 						className="flex items-center justify-between text-sm text-muted-foreground/70"
 						onClick={(e) => e.stopPropagation()}>
@@ -245,9 +259,13 @@ const TaskHeader = ({
 										// Calculate percentage of available input space used
 										// Available input space = context window - reserved for output
 										const availableInputSpace = contextWindow - reservedForOutput
+										// Clamp to 0-100: cache + output tokens can exceed the input window.
 										const percentage =
 											availableInputSpace > 0
-												? Math.round(((contextTokens || 0) / availableInputSpace) * 100)
+												? Math.min(
+														100,
+														Math.round(((contextTokens || 0) / availableInputSpace) * 100),
+													)
 												: 0
 										return (
 											<>
@@ -334,7 +352,7 @@ const TaskHeader = ({
 						<div className="pt-3 mt-2 -mx-2.5 px-2.5 border-t border-vscode-sideBar-background">
 							<table className="w-full text-sm">
 								<tbody>
-									{contextWindow > 0 && (
+									{typeof contextWindow === "number" && contextWindow > 0 && (
 										<tr>
 											<th
 												className="font-medium text-left align-top w-1 whitespace-nowrap pr-3 h-[24px]"

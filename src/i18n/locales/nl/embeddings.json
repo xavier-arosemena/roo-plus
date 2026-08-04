@@ -79,6 +79,7 @@
 		"unsupportedPlatform": "Semble wordt niet ondersteund op dit platform ({{platform}}-{{arch}}).",
 		"downloadFailed": "Downloaden van semble mislukt: {{errorMessage}}",
 		"checkFailed": "Semble-controle mislukt: {{errorMessage}}",
+		"searchFailed": "Semble-zoekopdracht mislukt: {{errorMessage}}",
 		"providerReset": "Semble-provider gereset. Schijfcache blijft behouden tot de volgende heropbouw."
 	}
 }
