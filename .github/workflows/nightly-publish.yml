@@ -41,16 +41,14 @@ jobs:
             exit 1
           fi
 
-      - name: Validate VS Code Marketplace PAT
+      - name: Validate VS Code Marketplace PAT (if configured)
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: |
           if [ -z "$VSCE_PAT" ]; then
-            echo "::error::The VSCE_PAT secret is not configured for the marketplace-prerelease environment."
-            echo "::error::Generate a Personal Access Token with 'Manage' permission for publisher 'xavier-arosemena' at:"
-            echo "::error::https://marketplace.visualstudio.com/manage/publishers/xavier-arosemena"
-            echo "::error::Then add it as the VSCE_PAT secret (Settings -> Environments -> marketplace-prerelease -> Secrets)."
-            exit 1
+            echo "::warning::VSCE_PAT is not configured — the VS Code Marketplace pre-release publish step will be skipped."
+            echo "To enable it, add a Personal Access Token (Manage scope, publisher 'xavier-arosemena') as the VSCE_PAT secret in the marketplace-prerelease environment."
+            exit 0
           fi
           if ! npx @vscode/vsce verify-pat xavier-arosemena > /tmp/vsce-pat.log 2>&1; then
             echo "::error::VSCE_PAT is invalid, expired, or lacks 'Manage' permission for publisher 'xavier-arosemena'."
@@ -61,15 +59,14 @@ jobs:
           fi
           echo "VS Code Marketplace PAT verified for publisher xavier-arosemena"
 
-      - name: Validate Open VSX access token
+      - name: Validate Open VSX access token (if configured)
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: |
           if [ -z "$OVSX_PAT" ]; then
-            echo "::error::The OVSX_PAT secret is not configured for the marketplace-prerelease environment."
-            echo "::error::Create an access token at https://open-vsx.org/user-settings/tokens (publisher 'xavier-arosemena')."
-            echo "::error::Then add it as the OVSX_PAT secret (Settings -> Environments -> marketplace-prerelease -> Secrets)."
-            exit 1
+            echo "::warning::OVSX_PAT is not configured — the Open VSX pre-release publish step will be skipped."
+            echo "To enable it, create an access token at https://open-vsx.org/user-settings/tokens (publisher 'xavier-arosemena') and add it as the OVSX_PAT secret in the marketplace-prerelease environment."
+            exit 0
           fi
           echo "Open VSX access token configured"
 
@@ -149,7 +146,7 @@ jobs:
           test "$artifact_publisher" = "xavier-arosemena"
 
       - name: Publish pre-release to VS Code Marketplace
-        if: steps.release-check.outputs.skip != 'true'
+        if: steps.release-check.outputs.skip != 'true' && ${{ secrets.VSCE_PAT != '' }}
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           VERSION_NUMBER: ${{ steps.version.outputs.number }}
@@ -169,7 +166,7 @@ jobs:
       # release outranks it. This mirrors how Marketplace pre-release users already
       # track the newest published version, so it's an accepted trade-off here too.
       - name: Publish pre-release to Open VSX Registry
-        if: steps.release-check.outputs.skip != 'true'
+        if: steps.release-check.outputs.skip != 'true' && ${{ secrets.OVSX_PAT != '' }}
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
           VERSION_NUMBER: ${{ steps.version.outputs.number }}
