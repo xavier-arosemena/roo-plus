@@ -80,6 +80,7 @@
 		"downloadFailed": "Не удалось загрузить semble: {{errorMessage}}",
 		"checkFailed": "Проверка semble не удалась: {{errorMessage}}",
 		"searchFailed": "Не удалось выполнить поиск Semble: {{errorMessage}}",
+		"firstSearchDownloadsModel": "Первый поиск может занять некоторое время, так как загружается модель эмбеддингов.",
 		"providerReset": "Провайдер Semble сброшен. Дисковый кеш сохраняется до следующей пересборки."
 	}
 }

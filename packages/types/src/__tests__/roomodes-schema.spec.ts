@@ -190,6 +190,40 @@ describe("roomodes JSON schema", () => {
 		expect(valid).toBe(false)
 	})
 
+	it("should reject a mode with an empty description (minLength: 1)", () => {
+		const config = {
+			customModes: [
+				{
+					slug: "empty-desc",
+					name: "Empty Description",
+					roleDefinition: "A mode with an empty description.",
+					description: "",
+					groups: ["read"],
+				},
+			],
+		}
+
+		const valid = validate(config)
+		expect(valid).toBe(false)
+	})
+
+	it("should accept a mode with a description omitted entirely", () => {
+		const config = {
+			customModes: [
+				{
+					slug: "no-desc",
+					name: "No Description",
+					roleDefinition: "A mode without a description.",
+					groups: ["read"],
+				},
+			],
+		}
+
+		const valid = validate(config)
+		expect(validate.errors).toBeNull()
+		expect(valid).toBe(true)
+	})
+
 	it("should reject an invalid tool group name", () => {
 		const config = {
 			customModes: [

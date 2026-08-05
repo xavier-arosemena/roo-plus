@@ -35,6 +35,9 @@ jobs:
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
               with:
                   persist-credentials: false
+                  # Needed to run verify-submodule-pin.mjs / verify-roomodes-sync.mjs:
+                  # a missing or wrong-pin submodule is a packaging hazard for the VSIX.
+                  submodules: recursive
             - name: Reject invisible / homoglyph Unicode
               run: |
                   if grep -rnP '[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}\x{FEFF}\x{00AD}]' \
@@ -49,6 +52,16 @@ jobs:
                   fi
             - name: Setup Node.js and pnpm
               uses: ./.github/actions/setup-node-pnpm
+            - name: Verify custom-modes submodule pin & committed artifact sync
+              run: |
+                  node scripts/verify-submodule-pin.mjs
+                  node scripts/verify-roomodes-sync.mjs
+            - name: Enforce mode descriptions (ensure_descriptions.py --check)
+              run: |
+                  python3 -c "import yaml" >/dev/null 2>&1 || sudo apt-get update -qq && sudo apt-get install -y -qq python3-yaml
+                  python3 scripts/ensure_descriptions.py --check
+            - name: Run scripts unit tests (sync + submodule pin gate)
+              run: pnpm run test:scripts
             - name: Verify all translations are complete
               run: node scripts/find-missing-translations.js
             - name: Run knip checks
@@ -66,6 +79,31 @@ jobs:
             # SEMBLE_SHA256 / SEMBLE_ARCHIVES.
             - name: Verify Semble release checksums (release-readiness gate)
               run: node scripts/verify-semble-checksums.mjs
+            # Release-governance gate for the Semble code-index feature
+            # (docs/SEMBLE-RELEASE-GOVERNANCE.md, review item 2c of
+            # docs/architecture-review-code-index-semble.md): a diff that
+            # changes SEMBLE_VERSION without SEMBLE_SHA256 (or vice versa) in
+            # src/services/code-index/semble/semble-downloader.ts is rejected.
+            # Compares the working tree against the merge base with a base ref
+            # (GITHUB_BASE_REF → origin/<ref>, then origin/main / origin/master;
+            # override with --base). Default mode SKIPs (exit 0) when no base
+            # commit is resolvable (e.g. a shallow/fresh checkout) so an infra
+            # reason never blocks a PR; it HARD FAILS (exit 1) whenever the
+            # diff is verifiable and the coupling is violated.
+            - name: Verify Semble version↔checksum coupling (release-governance gate)
+              run: node scripts/verify-semble-release-coupling.mjs
+            # Alignment gate for the Qdrant code-index core (architecture review
+            # #6 — docs/architecture-review-code-index-semble.md): keeps the
+            # non-Semble core byte-identical to upstream Zoo-Code so upstream
+            # improvements cherry-pick cleanly. Fast lane (pure git + file
+            # comparison, no build). Network behavior: uses the local
+            # upstream/main ref when present, otherwise fetches upstream main
+            # (depth=1); on a fetch/network failure the script SKIPs (exit 0) in
+            # default mode, so an infra hiccup never blocks a PR — it enforces
+            # only when it can actually verify. Pass --strict to make
+            # upstream-unavailable a hard failure.
+            - name: Verify code-index core stays aligned with upstream Zoo-Code
+              run: node scripts/verify-upstream-code-index-alignment.mjs
 
     audit-dependencies:
         runs-on: ubuntu-latest

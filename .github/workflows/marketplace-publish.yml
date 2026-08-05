@@ -85,11 +85,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          # The VSIX embeds modes regenerated from the custom-modes submodule at
+          # build time, so CI MUST check it out at the recorded pin — otherwise the
+          # build would silently reuse stale committed artifacts.
+          submodules: recursive
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-pnpm
         with:
           install-args: "--frozen-lockfile"
+
+      - name: Verify custom-modes submodule pin & committed artifact sync
+        run: |
+          node scripts/verify-submodule-pin.mjs
+          node scripts/verify-roomodes-sync.mjs
 
       - name: Validate package identity
         run: |

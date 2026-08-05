@@ -79,4 +79,79 @@ describe("dist assets", () => {
 			},
 		)
 	})
+
+	describe("mode description completeness (Mode descriptions feature)", () => {
+		// Regression gate for the original bug: modes installed from a VSIX shipped
+		// with blank/missing descriptions. The bundled marketplace assets must never
+		// lose descriptions at build time, so every bundled mode/item must carry a
+		// non-empty description that is not a clone of its roleDefinition.
+		const preInstalledPath = path.join(marketplaceAssetsPath, "pre-installed-modes.yml")
+		const modesCatalogPath = path.join(marketplaceAssetsPath, "modes.yml")
+
+		type BundledMode = { slug: string; description?: string; roleDefinition?: string }
+		type MarketplaceItem = { id: string; description?: string; content?: string }
+
+		function loadBundledModes(filename: string): BundledMode[] {
+			const parsed = yaml.parse(fs.readFileSync(path.join(marketplaceAssetsPath, filename), "utf-8"))
+			return parsed.customModes as BundledMode[]
+		}
+
+		// modes.yml items carry a marketplace `description` plus a nested `content`
+		// string that is the mode's own YAML (optionally wrapped in customModes).
+		function parseItemMode(content: string): { slug: string; description: string; roleDefinition: string } {
+			const parsed = yaml.parse(content ?? "")
+			const mode = parsed?.customModes?.[0] ?? parsed
+			return {
+				slug: mode?.slug ?? "",
+				description: mode?.description ?? "",
+				roleDefinition: mode?.roleDefinition ?? "",
+			}
+		}
+
+		it("pre-installed-modes.yml: every bundled mode has a non-empty description", () => {
+			const modes = loadBundledModes("pre-installed-modes.yml")
+			expect(modes.length).toBeGreaterThan(1)
+			const blank = modes.filter((m) => !m.description?.trim())
+			expect(blank.map((m) => m.slug)).toEqual([])
+		})
+
+		it("pre-installed-modes.yml: no description is a clone of roleDefinition", () => {
+			const modes = loadBundledModes("pre-installed-modes.yml")
+			const clones = modes.filter(
+				(m) => m.description?.trim() && m.description.trim() === m.roleDefinition?.trim(),
+			)
+			expect(clones.map((m) => m.slug)).toEqual([])
+		})
+
+		it("modes.yml: every marketplace item has a non-empty description", () => {
+			const parsed = yaml.parse(fs.readFileSync(modesCatalogPath, "utf-8"))
+			const items = parsed.items as MarketplaceItem[]
+			expect(items.length).toBeGreaterThan(1)
+			const blank = items.filter((it) => !it.description?.trim())
+			expect(blank.map((it) => it.id)).toEqual([])
+		})
+
+		it("modes.yml: no item's mode description is blank or a clone of its roleDefinition", () => {
+			const parsed = yaml.parse(fs.readFileSync(modesCatalogPath, "utf-8"))
+			const items = parsed.items as MarketplaceItem[]
+
+			const blank: string[] = []
+			const clones: string[] = []
+			for (const it of items) {
+				const mode = parseItemMode(it.content ?? "")
+				if (!mode.description.trim()) {
+					blank.push(it.id)
+				}
+				if (
+					mode.description.trim() &&
+					mode.roleDefinition.trim() &&
+					mode.description.trim() === mode.roleDefinition.trim()
+				) {
+					clones.push(it.id)
+				}
+			}
+			expect(blank).toEqual([])
+			expect(clones).toEqual([])
+		})
+	})
 })

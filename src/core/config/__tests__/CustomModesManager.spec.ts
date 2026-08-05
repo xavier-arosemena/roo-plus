@@ -178,6 +178,42 @@ describe("CustomModesManager", () => {
 			expect(modes[0].slug).toBe("mode1")
 		})
 
+		it("derives fallback descriptions so no mode reaches the UI blank", async () => {
+			const settingsModes = [
+				{
+					slug: "mode1",
+					name: "Mode 1",
+					roleDefinition: "Role 1",
+					description: "   ",
+					groups: ["read"],
+				},
+				{
+					slug: "mode2",
+					name: "Mode 2",
+					roleDefinition: "Role 2\nSecond line",
+					groups: ["read"],
+				},
+			]
+
+			;(fileExistsAtPath as Mock).mockImplementation(async (path: string) => {
+				return path === mockSettingsPath
+			})
+			;(fs.readFile as Mock).mockImplementation(async (path: string) => {
+				if (path === mockSettingsPath) {
+					return yaml.stringify({ customModes: settingsModes })
+				}
+				throw new Error("File not found")
+			})
+
+			const modes = await manager.getCustomModes()
+
+			expect(modes).toHaveLength(2)
+			// Whitespace-only description replaced with a derived fallback
+			expect(modes.find((m) => m.slug === "mode1")?.description).toBe("Role 1")
+			// Omitted description derived from the first line of roleDefinition
+			expect(modes.find((m) => m.slug === "mode2")?.description).toBe("Role 2")
+		})
+
 		it("should handle invalid YAML in .roomodes", async () => {
 			const settingsModes = [{ slug: "mode1", name: "Mode 1", roleDefinition: "Role 1", groups: ["read"] }]
 

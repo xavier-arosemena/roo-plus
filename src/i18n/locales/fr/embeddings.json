@@ -80,6 +80,7 @@
 		"downloadFailed": "Échec du téléchargement de semble : {{errorMessage}}",
 		"checkFailed": "Vérification de semble échouée : {{errorMessage}}",
 		"searchFailed": "La recherche Semble a échoué : {{errorMessage}}",
+		"firstSearchDownloadsModel": "La première recherche peut prendre un certain temps, car elle télécharge le modèle d'intégration.",
 		"providerReset": "Fournisseur Semble réinitialisé. Le cache sur disque reste jusqu'à la prochaine reconstruction."
 	}
 }

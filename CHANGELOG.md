@@ -1,6 +1,41 @@
 # Roo+ Changelog
 
-## [Unreleased]
+## [3.77.1] — 2026-08-05
+
+### Patch — Mode Description Completeness & Code-Index Release Governance
+
+#### 🐛 Bug Fixes
+
+- **Blank Mode Descriptions Eliminated** — A mode could reach the UI with a blank/missing description (the original bug that shipped modes without descriptions from a VSIX). Now enforced at every layer: the shared [`getModeDisplayDescription()`](src/shared/modes.ts) helper falls back to `whenToUse` → first line of `roleDefinition` so no mode ever renders blank; [`CustomModesManager`](src/core/config/CustomModesManager.ts) derives fallbacks before schema validation (`normalizeBlankDescriptions`) and on the final merged set (`ensureModeDescription`); and [`modeConfigSchema`](packages/types/src/mode.ts) now rejects a blank `description` when present (`z.string().min(1)`), mirrored by a `minLength: 1` rule in [`schemas/roomodes.json`](schemas/roomodes.json).
+- **Marketplace Installs Lost Full Descriptions** — The marketplace catalog truncates the item-level `description` blurb to 150 chars, but the installed mode must keep the FULL description that lives in `content`. [`SimpleInstaller`](src/services/marketplace/SimpleInstaller.ts) preserves it, with a regression test in [`SimpleInstaller.spec.ts`](src/services/marketplace/__tests__/SimpleInstaller.spec.ts).
+- **Semble Cached-Broken-Binary Trust Removed (R1)** — The downloader's fast path blindly trusted any cached binary whose version file matched, so a machine that cached the broken silent-exit-0 v0.5.2 stub kept it forever. New [`isSembleBinaryHealthy()`](src/services/code-index/semble/semble-downloader.ts) runs a cheap, bounded `--help` probe (help text must advertise `search`) before cache reuse, falling through to a re-download on failure.
+- **Semble Sticky "Error" State Removed (R2)** — A single transient search failure (e.g. the first search downloading the HuggingFace embedding model past the 120s timeout) flipped the shared state to a permanent `Error`, bricking every subsequent search until a manual reset. [`SembleProvider`](src/services/code-index/semble/provider.ts) now throws per-call while keeping state `Indexed`; `Error` is reserved for install-time failures.
+- **`workerspacePath` Typo Fixed** — [`handlers/codeIndex.ts`](src/core/webview/handlers/codeIndex.ts) sent the misspelled `workerspacePath` in the start-indexing response; corrected to `workspacePath`.
+
+#### 🚀 Enhancements
+
+- **Semble Cold-Start Transparency (R3/R4)** — The "Indexed" ready message now appends an explicit hint that the first search may download the embedding model, via a new `embeddings:semble.firstSearchDownloadsModel` i18n key added across all 18 locales.
+- **Pre-Build Submodule Pin Gate** — New [`scripts/verify-submodule-pin.mjs`](scripts/verify-submodule-pin.mjs) fails any packaging path unless the `custom-modes` submodule is initialized, checked out at the recorded pin, clean, and every curated mode has a non-empty, non-clone description. Wired as `prevsix`, `prebundle`, and `prevscode:prepublish` in [`src/package.json`](src/package.json) so `pnpm vsix`, `pnpm bundle`, and `vsce package` cannot bypass it.
+- **Source-Wins Mode Sync** — [`sync-custom-modes.mjs`](scripts/sync-custom-modes.mjs) now uses SOURCE-WINS merge semantics (`mergeRoomodesModes()`): freshly generated curated entries refresh stale committed entries on slug conflict, manual additions are preserved, writes are idempotent, and the submodule path is overridable via `ROO_SUBMODULE_PATH`.
+- **CI Description-Completeness Gate** — [`scripts/ensure_descriptions.py`](scripts/ensure_descriptions.py) (`--check` in [`code-qa.yml`](.github/workflows/code-qa.yml) and [`release-validation.yml`](.github/workflows/release-validation.yml)) enforces non-empty, non-clone descriptions across `agents/`, `custom_modes.d/`, and `vs-code/converted_modes.d/`; see [`scripts/DESCRIPTIONS.md`](scripts/DESCRIPTIONS.md) for the canonical-source decision.
+- **Semble Release Governance** — New [`docs/SEMBLE-RELEASE-GOVERNANCE.md`](docs/SEMBLE-RELEASE-GOVERNANCE.md) formalizes the immutable-release-tags rule + version↔checksum coupling, enforced by [`scripts/verify-semble-release-coupling.mjs`](scripts/verify-semble-release-coupling.mjs) in CI; a companion [`docs/sembleexec-release-guard.yml`](docs/sembleexec-release-guard.yml) can be dropped into the `Audare-est-Facere/sembleexec` installer repo.
+- **Upstream Code-Index Alignment Gate** — New [`scripts/verify-upstream-code-index-alignment.mjs`](scripts/verify-upstream-code-index-alignment.mjs) keeps the Qdrant code-index core byte-identical to upstream Zoo-Code (with a branding/fork-config allow-list), per architecture review §6.
+- **Semble E2E Journey Suite** — New opt-in extension-host suite [`codebase-search-semble.test.ts`](apps/vscode-e2e/src/suite/tools/codebase-search-semble.test.ts) covers enable "Semble - Local" → status `Indexed` → `codebase_search` returns snippets, bridged through test-only `roo-plus.testing.*` commands ([`registerCodeIndexTestCommands.ts`](src/activate/registerCodeIndexTestCommands.ts)).
+
+#### ✅ Quality
+
+- **Architecture Review** — [`docs/architecture-review-code-index-semble.md`](docs/architecture-review-code-index-semble.md) reviewed the code-index/Semble layer vs upstream: the Qdrant core is byte-identical to upstream (keep), the Semble layer is intentionally hardened (keep), and the field breakage was an operational/state-machine defect now closed by the R1/R2 fixes.
+- **New regression tests** — [`dist_assets.spec.ts`](src/__tests__/dist_assets.spec.ts) asserts every bundled mode/item carries a non-empty description that is not a clone of its `roleDefinition`; `CustomModesManager`, `ModeConfig`, `ModeSelector`, `modes`, `semble-downloader`, `provider`, and `SimpleInstaller` specs extended; scripts unit tests consolidated under `pnpm run test:scripts` (sync-custom-modes, ensure_descriptions, verify-submodule-pin, verify-semble-release-coupling, verify-upstream-code-index-alignment).
+- **`verify-roomodes-sync.mjs` hardened** — a missing/uninitialized `custom-modes` submodule is now a hard CI failure (packaging hazard), not a silent skip.
+- **CI gates wired** — [`code-qa.yml`](.github/workflows/code-qa.yml) and [`release-validation.yml`](.github/workflows/release-validation.yml) now check out submodules recursively and run the submodule-pin, roomodes-sync, descriptions, scripts-unit-test, Semble coupling, and upstream-alignment gates.
+- `src/eslint-suppressions.json` rebalanced (no net count increase).
+
+#### 🔧 Chores
+
+- **CI: marketplace publish steps conditional on configured tokens** — [`marketplace-publish.yml`](.github/workflows/marketplace-publish.yml) and [`nightly-publish.yml`](.github/workflows/nightly-publish.yml) now skip (with a warning) a registry's validate/publish step when its token secret is unset, instead of hard-failing the whole pipeline (so Open-VSX-only setups succeed); configured tokens that fail `vsce verify-pat` still hard-fail.
+- Updated CHANGELOG.md and synced to src/CHANGELOG.md
+
+---
 
 ## [3.77.0] — 2026-08-04
 

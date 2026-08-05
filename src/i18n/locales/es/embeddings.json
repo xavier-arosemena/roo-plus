@@ -80,6 +80,7 @@
 		"downloadFailed": "Error al descargar semble: {{errorMessage}}",
 		"checkFailed": "Verificación de semble fallida: {{errorMessage}}",
 		"searchFailed": "La búsqueda de Semble falló: {{errorMessage}}",
+		"firstSearchDownloadsModel": "La primera búsqueda puede tardar un poco, ya que descarga el modelo de incrustación.",
 		"providerReset": "Proveedor de Semble restablecido. La caché en disco se conserva hasta la próxima reconstrucción."
 	}
 }

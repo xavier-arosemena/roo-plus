@@ -80,6 +80,7 @@
 		"downloadFailed": "Error en descarregar semble: {{errorMessage}}",
 		"checkFailed": "Comprovació de semble fallida: {{errorMessage}}",
 		"searchFailed": "La cerca de Semble ha fallat: {{errorMessage}}",
+		"firstSearchDownloadsModel": "La primera cerca pot trigar una mica, ja que baixa el model d'incrustació.",
 		"providerReset": "Proveïdor de Semble restablert. La memòria cau al disc es conserva fins a la propera reconstrucció."
 	}
 }

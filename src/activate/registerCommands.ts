@@ -14,6 +14,7 @@ import { CodeIndexManager } from "../services/code-index/manager"
 import { importSettingsWithFeedback } from "../core/config/importExport"
 import { MdmService } from "../services/mdm/MdmService"
 import { registerRipgrepDiagnosticCommand } from "../services/ripgrep/diagnostic"
+import { registerCodeIndexTestCommands } from "./registerCodeIndexTestCommands"
 import { t } from "../i18n"
 
 /**
@@ -71,6 +72,10 @@ export const registerCommands = (options: RegisterCommandOptions) => {
 	}
 
 	context.subscriptions.push(registerRipgrepDiagnosticCommand())
+
+	// Test-only bridge for the apps/vscode-e2e Semble journey suite: dispatches
+	// WebviewMessages through the real router and exposes code-index status.
+	context.subscriptions.push(...registerCodeIndexTestCommands(options.provider))
 }
 
 // `showRipgrepDiagnostic` is registered separately by

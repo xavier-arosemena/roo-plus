@@ -157,19 +157,39 @@ export const defaultPrompts: Readonly<CustomModePrompts> = Object.freeze(
 	),
 )
 
+/**
+ * Returns the display description for a mode, falling back to `whenToUse` and
+ * then the first line of `roleDefinition` when `description` is missing, empty,
+ * or whitespace-only. This guarantees no mode ever renders a blank description
+ * and mirrors the fallback used by the webview context-mentions util.
+ */
+export function getModeDisplayDescription(
+	mode: Pick<ModeConfig, "description" | "whenToUse" | "roleDefinition">,
+): string {
+	const candidate = mode.description?.trim() || mode.whenToUse?.trim() || mode.roleDefinition.trim()
+	return candidate.split("\n")[0]
+}
+
 // Helper function to get all modes with their prompt overrides from extension state
 export async function getAllModesWithPrompts(context: vscode.ExtensionContext): Promise<ModeConfig[]> {
 	const customModes = (await context.globalState.get<ModeConfig[]>("customModes")) || []
 	const customModePrompts = (await context.globalState.get<CustomModePrompts>("customModePrompts")) || {}
 
 	const allModes = getAllModes(customModes)
-	return allModes.map((mode) => ({
-		...mode,
-		roleDefinition: customModePrompts[mode.slug]?.roleDefinition ?? mode.roleDefinition,
-		whenToUse: customModePrompts[mode.slug]?.whenToUse ?? mode.whenToUse,
-		customInstructions: customModePrompts[mode.slug]?.customInstructions ?? mode.customInstructions,
-		// description is not overridable via customModePrompts, so we keep the original
-	}))
+	return allModes.map((mode) => {
+		const overridden = {
+			...mode,
+			roleDefinition: customModePrompts[mode.slug]?.roleDefinition ?? mode.roleDefinition,
+			whenToUse: customModePrompts[mode.slug]?.whenToUse ?? mode.whenToUse,
+			customInstructions: customModePrompts[mode.slug]?.customInstructions ?? mode.customInstructions,
+		}
+		return {
+			...overridden,
+			// description is not overridable via customModePrompts, so we keep the
+			// original and only fall back to a derived summary when it is blank.
+			description: overridden.description?.trim() || getModeDisplayDescription(overridden),
+		}
+	})
 }
 
 // Helper function to get complete mode details with all overrides
@@ -192,7 +212,10 @@ export async function getFullModeDetails(
 	// Get the base custom instructions
 	const baseCustomInstructions = promptComponent?.customInstructions || baseMode.customInstructions || ""
 	const baseWhenToUse = promptComponent?.whenToUse || baseMode.whenToUse || ""
-	const baseDescription = promptComponent?.description || baseMode.description || ""
+	// description is not overridable via customModePrompts (same contract as
+	// getAllModesWithPrompts) — keep the original and only fall back to a derived
+	// summary when it is blank.
+	const baseDescription = baseMode.description?.trim() || getModeDisplayDescription(baseMode)
 
 	// If we have cwd, load and combine all custom instructions
 	let fullCustomInstructions = baseCustomInstructions
