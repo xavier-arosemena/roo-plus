@@ -40,8 +40,12 @@ async function main() {
   }
 
   if (!agentsDirExists) {
-    console.log("⚠ custom-modes/agents not found (submodule not initialized) — skipping check")
-    process.exit(0)
+    console.error("❌ custom-modes submodule is NOT initialized (agents/ missing).")
+    console.error("   A missing submodule is a packaging hazard: sync-custom-modes.mjs would")
+    console.error("   silently reuse stale committed artifacts and the VSIX could ship modes")
+    console.error("   without descriptions. Initialize it and re-run:")
+    console.error("   git submodule update --init --recursive custom-modes")
+    process.exit(1)
   }
 
   const manifest = await loadManifest()

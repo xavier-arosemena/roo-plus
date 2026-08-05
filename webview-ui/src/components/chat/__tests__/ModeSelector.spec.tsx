@@ -48,7 +48,20 @@ vi.mock("@roo/modes", async () => {
 })
 
 describe("ModeSelector", () => {
-	test("shows custom description from customModePrompts", () => {
+	beforeEach(() => {
+		mockModes = []
+	})
+
+	test("uses the mode's own description and ignores customModePrompts descriptions", () => {
+		mockModes = [
+			{
+				slug: "code",
+				name: "Code",
+				description: "Built-in code description",
+				roleDefinition: "Role definition",
+				groups: ["read", "edit"],
+			},
+		]
 		const customModePrompts = {
 			code: {
 				description: "Custom code mode description",
@@ -65,7 +78,30 @@ describe("ModeSelector", () => {
 			/>,
 		)
 
-		expect(screen.getByTestId("mode-selector-trigger")).toBeInTheDocument()
+		// Open the popover and verify the built-in description is shown, not the
+		// customModePrompts description (descriptions are not overridable via prompts).
+		fireEvent.click(screen.getByTestId("mode-selector-trigger"))
+		expect(screen.getByText("Built-in code description")).toBeInTheDocument()
+		expect(screen.queryByText("Custom code mode description")).not.toBeInTheDocument()
+	})
+
+	test("falls back to roleDefinition when a mode has a blank description", () => {
+		mockModes = [
+			{
+				slug: "code",
+				name: "Code",
+				description: "   ",
+				roleDefinition: "First line of role\nSecond line",
+				groups: ["read", "edit"],
+			},
+		]
+
+		render(
+			<ModeSelector title="Mode Selector" value={"code" as Mode} onChange={vi.fn()} modeShortcutText="Ctrl+M" />,
+		)
+
+		fireEvent.click(screen.getByTestId("mode-selector-trigger"))
+		expect(screen.getByText("First line of role")).toBeInTheDocument()
 	})
 
 	test("falls back to default description when no custom prompt", () => {

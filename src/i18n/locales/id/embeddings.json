@@ -80,6 +80,7 @@
 		"downloadFailed": "Gagal mengunduh semble: {{errorMessage}}",
 		"checkFailed": "Pemeriksaan semble gagal: {{errorMessage}}",
 		"searchFailed": "Pencarian Semble gagal: {{errorMessage}}",
+		"firstSearchDownloadsModel": "Pencarian pertama mungkin memerlukan waktu karena mengunduh model embedding.",
 		"providerReset": "Penyedia Semble direset. Cache di disk tetap ada hingga pembangunan ulang berikutnya."
 	}
 }

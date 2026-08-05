@@ -204,7 +204,7 @@ export async function handleCodeIndexMessages(
 						processedItems: 0,
 						totalItems: 0,
 						currentItemUnit: "items",
-						workerspacePath: undefined,
+						workspacePath: undefined,
 					},
 				})
 				return

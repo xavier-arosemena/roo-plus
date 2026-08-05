@@ -3,16 +3,9 @@ import { Fzf } from "fzf"
 import type { ModeConfig, Command } from "@roo-code/types"
 
 import { mentionRegex } from "@roo/context-mentions"
+import { getModeDisplayDescription } from "@roo/modes"
 
 import { escapeSpaces } from "./path-mentions"
-
-/**
- * Gets the description for a mode, prioritizing description > whenToUse > roleDefinition
- * and taking only the first line
- */
-function getModeDescription(mode: ModeConfig): string {
-	return (mode.description || mode.whenToUse || mode.roleDefinition).split("\n")[0]
-}
 
 export interface SearchResult {
 	path: string
@@ -193,13 +186,13 @@ export function getContextMenuOptions(
 						type: ContextMenuOptionType.Mode,
 						value: result.item.original.slug,
 						slashCommand: `/${result.item.original.slug}`,
-						description: getModeDescription(result.item.original),
+						description: getModeDisplayDescription(result.item.original),
 					}))
 				: modes.map((mode) => ({
 						type: ContextMenuOptionType.Mode,
 						value: mode.slug,
 						slashCommand: `/${mode.slug}`,
-						description: getModeDescription(mode),
+						description: getModeDisplayDescription(mode),
 					}))
 
 			if (matchingModes.length > 0) {

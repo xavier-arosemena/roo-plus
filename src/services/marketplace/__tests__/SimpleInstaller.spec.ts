@@ -136,6 +136,40 @@ describe("SimpleInstaller", () => {
 			expect(result.filePath).toBe(path.join("/test/workspace", ".roomodes"))
 			expect(mockFs.writeFile).toHaveBeenCalled()
 		})
+
+		it("preserves the full description from marketplace content when installing", async () => {
+			// The marketplace catalog truncates the item-level `description` blurb to
+			// 150 chars, but the installed mode must keep the FULL description that
+			// lives in `content` (see sync-custom-modes.mjs convertToMarketplaceItem).
+			const fullDescription =
+				"Designs scalable, modular system architectures with clear component boundaries and integration patterns."
+			const itemWithDescription: MarketplaceItem = {
+				...mockModeItem,
+				content: yaml.stringify({
+					slug: "test",
+					name: "Test Mode",
+					description: fullDescription,
+					roleDefinition: "Test role",
+					groups: ["read"],
+				}),
+			}
+
+			const installerWithoutManager = new SimpleInstaller(mockContext)
+
+			// Mock file not found
+			const notFoundError: NodeJS.ErrnoException = new Error("File not found")
+			notFoundError.code = "ENOENT"
+			mockFs.readFile.mockRejectedValueOnce(notFoundError)
+			mockFs.writeFile.mockResolvedValueOnce(undefined)
+
+			await installerWithoutManager.installItem(itemWithDescription, { target: "project" })
+
+			expect(mockFs.writeFile).toHaveBeenCalledTimes(1)
+			const writtenYaml = mockFs.writeFile.mock.calls[0][1] as string
+			const written: { customModes?: Array<{ slug?: string; description?: string }> } = yaml.parse(writtenYaml)
+			const installed = written.customModes?.find((m) => m.slug === "test")
+			expect(installed?.description).toBe(fullDescription)
+		})
 	})
 
 	describe("installMcp", () => {

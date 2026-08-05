@@ -80,6 +80,7 @@
 		"downloadFailed": "下载 semble 失败：{{errorMessage}}",
 		"checkFailed": "Semble 检查失败：{{errorMessage}}",
 		"searchFailed": "Semble 搜索失败：{{errorMessage}}",
+		"firstSearchDownloadsModel": "首次搜索可能需要一些时间，因为它会下载嵌入模型。",
 		"providerReset": "Semble 提供程序已重置。磁盘缓存将保留至下次重建。"
 	}
 }

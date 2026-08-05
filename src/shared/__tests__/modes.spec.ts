@@ -9,9 +9,118 @@ vi.mock("../../core/prompts/sections/custom-instructions", () => ({
 	addCustomInstructions: vi.fn().mockResolvedValue("Combined instructions"),
 }))
 
-import { FileRestrictionError, getFullModeDetails, modes, getModeSelection } from "../modes"
+import * as vscode from "vscode"
+
+import {
+	FileRestrictionError,
+	getAllModesWithPrompts,
+	getFullModeDetails,
+	getModeDisplayDescription,
+	modes,
+	getModeSelection,
+} from "../modes"
 import { isToolAllowedForMode } from "../../core/tools/validateToolUse"
 import { addCustomInstructions } from "../../core/prompts/sections/custom-instructions"
+
+describe("getModeDisplayDescription", () => {
+	it("returns the mode's description when present", () => {
+		expect(
+			getModeDisplayDescription({
+				description: "Write code",
+				whenToUse: "Use for code",
+				roleDefinition: "You are a coder",
+			}),
+		).toBe("Write code")
+	})
+
+	it("falls back to whenToUse when description is whitespace-only", () => {
+		expect(
+			getModeDisplayDescription({
+				description: "   ",
+				whenToUse: "Use for code",
+				roleDefinition: "You are a coder",
+			}),
+		).toBe("Use for code")
+	})
+
+	it("falls back to the first line of roleDefinition when description and whenToUse are blank", () => {
+		expect(
+			getModeDisplayDescription({
+				description: undefined,
+				whenToUse: "",
+				roleDefinition: "You are a coder.\nSecond line.",
+			}),
+		).toBe("You are a coder.")
+	})
+
+	it("never returns a blank string for a mode that has a roleDefinition", () => {
+		expect(
+			getModeDisplayDescription({
+				description: undefined,
+				whenToUse: undefined,
+				roleDefinition: "You are a coder.",
+			}),
+		).toBe("You are a coder.")
+	})
+})
+
+describe("getAllModesWithPrompts", () => {
+	const contextWithState = (customModes: ModeConfig[], customModePrompts: Record<string, { description?: string }>) =>
+		({
+			globalState: {
+				get: vi.fn(async (key: string) => {
+					if (key === "customModes") return customModes
+					if (key === "customModePrompts") return customModePrompts
+					return undefined
+				}),
+			},
+		}) as unknown as vscode.ExtensionContext
+
+	it("does not override description via customModePrompts and derives a fallback when blank", async () => {
+		const customModes: ModeConfig[] = [
+			{
+				slug: "custom",
+				name: "Custom",
+				roleDefinition: "Custom role",
+				groups: ["read"],
+			},
+		]
+		const customModePrompts = {
+			custom: {
+				description: "Prompt description",
+			},
+		}
+
+		const result = await getAllModesWithPrompts(contextWithState(customModes, customModePrompts))
+
+		const custom = result.find((m) => m.slug === "custom")!
+		// description is not overridable via customModePrompts — use the derived
+		// fallback instead of the prompt description
+		expect(custom.description).toBe("Custom role")
+		expect(custom.description).not.toBe("Prompt description")
+	})
+
+	it("keeps a mode's own non-blank description", async () => {
+		const customModes: ModeConfig[] = [
+			{
+				slug: "custom",
+				name: "Custom",
+				roleDefinition: "Custom role",
+				description: "Own description",
+				groups: ["read"],
+			},
+		]
+		const customModePrompts = {
+			custom: {
+				description: "Prompt description",
+			},
+		}
+
+		const result = await getAllModesWithPrompts(contextWithState(customModes, customModePrompts))
+
+		expect(result.find((m) => m.slug === "custom")?.description).toBe("Own description")
+	})
+})
 
 describe("isToolAllowedForMode", () => {
 	const customModes: ModeConfig[] = [
@@ -667,6 +776,28 @@ describe("FileRestrictionError", () => {
 			const result = await getFullModeDetails("debug", undefined, customModePrompts)
 			expect(result.roleDefinition).toBe("Overridden role")
 			expect(result.customInstructions).toBe("Overridden instructions")
+		})
+
+		it("does not override description via promptComponent and derives a fallback when blank", async () => {
+			const customModes: ModeConfig[] = [
+				{
+					slug: "debug",
+					name: "Custom Debug",
+					roleDefinition: "Custom debug role",
+					groups: ["read"],
+				},
+			]
+			const customModePrompts = {
+				debug: {
+					description: "Prompt description",
+				},
+			}
+
+			const result = await getFullModeDetails("debug", customModes, customModePrompts)
+			// description is not overridable via promptComponent — fall back to the
+			// first line of roleDefinition instead of the prompt description
+			expect(result.description).toBe("Custom debug role")
+			expect(result.description).not.toBe("Prompt description")
 		})
 
 		it("combines custom instructions when cwd provided", async () => {

@@ -182,6 +182,43 @@ export class CustomModesManager {
 		}
 	}
 
+	/**
+	 * Replaces empty or whitespace-only descriptions with a derived fallback
+	 * summary (first line of `whenToUse`, then `roleDefinition`). Modes with an
+	 * omitted or already non-empty description are left untouched. Applied to raw
+	 * parsed YAML before schema validation so pre-existing configs that blank a
+	 * description remain back-compatible with the enforced schema.
+	 */
+	private normalizeBlankDescriptions(modes: unknown[]): unknown[] {
+		return modes.map((mode) => {
+			if (typeof mode !== "object" || mode === null || Array.isArray(mode)) {
+				return mode
+			}
+			const record = mode as Record<string, unknown>
+			if (typeof record.description !== "string" || record.description.trim().length > 0) {
+				return mode
+			}
+			const roleDefinition = typeof record.roleDefinition === "string" ? record.roleDefinition : ""
+			const whenToUse = typeof record.whenToUse === "string" ? record.whenToUse : ""
+			const fallback = (whenToUse.trim() || roleDefinition.trim()).split("\n")[0]
+			return fallback ? { ...record, description: fallback } : mode
+		})
+	}
+
+	/**
+	 * Ensures a validated mode always carries a non-blank description, deriving a
+	 * fallback summary (first line of `whenToUse`, then `roleDefinition`) when the
+	 * mode's own description is missing, empty, or whitespace-only. Applied to the
+	 * final merged modes so no mode ever reaches the webview blank.
+	 */
+	private ensureModeDescription(mode: ModeConfig): ModeConfig {
+		if (mode.description?.trim()) {
+			return mode
+		}
+		const fallback = (mode.whenToUse?.trim() || mode.roleDefinition.trim()).split("\n")[0]
+		return fallback ? { ...mode, description: fallback } : mode
+	}
+
 	private async loadModesFromFile(filePath: string): Promise<ModeConfig[]> {
 		try {
 			const content = await fs.readFile(filePath, "utf-8")
@@ -192,7 +229,15 @@ export class CustomModesManager {
 				return []
 			}
 
-			const result = customModesSettingsSchema.safeParse(settings)
+			// Derive fallback descriptions before schema validation so existing
+			// configs that blank a description stay back-compatible with the
+			// enforced schema (non-empty when present) and no mode reaches the
+			// webview blank.
+			const normalizedSettings = Array.isArray(settings.customModes)
+				? { ...settings, customModes: this.normalizeBlankDescriptions(settings.customModes) }
+				: settings
+
+			const result = customModesSettingsSchema.safeParse(normalizedSettings)
 
 			if (!result.success) {
 				console.error(`[CustomModesManager] Schema validation failed for ${filePath}:`, result.error)
@@ -245,7 +290,8 @@ export class CustomModesManager {
 			}
 		}
 
-		return merged
+		// Ensure no merged mode reaches the webview with a blank description.
+		return merged.map((mode) => this.ensureModeDescription(mode))
 	}
 
 	public async getCustomModesFilePath(): Promise<string> {
@@ -289,7 +335,15 @@ export class CustomModesManager {
 					return
 				}
 
-				const result = customModesSettingsSchema.safeParse(config)
+				// Derive fallback descriptions before schema validation so blank
+				// descriptions in the file stay back-compatible with the enforced
+				// schema and don't get rejected on live edits.
+				const configToValidate =
+					config && typeof config === "object" && Array.isArray(config.customModes)
+						? { ...config, customModes: this.normalizeBlankDescriptions(config.customModes) }
+						: config
+
+				const result = customModesSettingsSchema.safeParse(configToValidate)
 
 				if (!result.success) {
 					vscode.window.showErrorMessage(errorMessage)
@@ -498,6 +552,9 @@ export class CustomModesManager {
 				.filter((mode) => !projectModes.has(mode.slug))
 				.map((mode) => ({ ...mode, source: "global" as const })),
 		]
+			// Final safety net: derive a fallback description for any mode that
+			// would otherwise reach the webview with a blank description.
+			.map((mode) => this.ensureModeDescription(mode))
 
 		await this.context.globalState.update("customModes", mergedModes)
 

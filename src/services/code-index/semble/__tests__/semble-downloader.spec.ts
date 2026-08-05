@@ -126,6 +126,7 @@ vi.mock("child_process", () => ({
 }))
 const mockExtractProcess = new EventEmitter() as any
 mockExtractProcess.stderr = new EventEmitter()
+mockExtractProcess.stdout = new EventEmitter()
 
 /**
  * Default mock execFile implementation that returns sufficient disk space.
@@ -319,7 +320,22 @@ describe("semble-downloader", () => {
 
 		// Reset spawn to its default success behavior — the path-traversal tests
 		// override the implementation per-test, so clear any leak between tests.
-		;(spawn as any).mockImplementation(() => {
+		// The cached-binary health probe runs `<binary> --help` and requires the
+		// help text to advertise `search` (mirroring SembleCLI.checkInstalled()).
+		// Emit a HEALTHY response by default so the fast path reuses the cached
+		// binary (no re-download) in tests that don't override the mock; tests
+		// that exercise the broken-stub path override this per-test.
+		;(spawn as any).mockImplementation((_cmd: string, args: string[]) => {
+			if (args[0] === "--help") {
+				setImmediate(() => {
+					mockExtractProcess.stdout.emit(
+						"data",
+						Buffer.from("usage: semble [-h] {search,find-related,clear,install,savings}"),
+					)
+					mockExtractProcess.emit("close", 0)
+				})
+				return mockExtractProcess
+			}
 			setImmediate(() => mockExtractProcess.emit("close", 0))
 			return mockExtractProcess
 		})
@@ -1494,6 +1510,82 @@ describe("semble-downloader", () => {
 				expect(https.get).not.toHaveBeenCalled()
 				// Should NOT remove the extract dir
 				expect(fs.rm).not.toHaveBeenCalled()
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should reuse a cached healthy binary after the --help health probe (R1)", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// Version metadata matches and the cached binary exists.
+			;(fs.readFile as any).mockResolvedValue("v0.5.2")
+			;(fs.access as any).mockResolvedValue(undefined)
+
+			try {
+				const result = await downloadSemble("/storage")
+
+				expect(result).toBe(path.join("/storage", "semble", "semble"))
+				// The fast path ran the health probe (`--help`) before trusting the cache...
+				expect(spawn).toHaveBeenCalledWith(
+					path.join("/storage", "semble", "semble"),
+					["--help"],
+					expect.objectContaining({ shell: false }),
+				)
+				// ...and reused the healthy binary — no download, no version-resolution HTTP.
+				expect(https.get).not.toHaveBeenCalled()
+			} finally {
+				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
+				if (originalArch) Object.defineProperty(process, "arch", originalArch)
+			}
+		})
+
+		it("should re-download when the cached binary fails the health probe (stale silent-exit-0 stub)", async () => {
+			const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+			const originalArch = Object.getOwnPropertyDescriptor(process, "arch")
+
+			Object.defineProperty(process, "platform", { value: "linux", configurable: true })
+			Object.defineProperty(process, "arch", { value: "x64", configurable: true })
+
+			// Version metadata matches, but the cached binary is the broken
+			// silent-exit-0 v0.5.2 stub: `--help` exits 0 with NO output, so it does
+			// not advertise `search`. The fast path must NOT trust it — re-download.
+			;(fs.readFile as any).mockResolvedValue("v0.5.2")
+			;(fs.access as any).mockResolvedValue(undefined)
+			;(spawn as any).mockImplementation((_cmd: string, _args: string[]) => {
+				// Broken stub: exits 0 with no usable help output (no stdout emitted).
+				setImmediate(() => mockExtractProcess.emit("close", 0))
+				return mockExtractProcess
+			})
+
+			// Simulate a successful re-download
+			mockWriteStream.on.mockImplementation((event: string, cb: () => void) => {
+				if (event === "finish") {
+					setImmediate(cb)
+				}
+			})
+
+			try {
+				const result = await downloadSemble("/storage")
+
+				expect(result).toBe(path.join("/storage", "semble", "semble"))
+				// A fresh download was performed (release URL fetched and verified)...
+				expect(https.get).toHaveBeenCalledWith(expect.stringContaining("v0.5.2"), expect.any(Function))
+				expect(https.get).toHaveBeenCalledWith(
+					expect.stringContaining("semble-linux-x64-fast.tar.gz"),
+					expect.any(Function),
+				)
+				// ...and the fresh install is recorded in the version file.
+				expect(fs.writeFile).toHaveBeenCalledWith(
+					path.join("/storage", "semble", ".semble-version"),
+					"v0.5.2",
+					"utf-8",
+				)
 			} finally {
 				if (originalPlatform) Object.defineProperty(process, "platform", originalPlatform)
 				if (originalArch) Object.defineProperty(process, "arch", originalArch)

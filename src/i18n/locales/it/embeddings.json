@@ -80,6 +80,7 @@
 		"downloadFailed": "Download di semble fallito: {{errorMessage}}",
 		"checkFailed": "Verifica di semble fallita: {{errorMessage}}",
 		"searchFailed": "Ricerca Semble non riuscita: {{errorMessage}}",
+		"firstSearchDownloadsModel": "La prima ricerca potrebbe richiedere del tempo perché scarica il modello di embedding.",
 		"providerReset": "Provider Semble ripristinato. La cache su disco rimane fino alla prossima ricostruzione."
 	}
 }

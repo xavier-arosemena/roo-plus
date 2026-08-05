@@ -61,6 +61,8 @@ vi.mock("../../../../i18n", () => ({
 				return `Failed to download semble: ${params?.errorMessage ?? ""}`
 			case "embeddings:semble.checkFailed":
 				return `Semble check failed: ${params?.errorMessage ?? ""}`
+			case "embeddings:semble.firstSearchDownloadsModel":
+				return "The first search may take a while as it downloads the embedding model."
 			case "embeddings:semble.searchFailed":
 				return `Semble search failed: ${params?.errorMessage ?? ""}`
 			case "embeddings:semble.providerReset":
@@ -153,9 +155,11 @@ describe("SembleProvider", () => {
 
 			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined)
 			expect(provider.state).toBe("Indexed")
+			// The ready message appends an explicit cold-start hint (R3/R4) so a
+			// slow first search (embedding-model download) is not misreported.
 			expect(mockStateManager.setSystemState).toHaveBeenCalledWith(
 				"Indexed",
-				"Semble v0.5.2 is ready. Searches index on-the-fly.",
+				"Semble v0.5.2 is ready. Searches index on-the-fly. The first search may take a while as it downloads the embedding model.",
 			)
 		})
 
@@ -516,9 +520,9 @@ describe("SembleProvider", () => {
 			expect(results).toHaveLength(2)
 		})
 
-		it("should surface a genuine search failure: rethrow, log telemetry, and set Error state", async () => {
-			// Use a fresh provider so the Error state doesn't leak into the shared
-			// instance used by the surrounding tests.
+		it("should surface a genuine search failure: rethrow, log telemetry, and keep Indexed state (non-sticky)", async () => {
+			// Use a fresh provider so state doesn't leak into the shared instance
+			// used by the surrounding tests.
 			const freshProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
 			await freshProvider.initialize()
 
@@ -526,10 +530,15 @@ describe("SembleProvider", () => {
 
 			await expect(freshProvider.searchIndex("test")).rejects.toThrow("Search failed")
 
-			// The provider must flip to Error so the UI (CodeIndexPopover) reflects
-			// the failure instead of staying "Indexed".
-			expect(freshProvider.state).toBe("Error")
-			expect(mockStateManager.setSystemState).toHaveBeenCalledWith("Error", "Semble search failed: Search failed")
+			// R2: a single transient search failure must NOT flip the shared state
+			// to a permanent Error — the index stays "Indexed" so subsequent
+			// searches keep working. The error is surfaced to the caller (and the
+			// agent tool) by throwing, and telemetry still records it.
+			expect(freshProvider.state).toBe("Indexed")
+			expect(mockStateManager.setSystemState).not.toHaveBeenCalledWith(
+				"Error",
+				"Semble search failed: Search failed",
+			)
 			expect(TelemetryService.instance.captureEvent).toHaveBeenCalledWith(
 				TelemetryEventName.CODE_INDEX_ERROR,
 				expect.objectContaining({
@@ -538,7 +547,7 @@ describe("SembleProvider", () => {
 			)
 		})
 
-		it("should set Error state and surface the original value for non-Error rejections", async () => {
+		it("should surface the original value for non-Error rejections and keep Indexed state", async () => {
 			// A non-Error rejection exercises the `error instanceof Error` false
 			// branch of the telemetry payload (stack: undefined).
 			const freshProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
@@ -548,8 +557,11 @@ describe("SembleProvider", () => {
 
 			await expect(freshProvider.searchIndex("test")).rejects.toBe("string error")
 
-			expect(freshProvider.state).toBe("Error")
-			expect(mockStateManager.setSystemState).toHaveBeenCalledWith("Error", "Semble search failed: string error")
+			expect(freshProvider.state).toBe("Indexed")
+			expect(mockStateManager.setSystemState).not.toHaveBeenCalledWith(
+				"Error",
+				"Semble search failed: string error",
+			)
 			expect(TelemetryService.instance.captureEvent).toHaveBeenCalledWith(
 				TelemetryEventName.CODE_INDEX_ERROR,
 				expect.objectContaining({
@@ -558,6 +570,26 @@ describe("SembleProvider", () => {
 					location: "SembleProvider.searchIndex",
 				}),
 			)
+		})
+
+		it("should recover naturally after a transient search failure (non-sticky, R2)", async () => {
+			const freshProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
+			await freshProvider.initialize()
+
+			// First search fails transiently (e.g. the embedding-model download
+			// exceeding the 120s timeout on a cold start)...
+			mockCli.search.mockRejectedValueOnce(new Error("timed out"))
+			await expect(freshProvider.searchIndex("test")).rejects.toThrow("timed out")
+			expect(freshProvider.state).toBe("Indexed")
+
+			// ...the next search succeeds WITHOUT any manual reset/retry — the
+			// feature is not bricked by a single transient failure (R2).
+			mockCli.search.mockResolvedValue([
+				{ content: "function auth() {}", file_path: "src/auth.ts", start_line: 1, end_line: 5, score: 0.9 },
+			])
+			const results = await freshProvider.searchIndex("test")
+			expect(results).toHaveLength(1)
+			expect(freshProvider.state).toBe("Indexed")
 		})
 
 		it("should return empty array when in Error state", async () => {

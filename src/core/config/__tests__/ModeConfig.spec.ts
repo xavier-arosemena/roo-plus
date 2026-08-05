@@ -90,6 +90,29 @@ describe("CustomModeSchema", () => {
 			expect(() => validateCustomMode(emptyRoleMode)).toThrow("Role definition is required")
 		})
 
+		test("rejects an empty description when provided", () => {
+			const emptyDescriptionMode = {
+				slug: "123e4567-e89b-12d3-a456-426614174000",
+				name: "Test Mode",
+				roleDefinition: "Test role definition",
+				description: "",
+				groups: ["read"] as const,
+			} satisfies ModeConfig
+
+			expect(() => validateCustomMode(emptyDescriptionMode)).toThrow("Description must not be empty")
+		})
+
+		test("accepts an omitted description (back-compat)", () => {
+			const noDescriptionMode = {
+				slug: "123e4567-e89b-12d3-a456-426614174000",
+				name: "Test Mode",
+				roleDefinition: "Test role definition",
+				groups: ["read"] as const,
+			} satisfies ModeConfig
+
+			expect(() => validateCustomMode(noDescriptionMode)).not.toThrow()
+		})
+
 		test("rejects invalid group configurations", () => {
 			const invalidGroupMode = {
 				slug: "123e4567-e89b-12d3-a456-426614174000",

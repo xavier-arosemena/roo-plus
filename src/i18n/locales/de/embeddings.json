@@ -80,6 +80,7 @@
 		"downloadFailed": "Fehler beim Herunterladen von Semble: {{errorMessage}}",
 		"checkFailed": "Semble-Überprüfung fehlgeschlagen: {{errorMessage}}",
 		"searchFailed": "Semble-Suche fehlgeschlagen: {{errorMessage}}",
+		"firstSearchDownloadsModel": "Die erste Suche kann etwas dauern, da das Embedding-Modell heruntergeladen wird.",
 		"providerReset": "Semble-Anbieter zurückgesetzt. Der Cache auf der Festplatte bleibt bis zum nächsten Neuaufbau erhalten."
 	}
 }

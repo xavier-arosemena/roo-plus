@@ -12,7 +12,11 @@
  *   2. Scans agent YAML files from custom-modes/agents/ using the yaml library
  *   3a. Converts curated agents to .roomodes format (stripping extra fields)
  *   3b. Converts ALL agents to Modes Marketplace format
- *   4. Merges with existing content (preserving existing entries)
+ *   4. Merges with existing content — SOURCE WINS on slug conflict, so re-running
+ *      the sync refreshes stale committed entries (e.g. missing/old descriptions)
+ *      instead of preserving them. Only user-level settings (custom_modes.yaml in
+ *      globalStorage) preserve user edits; that file is merged at runtime by
+ *      CustomModesManager and is never touched by this script.
  *   5. Writes .roomodes and marketplace modes.yml
  *
  * Usage:
@@ -27,8 +31,11 @@ import * as yaml from "yaml"
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, "..")
 
-const AGENTS_DIR = path.join(ROOT, "custom-modes", "agents")
-const MANIFEST_PATH = path.join(ROOT, "custom-modes", "manifest.json")
+// The submodule path can be overridden (e.g. by verify-submodule-pin.mjs or CI
+// fixtures) so every consumer of this pipeline resolves the SAME source of truth.
+const SUBMODULE_PATH = process.env.ROO_SUBMODULE_PATH || "custom-modes"
+const AGENTS_DIR = path.resolve(ROOT, SUBMODULE_PATH, "agents")
+const MANIFEST_PATH = path.resolve(ROOT, SUBMODULE_PATH, "manifest.json")
 const ROOMODES_PATH = path.join(ROOT, ".roomodes")
 const MARKETPLACE_MODES_PATH = path.join(ROOT, "src", "assets", "marketplace", "modes.yml")
 const PRE_INSTALLED_MODES_PATH = path.join(ROOT, "src", "assets", "marketplace", "pre-installed-modes.yml")
@@ -204,9 +211,37 @@ async function loadExistingRoomodes() {
 /**
  * Generate the complete .roomodes YAML content.
  */
+/**
+ * Merge existing + freshly-generated modes with SOURCE-WINS semantics.
+ *
+ * `newModes` are freshly generated from the curated agent source
+ * (custom-modes/agents/) and therefore win on slug conflict. This is what makes
+ * re-running sync REFRESH stale committed artifacts (e.g. `.roomodes` entries
+ * with missing/old descriptions) instead of preserving them.
+ *
+ * Existing modes whose slug is NOT present in the source are treated as manual
+ * additions and preserved. User-level settings (`custom_modes.yaml` in
+ * globalStorage) are never merged here — they are handled at runtime by
+ * CustomModesManager so user edits always survive.
+ *
+ * Returns { merged, replaced, preserved }:
+ *   - merged:    final mode list (preserved extras first, then all source entries)
+ *   - replaced:  existing modes that were refreshed from the source
+ *   - preserved: existing modes kept because their slug is not in the source
+ */
+function mergeRoomodesModes(existingModes, newModes) {
+  const newBySlug = new Map(newModes.map((m) => [m.slug, m]))
+  const replaced = existingModes.filter((m) => newBySlug.has(m.slug))
+  const preserved = existingModes.filter((m) => !newBySlug.has(m.slug))
+  return { merged: [...preserved, ...newModes], replaced, preserved }
+}
+
+/**
+ * Generate the complete .roomodes YAML content (source-wins merge).
+ */
 function generateRoomodesYaml(existingModes, newModes) {
-  const allModes = [...existingModes, ...newModes]
-  const cleanModes = allModes.map((mode) => {
+  const { merged } = mergeRoomodesModes(existingModes, newModes)
+  const cleanModes = merged.map((mode) => {
     const m = { ...mode }
     delete m.source
     return m
@@ -343,25 +378,36 @@ async function main() {
   const { modes: existingModes } = await loadExistingRoomodes()
   console.log(`   Existing modes in .roomodes: ${existingModes.length}`)
 
-  // Merge (existing modes take priority on slug conflict)
-  const existingSlugs = new Set(existingModes.map((m) => m.slug))
-  const newEntries = roomodesEntries.filter((m) => !existingSlugs.has(m.slug))
-  const skipped = roomodesEntries.filter((m) => existingSlugs.has(m.slug))
+  // Merge with SOURCE-WINS semantics: freshly generated curated entries REFRESH
+  // existing ones on slug conflict (so stale `.roomodes` entries with missing or
+  // old descriptions are repaired on re-run). Only existing modes whose slug is
+  // absent from the curated source are preserved (manual additions).
+  const { merged: mergedModes, replaced, preserved } = mergeRoomodesModes(existingModes, roomodesEntries)
+  const totalModes = mergedModes.length
 
-  console.log(`   Adding: ${newEntries.length} new modes`)
-  if (skipped.length > 0) {
-    console.log(`   Skipped (slug conflict): ${skipped.map((m) => m.slug).join(", ")}`)
+  console.log(`   Source entries: ${roomodesEntries.length} modes (source wins on conflict)`)
+  if (replaced.length > 0) {
+    console.log(`   Refreshed from source (slug conflict): ${replaced.map((m) => m.slug).join(", ")}`)
+  }
+  if (preserved.length > 0) {
+    console.log(`   Preserved (not in curated source): ${preserved.map((m) => m.slug).join(", ")}`)
   }
 
-  // Write .roomodes
-  const totalModes = existingModes.length + newEntries.length
-  const roomodesYamlContent = newEntries.length > 0
-    ? generateRoomodesYaml(existingModes, newEntries)
-    : generateRoomodesYaml(existingModes, [])
+  // Write .roomodes only when the generated artifact actually changed, so
+  // re-running sync is idempotent (byte-for-byte stable output).
+  const roomodesYamlContent = generateRoomodesYaml(existingModes, roomodesEntries)
+  let currentRoomodes = null
+  try {
+    currentRoomodes = await fs.readFile(ROOMODES_PATH, "utf-8")
+  } catch {
+    currentRoomodes = null
+  }
 
-  if (newEntries.length > 0) {
-    console.log("\n✍️ Writing .roomodes...")
+  if (roomodesYamlContent !== currentRoomodes) {
+    console.log("\n✍️ Writing .roomodes (source-wins refresh)...")
     await fs.writeFile(ROOMODES_PATH, roomodesYamlContent, "utf-8")
+  } else {
+    console.log("   .roomodes already up to date (no changes)")
   }
 
   // Write pre-installed-modes.yml (bundled in VSIX for first-run seeding)
@@ -420,6 +466,7 @@ export {
   scanAllAgents,
   filterCuratedAgents,
   convertToRoomodesEntry,
+  mergeRoomodesModes,
   generateRoomodesYaml,
   AGENTS_DIR,
   MANIFEST_PATH,

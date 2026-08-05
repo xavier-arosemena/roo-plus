@@ -4,7 +4,7 @@ import * as https from "https"
 import { createWriteStream } from "fs"
 import { createHash } from "crypto"
 import { createReadStream } from "fs"
-import { spawn } from "child_process"
+import { spawn, type ChildProcess } from "child_process"
 
 /**
  * Supported platform/arch combinations for the semble standalone executable.
@@ -390,6 +390,84 @@ async function findFileNamed(dir: string, name: string, depth: number, maxDepth:
 }
 
 /**
+ * Runs a lightweight, bounded health probe against a semble binary.
+ *
+ * The downloader's fast path must NOT blindly trust a cached binary: a server
+ * that cached an earlier broken release (e.g. the silent-exit-0 v0.5.2 stub)
+ * would otherwise reuse it forever while `SembleCLI.checkInstalled()` rejects
+ * it, leaving the provider stuck in a permanent Error (R1).
+ *
+ * Mirrors `SembleCLI.checkInstalled()` semantics: run `--help` with a bounded
+ * timeout and require the help text to advertise the `search` subcommand. Exit
+ * code 0 alone is NOT sufficient — the broken stub exits 0 with no output.
+ *
+ * Cheap by design: a single bounded spawn, no network I/O. Callers fall through
+ * to a re-download when this returns false.
+ *
+ * @returns true when the binary is healthy (help text advertises `search`).
+ */
+export async function isSembleBinaryHealthy(binaryPath: string): Promise<boolean> {
+	const timeoutMs = 10_000
+	return new Promise<boolean>((resolve) => {
+		let child: ChildProcess | undefined
+		let stdout = ""
+		let settled = false
+		let timer: NodeJS.Timeout | undefined
+
+		const finish = (healthy: boolean) => {
+			if (settled) {
+				return
+			}
+			settled = true
+			if (timer) {
+				clearTimeout(timer)
+			}
+			resolve(healthy)
+		}
+
+		try {
+			child = spawn(binaryPath, ["--help"], {
+				shell: false,
+				stdio: ["ignore", "pipe", "pipe"],
+				timeout: timeoutMs,
+			})
+		} catch {
+			finish(false)
+			return
+		}
+
+		child.stdout?.on("data", (data: Buffer) => {
+			stdout += data.toString()
+		})
+		// stderr is intentionally ignored for the health verdict — the help text
+		// is what advertises the `search` subcommand.
+		child.stderr?.on("data", () => {})
+
+		child.on("error", () => finish(false))
+		child.on("close", (code: number | null) => {
+			const help = stdout.trim()
+			finish(code === 0 && help.toLowerCase().includes("search"))
+		})
+
+		// Belt-and-suspenders bound in case the spawn `timeout` option is not
+		// honored (e.g. a child that ignores the kill signal). unref'd so a
+		// stuck child never keeps the extension host alive.
+		timer = setTimeout(() => {
+			// The timer fired — clear the reference so the `finish` guard's
+			// clearTimeout is a no-op for an already-fired timer.
+			timer = undefined
+			try {
+				child?.kill()
+			} catch {
+				// ignore
+			}
+			finish(false)
+		}, timeoutMs)
+		timer.unref?.()
+	})
+}
+
+/**
  * Reads the locally installed semble version from the version metadata file
  * (`<storageDir>/semble/.semble-version`). Returns undefined if no version file
  * exists (first install, legacy, or a manual binaryPathOverride with no prior
@@ -511,14 +589,25 @@ export async function downloadSemble(storageDir: string, binaryPathOverride?: st
 	//    Resolution requires a regular FILE — a directory is not runnable (spawning
 	//    it yields EACCES). This also self-heals prior broken one-dir installs where
 	//    the real executable lives at <extractDir>/semble/semble (see resolveSembleBinary).
+	//
+	//    R1: never blindly trust the cached binary. A server that cached an earlier
+	//    broken release (e.g. the silent-exit-0 v0.5.2 stub) would otherwise reuse it
+	//    forever while checkInstalled() rejects it, leaving the provider stuck in a
+	//    permanent Error. Run a cheap, bounded `--help` health probe (no network);
+	//    on failure fall through to a fresh re-download below.
 	if (installedVersion === SEMBLE_VERSION) {
 		const existingBinary = await resolveSembleBinary(extractDir, info.binary)
 		if (existingBinary) {
-			// Binary exists and version matches — nothing to do
-			if (process.platform !== "win32") {
-				await fs.chmod(existingBinary, 0o755)
+			if (await isSembleBinaryHealthy(existingBinary)) {
+				if (process.platform !== "win32") {
+					await fs.chmod(existingBinary, 0o755)
+				}
+				return existingBinary
 			}
-			return existingBinary
+			console.warn(
+				`[SembleDownloader] Cached semble binary failed the health probe (${existingBinary}); re-downloading...`,
+			)
+			// Fall through to re-download below
 		}
 		// Binary missing despite version file — re-download below
 	}
@@ -534,16 +623,24 @@ export async function downloadSemble(storageDir: string, binaryPathOverride?: st
 	//    HEAD requests or an upstream tag that hasn't been tested/checksummed.
 	const resolvedVersion = shouldResolveLatest() ? await resolveSembleVersion() : SEMBLE_VERSION
 
-	// 6. If the resolved version differs from hardcoded, check against installed version again
+	// 6. If the resolved version differs from hardcoded, check against installed
+	//    version again. Same R1 health-probe guard as the main fast path: a stale
+	//    broken cached binary must not be trusted just because its version file
+	//    matches — re-download when the probe fails.
 	if (resolvedVersion !== SEMBLE_VERSION && installedVersion === resolvedVersion) {
 		const existingBinary = await resolveSembleBinary(extractDir, info.binary)
 		if (existingBinary) {
-			if (process.platform !== "win32") {
-				await fs.chmod(existingBinary, 0o755)
+			if (await isSembleBinaryHealthy(existingBinary)) {
+				if (process.platform !== "win32") {
+					await fs.chmod(existingBinary, 0o755)
+				}
+				return existingBinary
 			}
-			return existingBinary
+			console.warn(
+				`[SembleDownloader] Cached semble binary failed the health probe (${existingBinary}); re-downloading...`,
+			)
+			// re-download below
 		}
-		// re-download below
 	}
 
 	// Version mismatch — log so the user can see what's happening

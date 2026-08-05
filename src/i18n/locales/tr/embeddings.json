@@ -80,6 +80,7 @@
 		"downloadFailed": "semble indirilemedi: {{errorMessage}}",
 		"checkFailed": "Semble kontrolü başarısız: {{errorMessage}}",
 		"searchFailed": "Semble araması başarısız oldu: {{errorMessage}}",
+		"firstSearchDownloadsModel": "İlk arama, gömme modelini indirdiği için biraz zaman alabilir.",
 		"providerReset": "Semble sağlayıcısı sıfırlandı. Diskteki önbellek bir sonraki yeniden yapılandırmaya kadar korunur."
 	}
 }

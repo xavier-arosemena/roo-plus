@@ -80,6 +80,7 @@
 		"downloadFailed": "semble 다운로드 실패: {{errorMessage}}",
 		"checkFailed": "Semble 확인 실패: {{errorMessage}}",
 		"searchFailed": "Semble 검색 실패: {{errorMessage}}",
+		"firstSearchDownloadsModel": "첫 번째 검색은 임베딩 모델을 다운로드하므로 시간이 걸릴 수 있습니다.",
 		"providerReset": "Semble 공급자가 재설정되었습니다. 디스크 캐시는 다음 재구축까지 유지됩니다."
 	}
 }

@@ -80,6 +80,7 @@
 		"downloadFailed": "Downloaden van semble mislukt: {{errorMessage}}",
 		"checkFailed": "Semble-controle mislukt: {{errorMessage}}",
 		"searchFailed": "Semble-zoekopdracht mislukt: {{errorMessage}}",
+		"firstSearchDownloadsModel": "De eerste zoekopdracht kan even duren omdat het embeddingmodel wordt gedownload.",
 		"providerReset": "Semble-provider gereset. Schijfcache blijft behouden tot de volgende heropbouw."
 	}
 }

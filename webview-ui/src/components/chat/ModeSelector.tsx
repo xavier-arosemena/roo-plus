@@ -4,7 +4,7 @@ import { Check, X } from "lucide-react"
 
 import { type ModeConfig, type CustomModePrompts, TelemetryEventName } from "@roo-code/types"
 
-import { type Mode, getAllModes, defaultModeSlug } from "@roo/modes"
+import { type Mode, getAllModes, getModeDisplayDescription, defaultModeSlug } from "@roo/modes"
 
 import { vscode } from "@/utils/vscode"
 import { telemetryClient } from "@/utils/TelemetryClient"
@@ -38,7 +38,6 @@ export const ModeSelector = ({
 	triggerClassName = "",
 	modeShortcutText,
 	customModes,
-	customModePrompts,
 	disableSearch = false,
 }: ModeSelectorProps) => {
 	const [open, setOpen] = React.useState(false)
@@ -62,15 +61,10 @@ export const ModeSelector = ({
 		}
 	}, [hasOpenedModeSelector, setHasOpenedModeSelector])
 
-	// Get all modes including custom modes and merge custom prompt descriptions.
-	const modes = React.useMemo(() => {
-		const allModes = getAllModes(customModes)
-
-		return allModes.map((mode) => ({
-			...mode,
-			description: customModePrompts?.[mode.slug]?.description ?? mode.description,
-		}))
-	}, [customModes, customModePrompts])
+	// Get all modes including custom modes. Descriptions are NOT overridable via
+	// customModePrompts (matching getAllModesWithPrompts) — the display fallback
+	// is applied through getModeDisplayDescription below.
+	const modes = React.useMemo(() => getAllModes(customModes), [customModes])
 
 	// Find the selected mode, falling back to default if current mode doesn't exist (e.g., after workspace switch)
 	const selectedMode = React.useMemo(() => {
@@ -110,7 +104,7 @@ export const ModeSelector = ({
 	const descriptionSearchItems = React.useMemo(() => {
 		return modes.map((mode) => ({
 			original: mode,
-			searchStr: mode.description || "",
+			searchStr: getModeDisplayDescription(mode),
 		}))
 	}, [modes])
 
@@ -294,11 +288,9 @@ export const ModeSelector = ({
 											data-testid="mode-selector-item">
 											<div className="flex-1 min-w-0">
 												<div className="font-bold truncate">{mode.name}</div>
-												{mode.description && (
-													<div className="text-xs text-vscode-descriptionForeground truncate">
-														{mode.description}
-													</div>
-												)}
+												<div className="text-xs text-vscode-descriptionForeground truncate">
+													{getModeDisplayDescription(mode)}
+												</div>
 											</div>
 											{isSelected && <Check className="ml-auto size-4 p-0.5" />}
 										</div>

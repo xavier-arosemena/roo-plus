@@ -167,10 +167,7 @@ export class SembleProvider implements ISembleProvider {
 		// The version is included in the status message so the UI (CodeIndexPopover)
 		// surfaces which semble release is active.
 		this._initFailed = false
-		this.stateManager.setSystemState(
-			"Indexed",
-			t("embeddings:semble.ready", { version: this._installedVersion ?? SEMBLE_VERSION }),
-		)
+		this.stateManager.setSystemState("Indexed", this._readyMessage())
 
 		this._isInitialized = true
 	}
@@ -197,10 +194,7 @@ export class SembleProvider implements ISembleProvider {
 
 		// Semble indexes on-the-fly — no separate indexing step needed.
 		// Mark as indexed/ready.
-		this.stateManager.setSystemState(
-			"Indexed",
-			t("embeddings:semble.ready", { version: this._installedVersion ?? SEMBLE_VERSION }),
-		)
+		this.stateManager.setSystemState("Indexed", this._readyMessage())
 	}
 
 	/**
@@ -312,11 +306,15 @@ export class SembleProvider implements ISembleProvider {
 			// A genuine search failure must not be masked as an empty result — the
 			// agent tool would otherwise report "no relevant snippets" and the UI
 			// would stay "Indexed". Surface the error to the caller (CodebaseSearchTool)
-			// and flip the provider/system state to Error so the CodeIndexPopover
-			// reflects the failure. Subsequent searches short-circuit to [] via the
-			// state guard above until the user resets/retries the provider.
-			this.stateManager.setSystemState("Error", t("embeddings:semble.searchFailed", { errorMessage }))
-
+			// by throwing for THIS call.
+			//
+			// R2: a single transient search failure (e.g. the first search
+			// downloading the HuggingFace embedding model past the 120s timeout)
+			// must NOT flip the shared state to a permanent "Error" — that would
+			// brick every subsequent search until a manual reset. Keep the state
+			// "Indexed" (the installation/index is healthy; only this call failed)
+			// so the next search proceeds normally. "Error" is reserved for
+			// install-time failures (unsupported platform / download / checkInstalled).
 			throw error
 		}
 	}
@@ -361,6 +359,21 @@ export class SembleProvider implements ISembleProvider {
 	}
 
 	// --- Private Helpers ---
+
+	/**
+	 * Builds the "Indexed" status message.
+	 *
+	 * Appends an explicit cold-start hint (R3/R4): the first `semble search` may
+	 * download the HuggingFace embedding model and can take a while. Surfacing
+	 * this as part of the ready message — a non-Error state — means a slow cold
+	 * start is not misreported as a broken index, and the UI (CodeIndexPopover)
+	 * explains why the first search is slow.
+	 */
+	private _readyMessage(): string {
+		return `${t("embeddings:semble.ready", { version: this._installedVersion ?? SEMBLE_VERSION })} ${t(
+			"embeddings:semble.firstSearchDownloadsModel",
+		)}`
+	}
 
 	/**
 	 * Converts Semble CLI results to Zoo's VectorStoreSearchResult format.

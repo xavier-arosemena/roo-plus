@@ -80,6 +80,7 @@
 		"downloadFailed": "Tải xuống semble thất bại: {{errorMessage}}",
 		"checkFailed": "Kiểm tra semble thất bại: {{errorMessage}}",
 		"searchFailed": "Tìm kiếm Semble thất bại: {{errorMessage}}",
+		"firstSearchDownloadsModel": "Lần tìm kiếm đầu tiên có thể mất một chút thời gian vì nó tải xuống mô hình nhúng.",
 		"providerReset": "Nhà cung cấp Semble đã đặt lại. Bộ nhớ đệm trên đĩa vẫn còn cho đến lần xây dựng lại tiếp theo."
 	}
 }

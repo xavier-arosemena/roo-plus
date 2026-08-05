@@ -80,6 +80,7 @@
 		"downloadFailed": "Nie udało się pobrać semble: {{errorMessage}}",
 		"checkFailed": "Sprawdzenie semble nie powiodło się: {{errorMessage}}",
 		"searchFailed": "Wyszukiwanie Semble nie powiodło się: {{errorMessage}}",
+		"firstSearchDownloadsModel": "Pierwsze wyszukiwanie może chwilę potrwać, ponieważ pobiera model osadzania.",
 		"providerReset": "Dostawca Semble zresetowany. Pamięć podręczna na dysku pozostaje do kolejnej przebudowy."
 	}
 }

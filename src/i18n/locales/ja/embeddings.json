@@ -80,6 +80,7 @@
 		"downloadFailed": "sembleのダウンロードに失敗しました: {{errorMessage}}",
 		"checkFailed": "Sembleの確認に失敗しました: {{errorMessage}}",
 		"searchFailed": "Sembleの検索に失敗しました: {{errorMessage}}",
+		"firstSearchDownloadsModel": "最初の検索では、埋め込みモデルをダウンロードするため時間がかかることがあります。",
 		"providerReset": "Sembleプロバイダーをリセットしました。次回の再構築までディスクキャッシュは残ります。"
 	}
 }

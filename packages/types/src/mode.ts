@@ -98,7 +98,13 @@ export const modeConfigSchema = z.object({
 	name: z.string().min(1, "Name is required"),
 	roleDefinition: z.string().min(1, "Role definition is required"),
 	whenToUse: z.string().optional(),
-	description: z.string().optional(),
+	// Back-compat: `description` remains optional so pre-existing user configs
+	// that omit it keep validating, but it must be non-empty when present. This
+	// also maps to a `minLength: 1` JSON Schema rule so .roomodes files with a
+	// blank description are rejected. Load-time normalization in
+	// CustomModesManager derives a fallback for blank/omitted descriptions so
+	// no mode ever reaches the UI without one.
+	description: z.string().min(1, "Description must not be empty").optional(),
 	customInstructions: z.string().optional(),
 	groups: groupEntryArraySchema,
 	source: z.enum(["global", "project"]).optional(),
