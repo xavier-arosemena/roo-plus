@@ -1,8 +1,10 @@
 {
 	"extends": "@roo-code/config-typescript/base.json",
 	"compilerOptions": {
-		"types": ["node"]
+		"types": ["node"],
+		"allowJs": true,
+		"checkJs": false
 	},
 	"exclude": ["node_modules"],
-	"include": ["scripts/*.ts"]
+	"include": ["scripts/*.mjs", "scripts/*.js"]
 }

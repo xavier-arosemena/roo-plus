@@ -108,19 +108,18 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 
 **Status**: Fixed. The `.roomodes` merge now uses SOURCE-WINS semantics
 ([`mergeRoomodesModes()`](scripts/sync-custom-modes.mjs)): freshly generated
-entries (from the curated `custom-modes/agents/` source) win on slug conflict, so
-re-running sync refreshes stale entries (missing/old descriptions) instead of
-preserving them. Only existing modes whose slug is absent from the curated source
-are preserved (manual additions); user edits to the user-level
+entries (from the curated `custom-modes/custom_modes.d/` source) win on slug
+conflict, so re-running sync refreshes stale entries (missing/old descriptions)
+instead of preserving them. Only existing modes whose slug is absent from the
+curated source are preserved (manual additions); user edits to the user-level
 `custom_modes.yaml` (globalStorage) are handled at runtime by
 `CustomModesManager` and never touched here. The sync writes output only when it
 actually changed (idempotent), and the fix is covered by
 [`scripts/sync-custom-modes.spec.mjs`](scripts/sync-custom-modes.spec.mjs).
-Description enforcement across `agents/`, `custom_modes.d/` and
-`vs-code/converted_modes.d/` is consolidated in
-[`scripts/ensure_descriptions.py`](scripts/ensure_descriptions.py); see
-[`scripts/DESCRIPTIONS.md`](scripts/DESCRIPTIONS.md) for the canonical-source
-decision and drift reporting.
+Description enforcement across the canonical `custom_modes.d/` set is
+consolidated in [`scripts/ensure_descriptions.py`](scripts/ensure_descriptions.py);
+see [`scripts/DESCRIPTIONS.md`](scripts/DESCRIPTIONS.md) for the canonical-source
+decision and coverage reporting.
 
 ### 13. Playwright Visual Regression Baseline Maintenance (v3.76.0)
 
