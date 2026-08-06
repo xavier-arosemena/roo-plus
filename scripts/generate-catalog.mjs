@@ -1,8 +1,14 @@
 #!/usr/bin/env node
 /**
- * Generates AGENT_CATALOG.md — a comprehensive reference of all 225 agents
- * in the custom-modes submodule, with slugs, names, descriptions, and
- * pre-load status.
+ * Generates AGENT_CATALOG.md — a comprehensive reference of all modes in the
+ * canonical `custom-modes/custom_modes.d/` catalog, with slugs, names,
+ * descriptions, and pre-load status.
+ *
+ * The canonical catalog is a set of YAML files at
+ * `custom-modes/custom_modes.d/<category>/.../<file>.yaml`, each wrapping a
+ * `customModes:` array (the shape consumed by scripts/sync-custom-modes.mjs).
+ * This script unwraps that array, so a single file can contribute multiple
+ * modes, and emits links relative to the submodule root (`custom_modes.d/...`).
  */
 import * as fs from "node:fs"
 import * as path from "node:path"
@@ -11,7 +17,7 @@ import * as yaml from "yaml"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, "..")
-const AGENTS_DIR = path.join(ROOT, "custom-modes", "agents")
+const SOURCE_DIR = path.join(ROOT, "custom-modes", "custom_modes.d")
 const ROOMODES_PATH = path.join(ROOT, ".roomodes")
 const CATALOG_PATH = path.join(ROOT, "custom-modes", "AGENT_CATALOG.md")
 
@@ -20,7 +26,9 @@ const roomodesContent = fs.readFileSync(ROOMODES_PATH, "utf-8")
 const roomodesParsed = yaml.parse(roomodesContent)
 const curatedSlugs = new Set(roomodesParsed.customModes.map((m) => m.slug))
 
-// Scan all agent files
+// Scan all mode files in custom_modes.d. Each file wraps a `customModes:` array;
+// unwrap it to individual modes (also accept a bare array or a raw single-mode
+// object for robustness, mirroring sync-custom-modes.mjs).
 const agents = []
 
 function scanDir(dirPath, category) {
@@ -33,9 +41,18 @@ function scanDir(dirPath, category) {
       try {
         const content = fs.readFileSync(fullPath, "utf-8")
         const parsed = yaml.parse(content)
-        if (parsed && parsed.slug) {
-          const relativePath = path.relative(AGENTS_DIR, fullPath)
-          const rawDesc = parsed.description || parsed.roleDefinition || ""
+        let modes = []
+        if (Array.isArray(parsed)) {
+          modes = parsed
+        } else if (parsed && typeof parsed === "object" && Array.isArray(parsed.customModes)) {
+          modes = parsed.customModes
+        } else if (parsed && typeof parsed === "object" && parsed.slug) {
+          modes = [parsed]
+        }
+        for (const mode of modes) {
+          if (!mode || !mode.slug) continue
+          const relativePath = path.relative(SOURCE_DIR, fullPath)
+          const rawDesc = mode.description || mode.roleDefinition || ""
           const cleanDesc = rawDesc
             .replace(/\\n/g, " ")
             .replace(/\s+/g, " ")
@@ -43,12 +60,14 @@ function scanDir(dirPath, category) {
             .slice(0, 120)
             .replace(/^"|"$/g, "")
           agents.push({
-            slug: parsed.slug,
-            name: parsed.name || parsed.slug,
+            slug: mode.slug,
+            name: mode.name || mode.slug,
             description: cleanDesc + "...",
-            category: category || parsed.category || "unknown",
-            curated: curatedSlugs.has(parsed.slug),
-            file: relativePath,
+            category: category || mode.category || "unknown",
+            curated: curatedSlugs.has(mode.slug),
+            // Link is relative to the custom-modes submodule root, pointing into
+            // the canonical catalog directory.
+            file: path.posix.join("custom_modes.d", relativePath.split(path.sep).join("/")),
           })
         }
       } catch (e) {
@@ -58,7 +77,7 @@ function scanDir(dirPath, category) {
   }
 }
 
-scanDir(AGENTS_DIR)
+scanDir(SOURCE_DIR)
 
 // Group by category
 const byCategory = {}
@@ -69,18 +88,19 @@ for (const a of agents) {
 
 // Generate markdown
 let md = "# Roo+ Agent Catalog\n\n"
-md += `Total: **${agents.length} agents** — `
-md += `${agents.filter((a) => a.curated).length} pre-loaded in .roomodes, `
-md += `${agents.filter((a) => !a.curated).length} available for import\n\n`
-md += "To add an agent to your pre-loaded set, see the [Adding More Agents](../README.md#adding-more-agents-the-remaining-86) section in the README.\n\n"
-md += "## All Agents\n\n"
+md += `Total: **${agents.length} modes** — `
+md += `**${agents.filter((a) => a.curated).length} pre-loaded** into [\`.roomodes\`](../.roomodes) and \`pre-installed-modes.yml\`, `
+md += `**${agents.filter((a) => !a.curated).length} additional modes** available for import from the Modes Marketplace.\n\n`
+md += "> **Two user-facing lists.** The **Preloaded** list (curated via `custom-modes/manifest.json`) ships in `.roomodes` and `src/assets/marketplace/pre-installed-modes.yml`. The **Marketplace** (`src/assets/marketplace/modes.yml`) contains **301 items** — the full 290-mode catalog plus 11 preserved originals. Built-in slugs (`architect`, `code`, `ask`, `debug`, `orchestrator`) are excluded from all lists.\n\n"
+md += "To add a mode to your pre-loaded set, see [Adding a Mode](../README.md#adding-a-mode) in the README.\n\n"
+md += "## All Modes\n\n"
 md += "| Status | Slug | Name | Category | Description |\n"
 md += "|--------|------|------|----------|-------------|\n"
 
 const sorted = [...agents].sort((a, b) => a.slug.localeCompare(b.slug))
 for (const a of sorted) {
   const status = a.curated ? "✅ Pre-loaded" : "⬜ Available"
-  const fileLink = `[${a.slug}](agents/${a.file})`
+  const fileLink = `[${a.slug}](${a.file})`
   md += `| ${status} | ${fileLink} | ${a.name} | ${a.category} | ${a.description} |\n`
 }
 
@@ -98,7 +118,7 @@ for (const [cat, items] of Object.entries(byCategory).sort()) {
 
 fs.writeFileSync(CATALOG_PATH, md)
 console.log(`\n=== Catalog generated ===`)
-console.log(`Total agents: ${agents.length}`)
+console.log(`Total modes: ${agents.length}`)
 console.log(`Pre-loaded:    ${agents.filter((a) => a.curated).length}`)
 console.log(`Available:     ${agents.filter((a) => !a.curated).length}`)
 console.log(`File: custom-modes/AGENT_CATALOG.md`)

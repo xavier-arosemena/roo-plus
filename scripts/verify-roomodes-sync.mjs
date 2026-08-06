@@ -27,20 +27,20 @@ import {
   filterCuratedAgents,
   convertToRoomodesEntry,
   generateRoomodesYaml,
-  AGENTS_DIR,
+  SOURCE_DIR,
   ROOMODES_PATH,
 } from "./sync-custom-modes.mjs"
 
 async function main() {
-  let agentsDirExists = true
+  let sourceDirExists = true
   try {
-    await fs.access(AGENTS_DIR)
+    await fs.access(SOURCE_DIR)
   } catch {
-    agentsDirExists = false
+    sourceDirExists = false
   }
 
-  if (!agentsDirExists) {
-    console.error("❌ custom-modes submodule is NOT initialized (agents/ missing).")
+  if (!sourceDirExists) {
+    console.error("❌ custom-modes submodule is NOT initialized (custom_modes.d/ missing).")
     console.error("   A missing submodule is a packaging hazard: sync-custom-modes.mjs would")
     console.error("   silently reuse stale committed artifacts and the VSIX could ship modes")
     console.error("   without descriptions. Initialize it and re-run:")

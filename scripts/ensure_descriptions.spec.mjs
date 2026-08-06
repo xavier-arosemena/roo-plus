@@ -46,27 +46,24 @@ function pythonAvailable() {
 }
 
 /**
- * Build a temp custom-modes root covering all three sets the enforcer tracks:
- * agents/ (flat), custom_modes.d/ and vs-code/converted_modes.d/ (nested).
+ * Build a temp custom-modes root covering the canonical set the enforcer
+ * tracks: custom_modes.d/ (nested `customModes:` wrapper).
  * `opts.blank` blanks every description; `opts.clone` makes one description a
  * verbatim copy of its roleDefinition.
  */
 function makeFixture(root, { blank = false, clone = false } = {}) {
-  fs.mkdirSync(path.join(root, "agents"), { recursive: true })
   fs.mkdirSync(path.join(root, "custom_modes.d"), { recursive: true })
-  fs.mkdirSync(path.join(root, "vs-code", "converted_modes.d"), { recursive: true })
 
   const fintechDesc = clone ? "You are an Expert fintech engineer." : blank ? "" : FINITECH_DESC
   const sqlDesc = blank ? "" : SQLPRO_DESC
 
   fs.writeFileSync(
-    path.join(root, "agents", "fintech-engineer.yaml"),
-    `slug: fintech-engineer\nname: Fintech Engineer Elite\ndescription: ${fintechDesc}\nroleDefinition: You are an Expert fintech engineer.\ngroups:\n- read\n- edit\n`,
+    path.join(root, "custom_modes.d", "fintech-engineer.yaml"),
+    `customModes:\n- slug: fintech-engineer\n  name: Fintech Engineer Elite\n  description: ${fintechDesc}\n  roleDefinition: You are an Expert fintech engineer.\n  groups:\n  - read\n  - edit\n`,
   )
 
   const nestedSql = `customModes:\n- slug: sql-pro\n  name: SQL Pro\n  description: ${sqlDesc}\n  roleDefinition: You are an expert SQL developer.\n  groups:\n  - read\n`
   fs.writeFileSync(path.join(root, "custom_modes.d", "sql-pro.yaml"), nestedSql)
-  fs.writeFileSync(path.join(root, "vs-code", "converted_modes.d", "sql-pro.yaml"), nestedSql)
 }
 
 function runCheck(customModesRoot, extraArgs = []) {

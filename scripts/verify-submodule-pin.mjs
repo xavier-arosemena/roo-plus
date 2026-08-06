@@ -18,9 +18,9 @@
  *   2. The checked-out submodule HEAD matches the recorded pin (the gitlink stored
  *      in the superproject index, i.e. `git ls-tree HEAD custom-modes`).
  *   3. The submodule working tree is clean (no uncommitted changes).
- *   4. (default ON) Every curated mode in `custom-modes/agents/` has a non-empty
- *      description that is not a clone of its `roleDefinition` — so descriptions
- *      can never be dropped at the source.
+ *   4. (default ON) Every curated mode in `custom-modes/custom_modes.d/` has a
+ *      non-empty description that is not a clone of its `roleDefinition` — so
+ *      descriptions can never be dropped at the source.
  *
  * Usage:
  *   node scripts/verify-submodule-pin.mjs                     # pin + clean + descriptions
@@ -82,7 +82,7 @@ function isInitialized() {
   }
   if (line.startsWith("-")) return false
   // Fallback for exotic setups: check for the submodule's own git metadata.
-  return fs.existsSync(path.join(SUBMODULE_DIR, ".git")) || fs.existsSync(path.join(SUBMODULE_DIR, "agents"))
+  return fs.existsSync(path.join(SUBMODULE_DIR, ".git")) || fs.existsSync(path.join(SUBMODULE_DIR, "custom_modes.d"))
 }
 
 /**
@@ -167,7 +167,7 @@ async function main() {
       for (const { slug, reason } of result.bad) {
         console.error(`   - ${slug}: ${reason}`)
       }
-      console.error(`\n   Fix the YAML in ${SUBMODULE_PATH}/agents/ (see scripts/DESCRIPTIONS.md)\n`)
+      console.error(`\n   Fix the YAML in ${SUBMODULE_PATH}/custom_modes.d/ (see scripts/DESCRIPTIONS.md)\n`)
       process.exit(1)
     }
     console.log(`   ✓ ${result.total} curated modes all have non-empty descriptions`)

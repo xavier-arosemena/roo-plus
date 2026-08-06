@@ -4,7 +4,7 @@ DEPRECATED — replaced by scripts/ensure_descriptions.py.
 
 The former agents/-only description injector (which derived a description from
 the roleDefinition first line) is superseded by the consolidated tool, which
-covers agents/, custom_modes.d/ and vs-code/converted_modes.d/ with:
+covers the canonical custom_modes.d/ set with:
 
   * a canonical store of curated descriptions,
   * a deterministic derivation fallback (whenToUse -> roleDefinition first line),
@@ -26,7 +26,7 @@ CONSOLIDATED = ROOT / "scripts" / "ensure_descriptions.py"
 
 def main() -> int:
     print("⚠ fix_missing_descriptions.py is deprecated — delegating to scripts/ensure_descriptions.py", file=sys.stderr)
-    return subprocess.call([sys.executable, str(CONSOLIDATED), "--dir", "agents"] + sys.argv[1:])
+    return subprocess.call([sys.executable, str(CONSOLIDATED), "--dir", "all"] + sys.argv[1:])
 
 
 if __name__ == "__main__":

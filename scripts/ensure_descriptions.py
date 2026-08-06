@@ -3,20 +3,16 @@
 ensure_descriptions.py — single deterministic, idempotent mode-description tool.
 
 Consolidates the former fix_descriptions.py, add_descriptions.py and
-fix_missing_descriptions.py into ONE tool that covers all three mode sets:
+fix_missing_descriptions.py into ONE tool for the canonical mode set:
 
-  * custom-modes/agents/                   (flat YAML, one mode per file)      [CANONICAL]
-  * custom-modes/custom_modes.d/           (nested customModes list, one per file)
-  * custom-modes/vs-code/converted_modes.d/ (nested customModes list, one per file)
+  * custom-modes/custom_modes.d/           (nested customModes list, one per file) [CANONICAL]
 
 Canonical source of truth
-  * custom-modes/agents/ is the canonical store (233 modes) and feeds
+  * custom-modes/custom_modes.d/ is the canonical store (290 modes) and feeds
     scripts/sync-custom-modes.mjs -> .roomodes + the Modes Marketplace.
-  * custom_modes.d/ and vs-code/converted_modes.d/ are derived/drifted sets with a
-    different schema (they add whenToUse, browser groups and contain extra slugs),
-    so regenerating them wholesale from agents/ would destroy that content. This
-    tool therefore only ENFORCES descriptions and REPORTS slug drift; it never
-    rewrites or restructures those sets.
+  * The obsolete custom-modes/agents/ and custom-modes/vs-code/converted_modes.d/
+    sets (and the monolithic custom_modes.yaml) were removed; this tool enforces
+    descriptions on the canonical set only.
 
 Guarantees
   * Canonical store: USER_FRIENDLY_DESCRIPTIONS is the source of truth.
@@ -33,8 +29,7 @@ Guarantees
     the old yaml.dump round-trip that rewrote whole files).
 
 Usage:
-  python3 scripts/ensure_descriptions.py                 # enforce on all three sets
-  python3 scripts/ensure_descriptions.py --dir agents    # only agents/
+  python3 scripts/ensure_descriptions.py                 # enforce on the canonical set
   python3 scripts/ensure_descriptions.py --check         # dry-run; exit 1 if changes pending
   python3 scripts/ensure_descriptions.py --report        # summary + slug drift report (no writes)
   python3 scripts/ensure_descriptions.py --self-test     # run in-memory self checks
@@ -58,10 +53,10 @@ SUBMODULE_PATH = os.environ.get("ROO_SUBMODULE_PATH", "custom-modes")
 CUSTOM_MODES_ROOT = REPO_ROOT / SUBMODULE_PATH
 
 # name -> (directory, format)
+# The canonical catalog is custom_modes.d/ (nested `customModes:` wrapper, one per
+# file). The legacy agents/ and vs-code/converted_modes.d/ sets are removed.
 SETS = {
-    "agents": (CUSTOM_MODES_ROOT / "agents", "flat"),
     "custom_modes.d": (CUSTOM_MODES_ROOT / "custom_modes.d", "nested"),
-    "vs-code/converted_modes.d": (CUSTOM_MODES_ROOT / "vs-code" / "converted_modes.d", "nested"),
 }
 
 # ---------------------------------------------------------------------------
@@ -656,7 +651,7 @@ def process_file(path: Path, fmt: str, dry_run: bool = False):
 
 
 def collect_slugs():
-    """Return {set_name: {slug, ...}} for the three mode sets."""
+    """Return {set_name: {slug, ...}} for the canonical mode set."""
     result = {}
     for name, (directory, fmt) in SETS.items():
         slugs = set()
@@ -670,29 +665,12 @@ def collect_slugs():
 
 
 def print_drift_report() -> int:
-    """Print slug drift across the three sets + description coverage. Returns #drifts."""
+    """Print description coverage for the canonical set. Returns total slug count."""
     slugs = collect_slugs()
-    agents = slugs.get("agents", set())
     custom = slugs.get("custom_modes.d", set())
-    converted = slugs.get("vs-code/converted_modes.d", set())
-
-    pairs = [
-        ("custom_modes.d", "agents", custom - agents, agents - custom),
-        ("vs-code/converted_modes.d", "agents", converted - agents, agents - converted),
-        ("custom_modes.d", "vs-code/converted_modes.d", custom - converted, converted - custom),
-    ]
-    total_drift = 0
-    print("\n=== Slug drift report (canonical source: custom-modes/agents/) ===")
-    for left, right, only_left, only_right in pairs:
-        print(f"\n  {left} vs {right}:")
-        if only_left:
-            print(f"    only in {left} ({len(only_left)}): {', '.join(sorted(only_left))}")
-            total_drift += len(only_left)
-        if only_right:
-            print(f"    only in {right} ({len(only_right)}): {', '.join(sorted(only_right))}")
-            total_drift += len(only_right)
-        if not only_left and not only_right:
-            print("    identical slug sets")
+    total_drift = len(custom)
+    print("\n=== Coverage report (canonical source: custom-modes/custom_modes.d/) ===")
+    print(f"\n  custom_modes.d: {len(custom)} slugs")
 
     # Description coverage
     print("\n  description coverage:")
@@ -778,9 +756,9 @@ def main(argv=None) -> int:
     )
     parser.add_argument(
         "--dir",
-        choices=["all", "agents", "custom_modes.d", "vs-code/converted_modes.d"],
+        choices=["all", "custom_modes.d"],
         default="all",
-        help="Which set to process (default: all three)",
+        help="Which set to process (default: all)",
     )
     parser.add_argument("--check", action="store_true", help="Dry-run: report pending changes, write nothing; exit 1 if changes are needed")
     parser.add_argument("--report", action="store_true", help="Print summary + slug drift report, write nothing")
@@ -795,7 +773,7 @@ def main(argv=None) -> int:
         return 1
 
     dirs_to_process = [
-        (name, SETS[name]) for name in ("agents", "custom_modes.d", "vs-code/converted_modes.d")
+        (name, SETS[name]) for name in ("custom_modes.d",)
         if args.dir == "all" or args.dir == name
     ]
 
@@ -832,7 +810,7 @@ def main(argv=None) -> int:
 
     if args.report:
         drift = print_drift_report()
-        print(f"\nDrift total (slugs in one set but not another): {drift}")
+        print(f"\nTotal slugs in canonical set: {drift}")
         return 0
 
     # --check is a CI-visible gate: non-zero when descriptions still need fixing.
