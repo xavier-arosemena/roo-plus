@@ -4,34 +4,26 @@ This document captures the source-of-truth decision for mode descriptions in the
 `roo-plus` repo and documents the single tool that enforces them. It consolidates
 architecture review recommendations #3, #4 and #7.
 
-## Canonical source: `custom-modes/agents/`
+## Canonical source: `custom-modes/custom_modes.d/`
 
-`custom-modes/agents/` (flat YAML, **one mode per file**, 233 modes) is the
-canonical store. It is what feeds the shipped artifacts via
-[`scripts/sync-custom-modes.mjs`](sync-custom-modes.mjs):
+`custom-modes/custom_modes.d/` (nested `customModes:` wrapper, **one mode per
+file**, 290 modes) is the canonical store. It is what feeds the shipped
+artifacts via [`scripts/sync-custom-modes.mjs`](sync-custom-modes.mjs):
 
 ```
-custom-modes/agents/*.yaml  ──►  sync-custom-modes.mjs  ──►  .roomodes
-      (CANONICAL)                                   └──►  src/assets/marketplace/pre-installed-modes.yml
-                                                     └──►  src/assets/marketplace/modes.yml (catalog)
+custom-modes/custom_modes.d/**/*.yaml  ──►  sync-custom-modes.mjs  ──►  .roomodes
+      (CANONICAL)                                             └──►  src/assets/marketplace/pre-installed-modes.yml
+                                                               └──►  src/assets/marketplace/modes.yml (catalog)
 ```
 
 The curation manifest [`custom-modes/manifest.json`](../custom-modes/manifest.json)
-controls which agents are included in `.roomodes` (`includeSlugs`, `excludeSlugs`)
-and declares `"canonicalSource": "agents"` for CI-visible provenance.
+controls which modes are included in `.roomodes` (`includeSlugs`, `excludeSlugs`).
 
-### Why the other two sets are NOT regenerated from `agents/`
-
-- `custom-modes/custom_modes.d/` (305 modes) and
-  `custom-modes/vs-code/converted_modes.d/` (194 modes) use a **different schema**
-  (nested `customModes` lists, `whenToUse`, deprecated `browser` groups) and
-  contain **extra slugs** not present in `agents/` (e.g. the `style-*`,
-  `flow-nexus-*`, `swarm-*` families).
-- Regenerating them wholesale from `agents/` would destroy `whenToUse`, groups,
-  extra `customInstructions`, and the extra modes. That rewrite is **not** done
-  unless parity can be proven.
-- Instead the pipeline **enforces descriptions** everywhere and **reports drift**
-  (slugs present in one set but not another), so the sets cannot silently regress.
+> The legacy `custom-modes/agents/` catalog (flat YAML), the derived
+> `custom-modes/vs-code/converted_modes.d/` set, the monolithic
+> `custom-modes/custom_modes.yaml`, and the split `custom-modes/.roomodes.00…10`
+> batch artifacts were **removed**. `custom_modes.d/` is the single canonical
+> catalog, and this pipeline enforces descriptions there and nowhere else.
 
 ## The single tool: `scripts/ensure_descriptions.py`
 
@@ -51,7 +43,7 @@ Guarantees:
 - **Deterministic derivation fallback** when no curated entry exists and the
   current description is missing or a clone of `roleDefinition`:
   `whenToUse` → `roleDefinition` first line.
-- **Idempotent**: re-running produces zero churn (verified on all 732 modes).
+- **Idempotent**: re-running produces zero churn (verified on all 290 modes).
 - **Never destroys a good description**: for unknown slugs, an existing good
   description is preserved; only missing/clone descriptions are replaced.
 - **Surgical edits**: only the `description:` scalar is replaced in place — all
@@ -61,10 +53,9 @@ Guarantees:
 ### Usage
 
 ```bash
-python3 scripts/ensure_descriptions.py                 # enforce on all three sets
-python3 scripts/ensure_descriptions.py --dir agents    # only agents/
+python3 scripts/ensure_descriptions.py                 # enforce on the canonical set
 python3 scripts/ensure_descriptions.py --check         # dry-run; exit 1 if changes pending (CI gate)
-python3 scripts/ensure_descriptions.py --report        # summary + slug drift report (no writes)
+python3 scripts/ensure_descriptions.py --report        # summary + coverage report (no writes)
 python3 scripts/ensure_descriptions.py --self-test     # in-memory self checks
 ```
 
@@ -74,7 +65,7 @@ python3 scripts/ensure_descriptions.py --self-test     # in-memory self checks
 entries with existing `.roomodes` content using **SOURCE-WINS** semantics
 ([`mergeRoomodesModes()`](sync-custom-modes.mjs)):
 
-- On slug conflict the freshly generated entry (from the curated agent source)
+- On slug conflict the freshly generated entry (from the curated mode source)
   **wins**, so re-running sync refreshes stale entries (e.g. missing/old
   descriptions) instead of preserving them.
 - Existing modes whose slug is absent from the curated source are preserved as
@@ -101,15 +92,21 @@ The Modes Marketplace catalog item-level `description` is a short blurb
 `item.content`, so the full description always survives installation (covered by
 `src/services/marketplace/__tests__/SimpleInstaller.spec.ts`).
 
-## Drift reporting
+When preserving legacy non-custom-modes marketplace items, the sync script
+dedupes by item id with **CATALOG-WINS** semantics
+([`dedupeMarketplaceById()`](sync-custom-modes.mjs)): any preserved original
+whose id collides with a catalog mode (e.g. the legacy `security-review` item vs
+`custom_modes.d/security/security-review.yaml`) is dropped, so `modes.yml`
+never contains duplicate ids.
+
+## Coverage reporting
 
 ```bash
 python3 scripts/ensure_descriptions.py --report
 ```
 
-Lists slugs present in one set but not another (e.g. `custom_modes.d` has 72
-slugs absent from `agents/`, `converted_modes.d` has 13 absent from `agents/`)
-and reports description coverage (missing / clone-of-`roleDefinition`) per set.
+Reports the canonical `custom_modes.d/` slug count and per-mode description
+coverage (missing / clone-of-`roleDefinition`).
 
 ## Submodule pinning policy (build-hermetic gate)
 
@@ -142,8 +139,8 @@ build unless **all** of the following hold:
    packaging hazard, not a skip condition).
 2. The checked-out HEAD **matches the recorded pin**.
 3. The submodule working tree is **clean** (no uncommitted changes).
-4. (default ON) Every **curated** mode in `custom-modes/agents/` has a **non-empty
-   description** that is not a clone of its `roleDefinition`.
+4. (default ON) Every **curated** mode in `custom-modes/custom_modes.d/` has a
+   **non-empty description** that is not a clone of its `roleDefinition`.
 
 ```bash
 node scripts/verify-submodule-pin.mjs                    # pin + clean + descriptions
@@ -171,7 +168,7 @@ from the pinned submodule content.
 
 ### When to bump the pin
 
-- **Bump** whenever `agents/` content (descriptions, role definitions,
+- **Bump** whenever `custom_modes.d/` content (descriptions, role definitions,
   instructions) or the curation manifest (`manifest.json`) changes — those
   directly feed the shipped artifacts.
 - **Do not bump** for submodule-internal changes that don't affect the generated
@@ -211,8 +208,6 @@ node scripts/sync-custom-modes.mjs && sha256sum .roomodes src/assets/marketplace
 # Both runs must print IDENTICAL hashes; pre-installed-modes.yml must equal .roomodes.
 ```
 
-Current pin: `029a0d4` (see `git ls-tree HEAD custom-modes`).
-
 ## Missing-description policy & enforcement gates (architecture review #6)
 
 ### Policy: a mode without a description is a defect
@@ -223,16 +218,15 @@ originally shipped in the VSIX and triggered this work. Policy:
 
 | Scope                                                               | Missing description is…                                     | Enforced by                                                                       |
 | ------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| Canonical `agents/` set                                             | **ERROR** (exit 1)                                          | `scripts/ensure_descriptions.py --check`, `scripts/verify-submodule-pin.mjs` (CI) |
+| Canonical `custom_modes.d/` set                                     | **ERROR** (exit 1)                                          | `scripts/ensure_descriptions.py --check`, `scripts/verify-submodule-pin.mjs` (CI) |
 | Bundled marketplace assets (`pre-installed-modes.yml`, `modes.yml`) | **ERROR** (test failure)                                    | `src/__tests__/dist_assets.spec.ts` description-completeness assertions           |
-| Derived sets (`custom_modes.d/`, `vs-code/converted_modes.d/`)      | **ERROR** when pending → exit 1                             | `scripts/ensure_descriptions.py --check` (CI)                                     |
-| Schema-level (`custom_modes.yaml` / `.roomodes` validation)         | warning by default; **ERROR** with `--require-descriptions` | `custom-modes/scripts/validate_custom_modes.py`                                   |
+| Schema-level (`custom_modes.d/` per-file / `.roomodes` validation)  | warning by default; **ERROR** with `--require-descriptions` | `custom-modes/scripts/validate_custom_modes.py`                                   |
 | Compiled / individual verifier                                      | ERROR (reported issue)                                      | `custom-modes/scripts/verify_modes.py`                                            |
 
 ### `ensure_descriptions.py --check` is wired into CI
 
 `scripts/ensure_descriptions.py --check` (dry-run; exit 1 on any pending
-description fix/drift) is chained into the same validation jobs that already run
+description fix) is chained into the same validation jobs that already run
 `verify-submodule-pin.mjs`:
 
 - `.github/workflows/code-qa.yml` → `static-analysis` job
@@ -256,7 +250,7 @@ the pinned submodule clean) that flags a missing/blank description:
 - `custom-modes/scripts/validate_custom_modes.py` — adds a `--require-descriptions`
   flag: a missing `description` is a **warning** on stderr by default
   (derived/drifted sets) and an **ERROR** (exit 1) when the flag is set (canonical
-  `agents/` set / compiled artifact). Policy constant `DESCRIPTION_POLICY`
+  `custom_modes.d/` set / compiled artifact). Policy constant `DESCRIPTION_POLICY`
   documents the rationale.
 - `custom-modes/scripts/verify_modes.py` — `description` is added to the
   empty-fields scan, so a missing/blank description is reported as

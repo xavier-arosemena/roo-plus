@@ -1,7 +1,9 @@
 /**
  * sync-custom-modes.spec.mjs
  *
- * Unit tests for the SOURCE-WINS merge semantics in scripts/sync-custom-modes.mjs.
+ * Unit tests for the SOURCE-WINS merge semantics in scripts/sync-custom-modes.mjs,
+ * plus coverage for the custom_modes.d parser (customModes: array unwrapping) and
+ * the built-in mode collision guard.
  *
  * Regression coverage for architecture review RC-3: the `.roomodes` merge used
  * to give existing entries priority on slug conflict, so stale committed entries
@@ -17,8 +19,18 @@
 
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
+import * as fs from "node:fs/promises"
+import * as os from "node:os"
+import * as path from "node:path"
 
-import { mergeRoomodesModes, generateRoomodesYaml } from "./sync-custom-modes.mjs"
+import {
+  mergeRoomodesModes,
+  generateRoomodesYaml,
+  parseAgentFile,
+  assertNoBuiltInSlugs,
+  dedupeMarketplaceById,
+  BUILT_IN_SLUGS,
+} from "./sync-custom-modes.mjs"
 
 const source = [
 	{ slug: "architect", name: "🏗️ Architect", description: "Designs scalable system architectures." },
@@ -75,5 +87,112 @@ describe("mergeRoomodesModes (source-wins merge semantics)", () => {
 		const secondYaml = generateRoomodesYaml(first, source)
 		assert.equal(secondYaml, firstYaml)
 		assert.deepEqual(second.map((m) => m.slug), first.map((m) => m.slug))
+	})
+})
+
+async function writeFixture(content) {
+	const dir = await fs.mkdtemp(path.join(os.tmpdir(), "sync-custom-modes-"))
+	const file = path.join(dir, "fixture.yaml")
+	await fs.writeFile(file, content, "utf-8")
+	return file
+}
+
+describe("parseAgentFile (custom_modes.d catalog shape)", () => {
+	it("unwraps the canonical `customModes:` array wrapper", async () => {
+		const file = await writeFixture(
+			[
+				"customModes:",
+				"- slug: backend-developer",
+				"  name: Backend Developer",
+				"  description: d",
+				"- slug: api-designer",
+				"  name: API Designer",
+				"  description: d",
+			].join("\n"),
+		)
+		const modes = await parseAgentFile(file)
+		assert.deepEqual(modes.map((m) => m.slug), ["backend-developer", "api-designer"])
+	})
+
+	it("accepts the raw single-mode shape (legacy flat files) for robustness", async () => {
+		const file = await writeFixture(
+			["slug: sql-pro", "name: SQL Pro", "description: d"].join("\n"),
+		)
+		const modes = await parseAgentFile(file)
+		assert.equal(modes.length, 1)
+		assert.equal(modes[0].slug, "sql-pro")
+	})
+
+	it("accepts a bare top-level array", async () => {
+		const file = await writeFixture(
+			["- slug: tdd", "  name: TDD", "  description: d"].join("\n"),
+		)
+		const modes = await parseAgentFile(file)
+		assert.deepEqual(modes.map((m) => m.slug), ["tdd"])
+	})
+
+	it("returns [] for files without a recognizable shape", async () => {
+		const file = await writeFixture("# nothing here\n")
+		const modes = await parseAgentFile(file)
+		assert.deepEqual(modes, [])
+	})
+})
+
+describe("dedupeMarketplaceById (catalog-wins dedupe for preserved originals)", () => {
+	it("drops a legacy original whose id collides with a catalog item (e.g. security-review)", () => {
+		const originals = [
+			{ id: "mode-writer" },
+			{ id: "security-review" }, // legacy original colliding with the catalog mode
+			{ id: "devops" },
+		]
+		const agentItems = [
+			{ id: "security-review" }, // catalog mode custom_modes.d/security/security-review.yaml
+			{ id: "sql-pro" },
+		]
+		const { preserved, dropped } = dedupeMarketplaceById(originals, agentItems)
+
+		assert.deepEqual(dropped.map((d) => d.id), ["security-review"])
+		assert.deepEqual(preserved.map((d) => d.id), ["mode-writer", "devops"])
+	})
+
+	it("preserves all originals when there is no id collision", () => {
+		const originals = [{ id: "mode-writer" }, { id: "tool-writer" }]
+		const agentItems = [{ id: "sql-pro" }]
+		const { preserved, dropped } = dedupeMarketplaceById(originals, agentItems)
+
+		assert.equal(dropped.length, 0)
+		assert.deepEqual(preserved.map((d) => d.id), ["mode-writer", "tool-writer"])
+	})
+})
+
+describe("assertNoBuiltInSlugs (built-in mode collision guard)", () => {
+	it("passes when no built-in slug is present", () => {
+		assert.doesNotThrow(() =>
+			assertNoBuiltInSlugs({
+				roomodesModes: [{ slug: "backend-developer" }],
+				marketplaceItems: [{ id: "backend-developer" }],
+			}),
+		)
+	})
+
+	it("throws when a built-in slug appears in .roomodes / pre-installed-modes.yml", () => {
+		assert.throws(
+			() => assertNoBuiltInSlugs({ roomodesModes: [{ slug: "ask" }] }),
+			/BUILT-IN MODE COLLISION/,
+		)
+	})
+
+	it("throws when a built-in slug appears as a marketplace item", () => {
+		assert.throws(
+			() => assertNoBuiltInSlugs({ marketplaceItems: [{ id: "architect" }] }),
+			/BUILT-IN MODE COLLISION/,
+		)
+	})
+
+	it("covers all five built-in slugs", () => {
+		assert.deepEqual(
+			[...BUILT_IN_SLUGS].sort(),
+			["architect", "ask", "code", "debug", "orchestrator"],
+		)
 	})
 })

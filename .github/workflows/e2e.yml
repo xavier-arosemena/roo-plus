@@ -17,6 +17,11 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  # e2e-mock runs `pnpm -w bundle`, whose prebundle step runs
+                  # verify-submodule-pin.mjs — a missing or wrong-pin submodule is a
+                  # packaging hazard for the VSIX, so it must be checked out at the pin.
+                  submodules: recursive
 
             - name: Restore mocked E2E pass marker
               id: e2e-marker

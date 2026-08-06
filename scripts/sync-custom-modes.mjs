@@ -4,12 +4,15 @@
  * sync-custom-modes.mjs
  *
  * Converts agent YAML files from the custom-modes submodule into:
- *   1. .roomodes — the project's custom modes configuration
- *   2. src/assets/marketplace/modes.yml — the Modes Marketplace catalog
+ *   1. .roomodes — the project's custom modes configuration (curated set)
+ *   2. src/assets/marketplace/pre-installed-modes.yml — same curated set, bundled
+ *      in the VSIX and seeded at first run
+ *   3. src/assets/marketplace/modes.yml — the full Modes Marketplace catalog
  *
  * Workflow:
  *   1. Reads the curation manifest (custom-modes/manifest.json)
- *   2. Scans agent YAML files from custom-modes/agents/ using the yaml library
+ *   2. Scans agent YAML files from custom-modes/custom_modes.d/ using the yaml
+ *      library (canonical catalog; each file wraps a `customModes:` array)
  *   3a. Converts curated agents to .roomodes format (stripping extra fields)
  *   3b. Converts ALL agents to Modes Marketplace format
  *   4. Merges with existing content — SOURCE WINS on slug conflict, so re-running
@@ -34,7 +37,14 @@ const ROOT = path.resolve(__dirname, "..")
 // The submodule path can be overridden (e.g. by verify-submodule-pin.mjs or CI
 // fixtures) so every consumer of this pipeline resolves the SAME source of truth.
 const SUBMODULE_PATH = process.env.ROO_SUBMODULE_PATH || "custom-modes"
-const AGENTS_DIR = path.resolve(ROOT, SUBMODULE_PATH, "agents")
+// Canonical source directory. The legacy custom-modes/agents/ layout is obsolete
+// and being removed; the canonical catalog now lives at
+// custom-modes/custom_modes.d/<category>/.../<file>.yaml (each file wraps a
+// `customModes:` array). ROO_SUBMODULE_PATH still overrides the submodule root.
+const SOURCE_DIR = path.resolve(ROOT, SUBMODULE_PATH, "custom_modes.d")
+// Back-compat alias — kept so verify-roomodes-sync.mjs / verify-submodule-pin.mjs
+// and their specs keep importing a working directory.
+const AGENTS_DIR = SOURCE_DIR
 const MANIFEST_PATH = path.resolve(ROOT, SUBMODULE_PATH, "manifest.json")
 const ROOMODES_PATH = path.join(ROOT, ".roomodes")
 const MARKETPLACE_MODES_PATH = path.join(ROOT, "src", "assets", "marketplace", "modes.yml")
@@ -56,6 +66,36 @@ const ALLOWED_FIELDS = new Set([
  * Default groups for agents that don't specify any.
  */
 const DEFAULT_GROUPS = ["read", "edit", "command", "mcp"]
+
+/**
+ * Slugs owned by the extension core itself (built-in modes). These must NEVER be
+ * shipped from the custom-modes catalog — the runtime provides them, so including
+ * them in .roomodes / pre-installed-modes.yml / modes.yml would create colliding
+ * mode definitions. The canonical catalog no longer contains them; this guard
+ * prevents regressions.
+ */
+const BUILT_IN_SLUGS = new Set(["architect", "code", "ask", "debug", "orchestrator"])
+
+/**
+ * Assert that no built-in mode slug leaks into any generated artifact.
+ * Throws with a clear message listing every offender.
+ */
+function assertNoBuiltInSlugs({ roomodesModes = [], marketplaceItems = [] } = {}) {
+  const offenders = new Set()
+  for (const m of roomodesModes) {
+    if (BUILT_IN_SLUGS.has(m?.slug)) offenders.add(`${m.slug} (in .roomodes / pre-installed-modes.yml)`)
+  }
+  for (const item of marketplaceItems) {
+    if (BUILT_IN_SLUGS.has(item?.id)) offenders.add(`${item.id} (in modes.yml marketplace item)`)
+  }
+  if (offenders.size > 0) {
+    throw new Error(
+      "BUILT-IN MODE COLLISION: generated artifacts contain built-in mode slug(s) " +
+        `that must be provided by the extension core, not the custom-modes catalog: ${[...offenders].join(", ")}. ` +
+        "Remove them from the catalog/curation and re-run.",
+    )
+  }
+}
 
 /**
  * Truncate a string to a given length, keeping whole words.
@@ -84,8 +124,9 @@ async function loadManifest() {
 }
 
 /**
- * Get the category name from the file path relative to agents/ directory.
- * The path is like: agents/<category>/<subcategory>/<file>.yaml
+ * Get the category name from the file path relative to the source directory.
+ * The path is like: custom_modes.d/<category>/<subcategory>/<file>.yaml, so the
+ * category is the first path segment after custom_modes.d.
  */
 function getCategoryFromPath(relativePath) {
   const parts = relativePath.split(path.sep)
@@ -93,11 +134,24 @@ function getCategoryFromPath(relativePath) {
 }
 
 /**
- * Read and parse a YAML agent file.
+ * Read and parse a YAML agent file, normalizing it to a list of modes.
+ *
+ * The canonical catalog files are wrapped as `customModes:\n- slug: ...` arrays
+ * (one mode per entry). For robustness we also accept a bare array or a raw
+ * single-mode object at the top level (the shape used by the legacy agents/
+ * files).
  */
 async function parseAgentFile(filePath) {
   const content = await fs.readFile(filePath, "utf-8")
-  return yaml.parse(content)
+  const parsed = yaml.parse(content)
+  if (Array.isArray(parsed)) return parsed
+  if (parsed && typeof parsed === "object" && Array.isArray(parsed.customModes)) {
+    return parsed.customModes
+  }
+  if (parsed && typeof parsed === "object" && parsed.slug) {
+    return [parsed]
+  }
+  return []
 }
 
 /**
@@ -124,17 +178,19 @@ async function findYamlFiles(dirPath) {
  * Scan all agent files, returning them parsed with metadata.
  */
 async function scanAllAgents() {
-  const agentFiles = await findYamlFiles(AGENTS_DIR)
+  const agentFiles = await findYamlFiles(SOURCE_DIR)
   const agents = []
 
   for (const filePath of agentFiles) {
-    const relativePath = path.relative(AGENTS_DIR, filePath)
+    const relativePath = path.relative(SOURCE_DIR, filePath)
     const category = getCategoryFromPath(relativePath)
 
     try {
-      const agent = await parseAgentFile(filePath)
-      if (agent && agent.slug) {
-        agents.push({ agent, filePath, relativePath, category })
+      const parsedAgents = await parseAgentFile(filePath)
+      for (const agent of parsedAgents) {
+        if (agent && agent.slug) {
+          agents.push({ agent, filePath, relativePath, category })
+        }
       }
     } catch (err) {
       console.warn(`  ⚠ Failed to parse ${relativePath}: ${err.message}`)
@@ -215,7 +271,7 @@ async function loadExistingRoomodes() {
  * Merge existing + freshly-generated modes with SOURCE-WINS semantics.
  *
  * `newModes` are freshly generated from the curated agent source
- * (custom-modes/agents/) and therefore win on slug conflict. This is what makes
+ * (custom-modes/custom_modes.d/) and therefore win on slug conflict. This is what makes
  * re-running sync REFRESH stale committed artifacts (e.g. `.roomodes` entries
  * with missing/old descriptions) instead of preserving them.
  *
@@ -274,6 +330,22 @@ function convertToMarketplaceItem(agent, curatedSlugs) {
 }
 
 /**
+ * CATALOG-WINS dedupe for the Modes Marketplace: when preserving legacy
+ * non-custom-modes items, skip any whose id collides with a catalog item (e.g.
+ * the legacy "security-review" marketplace item vs
+ * custom_modes.d/security/security-review.yaml). The catalog is the source of
+ * truth, so the duplicate original item is dropped.
+ *
+ * Returns { preserved, dropped } — preserved items keep original order.
+ */
+export function dedupeMarketplaceById(originalItems, agentItems) {
+  const catalogItemIds = new Set(agentItems.map((item) => item.id))
+  const dropped = originalItems.filter((item) => catalogItemIds.has(item.id))
+  const preserved = originalItems.filter((item) => !catalogItemIds.has(item.id))
+  return { preserved, dropped }
+}
+
+/**
  * Generate marketplace modes.yml with ALL agents + preserve original marketplace items.
  */
 async function generateMarketplaceModes(allAgents, curatedSlugs) {
@@ -294,14 +366,26 @@ async function generateMarketplaceModes(allAgents, curatedSlugs) {
   // 2. Convert all agents to marketplace items
   const agentItems = allAgents.map(({ agent }) => convertToMarketplaceItem(agent, curatedSlugs))
 
-  // 3. Combine: original items first, then agent items
-  const allItems = [...originalItems, ...agentItems]
+  // 3. Dedupe preserved originals by id with CATALOG-WINS semantics.
+  const { preserved: preservedOriginals, dropped } = dedupeMarketplaceById(originalItems, agentItems)
+  if (dropped.length > 0) {
+    console.log(
+      `   Dropped ${dropped.length} legacy duplicate(s) colliding with catalog ids: ${dropped.map((d) => d.id).join(", ")}`,
+    )
+  }
 
-  // 4. Write combined modes.yml
+  // 4. Combine: preserved original items first, then agent items
+  const allItems = [...preservedOriginals, ...agentItems]
+
+  // 5. Built-in collision guard: the extension core owns these slugs and they
+  // must never appear in the marketplace catalog.
+  assertNoBuiltInSlugs({ marketplaceItems: allItems })
+
+  // 6. Write combined modes.yml
   const output = yaml.stringify({ items: allItems }, { lineWidth: 0 })
   await fs.writeFile(MARKETPLACE_MODES_PATH, output, "utf-8")
 
-  return { originalCount: originalItems.length, agentCount: agentItems.length }
+  return { originalCount: preservedOriginals.length, agentCount: agentItems.length }
 }
 
 /**
@@ -321,11 +405,11 @@ async function main() {
   console.log(`   Individual slugs: ${(manifest.includeSlugs || []).length}`)
   console.log(`   Excluded slugs: ${(manifest.excludeSlugs || []).length}`)
 
-  // 2. Check if agents directory exists (git submodule may not be initialized in CI)
-  console.log("\n🔍 Checking agents directory...")
+  // 2. Check if the source directory exists (git submodule may not be initialized in CI)
+  console.log("\n🔍 Checking custom_modes.d directory...")
   let agentsDirExists = false
   try {
-    await fs.access(AGENTS_DIR)
+    await fs.access(SOURCE_DIR)
     agentsDirExists = true
   } catch {
     agentsDirExists = false
@@ -340,22 +424,22 @@ async function main() {
     ])
 
     if (outputsExist.every(Boolean)) {
-      console.log("   ⚠ Agents directory not found (git submodule not initialized in CI)")
+      console.log("   ⚠ custom_modes.d directory not found (git submodule not initialized in CI)")
       console.log("   ✓ All output files already exist — skipping sync")
       console.log("\n" + "═".repeat(50))
       console.log("✅ Sync complete (cached artifacts)")
       return
     }
 
-    console.warn("\n⚠ Agents directory not found and output files missing.")
-    console.warn("   Run `git submodule update --init` to populate custom-modes/agents/")
+    console.warn("\n⚠ custom_modes.d directory not found and output files missing.")
+    console.warn("   Run `git submodule update --init` to populate custom-modes/custom_modes.d/")
     return
   }
 
   // Scan ALL agents
-  console.log("\n🔍 Scanning agents directory...")
+  console.log("\n🔍 Scanning custom_modes.d catalog...")
   const allAgents = await scanAllAgents()
-  console.log(`   Found ${allAgents.length} total agents`)
+  console.log(`   Found ${allAgents.length} total modes`)
 
   if (allAgents.length === 0) {
     console.log("\n⚠ No agents found. Nothing to do.")
@@ -375,8 +459,18 @@ async function main() {
   const roomodesEntries = curated.map(({ agent }) => convertToRoomodesEntry(agent))
 
   // Load existing .roomodes
-  const { modes: existingModes } = await loadExistingRoomodes()
-  console.log(`   Existing modes in .roomodes: ${existingModes.length}`)
+  const { modes: existingModesRaw } = await loadExistingRoomodes()
+  // Built-in modes are owned by the extension core and must never be sourced
+  // from (or preserved from) the custom-modes artifacts. Drop any stale copies
+  // that previous pipelines committed so the collision guard below can never
+  // trip on the regenerated output.
+  const existingModes = existingModesRaw.filter((m) => !BUILT_IN_SLUGS.has(m.slug))
+  console.log(
+    `   Existing modes in .roomodes: ${existingModesRaw.length}` +
+      (existingModesRaw.length !== existingModes.length
+        ? ` (dropped ${existingModesRaw.length - existingModes.length} built-in)`
+        : ""),
+  )
 
   // Merge with SOURCE-WINS semantics: freshly generated curated entries REFRESH
   // existing ones on slug conflict (so stale `.roomodes` entries with missing or
@@ -392,6 +486,10 @@ async function main() {
   if (preserved.length > 0) {
     console.log(`   Preserved (not in curated source): ${preserved.map((m) => m.slug).join(", ")}`)
   }
+
+  // Built-in collision guard: built-in mode slugs must never ship in the
+  // curated artifacts (the extension core provides them).
+  assertNoBuiltInSlugs({ roomodesModes: mergedModes })
 
   // Write .roomodes only when the generated artifact actually changed, so
   // re-running sync is idempotent (byte-for-byte stable output).
@@ -468,6 +566,10 @@ export {
   convertToRoomodesEntry,
   mergeRoomodesModes,
   generateRoomodesYaml,
+  parseAgentFile,
+  assertNoBuiltInSlugs,
+  BUILT_IN_SLUGS,
+  SOURCE_DIR,
   AGENTS_DIR,
   MANIFEST_PATH,
   ROOMODES_PATH,

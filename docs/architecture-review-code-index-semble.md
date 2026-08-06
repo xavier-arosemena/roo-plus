@@ -2,6 +2,8 @@
 
 **Reviewer:** Architect Reviewer · **Date:** 2026-08-05 · **Scope:** `src/services/code-index/*`, `src/core/webview/handlers/codeIndex.ts`, `src/core/tools/CodebaseSearchTool.ts`, upstream comparison against `Zoo-Code-Org/Zoo-Code` (`upstream/main` @ `ca9b60fbc`), VSIX packages `bin/roo-plus-3.76.0.vsix` / `bin/roo-plus-3.77.0.vsix`.
 
+**Status:** ✅ RESOLVED / CLOSED — the R1–R5 remediation items shipped and were verified across v3.77.0 and v3.77.1 (cached-binary re-validation, non-sticky search failures, embedding-model cold-start transparency, `workspacePath` typo, CI diff-gates), and Semble release governance is formalized in [`docs/SEMBLE-RELEASE-GOVERNANCE.md`](SEMBLE-RELEASE-GOVERNANCE.md). Issue **#152** is closed as of release **v3.77.2**.
+
 ---
 
 ## 1. Executive Summary
