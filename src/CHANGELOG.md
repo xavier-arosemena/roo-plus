@@ -1,5 +1,30 @@
 # Roo+ Changelog
 
+## [3.77.2] — 2026-08-06
+
+### Patch — Custom Modes Canonical Catalog Pipeline & Remote-Webview Messaging
+
+#### 🚀 Enhancements
+
+- **Canonical `custom_modes.d/` catalog sync pipeline (Closes: #159)** — The custom-modes sync pipeline is rewired around a single canonical source: [`custom-modes/custom_modes.d/`](custom-modes/custom_modes.d/) (one mode per file, 290 modes). The legacy `custom-modes/agents/` catalog, the derived `vs-code/converted_modes.d/` set, the monolithic `custom_modes.yaml`, and the split `.roomodes.00…10` batch artifacts were removed. [`sync-custom-modes.mjs`](scripts/sync-custom-modes.mjs) regenerates [`.roomodes`](.roomodes), [`pre-installed-modes.yml`](src/assets/marketplace/pre-installed-modes.yml), and the marketplace catalog [`modes.yml`](src/assets/marketplace/modes.yml) from it with SOURCE-WINS merge semantics — plus a **built-in slug guard** that fails the build if any core mode slug (`architect`, `code`, `ask`, `debug`, `orchestrator`) leaks into a generated artifact. (ADR: [`adr-custom-modes-canonical-catalog.md`](src/docs/adr-custom-modes-canonical-catalog.md))
+- **Submodule pinned for hermetic builds** — [`custom-modes/`](custom-modes/) is pinned to `4ee95d2` (single canonical `custom_modes.d/` catalog) in the superproject index; the [`verify-submodule-pin.mjs`](scripts/verify-submodule-pin.mjs) gate wired into `prevsix` / `prebundle` / `prevscode:prepublish` fails any packaging path unless the submodule is initialized, checked out at the pin, clean, and every curated mode carries a non-empty, non-clone description.
+- **Curated preload (89) and marketplace catalog (301) regenerated (Closes: #159)** — `.roomodes` + `pre-installed-modes.yml` now carry the **89 curated modes** and the marketplace catalog carries **301 items** (the 290-mode canonical catalog plus 11 preserved originals), regenerated from the canonical source via [`generate-catalog.mjs`](scripts/generate-catalog.mjs) / `sync-custom-modes.mjs`.
+- **Catalog counts and canonical model references updated** — READMEs and [`scripts/DESCRIPTIONS.md`](scripts/DESCRIPTIONS.md) now document the canonical `custom_modes.d/` catalog (290 modes, 89 pre-loaded, 301 marketplace items).
+
+#### 🐛 Bug Fixes
+
+- **Extension-host messages accepted in remote/server webviews (#152)** — [`isTrustedMessage()`](webview-ui/src/utils/trustedMessages.ts) rejected any event whose `source` was not `null` or `window`; remote/server webviews (VSCodium server, Remote SSH over the web) deliver extension-host messages through the parent/top frame, so `codeIndexSettingsSaved`, `indexingStatusUpdate`, `codeIndexSecretStatus`, and other extension messages were silently dropped — the code-index settings Save hung on `saving` and the status badge never updated. The source check now accepts the webview's own frame tree (`null`, `window`, `parent`, `top`) while keeping the ORIGIN check as the authoritative security boundary against cross-origin injection.
+
+#### ✅ Quality
+
+- Regression coverage for the remote-webview delivery paths in [`trustedMessages.spec.ts`](webview-ui/src/utils/__tests__/trustedMessages.spec.ts) — parent/top-frame delivery accepted, other-frame and cross-origin sources rejected.
+
+#### 🔧 Chores
+
+- `custom-modes` submodule pin finalized at `4ee95d2` (single canonical `custom_modes.d/` catalog); curated preload and marketplace catalog regenerated from the canonical source.
+
+---
+
 ## [3.77.1] — 2026-08-05
 
 ### Patch — Mode Description Completeness & Code-Index Release Governance
