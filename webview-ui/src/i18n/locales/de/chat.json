@@ -98,19 +98,14 @@
 	"enqueueMessage": "Nachricht zur Warteschlange hinzufügen (wird nach Abschluss der aktuellen Aufgabe gesendet)",
 	"scrollToBottom": "Zum Chat-Ende scrollen",
 	"scrollToLatestCheckpoint": "Zum vorherigen Checkpoint scrollen",
-	"about": "Roo+ Code ist ein ganzes KI-Entwicklerteam in deinem Editor.",
-	"docs": "Schau in unsere <DocsLink>Dokumentation</DocsLink>, um mehr zu erfahren.",
-	"onboarding": "Deine Aufgabenliste in diesem Arbeitsbereich ist leer.",
-	"rooTips": {
-		"customizableModes": {
-			"title": "Anpassbare Modi",
-			"description": "Spezialisierte Personas, die bei der Sache bleiben und liefern."
-		},
-		"modelAgnostic": {
-			"title": "Bring dein eigenes Modell mit",
-			"description": "Verwende deinen eigenen Anbieter-Schlüssel oder führe sogar lokale Inferenz aus – kein Aufschlag, keine Bindung, keine Einschränkungen"
-		}
+	"about": "Dein Multi-Agenten-KI-Team — 301 spezialisierte Modi für Coding, DevOps, Sicherheit und Architektur.",
+	"support": {
+		"reportIssue": "Fehler melden oder Feature anfragen",
+		"discussions": "An den Diskussionen teilnehmen",
+		"starUs": "Gib uns einen Stern auf GitHub",
+		"reviewUs": "Bewerte uns auf Open VSX"
 	},
+	"onboarding": "Deine Aufgabenliste in diesem Arbeitsbereich ist leer.",
 	"selectMode": "Interaktionsmodus auswählen",
 	"selectApiConfig": "API-Konfiguration auswählen",
 	"lockApiConfigAcrossModes": "API-Konfiguration für alle Modi in diesem Arbeitsbereich sperren",

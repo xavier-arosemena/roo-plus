@@ -125,19 +125,14 @@
 	},
 	"scrollToBottom": "捲動至對話底部",
 	"scrollToLatestCheckpoint": "捲動至上一個檢查點",
-	"about": "Roo+ 是編輯器中的完整 AI 開發團隊。",
-	"docs": "請參閱 <DocsLink>說明文件</DocsLink> 開始使用。",
-	"onboarding": "想要做什麼呢？",
-	"rooTips": {
-		"customizableModes": {
-			"title": "可自訂模式，專注任務不偏離",
-			"description": "專注於任務並交付成果的專業角色。"
-		},
-		"modelAgnostic": {
-			"title": "自備模型，無加價無鎖定",
-			"description": "使用自己的供應商金鑰，甚至可執行本機推論 - Zoo 不額外收費"
-		}
+	"about": "您的多智能體 AI 團隊 — 涵蓋編碼、DevOps、安全和架構的 301 個專業模式。",
+	"support": {
+		"reportIssue": "回報錯誤或請求功能",
+		"discussions": "加入討論",
+		"starUs": "在 GitHub 上為我們按星",
+		"reviewUs": "在 Open VSX 上為我們評分"
 	},
+	"onboarding": "想要做什麼呢？",
 	"selectMode": "選擇互動模式",
 	"selectApiConfig": "選取 API 設定",
 	"lockApiConfigAcrossModes": "鎖定此工作區所有模式的 API 設定",

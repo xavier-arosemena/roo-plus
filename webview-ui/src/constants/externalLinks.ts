@@ -1,6 +1,8 @@
 export const EXTERNAL_LINKS = {
+	GITHUB_DISCUSSIONS: "https://github.com/xavier-arosemena/roo-plus/discussions",
 	GITHUB_REPO: "https://github.com/xavier-arosemena/roo-plus",
 	GITHUB_ISSUES: "https://github.com/xavier-arosemena/roo-plus/issues",
+	GITHUB_ISSUES_CHOOSER: "https://github.com/xavier-arosemena/roo-plus/issues/new/choose",
 	BUG_REPORT: "https://github.com/xavier-arosemena/roo-plus/issues/new?template=bug_report.yml",
 	FEATURE_REQUEST: "https://github.com/xavier-arosemena/roo-plus/issues/new?template=feature_request.yml",
 	MARKETPLACE_ISSUE: "https://github.com/xavier-arosemena/roo-plus/issues/new?template=marketplace.yml",

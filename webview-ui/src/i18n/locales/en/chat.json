@@ -125,19 +125,14 @@
 	},
 	"scrollToBottom": "Scroll to bottom of chat",
 	"scrollToLatestCheckpoint": "Scroll to previous checkpoint",
-	"about": "Roo+ is the dev team plus for VS Code/Codium.",
-	"docs": "Check our <DocsLink>docs</DocsLink> to get started",
-	"onboarding": "What would you like to do?",
-	"rooTips": {
-		"customizableModes": {
-			"title": "Customizable modes that don't swerve",
-			"description": "Specialized personas that stay on-task and deliver."
-		},
-		"modelAgnostic": {
-			"title": "Bring your own model, no markup or lock-in",
-			"description": "Use your own provider key or even run local inference — Roo+ doesn't charge for it"
-		}
+	"about": "Your multi-agent AI team — 301 specialized modes for coding, DevOps, security, and architecture.",
+	"support": {
+		"reportIssue": "Report a bug or request a feature",
+		"discussions": "Join the discussions",
+		"starUs": "Star us on GitHub",
+		"reviewUs": "Review us on Open VSX"
 	},
+	"onboarding": "What would you like to do?",
 	"selectMode": "Select mode for interaction",
 	"selectApiConfig": "Select API configuration",
 	"lockApiConfigAcrossModes": "Lock API configuration across all modes in this workspace",

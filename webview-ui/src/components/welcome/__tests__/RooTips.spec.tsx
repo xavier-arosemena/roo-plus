@@ -1,46 +1,72 @@
 import React from "react"
-import { render, screen } from "@/utils/test-utils"
+import { fireEvent, render, screen } from "@/utils/test-utils"
 
+import { EXTERNAL_LINKS } from "@src/constants/externalLinks"
+import { vscode } from "@src/utils/vscode"
 import RooTips from "../RooTips"
 
 vi.mock("react-i18next", () => ({
 	useTranslation: () => ({
 		t: (key: string) => key, // Simple mock that returns the key
 	}),
-	Trans: ({
-		children,
-		components,
-	}: {
-		children?: React.ReactNode
-		components?: Record<string, React.ReactElement>
-	}) => {
-		// Simple mock that renders children or the first component if no children
-		return children || (components && Object.values(components)[0]) || null
-	},
 }))
 
 vi.mock("@vscode/webview-ui-toolkit/react", () => ({
-	VSCodeLink: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
+	VSCodeLink: ({
+		href,
+		children,
+		onClick,
+	}: {
+		href: string
+		children: React.ReactNode
+		onClick?: (e: React.MouseEvent) => void
+	}) => (
+		<a href={href} onClick={onClick}>
+			{children}
+		</a>
+	),
+}))
+
+vi.mock("@src/utils/vscode", () => ({
+	vscode: {
+		postMessage: vi.fn(),
+	},
 }))
 
 describe("RooTips Component", () => {
 	beforeEach(() => {
-		vi.useFakeTimers()
+		vi.clearAllMocks()
 	})
 
-	afterEach(() => {
-		vi.runOnlyPendingTimers()
-		vi.useRealTimers()
+	it("renders the intro paragraph", () => {
+		render(<RooTips />)
+		expect(screen.getByText("chat:about")).toBeInTheDocument()
 	})
 
-	describe("when cycle is false (default)", () => {
-		beforeEach(() => {
-			render(<RooTips />)
-		})
+	it("renders the four community links with the correct hrefs and labels", () => {
+		render(<RooTips />)
+		expect(screen.getAllByRole("link")).toHaveLength(4)
 
-		test("renders only the top two tips", () => {
-			// Ensure only two tips are present plus the docs link in the Trans component (3 total links)
-			expect(screen.getAllByRole("link")).toHaveLength(3)
+		expect(screen.getByRole("link", { name: "support.reportIssue" }).getAttribute("href")).toBe(
+			EXTERNAL_LINKS.GITHUB_ISSUES_CHOOSER,
+		)
+		expect(screen.getByRole("link", { name: "support.discussions" }).getAttribute("href")).toBe(
+			EXTERNAL_LINKS.GITHUB_DISCUSSIONS,
+		)
+		expect(screen.getByRole("link", { name: "support.starUs" }).getAttribute("href")).toBe(
+			EXTERNAL_LINKS.GITHUB_REPO,
+		)
+		expect(screen.getByRole("link", { name: "support.reviewUs" }).getAttribute("href")).toBe(
+			EXTERNAL_LINKS.OPEN_VSX_REGISTRY,
+		)
+	})
+
+	it("posts an openExternal message when a link is clicked", () => {
+		render(<RooTips />)
+		fireEvent.click(screen.getByRole("link", { name: "support.reportIssue" }))
+		expect(vscode.postMessage).toHaveBeenCalledWith({
+			type: "openExternal",
+			url: EXTERNAL_LINKS.GITHUB_ISSUES_CHOOSER,
 		})
 	})
 })

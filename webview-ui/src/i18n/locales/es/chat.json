@@ -98,19 +98,14 @@
 	"enqueueMessage": "Agregar mensaje a la cola (se enviará después de que termine la tarea actual)",
 	"scrollToBottom": "Desplazarse al final del chat",
 	"scrollToLatestCheckpoint": "Desplazarse al checkpoint anterior",
-	"about": "Roo+ Code es todo un equipo de desarrollo de IA en tu editor.",
-	"docs": "Consulta nuestra <DocsLink>documentación</DocsLink> para saber más.",
-	"onboarding": "Tu lista de tareas en este espacio de trabajo está vacía.",
-	"rooTips": {
-		"customizableModes": {
-			"title": "Modos personalizables",
-			"description": "Personajes especializados que se mantienen en la tarea y cumplen."
-		},
-		"modelAgnostic": {
-			"title": "Trae tu propio modelo",
-			"description": "Usa tu propia clave de proveedor o incluso ejecuta inferencia local — sin sobrecostes, sin ataduras, sin restricciones"
-		}
+	"about": "Tu equipo de IA multiagente — 301 modos especializados para codificación, DevOps, seguridad y arquitectura.",
+	"support": {
+		"reportIssue": "Informa de un error o solicita una función",
+		"discussions": "Únete a los debates",
+		"starUs": "Danos una estrella en GitHub",
+		"reviewUs": "Valóranos en Open VSX"
 	},
+	"onboarding": "Tu lista de tareas en este espacio de trabajo está vacía.",
 	"selectMode": "Seleccionar modo de interacción",
 	"selectApiConfig": "Seleccionar configuración de API",
 	"lockApiConfigAcrossModes": "Bloquear la configuración de API en todos los modos de este espacio de trabajo",

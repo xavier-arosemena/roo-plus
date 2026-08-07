@@ -128,19 +128,14 @@
 	"enqueueMessage": "Tambahkan pesan ke antrean (akan dikirim setelah tugas saat ini selesai)",
 	"scrollToBottom": "Gulir ke bawah chat",
 	"scrollToLatestCheckpoint": "Gulir ke checkpoint sebelumnya",
-	"about": "Roo+ Code adalah seluruh tim pengembang AI di editor Anda.",
-	"docs": "Lihat <DocsLink>dokumentasi</DocsLink> kami untuk mempelajari lebih lanjut.",
-	"onboarding": "Daftar tugas Anda di ruang kerja ini kosong.",
-	"rooTips": {
-		"customizableModes": {
-			"title": "Mode yang dapat disesuaikan",
-			"description": "Persona khusus yang tetap mengerjakan tugas dan memberikan hasil."
-		},
-		"modelAgnostic": {
-			"title": "Bawa model Anda sendiri",
-			"description": "Gunakan kunci penyedia Anda sendiri atau bahkan jalankan inferensi lokal — tanpa markup, tanpa lock-in, tanpa batasan"
-		}
+	"about": "Tim AI multi-agen Anda — 301 mode khusus untuk coding, DevOps, keamanan, dan arsitektur.",
+	"support": {
+		"reportIssue": "Laporkan bug atau minta fitur",
+		"discussions": "Ikuti diskusinya",
+		"starUs": "Beri kami bintang di GitHub",
+		"reviewUs": "Beri ulasan kami di Open VSX"
 	},
+	"onboarding": "Daftar tugas Anda di ruang kerja ini kosong.",
 	"selectMode": "Pilih mode untuk interaksi",
 	"selectApiConfig": "Pilih konfigurasi API",
 	"lockApiConfigAcrossModes": "Kunci konfigurasi API di semua mode dalam workspace ini",

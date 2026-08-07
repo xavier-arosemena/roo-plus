@@ -98,19 +98,14 @@
 	"enqueueMessage": "Afegeix el missatge a la cua (s'enviarà quan acabi la tasca actual)",
 	"scrollToBottom": "Desplaça't al final del xat",
 	"scrollToLatestCheckpoint": "Desplaça't al checkpoint anterior",
-	"about": "Roo+ Code és tot un equip de desenvolupament d'IA al teu editor.",
-	"docs": "Consulta els nostres <DocsLink>documents</DocsLink> per a més informació.",
-	"onboarding": "La teva llista de tasques en aquest espai de treball està buida.",
-	"rooTips": {
-		"customizableModes": {
-			"title": "Modes personalitzables",
-			"description": "Persones especialitzades que es mantenen en la tasca i compleixen."
-		},
-		"modelAgnostic": {
-			"title": "Porta el teu propi model",
-			"description": "Fes servir la teva pròpia clau de proveïdor o fins i tot executa inferència local — sense sobrepreus, sense bloquejos, sense restriccions"
-		}
+	"about": "El teu equip d'IA multiagent — 301 modes especialitzats per a codificació, DevOps, seguretat i arquitectura.",
+	"support": {
+		"reportIssue": "Informa d'un error o demana una funció",
+		"discussions": "Uneix-te als debats",
+		"starUs": "Dona'ns una estrella a GitHub",
+		"reviewUs": "Valora'ns a Open VSX"
 	},
+	"onboarding": "La teva llista de tasques en aquest espai de treball està buida.",
 	"selectMode": "Selecciona el mode d'interacció",
 	"selectApiConfig": "Seleccioneu la configuració de l'API",
 	"lockApiConfigAcrossModes": "Bloqueja la configuració de l'API a tots els modes en aquest espai de treball",
