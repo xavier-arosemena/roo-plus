@@ -340,18 +340,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} veröffentlicht",
-		"support": "Bitte unterstütze Roo+, indem du uns auf <githubLink>GitHub</githubLink> einen Stern gibst.",
+		"support": "Bitte unterstütze Roo+, indem du uns auf <githubLink>GitHub</githubLink> und im <openVsxLink>Open VSX Registry</openVsxLink> einen Stern gibst.",
 		"release": {
 			"heading": "Was ist neu:",
-			"highlight1": "Moonshot- und Kimi-Code-Anbieter — verbinde dich dank Live-Modellerkennung mit Moonshot-Modellen oder melde dich über den OAuth-Gerätefluss bei Kimi Code an.",
-			"highlight2": "Unterstützung für die neuesten Modelle — nutze Claude Opus 5 anbieterübergreifend sowie Kimi K3, Gemini 3.6 Flash und MiniMax-M3.",
-			"highlight3": "Zuverlässigere Workflows — brich unterbrochene Unteraufgaben sauber ab und indiziere Dart- und Klartextdateien in deiner Codebasis."
-		},
-		"cloudAgents": {
-			"heading": "Neu in der Cloud:",
-			"specialized": "Wir stellen <bold>Explainer</bold>, <bold>Planner</bold> und <bold>Coder</bold> vor - drei spezialisierte Cloud-Agenten zur Verbesserung deiner Workflows.",
-			"description": "Die Agenten arbeiten zusammen in der Cloud und können vom Web oder über Slack ausgelöst werden.",
-			"tryButton": "Probiere Cloud-Agenten aus"
+			"highlight1": "Cloud-Dienste entfernt und Stabilität verbessert. Die Erweiterung wartet nicht mehr auf das eingestellte Cloud-Backend, sodass Start und Remote-Verbindungen schneller und zuverlässiger sind.",
+			"highlight2": "Semble und Code-Index zuverlässig gemacht. Die Codebasis-Suche ist prüfsummenverifiziert und robust — keine hängenden Suchen oder defekte Kontextfenster-Leiste mehr.",
+			"highlight3": "Benutzerdefinierte Modi verbessert. Jeder Modus zeigt jetzt eine Beschreibung, und du kannst mehrere Marketplace-Modi auf einmal installieren."
 		}
 	},
 	"costs": {

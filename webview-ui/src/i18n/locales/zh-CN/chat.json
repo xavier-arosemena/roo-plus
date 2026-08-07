@@ -341,18 +341,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} 已发布",
-		"support": "请在 <githubLink>GitHub</githubLink> 上为 Roo+ 点星支持我们。",
+		"support": "请在 <githubLink>GitHub</githubLink> 和 <openVsxLink>Open VSX Registry</openVsxLink> 上为 Roo+ 点星支持我们。",
 		"release": {
 			"heading": "新增功能：",
-			"highlight1": "Moonshot 和 Kimi Code 提供商 — 通过实时模型发现连接 Moonshot 模型，或使用 OAuth 设备流程登录 Kimi Code。",
-			"highlight2": "最新模型支持 — 跨提供商使用 Claude Opus 5，以及 Kimi K3、Gemini 3.6 Flash 和 MiniMax-M3。",
-			"highlight3": "更可靠的工作流 — 干净地放弃中断的子任务，并为代码库中的 Dart 和纯文本文件建立索引。"
-		},
-		"cloudAgents": {
-			"heading": "云端新功能：",
-			"specialized": "推出 <bold>Explainer</bold>、<bold>Planner</bold> 和 <bold>Coder</bold> - 三个专业云代理来增强你的工作流程。",
-			"description": "代理在云端协同工作，可从网页或通过 Slack 触发。",
-			"tryButton": "试用云代理"
+			"highlight1": "移除云服务并修复稳定性。扩展不再等待已停用的云后端，因此启动和远程连接更快、更可靠。",
+			"highlight2": "让 Semble 和代码索引更可靠。代码库搜索经过校验和验证且富有弹性——不再有卡住的搜索或损坏的上下文窗口条。",
+			"highlight3": "自定义模式升级。现在每个模式都显示描述，并且可以批量安装多个市场模式。"
 		}
 	},
 	"costs": {

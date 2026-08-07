@@ -252,7 +252,7 @@ export class ClineProvider
 
 	public isViewLaunched = false
 	public settingsImportedAt?: number
-	public readonly latestAnnouncementId = "jul-2026-v3.75.0" // v3.75.0 Semble, no cloud services, and improved modes
+	public readonly latestAnnouncementId = "aug-2026-v3.77.4-cloud-semble-custom-modes" // v3.77.4 cloud services removed, Semble/code-index reliability, custom modes upgrade
 	public readonly providerSettingsManager: ProviderSettingsManager
 	public readonly customModesManager: CustomModesManager
 	private readonly providerProfileService: ProviderProfileService

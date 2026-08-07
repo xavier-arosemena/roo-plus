@@ -340,18 +340,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} publicado",
-		"support": "Apoya a Roo+ dándonos una estrella en <githubLink>GitHub</githubLink>.",
+		"support": "Apoya a Roo+ dándonos una estrella en <githubLink>GitHub</githubLink> y en el <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novedades:",
-			"highlight1": "Proveedores Moonshot y Kimi Code — conéctate a modelos de Moonshot con detección de modelos en tiempo real o inicia sesión en Kimi Code mediante su flujo de dispositivo OAuth.",
-			"highlight2": "Compatibilidad con los modelos más recientes — usa Claude Opus 5 con todos los proveedores, además de Kimi K3, Gemini 3.6 Flash y MiniMax-M3.",
-			"highlight3": "Flujos de trabajo más fiables — abandona subtareas interrumpidas de forma limpia e indexa archivos Dart y de texto sin formato en tu base de código."
-		},
-		"cloudAgents": {
-			"heading": "Novedades en la Nube:",
-			"specialized": "Presentamos <bold>Explainer</bold>, <bold>Planner</bold> y <bold>Coder</bold> - tres agentes en la nube especializados para mejorar tus flujos de trabajo.",
-			"description": "Los agentes trabajan juntos en la nube y se pueden activar desde la web o mediante Slack.",
-			"tryButton": "Prueba los Agentes en la Nube"
+			"highlight1": "Servicios en la nube eliminados y estabilidad mejorada. La extensión ya no espera al backend en la nube retirado, por lo que el inicio y las conexiones remotas son más rápidos y fiables.",
+			"highlight2": "Semble y el índice de código más fiables. La búsqueda en la base de código es verificada por suma de comprobación y resiliente — sin más búsquedas bloqueadas ni barra de ventana de contexto rota.",
+			"highlight3": "Modos personalizados mejorados. Ahora cada modo muestra una descripción y puedes instalar varios modos del marketplace en bloque."
 		}
 	},
 	"costs": {

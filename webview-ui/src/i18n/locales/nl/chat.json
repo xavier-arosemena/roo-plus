@@ -313,18 +313,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} uitgebracht",
-		"support": "Steun Roo+ door ons een ster te geven op <githubLink>GitHub</githubLink>.",
+		"support": "Steun Roo+ door ons een ster te geven op <githubLink>GitHub</githubLink> en op de <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Wat is nieuw:",
-			"highlight1": "Moonshot- en Kimi Code-providers — maak verbinding met Moonshot-modellen via live modeldetectie of meld je aan bij Kimi Code via de OAuth-apparaatstroom.",
-			"highlight2": "Ondersteuning voor de nieuwste modellen — gebruik Claude Opus 5 bij verschillende providers, plus Kimi K3, Gemini 3.6 Flash en MiniMax-M3.",
-			"highlight3": "Betrouwbaardere workflows — breek onderbroken subtaken netjes af en indexeer Dart- en plattetekstbestanden in je codebase."
-		},
-		"cloudAgents": {
-			"heading": "Nieuw in de Cloud:",
-			"specialized": "Introductie van <bold>Explainer</bold>, <bold>Planner</bold> en <bold>Coder</bold> - drie gespecialiseerde cloud-agents om je workflows te verbeteren.",
-			"description": "De agents werken samen in de cloud en kunnen worden geactiveerd vanaf het web of via Slack.",
-			"tryButton": "Probeer Cloud-agents"
+			"highlight1": "Clouddiensten verwijderd en stabiliteit verbeterd. De extensie wacht niet meer op het stopgezette cloud-backend, dus opstarten en externe verbindingen zijn sneller en betrouwbaarder.",
+			"highlight2": "Semble en code-index betrouwbaar gemaakt. Codebase-zoekopdracht is checksum-geverifieerd en veerkrachtig — geen vastgelopen zoekopdrachten of kapotte contextvensterbalk meer.",
+			"highlight3": "Aangepaste modi verbeterd. Elke modus toont nu een beschrijving en je kunt meerdere marketplace-modi in bulk installeren."
 		}
 	},
 	"reasoning": {

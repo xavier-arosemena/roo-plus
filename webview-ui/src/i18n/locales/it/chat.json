@@ -340,18 +340,12 @@
 	},
 	"announcement": {
 		"title": "Rilasciato Roo+ {{version}}",
-		"support": "Sostieni Roo+ lasciandoci una stella su <githubLink>GitHub</githubLink>.",
+		"support": "Sostieni Roo+ lasciandoci una stella su <githubLink>GitHub</githubLink> e sul <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novità:",
-			"highlight1": "Provider Moonshot e Kimi Code — connettiti ai modelli Moonshot con il rilevamento dei modelli in tempo reale oppure accedi a Kimi Code tramite il flusso dispositivo OAuth.",
-			"highlight2": "Supporto per i modelli più recenti — usa Claude Opus 5 con tutti i provider, oltre a Kimi K3, Gemini 3.6 Flash e MiniMax-M3.",
-			"highlight3": "Workflow più affidabili — abbandona in modo pulito le sottoattività interrotte e indicizza i file Dart e di testo semplice nella tua codebase."
-		},
-		"cloudAgents": {
-			"heading": "Novità nel Cloud:",
-			"specialized": "Presentazione di <bold>Explainer</bold>, <bold>Planner</bold> e <bold>Coder</bold> - tre agenti cloud specializzati per migliorare i tuoi flussi di lavoro.",
-			"description": "Gli agenti lavorano insieme nel cloud e possono essere attivati dal web o tramite Slack.",
-			"tryButton": "Prova gli Agenti Cloud"
+			"highlight1": "Servizi cloud rimossi e stabilità migliorata. L'estensione non attende più il backend cloud dismesso, quindi avvio e connessioni remote sono più veloci e affidabili.",
+			"highlight2": "Semble e code-index resi affidabili. La ricerca nella codebase è verificata tramite checksum e resiliente — niente più ricerche bloccate o barra della finestra di contesto rotta.",
+			"highlight3": "Modalità personalizzate potenziate. Ora ogni modalità mostra una descrizione e puoi installare più modalità del marketplace in blocco."
 		}
 	},
 	"costs": {

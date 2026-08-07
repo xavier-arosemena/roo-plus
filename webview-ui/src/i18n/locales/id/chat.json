@@ -369,18 +369,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} Dirilis",
-		"support": "Dukung Roo+ dengan memberi kami bintang di <githubLink>GitHub</githubLink>.",
+		"support": "Dukung Roo+ dengan memberi kami bintang di <githubLink>GitHub</githubLink> dan di <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Yang Baru:",
-			"highlight1": "Provider Moonshot dan Kimi Code — hubungkan ke model Moonshot dengan penemuan model secara langsung, atau masuk ke Kimi Code melalui alur perangkat OAuth.",
-			"highlight2": "Dukungan model terbaru — gunakan Claude Opus 5 di berbagai provider, ditambah Kimi K3, Gemini 3.6 Flash, dan MiniMax-M3.",
-			"highlight3": "Workflow lebih andal — tinggalkan subtask yang terinterupsi dengan bersih, serta indeks file Dart dan teks biasa di codebase-mu."
-		},
-		"cloudAgents": {
-			"heading": "Baru di Cloud:",
-			"specialized": "Memperkenalkan <bold>Explainer</bold>, <bold>Planner</bold>, dan <bold>Coder</bold> - tiga agen cloud khusus untuk meningkatkan alur kerja Anda.",
-			"description": "Agen bekerja bersama di cloud dan dapat dipicu dari web atau melalui Slack.",
-			"tryButton": "Coba Agen Cloud"
+			"highlight1": "Layanan cloud dihapus dan stabilitas diperbaiki. Ekstensi tidak lagi menunggu backend cloud yang dihentikan, sehingga startup dan koneksi jarak jauh lebih cepat dan andal.",
+			"highlight2": "Semble dan code-index dibuat andal. Pencarian codebase terverifikasi checksum dan tangguh — tidak ada lagi pencarian macet atau bilah jendela konteks yang rusak.",
+			"highlight3": "Custom modes ditingkatkan. Setiap mode kini menampilkan deskripsi, dan Anda dapat menginstal banyak mode marketplace sekaligus."
 		}
 	},
 	"reasoning": {
