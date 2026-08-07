@@ -133,6 +133,8 @@ describe("parseWebviewMessage", () => {
 			"installMarketplaceItem",
 			"installMarketplaceItems",
 			"installMarketplaceItemWithParameters",
+			"fetchMarketplaceData",
+			"filterMarketplaceItems",
 			"queueMessage",
 			"removeQueuedMessage",
 			"editQueuedMessage",
@@ -144,7 +146,7 @@ describe("parseWebviewMessage", () => {
 		for (const type of expected) {
 			expect(webviewMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(webviewMessageSchemas)).toHaveLength(16)
+		expect(Object.keys(webviewMessageSchemas)).toHaveLength(18)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

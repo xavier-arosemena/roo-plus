@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react"
+import { act, render, waitFor } from "@testing-library/react"
 
 import { ExtensionStateContext } from "@/context/ExtensionStateContext"
 import { vscode } from "@/utils/vscode"
@@ -22,6 +22,10 @@ vi.mock("@/i18n/TranslationContext", () => ({
 describe("MarketplaceView", () => {
 	let stateManager: MarketplaceViewStateManager
 	let mockExtensionState: any
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -112,5 +116,98 @@ describe("MarketplaceView", () => {
 
 		expect(container.textContent).toContain("MCP")
 		expect(container.textContent).toContain("Modes")
+	})
+
+	it("should not retry fetchMarketplaceData after a successful response", async () => {
+		vi.useFakeTimers()
+		const emptyStateManager = new MarketplaceViewStateManager()
+
+		render(
+			<ExtensionStateContext.Provider value={mockExtensionState}>
+				<MarketplaceView stateManager={emptyStateManager} />
+			</ExtensionStateContext.Provider>,
+		)
+
+		// Initial fetch fires on mount while items are empty
+		expect(vscode.postMessage).toHaveBeenCalledWith({ type: "fetchMarketplaceData" })
+
+		// Simulate a successful response: items arrive and isFetching flips to false
+		await act(async () => {
+			await emptyStateManager.transition({
+				type: "FETCH_COMPLETE",
+				payload: {
+					items: [
+						{
+							id: "test-mcp",
+							name: "Test MCP",
+							type: "mcp" as const,
+							description: "Test MCP server",
+							tags: ["test"],
+							content: "Test content",
+							url: "https://test.com",
+							author: "Test Author",
+						},
+					],
+				},
+			})
+		})
+
+		// Advance well past the retry window — no retry should fire
+		act(() => {
+			vi.advanceTimersByTime(30_000)
+		})
+
+		expect(vscode.postMessage).toHaveBeenCalledTimes(1)
+	})
+
+	it("should retry fetchMarketplaceData when still fetching after the retry delay", async () => {
+		vi.useFakeTimers()
+		const emptyStateManager = new MarketplaceViewStateManager()
+
+		render(
+			<ExtensionStateContext.Provider value={mockExtensionState}>
+				<MarketplaceView stateManager={emptyStateManager} />
+			</ExtensionStateContext.Provider>,
+		)
+
+		// Initial fetch fires on mount
+		expect(vscode.postMessage).toHaveBeenCalledWith({ type: "fetchMarketplaceData" })
+
+		// No response arrives — still fetching with no items. Advance past the delay.
+		act(() => {
+			vi.advanceTimersByTime(10_000)
+		})
+
+		// Retry fired
+		expect(vscode.postMessage).toHaveBeenCalledTimes(2)
+	})
+
+	it("should stop retrying after reaching the max retry attempts", async () => {
+		vi.useFakeTimers()
+		const emptyStateManager = new MarketplaceViewStateManager()
+
+		render(
+			<ExtensionStateContext.Provider value={mockExtensionState}>
+				<MarketplaceView stateManager={emptyStateManager} />
+			</ExtensionStateContext.Provider>,
+		)
+
+		// Initial fetch fires on mount
+		expect(vscode.postMessage).toHaveBeenCalledWith({ type: "fetchMarketplaceData" })
+
+		// Advance through the retry window — 1 initial + up to 3 retries
+		for (let i = 0; i < 4; i++) {
+			act(() => {
+				vi.advanceTimersByTime(10_000)
+			})
+		}
+
+		expect(vscode.postMessage).toHaveBeenCalledTimes(4)
+
+		// Advancing further must not produce more retries
+		act(() => {
+			vi.advanceTimersByTime(30_000)
+		})
+		expect(vscode.postMessage).toHaveBeenCalledTimes(4)
 	})
 })
