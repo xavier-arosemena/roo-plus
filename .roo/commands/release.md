@@ -13,7 +13,7 @@ mode: code
 2. Analyze changes since that release:
 
     ```bash
-    gh pr list --state merged --base main --json number,title,author,url,mergedAt,closingIssuesReferences --limit 1000 -q '[.[] | select(.mergedAt > "TIMESTAMP") | {number, title, author: .author.login, url, mergedAt, issues: .closingIssuesReferences}] | sort_by(.number)'
+    gh pr list --state merged --base master --json number,title,author,url,mergedAt,closingIssuesReferences --limit 1000 -q '[.[] | select(.mergedAt > "TIMESTAMP") | {number, title, author: .author.login, url, mergedAt, issues: .closingIssuesReferences}] | sort_by(.number)'
     ```
 
 3. For each PR with linked issues, fetch the issue reporter:
@@ -81,7 +81,7 @@ mode: code
     git add webview-ui/src/components/chat/Announcement.tsx src/core/webview/ClineProvider.ts
     git commit -m "chore: prepare v[version] release"
     git push origin release/v[version]
-    gh pr create --title "Release v[version]" --body "Release preparation for v[version]. This PR includes the final version bump, changelog updates, Marketplace README updates, and any announcement changes." --base main --head release/v[version]
+    gh pr create --title "Release v[version]" --body "Release preparation for v[version]. This PR includes the final version bump, changelog updates, Marketplace README updates, and any announcement changes." --base master --head release/v[version]
     ```
 
     - There is no separate version-bump PR in this flow.
@@ -115,5 +115,5 @@ mode: code
     gh pr merge [pr-number] --auto --squash
     ```
 
-    - Do not merge before the deployment succeeds — merging first and then discovering a publish failure leaves `main` ahead of what was actually shipped.
-    - The merge queue runs all required checks against the release branch before merging to `main`.
+    - Do not merge before the deployment succeeds — merging first and then discovering a publish failure leaves `master` ahead of what was actually shipped.
+    - The merge queue runs all required checks against the release branch before merging to `master`.

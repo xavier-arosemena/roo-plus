@@ -111,8 +111,8 @@ jobs:
 
       - name: Validate publish ref
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$GITHUB_REF_NAME" != "main" ]; then
-            echo "Manual stable publishes must run from main, not ${GITHUB_REF_NAME}."
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$GITHUB_REF_NAME" != "master" ]; then
+            echo "Manual stable publishes must run from master, not ${GITHUB_REF_NAME}."
             exit 1
           fi
 
