@@ -22,6 +22,7 @@
 #### 🔧 Chores
 
 - **CI: branch references corrected from `main` to `master`** — [`code-qa.yml`](.github/workflows/code-qa.yml), [`nightly-publish.yml`](.github/workflows/nightly-publish.yml), [`marketplace-publish.yml`](.github/workflows/marketplace-publish.yml), [`codeql.yml`](.github/workflows/codeql.yml), and [`label-pr-review-state.yml`](.github/workflows/label-pr-review-state.yml) referenced the `main` branch, but this fork's trunk is `master` — so push-triggered CI and manual dispatches never fired. All branch references updated to `master`; the release command ([`release.md`](.roo/commands/release.md)) PR base updated to match.
+- **CI: fixed `secrets`-in-`if:` workflow parse error (unblocks publishing)** — [`marketplace-publish.yml`](.github/workflows/marketplace-publish.yml) and [`nightly-publish.yml`](.github/workflows/nightly-publish.yml) used the `secrets` context inside `if:` expressions, which GitHub Actions rejects at parse time — every publish run since v3.69.2 failed before any job started (extension stuck on 3.72.0 at Open VSX). Marketplace tokens are now exposed as job-level `env` and gated via `if: env.* != ''`.
 - Updated CHANGELOG.md and synced to src/CHANGELOG.md
 
 ---
