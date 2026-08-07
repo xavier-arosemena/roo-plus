@@ -13,7 +13,7 @@ mode: code
 2. Analyze changes since that release:
 
     ```bash
-    gh pr list --state merged --base main --json number,title,author,url,mergedAt,closingIssuesReferences --limit 1000 -q '[.[] | select(.mergedAt > "TIMESTAMP") | {number, title, author: .author.login, url, mergedAt, issues: .closingIssuesReferences}] | sort_by(.number)'
+    gh pr list --state merged --base master --json number,title,author,url,mergedAt,closingIssuesReferences --limit 1000 -q '[.[] | select(.mergedAt > "TIMESTAMP") | {number, title, author: .author.login, url, mergedAt, issues: .closingIssuesReferences}] | sort_by(.number)'
     ```
 
 3. For each PR with linked issues, fetch the issue reporter:
@@ -46,13 +46,20 @@ mode: code
     - Order the list from most important to least important.
     - Include every PR in the release window. Count the PRs and cross-reference the list before continuing.
 
-7. For a major or minor release:
+7. For a major or minor release — curate the in-extension release announcement consciously:
 
     - Ask the user what three areas should be highlighted.
-    - Update relevant announcement files and documentation, including `webview-ui/src/components/chat/Announcement.tsx`, `README.md`, and the `latestAnnouncementId` in `src/core/webview/ClineProvider.ts`.
+    - Update ALL four announcement layers (they must stay in sync):
+        1. **English content** — `announcement.*` in `webview-ui/src/i18n/locales/en/chat.json` (`title`, `support`, `release.highlight1/2/3`).
+        2. **Social links** — `webview-ui/src/components/chat/Announcement.tsx` (hardcoded links; update `EXTERNAL_LINKS` in `webview-ui/src/constants/externalLinks.ts` when needed).
+        3. **Trigger** — bump `latestAnnouncementId` in `src/core/webview/ClineProvider.ts` so the new announcement shows once on next launch (the id is compared against the stored "last shown" id).
+        4. **All 17 locale translations** — propagate the new highlight/support strings to every `webview-ui/src/i18n/locales/*/chat.json`.
+    - Announcement bullets are rendered via plain `t()` (not `Trans`), so **do not wrap bullet text in `<bold>...</bold>` tags** — they render literally as text. Keep bullets plain text.
     - Ask the user to confirm the English announcement before proceeding.
     - Arrange translation updates for all supported locales affected by README, announcement, or package localization changes. Use the `/roo-translate` skill to propagate the updated `chat.json` announcement highlight keys and the "What's New" section to all supported locales.
     - All 17 locale READMEs should contain a translated "What's New" section. Check each one and add a translated section where missing.
+    - When a feature is removed (e.g. cloud services), **remove the now-dead announcement translation blocks** (e.g. `announcement.cloudAgents.*`) from ALL locale files so stale copy doesn't linger.
+    - Note: `scripts/find-missing-translations.js` only checks key presence, not value drift — manually verify the 17 locales match the new English values.
 
 8. Create the release branch:
 
@@ -74,7 +81,7 @@ mode: code
     git add webview-ui/src/components/chat/Announcement.tsx src/core/webview/ClineProvider.ts
     git commit -m "chore: prepare v[version] release"
     git push origin release/v[version]
-    gh pr create --title "Release v[version]" --body "Release preparation for v[version]. This PR includes the final version bump, changelog updates, Marketplace README updates, and any announcement changes." --base main --head release/v[version]
+    gh pr create --title "Release v[version]" --body "Release preparation for v[version]. This PR includes the final version bump, changelog updates, Marketplace README updates, and any announcement changes." --base master --head release/v[version]
     ```
 
     - There is no separate version-bump PR in this flow.
@@ -108,5 +115,5 @@ mode: code
     gh pr merge [pr-number] --auto --squash
     ```
 
-    - Do not merge before the deployment succeeds — merging first and then discovering a publish failure leaves `main` ahead of what was actually shipped.
-    - The merge queue runs all required checks against the release branch before merging to `main`.
+    - Do not merge before the deployment succeeds — merging first and then discovering a publish failure leaves `master` ahead of what was actually shipped.
+    - The merge queue runs all required checks against the release branch before merging to `master`.

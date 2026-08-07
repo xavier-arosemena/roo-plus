@@ -171,3 +171,15 @@ The embedding model download is not mirrored or pre-warmed, is outside the insta
 ## 9. Conclusion
 
 The codebase indexing functionality at HEAD is **not broken in code** — it is healthy at every layer we could exercise (659 unit tests + full binary smoke test). The "whole functionality broken" symptom is best explained by a **stale cached stub binary** (R1) plus the **sticky-Error state machine** (R2) on the test server. Neither requires copying upstream code; both are small, targeted fixes on top of the existing hardening. Upstream comparison confirms there is nothing to copy for the Qdrant core and nothing worth copying for Semble, which is intentionally superior for this fork's needs (installer control + hardening + error visibility).
+
+---
+
+## 10. Addendum (v3.77.4) — Webview message-delivery regression (the actual "Save hangs" bug)
+
+After the items above were shipped, the user reproduced the real field failure on a **VSCodium Desktop (Electron) + Remote-SSH** test server: the code-index settings **Save hung on "saving…"** and the workspace toggle never ticked, while the extension side completed the save and indexing correctly (logs showed `handleSettingsChange` running and every `postMessage` succeeding with `view=yes visible=true`).
+
+**Root cause:** [`isTrustedMessage()`](webview-ui/src/utils/trustedMessages.ts) — added in v3.76.0, not present upstream — required `event.source === window` (later relaxed to `null/window/parent/top`). In Electron + Remote-SSH webviews the extension host forwards messages through an **intermediate same-origin `Window`** (`srcCtor=Window` with `origin === window.origin`, but the source object is neither `window`, `window.parent`, nor `window.top` — confirmed via an in-webview probe). The source check therefore rejected **every** extension→webview message, silently dropping `codeIndexSettingsSaved`, `indexingStatusUpdate`, and `codeIndexSecretStatus`. The unfiltered main App kept working (settings/chats render), which is why only code-index (and other `isTrustedMessage`-guarded components) appeared broken. Zoo Code had no such filter — hence it worked on the same server.
+
+**Fix (v3.77.4):** trust by **origin only**. Browsers set `MessageEvent.origin` to the sender's real origin (unspoofable cross-origin), so `origin === window.origin` / `vscode-webview://` / empty-null is the complete security boundary — the source check added only false rejections. Verified on the server: Save completes, workspace toggle ticks, status reaches **Indexed**, Gemini and Semble both work.
+
+**Lesson for this fork:** the webview "trusted message" hardening must key on origin, never on source identity — the source window legitimately differs across desktop, server, and Remote-SSH webview delivery paths.

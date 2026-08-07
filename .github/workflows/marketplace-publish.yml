@@ -81,6 +81,12 @@ jobs:
     environment: marketplace-production
     permissions:
       contents: write
+    # Expose the marketplace tokens as job-level env so steps can gate on them
+    # with `if: env.* != ''` — GitHub Actions does NOT allow the `secrets`
+    # context inside `if:` expressions (workflow parse error otherwise).
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
     steps:
       - name: Checkout code
@@ -111,8 +117,8 @@ jobs:
 
       - name: Validate publish ref
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$GITHUB_REF_NAME" != "main" ]; then
-            echo "Manual stable publishes must run from main, not ${GITHUB_REF_NAME}."
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$GITHUB_REF_NAME" != "master" ]; then
+            echo "Manual stable publishes must run from master, not ${GITHUB_REF_NAME}."
             exit 1
           fi
 
@@ -196,18 +202,14 @@ jobs:
           test "$artifact_publisher" = "xavier-arosemena"
 
       - name: Publish to VS Code Marketplace
-        if: ${{ secrets.VSCE_PAT != '' }}
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        if: env.VSCE_PAT != ''
         run: |
           package_version=$(node -p "require('./src/package.json').version")
           npx @vscode/vsce publish --packagePath "bin/roo-plus-${package_version}.vsix"
           echo "Published xavier-arosemena.roo-plus ${package_version} to VS Code Marketplace"
 
       - name: Publish to Open VSX Registry
-        if: ${{ secrets.OVSX_PAT != '' }}
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        if: env.OVSX_PAT != ''
         run: |
           package_version=$(node -p "require('./src/package.json').version")
           pnpm exec ovsx publish "bin/roo-plus-${package_version}.vsix" --skip-duplicate

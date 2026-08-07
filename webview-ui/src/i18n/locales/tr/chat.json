@@ -98,19 +98,14 @@
 	"enqueueMessage": "Mesajı kuyruğa ekle (mevcut görev tamamlandıktan sonra gönderilecek)",
 	"scrollToBottom": "Sohbetin altına kaydır",
 	"scrollToLatestCheckpoint": "Önceki checkpoint'e kaydır",
-	"about": "Roo+ Code, düzenleyicinizdeki bütün bir yapay zeka geliştirme ekibidir.",
-	"docs": "Daha fazla bilgi için <DocsLink>belgelerimize</DocsLink> göz atın.",
-	"onboarding": "Bu çalışma alanındaki görev listeniz boş.",
-	"rooTips": {
-		"customizableModes": {
-			"title": "Özelleştirilebilir modlar",
-			"description": "Göreve odaklanan ve sonuç veren özel kişilikler."
-		},
-		"modelAgnostic": {
-			"title": "Kendi modelinizi getirin",
-			"description": "Kendi sağlayıcı anahtarınızı kullanın veya hatta yerel çıkarım yapın — ek ücret yok, kilitlenme yok, kısıtlama yok"
-		}
+	"about": "Çok ajanlı yapay zeka ekibiniz — kodlama, DevOps, güvenlik ve mimari için 301 özel mod.",
+	"support": {
+		"reportIssue": "Hata bildir veya özellik iste",
+		"discussions": "Tartışmalara katıl",
+		"starUs": "GitHub'da bize yıldız ver",
+		"reviewUs": "Open VSX'te bizi değerlendir"
 	},
+	"onboarding": "Bu çalışma alanındaki görev listeniz boş.",
 	"selectMode": "Etkileşim modunu seçin",
 	"selectApiConfig": "API yapılandırmasını seçin",
 	"lockApiConfigAcrossModes": "Bu çalışma alanındaki tüm modlarda API yapılandırmasını kilitle",
@@ -341,18 +336,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} yayınlandı",
-		"support": "Lütfen <githubLink>GitHub</githubLink>'da bize yıldız vererek Roo+'u destekle.",
+		"support": "Lütfen <githubLink>GitHub</githubLink>'da ve <openVsxLink>Open VSX Registry</openVsxLink>'de bize yıldız vererek Roo+'u destekle.",
 		"release": {
 			"heading": "Yenilikler:",
-			"highlight1": "Moonshot ve Kimi Code provider'ları — canlı model keşfiyle Moonshot modellerine bağlan veya OAuth cihaz akışıyla Kimi Code'da oturum aç.",
-			"highlight2": "En yeni model desteği — provider'lar genelinde Claude Opus 5'in yanı sıra Kimi K3, Gemini 3.6 Flash ve MiniMax-M3'ü kullan.",
-			"highlight3": "Daha güvenilir iş akışları — kesintiye uğramış alt görevleri temiz biçimde bırak ve kod tabanındaki Dart ile düz metin dosyalarını indeksle."
-		},
-		"cloudAgents": {
-			"heading": "Cloud'daki yenilikler:",
-			"specialized": "<bold>Explainer</bold>, <bold>Planner</bold> ve <bold>Coder</bold> tanıtımı - iş akışlarını geliştirmek için üç özel bulut ajanı.",
-			"description": "Ajanlar bulutta birlikte çalışır ve web'den veya Slack üzerinden tetiklenebilir.",
-			"tryButton": "Bulut Ajanlarını Dene"
+			"highlight1": "Bulut hizmetleri kaldırıldı ve kararlılık düzeltildi. Uzantı artık kullanımdan kaldırılan bulut arka ucunu beklemiyor, bu sayede başlatma ve uzak bağlantılar daha hızlı ve daha güvenilir.",
+			"highlight2": "Semble ve kod dizini güvenilir hale getirildi. Kod tabanı araması sağlama toplamı doğrulamalı ve dayanıklı — takılan aramalar veya bozuk bağlam penceresi çubuğu yok.",
+			"highlight3": "Özel modlar yükseltildi. Artık her mod bir açıklama gösteriyor ve marketplace'ten birden fazla modu toplu olarak yükleyebilirsiniz."
 		}
 	},
 	"costs": {

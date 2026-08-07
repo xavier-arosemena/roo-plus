@@ -141,6 +141,19 @@ decision and coverage reporting.
 
 **Suggested Fix**: Export the built-in slug set from the extension core (or add a spec asserting `BUILT_IN_SLUGS` matches the `modes` export in `src/shared/modes.ts`), so the guard cannot drift from the runtime.
 
+### 15. Unguarded Webview Message Consumers — Defense-in-Depth (Architecture Review 2026-08-07)
+
+**Locations**:
+
+- [`webview-ui/src/context/ExtensionStateContext.tsx`](webview-ui/src/context/ExtensionStateContext.tsx:473) — root state handler (`state`, `marketplaceData`, task history, …)
+- [`webview-ui/src/components/chat/FileChangesPanel.tsx`](webview-ui/src/components/chat/FileChangesPanel.tsx:105) — `fileContent` response listener
+
+**Issue**: Following the v3.77.4 origin-only `isTrustedMessage()` fix (Issue #158), every extension→webview message consumer is either guarded with the origin-based check (24 consumers) or deliberately unguarded (these two). These two receive **all** messages, so they were never affected by the dropped-message bug — but they are the only consumers with no origin-based trust boundary, leaving the root state handler and the file-content listener open to any message dispatched into the webview.
+
+**Impact**: No functional bug today (they receive everything, which is why the app works). Residual inconsistency in the webview trust model: the two most security-sensitive consumers (root state, file contents) are the least protected.
+
+**Suggested Fix**: Add the origin-based `isTrustedMessage()` guard to both, applying the same "trust by origin, never by source identity" rule from [`webview-ui/src/utils/trustedMessages.ts`](webview-ui/src/utils/trustedMessages.ts). Order: [`FileChangesPanel.tsx`](webview-ui/src/components/chat/FileChangesPanel.tsx) first (low blast radius), then the root [`ExtensionStateContext.tsx`](webview-ui/src/context/ExtensionStateContext.tsx) (largest blast radius) after validation across desktop + Remote-SSH. Regression spec: reuse the pattern in [`trustedMessages.spec.ts`](webview-ui/src/utils/__tests__/trustedMessages.spec.ts).
+
 ---
 
 ## ✅ Recently Resolved Debt
@@ -172,7 +185,7 @@ decision and coverage reporting.
 | `SEMBLE_VERSION` default resolution (hardcoded constant)                                                      | Version pinned by default for deterministic installs; "latest" is opt-in via `SEMBLE_RESOLVE_LATEST`; `SEMBLE_SHA256` checksums regenerated                                                                                                                               | v3.77.0 |
 | Multiple stale custom-mode catalogs (`agents/`, `converted_modes.d/`, `custom_modes.yaml`, `.roomodes.00…10`) | Single canonical `custom-modes/custom_modes.d/` catalog (one mode per file, 290 modes) feeds `.roomodes`, `pre-installed-modes.yml`, and marketplace `modes.yml` via the sync pipeline; legacy artifacts removed (Closes: #159)                                           | v3.77.2 |
 | Generated artifacts could carry built-in core mode slugs                                                      | Built-in slug guard in `sync-custom-modes.mjs` fails the build if `architect`/`code`/`ask`/`debug`/`orchestrator` leak into `.roomodes` / `pre-installed-modes.yml` / `modes.yml`                                                                                         | v3.77.2 |
-| Extension-host messages dropped in remote/server webviews (source filter too strict)                          | `isTrustedMessage()` accepts the webview's own frame tree (`null`, `window`, `parent`, `top`); ORIGIN check remains the security boundary (regression-tested)                                                                                                             | v3.77.2 |
+| Extension-host messages dropped in remote/server webviews (source filter too strict)                          | `isTrustedMessage()` trusts by ORIGIN only (same-origin / `vscode-webview://` / empty-null); source-identity check removed (it dropped every message in VSCodium + Remote-SSH intermediate-window delivery); 13 regression tests (Issue #158, fix commit `ab232adb0`)     | v3.77.4 |
 | Mode descriptions blank/missing in shipped VSIX                                                               | Enforced at every layer: shared `getModeDisplayDescription()` fallback (`whenToUse` → `roleDefinition`), `CustomModesManager` normalization, `modeConfigSchema` `min(1)` + `roomodes.json` `minLength: 1`, `ensure_descriptions.py` CI gate, submodule-pin pre-build gate | v3.77.1 |
 | Marketplace installs dropped full mode descriptions                                                           | `SimpleInstaller` preserves the full description from marketplace `content` (regression-tested)                                                                                                                                                                           | v3.77.1 |
 | Semble downloader trusted a cached broken binary (R1)                                                         | `isSembleBinaryHealthy()` bounded `--help` probe before cache reuse; falls through to a re-download on failure                                                                                                                                                            | v3.77.1 |

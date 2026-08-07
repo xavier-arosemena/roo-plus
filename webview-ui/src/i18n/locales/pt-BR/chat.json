@@ -98,19 +98,14 @@
 	"enqueueMessage": "Adicionar mensagem à fila (será enviada após a conclusão da tarefa atual)",
 	"scrollToBottom": "Rolar para o final do chat",
 	"scrollToLatestCheckpoint": "Rolar para o checkpoint anterior",
-	"about": "Roo+ Code é uma equipe inteira de desenvolvimento de IA em seu editor.",
-	"docs": "Confira nossa <DocsLink>documentação</DocsLink> para saber mais.",
-	"onboarding": "Sua lista de tarefas neste espaço de trabalho está vazia.",
-	"rooTips": {
-		"customizableModes": {
-			"title": "Modos personalizáveis",
-			"description": "Personas especializadas que mantêm o foco na tarefa e entregam resultados."
-		},
-		"modelAgnostic": {
-			"title": "Traga seu próprio modelo",
-			"description": "Use sua própria chave de provedor ou até mesmo execute inferência local — sem acréscimos, sem aprisionamento, sem restrições"
-		}
+	"about": "Sua equipe de IA multiagente — 301 modos especializados para codificação, DevOps, segurança e arquitetura.",
+	"support": {
+		"reportIssue": "Relate um bug ou solicite um recurso",
+		"discussions": "Participe das discussões",
+		"starUs": "Dê uma estrela para nós no GitHub",
+		"reviewUs": "Avalie-nos no Open VSX"
 	},
+	"onboarding": "Sua lista de tarefas neste espaço de trabalho está vazia.",
 	"selectMode": "Selecionar modo de interação",
 	"selectApiConfig": "Selecionar configuração da API",
 	"lockApiConfigAcrossModes": "Bloquear configuração da API em todos os modos neste workspace",
@@ -340,18 +335,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} lançado",
-		"support": "Apoie o Roo+ nos dando uma estrela no <githubLink>GitHub</githubLink>.",
+		"support": "Apoie o Roo+ nos dando uma estrela no <githubLink>GitHub</githubLink> e no <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novidades:",
-			"highlight1": "Providers Moonshot e Kimi Code — conecte-se aos modelos Moonshot com descoberta de modelos em tempo real ou entre no Kimi Code pelo fluxo de dispositivo OAuth.",
-			"highlight2": "Suporte aos modelos mais recentes — use Claude Opus 5 em vários providers, além de Kimi K3, Gemini 3.6 Flash e MiniMax-M3.",
-			"highlight3": "Workflows mais confiáveis — abandone subtarefas interrompidas de forma limpa e indexe arquivos Dart e de texto simples na sua base de código."
-		},
-		"cloudAgents": {
-			"heading": "Novidades na Nuvem:",
-			"specialized": "Apresentando <bold>Explainer</bold>, <bold>Planner</bold> e <bold>Coder</bold> - três agentes em nuvem especializados para aprimorar seus fluxos de trabalho.",
-			"description": "Os agentes trabalham juntos na nuvem e podem ser acionados a partir da web ou por meio do Slack.",
-			"tryButton": "Experimentar Agentes em Nuvem"
+			"highlight1": "Serviços em nuvem removidos e estabilidade corrigida. A extensão não espera mais o backend em nuvem descontinuado, então a inicialização e as conexões remotas são mais rápidas e confiáveis.",
+			"highlight2": "Semble e code-index tornados confiáveis. A busca na base de código é verificada por checksum e resiliente — sem mais buscas travadas ou barra de janela de contexto quebrada.",
+			"highlight3": "Modos personalizados atualizados. Agora cada modo mostra uma descrição e você pode instalar vários modos do marketplace em lote."
 		}
 	},
 	"costs": {

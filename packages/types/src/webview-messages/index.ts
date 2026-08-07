@@ -6,6 +6,8 @@ import { allowedCommandsMessageSchema, deniedCommandsMessageSchema } from "./com
 import { updateSettingsMessageSchema } from "./settings.js"
 import { saveApiConfigurationMessageSchema, upsertApiConfigurationMessageSchema } from "./providerConfig.js"
 import {
+	fetchMarketplaceDataMessageSchema,
+	filterMarketplaceItemsMessageSchema,
 	installMarketplaceItemMessageSchema,
 	installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParametersMessageSchema,
@@ -48,6 +50,8 @@ export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType
 	installMarketplaceItem: installMarketplaceItemMessageSchema,
 	installMarketplaceItems: installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParameters: installMarketplaceItemWithParametersMessageSchema,
+	fetchMarketplaceData: fetchMarketplaceDataMessageSchema,
+	filterMarketplaceItems: filterMarketplaceItemsMessageSchema,
 	queueMessage: queueMessageMessageSchema,
 	removeQueuedMessage: removeQueuedMessageMessageSchema,
 	editQueuedMessage: editQueuedMessageMessageSchema,
@@ -71,6 +75,8 @@ export const webviewMessageSchema = z.discriminatedUnion("type", [
 	installMarketplaceItemMessageSchema,
 	installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParametersMessageSchema,
+	fetchMarketplaceDataMessageSchema,
+	filterMarketplaceItemsMessageSchema,
 	queueMessageMessageSchema,
 	removeQueuedMessageMessageSchema,
 	editQueuedMessageMessageSchema,
@@ -129,6 +135,8 @@ export {
 } from "./providerConfig.js"
 export type { ProviderConfigMessage } from "./providerConfig.js"
 export {
+	fetchMarketplaceDataMessageSchema,
+	filterMarketplaceItemsMessageSchema,
 	installMarketplaceItemMessageSchema,
 	installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParametersMessageSchema,

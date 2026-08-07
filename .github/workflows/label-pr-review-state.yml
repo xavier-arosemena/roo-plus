@@ -101,7 +101,7 @@ jobs:
             try {
               const { data: rules } = await github.request(
                 'GET /repos/{owner}/{repo}/rules/branches/{branch}',
-                { owner, repo, branch: 'main' },
+                { owner, repo, branch: 'master' },
               );
               const statusRule = rules.find(r => r.type === 'required_status_checks');
               if (statusRule) {

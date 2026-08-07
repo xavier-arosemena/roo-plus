@@ -98,19 +98,14 @@
 	"enqueueMessage": "将消息加入队列（当前任务完成后发送）",
 	"scrollToBottom": "滚动到聊天底部",
 	"scrollToLatestCheckpoint": "滚动到上一个检查点",
-	"about": "Roo+ Code 是您编辑器中的整个 AI 开发团队。",
-	"docs": "查看我们的 <DocsLink>文档</DocsLink> 了解更多信息。",
-	"onboarding": "此工作区中的任务列表为空。",
-	"rooTips": {
-		"customizableModes": {
-			"title": "可自定义模式",
-			"description": "专注任务并交付成果的专业角色。"
-		},
-		"modelAgnostic": {
-			"title": "自带模型",
-			"description": "使用您自己的提供商密钥，甚至可以在本地运行推理 — 无加价，无锁定，无限制"
-		}
+	"about": "您的多智能体 AI 团队 — 涵盖编码、DevOps、安全和架构的 301 个专业模式。",
+	"support": {
+		"reportIssue": "报告错误或请求功能",
+		"discussions": "加入讨论",
+		"starUs": "在 GitHub 上为我们点赞",
+		"reviewUs": "在 Open VSX 上为我们评分"
 	},
+	"onboarding": "此工作区中的任务列表为空。",
 	"selectMode": "选择交互模式",
 	"selectApiConfig": "选择 API 配置",
 	"lockApiConfigAcrossModes": "锁定此工作区所有模式的 API 配置",
@@ -341,18 +336,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} 已发布",
-		"support": "请在 <githubLink>GitHub</githubLink> 上为 Roo+ 点星支持我们。",
+		"support": "请在 <githubLink>GitHub</githubLink> 和 <openVsxLink>Open VSX Registry</openVsxLink> 上为 Roo+ 点星支持我们。",
 		"release": {
 			"heading": "新增功能：",
-			"highlight1": "Moonshot 和 Kimi Code 提供商 — 通过实时模型发现连接 Moonshot 模型，或使用 OAuth 设备流程登录 Kimi Code。",
-			"highlight2": "最新模型支持 — 跨提供商使用 Claude Opus 5，以及 Kimi K3、Gemini 3.6 Flash 和 MiniMax-M3。",
-			"highlight3": "更可靠的工作流 — 干净地放弃中断的子任务，并为代码库中的 Dart 和纯文本文件建立索引。"
-		},
-		"cloudAgents": {
-			"heading": "云端新功能：",
-			"specialized": "推出 <bold>Explainer</bold>、<bold>Planner</bold> 和 <bold>Coder</bold> - 三个专业云代理来增强你的工作流程。",
-			"description": "代理在云端协同工作，可从网页或通过 Slack 触发。",
-			"tryButton": "试用云代理"
+			"highlight1": "移除云服务并修复稳定性。扩展不再等待已停用的云后端，因此启动和远程连接更快、更可靠。",
+			"highlight2": "让 Semble 和代码索引更可靠。代码库搜索经过校验和验证且富有弹性——不再有卡住的搜索或损坏的上下文窗口条。",
+			"highlight3": "自定义模式升级。现在每个模式都显示描述，并且可以批量安装多个市场模式。"
 		}
 	},
 	"costs": {

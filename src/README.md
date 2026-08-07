@@ -32,19 +32,20 @@
 
 Roo+ extends the incredible foundation of Zoo Code with **89 custom modes** pre-loaded (from a canonical catalog of 290 modes), **enhanced features**, and a personalized configuration tailored for modern development workflows.
 
-| Feature                        | Description                                                                                                                                 |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎯 **Custom Modes Library**    | **89 specialized modes** pre-loaded for every task                                                                                          |
-| 🤖 **AI Agent Team**           | Multiple AI agents working together in your editor                                                                                          |
-| 🔌 **MCP Support**             | Full Model Context Protocol integration                                                                                                     |
-| 🌍 **Multi-Provider**          | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                                             |
-| 📦 **Bulk Mode Install**       | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0)                  |
-| 🏷️ **Mode Subtitles**          | All 89 pre-loaded modes display descriptive subtitles in the mode selector UI (v3.73.0)                                                     |
-| 🛠️ **Terminal Integration**    | Smart terminal with shell integration                                                                                                       |
-| 📁 **Tree-Sitter Code Index**  | Intelligent code understanding for 30+ languages with reliable Semble search, diagnostics, and release-governed binaries (v3.77.0, v3.77.1) |
-| 🧮 **Accurate Context Window** | Trusted, real context-window metrics with no fabricated token counts in the task header (v3.77.0)                                           |
-| 🔒 **Atomic File Writing**     | Safe, crash-proof file operations                                                                                                           |
-| 🌐 **Localization**            | Available in 18+ languages                                                                                                                  |
+| Feature                          | Description                                                                                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎯 **Custom Modes Library**      | **89 specialized modes** pre-loaded for every task                                                                                          |
+| 🎨 **Redesigned Welcome Screen** | Community links (report issue, discussions, star on GitHub, review on Open VSX) directly in the welcome panel (v3.77.4)                     |
+| 🤖 **AI Agent Team**             | Multiple AI agents working together in your editor                                                                                          |
+| 🔌 **MCP Support**               | Full Model Context Protocol integration                                                                                                     |
+| 🌍 **Multi-Provider**            | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                                             |
+| 📦 **Bulk Mode Install**         | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0)                  |
+| 🏷️ **Mode Subtitles**            | All 89 pre-loaded modes display descriptive subtitles in the mode selector UI (v3.73.0)                                                     |
+| 🛠️ **Terminal Integration**      | Smart terminal with shell integration                                                                                                       |
+| 📁 **Tree-Sitter Code Index**    | Intelligent code understanding for 30+ languages with reliable Semble search, diagnostics, and release-governed binaries (v3.77.0, v3.77.1) |
+| 🧮 **Accurate Context Window**   | Trusted, real context-window metrics with no fabricated token counts in the task header (v3.77.0)                                           |
+| 🔒 **Atomic File Writing**       | Safe, crash-proof file operations                                                                                                           |
+| 🌐 **Localization**              | Available in 18+ languages                                                                                                                  |
 
 <br/>
 

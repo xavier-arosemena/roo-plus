@@ -30,6 +30,35 @@ export const installMarketplaceItemWithParametersMessageSchema = z.object({
 	}),
 })
 
+/**
+ * Marketplace fetch request. Empty-payload message — the sender posts exactly
+ * `{ type: "fetchMarketplaceData" }` (see MarketplaceView.tsx) and the
+ * extension responds with a `marketplaceData` message. Registered so protocol
+ * drift on this request fails loudly at the boundary instead of passing
+ * through structurally.
+ */
+export const fetchMarketplaceDataMessageSchema = z.object({
+	type: z.literal("fetchMarketplaceData"),
+})
+
+/**
+ * Marketplace filter request. Mirrors the exact sender payload (see
+ * MarketplaceViewStateManager UPDATE_FILTERS): `filters` is optional and every
+ * filter field is optional. Zod strips unknown keys by default, so real sender
+ * payloads carrying extra fields (e.g. an `installed` status) are never
+ * rejected — the schema must never be stricter than the sender.
+ */
+export const filterMarketplaceItemsMessageSchema = z.object({
+	type: z.literal("filterMarketplaceItems"),
+	filters: z
+		.object({
+			type: z.string().optional(),
+			search: z.string().optional(),
+			tags: z.array(z.string()).optional(),
+		})
+		.optional(),
+})
+
 /** Discriminated union of the marketplace-install domain's fully-typed messages. */
 export const marketplaceMessageSchema = z.discriminatedUnion("type", [
 	installMarketplaceItemMessageSchema,

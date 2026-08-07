@@ -38,10 +38,11 @@ jobs:
                   **${owner}** is on deck for this week's Zoo Code release.
 
                   1. Create the release branch and prepare the release with \`.roo/commands/release.md\`.
-                  2. Get the release PR approved.
-                  3. Tag the release branch to trigger the Marketplace publish workflow.
-                  4. Approve the deployment when the \`marketplace-production\` environment requests it.
-                  5. After publishing succeeds, add the release PR to the merge queue.
+                  2. For major/minor releases, curate the in-extension announcement banner (4 layers: en \`chat.json\` content, \`Announcement.tsx\` links, \`latestAnnouncementId\` in \`ClineProvider.ts\`, and all 17 locale \`chat.json\` files) — step 7 of \`.roo/commands/release.md\`.
+                  3. Get the release PR approved.
+                  4. Tag the release branch to trigger the Marketplace publish workflow.
+                  5. Approve the deployment when the \`marketplace-production\` environment requests it.
+                  6. After publishing succeeds, add the release PR to the merge queue.
 
                   Avoid merging or rebasing the release branch before publishing, so the approved tag keeps the intended commit SHA.
 

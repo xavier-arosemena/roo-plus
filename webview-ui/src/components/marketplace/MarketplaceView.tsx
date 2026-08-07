@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { Tab, TabContent, TabHeader } from "../common/Tab"
@@ -11,6 +11,13 @@ import { MarketplaceListView } from "./MarketplaceListView"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
+// Bounded retry for the initial marketplace fetch (Issue #158 hardening):
+// if the `marketplaceData` response message is ever lost, `isFetching` would
+// stay true and the loader would render forever. Re-post the fetch after a
+// delay while still waiting, up to this cap.
+const MARKETPLACE_FETCH_RETRY_DELAY_MS = 10_000
+const MARKETPLACE_FETCH_MAX_RETRIES = 3
+
 interface MarketplaceViewProps {
 	onDone?: () => void
 	stateManager: MarketplaceViewStateManager
@@ -20,6 +27,8 @@ export function MarketplaceView({ stateManager, onDone, targetTab }: Marketplace
 	const { t } = useAppTranslation()
 	const [state, manager] = useStateManager(stateManager)
 	const [hasReceivedInitialState, setHasReceivedInitialState] = useState(false)
+	const retryCountRef = useRef(0)
+	const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	// Track when we receive the initial state
 	useEffect(() => {
@@ -73,6 +82,44 @@ export function MarketplaceView({ stateManager, onDone, targetTab }: Marketplace
 			unsubscribe()
 		}
 	}, [manager, hasReceivedInitialState, state.allItems.length])
+
+	// Bounded retry for the initial marketplace fetch (Issue #158 hardening).
+	// If the extension's `marketplaceData` response is ever lost, `isFetching`
+	// stays true and the loader renders forever. While we are still waiting
+	// (isFetching true AND no items), re-post `fetchMarketplaceData` on a timer,
+	// capped at MARKETPLACE_FETCH_MAX_RETRIES. We do NOT retry when isFetching is
+	// false — the extension may have responded with a legitimate empty state
+	// (empty items + errors[]), which is not a hang.
+	useEffect(() => {
+		const clearRetryTimer = () => {
+			if (retryTimerRef.current !== null) {
+				clearTimeout(retryTimerRef.current)
+				retryTimerRef.current = null
+			}
+		}
+
+		const armRetry = () => {
+			if (retryTimerRef.current !== null || retryCountRef.current >= MARKETPLACE_FETCH_MAX_RETRIES) {
+				return
+			}
+			retryTimerRef.current = setTimeout(() => {
+				retryTimerRef.current = null
+				retryCountRef.current += 1
+				// Re-post the initial fetch; the extension re-sends `marketplaceData`.
+				vscode.postMessage({ type: "fetchMarketplaceData" })
+				armRetry()
+			}, MARKETPLACE_FETCH_RETRY_DELAY_MS)
+		}
+
+		if (!hasReceivedInitialState && state.isFetching && state.allItems.length === 0) {
+			armRetry()
+			return clearRetryTimer
+		}
+
+		// Success (isFetching false or items received) — cancel any pending retry.
+		clearRetryTimer()
+		return clearRetryTimer
+	}, [state.isFetching, state.allItems.length, hasReceivedInitialState, manager])
 
 	// Memoize all available tags
 	const allTags = useMemo(

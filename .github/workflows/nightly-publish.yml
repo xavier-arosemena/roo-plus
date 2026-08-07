@@ -2,7 +2,7 @@ name: Publish Pre-release Extension
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch: # Allows manual triggering.
 
 permissions:
@@ -16,6 +16,12 @@ jobs:
   publish-prerelease:
     runs-on: ubuntu-latest
     environment: marketplace-prerelease
+    # Expose the marketplace tokens as job-level env so steps can gate on them
+    # with `if: env.* != ''` — GitHub Actions does NOT allow the `secrets`
+    # context inside `if:` expressions (workflow parse error otherwise).
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
     steps:
       - name: Checkout code
@@ -46,8 +52,8 @@ jobs:
 
       - name: Validate publish ref
         run: |
-          if [ "$GITHUB_REF_NAME" != "main" ]; then
-            echo "Pre-release publishes must run from main, not ${GITHUB_REF_NAME}."
+          if [ "$GITHUB_REF_NAME" != "master" ]; then
+            echo "Pre-release publishes must run from master, not ${GITHUB_REF_NAME}."
             exit 1
           fi
 
@@ -156,9 +162,8 @@ jobs:
           test "$artifact_publisher" = "xavier-arosemena"
 
       - name: Publish pre-release to VS Code Marketplace
-        if: steps.release-check.outputs.skip != 'true' && ${{ secrets.VSCE_PAT != '' }}
+        if: steps.release-check.outputs.skip != 'true' && env.VSCE_PAT != ''
         env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
           VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
           npx @vscode/vsce publish --pre-release --skip-duplicate --packagePath "bin/roo-plus-${VERSION_NUMBER}.vsix"
@@ -176,9 +181,8 @@ jobs:
       # release outranks it. This mirrors how Marketplace pre-release users already
       # track the newest published version, so it's an accepted trade-off here too.
       - name: Publish pre-release to Open VSX Registry
-        if: steps.release-check.outputs.skip != 'true' && ${{ secrets.OVSX_PAT != '' }}
+        if: steps.release-check.outputs.skip != 'true' && env.OVSX_PAT != ''
         env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
           VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
           set -o pipefail

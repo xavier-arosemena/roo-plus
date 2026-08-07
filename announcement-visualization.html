@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Roo+ Release Announcement — Visual Rendering</title>
+<title>Roo+ Release Announcement — Current Status Assessment</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -11,14 +11,17 @@
     background: #1e1e1e;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
+    padding: 24px;
     color: #cccccc;
   }
+  .wrapper { max-width: 980px; width: 100%; }
   .modal-overlay {
     background: rgba(0,0,0,0.5);
     padding: 40px;
     border-radius: 12px;
+    margin-bottom: 24px;
   }
   .modal {
     background: #252526;
@@ -111,41 +114,67 @@
     vertical-align: middle;
   }
 
-  /* Legend section */
-  .legend {
-    margin-top: 24px;
-    padding: 16px;
+  /* Status panel */
+  .panel {
+    margin-top: 16px;
+    padding: 20px;
     background: #1a1a1a;
     border: 1px solid #333;
-    border-radius: 6px;
-    font-size: 12px;
-    color: #888;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #b0b0b0;
+    line-height: 1.7;
   }
-  .legend h3 {
+  .panel h2 {
+    color: #e0e0e0;
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+  .panel h3 {
     color: #aaa;
     font-size: 13px;
-    margin-bottom: 8px;
+    margin: 14px 0 8px;
   }
-  .legend code {
+  .panel code {
     background: #2d2d2d;
     padding: 1px 5px;
     border-radius: 3px;
-    font-size: 11px;
+    font-size: 12px;
     color: #ce9178;
   }
-  .legend .file {
-    color: #6a9955;
+  .panel .file { color: #6a9955; }
+  .ok { color: #4ec9b0; font-weight: 600; }
+  .warn { color: #d7ba7d; font-weight: 600; }
+  .bad { color: #f48771; font-weight: 600; }
+  .panel table { width: 100%; border-collapse: collapse; }
+  .panel td { padding: 3px 6px; vertical-align: top; }
+  .panel .label { color: #9cdcfe; white-space: nowrap; }
+  .status-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-changed { background: #1f3d2f; color: #4ec9b0; }
+  .badge-stale { background: #4a3320; color: #d7ba7d; }
+  .badge-dead { background: #4a2020; color: #f48771; }
+  .rule {
+    border-top: 1px solid #2d2d2d;
+    margin: 12px 0;
   }
 </style>
 </head>
 <body>
+
+<div class="wrapper">
 
 <div class="modal-overlay">
   <div class="modal">
 
     <!-- HEADER with close button -->
     <div class="header">
-      <h1>🦘 Roo+ Code 3.72.0 Released</h1>
+      <h1>🦘 Roo+ Code 3.77.4 Released</h1>
       <button class="close-btn" title="Close">✕</button>
     </div>
 
@@ -154,9 +183,9 @@
 
     <!-- 3 highlight bullets -->
     <ul>
-      <li><strong>Cloud Services-</strong> The bug, which was stalling remote server connections, is fixed. And cloud services eliminated</li>
-      <li><strong>Semble-</strong> Now Semble comes pre-bundled for easy indexing without downloading the binaries</li>
-      <li><strong>Custom modes-</strong> now include a description for easy reference, and can be installed in bulk</li>
+      <li>Cloud services removed, and stability fixed. The extension no longer waits on the retired cloud backend, so startup and remote connections are faster and more reliable.</li>
+      <li>Semble and code-index made reliable. Codebase search is checksum-verified and resilient — no more stalled searches or a broken context-window bar.</li>
+      <li>Custom modes upgraded. Every mode now shows a description, and you can install multiple marketplace modes in bulk.</li>
     </ul>
 
     <!-- Social links row — GitHub + Open VSX -->
@@ -173,57 +202,74 @@
 
     <!-- GitHub + Open VSX support text -->
     <div class="github-line">
-      Please support Roo+ by starring us on <a href="#">GitHub</a> and on the <a href="#">Open VSX Registry</a>.<br/>Every review and star helps more developers discover their AI development team!
+      Please support Roo+ by starring us on <a href="#">GitHub</a> and on the <a href="#">Open VSX Registry</a>.
     </div>
 
   </div>
 
-  <!-- LEGEND: where each piece comes from -->
-  <div class="legend">
-    <h3>📌 Where each piece comes from — edit targets:</h3>
-    <table style="width:100%; border-collapse: collapse; line-height: 1.8;">
-      <tr>
-        <td style="color:#6a9955; width:40px;">①</td>
-        <td style="width:160px;"><strong>Title</strong></td>
-        <td><code>chat:announcement.title</code> → <span class="file">webview-ui/src/i18n/locales/en/chat.json:361</span></td>
-      </tr>
-      <tr>
-        <td style="color:#6a9955;">②</td>
-        <td><strong>"What's New:"</strong></td>
-        <td><code>chat:announcement.release.heading</code> → <span class="file">en/chat.json:364</span></td>
-      </tr>
-      <tr>
-        <td style="color:#6a9955;">③</td>
-        <td><strong>3 bullet points</strong></td>
-        <td><code>highlight1/2/3</code> → <span class="file">en/chat.json:365-367</span></td>
-      </tr>
-      <tr>
-        <td style="color:#6a9955;">④</td>
-        <td><strong>GitHub / Open VSX icons</strong></td>
-        <td>Hardcoded JSX → <span class="file">Announcement.tsx:53-63</span></td>
-      </tr>
-      <tr>
-        <td style="color:#6a9955;">⑤</td>
-        <td><strong>Support text (GitHub + Open VSX)</strong></td>
-        <td><code>chat:announcement.support</code> → <span class="file">en/chat.json:362</span></td>
-      </tr>
-      <tr>
-        <td style="color:#6a9955;">⑥</td>
-        <td><strong>Open VSX component</strong></td>
-        <td><span class="file">Announcement.tsx:113-121</span> — <code>OpenVSXLink</code></td>
-      </tr>
-      <tr>
-        <td style="color:#6a9955;">⑦</td>
-        <td><strong>Open VSX constant</strong></td>
-        <td><span class="file">externalLinks.ts:10</span> — <code>OPEN_VSX_REGISTRY</code></td>
-      </tr>
-      <tr>
-        <td style="color:#6a9955;">⑧</td>
-        <td><strong>When to re-show</strong></td>
-        <td><span class="file">src/core/webview/ClineProvider.ts:205</span> — <code>latestAnnouncementId</code></td>
-      </tr>
+  <!-- ===== STATUS ASSESSMENT PANEL ===== -->
+  <div class="panel">
+    <h2>🔎 Current Status Assessment — 2026-08-07</h2>
+
+    <h3>Layer 1 — English content (source of truth)</h3>
+    <table>
+      <tr><td class="label">Status:</td><td><span class="status-badge badge-changed">FINALIZED</span></td></tr>
+      <tr><td class="label">Title:</td><td><code>chat:announcement.title</code> → <span class="file">en/chat.json:361</span></td></tr>
+      <tr><td class="label">Support:</td><td><code>chat:announcement.support</code> → <span class="file">en/chat.json:362</span> (GitHub + Open VSX — tagline dropped)</td></tr>
+      <tr><td class="label">Bullets:</td><td><code>highlight1/2/3</code> → <span class="file">en/chat.json:365-367</span> (Cloud removed + stability / Semble & code-index / Custom modes) — no <code><bold></code> tags, typo fixed</td></tr>
+    </table>
+
+    <div class="rule"></div>
+
+    <h3>Layer 2 — Social links (component)</h3>
+    <table>
+      <tr><td class="label">Status:</td><td><span class="status-badge badge-changed">FINALIZED</span></td></tr>
+      <tr><td class="label">Links:</td><td>X / Discord / Reddit <span class="warn">→ replaced with</span> GitHub + Open VSX Registry</td></tr>
+      <tr><td class="label">File:</td><td><span class="file">webview-ui/src/components/chat/Announcement.tsx:54-66</span></td></tr>
+      <tr><td class="label">Constants:</td><td><code>GITHUB_REPO</code>, <code>OPEN_VSX_REGISTRY</code> → <span class="file">externalLinks.ts:2,10</span> (REDDIT/DISCORD still used in About.tsx)</td></tr>
+    </table>
+
+    <div class="rule"></div>
+
+    <h3>Layer 3 — Trigger (re-show)</h3>
+    <table>
+      <tr><td class="label">Status:</td><td><span class="status-badge badge-changed">FINALIZED</span></td></tr>
+      <tr><td class="label">Value:</td><td><code>"aug-2026-v3.77.4-cloud-semble-custom-modes"</code> ← <span class="file">src/core/webview/ClineProvider.ts:255</span></td></tr>
+      <tr><td class="label">Comment:</td><td><em>"v3.77.4 cloud services removed, Semble/code-index reliability, custom modes upgrade"</em></td></tr>
+    </table>
+    <p><span class="ok">✓</span> Matches the new announcement content; will fire once on next launch after this release.</p>
+
+    <div class="rule"></div>
+
+    <h3>Layer 4 — 17 locale translations <span class="status-badge badge-changed">UPDATED</span></h3>
+    <p><span class="ok">✓ All 17 non-English locales now match the new English content</span> (cloud removed + stability / Semble & code-index / custom modes) and the simplified support line (GitHub + Open VSX, no tagline).</p>
+    <table>
+      <tr><td class="label">Updated:</td><td>ca, de, es, fr, hi, id, it, ja, ko, nl, pl, pt-BR, ru, tr, vi, zh-CN, zh-TW</td></tr>
+      <tr><td class="label">Note:</td><td><code>scripts/find-missing-translations.js</code> passes (no missing <em>keys</em>); content drift was manually verified against EN.</td></tr>
+    </table>
+
+    <div class="rule"></div>
+
+    <h3>Dead keys</h3>
+    <table>
+      <tr><td class="label">cloudAgents:</td><td><span class="status-badge badge-changed">REMOVED</span> — <code>announcement.cloudAgents.*</code> deleted from all 18 locale files (cloud services were removed; no component rendered it).</td></tr>
     </table>
   </div>
+
+  <!-- ===== ACTION CHECKLIST ===== -->
+  <div class="panel">
+    <h2>📋 Action Checklist — final state</h2>
+    <table>
+      <tr><td class="label">☑️</td><td>Drop <code><bold></code> tags from English bullets. <span class="ok">DONE</span></td></tr>
+      <tr><td class="label">☑️</td><td>Remove dead <code>announcement.cloudAgents.*</code> blocks from all 18 locale files. <span class="ok">DONE</span></td></tr>
+      <tr><td class="label">☑️</td><td>Update 17 locales' <code>highlight1/2/3</code> + <code>support</code> to match new English content. <span class="ok">DONE</span></td></tr>
+      <tr><td class="label">☑️</td><td>Bump <code>latestAnnouncementId</code> (<span class="file">ClineProvider.ts:255</span>). <span class="ok">DONE</span></td></tr>
+      <tr><td class="label">☑️</td><td>Add announcement curation to release workflow. <span class="ok">DONE</span> — <span class="file">.roo/commands/release.md</span> step 7 + <span class="file">.github/workflows/release-reminder.yml</span>.</td></tr>
+      <tr><td class="label">📄</td><td>Change report: <span class="file">docs/release-changes-since-3.72.0.md</span></td></tr>
+    </table>
+  </div>
+</div>
+
 </div>
 
 </body>

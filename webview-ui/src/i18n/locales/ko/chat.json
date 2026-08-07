@@ -98,19 +98,14 @@
 	"enqueueMessage": "메시지를 대기열에 추가 (현재 작업 완료 후 전송)",
 	"scrollToBottom": "채팅 하단으로 스크롤",
 	"scrollToLatestCheckpoint": "이전 체크포인트로 스크롤",
-	"about": "Roo+ Code는 편집기 안에 있는 전체 AI 개발팀입니다.",
-	"docs": "더 알아보려면 <DocsLink>문서</DocsLink>를 확인하세요.",
-	"onboarding": "이 작업 공간의 작업 목록이 비어 있습니다.",
-	"rooTips": {
-		"customizableModes": {
-			"title": "사용자 정의 가능한 모드",
-			"description": "작업에 집중하고 결과를 제공하는 전문화된 페르소나."
-		},
-		"modelAgnostic": {
-			"title": "자신만의 모델 가져오기",
-			"description": "자체 공급자 키를 사용하거나 로컬에서 추론을 실행하세요 — 마크업 없음, 종속 없음, 제한 없음"
-		}
+	"about": "당신의 멀티 에이전트 AI 팀 — 코딩, DevOps, 보안, 아키텍처를 위한 301가지 특화 모드.",
+	"support": {
+		"reportIssue": "버그 신고 또는 기능 요청",
+		"discussions": "토론에 참여하기",
+		"starUs": "GitHub에서 스타 주기",
+		"reviewUs": "Open VSX에서 리뷰하기"
 	},
+	"onboarding": "이 작업 공간의 작업 목록이 비어 있습니다.",
 	"selectMode": "상호작용 모드 선택",
 	"selectApiConfig": "API 구성 선택",
 	"lockApiConfigAcrossModes": "이 워크스페이스의 모든 모드에서 API 구성 잠금",
@@ -340,18 +335,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} 출시",
-		"support": "<githubLink>GitHub</githubLink>에서 별표를 눌러 Roo+를 응원해 주세요.",
+		"support": "<githubLink>GitHub</githubLink>과 <openVsxLink>Open VSX Registry</openVsxLink>에서 별표를 눌러 Roo+를 응원해 주세요.",
 		"release": {
 			"heading": "새로운 기능:",
-			"highlight1": "Moonshot 및 Kimi Code 프로바이더 — 실시간 모델 검색으로 Moonshot 모델에 연결하거나 OAuth 기기 흐름으로 Kimi Code에 로그인하세요.",
-			"highlight2": "최신 모델 지원 — 여러 프로바이더에서 Claude Opus 5를 사용하고 Kimi K3, Gemini 3.6 Flash, MiniMax-M3도 이용하세요.",
-			"highlight3": "더 안정적인 워크플로우 — 중단된 하위 작업을 깔끔하게 포기하고 코드베이스의 Dart 및 일반 텍스트 파일을 인덱싱하세요."
-		},
-		"cloudAgents": {
-			"heading": "클라우드의 새로운 기능:",
-			"specialized": "<bold>Explainer</bold>, <bold>Planner</bold>, <bold>Coder</bold> 세 가지 전문 클라우드 에이전트를 소개합니다. 워크플로우를 향상시킵니다.",
-			"description": "에이전트는 클라우드에서 함께 작동하며 웹 또는 Slack을 통해 트리거할 수 있습니다.",
-			"tryButton": "클라우드 에이전트 사용해보기"
+			"highlight1": "클라우드 서비스 제거 및 안정성 개선. 더 이상 중단된 클라우드 백엔드를 기다리지 않아 시작과 원격 연결이 더 빠르고 안정적입니다.",
+			"highlight2": "Semble과 코드 인덱스가 안정적으로 개선되었습니다. 코드베이스 검색이 체크섬 검증과 복원력을 갖추어 멈춘 검색이나 깨진 컨텍스트 창 막대가 더 이상 없습니다.",
+			"highlight3": "사용자 지정 모드가 업그레이드되었습니다. 이제 모든 모드에 설명이 표시되며 마켓플레이스의 여러 모드를 일괄 설치할 수 있습니다."
 		}
 	},
 	"costs": {

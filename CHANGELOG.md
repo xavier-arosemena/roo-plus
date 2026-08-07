@@ -1,5 +1,32 @@
 # Roo+ Changelog
 
+## [3.77.4] — 2026-08-07
+
+### Patch — Initial Webview Redesign & Webview/Marketplace Reliability
+
+#### 🚀 Enhancements
+
+- **Redesigned initial welcome screen (Closes: #172)** — The welcome screen tips panel ([`RooTips.tsx`](webview-ui/src/components/welcome/RooTips.tsx)) is replaced with an intro line sourced from the extension description plus functional community links — **Report issue**, **Discussions**, **Star on GitHub**, and **Review on Open VSX** — wired through the `openExternal` pattern. New links are centralized in [`externalLinks.ts`](webview-ui/src/constants/externalLinks.ts); the stale docs link and old tips copy were removed. All strings are localized across all 18 webview locales, and the marketplace description count is synced (301 specialized modes).
+- **In-extension release announcement overhauled (Closes: #38)** — The four announcement layers are now in sync for v3.77.4: `latestAnnouncementId` bumped to `aug-2026-v3.77.4-cloud-semble-custom-modes` in [`ClineProvider.ts`](src/core/webview/ClineProvider.ts:255), English content rewritten (cloud services removed + stability, Semble/code-index reliability, custom modes upgrade) without `<bold>` tags, and the same highlights + simplified support line propagated to all 17 locale `chat.json` files. Dead `announcement.cloudAgents.*` blocks removed from all 18 locales. Open VSX branding asset added for the banner.
+
+#### 🐛 Bug Fixes
+
+- **Marketplace no longer strands on the infinite loader (Closes: #158)** — [`MarketplaceView.tsx`](webview-ui/src/components/marketplace/MarketplaceView.tsx) now applies a bounded retry (10s delay, max 3 attempts) that re-posts `fetchMarketplaceData` only while `isFetching && no items`; a legitimate empty response is never retried and the timer is cleared on success/unmount.
+- **Marketplace protocol drift fails loudly at the webview boundary (Closes: #158)** — `fetchMarketplaceData` + `filterMarketplaceItems` are now registered as typed zod schemas in the webview message registry (untyped message count 149 → 147), mirroring the exact sender shapes.
+- **Extension-host messages accepted in remote/server webviews (Closes: #152)** — [`isTrustedMessage()`](webview-ui/src/utils/trustedMessages.ts) now trusts **purely by ORIGIN** (`origin === window.origin`, a `vscode-webview://` origin, or an empty/null origin). The earlier source-object check (`null`/`window`/`parent`/`top`) caused false rejections on VSCodium Desktop + Remote-SSH, where the extension host forwards messages through an intermediate same-origin `Window` — silently dropping `codeIndexSettingsSaved`, `indexingStatusUpdate`, and others (code-index Save hung on `saving`, workspace toggle untickable, status badge stuck). Origin is the complete security boundary: cross-origin senders cannot spoof `MessageEvent.origin`.
+
+#### ✅ Quality
+
+- **Regression coverage** — [`trustedMessages.spec.ts`](webview-ui/src/utils/__tests__/trustedMessages.spec.ts) covers the exact "different same-origin Window" regression case; cross-origin rejection cases retained (13/13 pass). Marketplace retry specs added (no-retry-on-success, retry-while-fetching, max-attempts). Marketplace message schema boundary tests added.
+
+#### 🔧 Chores
+
+- **CI: branch references corrected from `main` to `master`** — [`code-qa.yml`](.github/workflows/code-qa.yml), [`nightly-publish.yml`](.github/workflows/nightly-publish.yml), [`marketplace-publish.yml`](.github/workflows/marketplace-publish.yml), [`codeql.yml`](.github/workflows/codeql.yml), and [`label-pr-review-state.yml`](.github/workflows/label-pr-review-state.yml) referenced the `main` branch, but this fork's trunk is `master` — so push-triggered CI and manual dispatches never fired. All branch references updated to `master`; the release command ([`release.md`](.roo/commands/release.md)) PR base updated to match.
+- **CI: fixed `secrets`-in-`if:` workflow parse error (unblocks publishing)** — [`marketplace-publish.yml`](.github/workflows/marketplace-publish.yml) and [`nightly-publish.yml`](.github/workflows/nightly-publish.yml) used the `secrets` context inside `if:` expressions, which GitHub Actions rejects at parse time — every publish run since v3.69.2 failed before any job started (extension stuck on 3.72.0 at Open VSX). Marketplace tokens are now exposed as job-level `env` and gated via `if: env.* != ''`.
+- Updated CHANGELOG.md and synced to src/CHANGELOG.md
+
+---
+
 ## [3.77.2] — 2026-08-06
 
 ### Patch — Custom Modes Canonical Catalog Pipeline & Remote-Webview Messaging

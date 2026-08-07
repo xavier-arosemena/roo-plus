@@ -128,19 +128,14 @@
 	"enqueueMessage": "Tambahkan pesan ke antrean (akan dikirim setelah tugas saat ini selesai)",
 	"scrollToBottom": "Gulir ke bawah chat",
 	"scrollToLatestCheckpoint": "Gulir ke checkpoint sebelumnya",
-	"about": "Roo+ Code adalah seluruh tim pengembang AI di editor Anda.",
-	"docs": "Lihat <DocsLink>dokumentasi</DocsLink> kami untuk mempelajari lebih lanjut.",
-	"onboarding": "Daftar tugas Anda di ruang kerja ini kosong.",
-	"rooTips": {
-		"customizableModes": {
-			"title": "Mode yang dapat disesuaikan",
-			"description": "Persona khusus yang tetap mengerjakan tugas dan memberikan hasil."
-		},
-		"modelAgnostic": {
-			"title": "Bawa model Anda sendiri",
-			"description": "Gunakan kunci penyedia Anda sendiri atau bahkan jalankan inferensi lokal — tanpa markup, tanpa lock-in, tanpa batasan"
-		}
+	"about": "Tim AI multi-agen Anda — 301 mode khusus untuk coding, DevOps, keamanan, dan arsitektur.",
+	"support": {
+		"reportIssue": "Laporkan bug atau minta fitur",
+		"discussions": "Ikuti diskusinya",
+		"starUs": "Beri kami bintang di GitHub",
+		"reviewUs": "Beri ulasan kami di Open VSX"
 	},
+	"onboarding": "Daftar tugas Anda di ruang kerja ini kosong.",
 	"selectMode": "Pilih mode untuk interaksi",
 	"selectApiConfig": "Pilih konfigurasi API",
 	"lockApiConfigAcrossModes": "Kunci konfigurasi API di semua mode dalam workspace ini",
@@ -369,18 +364,12 @@
 	},
 	"announcement": {
 		"title": "Roo+ Code {{version}} Dirilis",
-		"support": "Dukung Roo+ dengan memberi kami bintang di <githubLink>GitHub</githubLink>.",
+		"support": "Dukung Roo+ dengan memberi kami bintang di <githubLink>GitHub</githubLink> dan di <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Yang Baru:",
-			"highlight1": "Provider Moonshot dan Kimi Code — hubungkan ke model Moonshot dengan penemuan model secara langsung, atau masuk ke Kimi Code melalui alur perangkat OAuth.",
-			"highlight2": "Dukungan model terbaru — gunakan Claude Opus 5 di berbagai provider, ditambah Kimi K3, Gemini 3.6 Flash, dan MiniMax-M3.",
-			"highlight3": "Workflow lebih andal — tinggalkan subtask yang terinterupsi dengan bersih, serta indeks file Dart dan teks biasa di codebase-mu."
-		},
-		"cloudAgents": {
-			"heading": "Baru di Cloud:",
-			"specialized": "Memperkenalkan <bold>Explainer</bold>, <bold>Planner</bold>, dan <bold>Coder</bold> - tiga agen cloud khusus untuk meningkatkan alur kerja Anda.",
-			"description": "Agen bekerja bersama di cloud dan dapat dipicu dari web atau melalui Slack.",
-			"tryButton": "Coba Agen Cloud"
+			"highlight1": "Layanan cloud dihapus dan stabilitas diperbaiki. Ekstensi tidak lagi menunggu backend cloud yang dihentikan, sehingga startup dan koneksi jarak jauh lebih cepat dan andal.",
+			"highlight2": "Semble dan code-index dibuat andal. Pencarian codebase terverifikasi checksum dan tangguh — tidak ada lagi pencarian macet atau bilah jendela konteks yang rusak.",
+			"highlight3": "Custom modes ditingkatkan. Setiap mode kini menampilkan deskripsi, dan Anda dapat menginstal banyak mode marketplace sekaligus."
 		}
 	},
 	"reasoning": {
