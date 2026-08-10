@@ -13,7 +13,7 @@ vi.mock("@src/utils/vscode", () => ({
 
 vi.mock("@roo/package", () => ({
 	Package: {
-		version: "3.55.0",
+		version: "3.77.4",
 	},
 }))
 
@@ -41,15 +41,14 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 			const translations: Record<string, string> = {
 				"chat:announcement.release.heading": "What's New:",
 				"chat:announcement.release.highlight1":
-					"Xiaomi MiMo provider: Added Xiaomi MiMo as a first-class API provider so you can configure MiMo models directly in Roo+.",
+					"Cloud services removed, and stability fixed. The extension no longer waits on the retired cloud backend, so startup and remote connections are faster and more reliable.",
 				"chat:announcement.release.highlight2":
-					"Upstream Zoo Code handoff: Pulled in the latest upstream sunset merge and related platform updates to keep Roo+ aligned with the community handoff work.",
+					"Semble and code-index made reliable. Codebase search is checksum-verified and resilient — no more stalled searches or a broken context-window bar.",
 				"chat:announcement.release.highlight3":
-					"Stability fixes across chat and providers: Fixed MCP sign-in copy, Gemini full-tool requests, OpenAI temperature handling, and Markdown single-tilde rendering.",
-				"chat:announcement.handoff.heading": "The Roo Code plugin is not going away.",
+					"Custom modes upgraded. Every mode now shows a description, and you can install multiple marketplace modes in bulk.",
 			}
 
-			if (key === "chat:announcement.title" || key === "chat:announcement.finalRelease.title") {
+			if (key === "chat:announcement.title") {
 				return `Roo+ ${options?.version ?? ""} Released`
 			}
 
@@ -62,20 +61,20 @@ describe("Announcement", () => {
 	it("renders the announcement title and highlights", () => {
 		render(<Announcement hideAnnouncement={vi.fn()} />)
 
-		expect(screen.getByText("Roo+ 3.55.0 Released")).toBeInTheDocument()
+		expect(screen.getByText("Roo+ 3.77.4 Released")).toBeInTheDocument()
 		expect(
 			screen.getByText(
-				"Xiaomi MiMo provider: Added Xiaomi MiMo as a first-class API provider so you can configure MiMo models directly in Roo+.",
+				"Cloud services removed, and stability fixed. The extension no longer waits on the retired cloud backend, so startup and remote connections are faster and more reliable.",
 			),
 		).toBeInTheDocument()
 		expect(
 			screen.getByText(
-				"Upstream Zoo Code handoff: Pulled in the latest upstream sunset merge and related platform updates to keep Roo+ aligned with the community handoff work.",
+				"Semble and code-index made reliable. Codebase search is checksum-verified and resilient — no more stalled searches or a broken context-window bar.",
 			),
 		).toBeInTheDocument()
 		expect(
 			screen.getByText(
-				"Stability fixes across chat and providers: Fixed MCP sign-in copy, Gemini full-tool requests, OpenAI temperature handling, and Markdown single-tilde rendering.",
+				"Custom modes upgraded. Every mode now shows a description, and you can install multiple marketplace modes in bulk.",
 			),
 		).toBeInTheDocument()
 	})
