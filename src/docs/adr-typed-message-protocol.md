@@ -6,7 +6,7 @@
 
 ## Context
 
-The webview↔extension message protocol was a flat [`WebviewMessage`](packages/types/src/vscode-extension-host.ts) interface with a ~187-member literal `type` union and dozens of optional payload fields. Two structural problems resulted:
+The webview↔extension message protocol was a flat [`WebviewMessage`](packages/types/src/vscode-extension-host.ts) interface with a 165-member literal `type` union and dozens of optional payload fields. Two structural problems resulted:
 
 - **Type Lie** — payloads were not tied to their `type`: any message variant could carry any optional field, so the type system could not express "this type has exactly this payload." Handlers relied on `as any` casts (`message.values as any`, `message.settings as any`).
 - **Input Gap** — the webview→extension boundary performed **zero runtime validation**. A compromised or crafted webview could send any message shape and it would be dispatched unchecked to handlers. The CLI inbound path ([`apps/cli/src/agent/message-processor.ts`](apps/cli/src/agent/message-processor.ts)) had the same gap.
@@ -17,7 +17,7 @@ Direction mixing compounded this: inbound `WebviewMessage` also contained outbou
 
 **Adopt a zod schema registry as the single source of truth** — chosen over:
 
-- **Option B: Big-bang conversion of all ~187 types** — high churn and regression risk; would block release.
+- **Option B: Big-bang conversion of all 165 types** — high churn and regression risk; would block release.
 - **Option C: Hand-written parallel types** — reintroduces drift between the schema and the TypeScript type.
 - **Option D: Hand-rolled runtime guards only** — no schema as single source of truth, no `z.infer` type derivation.
 
@@ -40,14 +40,15 @@ Each domain's sender, handler, and tests migrate in the **same PR**; the `Webvie
 
 - **16 security-sensitive message types** fully typed + runtime-validated (checkpoint, allowed/deniedCommands, updateSettings, provider config, marketplace installs, message queue, todos, custom modes).
 - **10 direction-mixed types** moved from `WebviewMessage` into `ExtensionMessage`.
-- **CI ratchet** enforces the 16 baseline types stay registered and the untyped count (149 of 165 total `WebviewMessage.type` members) never increases.
+- **CI ratchet** enforces the 16 baseline types stay registered and the untyped count (147 of 165 total `WebviewMessage.type` members — 18 registered) never increases.
+- **Outbound scaffold (Phase 0)**: [`parseExtensionMessage`](packages/types/src/extension-messages/index.ts) + `extensionMessageSchemas` registry with 5 baseline types (state, commandExecutionStatus, mcpExecutionStatus, fileContent, indexingStatusUpdate) and an outbound ratchet (`EXTENSION_MESSAGE_BASELINE`, limit 72).
 
 This decision unlocked **S2** (domain-split dispatcher under [`src/core/webview/handlers/`](src/core/webview/handlers/)) and **S3** (slimmed `ClineProvider` with extracted services in [`src/core/services/`](src/core/services/)), documented in the changelog.
 
 ## Remaining Work
 
-- **149 transitional (unregistered) message types** still rely on the pass-through path; the ratchet forbids the count from increasing, and broadening is ongoing (worktree ×12, marketplace ×7, skills ×6, rules ×5, code-index ×10, terminal ×9, images ×4, debug ×4, misc).
-- **Outbound `ExtensionMessage` (87 types)** has not yet received the same discriminated-union/zod treatment — lower priority because the extension is the trusted producer.
+- **147 transitional (unregistered) message types** still rely on the pass-through path; the ratchet forbids the count from increasing, and broadening is ongoing (worktree ×12, marketplace ×7, skills ×6, rules ×5, code-index ×10, terminal ×9, images ×4, debug ×4, misc).
+- **Outbound `ExtensionMessage` (77 types)** has not yet received the full discriminated-union/zod treatment — the Phase 0 scaffold ([`parseExtensionMessage`](packages/types/src/extension-messages/index.ts) + registry + outbound ratchet, 5 baseline types) has landed, but the full outbound migration remains — lower priority because the extension is the trusted producer.
 
 ## Consequences
 
@@ -62,7 +63,7 @@ This decision unlocked **S2** (domain-split dispatcher under [`src/core/webview/
 
 - Two code paths exist during the transition: strict validation for registered types, pass-through for unregistered ones.
 - Deriving the full `updateSettings`/`RooCodeSettings` schema incrementally required care (`strict: false` allow-list semantics for the transitional period).
-- ~149 types remain transitional and are not yet runtime-validated.
+- ~147 types remain transitional and are not yet runtime-validated.
 
 ### Neutral
 

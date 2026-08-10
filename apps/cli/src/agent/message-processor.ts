@@ -17,7 +17,14 @@
  * - "invoke": Command invocations
  */
 
-import { ExtensionMessage, ClineMessage, parseWebviewMessage } from "@roo-code/types"
+import {
+	ExtensionMessage,
+	ClineMessage,
+	// Aliased because this module also exports a local `parseExtensionMessage`
+	// (JSON-string parser used by the extension client); the imported one is the
+	// shared zod boundary for extension→CLI messages.
+	parseExtensionMessage as parseExtensionMessageBoundary,
+} from "@roo-code/types"
 import { debugLog } from "@roo-code/core/cli"
 
 import type { StateStore } from "./state-store.js"
@@ -94,15 +101,15 @@ export class MessageProcessor {
 	 * Process an incoming message from the extension host.
 	 *
 	 * This is the main entry point for all extension messages. Every inbound
-	 * message is routed through the shared zod boundary (`parseWebviewMessage`)
-	 * first: registered types are strictly validated, unregistered ones pass
-	 * through structurally, and malformed input (non-object / missing type) is
-	 * rejected without being dispatched.
+	 * message is routed through the shared zod boundary (`parseExtensionMessage`)
+	 * first: registered extension→CLI types are strictly validated, unregistered
+	 * ones pass through structurally, and malformed input (non-object / missing
+	 * type / invalid registered payload) is rejected without being dispatched.
 	 *
 	 * @param message - The raw message from the extension
 	 */
 	processMessage(raw: unknown): void {
-		const parsed = parseWebviewMessage(raw)
+		const parsed = parseExtensionMessageBoundary(raw)
 		if (!parsed.ok) {
 			if (this.options.debug) {
 				debugLog("[MessageProcessor] Rejected invalid message", { error: parsed.error })
@@ -110,11 +117,7 @@ export class MessageProcessor {
 			return
 		}
 
-		// The zod registry types webview->extension messages; CLI inbound traffic
-		// is extension->CLI (ExtensionMessage), whose types are not yet registered
-		// and therefore pass the boundary structurally. Narrow back to the shape
-		// the dispatcher below expects.
-		this.processValidatedMessage(parsed.message as unknown as ExtensionMessage)
+		this.processValidatedMessage(parsed.message)
 	}
 
 	private processValidatedMessage(message: ExtensionMessage): void {

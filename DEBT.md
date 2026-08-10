@@ -47,14 +47,14 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 ### 5. Webview Message Protocol — Transitional (Untyped) Types
 
 **Location**: [`packages/types/src/webview-messages/`](packages/types/src/webview-messages/index.ts)
-**Issue**: 149 of 165 `WebviewMessage.type` members remain unregistered — they have no zod schema and rely on the transitional pass-through in `parseWebviewMessage`. The CI ratchet ([`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs)) enforces the untyped count never increases, but broadening is ongoing.
+**Issue**: 147 of 165 `WebviewMessage.type` members remain unregistered — they have no zod schema and rely on the transitional pass-through in `parseWebviewMessage`. 18 are registered in `webviewMessageSchemas` (16 baseline + `fetchMarketplaceData` + `filterMarketplaceItems`). The CI ratchet ([`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs)) enforces the untyped count never increases — the limit is now 147 (was 149) — but broadening is ongoing.
 **Impact**: Untyped message types still lack runtime validation and payload-type coupling; a crafted webview can send any shape for these types.
 **Suggested Fix**: Migrate remaining domains into the registry per [`plans/s1-message-protocol.md`](plans/s1-message-protocol.md) (S1-M4): worktree ×12, marketplace ×7, skills ×6, rules ×5, code-index ×10, terminal ×9, images ×4, debug ×4, misc.
 
 ### 6. Outbound `ExtensionMessage` Not Yet Typed/Validated
 
 **Location**: [`packages/types/src/vscode-extension-host.ts`](packages/types/src/vscode-extension-host.ts)
-**Issue**: The outbound `ExtensionMessage` union (87 types) has not received the same discriminated-union/zod treatment as `WebviewMessage`. Webview consumers must still trust the producer's shape.
+**Issue**: The outbound `ExtensionMessage` union (77 types) has not received the full discriminated-union/zod treatment as `WebviewMessage`. Phase 0 has scaffolded `parseExtensionMessage` + `extensionMessageSchemas` ([`packages/types/src/extension-messages/index.ts`](packages/types/src/extension-messages/index.ts)) with 5 baseline types registered (state, commandExecutionStatus, mcpExecutionStatus, fileContent, indexingStatusUpdate) and an outbound ratchet (`EXTENSION_MESSAGE_BASELINE`, limit 72); the remaining 72 types and the full `z.infer` migration are still outstanding. Webview consumers must still trust the producer's shape.
 **Impact**: No schema-driven type safety on the extension→webview direction; the "Type Lie" is only half-closed.
 **Suggested Fix**: Apply the same `z.infer` registry + boundary-parse treatment (e.g., `parseExtensionMessage`). Lower priority — the extension is the trusted producer.
 

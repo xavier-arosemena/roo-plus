@@ -38,3 +38,4 @@ export * from "./providers/index.js"
 
 export * from "./utils/looksLikeFilePath.js"
 export * from "./webview-messages/index.js"
+export * from "./extension-messages/index.js"
