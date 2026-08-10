@@ -10,11 +10,18 @@ GH = "/usr/bin/gh"
 OLD_REPO = "xavier-arosemena/roo-plus-old"
 NEW_REPO = "xavier-arosemena/roo-plus"
 
+# Hierarchical tag identifying this process; every log line is prefixed so CI
+# logs are greppable per process.
+TAG = "MIGRATE:ISSUES"
+
+def log(msg):
+    print(f"[{TAG}] {msg}")
+
 def run_gh(*args, input_data=None):
     cmd = [GH] + list(args)
     result = subprocess.run(cmd, capture_output=True, text=True, input=input_data)
     if result.returncode != 0:
-        print(f"  ERROR: {result.stderr.strip()}")
+        log(f"  ERROR: {result.stderr.strip()}")
         return None
     return result.stdout.strip()
 
@@ -48,9 +55,9 @@ def create_issue(title, body, labels, state, old_number):
         if state == "CLOSED":
             run_gh("issue", "close", str(issue_number), "--repo", NEW_REPO,
                    "--comment", "Migrated from old repo (was closed)")
-            print(f"  ✅ Created issue #{issue_number} (CLOSED)")
+            log(f"  ✅ Created issue #{issue_number} (CLOSED)")
         else:
-            print(f"  ✅ Created issue #{issue_number} (OPEN)")
+            log(f"  ✅ Created issue #{issue_number} (OPEN)")
         
         return issue_number
     
@@ -63,8 +70,7 @@ def main():
     # Sort by number ascending
     issues.sort(key=lambda x: x["number"])
     
-    print(f"Migrating {len(issues)} issues from {OLD_REPO} to {NEW_REPO}...")
-    print()
+    log(f"migrating {len(issues)} issues from {OLD_REPO} to {NEW_REPO}")
     
     for issue in issues:
         title = issue["title"]
@@ -73,16 +79,15 @@ def main():
         labels = issue.get("labels") or []
         state = issue.get("state", "OPEN")
         
-        print(f"[#{number}] {title}")
-        print(f"  Labels: {[l['name'] for l in labels]}")
-        print(f"  State: {state}")
+        log(f"[#{number}] {title}")
+        log(f"  Labels: {[l['name'] for l in labels]}")
+        log(f"  State: {state}")
         
         issue_number = create_issue(title, body, labels, state, number)
         
         if not issue_number:
-            print(f"  ❌ Failed")
+            log(f"  ❌ Failed to create issue #{number}")
         
-        print()
         # Rate limit safety
         time.sleep(1)
 

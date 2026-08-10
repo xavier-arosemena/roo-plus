@@ -57,7 +57,12 @@ import os from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { logStep, logInfo, logOk, logError, logSuccess } from "./lib/logger.mjs"
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// Hierarchical tag identifying this process; steps extend it (e.g.
+// SEMBLE-SMOKE:ACQUIRE) so each smoke phase is identifiable in CI logs.
+const TAG = "SEMBLE-SMOKE"
 
 // Overridable so CI/tests can point at a different checkout of the downloader.
 const DOWNLOADER_PATH = process.env.SEMBLE_DOWNLOADER_PATH
@@ -521,8 +526,8 @@ async function main() {
 	try {
 		args = parseArgs(process.argv.slice(2))
 	} catch (error) {
-		console.error(`✖ ${error.message}`)
-		console.error("  Run `node scripts/semble-smoke.mjs --help` for usage.")
+		logError(TAG, error.message)
+		logError(TAG, "run `node scripts/semble-smoke.mjs --help` for usage.")
 		process.exit(1)
 	}
 	if (args.help) {
@@ -555,28 +560,28 @@ async function main() {
 	const archivePath = path.join(workDir, info.archive)
 	const removeWorkDir = !args.keep && !args.dir
 
-	console.log(`Semble smoke test (pinned ${version}, platform ${platformKey})`)
-	console.log(`  archive : ${info.archive}`)
-	console.log(`  binary  : ${info.binary}`)
-	console.log(`  fixture : ${args.fixtureRepo}`)
+	logStep(TAG, `Semble smoke test (pinned ${version}, platform ${platformKey})`)
+	logInfo(TAG, `archive : ${info.archive}`)
+	logInfo(TAG, `binary  : ${info.binary}`)
+	logInfo(TAG, `fixture : ${args.fixtureRepo}`)
 
 	try {
 		// [1/4] Acquire the real binary (download -> verify -> extract -> resolve)
-		console.log("\n[1/4] Acquire binary (download -> verify -> extract -> resolve)")
+		logStep(`${TAG}:ACQUIRE`, "Acquire binary (download -> verify -> extract -> resolve)")
 		let binaryPath = await resolveSembleBinaryPath(extractRoot, info.binary)
 		if (binaryPath) {
-			console.log(`  Reusing extracted binary at ${binaryPath}`)
+			logOk(`${TAG}:ACQUIRE`, `reusing extracted binary at ${binaryPath}`)
 		} else {
 			const url = releaseDownloadUrl(version, info.archive)
-			console.log(`  Downloading ${info.archive} from pinned ${version} release…`)
+			logInfo(`${TAG}:ACQUIRE`, `downloading ${info.archive} from pinned ${version} release…`)
 			await downloadToFile(url, archivePath)
 			const size = (await fs.stat(archivePath)).size
-			console.log(`  Downloaded ${(size / 1024 / 1024).toFixed(1)} MiB`)
+			logOk(`${TAG}:ACQUIRE`, `downloaded ${(size / 1024 / 1024).toFixed(1)} MiB`)
 
-			console.log(`  Verifying SHA-256 against SEMBLE_SHA256[${platformKey}]…`)
+			logInfo(`${TAG}:ACQUIRE`, `verifying SHA-256 against SEMBLE_SHA256[${platformKey}]…`)
 			await verifyChecksum(archivePath, sha256[platformKey])
 
-			console.log("  Extracting archive…")
+			logInfo(`${TAG}:ACQUIRE`, "extracting archive…")
 			const kind = info.archive.endsWith(".zip") ? "zip" : "tar.gz"
 			await extractArchive(archivePath, extractRoot, kind)
 
@@ -589,18 +594,22 @@ async function main() {
 			if (process.platform !== "win32") {
 				await fs.chmod(binaryPath, 0o755)
 			}
-			console.log(`  Resolved binary at ${binaryPath}`)
+			logOk(`${TAG}:ACQUIRE`, `resolved binary at ${binaryPath}`)
 		}
+		logEndGroup()
 
 		// [2/4] Functional check: --help must advertise `search`
-		console.log("\n[2/4] Functional check: `--help` advertises the `search` subcommand")
+		logStep(`${TAG}:HELP`, "Functional check: `--help` advertises the `search` subcommand")
 		const help = await spawnCapture(binaryPath, ["--help"], { timeoutMs: 10_000 })
 		assertHelpOutput(help.stdout)
+		logOk(`${TAG}:HELP`, "`--help` advertises the `search` subcommand")
+		logEndGroup()
 
 		// [3/4] Version check: --version / -V
-		console.log("\n[3/4] Version check: `--version` / `-V` reports a version string")
+		logStep(`${TAG}:VERSION`, "Version check: `--version` / `-V` reports a version string")
 		const { flag, version: cliVersion } = await runVersionCheck(binaryPath)
-		console.log(`  ${flag} reported version ${cliVersion}`)
+		logOk(`${TAG}:VERSION`, `${flag} reported version ${cliVersion}`)
+		logEndGroup()
 
 		// [4/4] Real search against the fixture repo
 		const searchArgs = [
@@ -614,16 +623,18 @@ async function main() {
 			"--max-snippet-lines",
 			String(DEFAULT_MAX_SNIPPET_LINES),
 		]
-		console.log("\n[4/4] Real search against fixture repo")
-		console.log(`  ${path.basename(binaryPath)} ${searchArgs.join(" ")}`)
-		console.log(`  (first run may download an embedding model from HuggingFace; timeout ${args.searchTimeoutMs}ms)`)
+		logStep(`${TAG}:SEARCH`, "Real search against fixture repo")
+		logInfo(`${TAG}:SEARCH`, `${path.basename(binaryPath)} ${searchArgs.join(" ")}`)
+		logInfo(`${TAG}:SEARCH`, `(first run may download an embedding model from HuggingFace; timeout ${args.searchTimeoutMs}ms)`)
 		const search = await spawnCapture(binaryPath, searchArgs, { timeoutMs: args.searchTimeoutMs })
 		const parsed = parseSearchOutput(search.stdout)
 		const first = parsed.results.find((r) => r && r.file_path) ?? parsed.results[0]
-		console.log(`  search returned ${parsed.results.length} result(s); first hit: ${first?.file_path ?? "<none>"}`)
+		logOk(`${TAG}:SEARCH`, `search returned ${parsed.results.length} result(s); first hit: ${first?.file_path ?? "<none>"}`)
+		logEndGroup()
 
-		console.log(
-			`\n✔ Semble smoke test PASSED: ${version} binary downloads, verifies, extracts, passes --help/--version, and returns real search results.`,
+		logSuccess(
+			TAG,
+			`Semble smoke test PASSED: ${version} binary downloads, verifies, extracts, passes --help/--version, and returns real search results.`,
 		)
 	} finally {
 		if (removeWorkDir) {
@@ -635,7 +646,7 @@ async function main() {
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 if (isMain) {
 	main().catch((error) => {
-		console.error(`✖ Semble smoke test FAILED: ${error instanceof Error ? error.message : String(error)}`)
+		logError(TAG, `semble smoke test FAILED: ${error instanceof Error ? error.message : String(error)}`)
 		process.exit(1)
 	})
 }

@@ -70,6 +70,11 @@ import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
+import { logStep, logEndGroup, logInfo, logOk, logWarn, logError, logSuccess } from "./lib/logger.mjs"
+
+// Hierarchical tag identifying this process.
+const TAG = "VERIFY:SEMBLE-COUPLING"
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, "..")
 
@@ -347,7 +352,7 @@ async function main() {
 		process.exit(0)
 	}
 
-	console.log("🔗 Verifying SEMBLE_VERSION ↔ SEMBLE_SHA256 coupling in the Semble downloader...")
+	logStep(TAG, "Verifying SEMBLE_VERSION ↔ SEMBLE_SHA256 coupling in the Semble downloader")
 
 	// 1. Resolve the base commit: explicit/base ref → merge base with HEAD.
 	let baseCommit = null
@@ -365,22 +370,23 @@ async function main() {
 	if (baseCommit === null) {
 		const decision = decideRunMode({ baseResolved: false, strict: isStrict })
 		if (decision.fail) {
-			console.error(`✖ No base commit is available and --strict is set — refusing to skip the coupling gate.`)
-			console.error(`   ${baseDetail}`)
+			logError(TAG, "no base commit is available and --strict is set — refusing to skip the coupling gate.")
+			logError(TAG, baseDetail)
 			process.exit(1)
 		}
-		console.warn(`⚠ No base commit to diff against (${baseDetail}).`)
-		console.warn("   Skipping the coupling check — CI is NOT blocked for an infra reason.")
-		console.warn("   Re-run with --base <ref> (e.g. the PR merge-base) to enforce.")
+		logWarn(TAG, `no base commit to diff against (${baseDetail}).`)
+		logWarn(TAG, "Skipping the coupling check — CI is NOT blocked for an infra reason.")
+		logWarn(TAG, "Re-run with --base <ref> (e.g. the PR merge-base) to enforce.")
 		process.exit(0)
 	}
+	logInfo(TAG, baseDetail)
 
 	// 2. Read both sides of the downloader.
 	let headSource
 	try {
 		headSource = await readFile(DOWNLOADER_PATH, "utf-8")
 	} catch (error) {
-		console.error(`✖ Cannot read ${DOWNLOADER_PATH}: ${error.message}`)
+		logError(TAG, `cannot read ${DOWNLOADER_PATH}: ${error.message}`)
 		process.exit(1)
 	}
 	const baseSource = fileContentAt(baseCommit, DOWNLOADER_REPO_PATH)
@@ -390,17 +396,17 @@ async function main() {
 	try {
 		headConstants = extractConstants(headSource)
 	} catch (error) {
-		console.error(`✖ Cannot parse SEMBLE constants at HEAD: ${error.message}`)
+		logError(TAG, `cannot parse SEMBLE constants at HEAD: ${error.message}`)
 		process.exit(1)
 	}
 	if (baseSource === null) {
 		baseConstants = null
-		console.log(`   ${DOWNLOADER_REPO_PATH} is newly added in this diff (absent at base ${baseCommit.slice(0, 12)}) — added constants count as coupled.`)
+		logInfo(TAG, `${DOWNLOADER_REPO_PATH} is newly added in this diff (absent at base ${baseCommit.slice(0, 12)}) — added constants count as coupled.`)
 	} else {
 		try {
 			baseConstants = extractConstants(baseSource)
 		} catch (error) {
-			console.error(`✖ Cannot parse SEMBLE constants at base ${baseCommit.slice(0, 12)}: ${error.message}`)
+			logError(TAG, `cannot parse SEMBLE constants at base ${baseCommit.slice(0, 12)}: ${error.message}`)
 			process.exit(1)
 		}
 	}
@@ -409,21 +415,22 @@ async function main() {
 	const verdict = assessCoupling(baseConstants, headConstants)
 	const baseVersion = baseConstants?.version ?? "<absent>"
 	const baseHashes = baseConstants ? `${Object.keys(baseConstants.sha256).length} hash(es)` : "<absent>"
-	console.log(`   SEMBLE_VERSION : ${baseVersion} -> ${headConstants.version}`)
-	console.log(`   SEMBLE_SHA256  : ${baseHashes} -> ${Object.keys(headConstants.sha256).length} hash(es)`)
+	logInfo(TAG, `SEMBLE_VERSION : ${baseVersion} -> ${headConstants.version}`)
+	logInfo(TAG, `SEMBLE_SHA256  : ${baseHashes} -> ${Object.keys(headConstants.sha256).length} hash(es)`)
 
 	if (verdict.ok) {
 		const note = verdict.status === "coupled" ? "version and checksums moved together" : "no SEMBLE version/checksum change in this diff"
-		console.log(`\n✅ Semble release coupling OK — ${note}.`)
+		logSuccess(TAG, `Semble release coupling OK — ${note}.`)
+		logEndGroup()
 		process.exit(0)
 	}
 
-	console.error(`\n✖ Semble release coupling VIOLATED (${verdict.status}):`)
-	console.error(`   ${verdict.reason}`)
-	console.error("\n   Release procedure (docs/SEMBLE-RELEASE-GOVERNANCE.md §2):")
-	console.error("     1. Publish fixed assets to Audare-est-Facere/sembleexec under a NEW tag.")
-	console.error("     2. Regenerate SEMBLE_SHA256 from the published artifacts (`shasum -a 256 <archive>`).")
-	console.error("     3. Bump SEMBLE_VERSION and SEMBLE_SHA256 in the SAME commit in semble-downloader.ts.")
+	logError(TAG, `Semble release coupling VIOLATED (${verdict.status}):`)
+	logError(TAG, verdict.reason)
+	logError(TAG, "Release procedure (docs/SEMBLE-RELEASE-GOVERNANCE.md §2):")
+	logError(TAG, "  1. Publish fixed assets to Audare-est-Facere/sembleexec under a NEW tag.")
+	logError(TAG, "  2. Regenerate SEMBLE_SHA256 from the published artifacts (`shasum -a 256 <archive>`).")
+	logError(TAG, "  3. Bump SEMBLE_VERSION and SEMBLE_SHA256 in the SAME commit in semble-downloader.ts.")
 	process.exit(1)
 }
 
@@ -431,7 +438,7 @@ async function main() {
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
 if (isMain) {
 	main().catch((error) => {
-		console.error(`✖ Unexpected error: ${error instanceof Error ? error.message : String(error)}`)
+		logError(TAG, `unexpected error: ${error instanceof Error ? error.message : String(error)}`)
 		process.exit(1)
 	})
 }

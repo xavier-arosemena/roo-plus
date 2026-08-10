@@ -30,6 +30,10 @@ import {
   SOURCE_DIR,
   ROOMODES_PATH,
 } from "./sync-custom-modes.mjs"
+import { logStep, logInfo, logOk, logError, logSuccess } from "./lib/logger.mjs"
+
+// Hierarchical tag identifying this process.
+const TAG = "VERIFY:ROOMODES-SYNC"
 
 async function main() {
   let sourceDirExists = true
@@ -40,39 +44,42 @@ async function main() {
   }
 
   if (!sourceDirExists) {
-    console.error("❌ custom-modes submodule is NOT initialized (custom_modes.d/ missing).")
-    console.error("   A missing submodule is a packaging hazard: sync-custom-modes.mjs would")
-    console.error("   silently reuse stale committed artifacts and the VSIX could ship modes")
-    console.error("   without descriptions. Initialize it and re-run:")
-    console.error("   git submodule update --init --recursive custom-modes")
+    logError(TAG, "custom-modes submodule is NOT initialized (custom_modes.d/ missing).")
+    logError(TAG, "A missing submodule is a packaging hazard: sync-custom-modes.mjs would")
+    logError(TAG, "silently reuse stale committed artifacts and the VSIX could ship modes")
+    logError(TAG, "without descriptions. Initialize it and re-run:")
+    logError(TAG, "git submodule update --init --recursive custom-modes")
     process.exit(1)
   }
+  logOk(TAG, "custom-modes submodule is initialized")
 
+  logStep(TAG, "Regenerating .roomodes from the custom-modes submodule")
   const manifest = await loadManifest()
   const allAgents = await scanAllAgents()
   const curated = filterCuratedAgents(allAgents, manifest)
   const entries = curated.map(({ agent }) => convertToRoomodesEntry(agent))
   const regenerated = generateRoomodesYaml([], entries)
+  logInfo(TAG, `regenerated from ${entries.length} curated modes`)
 
   let committed
   try {
     committed = await fs.readFile(ROOMODES_PATH, "utf-8")
   } catch {
-    console.error(`❌ Could not read ${ROOMODES_PATH}`)
+    logError(TAG, `could not read ${ROOMODES_PATH}`)
     process.exit(1)
   }
 
   if (regenerated === committed) {
-    console.log(`✅ .roomodes is in sync with the custom-modes submodule (${entries.length} curated modes)`)
+    logSuccess(TAG, `.roomodes is in sync with the custom-modes submodule (${entries.length} curated modes)`)
     process.exit(0)
   }
 
-  console.error("❌ .roomodes is OUT OF SYNC with the custom-modes submodule.")
-  console.error("   Regenerate with: node scripts/sync-custom-modes.mjs")
+  logError(TAG, ".roomodes is OUT OF SYNC with the custom-modes submodule.")
+  logError(TAG, "Regenerate with: node scripts/sync-custom-modes.mjs")
   process.exit(1)
 }
 
 main().catch((err) => {
-  console.error("❌ Verify failed:", err.message)
+  logError(TAG, `verification failed: ${err.message}`)
   process.exit(1)
 })

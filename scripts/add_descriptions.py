@@ -27,7 +27,7 @@ CONSOLIDATED = ROOT / "scripts" / "ensure_descriptions.py"
 
 
 def main() -> int:
-    print("⚠ add_descriptions.py is deprecated — delegating to scripts/ensure_descriptions.py", file=sys.stderr)
+    print("[ADD-DESCRIPTIONS] ⚠ add_descriptions.py is deprecated — delegating to scripts/ensure_descriptions.py", file=sys.stderr)
     return subprocess.call([sys.executable, str(CONSOLIDATED), "--dir", "all"] + sys.argv[1:])
 
 

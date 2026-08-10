@@ -30,21 +30,26 @@ import {
 	evaluateRatchet,
 	extractMessageTypesFromSource,
 } from "./message-schema-analysis.mjs"
+import { logStep, logInfo, logError, logSuccess } from "./lib/logger.mjs"
 
 const TYPES_DIST_URL = new URL("../packages/types/dist/index.js", import.meta.url)
 const WEBVIEW_MESSAGE_SOURCE_URL = new URL("../packages/types/src/vscode-extension-host.ts", import.meta.url)
 
+// Hierarchical tag identifying this process.
+const TAG = "VERIFY:MESSAGE-SCHEMAS"
+
 async function main() {
 	// 1. Registry from the built package (fails loudly if the package isn't built).
+	logStep(TAG, "Verifying message-schema ratchet (S1-M4)")
 	let webviewMessageSchemas
 	try {
 		const typesModule = await import(TYPES_DIST_URL.href)
 		webviewMessageSchemas = typesModule.webviewMessageSchemas
 	} catch (error) {
-		console.error("❌ Could not import the message-schema registry from the built @roo-code/types package.")
-		console.error(`   Expected ${TYPES_DIST_URL.pathname} — build it first with:`)
-		console.error("   pnpm --filter @roo-code/types build")
-		console.error(`   (${error.message})`)
+		logError(TAG, "could not import the message-schema registry from the built @roo-code/types package.")
+		logError(TAG, `expected ${TYPES_DIST_URL.pathname} — build it first with:`)
+		logError(TAG, "pnpm --filter @roo-code/types build")
+		logError(TAG, `(${error.message})`)
 		process.exit(1)
 	}
 
@@ -53,7 +58,7 @@ async function main() {
 	try {
 		source = await readFile(WEBVIEW_MESSAGE_SOURCE_URL, "utf-8")
 	} catch (error) {
-		console.error(`❌ Could not read ${WEBVIEW_MESSAGE_SOURCE_URL.pathname}: ${error.message}`)
+		logError(TAG, `could not read ${WEBVIEW_MESSAGE_SOURCE_URL.pathname}: ${error.message}`)
 		process.exit(1)
 	}
 	const typeList = extractMessageTypesFromSource(source)
@@ -64,28 +69,31 @@ async function main() {
 
 	const sample = analysis.untyped.slice(0, 8)
 	const sampleText = sample.length < analysis.untyped.length ? `${sample.join(", ")}, …` : sample.join(", ")
-	console.log(
-		`ℹ Message types: ${typeList.length} total, ${analysis.registered.length} registered, ${analysis.untypedCount} untyped (limit ${UNTYPED_MESSAGE_LIMIT})`,
+	logInfo(
+		TAG,
+		`Message types: ${typeList.length} total, ${analysis.registered.length} registered, ${analysis.untypedCount} untyped (limit ${UNTYPED_MESSAGE_LIMIT})`,
 	)
-	console.log(`ℹ Untyped sample: ${sampleText || "(none)"}`)
+	logInfo(TAG, `Untyped sample: ${sampleText || "(none)"}`)
 
 	if (!verdict.ok) {
 		for (const problem of verdict.problems) {
-			console.error(`❌ ${problem}`)
+			logError(TAG, problem)
 		}
-		console.error(
-			"   Untyped types must not increase; baseline types must never lose their schema (see plans/s1-message-protocol.md, S1-M4).",
+		logError(
+			TAG,
+			"Untyped types must not increase; baseline types must never lose their schema (see plans/s1-message-protocol.md, S1-M4).",
 		)
 		process.exit(1)
 	}
 
-	console.log(
-		`✅ Message-schema ratchet OK: all ${MESSAGE_SCHEMA_BASELINE.length} baseline types registered, ${analysis.untypedCount} untyped ≤ ${UNTYPED_MESSAGE_LIMIT}`,
+	logSuccess(
+		TAG,
+		`Message-schema ratchet OK: all ${MESSAGE_SCHEMA_BASELINE.length} baseline types registered, ${analysis.untypedCount} untyped ≤ ${UNTYPED_MESSAGE_LIMIT}`,
 	)
 	process.exit(0)
 }
 
 main().catch((error) => {
-	console.error("❌ Verify failed:", error.message)
+	logError(TAG, `verify failed: ${error.message}`)
 	process.exit(1)
 })

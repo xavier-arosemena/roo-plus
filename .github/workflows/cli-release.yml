@@ -49,6 +49,7 @@ jobs:
       - name: Get version
         id: version
         run: |
+          echo "::group::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:VERSION] Resolving CLI version"
           if [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
           else
@@ -56,13 +57,22 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=cli-v$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
+          echo "::notice::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:VERSION] Using version: $VERSION"
+          echo "::endgroup::"
 
       - name: Build extension bundle
-        run: pnpm bundle
+        run: |
+          echo "::group::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:BUNDLE] Building extension bundle"
+          pnpm bundle
+          echo "::notice::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:BUNDLE] extension bundle built"
+          echo "::endgroup::"
 
       - name: Build CLI
-        run: pnpm --filter @roo-code/cli build
+        run: |
+          echo "::group::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:CLI] Building CLI"
+          pnpm --filter @roo-code/cli build
+          echo "::notice::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:CLI] CLI built"
+          echo "::endgroup::"
 
       - name: Create release tarball
         id: tarball
@@ -70,6 +80,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           PLATFORM: ${{ matrix.platform }}
         run: |
+          echo "::group::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:TARBALL] Creating release tarball"
           RELEASE_DIR="roo-cli-${PLATFORM}"
           TARBALL="roo-cli-${PLATFORM}.tar.gz"
 
@@ -170,13 +181,15 @@ jobs:
           fi
 
           echo "tarball=$TARBALL" >> $GITHUB_OUTPUT
-          echo "Created: $TARBALL"
+          echo "::notice::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:TARBALL] Created: $TARBALL"
           ls -la "$TARBALL"
+          echo "::endgroup::"
 
       - name: Verify tarball
         env:
           PLATFORM: ${{ matrix.platform }}
         run: |
+          echo "::group::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:VERIFY] Verifying tarball"
           TARBALL="roo-cli-${PLATFORM}.tar.gz"
 
           # Create temp directory for verification.
@@ -185,19 +198,20 @@ jobs:
           # Extract and verify structure.
           tar -xzf "$TARBALL" -C "$VERIFY_DIR"
 
-          echo "Verifying tarball contents..."
+          echo "::notice::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:VERIFY] Verifying tarball contents..."
           ls -la "$VERIFY_DIR/roo-cli-${PLATFORM}/"
 
           # Check required files exist.
-          test -f "$VERIFY_DIR/roo-cli-${PLATFORM}/bin/roo" || { echo "Missing bin/roo"; exit 1; }
-          test -f "$VERIFY_DIR/roo-cli-${PLATFORM}/lib/index.js" || { echo "Missing lib/index.js"; exit 1; }
-          test -f "$VERIFY_DIR/roo-cli-${PLATFORM}/package.json" || { echo "Missing package.json"; exit 1; }
-          test -d "$VERIFY_DIR/roo-cli-${PLATFORM}/extension" || { echo "Missing extension directory"; exit 1; }
+          test -f "$VERIFY_DIR/roo-cli-${PLATFORM}/bin/roo" || { echo "::error::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:VERIFY] Missing bin/roo"; exit 1; }
+          test -f "$VERIFY_DIR/roo-cli-${PLATFORM}/lib/index.js" || { echo "::error::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:VERIFY] Missing lib/index.js"; exit 1; }
+          test -f "$VERIFY_DIR/roo-cli-${PLATFORM}/package.json" || { echo "::error::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:VERIFY] Missing package.json"; exit 1; }
+          test -d "$VERIFY_DIR/roo-cli-${PLATFORM}/extension" || { echo "::error::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:VERIFY] Missing extension directory"; exit 1; }
 
-          echo "Tarball verification passed!"
+          echo "::notice::[CI:CLI-RELEASE:BUILD:${{ matrix.platform }}:VERIFY] Tarball verification passed!"
 
           # Cleanup.
           rm -rf "$VERIFY_DIR"
+          echo "::endgroup::"
 
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -223,6 +237,7 @@ jobs:
       - name: Get version
         id: version
         run: |
+          echo "::group::[CI:CLI-RELEASE:RELEASE:VERSION] Resolving release version"
           if [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
           else
@@ -230,6 +245,8 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=cli-v$VERSION" >> $GITHUB_OUTPUT
+          echo "::notice::[CI:CLI-RELEASE:RELEASE:VERSION] releasing version $VERSION (tag cli-v$VERSION)"
+          echo "::endgroup::"
 
       - name: Download all artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -238,10 +255,13 @@ jobs:
 
       - name: Prepare release files
         run: |
+          echo "::group::[CI:CLI-RELEASE:RELEASE:FILES] Preparing release files"
           mkdir -p release
           find artifacts -name "*.tar.gz" -exec cp {} release/ \;
           find artifacts -name "*.sha256" -exec cp {} release/ \;
+          echo "::notice::[CI:CLI-RELEASE:RELEASE:FILES] release files:"
           ls -la release/
+          echo "::endgroup::"
 
       - name: Extract changelog
         id: changelog
@@ -289,11 +309,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
+          echo "::group::[CI:CLI-RELEASE:RELEASE:CHECK] Checking for existing release"
           if gh release view "$TAG" &> /dev/null; then
             echo "exists=true" >> $GITHUB_OUTPUT
+            echo "::notice::[CI:CLI-RELEASE:RELEASE:CHECK] release $TAG already exists"
           else
             echo "exists=false" >> $GITHUB_OUTPUT
+            echo "::notice::[CI:CLI-RELEASE:RELEASE:CHECK] no existing release $TAG"
           fi
+          echo "::endgroup::"
 
       - name: Delete existing release
         if: steps.check_release.outputs.exists == 'true'
@@ -301,9 +325,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
-          echo "Deleting existing release $TAG..."
+          echo "::group::[CI:CLI-RELEASE:RELEASE:DELETE] Deleting existing release $TAG..."
+          echo "::notice::[CI:CLI-RELEASE:RELEASE:DELETE] deleting existing release $TAG..."
           gh release delete "$TAG" --yes || true
           git push origin ":refs/tags/$TAG" || true
+          echo "::notice::[CI:CLI-RELEASE:RELEASE:DELETE] deleted existing release $TAG"
+          echo "::endgroup::"
 
       - name: Create GitHub Release
         env:
@@ -313,6 +340,7 @@ jobs:
           CHANGELOG_CONTENT: ${{ steps.changelog.outputs.content }}
           CHECKSUMS: ${{ steps.checksums.outputs.checksums }}
         run: |
+          echo "::group::[CI:CLI-RELEASE:RELEASE:CREATE] Creating GitHub Release"
           NOTES_FILE=$(mktemp)
 
           if [ -n "$CHANGELOG_CONTENT" ]; then
@@ -368,7 +396,8 @@ jobs:
             release/*
 
           rm -f "$NOTES_FILE"
-          echo "Release created: https://github.com/${{ github.repository }}/releases/tag/$TAG"
+          echo "::notice::[CI:CLI-RELEASE:RELEASE:CREATE] Release created: https://github.com/${{ github.repository }}/releases/tag/$TAG"
+          echo "::endgroup::"
 
   # Summary job for dry runs
   summary:

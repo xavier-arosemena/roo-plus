@@ -15,11 +15,16 @@ import * as path from "node:path"
 import { fileURLToPath } from "node:url"
 import * as yaml from "yaml"
 
+import { logStep, logEndGroup, logInfo, logOk, logSuccess } from "./lib/logger.mjs"
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, "..")
 const SOURCE_DIR = path.join(ROOT, "custom-modes", "custom_modes.d")
 const ROOMODES_PATH = path.join(ROOT, ".roomodes")
 const CATALOG_PATH = path.join(ROOT, "custom-modes", "AGENT_CATALOG.md")
+
+// Hierarchical tag identifying this process.
+const TAG = "GENERATE:CATALOG"
 
 // Load curated slugs from .roomodes
 const roomodesContent = fs.readFileSync(ROOMODES_PATH, "utf-8")
@@ -116,9 +121,12 @@ for (const [cat, items] of Object.entries(byCategory).sort()) {
   md += "\n"
 }
 
+logStep(TAG, "Generating AGENT_CATALOG.md")
+logInfo(TAG, `source: ${SOURCE_DIR}`)
+logInfo(TAG, `curated slugs loaded from: ${ROOMODES_PATH} (${curatedSlugs.size})`)
 fs.writeFileSync(CATALOG_PATH, md)
-console.log(`\n=== Catalog generated ===`)
-console.log(`Total modes: ${agents.length}`)
-console.log(`Pre-loaded:    ${agents.filter((a) => a.curated).length}`)
-console.log(`Available:     ${agents.filter((a) => !a.curated).length}`)
-console.log(`File: custom-modes/AGENT_CATALOG.md`)
+logOk(TAG, `Total modes: ${agents.length}`)
+logOk(TAG, `Pre-loaded:    ${agents.filter((a) => a.curated).length}`)
+logOk(TAG, `Available:     ${agents.filter((a) => !a.curated).length}`)
+logSuccess(TAG, `Catalog written to custom-modes/AGENT_CATALOG.md`)
+logEndGroup()

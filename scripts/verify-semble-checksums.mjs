@@ -35,7 +35,11 @@ import { get } from "node:https"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { logStep, logEndGroup, logInfo, logOk, logWarn, logError } from "./lib/logger.mjs"
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// Hierarchical tag identifying this process.
+const TAG = "VERIFY:SEMBLE-CHECKSUMS"
 // Overridable so CI/tests can point at a different checkout of the downloader.
 const DOWNLOADER_PATH = process.env.SEMBLE_DOWNLOADER_PATH
 	? path.resolve(process.env.SEMBLE_DOWNLOADER_PATH)
@@ -217,33 +221,34 @@ async function main() {
 	try {
 		source = await readFile(DOWNLOADER_PATH, "utf-8")
 	} catch (error) {
-		console.error(`✖ Cannot read ${DOWNLOADER_PATH}: ${error.message}`)
+		logError(TAG, `cannot read ${DOWNLOADER_PATH}: ${error.message}`)
 		process.exit(1)
 	}
+	logStep(TAG, "Verifying Semble release checksums")
 
 	const version = extractVersion(source)
 	const archives = extractArchives(source)
 	const sha256 = extractSha256(source)
 
-	console.log(`SEMBLE_VERSION : ${version}`)
-	console.log(`Archives       : ${Object.values(archives).map((info) => info.archive).join(", ")}`)
+	logInfo(TAG, `SEMBLE_VERSION : ${version}`)
+	logInfo(TAG, `Archives       : ${Object.values(archives).map((info) => info.archive).join(", ")}`)
 
 	const manifestUrl = MANIFEST_URL(version)
 	let manifest
 	try {
 		const content = await fetchText(manifestUrl, REQUEST_TIMEOUT_MS)
 		manifest = parseManifest(content)
-		console.log(`Manifest       : fetched ${Object.keys(manifest).length} checksum(s) from ${manifestUrl}`)
+		logInfo(TAG, `Manifest       : fetched ${Object.keys(manifest).length} checksum(s) from ${manifestUrl}`)
 	} catch (error) {
 		const message = `offline — skipped: ${error.message}`
 		if (isStrict) {
-			console.error(`✖ ${message}`)
-			console.error("  --strict set, so a network failure is treated as fatal.")
+			logError(TAG, message)
+			logError(TAG, "--strict set, so a network failure is treated as fatal.")
 			process.exit(1)
 		}
-		console.warn(`⚠ ${message}`)
-		console.warn("  Cannot verify SEMBLE_SHA256 against the live release; verification skipped.")
-		console.warn("  Re-run with --strict (or on a networked machine) to enforce the lockstep guard.")
+		logWarn(TAG, message)
+		logWarn(TAG, "Cannot verify SEMBLE_SHA256 against the live release; verification skipped.")
+		logWarn(TAG, "Re-run with --strict (or on a networked machine) to enforce the lockstep guard.")
 		process.exit(0)
 	}
 
@@ -263,19 +268,21 @@ async function main() {
 	}
 
 	if (problems.length > 0) {
-		console.error(
-			`✖ SEMBLE_VERSION was bumped without regenerating SEMBLE_SHA256 — run \`shasum -a 256 <archive>\` for each platform and update SEMBLE_SHA256.`,
+		logError(
+			TAG,
+			`SEMBLE_VERSION was bumped without regenerating SEMBLE_SHA256 — run \`shasum -a 256 <archive>\` for each platform and update SEMBLE_SHA256.`,
 		)
-		console.error(`  Detected ${problems.length} mismatch(es) for ${version}:`)
-		for (const problem of problems) console.error(problem)
+		logError(TAG, `Detected ${problems.length} mismatch(es) for ${version}:`)
+		for (const problem of problems) logError(TAG, problem)
 		process.exit(1)
 	}
 
-	console.log(`✔ All ${Object.keys(archives).length} archives at ${version} match SEMBLE_SHA256.`)
+	logOk(TAG, `All ${Object.keys(archives).length} archives at ${version} match SEMBLE_SHA256.`)
+	logEndGroup()
 	process.exit(0)
 }
 
 main().catch((error) => {
-	console.error(`✖ Unexpected error: ${error instanceof Error ? error.message : String(error)}`)
+	logError(TAG, `unexpected error: ${error instanceof Error ? error.message : String(error)}`)
 	process.exit(1)
 })

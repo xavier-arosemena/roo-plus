@@ -3,17 +3,23 @@
 import { spawnSync } from "child_process"
 import { writeFileSync } from "fs"
 
+import { logStep, logEndGroup, logInfo, logOk, logWarn, logError, logSuccess } from "./lib/logger.mjs"
+
+// Hierarchical tag identifying this process.
+const TAG = "BOOTSTRAP"
+
 if (process.env.BOOTSTRAP_IN_PROGRESS) {
-	console.log("⏭️  Bootstrap already in progress, continuing with normal installation...")
+	logInfo(TAG, "bootstrap already in progress, continuing with normal installation...")
 	process.exit(0)
 }
 
 // If we're already using pnpm, just exit normally.
 if (process.env.npm_execpath && process.env.npm_execpath.includes("pnpm")) {
+	logInfo(TAG, "already running under pnpm — skipping bootstrap")
 	process.exit(0)
 }
 
-console.log("🚀 Bootstrapping to pnpm...")
+logStep(TAG, "Bootstrapping to pnpm")
 
 /**
  * Run pnpm install with bootstrap environment variable.
@@ -38,7 +44,7 @@ function ensurePackageJson() {
 	// existsSync and writeFileSync.
 	try {
 		writeFileSync("package.json", JSON.stringify({ name: "temp", private: true }, null, 2), { flag: "wx" })
-		console.log("📦 Creating temporary package.json...")
+		logInfo(TAG, "creating temporary package.json...")
 	} catch (error) {
 		if (error.code === "EEXIST") {
 			// File already exists — nothing to do.
@@ -55,13 +61,13 @@ try {
 	let pnpmInstall
 
 	if (pnpmCheck.status === 0) {
-		console.log("✨ Found pnpm")
+		logOk(TAG, "found pnpm")
 		pnpmInstall = runPnpmInstall("pnpm")
 	} else {
-		console.log("⚠️  Unable to find pnpm, installing it temporarily...")
+		logWarn(TAG, "unable to find pnpm, installing it temporarily...")
 		ensurePackageJson()
 
-		console.log("📥 Installing pnpm locally...")
+		logInfo(TAG, "installing pnpm locally...")
 
 		const npmInstall = spawnSync("npm", ["install", "--no-save", "pnpm"], {
 			stdio: "inherit",
@@ -69,22 +75,23 @@ try {
 		})
 
 		if (npmInstall.status !== 0) {
-			console.error("❌ Failed to install pnpm locally")
+			logError(TAG, "failed to install pnpm locally")
 			process.exit(1)
 		}
 
-		console.log("🔧 Running pnpm install with local installation...")
+		logInfo(TAG, "running pnpm install with local installation...")
 		pnpmInstall = runPnpmInstall("node_modules/.bin/pnpm")
 	}
 
 	if (pnpmInstall.status !== 0) {
-		console.error("❌ pnpm install failed")
+		logError(TAG, "pnpm install failed")
 		process.exit(pnpmInstall.status)
 	}
 
-	console.log("🎉 Bootstrap completed successfully!")
+	logSuccess(TAG, "bootstrap completed successfully!")
+	logEndGroup()
 	process.exit(0)
 } catch (error) {
-	console.error("💥 Bootstrap failed:", error.message)
+	logError(TAG, `bootstrap failed: ${error.message}`)
 	process.exit(1)
 }

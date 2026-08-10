@@ -18,6 +18,13 @@ const readFile = fs.readFile
 const readdir = fs.readdir
 const stat = fs.stat
 
+// Hierarchical tag identifying this process; every log line is prefixed so CI
+// logs are greppable per process.
+const TAG = "VERIFY:TRANSLATIONS"
+const log = (msg) => console.log(`[${TAG}] ${msg}`)
+const logWarn = (msg) => console.warn(`[${TAG}] ${msg}`)
+const logErr = (msg) => console.error(`[${TAG}] ${msg}`)
+
 // Process command line arguments
 const args = process.argv.slice(2).reduce(
 	(acc, arg) => {
@@ -246,31 +253,29 @@ async function checkAreaTranslations(area) {
 function outputResults(missingTranslations, area) {
 	let hasMissingTranslations = false
 
-	console.log(`\n${area === "core" ? "BACKEND" : "FRONTEND"} Missing Translations Report:\n`)
+	log(`${area === "core" ? "BACKEND" : "FRONTEND"} Missing Translations Report:`)
 
 	for (const [locale, files] of Object.entries(missingTranslations)) {
 		if (Object.keys(files).length === 0) {
-			console.log(`✅ ${locale}: No missing translations`)
+			log(`✅ ${locale}: No missing translations`)
 			continue
 		}
 
 		hasMissingTranslations = true
-		console.log(`📝 ${locale}:`)
+		log(`📝 ${locale}:`)
 
 		for (const [fileName, missingItems] of Object.entries(files)) {
 			if (missingItems.file) {
-				console.log(`  - ${fileName}: ${missingItems.file}`)
+				log(`  - ${fileName}: ${missingItems.file}`)
 				continue
 			}
 
-			console.log(`  - ${fileName}: ${missingItems.length} missing translations`)
+			log(`  - ${fileName}: ${missingItems.length} missing translations`)
 
 			for (const { key, englishValue } of missingItems) {
-				console.log(`      ${key}: "${englishValue}"`)
+				log(`      ${key}: "${englishValue}"`)
 			}
 		}
-
-		console.log("")
 	}
 
 	return hasMissingTranslations
@@ -395,7 +400,7 @@ function outputPackageNlsResults(missingTranslations) {
 // Main function to find missing translations
 async function findMissingTranslations() {
 	try {
-		console.log("Starting translation check...")
+		log(`starting translation check for areas: ${areasToCheck.join(", ")}`)
 
 		let anyAreaMissingTranslations = false
 
@@ -412,18 +417,18 @@ async function findMissingTranslations() {
 
 		// Summary
 		if (!anyAreaMissingTranslations) {
-			console.log("\n✅ All translations are complete across all checked areas!")
+			log("✅ All translations are complete across all checked areas!")
 		} else {
-			console.log("\n✏️  To add missing translations:")
-			console.log("1. Add the missing keys to the corresponding locale files")
-			console.log("2. Translate the English values to the appropriate language")
-			console.log("3. Run this script again to verify all translations are complete")
+			log("✏️  To add missing translations:")
+			log("1. Add the missing keys to the corresponding locale files")
+			log("2. Translate the English values to the appropriate language")
+			log("3. Run this script again to verify all translations are complete")
 			// Exit with error code to fail CI checks
 			process.exit(1)
 		}
 	} catch (error) {
-		console.error("Error:", error.message)
-		console.error(error.stack)
+		logErr(`Error: ${error.message}`)
+		logErr(error.stack)
 		process.exit(1)
 	}
 }
