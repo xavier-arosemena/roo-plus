@@ -47,7 +47,7 @@ The upstream Roo Code Cloud backend was permanently shut down (HTTP 410). All cl
 
 - Every mode now has a description/subtitle (no more blank descriptions — enforced at every layer).
 - **Bulk install**: select multiple marketplace modes with checkboxes → install all at once with progress (3.75.0).
-- Single canonical `custom_modes.d/` catalog (290 modes), hermetic builds via pinned submodule, 89 curated preloaded modes.
+- Single canonical `custom_modes.d/` catalog (301 modes), hermetic builds via pinned submodule, 90 curated preloaded modes.
 - **These are the "Custom modes" theme of the current announcement.**
 
 ### 4. Security hardening (3.76.0)

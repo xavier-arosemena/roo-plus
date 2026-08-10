@@ -7,7 +7,7 @@ architecture review recommendations #3, #4 and #7.
 ## Canonical source: `custom-modes/custom_modes.d/`
 
 `custom-modes/custom_modes.d/` (nested `customModes:` wrapper, **one mode per
-file**, 290 modes) is the canonical store. It is what feeds the shipped
+file**, 301 modes) is the canonical store. It is what feeds the shipped
 artifacts via [`scripts/sync-custom-modes.mjs`](sync-custom-modes.mjs):
 
 ```
@@ -43,7 +43,7 @@ Guarantees:
 - **Deterministic derivation fallback** when no curated entry exists and the
   current description is missing or a clone of `roleDefinition`:
   `whenToUse` → `roleDefinition` first line.
-- **Idempotent**: re-running produces zero churn (verified on all 290 modes).
+- **Idempotent**: re-running produces zero churn (verified on all 301 modes).
 - **Never destroys a good description**: for unknown slugs, an existing good
   description is preserved; only missing/clone descriptions are replaced.
 - **Surgical edits**: only the `description:` scalar is replaced in place — all

@@ -39,13 +39,13 @@ whole sync pipeline around it** (Issue #159):
 - **Remove** the legacy `custom-modes/agents/` catalog, the derived
   `vs-code/converted_modes.d/` set, the monolithic `custom_modes.yaml`, and the
   split `.roomodes.00…10` batch artifacts. `custom_modes.d/` (one YAML file per
-  mode, 290 modes) is the only source of truth.
+  mode, 301 modes) is the only source of truth.
 - **Regenerate all shipped artifacts from the canonical source**:
   [`scripts/sync-custom-modes.mjs`](../scripts/sync-custom-modes.mjs) consumes
   `custom_modes.d/**/*.yaml` (guided by the curation manifest
   [`custom-modes/manifest.json`](../custom-modes/manifest.json)) and emits
   `.roomodes`, `pre-installed-modes.yml`, and the marketplace `modes.yml`
-  (301 items = the 290-mode catalog + 11 preserved originals).
+  (301 items = the 301-mode catalog).
 - **Keep SOURCE-WINS merge semantics** (`mergeRoomodesModes()`): on slug conflict
   the freshly generated canonical entry wins, so re-running sync repairs stale
   committed entries; manual additions whose slug is absent from the catalog are
@@ -81,7 +81,7 @@ whole sync pipeline around it** (Issue #159):
 - The removed legacy layouts (`agents/`, `converted_modes.d/`, monolithic
   `custom_modes.yaml`, `.roomodes.00…10`) break any external tooling that
   depended on them.
-- The curated preload set changed slightly (89 curated modes vs the previous 90),
+- The curated preload set changed slightly (90 curated modes vs the previous 89),
   which is user-visible in the mode selector and the READMEs.
 
 ### Neutral

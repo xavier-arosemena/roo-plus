@@ -1,5 +1,13 @@
 # Roo+ Changelog
 
+## [Unreleased] — Mode Count Unification
+
+### 🔧 Chores
+
+- **Canonical catalog unified to 301 modes (Closes: #174)** — The 11 previously "preserved originals" (`mode-writer`, `skill-writer`, `tool-writer`, `devops`, `documentation-writer`, `coding-teacher`, `user-story-creator`, `project-research`, `merge-resolver`, `jest-test-engineer`, `google-genai-developer`) were added as catalog YAML files in [`custom-modes/custom_modes.d/`](custom-modes/custom_modes.d/), folding them into the single canonical catalog. The canonical catalog is now **301 modes**, the preloaded set is **90 modes** (the `devops` mode was promoted in [`custom-modes/manifest.json`](custom-modes/manifest.json)), and **211 additional modes** are available in the Modes Marketplace. All documentation — READMEs, [`scripts/DESCRIPTIONS.md`](scripts/DESCRIPTIONS.md), the ADR, [`DEBT.md`](DEBT.md), and the `custom-modes/` submodule docs — was unified to the corrected counts; [`AGENT_CATALOG.md`](custom-modes/AGENT_CATALOG.md) regenerated.
+
+---
+
 ## [3.77.4] — 2026-08-07
 
 ### Patch — Initial Webview Redesign & Webview/Marketplace Reliability
