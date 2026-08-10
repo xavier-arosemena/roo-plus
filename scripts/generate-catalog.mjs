@@ -91,7 +91,7 @@ let md = "# Roo+ Agent Catalog\n\n"
 md += `Total: **${agents.length} modes** — `
 md += `**${agents.filter((a) => a.curated).length} pre-loaded** into [\`.roomodes\`](../.roomodes) and \`pre-installed-modes.yml\`, `
 md += `**${agents.filter((a) => !a.curated).length} additional modes** available for import from the Modes Marketplace.\n\n`
-md += "> **Two user-facing lists.** The **Preloaded** list (curated via `custom-modes/manifest.json`) ships in `.roomodes` and `src/assets/marketplace/pre-installed-modes.yml`. The **Marketplace** (`src/assets/marketplace/modes.yml`) contains **301 items** — the full 290-mode catalog plus 11 preserved originals. Built-in slugs (`architect`, `code`, `ask`, `debug`, `orchestrator`) are excluded from all lists.\n\n"
+md += "> **Two user-facing lists.** The **Preloaded** list (curated via `custom-modes/manifest.json`) ships in `.roomodes` and `src/assets/marketplace/pre-installed-modes.yml`. The **Marketplace** (`src/assets/marketplace/modes.yml`) contains **301 items** — the unified `custom_modes.d/` catalog, with every item tagged `custom-modes` and no preserved originals. Built-in slugs (`architect`, `code`, `ask`, `debug`, `orchestrator`) are excluded from all lists.\n\n"
 md += "To add a mode to your pre-loaded set, see [Adding a Mode](../README.md#adding-a-mode) in the README.\n\n"
 md += "## All Modes\n\n"
 md += "| Status | Slug | Name | Category | Description |\n"

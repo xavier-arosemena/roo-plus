@@ -346,42 +346,48 @@ export function dedupeMarketplaceById(originalItems, agentItems) {
 }
 
 /**
- * Generate marketplace modes.yml with ALL agents + preserve original marketplace items.
+ * Generate marketplace modes.yml with ALL catalog agents.
+ *
+ * Issue #174 unified the catalog: every marketplace item now comes from the
+ * canonical catalog and carries the `custom-modes` tag — there are NO orphan
+ * "preserved originals" anymore. `dedupeMarketplaceById` is kept as a safety
+ * net that drops any legacy non-custom-modes item still committed in modes.yml
+ * (catalog wins), but with a unified catalog the preserved set is always empty.
  */
 async function generateMarketplaceModes(allAgents, curatedSlugs) {
-  // 1. Read existing marketplace modes.yml to preserve original items
-  let originalItems = []
+  // 1. Convert all agents to marketplace items (single source of truth).
+  const agentItems = allAgents.map(({ agent }) => convertToMarketplaceItem(agent, curatedSlugs))
+
+  // 2. Safety net: drop any legacy non-custom-modes items still committed in the
+  // existing modes.yml (catalog wins). With the unified 301-mode catalog this set
+  // is empty — the check only guards against accidental orphans reappearing.
+  let preservedOriginals = []
   try {
     const existingContent = await fs.readFile(MARKETPLACE_MODES_PATH, "utf-8")
     const existing = yaml.parse(existingContent)
     if (existing?.items) {
-      // Keep only items that are NOT from the custom-modes submodule
-      originalItems = existing.items.filter((item) => !item.tags?.includes("custom-modes"))
-      console.log(`   Preserved ${originalItems.length} original marketplace items`)
+      const originalItems = existing.items.filter((item) => !item.tags?.includes("custom-modes"))
+      if (originalItems.length > 0) {
+        const { preserved, dropped } = dedupeMarketplaceById(originalItems, agentItems)
+        preservedOriginals = preserved
+        console.log(
+          `   Note: dropped ${dropped.length} legacy non-custom-modes item(s) colliding with the catalog; ` +
+            `all ${originalItems.length} items are now unified into the custom-modes catalog.`,
+        )
+      }
     }
   } catch {
-    console.log("   No existing marketplace modes.yml found, creating new one")
+    // No existing modes.yml — building a fresh unified catalog
   }
 
-  // 2. Convert all agents to marketplace items
-  const agentItems = allAgents.map(({ agent }) => convertToMarketplaceItem(agent, curatedSlugs))
-
-  // 3. Dedupe preserved originals by id with CATALOG-WINS semantics.
-  const { preserved: preservedOriginals, dropped } = dedupeMarketplaceById(originalItems, agentItems)
-  if (dropped.length > 0) {
-    console.log(
-      `   Dropped ${dropped.length} legacy duplicate(s) colliding with catalog ids: ${dropped.map((d) => d.id).join(", ")}`,
-    )
-  }
-
-  // 4. Combine: preserved original items first, then agent items
+  // 3. Combine: preserved originals first (always empty after unification), then agent items.
   const allItems = [...preservedOriginals, ...agentItems]
 
-  // 5. Built-in collision guard: the extension core owns these slugs and they
+  // 4. Built-in collision guard: the extension core owns these slugs and they
   // must never appear in the marketplace catalog.
   assertNoBuiltInSlugs({ marketplaceItems: allItems })
 
-  // 6. Write combined modes.yml
+  // 5. Write modes.yml (all items tagged `custom-modes`).
   const output = yaml.stringify({ items: allItems }, { lineWidth: 0 })
   await fs.writeFile(MARKETPLACE_MODES_PATH, output, "utf-8")
 
@@ -523,19 +529,19 @@ async function main() {
   ])
 
   const { originalCount, agentCount } = await generateMarketplaceModes(allAgents, curatedSlugsForMarketplace)
-  console.log(`   Original marketplace items preserved: ${originalCount}`)
-  console.log(`   Custom mode agents added to catalog: ${agentCount}`)
+  console.log(`   Legacy original marketplace items preserved: ${originalCount} (unified catalog — should be 0)`)
+  console.log(`   Unified catalog agents in marketplace: ${agentCount}`)
 
   // ===============================
   // SUMMARY
   // ===============================
   console.log("\n" + "═".repeat(50))
   console.log(`✅ Sync complete!`)
-  console.log(`   📄 .roomodes: ${totalModes} custom modes`)
+  console.log(`   📄 .roomodes: ${totalModes} custom modes (preloaded)`)
   console.log(`   📦 pre-installed-modes.yml: ${totalModes} modes (for extension bundling)`)
-  console.log(`   � Modes Marketplace: ${originalCount + agentCount} items available`)
-  console.log(`      - ${agentCount} agents from custom-modes submodule`)
-  console.log(`      - ${originalCount} original marketplace items`)
+  console.log(`   � Modes Marketplace: ${originalCount + agentCount} items available (unified 301-mode catalog)`)
+  console.log(`      - ${agentCount} modes from the unified custom-modes catalog (all tagged custom-modes)`)
+  console.log(`      - ${originalCount} legacy original marketplace items (unified: 0)`)
 
   // Category breakdown for curated
   const byCategory = {}
