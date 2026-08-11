@@ -111,6 +111,13 @@ export interface ExtensionMessage {
 		type: "WAIT_TIMEOUT" | "INIT_TIMEOUT"
 		timeout: number
 	}
+	/**
+	 * For `currentCheckpointUpdated`: whether the checkpoint commit was made
+	 * with `suppressMessage` (the producer mirrors the checkpoint event's flag
+	 * into the outbound message; the webview currently reads the flag from the
+	 * accompanying `checkpoint_saved` ClineMessage instead).
+	 */
+	suppressMessage?: boolean
 	action?:
 		| "chatButtonClicked"
 		| "settingsButtonClicked"

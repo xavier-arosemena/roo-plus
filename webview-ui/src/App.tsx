@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useEvent } from "react-use"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
-import { type ExtensionMessage, TelemetryEventName } from "@roo-code/types"
+import { type ExtensionMessage, TelemetryEventName, parseExtensionMessage } from "@roo-code/types"
 
 import TranslationProvider from "./i18n/TranslationContext"
 import { MarketplaceViewStateManager } from "./components/marketplace/MarketplaceViewStateManager"
@@ -112,7 +112,16 @@ const App = () => {
 
 	const onMessage = useCallback(
 		(e: MessageEvent) => {
-			const message: ExtensionMessage = e.data
+			// Boundary-validate registered extension→webview messages (Phase 2,
+			// Domain 1 — UI/navigation + state variants): malformed registered
+			// payloads fail loudly in dev, while unregistered types still pass
+			// through structurally.
+			const parsed = parseExtensionMessage(e.data)
+			if (!parsed.ok) {
+				console.error(`[App] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 
 			if (message.type === "action" && message.action) {
 				// Handle switchTab action with tab parameter

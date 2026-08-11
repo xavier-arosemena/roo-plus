@@ -81,7 +81,19 @@ export const switchModeMessageSchema = z.object({
 	type: z.literal("switchMode"),
 })
 
-/** Unhandled / outbound-leaning inbound union member. Registered minimally. */
+/**
+ * Share-task success acknowledgment (`shareTaskSuccess`) — INBOUND variant.
+ *
+ * Direction-mixed: `shareTaskSuccess` is a member of BOTH the inbound
+ * `WebviewMessage` union (this schema — where the webview acknowledges a
+ * successful share) and the outbound `ExtensionMessage` union. The OUTBOUND
+ * registration (Phase 2, Domain 5 — `packages/types/src/extension-messages/marketplace.ts`)
+ * is AUTHORITATIVE (the outbound union is the source of truth and the ratchet
+ * demands it); there is no outbound producer. This inbound minimal schema is
+ * KEPT for union completeness pending the Phase 3 direction-mixing cleanup
+ * (moving outbound-only types out of `WebviewMessage`) — do NOT remove it in
+ * Phase 2. Disambiguated in favor of this inbound schema at the package root.
+ */
 export const shareTaskSuccessMessageSchema = z.object({
 	type: z.literal("shareTaskSuccess"),
 })

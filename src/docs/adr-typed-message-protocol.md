@@ -43,13 +43,14 @@ Each domain's sender, handler, and tests migrate in the **same PR**; the `Webvie
 - **10 direction-mixed types** moved from `WebviewMessage` into `ExtensionMessage`.
 - **CI ratchet** enforces the 165 baseline types stay registered and the untyped count never increases (now 0/165).
 - **Outbound scaffold (Phase 0)**: [`parseExtensionMessage`](packages/types/src/extension-messages/index.ts) + `extensionMessageSchemas` registry with 5 baseline types (state, commandExecutionStatus, mcpExecutionStatus, fileContent, indexingStatusUpdate) and an outbound ratchet (`EXTENSION_MESSAGE_BASELINE`, limit 72).
+- **Phase 2 (DELIVERED 2026-08-11)**: all **77** `ExtensionMessage.type` members registered in `extensionMessageSchemas` — **0 untyped**, `UNTYPED_EXTENSION_MESSAGE_LIMIT = 0`. Landed as 8 atomic per-domain change sets (UI/navigation+state variants, model/status, task/chat/history, checkpoint/modes, marketplace, code-index, worktree, skills/rules/history-import) following the same-PR rule (schema + registry + producer + consumer + tests + ratchet together). Both directions are now fully typed: the outbound "Type Lie" is closed. The webview boundary (`App.tsx`, `ExtensionStateContext.tsx`, per-domain consumers) and the CLI boundary (`apps/cli/src/agent/message-processor.ts`) strictly validate all registered outbound types via `parseExtensionMessage`.
 
 This decision unlocked **S2** (domain-split dispatcher under [`src/core/webview/handlers/`](src/core/webview/handlers/)) and **S3** (slimmed `ClineProvider` with extracted services in [`src/core/services/`](src/core/services/)), documented in the changelog.
 
 ## Remaining Work
 
 - **Inbound migration is COMPLETE** (Phase 1 delivered 2026-08-11): all 165 `WebviewMessage.type` members are registered and runtime-validated; `parseWebviewMessage` now strictly validates every message at the boundary. Residual: 11 "loose" union members registered with minimal structural schemas are unhandled by any dispatcher (direction-mixed/dead — `marketplaceButtonClicked` is confirmed outbound-only); these belong to the Phase 3 direction-mixing cleanup.
-- **Outbound `ExtensionMessage` (77 types)** has not yet received the full discriminated-union/zod treatment — the Phase 0 scaffold ([`parseExtensionMessage`](packages/types/src/extension-messages/index.ts) + registry + outbound ratchet, 5 baseline types) has landed, but the remaining 72 types await the Phase 2 migration. Lower priority because the extension is the trusted producer.
+- **Outbound migration is COMPLETE** (Phase 2 delivered 2026-08-11): all 77 `ExtensionMessage.type` members are registered and runtime-validated at the webview + CLI boundaries via `parseExtensionMessage`; `UNTYPED_EXTENSION_MESSAGE_LIMIT = 0`. Residual (Phase 3 cleanup): the now-vestigial unregistered pass-through branch in `parseExtensionMessage` (unreachable — all 77 types registered), the direction-mixing cleanup (moving outbound-only types out of `WebviewMessage` — the 11 loose types registered minimally in Phase 1), and the interface-level `any` escapes (`payload`, `values`, `value`, `settings`, `marketplaceInstalledMetadata`) hardened as each domain typed its payloads.
 
 ## Consequences
 
@@ -62,9 +63,9 @@ This decision unlocked **S2** (domain-split dispatcher under [`src/core/webview/
 
 ### Negative
 
-- Two code paths existed during the transition (strict validation for registered types, pass-through for unregistered ones); with Phase 1 complete the pass-through path is now vestigial — every inbound type is strictly validated.
+- Two code paths existed during the transition (strict validation for registered types, pass-through for unregistered ones); with Phase 1 + Phase 2 complete the pass-through path is now vestigial — every inbound and outbound type is strictly validated (the outbound pass-through branch in `parseExtensionMessage` is unreachable and slated for removal in Phase 3).
 - Deriving the full `updateSettings`/`RooCodeSettings` schema incrementally required care (`strict: false` allow-list semantics for the transitional period).
-- The inbound direction is fully typed; the outbound `ExtensionMessage` direction still trusts the producer (Phase 2).
+- Both directions are now fully typed and runtime-validated at their boundaries; a few outbound union members remain registered minimally because they are direction-mixed or vestigial (no outbound producer) — documented per-domain and targeted by the Phase 3 cleanup.
 
 ### Neutral
 

@@ -33,6 +33,7 @@ interface MockIndexManager {
 	isInitialized: boolean
 	startIndexing: Mock
 	stopIndexing: Mock
+	clearIndexData: Mock
 	getCurrentStatus: Mock
 }
 
@@ -57,6 +58,7 @@ function createManager(overrides: Partial<MockIndexManager> = {}): MockIndexMana
 		isInitialized: false,
 		startIndexing: vi.fn().mockResolvedValue(undefined),
 		stopIndexing: vi.fn(),
+		clearIndexData: vi.fn().mockResolvedValue(undefined),
 		getCurrentStatus: vi.fn().mockReturnValue({
 			systemStatus: "Standby",
 			message: "",
@@ -294,6 +296,148 @@ describe("handleCodeIndexMessages — indexing regression (VSIX #117)", () => {
 			expect(provider.postStateToWebview).toHaveBeenCalled()
 			// The manager reacts to the settings change.
 			expect(manager.handleSettingsChange).toHaveBeenCalledWith(provider.contextProxy)
+		})
+
+		it("posts the success settings payload validated against the codebase-index config schema (drains the settings: any escape)", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "saveCodeIndexSettingsAtomic",
+				codeIndexSettings: {
+					...validSettings,
+					codeIndexOpenAiKey: "sk-test",
+				},
+			} as unknown as WebviewMessage)
+
+			// The success `codeIndexSettingsSaved` payload carries the persisted
+			// global-state config — boundary-validated via `codebaseIndexConfigSchema`
+			// in the producer (drains the flat interface's `settings?: any` escape).
+			expect(provider.postMessageToWebview).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: "codeIndexSettingsSaved",
+					success: true,
+					settings: expect.objectContaining({
+						codebaseIndexEnabled: true,
+						codebaseIndexQdrantUrl: "http://localhost:6333",
+						codebaseIndexEmbedderProvider: "openai",
+						codebaseIndexEmbedderModelId: "text-embedding-3-small",
+					}),
+				}),
+			)
+		})
+
+		it("posts the codeIndexSettingsSaved error form when the settings save throws", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+			vi.mocked(provider.contextProxy.setValue).mockRejectedValue(new Error("storage boom"))
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "saveCodeIndexSettingsAtomic",
+				codeIndexSettings: validSettings,
+			} as unknown as WebviewMessage)
+
+			expect(provider.postMessageToWebview).toHaveBeenCalledWith({
+				type: "codeIndexSettingsSaved",
+				success: false,
+				error: "storage boom",
+			})
+		})
+	})
+
+	describe("requestCodeIndexSecretStatus", () => {
+		it("posts the secret-presence booleans for every provider secret", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+			vi.mocked(provider.context.secrets.get).mockResolvedValue("sk-test")
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "requestCodeIndexSecretStatus",
+			} as unknown as WebviewMessage)
+
+			expect(provider.postMessageToWebview).toHaveBeenCalledWith({
+				type: "codeIndexSecretStatus",
+				values: {
+					hasOpenAiKey: true,
+					hasQdrantApiKey: true,
+					hasOpenAiCompatibleApiKey: true,
+					hasGeminiApiKey: true,
+					hasMistralApiKey: true,
+					hasVercelAiGatewayApiKey: true,
+					hasOpenRouterApiKey: true,
+				},
+			})
+		})
+
+		it("posts all-false secret status when no secrets are stored", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "requestCodeIndexSecretStatus",
+			} as unknown as WebviewMessage)
+
+			expect(provider.postMessageToWebview).toHaveBeenCalledWith({
+				type: "codeIndexSecretStatus",
+				values: {
+					hasOpenAiKey: false,
+					hasQdrantApiKey: false,
+					hasOpenAiCompatibleApiKey: false,
+					hasGeminiApiKey: false,
+					hasMistralApiKey: false,
+					hasVercelAiGatewayApiKey: false,
+					hasOpenRouterApiKey: false,
+				},
+			})
+		})
+	})
+
+	describe("clearIndexData", () => {
+		it("posts an indexCleared success after clearing", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "clearIndexData",
+			} as unknown as WebviewMessage)
+
+			expect(manager.clearIndexData).toHaveBeenCalled()
+			expect(provider.postMessageToWebview).toHaveBeenCalledWith({
+				type: "indexCleared",
+				values: { success: true },
+			})
+		})
+
+		it("posts an indexCleared error when no workspace is open", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+			vi.mocked(provider.getCurrentWorkspaceCodeIndexManager).mockReturnValue(undefined)
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "clearIndexData",
+			} as unknown as WebviewMessage)
+
+			expect(provider.postMessageToWebview).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: "indexCleared",
+					values: expect.objectContaining({ success: false, error: expect.any(String) }),
+				}),
+			)
+		})
+
+		it("posts an indexCleared error when clearing throws", async () => {
+			const manager = createManager()
+			manager.clearIndexData = vi.fn().mockRejectedValue(new Error("clear boom"))
+			const provider = createProvider(manager)
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "clearIndexData",
+			} as unknown as WebviewMessage)
+
+			expect(provider.postMessageToWebview).toHaveBeenCalledWith({
+				type: "indexCleared",
+				values: { success: false, error: "clear boom" },
+			})
 		})
 	})
 })

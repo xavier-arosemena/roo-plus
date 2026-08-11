@@ -148,7 +148,7 @@ describe("OpenCodeGo", () => {
 			renderComponent({ opencodeGoApiKey: "key" })
 
 			fireEvent.click(screen.getByTestId("refresh-button"))
-			dispatchMessage({ type: "routerModels" })
+			dispatchMessage({ type: "routerModels", routerModels: {} })
 
 			expect(screen.getByText("settings:providers.refreshModels.success")).toBeInTheDocument()
 		})
@@ -213,7 +213,7 @@ describe("OpenCodeGo", () => {
 						},
 					}),
 				)
-				window.dispatchEvent(new MessageEvent("message", { data: { type: "routerModels" } }))
+				window.dispatchEvent(new MessageEvent("message", { data: { type: "routerModels", routerModels: {} } }))
 			})
 
 			expect(screen.getByText("boom")).toBeInTheDocument()
@@ -224,7 +224,7 @@ describe("OpenCodeGo", () => {
 			renderComponent({ opencodeGoApiKey: "key" })
 
 			// No refresh initiated; an unsolicited routerModels message should be a no-op.
-			dispatchMessage({ type: "routerModels" })
+			dispatchMessage({ type: "routerModels", routerModels: {} })
 
 			expect(screen.queryByText("settings:providers.refreshModels.success")).not.toBeInTheDocument()
 			expect(screen.queryByText("settings:providers.refreshModels.loading")).not.toBeInTheDocument()

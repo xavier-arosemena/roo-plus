@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react"
-import { MarketplaceItem, TelemetryEventName } from "@roo-code/types"
+import { MarketplaceItem, TelemetryEventName, parseExtensionMessage } from "@roo-code/types"
 import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 import { telemetryClient } from "@/utils/TelemetryClient"
@@ -59,7 +59,16 @@ export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate registered extension→webview messages (Phase 2,
+			// Domains 1-5 — incl. marketplace responses): malformed registered
+			// payloads fail loudly in dev, while unregistered types still pass
+			// through structurally.
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[MarketplaceItemCard] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			if (message.type === "marketplaceRemoveResult" && message.slug === item.id) {
 				if (message.success) {
 					// Removal succeeded - refresh marketplace data

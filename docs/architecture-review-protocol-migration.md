@@ -95,27 +95,44 @@ Notes:
 
 `DEBT.md` item #5 updated incrementally by each sub-task; now reads: all 165 registered, limit 0, inbound complete.
 
-### Phase 2 — Outbound `ExtensionMessage` typing (77 types)
+### Phase 2 — Outbound `ExtensionMessage` typing (77 types) — ✅ DELIVERED 2026-08-11
 
-Mirror the inbound architecture in `packages/types/src/extension-messages/` (per-domain files, `extensionMessageSchemas` registry, `parseExtensionMessage`), same-PR discipline per domain:
+Status: **all 77 outbound `ExtensionMessage` types registered**. Final verified state (live run of [`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs)): `77 total, 77 registered, 0 untyped (limit 0)`; ratchet exit 0; `scripts/verify-message-schemas.spec.mjs` 13/13 green. Inbound untouched (still 0 untyped). `UNTYPED_EXTENSION_MESSAGE_LIMIT` ratcheted 72 → 55 → 43 → 28 → 20 → 15 → 11 → 3 → **0** as each domain landed.
 
-1. `state` — the largest and highest-traffic; validate structurally against a subset schema (or a derived `ExtensionState` schema) during the transitional period.
-2. `commandExecutionStatus`, `mcpExecutionStatus` — security-relevant execution status.
-3. `fileContent`, `indexingStatusUpdate`, marketplace result types — content/status surfaces.
-4. Remaining response types in batches.
+Delegated as 8 atomic change sets (one per domain, same-PR rule — schema + registry + producer + consumer + tests + ratchet + DEBT.md together), each gated on build/ratchet/tsc/eslint/spec/ratchet-spec verification:
 
-Wire `parseExtensionMessage` at:
+| #   | Domain                         | Types | Registered | Cumulative untyped |
+| --- | ------------------------------ | ----- | ---------- | ------------------ |
+| 1   | state variants + UI/navigation | 17    | 22         | 55                 |
+| 2   | Model/status responses         | 12    | 34         | 43                 |
+| 3   | Task/chat/history responses    | 15    | 49         | 28                 |
+| 4   | Checkpoint/modes responses     | 8     | 57         | 20                 |
+| 5   | Marketplace responses          | 5     | 62         | 15                 |
+| 6   | Code-index responses           | 4     | 66         | 11                 |
+| 7   | Worktree responses             | 8     | 74         | 3                  |
+| 8   | Skills/Rules/history-import    | 3     | 77         | **0**              |
 
-- **webview receive boundary** — [`App.tsx`](webview-ui/src/App.tsx:114) / [`ExtensionStateContext.tsx`](webview-ui/src/context/ExtensionStateContext.tsx:472): runtime validation of the trusted-producer direction catches producer bugs in dev (origin trust via `isTrustedMessage` stays).
-- **CLI boundary** — `message-processor.ts`: replaces the `as unknown as ExtensionMessage` cast with a real parse.
+Notes:
 
-Delete the 11 `any` fields (`payload`, `values`, `value`, `settings`, `marketplaceInstalledMetadata`) as each domain types. This also drains DEBT #11 (`as any` reduction).
+- Each sub-task extracted its exact type list from the `ExtensionMessage.type` union (the single source of truth); the coordinator's grouping summed to exactly 72 untyped members (Domain 1's enumerated list holds 17 types despite the initial ×18 label).
+- Reused canonical schemas and typed shapes throughout (`stateMessageSchema`/`extensionStateSubsetSchema`, `modeConfigSchema`, `marketplaceItemSchema`, `historyItemSchema`, `clineMessageSchema`, `gitCommitSchema`, `mcpServerSchema`, `providerSettingsEntrySchema`, `organizationAllowListSchema`, `codebaseIndexConfigSchema`, `Worktree`/`WorktreeIncludeStatus`/`BranchInfo`/`WorktreeListResponse`, `SkillMetadata`, `RuleMetadata`, `OpenAiCodexRateLimitInfo`, `SerializedCustomToolDefinition`); added missing shared schemas (`gitCommitSchema`, `mcpServerSchema`, `marketplaceInstalledMetadataSchema`) where none existed.
+- Key producer subtleties modeled precisely: `action`/`invoke` narrow string-literal unions; `enhancedPrompt.text` optional (error path posts bare `{ type }`); `checkpointWarning` as a `{ type, timeout } | string | undefined` union (both object and legacy string forms live); `worktreeResult` posts top-level `success`/`text` (not the interface's misleading `worktreeResult` object); `codeIndexSettingsSaved.settings` typed via `codebaseIndexConfigSchema` (draining the `settings: any` escape); `openAiCodexRateLimits.values` typed via `OpenAiCodexRateLimitInfo`; `routerModels`/`singleRouterModelFetchResponse.values` narrowed to `{ provider }`.
+- Barrel name collisions (direction-mixed schema/type names present in both registries) resolved in [`packages/types/src/index.ts`](packages/types/src/index.ts) with explicit re-exports preferring inbound, following the Phase-1 `CodeIndexMessage` precedent (`autoApprovalEnabled`/`toggleApiConfigPin`/`updatePrompt`, `commands`/`insertTextIntoTextarea`, `updateCustomMode`/`deleteCustomMode`/`exportMode`/`importMode`/`checkRulesDirectory`, `shareTaskSuccess`, `skills`/`rules`, `worktreeMessageSchema`, `codeIndexMessageSchema`).
+- `shareTaskSuccess` is direction-mixed (also a member of the inbound `WebviewMessage` union, registered inbound minimally in Phase 1); its OUTBOUND registration is authoritative, the inbound minimal schema/comment in `packages/types/src/webview-messages/loose.ts` was updated to note the resolution, and `DEBT.md` records it. It stays in the inbound union (Phase 3 cleanup).
+- Vestigial outbound members registered minimally with documenting comments (no outbound producer): `setHistoryPreviewCollapsed`, `vsCodeLmApiAvailable`, `authenticatedUser`, `organizationSwitchResult`, `codebaseIndexConfig`, and direction-mixed `autoApprovalEnabled`/`toggleApiConfigPin`/`updatePrompt`/`updateCustomMode`/`deleteCustomMode`/`shareTaskSuccess`.
+- Webview consumers (`App.tsx`, `ExtensionStateContext.tsx`, and per-domain consumers: `ChatView`, `ChatTextArea`, `ModesView`, `TerminalSettings`, provider components, marketplace components, `CodeIndexPopover`, `CustomToolsSettings`, worktree modals/views, `About`) and the CLI boundary (`apps/cli/src/agent/message-processor.ts`) all validate registered types via `parseExtensionMessage` — malformed producer payloads fail loudly in dev; the `as unknown as ExtensionMessage` CLI cast was replaced in Phase 0. The remaining unregistered pass-through branch is unreachable (all 77 types registered) and is a Phase 3 cleanup item.
 
-### Phase 3 — Completion & close-out (≈1 day + doc updates)
+`DEBT.md` item #6 updated incrementally by each sub-task; now reads: all 77 registered, limit 0, outbound complete (Phase 2 ✅ DELIVERED).
 
-- Finish moving any remaining misclassified outbound-only types out of `WebviewMessage` (direction-mixing cleanup, S1-M1 remainder).
-- Drop the ratchet limit to 0 headroom as domains complete, so the last domain cannot hide behind past progress.
-- Mark DEBT #5 and #6 **RESOLVED** in [`DEBT.md`](DEBT.md) (same style as the "Recently Resolved Debt" table) and update the ADR.
+### Phase 3 — Completion & close-out (≈1 day + doc updates) — NEXT (hand-off prompt prepared 2026-08-11)
+
+With Phase 1 + Phase 2 complete, the remaining cleanup is:
+
+- **Direction-mixing cleanup**: move the misclassified outbound-only types out of `WebviewMessage` (the 11 "loose" types registered minimally in Phase 1 — no inbound dispatcher; `marketplaceButtonClicked` confirmed outbound-only) and the handful of direction-mixed types whose authoritative registration is now outbound (`shareTaskSuccess`, `autoApprovalEnabled`, `toggleApiConfigPin`, `updatePrompt`, `updateCustomMode`, `deleteCustomMode`), keeping every construction site compiling.
+- **Drop the vestigial pass-through paths**: the unregistered pass-through branch in `parseExtensionMessage` (and `parseWebviewMessage`) is now unreachable — every type in both directions is registered; remove or harden it to fail closed.
+- **Interface `any`-escape hardening**: drain the remaining interface-level `any` fields (`payload`, `values`, `value`, `settings`, `marketplaceInstalledMetadata`, …) that are not yet consumed through a typed schema on every path.
+- Mark DEBT #5 and #6 **RESOLVED** in [`DEBT.md`](DEBT.md) (same style as the "Recently Resolved Debt" table) — #5 and #6 are currently marked delivered; move them to the resolved table after Phase 3 lands.
+- Update the ADR to the terminal state once Phase 3 lands.
 
 ---
 

@@ -3,7 +3,7 @@ import { useEvent } from "react-use"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { RefreshCw, Loader2, FileCode } from "lucide-react"
 
-import type { SerializedCustomToolDefinition } from "@roo-code/types"
+import { parseExtensionMessage, type SerializedCustomToolDefinition } from "@roo-code/types"
 
 import { useAppTranslation } from "@/i18n/TranslationContext"
 
@@ -45,7 +45,16 @@ export const CustomToolsSettings = ({ enabled, onChange }: CustomToolsSettingsPr
 	}, [enabled])
 
 	useEvent("message", (event: MessageEvent) => {
-		const message = event.data
+		// Boundary-validate registered extension→webview messages (Phase 2,
+		// Domain 3 — task/chat/history responses): malformed registered
+		// payloads (e.g. `customToolsResult` without `tools`) fail loudly in
+		// dev, while unregistered types still pass through structurally.
+		const parsed = parseExtensionMessage(event.data)
+		if (!parsed.ok) {
+			console.error(`[CustomToolsSettings] Rejected malformed extension message: ${parsed.error}`)
+			return
+		}
+		const message = parsed.message
 
 		if (message.type === "customToolsResult") {
 			setTools(message.tools || [])

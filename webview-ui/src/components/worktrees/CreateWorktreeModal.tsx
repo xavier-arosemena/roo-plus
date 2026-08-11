@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import prettyBytes from "pretty-bytes"
 
-import type { WorktreeDefaultsResponse, BranchInfo, WorktreeIncludeStatus } from "@roo-code/types"
+import {
+	parseExtensionMessage,
+	type BranchInfo,
+	type WorktreeDefaultsResponse,
+	type WorktreeIncludeStatus,
+} from "@roo-code/types"
 
 import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
@@ -56,23 +61,39 @@ export const CreateWorktreeModal = ({
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate registered extension→webview messages (Phase 2,
+			// Domain 7 — worktree responses): malformed registered payloads (e.g.
+			// a `worktreeResult` without `success`) fail loudly in dev, while
+			// unregistered types still pass through structurally.
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[CreateWorktreeModal] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			switch (message.type) {
 				case "worktreeDefaults": {
-					const data = message as WorktreeDefaultsResponse
+					const data: WorktreeDefaultsResponse = {
+						suggestedBranch: message.suggestedBranch ?? "",
+						suggestedPath: message.suggestedPath ?? "",
+					}
 					setDefaults(data)
 					setBranchName(data.suggestedBranch)
 					setWorktreePath(data.suggestedPath)
 					break
 				}
 				case "branchList": {
-					const data = message as BranchInfo
+					const data: BranchInfo = {
+						localBranches: message.localBranches ?? [],
+						remoteBranches: message.remoteBranches ?? [],
+						currentBranch: message.currentBranch ?? "",
+					}
 					setBranches(data)
 					setBaseBranch(data.currentBranch || "main")
 					break
 				}
 				case "worktreeIncludeStatus": {
-					setIncludeStatus(message.worktreeIncludeStatus)
+					setIncludeStatus(message.worktreeIncludeStatus ?? null)
 					break
 				}
 				case "folderSelected": {

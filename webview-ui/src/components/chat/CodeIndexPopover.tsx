@@ -12,7 +12,12 @@ import {
 import * as ProgressPrimitive from "@radix-ui/react-progress"
 import { TriangleAlert } from "lucide-react"
 
-import { type IndexingStatus, type EmbedderProvider, CODEBASE_INDEX_DEFAULTS } from "@roo-code/types"
+import {
+	type IndexingStatus,
+	type EmbedderProvider,
+	CODEBASE_INDEX_DEFAULTS,
+	parseExtensionMessage,
+} from "@roo-code/types"
 
 import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
@@ -320,6 +325,15 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent<any>) => {
 			if (!isTrustedMessage(event)) return
+			// Boundary-validate registered extension→webview messages (Phase 2,
+			// Domain 6 — code-index responses incl. `indexingStatusUpdate` /
+			// `codeIndexSettingsSaved`): malformed registered payloads fail loudly
+			// in dev, while unregistered types still pass through structurally.
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[CodeIndexPopover] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
 			if (event.data.type === "indexingStatusUpdate") {
 				if (!event.data.values.workspacePath || event.data.values.workspacePath === cwd) {
 					setIndexingStatus({
@@ -367,6 +381,15 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
+			// Boundary-validate registered extension→webview messages (Phase 2,
+			// Domain 6 — `codeIndexSecretStatus`): malformed registered payloads
+			// fail loudly in dev, while unregistered types still pass through
+			// structurally.
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[CodeIndexPopover] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
 			if (event.data.type === "codeIndexSecretStatus") {
 				// Update settings to show placeholders for existing secrets
 				const secretStatus = event.data.values

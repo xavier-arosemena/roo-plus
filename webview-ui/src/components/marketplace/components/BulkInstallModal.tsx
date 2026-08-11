@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react"
-import { MarketplaceItem } from "@roo-code/types"
+import { MarketplaceItem, marketplaceBulkInstallResultMessageSchema, parseExtensionMessage } from "@roo-code/types"
 import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 import { useAppTranslation } from "@/i18n/TranslationContext"
@@ -50,9 +50,22 @@ export const BulkInstallModal: React.FC<BulkInstallModalProps> = ({ items, isOpe
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
-			if (message.type === "marketplaceBulkInstallResult" && message.results) {
-				setResults(message.results)
+			// Boundary-validate registered extension→webview messages (Phase 2,
+			// Domains 1-5 — incl. marketplace responses): malformed registered
+			// payloads fail loudly in dev, while unregistered types still pass
+			// through structurally.
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[BulkInstallModal] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			// Narrow the flat interface's union-typed `results` to the
+			// bulk-install shape via the registered domain schema (the message
+			// already passed the boundary parse, so this always succeeds for
+			// `marketplaceBulkInstallResult` traffic).
+			const result = marketplaceBulkInstallResultMessageSchema.safeParse(event.data)
+			if (result.success) {
+				setResults(result.data.results)
 				setInstallState("complete")
 			}
 		}

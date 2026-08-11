@@ -231,6 +231,25 @@ describe("About", () => {
 		expect(screen.getByRole("button", { name: "settings:about.rooHistoryImport.buttonIdle" })).toBeEnabled()
 	})
 
+	it("rejects a malformed rooHistoryImportProgress message at the schema boundary", async () => {
+		renderAbout()
+
+		await act(async () => {
+			window.dispatchEvent(
+				new MessageEvent("message", {
+					data: { type: "rooHistoryImportProgress", rooHistoryImportProgress: { status: "starting" } },
+				}),
+			)
+		})
+
+		// No progress UI should appear — the malformed payload (missing the
+		// required numeric counters) fails the registered schema boundary that
+		// `About` wires via `parseExtensionMessage`.
+		expect(screen.queryByText("settings:about.rooHistoryImport.statusImporting")).not.toBeInTheDocument()
+		expect(screen.queryByText("settings:about.rooHistoryImport.statusFailed")).not.toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "settings:about.rooHistoryImport.buttonIdle" })).toBeEnabled()
+	})
+
 	it("clears stale failure UI when a new import starts and only shows the latest success state", async () => {
 		renderAbout()
 

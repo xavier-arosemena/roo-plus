@@ -10,7 +10,14 @@ import {
 import { Trans } from "react-i18next"
 import { ChevronDown, X, Upload, Download } from "lucide-react"
 
-import { ModeConfig, GroupEntry, PromptComponent, ToolGroup, modeConfigSchema } from "@roo-code/types"
+import {
+	ModeConfig,
+	GroupEntry,
+	PromptComponent,
+	ToolGroup,
+	modeConfigSchema,
+	parseExtensionMessage,
+} from "@roo-code/types"
 
 import {
 	Mode,
@@ -58,8 +65,6 @@ import { useEscapeKey } from "@src/hooks/useEscapeKey"
 const availableGroups = (Object.keys(TOOL_GROUPS) as ToolGroup[]).filter((group) => !TOOL_GROUPS[group].alwaysAvailable)
 
 type ModeSource = "global" | "project"
-
-type ImportModeResult = { type: "importModeResult"; success: boolean; slug?: string; error?: string }
 
 // Helper to get group name regardless of format
 function getGroupName(group: GroupEntry): ToolGroup {
@@ -537,7 +542,18 @@ const ModesView = () => {
 	useEffect(() => {
 		const handler = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate registered extension→webview messages (Phase 2,
+			// Domains 2-4 — model/status, task/chat/history and checkpoint/modes
+			// responses): the mode result/check messages handled below
+			// (exportModeResult, importModeResult, checkRulesDirectoryResult,
+			// deleteCustomModeCheck) are now registered and strictly validated;
+			// remaining unregistered types still pass through structurally.
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[ModesView] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			if (message.type === "systemPrompt") {
 				if (message.text) {
 					setSelectedPromptContent(message.text)
@@ -556,7 +572,7 @@ const ModesView = () => {
 				setShowImportDialog(false)
 
 				if (message.success) {
-					const { slug } = message as ImportModeResult
+					const { slug } = message
 					if (slug) {
 						// Try switching using the freshest mode list available
 						const all = getAllModes(customModesRef.current)
@@ -584,7 +600,10 @@ const ModesView = () => {
 				if (typeof slug === "string") {
 					setHasRulesToExport((prev) => {
 						const next = new Map(prev)
-						next.set(slug, message.hasContent)
+						// `hasContent` is optional on the schema (mirrors the flat
+						// interface); the producer always sends it, but default to
+						// "no content to export" for robustness.
+						next.set(slug, message.hasContent ?? false)
 						return next
 					})
 				}

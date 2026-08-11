@@ -67,6 +67,73 @@ export type McpServer = {
 	instructions?: string
 }
 
+/**
+ * Zod schema mirroring `McpServer` for payload validation at the outbound
+ * message boundary (e.g. the `mcpServers` extension message).
+ *
+ * The tool `inputSchema` is an open JSON-Schema document produced by the MCP
+ * SDK — there is no closed shape — so it is modeled as a free-form string-keyed
+ * record of unknown values (transitional; a precise JSON-Schema type is out of
+ * scope for the message boundary). The server object itself uses `.passthrough()`
+ * so any future MCP fields the producer adds survive the boundary instead of
+ * being silently stripped.
+ */
+export const mcpServerSchema = z
+	.object({
+		name: z.string(),
+		config: z.string(),
+		status: z.enum(["connected", "connecting", "disconnected"]),
+		error: z.string().optional(),
+		errorHistory: z
+			.array(
+				z.object({
+					message: z.string(),
+					timestamp: z.number(),
+					level: z.enum(["error", "warn", "info"]),
+				}),
+			)
+			.optional(),
+		tools: z
+			.array(
+				z
+					.object({
+						name: z.string(),
+						description: z.string().optional(),
+						inputSchema: z.record(z.string(), z.unknown()).optional(),
+						alwaysAllow: z.boolean().optional(),
+						enabledForPrompt: z.boolean().optional(),
+					})
+					.passthrough(),
+			)
+			.optional(),
+		resources: z
+			.array(
+				z.object({
+					uri: z.string(),
+					name: z.string(),
+					mimeType: z.string().optional(),
+					description: z.string().optional(),
+				}),
+			)
+			.optional(),
+		resourceTemplates: z
+			.array(
+				z.object({
+					uriTemplate: z.string(),
+					name: z.string(),
+					description: z.string().optional(),
+					mimeType: z.string().optional(),
+				}),
+			)
+			.optional(),
+		disabled: z.boolean().optional(),
+		timeout: z.number().optional(),
+		source: z.enum(["global", "project"]).optional(),
+		projectPath: z.string().optional(),
+		instructions: z.string().optional(),
+	})
+	.passthrough()
+
 export type McpTool = {
 	name: string
 	description?: string

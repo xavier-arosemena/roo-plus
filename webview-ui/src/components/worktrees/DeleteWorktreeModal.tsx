@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 
-import type { Worktree } from "@roo-code/types"
+import { parseExtensionMessage, type Worktree } from "@roo-code/types"
 
 import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
@@ -25,7 +25,16 @@ export const DeleteWorktreeModal = ({ open, onClose, worktree, onSuccess }: Dele
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate registered extension→webview messages (Phase 2,
+			// Domain 7 — worktree responses): a malformed registered
+			// `worktreeResult` payload fails loudly in dev, while unregistered
+			// types still pass through structurally.
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[DeleteWorktreeModal] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 
 			if (message.type === "worktreeResult") {
 				setIsDeleting(false)

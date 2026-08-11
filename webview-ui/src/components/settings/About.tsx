@@ -4,7 +4,7 @@ import { Trans } from "react-i18next"
 import { ArrowRightLeft, Download, Upload, TriangleAlert, Bug, Lightbulb, Shield, MessagesSquare } from "lucide-react"
 import { VSCodeButton, VSCodeCheckbox, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 
-import type { ExtensionMessage, TelemetrySetting } from "@roo-code/types"
+import { parseExtensionMessage, type ExtensionMessage, type TelemetrySetting } from "@roo-code/types"
 
 import { Package } from "@roo/package"
 
@@ -34,7 +34,16 @@ export const About = ({ telemetrySetting, setTelemetrySetting, debug, setDebug, 
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate registered extension→webview messages (Phase 2,
+			// Domain 8 — history-import responses): malformed registered payloads
+			// fail loudly in dev, while unregistered types still pass through
+			// structurally (same contract as `ExtensionStateContext`/`App`).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[About] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			if (message.type !== "rooHistoryImportProgress" || !message.rooHistoryImportProgress) {
 				return
 			}

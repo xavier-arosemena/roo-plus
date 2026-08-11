@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { parseExtensionMessage } from "@roo-code/types"
+
 vi.mock("../../../i18n", () => ({
 	t: vi.fn((key: string) => key),
 	changeLanguage: vi.fn(),
@@ -253,5 +255,68 @@ describe("webviewMessageHandler - importRooHistory", () => {
 		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith("common:errors.rooHistoryImport")
 		expect(vscode.window.showInformationMessage).not.toHaveBeenCalled()
 		expect(vscode.window.showWarningMessage).not.toHaveBeenCalled()
+	})
+
+	describe("outbound schema conformance (Phase 2, Domain 8)", () => {
+		// `mock.calls` is `any[][]` from vitest; narrow each entry with an
+		// `unknown` type guard (no `any` in new code) before filtering.
+		const progressMessagesFrom = (calls: unknown[][]) =>
+			calls.filter(([msg]) => {
+				return (
+					typeof msg === "object" &&
+					msg !== null &&
+					(msg as { type?: unknown }).type === "rooHistoryImportProgress"
+				)
+			})
+
+		it("posts starting/copying/finished progress payloads that parse through the registered outbound schema", async () => {
+			importRooTaskHistoryMock.mockImplementation(async (_globalStoragePath, onProgress) => {
+				await onProgress?.({
+					copiedFileCount: 2,
+					totalFileCount: 4,
+					importedTaskCount: 1,
+					totalTaskCount: 2,
+					currentTaskId: "task-1",
+					currentFileName: "ui_messages.json",
+				})
+				return {
+					rooExtensionDomain: "RooVeterinaryInc.roo-cline",
+					zooExtensionDomain: "xavier-arosemena.roo-plus",
+					rooStorageRoots: ["/mock/roo-storage"],
+					zooStorageRoot: "/mock/storage",
+					foundTaskCount: 2,
+					importedTaskCount: 2,
+					importedFileCount: 4,
+				}
+			})
+
+			await webviewMessageHandler(mockProvider, { type: "importRooHistory" })
+
+			const progressMessages = progressMessagesFrom(mockProvider.postMessageToWebview.mock.calls)
+			expect(progressMessages).toHaveLength(3) // starting + copying + finished
+			for (const [msg] of progressMessages) {
+				const result = parseExtensionMessage(msg)
+				expect(result.ok).toBe(true)
+				if (result.ok) {
+					expect(result.message.type).toBe("rooHistoryImportProgress")
+				}
+			}
+		})
+
+		it("posts starting/failed progress payloads that parse through the registered outbound schema", async () => {
+			importRooTaskHistoryMock.mockRejectedValue(new Error("permission denied"))
+
+			await webviewMessageHandler(mockProvider, { type: "importRooHistory" })
+
+			const progressMessages = progressMessagesFrom(mockProvider.postMessageToWebview.mock.calls)
+			expect(progressMessages).toHaveLength(2) // starting + failed
+			for (const [msg] of progressMessages) {
+				const result = parseExtensionMessage(msg)
+				expect(result.ok).toBe(true)
+				if (result.ok) {
+					expect(result.message.type).toBe("rooHistoryImportProgress")
+				}
+			}
+		})
 	})
 })

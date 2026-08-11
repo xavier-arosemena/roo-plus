@@ -8,9 +8,9 @@ import {
 	type ModelInfo,
 	type ReasoningEffortExtended,
 	type OrganizationAllowList,
-	type ExtensionMessage,
 	azureOpenAiDefaultApiVersion,
 	openAiModelInfoSaneDefaults,
+	parseExtensionMessage,
 } from "@roo-code/types"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
@@ -110,7 +110,13 @@ export const OpenAICompatible = ({
 	)
 
 	const onMessage = useCallback((event: MessageEvent) => {
-		const message: ExtensionMessage = event.data
+		// Boundary-validate registered model/status messages (Phase 2, Domain 2).
+		const parsed = parseExtensionMessage(event.data)
+		if (!parsed.ok) {
+			console.error(`[OpenAICompatible] Rejected malformed extension message: ${parsed.error}`)
+			return
+		}
+		const message = parsed.message
 
 		switch (message.type) {
 			case "openAiModels": {

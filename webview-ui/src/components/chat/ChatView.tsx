@@ -10,8 +10,8 @@ import { appendImages } from "@src/utils/imageUtils"
 import { getCostBreakdownIfNeeded } from "@src/utils/costFormatting"
 import { batchConsecutive } from "@src/utils/batchConsecutive"
 
-import type { ClineAsk, ClineSayTool, ClineMessage, ExtensionMessage, AudioType, SuggestionItem } from "@roo-code/types"
-import { getCompletionCheckpoint, getSuggestionMode, isRetiredProvider } from "@roo-code/types"
+import type { ClineAsk, ClineSayTool, ClineMessage, AudioType, SuggestionItem } from "@roo-code/types"
+import { getCompletionCheckpoint, getSuggestionMode, isRetiredProvider, parseExtensionMessage } from "@roo-code/types"
 
 import { findLast } from "@roo/array"
 import { combineApiRequests } from "@roo/combineApiRequests"
@@ -890,7 +890,17 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const handleMessage = useCallback(
 		(e: MessageEvent) => {
-			const message: ExtensionMessage = e.data
+			// Boundary-validate registered extension→webview messages (Phase 2,
+			// Domains 1-4 — UI/navigation, model/status, task/chat/history and
+			// checkpoint/modes responses): malformed registered payloads fail
+			// loudly in dev, while unregistered types still pass through
+			// structurally.
+			const parsed = parseExtensionMessage(e.data)
+			if (!parsed.ok) {
+				console.error(`[ChatView] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 
 			switch (message.type) {
 				case "action":

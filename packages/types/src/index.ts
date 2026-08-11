@@ -41,8 +41,85 @@ export * from "./webview-messages/index.js"
 export * from "./extension-messages/index.js"
 // `CodeIndexMessage` is exported by BOTH the inbound webview-messages registry
 // (S1 sub-task 3 — the code-index webview message union) and the outbound
-// extension-messages registry (Phase 2 — the indexing-status-update message).
-// The star re-exports above collide on the name, so disambiguate explicitly in
-// favor of the inbound type at the package root. The outbound type remains
-// available directly from "./extension-messages/index.js".
+// extension-messages registry (Phase 2 — the code-index response union, which
+// grew from the Phase-0 indexing-status-update message to the full Domain-6
+// union). The star re-exports above collide on the name, so disambiguate
+// explicitly in favor of the inbound type at the package root. The outbound
+// type remains available directly from "./extension-messages/index.js".
 export type { CodeIndexMessage } from "./webview-messages/index.js"
+// `codeIndexMessageSchema` is likewise exported by BOTH registries: the
+// inbound webview-messages code-index module (S1 sub-task 3 — the inbound
+// code-index webview-message union) and the outbound extension-messages
+// code-index module (Phase 2, Domain 6 — the outbound code-index response
+// union). Disambiguated in favor of the inbound schema at the package root
+// (the `CodeIndexMessage` precedent); the outbound variant remains available
+// directly from "./extension-messages/index.js".
+export { codeIndexMessageSchema } from "./webview-messages/index.js"
+// `marketplaceMessageSchema` / `MarketplaceMessage` are likewise exported by
+// BOTH registries: the inbound webview-messages marketplace module (S1 — the
+// inbound marketplace webview-message union) and the outbound
+// extension-messages marketplace module (Phase 2, Domain 5 — the outbound
+// marketplace response union). Disambiguated in favor of the inbound names at
+// the package root; the outbound variants remain available directly from
+// "./extension-messages/index.js".
+export { marketplaceMessageSchema } from "./webview-messages/index.js"
+export type { MarketplaceMessage } from "./webview-messages/index.js"
+// `worktreeMessageSchema` / `WorktreeMessage` are likewise exported by BOTH
+// registries: the inbound webview-messages worktree module (S1 — the inbound
+// worktree webview-message union) and the outbound extension-messages worktree
+// module (Phase 2, Domain 7 — the outbound worktree response union).
+// Disambiguated in favor of the inbound names at the package root (the
+// `CodeIndexMessage` precedent); the outbound variants remain available
+// directly from "./extension-messages/index.js".
+export { worktreeMessageSchema } from "./webview-messages/index.js"
+export type { WorktreeMessage } from "./webview-messages/index.js"
+// `autoApprovalEnabledMessageSchema`, `toggleApiConfigPinMessageSchema`,
+// `updatePromptMessageSchema`, `commandsMessageSchema`,
+// `insertTextIntoTextareaMessageSchema`, `updateCustomModeMessageSchema`,
+// `deleteCustomModeMessageSchema`, `checkRulesDirectoryMessageSchema`,
+// `exportModeMessageSchema` and `importModeMessageSchema` are direction-mixed
+// message types: they are exported by BOTH the inbound webview-messages
+// registry (S1 — where the webview sends them) and the outbound
+// extension-messages registry (Phase 2 — registered outbound for completeness;
+// `autoApprovalEnabled` and `toggleApiConfigPin`/`updatePrompt` outbound
+// traffic is expected/vestigial, while `commands` and `insertTextIntoTextarea`
+// are active outbound responses, and the Phase-2 Domain-4 outbound
+// `updateCustomMode`/`deleteCustomMode`/`exportModeResult`-adjacent schemas are
+// vestigial with no outbound producer — see
+// `packages/types/src/extension-messages/checkpointModes.ts`). The star
+// re-exports above collide on the names, so disambiguate explicitly in favor of
+// the INBOUND schemas at the package root (the `CodeIndexMessage` precedent).
+// The outbound variants remain available directly from
+// "./extension-messages/index.js".
+// `shareTaskSuccessMessageSchema` is direction-mixed too: it is a member of
+// BOTH the inbound `WebviewMessage` union (where the webview acknowledges a
+// successful share — registered inbound in Phase 1 with a minimal schema in
+// `packages/types/src/webview-messages/loose.ts`) and the outbound
+// `ExtensionMessage` union (registered outbound in Phase 2, Domain 5 for
+// ratchet completeness — the outbound registration is authoritative, with NO
+// outbound producer — see `packages/types/src/extension-messages/marketplace.ts`).
+// Disambiguated in favor of the INBOUND schema at the package root; the
+// outbound variant remains available directly from
+// "./extension-messages/index.js".
+export {
+	autoApprovalEnabledMessageSchema,
+	checkRulesDirectoryMessageSchema,
+	commandsMessageSchema,
+	deleteCustomModeMessageSchema,
+	exportModeMessageSchema,
+	importModeMessageSchema,
+	insertTextIntoTextareaMessageSchema,
+	shareTaskSuccessMessageSchema,
+	toggleApiConfigPinMessageSchema,
+	updateCustomModeMessageSchema,
+	updatePromptMessageSchema,
+} from "./webview-messages/index.js"
+// `skillsMessageSchema` and `rulesMessageSchema` are exported by BOTH
+// registries: the inbound webview-messages skills/rules modules (S1 — the
+// webview→extension request unions) and the outbound extension-messages
+// skills/rules module (Phase 2, Domain 8 — the extension→webview response
+// schemas). The star re-exports above collide on the names, so disambiguate
+// explicitly in favor of the INBOUND schemas at the package root (the
+// `CodeIndexMessage` precedent). The outbound variants remain available
+// directly from "./extension-messages/index.js".
+export { rulesMessageSchema, skillsMessageSchema } from "./webview-messages/index.js"

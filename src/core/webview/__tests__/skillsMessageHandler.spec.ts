@@ -1,6 +1,6 @@
 // npx vitest run src/core/webview/__tests__/skillsMessageHandler.spec.ts
 
-import type { SkillMetadata, SkillsMessage } from "@roo-code/types"
+import { parseExtensionMessage, type SkillMetadata, type SkillsMessage } from "@roo-code/types"
 import type { ClineProvider } from "../ClineProvider"
 
 // Mock vscode first
@@ -436,6 +436,35 @@ describe("skillsMessageHandler", () => {
 			expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
 				'Failed to open skill file: Skill "nonexistent-skill" not found',
 			)
+		})
+	})
+
+	describe("outbound schema conformance (Phase 2, Domain 8)", () => {
+		it("posts a skills payload that parses through the registered outbound schema", async () => {
+			const provider = createMockProvider(true)
+			mockGetSkillsMetadata.mockReturnValue(mockSkills)
+
+			await handleRequestSkills(provider)
+
+			const posted = mockPostMessageToWebview.mock.calls[0][0]
+			const result = parseExtensionMessage(posted)
+			expect(result.ok).toBe(true)
+			if (result.ok) {
+				expect(result.message.type).toBe("skills")
+			}
+		})
+
+		it("posts an empty skills payload that parses through the registered outbound schema", async () => {
+			const provider = createMockProvider(false)
+
+			await handleRequestSkills(provider)
+
+			const posted = mockPostMessageToWebview.mock.calls[0][0]
+			const result = parseExtensionMessage(posted)
+			expect(result.ok).toBe(true)
+			if (result.ok) {
+				expect(result.message.type).toBe("skills")
+			}
 		})
 	})
 })

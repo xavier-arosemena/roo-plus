@@ -71,6 +71,17 @@ const ApiConfigTestComponent = () => {
 	)
 }
 
+const NavigationTestComponent = () => {
+	const { autoApprovalEnabled, filePaths } = useExtensionState()
+
+	return (
+		<div>
+			<div data-testid="auto-approval-enabled">{JSON.stringify(autoApprovalEnabled ?? false)}</div>
+			<div data-testid="file-paths">{JSON.stringify(filePaths)}</div>
+		</div>
+	)
+}
+
 describe("ExtensionStateContext", () => {
 	it("initializes with empty allowedCommands array", () => {
 		render(
@@ -320,6 +331,46 @@ describe("ExtensionStateContext", () => {
 				modelTemperature: 0.7, // Should add this from partial update
 			}),
 		)
+	})
+
+	it("processes a valid registered 'action' toggleAutoApprove message", () => {
+		render(
+			<ExtensionStateContextProvider>
+				<NavigationTestComponent />
+			</ExtensionStateContextProvider>,
+		)
+
+		act(() => {
+			window.dispatchEvent(
+				new MessageEvent("message", {
+					data: { type: "action", action: "toggleAutoApprove" },
+				}),
+			)
+		})
+
+		// The action is boundary-validated (registered in Phase 2, Domain 1) and
+		// flips the auto-approval state.
+		expect(JSON.parse(screen.getByTestId("auto-approval-enabled").textContent!)).toBe(true)
+	})
+
+	it("rejects a malformed registered 'workspaceUpdated' message without dispatching", () => {
+		render(
+			<ExtensionStateContextProvider>
+				<NavigationTestComponent />
+			</ExtensionStateContextProvider>,
+		)
+
+		act(() => {
+			// `workspaceUpdated` requires `filePaths` (string[]) — a missing payload
+			// must be rejected by the typed boundary instead of reaching the switch.
+			window.dispatchEvent(
+				new MessageEvent("message", {
+					data: { type: "workspaceUpdated", openedTabs: [] },
+				}),
+			)
+		})
+
+		expect(JSON.parse(screen.getByTestId("file-paths").textContent!)).toEqual([])
 	})
 })
 

@@ -17,6 +17,7 @@ import {
 	DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 	DEFAULT_DIFF_FUZZY_THRESHOLD,
 	DEFAULT_WRITE_DELAY_MS,
+	parseExtensionMessage,
 	providerIdentifiers,
 } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
@@ -2528,6 +2529,12 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 			slug: "mode-1",
 			hasContent: true,
 		})
+
+		// The outbound checkRulesDirectoryResult must pass the typed boundary (Phase 2, Domain 4).
+		const posted = vi.mocked(provider.postMessageToWebview).mock.calls.map((call) => call[0])
+		const checkResult = posted.find((message: { type?: string }) => message.type === "checkRulesDirectoryResult")
+		expect(checkResult).toBeDefined()
+		expect(parseExtensionMessage(checkResult).ok).toBe(true)
 	})
 
 	it("loads the named API configuration profile", async () => {
@@ -2599,6 +2606,16 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 		expect(provider.postMessageToWebview).toHaveBeenCalledWith(
 			expect.objectContaining({ type: "exportModeResult", error: "export failed" }),
 		)
+
+		// Every outbound exportModeResult must pass the typed boundary (Phase 2, Domain 4).
+		const exportResults = vi
+			.mocked(provider.postMessageToWebview)
+			.mock.calls.map((call) => call[0])
+			.filter((message: { type?: string }) => message.type === "exportModeResult")
+		expect(exportResults.length).toBeGreaterThan(0)
+		for (const posted of exportResults) {
+			expect(parseExtensionMessage(posted).ok).toBe(true)
+		}
 	})
 
 	it("covers all changed import-mode response paths", async () => {
@@ -2633,6 +2650,16 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 		expect(provider.postMessageToWebview).toHaveBeenCalledWith(
 			expect.objectContaining({ type: "importModeResult", error: "dialog failed" }),
 		)
+
+		// Every outbound importModeResult must pass the typed boundary (Phase 2, Domain 4).
+		const importResults = vi
+			.mocked(provider.postMessageToWebview)
+			.mock.calls.map((call) => call[0])
+			.filter((message: { type?: string }) => message.type === "importModeResult")
+		expect(importResults.length).toBeGreaterThan(0)
+		for (const posted of importResults) {
+			expect(parseExtensionMessage(posted).ok).toBe(true)
+		}
 	})
 
 	it("covers changed indexing status, secret, and missing-manager responses", async () => {
@@ -2825,6 +2852,45 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 			success: true,
 			slug: item.id,
 		})
+	})
+
+	it("posts marketplace install/remove results that conform to the registered outbound schemas", async () => {
+		const provider = createProvider()
+		const item = {
+			id: "item-1",
+			name: "Item 1",
+			description: "Test marketplace item",
+			type: "mode",
+			content: "slug: item-1",
+		} satisfies NonNullable<WebviewMessage["mpItem"]>
+		const options = { target: "project" } satisfies NonNullable<WebviewMessage["mpInstallOptions"]>
+		const marketplaceManager = {
+			installMarketplaceItem: vi.fn().mockResolvedValue("/tmp/config.yaml"),
+			removeInstalledMarketplaceItem: vi.fn().mockResolvedValue(undefined),
+		} as unknown as NonNullable<Parameters<typeof webviewMessageHandler>[2]>
+
+		await webviewMessageHandler(
+			provider,
+			{ type: "installMarketplaceItem", mpItem: item, mpInstallOptions: options },
+			marketplaceManager,
+		)
+		await webviewMessageHandler(
+			provider,
+			{ type: "removeInstalledMarketplaceItem", mpItem: item, mpInstallOptions: options },
+			marketplaceManager,
+		)
+
+		const posted = vi.mocked(provider.postMessageToWebview).mock.calls.map(([m]) => m)
+		const installResult = posted.find((m) => m.type === "marketplaceInstallResult")
+		const removeResult = posted.find((m) => m.type === "marketplaceRemoveResult")
+
+		// Phase 2, Domain 5 producer-conformance: the posted payloads must be
+		// accepted by the registered outbound schemas (via parseExtensionMessage),
+		// otherwise the webview boundary would reject them loudly in dev.
+		expect(installResult).toBeDefined()
+		expect(removeResult).toBeDefined()
+		expect(parseExtensionMessage(installResult).ok).toBe(true)
+		expect(parseExtensionMessage(removeResult).ok).toBe(true)
 	})
 
 	it("rejects a malformed removeInstalledMarketplaceItem (missing mpItem) before side effects", async () => {

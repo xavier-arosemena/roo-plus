@@ -19,6 +19,10 @@ import { CheckpointServiceOptions, RepoPerTaskCheckpointService } from "../../se
 const WARNING_THRESHOLD_MS = 5000
 
 function sendCheckpointInitWarn(task: Task, type?: "WAIT_TIMEOUT" | "INIT_TIMEOUT", timeout?: number) {
+	// Conforms to `checkpointInitWarningMessageSchema`: the outbound schema
+	// models `checkpointWarning` as `{ type, timeout } | string | undefined`
+	// (the STRING form is posted by older producers / tests, so the boundary
+	// must accept it too).
 	task.providerRef.deref()?.postMessageToWebview({
 		type: "checkpointInitWarning",
 		checkpointWarning: type && timeout ? { type, timeout } : undefined,

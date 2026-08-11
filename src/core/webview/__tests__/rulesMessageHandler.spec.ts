@@ -1,4 +1,4 @@
-import type { RuleMetadata, RulesMessage } from "@roo-code/types"
+import { parseExtensionMessage, type RuleMetadata, type RulesMessage } from "@roo-code/types"
 import type { ClineProvider } from "../ClineProvider"
 
 vi.mock("vscode", () => ({
@@ -285,5 +285,34 @@ describe("rulesMessageHandler", () => {
 			modeSlug: "code",
 		})
 		expect(openFile).toHaveBeenCalledWith("/workspace/.roo/rules-code")
+	})
+
+	describe("outbound schema conformance (Phase 2, Domain 8)", () => {
+		it("posts a rules payload that parses through the registered outbound schema", async () => {
+			const provider = createMockProvider()
+
+			await handleRequestRules(provider, "/workspace")
+
+			const posted = mockPostMessageToWebview.mock.calls[0][0]
+			const result = parseExtensionMessage(posted)
+			expect(result.ok).toBe(true)
+			if (result.ok) {
+				expect(result.message.type).toBe("rules")
+			}
+		})
+
+		it("posts an empty rules payload that parses through the registered outbound schema", async () => {
+			const provider = createMockProvider()
+			vi.mocked(getRules).mockResolvedValue([])
+
+			await handleRequestRules(provider, "/workspace")
+
+			const posted = mockPostMessageToWebview.mock.calls[0][0]
+			const result = parseExtensionMessage(posted)
+			expect(result.ok).toBe(true)
+			if (result.ok) {
+				expect(result.message.type).toBe("rules")
+			}
+		})
 	})
 })

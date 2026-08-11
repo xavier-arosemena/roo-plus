@@ -2,7 +2,8 @@ import { useState, useCallback, useMemo } from "react"
 import { useEvent } from "react-use"
 import { LanguageModelChatSelector } from "vscode"
 
-import type { ProviderSettings, ExtensionMessage, ModelInfo } from "@roo-code/types"
+import type { ProviderSettings, ModelInfo } from "@roo-code/types"
+import { parseExtensionMessage } from "@roo-code/types"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 
@@ -19,7 +20,13 @@ export const VSCodeLM = ({ apiConfiguration, setApiConfigurationField }: VSCodeL
 	const [vsCodeLmModels, setVsCodeLmModels] = useState<LanguageModelChatSelector[]>([])
 
 	const onMessage = useCallback((event: MessageEvent) => {
-		const message: ExtensionMessage = event.data
+		// Boundary-validate registered model/status messages (Phase 2, Domain 2).
+		const parsed = parseExtensionMessage(event.data)
+		if (!parsed.ok) {
+			console.error(`[VSCodeLM] Rejected malformed extension message: ${parsed.error}`)
+			return
+		}
+		const message = parsed.message
 
 		switch (message.type) {
 			case "vsCodeLmModels":

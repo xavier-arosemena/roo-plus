@@ -52,11 +52,11 @@ describe("parseExtensionMessage", () => {
 		})
 
 		it("passes through a real unregistered outbound type", () => {
-			const raw = { type: "taskHistoryUpdated", taskHistory: [] }
+			const raw = { type: "mcpServers", mcpServers: [] }
 			const result = parseExtensionMessage(raw)
 			expect(result.ok).toBe(true)
 			if (result.ok) {
-				expect(result.message.type).toBe("taskHistoryUpdated")
+				expect(result.message.type).toBe("mcpServers")
 			}
 		})
 	})
@@ -200,19 +200,99 @@ describe("parseExtensionMessage", () => {
 		})
 	})
 
-	it("seeds the Phase-0 baseline schema registry", () => {
+	it("seeds the schema registry with the Phase-0 baseline plus the Phase-2 Domain-1 through Domain-8 types", () => {
 		const expected: ExtensionMessageType[] = [
 			"state",
 			"commandExecutionStatus",
 			"mcpExecutionStatus",
 			"fileContent",
 			"indexingStatusUpdate",
+			// Phase 2, Domain 1 — UI/navigation + state variants.
+			"action",
+			"invoke",
+			"messageUpdated",
+			"taskHistoryUpdated",
+			"taskHistoryItemUpdated",
+			"selectedImages",
+			"theme",
+			"workspaceUpdated",
+			"ttsStart",
+			"ttsStop",
+			"condenseTaskContextStarted",
+			"condenseTaskContextResponse",
+			"acceptInput",
+			"setHistoryPreviewCollapsed",
+			"autoApprovalEnabled",
+			"toggleApiConfigPin",
+			"updatePrompt",
+			// Phase 2, Domain 2 — model/status responses.
+			"routerModels",
+			"singleRouterModelFetchResponse",
+			"openAiModels",
+			"ollamaModels",
+			"lmStudioModels",
+			"vsCodeLmModels",
+			"vsCodeSetting",
+			"systemPrompt",
+			"enhancedPrompt",
+			"terminalProfiles",
+			"vsCodeLmApiAvailable",
+			"authenticatedUser",
+			// Phase 2, Domain 3 — task/chat/history responses.
+			"commitSearchResults",
+			"fileSearchResults",
+			"listApiConfig",
+			"mcpServers",
+			"showDeleteMessageDialog",
+			"showEditMessageDialog",
+			"commands",
+			"insertTextIntoTextarea",
+			"dismissedUpsells",
+			"customToolsResult",
+			"modes",
+			"taskWithAggregatedCosts",
+			"openAiCodexRateLimits",
+			"interactionRequired",
+			"organizationSwitchResult",
+			// Phase 2, Domain 4 — checkpoint/modes responses.
+			"currentCheckpointUpdated",
+			"checkpointInitWarning",
+			"updateCustomMode",
+			"deleteCustomMode",
+			"deleteCustomModeCheck",
+			"exportModeResult",
+			"importModeResult",
+			"checkRulesDirectoryResult",
+			// Phase 2, Domain 5 — marketplace responses.
+			"marketplaceInstallResult",
+			"marketplaceBulkInstallResult",
+			"marketplaceRemoveResult",
+			"marketplaceData",
+			"shareTaskSuccess",
+			// Phase 2, Domain 6 — code-index responses.
+			"codeIndexSettingsSaved",
+			"codeIndexSecretStatus",
+			"indexCleared",
+			"codebaseIndexConfig",
+			// Phase 2, Domain 7 — worktree responses.
+			"worktreeList",
+			"worktreeResult",
+			"worktreeCopyProgress",
+			"branchList",
+			"worktreeDefaults",
+			"worktreeIncludeStatus",
+			"branchWorktreeIncludeResult",
+			"folderSelected",
+			// Phase 2, Domain 8 — skills/rules/history-import responses.
+			"skills",
+			"rules",
+			"rooHistoryImportProgress",
 		]
 
 		for (const type of expected) {
 			expect(extensionMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(extensionMessageSchemas)).toHaveLength(5)
+		expect(Object.keys(extensionMessageSchemas)).toHaveLength(77)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

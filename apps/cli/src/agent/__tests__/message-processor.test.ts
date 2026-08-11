@@ -39,6 +39,12 @@ const malformedRegisteredMessages: Array<{ name: string; message: unknown }> = [
 		// indexingStatusUpdate schema requires `values.{systemStatus, processedItems, totalItems}`.
 		message: { type: "indexingStatusUpdate", values: { systemStatus: "working" } },
 	},
+	{
+		name: "messageUpdated",
+		// messageUpdated schema requires `clineMessage` (the real producer shape);
+		// the legacy `message` field does not satisfy it.
+		message: { type: "messageUpdated", message: { type: "say", say: "text" } },
+	},
 ]
 
 describe("MessageProcessor boundary validation", () => {
@@ -111,11 +117,24 @@ describe("MessageProcessor boundary validation", () => {
 		expect(() => {
 			processor.processMessage({ type: "someUnknownType", value: 1 })
 		}).not.toThrow()
-		expect(() => {
-			processor.processMessage({ type: "messageUpdated", message: { type: "say", say: "text" } })
-		}).not.toThrow()
 
 		expect(store.getMessages()).toEqual([])
+		expect(errorSpy).not.toHaveBeenCalledWith("error", expect.anything())
+	})
+
+	it("dispatches a valid registered 'messageUpdated' message", () => {
+		const errorSpy = vi.spyOn(emitter, "emit")
+
+		// `messageUpdated` (Phase 2, Domain 1) is now registered — the real
+		// producer shape (`clineMessage`) validates and is dispatched to the store.
+		const message: ExtensionMessage = {
+			type: "messageUpdated",
+			clineMessage: { ts: 1, type: "say", say: "text", text: "hello" },
+		}
+		processor.processMessage(message)
+
+		expect(store.getMessages()).toEqual([{ ts: 1, type: "say", say: "text", text: "hello" }])
+		expect(errorSpy).toHaveBeenCalledWith("messageUpdated", expect.anything())
 		expect(errorSpy).not.toHaveBeenCalledWith("error", expect.anything())
 	})
 

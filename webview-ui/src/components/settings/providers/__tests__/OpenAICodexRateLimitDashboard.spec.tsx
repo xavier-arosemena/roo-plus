@@ -76,4 +76,25 @@ describe("OpenAICodexRateLimitDashboard", () => {
 			expect(screen.getByText(/46% used/)).toBeInTheDocument()
 		})
 	})
+
+	it("rejects a malformed openAiCodexRateLimits payload without applying it", () => {
+		render(<OpenAICodexRateLimitDashboard isAuthenticated={true} />)
+
+		// `values` missing the required `fetchedAt` — rejected by the registered
+		// domain schema (Phase 2, Domain 3), so the dashboard stays in the
+		// loading state instead of rendering a broken/empty dashboard.
+		window.dispatchEvent(
+			new MessageEvent("message", {
+				data: {
+					type: "openAiCodexRateLimits",
+					values: { primary: { usedPercent: 10 } },
+				},
+			}),
+		)
+
+		return waitFor(() => {
+			expect(screen.getByText("settings:providers.openAiCodexRateLimits.loading")).toBeInTheDocument()
+			expect(screen.queryByText(/% used/)).not.toBeInTheDocument()
+		})
+	})
 })

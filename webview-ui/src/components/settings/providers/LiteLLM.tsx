@@ -7,6 +7,7 @@ import {
 	type OrganizationAllowList,
 	type ExtensionMessage,
 	litellmDefaultModelId,
+	parseExtensionMessage,
 } from "@roo-code/types"
 
 import { RouterName } from "@roo/api"
@@ -45,7 +46,13 @@ export const LiteLLM = ({
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate registered model/status messages (Phase 2, Domain 2).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[LiteLLM] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			if (message.type === "singleRouterModelFetchResponse" && !message.success) {
 				const providerName = message.values?.provider as RouterName
 				if (providerName === "litellm") {

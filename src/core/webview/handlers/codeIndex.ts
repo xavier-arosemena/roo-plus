@@ -1,4 +1,5 @@
 import {
+	codebaseIndexConfigSchema,
 	type WebviewMessage,
 	type WebviewMessageType,
 	saveCodeIndexSettingsAtomicMessageSchema,
@@ -117,11 +118,19 @@ export async function handleCodeIndexMessages(
 					)
 				}
 
-				// Send success response first - settings are saved regardless of validation
+				// Send success response first - settings are saved regardless of validation.
+				// The settings payload is boundary-validated against the shared
+				// `codebaseIndexConfigSchema` (drains the flat interface's
+				// `settings?: any` escape on this path) so a malformed global-state
+				// config fails loudly here instead of silently round-tripping an
+				// untyped object. `globalStateConfig` is derived from the already
+				// schema-validated inbound settings plus the typed global state, so
+				// this parse always succeeds in practice.
+				const savedSettings = codebaseIndexConfigSchema.parse(globalStateConfig)
 				await provider.postMessageToWebview({
 					type: "codeIndexSettingsSaved",
 					success: true,
-					settings: globalStateConfig,
+					settings: savedSettings,
 				})
 
 				// Update webview state

@@ -7,6 +7,7 @@ import {
 	type RouterModels,
 	type ExtensionMessage,
 	opencodeGoDefaultModelId,
+	parseExtensionMessage,
 } from "@roo-code/types"
 
 import type { RouterName } from "@roo/api"
@@ -45,7 +46,14 @@ export const OpenCodeGo = ({
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate registered model/status messages (Phase 2, Domain 2):
+			// malformed payloads fail loudly in dev, unregistered types pass through.
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[OpenCodeGo] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			if (message.type === "singleRouterModelFetchResponse" && !message.success) {
 				const providerName = message.values?.provider as RouterName
 				if (providerName === "opencode-go") {

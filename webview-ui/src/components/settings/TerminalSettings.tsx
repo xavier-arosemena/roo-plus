@@ -7,7 +7,7 @@ import { buildDocLink } from "@src/utils/docLinks"
 import { useEvent, useMount } from "react-use"
 import { Terminal } from "lucide-react"
 
-import { type ExtensionMessage, type TerminalOutputPreviewSize } from "@roo-code/types"
+import { type TerminalOutputPreviewSize, parseExtensionMessage } from "@roo-code/types"
 
 import { cn } from "@/lib/utils"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Slider, Button } from "@/components/ui"
@@ -78,7 +78,13 @@ export const TerminalSettings = ({
 	})
 
 	const onMessage = useCallback((event: MessageEvent) => {
-		const message: ExtensionMessage = event.data
+		// Boundary-validate registered model/status messages (Phase 2, Domain 2).
+		const parsed = parseExtensionMessage(event.data)
+		if (!parsed.ok) {
+			console.error(`[TerminalSettings] Rejected malformed extension message: ${parsed.error}`)
+			return
+		}
+		const message = parsed.message
 
 		switch (message.type) {
 			case "vsCodeSetting":

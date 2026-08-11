@@ -226,20 +226,102 @@ export const EXTENSION_MESSAGE_BASELINE = [
 	"mcpExecutionStatus",
 	"fileContent",
 	"indexingStatusUpdate",
+	// UI/navigation + state-variant domain (Phase 2, Domain 1)
+	"action",
+	"invoke",
+	"messageUpdated",
+	"taskHistoryUpdated",
+	"taskHistoryItemUpdated",
+	"selectedImages",
+	"theme",
+	"workspaceUpdated",
+	"ttsStart",
+	"ttsStop",
+	"condenseTaskContextStarted",
+	"condenseTaskContextResponse",
+	"acceptInput",
+	"setHistoryPreviewCollapsed",
+	"autoApprovalEnabled",
+	"toggleApiConfigPin",
+	"updatePrompt",
+	// Model/status responses domain (Phase 2, Domain 2)
+	"routerModels",
+	"singleRouterModelFetchResponse",
+	"openAiModels",
+	"ollamaModels",
+	"lmStudioModels",
+	"vsCodeLmModels",
+	"vsCodeSetting",
+	"systemPrompt",
+	"enhancedPrompt",
+	"terminalProfiles",
+	"vsCodeLmApiAvailable",
+	"authenticatedUser",
+	// Task/chat/history responses domain (Phase 2, Domain 3)
+	"commitSearchResults",
+	"fileSearchResults",
+	"listApiConfig",
+	"mcpServers",
+	"showDeleteMessageDialog",
+	"showEditMessageDialog",
+	"commands",
+	"insertTextIntoTextarea",
+	"dismissedUpsells",
+	"customToolsResult",
+	"modes",
+	"taskWithAggregatedCosts",
+	"openAiCodexRateLimits",
+	"interactionRequired",
+	"organizationSwitchResult",
+	// Checkpoint/modes responses domain (Phase 2, Domain 4)
+	"currentCheckpointUpdated",
+	"checkpointInitWarning",
+	"updateCustomMode",
+	"deleteCustomMode",
+	"deleteCustomModeCheck",
+	"exportModeResult",
+	"importModeResult",
+	"checkRulesDirectoryResult",
+	// Marketplace responses domain (Phase 2, Domain 5)
+	"marketplaceInstallResult",
+	"marketplaceBulkInstallResult",
+	"marketplaceRemoveResult",
+	"marketplaceData",
+	"shareTaskSuccess",
+	// Code-index responses domain (Phase 2, Domain 6)
+	"codeIndexSettingsSaved",
+	"codeIndexSecretStatus",
+	"indexCleared",
+	"codebaseIndexConfig",
+	// Worktree responses domain (Phase 2, Domain 7)
+	"worktreeList",
+	"worktreeResult",
+	"worktreeCopyProgress",
+	"branchList",
+	"worktreeDefaults",
+	"worktreeIncludeStatus",
+	"branchWorktreeIncludeResult",
+	"folderSelected",
+	// Skills/Rules/history-import responses domain (Phase 2, Domain 8)
+	"skills",
+	"rules",
+	"rooHistoryImportProgress",
 ]
 
 /**
  * Maximum permitted number of UNTYPED outbound message types
  * (ExtensionMessageType members without a schema in the registry).
  *
- * Verified derivation (2026-08-10): 77 literal members of the
- * `ExtensionMessage.type` union minus 5 registered in the zod registry
- * (`packages/types/src/extension-messages/index.ts`) = 72 untyped. This is the
- * current count as of Phase 0 and must only ever DECREASE as domains migrate;
+ * Verified derivation (2026-08-11): 77 literal members of the
+ * `ExtensionMessage.type` union minus 77 registered in the zod registry
+ * (`packages/types/src/extension-messages/index.ts`) = 0 untyped. This is the
+ * current count as of Phase 2, Domain 8 (skills/rules/history-import responses
+ * landed — the final domain) and must only ever DECREASE as domains migrate;
  * increasing it is a ratchet regression. Never raise this number — adjust it
  * only when a type is newly registered, keeping the derivation above in sync.
+ * Phase 2 is COMPLETE: all 77 outbound `ExtensionMessage` types are registered.
  */
-export const UNTYPED_EXTENSION_MESSAGE_LIMIT = 72
+export const UNTYPED_EXTENSION_MESSAGE_LIMIT = 0
 
 /**
  * Extract the string-literal members of `WebviewMessage["type"]` from the
