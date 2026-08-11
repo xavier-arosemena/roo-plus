@@ -33,21 +33,184 @@ export const MESSAGE_SCHEMA_BASELINE = [
 	"updateTodoList",
 	"updateCustomMode",
 	"deleteCustomMode",
+	"terminalOperation",
+	"requestTerminalProfiles",
+	"openTerminalProfilePicker",
+	// Worktree domain (S1 sub-task 2)
+	"listWorktrees",
+	"createWorktree",
+	"deleteWorktree",
+	"switchWorktree",
+	"getAvailableBranches",
+	"getWorktreeDefaults",
+	"getWorktreeIncludeStatus",
+	"checkBranchWorktreeInclude",
+	"createWorktreeInclude",
+	"checkoutBranch",
+	"browseForWorktreePath",
+	// Code-index domain (S1 sub-task 3)
+	"clearIndexData",
+	"requestCodeIndexSecretStatus",
+	"requestIndexingStatus",
+	"saveCodeIndexSettingsAtomic",
+	"setAutoEnableDefault",
+	"startIndexing",
+	"stopIndexing",
+	"toggleWorkspaceIndexing",
+	// Marketplace remaining domain (S1 sub-task 4)
+	"removeInstalledMarketplaceItem",
+	"showMdmAuthRequiredNotification",
+	// Images domain (S1 sub-task 5)
+	"openImage",
+	"saveImage",
+	"selectImages",
+	// Skills domain (S1 sub-task 6)
+	"requestSkills",
+	"createSkill",
+	"deleteSkill",
+	"moveSkill",
+	"updateSkillModes",
+	"openSkillFile",
+	// Rules domain (S1 sub-task 6)
+	"requestRules",
+	"createRule",
+	"deleteRule",
+	"openRuleFile",
+	"openRulesDirectory",
+	// Commands domain (S1 sub-task 7)
+	"requestCommands",
+	"openCommandFile",
+	"deleteCommand",
+	"createCommand",
+	// Provider-profiles domain (S1 sub-task 8)
+	"deleteApiConfiguration",
+	"enhancementApiConfigId",
+	"getListApiConfiguration",
+	"kimiCodeSignIn",
+	"kimiCodeSignOut",
+	"loadApiConfiguration",
+	"loadApiConfigurationById",
+	"lockApiConfigAcrossModes",
+	"openAiCodexSignIn",
+	"openAiCodexSignOut",
+	"renameApiConfiguration",
+	"requestOpenAiCodexRateLimits",
+	"toggleApiConfigPin",
+	// Settings domain (S1 sub-task 9)
+	"autoApprovalEnabled",
+	"checkRulesDirectory",
+	"customInstructions",
+	"debugSetting",
+	"exportMode",
+	"exportSettings",
+	"flushRouterModels",
+	"getVSCodeSetting",
+	"hasOpenedModeSelector",
+	"importMode",
+	"importSettings",
+	"mode",
+	"openCustomModesSettings",
+	"requestLmStudioModels",
+	"requestOllamaModels",
+	"requestOpenAiModels",
+	"requestRooModels",
+	"requestRouterModels",
+	"requestVsCodeLmModels",
+	"telemetrySetting",
+	"updatePrompt",
+	"updateVSCodeSetting",
+	// Task domain (S1 sub-task 10)
+	"newTask",
+	"clearTask",
+	"exportCurrentTask",
+	"shareCurrentTask",
+	"showTaskWithId",
+	"condenseTaskContextRequest",
+	"deleteTaskWithId",
+	"abandonSubtaskWithId",
+	"deleteMultipleTasksWithIds",
+	"exportTaskWithId",
+	"getTaskWithAggregatedCosts",
+	"cancelTask",
+	"cancelAutoApproval",
+	"getSystemPrompt",
+	"copySystemPrompt",
+	"searchCommits",
+	// Chat domain (S1 sub-task 11)
+	"askResponse",
+	"completionCheckpointDiff",
+	"completionCheckpointRestore",
+	"deleteMessage",
+	"submitEditedMessage",
+	"deleteMessageConfirm",
+	"editMessageConfirm",
+	"enhancePrompt",
+	"ttsEnabled",
+	"ttsSpeed",
+	"playTts",
+	"stopTts",
+	// MCP domain (S1 sub-task 12)
+	"deleteMcpServer",
+	"openMcpSettings",
+	"openProjectMcpSettings",
+	"restartMcpServer",
+	"toggleToolAlwaysAllow",
+	"toggleToolEnabledForPrompt",
+	"toggleMcpServer",
+	"refreshAllMcpServers",
+	"updateMcpTimeout",
+	// Debug domain (S1 sub-task 13)
+	"openDebugApiHistory",
+	"openDebugUiHistory",
+	"downloadErrorDiagnostics",
+	// Misc domain (S1 sub-task 13)
+	"webviewDidLaunch",
+	"didShowAnnouncement",
+	"importRooHistory",
+	"resetState",
+	"openFile",
+	"readFileContent",
+	"openMention",
+	"openExternal",
+	"openKeyboardShortcuts",
+	"taskSyncEnabled",
+	"searchFiles",
+	"refreshCustomTools",
+	"focusPanelRequest",
+	"switchTab",
+	"requestModes",
+	"insertTextIntoTextarea",
+	"dismissUpsell",
+	"getDismissedUpsells",
+	"openMarkdownPreview",
+	// Loose / transitional types (S1 sub-task 13) — no handler; registered minimally.
+	"currentApiConfigName",
+	"updateCondensingPrompt",
+	"playSound",
+	"draggedImages",
+	"setopenAiCustomModelInfo",
+	"codebaseIndexEnabled",
+	"marketplaceButtonClicked",
+	"cancelMarketplaceInstall",
+	"imageGenerationSettings",
+	"switchMode",
+	"shareTaskSuccess",
 ]
 
 /**
- * Maximum permitted number of UNTYPED message types (WebviewMessageType members
- * without a schema in the registry).
- *
- * Verified derivation (2026-08-10): 165 literal members of the
- * `WebviewMessage.type` union minus 18 registered in the zod registry
- * (`packages/types/src/webview-messages/index.ts`) = 147 untyped. This is the
- * current count as of S1-M4 and must only ever DECREASE as domains migrate;
- * increasing it is a ratchet regression (the guard goal is "the count of untyped
- * message types must not increase"). Never raise this number — adjust it only
- * when a type is newly registered, keeping the derivation above in sync.
- */
-export const UNTYPED_MESSAGE_LIMIT = 147
+	* Maximum permitted number of UNTYPED message types (WebviewMessageType members
+	* without a schema in the registry).
+	*
+	* Verified derivation (2026-08-11): 165 literal members of the
+	* `WebviewMessage.type` union minus 165 registered in the zod registry
+	* (`packages/types/src/webview-messages/index.ts`) = 0 untyped. This is the
+	* current count as of S1-M13 (the final sub-task: Debug + Misc + Loose
+	* domains landed) and must only ever DECREASE as domains migrate; increasing
+	* it is a ratchet regression (the guard goal is "the count of untyped message
+	* types must not increase"). Never raise this number — adjust it only when a
+	* type is newly registered, keeping the derivation above in sync.
+	*/
+export const UNTYPED_MESSAGE_LIMIT = 0
 
 /**
  * Outbound (extension→webview|CLI) message types that MUST always have a schema

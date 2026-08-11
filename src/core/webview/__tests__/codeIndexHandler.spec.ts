@@ -26,6 +26,7 @@ interface MockIndexManager {
 	setAutoEnableDefault: Mock
 	readonly isWorkspaceEnabled: boolean
 	initialize: Mock
+	handleSettingsChange: Mock
 	isFeatureEnabled: boolean
 	isFeatureConfigured: boolean
 	state: string
@@ -46,6 +47,7 @@ function createManager(overrides: Partial<MockIndexManager> = {}): MockIndexMana
 			if (v) workspaceEnabled = true
 		}),
 		initialize: vi.fn().mockResolvedValue({ requiresRestart: false }),
+		handleSettingsChange: vi.fn().mockResolvedValue(undefined),
 		get isWorkspaceEnabled() {
 			return workspaceEnabled
 		},
@@ -70,7 +72,11 @@ function createManager(overrides: Partial<MockIndexManager> = {}): MockIndexMana
 
 function createProvider(manager: MockIndexManager): CodeIndexProvider {
 	const provider = {
-		contextProxy: { storeSecret: vi.fn() },
+		contextProxy: {
+			storeSecret: vi.fn(),
+			getValue: vi.fn(),
+			setValue: vi.fn().mockResolvedValue(undefined),
+		},
 		context: { secrets: { get: vi.fn().mockResolvedValue("") } },
 		postMessageToWebview: vi.fn().mockResolvedValue(undefined),
 		postStateToWebview: vi.fn().mockResolvedValue(undefined),
@@ -178,6 +184,116 @@ describe("handleCodeIndexMessages — indexing regression (VSIX #117)", () => {
 			expect(provider.postMessageToWebview).toHaveBeenCalledWith(
 				expect.objectContaining({ type: "indexingStatusUpdate" }),
 			)
+		})
+	})
+
+	describe("requestIndexingStatus", () => {
+		it("posts the current indexing status update", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "requestIndexingStatus",
+			} as unknown as WebviewMessage)
+
+			expect(provider.postMessageToWebview).toHaveBeenCalledWith(
+				expect.objectContaining({ type: "indexingStatusUpdate", values: manager.getCurrentStatus() }),
+			)
+		})
+
+		it("posts an error status update when no workspace is open", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+			vi.mocked(provider.getCurrentWorkspaceCodeIndexManager).mockReturnValue(undefined)
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "requestIndexingStatus",
+			} as unknown as WebviewMessage)
+
+			expect(provider.postMessageToWebview).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: "indexingStatusUpdate",
+					values: expect.objectContaining({ systemStatus: "Error" }),
+				}),
+			)
+		})
+	})
+
+	describe("saveCodeIndexSettingsAtomic", () => {
+		const validSettings = {
+			codebaseIndexEnabled: true,
+			codebaseIndexQdrantUrl: "http://localhost:6333",
+			codebaseIndexEmbedderProvider: "openai",
+			codebaseIndexEmbedderModelId: "text-embedding-3-small",
+		}
+
+		it("rejects a malformed message (missing required field) before any state or secret write", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "saveCodeIndexSettingsAtomic",
+				codeIndexSettings: {
+					codebaseIndexQdrantUrl: "http://localhost:6333",
+					codebaseIndexEmbedderProvider: "openai",
+					codebaseIndexEmbedderModelId: "text-embedding-3-small",
+				},
+			} as unknown as WebviewMessage)
+
+			// Nothing is persisted or posted on a malformed payload.
+			expect(provider.contextProxy.setValue).not.toHaveBeenCalled()
+			expect(provider.contextProxy.storeSecret).not.toHaveBeenCalled()
+			expect(provider.postMessageToWebview).not.toHaveBeenCalledWith(
+				expect.objectContaining({ type: "codeIndexSettingsSaved" }),
+			)
+			expect(manager.handleSettingsChange).not.toHaveBeenCalled()
+		})
+
+		it("rejects an invalid embedder provider before any state or secret write", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "saveCodeIndexSettingsAtomic",
+				codeIndexSettings: { ...validSettings, codebaseIndexEmbedderProvider: "bogus" },
+			} as unknown as WebviewMessage)
+
+			expect(provider.contextProxy.setValue).not.toHaveBeenCalled()
+			expect(provider.contextProxy.storeSecret).not.toHaveBeenCalled()
+			expect(manager.handleSettingsChange).not.toHaveBeenCalled()
+		})
+
+		it("forwards the typed settings to global state and secrets on a valid message", async () => {
+			const manager = createManager()
+			const provider = createProvider(manager)
+
+			await handleCodeIndexMessages(provider, undefined, {
+				type: "saveCodeIndexSettingsAtomic",
+				codeIndexSettings: {
+					...validSettings,
+					codeIndexOpenAiKey: "sk-test",
+				},
+			} as unknown as WebviewMessage)
+
+			// Global-state config is written with the forwarded settings.
+			expect(provider.contextProxy.setValue).toHaveBeenCalledWith(
+				"codebaseIndexConfig",
+				expect.objectContaining({
+					codebaseIndexEnabled: true,
+					codebaseIndexQdrantUrl: "http://localhost:6333",
+					codebaseIndexEmbedderProvider: "openai",
+					codebaseIndexEmbedderModelId: "text-embedding-3-small",
+				}),
+			)
+			// The secret is stored via the context proxy.
+			expect(provider.contextProxy.storeSecret).toHaveBeenCalledWith("codeIndexOpenAiKey", "sk-test")
+			// The webview is told the save succeeded, and state is refreshed.
+			expect(provider.postMessageToWebview).toHaveBeenCalledWith(
+				expect.objectContaining({ type: "codeIndexSettingsSaved", success: true }),
+			)
+			expect(provider.postStateToWebview).toHaveBeenCalled()
+			// The manager reacts to the settings change.
+			expect(manager.handleSettingsChange).toHaveBeenCalledWith(provider.contextProxy)
 		})
 	})
 })

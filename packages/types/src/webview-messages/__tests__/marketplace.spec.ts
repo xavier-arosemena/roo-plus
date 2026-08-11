@@ -6,7 +6,10 @@ import {
 	installMarketplaceItemMessageSchema,
 	installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParametersMessageSchema,
+	marketplaceMessageSchema,
 	parseWebviewMessage,
+	removeInstalledMarketplaceItemMessageSchema,
+	showMdmAuthRequiredNotificationMessageSchema,
 } from "../index.js"
 
 const modeItem = {
@@ -216,5 +219,159 @@ describe("parseWebviewMessage boundary for marketplace fetch/filter", () => {
 		if (!result.ok) {
 			expect(result.error).toContain("filterMarketplaceItems")
 		}
+	})
+})
+
+describe("removeInstalledMarketplaceItemMessageSchema", () => {
+	it("accepts a valid message with both fields", () => {
+		const result = removeInstalledMarketplaceItemMessageSchema.safeParse({
+			type: "removeInstalledMarketplaceItem",
+			mpItem: modeItem,
+			mpInstallOptions: { target: "project" },
+		})
+		expect(result.success).toBe(true)
+	})
+
+	it("accepts a message with global install options", () => {
+		const result = removeInstalledMarketplaceItemMessageSchema.safeParse({
+			type: "removeInstalledMarketplaceItem",
+			mpItem: modeItem,
+			mpInstallOptions: { target: "global" },
+		})
+		expect(result.success).toBe(true)
+	})
+
+	it("rejects a message missing mpItem", () => {
+		expect(
+			removeInstalledMarketplaceItemMessageSchema.safeParse({
+				type: "removeInstalledMarketplaceItem",
+				mpInstallOptions: { target: "project" },
+			}).success,
+		).toBe(false)
+	})
+
+	it("rejects a message missing mpInstallOptions", () => {
+		expect(
+			removeInstalledMarketplaceItemMessageSchema.safeParse({
+				type: "removeInstalledMarketplaceItem",
+				mpItem: modeItem,
+			}).success,
+		).toBe(false)
+	})
+
+	it.each([
+		{ type: "removeInstalledMarketplaceItem", mpItem: "nope", mpInstallOptions: { target: "project" } },
+		{ type: "removeInstalledMarketplaceItem", mpItem: { id: "x" }, mpInstallOptions: { target: "project" } },
+		{ type: "removeInstalledMarketplaceItem", mpItem: modeItem, mpInstallOptions: { target: "bogus" } },
+	])("rejects malformed removal payload %j", (raw) => {
+		expect(removeInstalledMarketplaceItemMessageSchema.safeParse(raw).success).toBe(false)
+	})
+})
+
+describe("showMdmAuthRequiredNotificationMessageSchema", () => {
+	it("accepts the empty-payload notification", () => {
+		const result = showMdmAuthRequiredNotificationMessageSchema.safeParse({
+			type: "showMdmAuthRequiredNotification",
+		})
+		expect(result.success).toBe(true)
+	})
+
+	it("rejects a message missing the type", () => {
+		expect(showMdmAuthRequiredNotificationMessageSchema.safeParse({}).success).toBe(false)
+	})
+
+	it("rejects a message with a different type", () => {
+		expect(
+			showMdmAuthRequiredNotificationMessageSchema.safeParse({ type: "showMdmAuthRequiredNotification2" })
+				.success,
+		).toBe(false)
+	})
+})
+
+describe("marketplaceMessageSchema domain-union narrowing", () => {
+	it("narrows removeInstalledMarketplaceItem to its typed payload", () => {
+		const result = marketplaceMessageSchema.safeParse({
+			type: "removeInstalledMarketplaceItem",
+			mpItem: modeItem,
+			mpInstallOptions: { target: "project" },
+		})
+		expect(result.success).toBe(true)
+		if (result.success && result.data.type === "removeInstalledMarketplaceItem") {
+			// Discriminator narrowing exposes the typed removal payload.
+			expect(result.data.mpItem.id).toBe("item-1")
+			expect(result.data.mpInstallOptions.target).toBe("project")
+		} else {
+			throw new Error("expected a removeInstalledMarketplaceItem message")
+		}
+	})
+
+	it("narrows showMdmAuthRequiredNotification to its empty payload", () => {
+		const result = marketplaceMessageSchema.safeParse({ type: "showMdmAuthRequiredNotification" })
+		expect(result.success).toBe(true)
+		if (result.success) {
+			expect(result.data.type).toBe("showMdmAuthRequiredNotification")
+		}
+	})
+
+	it("rejects a malformed removal payload in the domain union", () => {
+		const result = marketplaceMessageSchema.safeParse({
+			type: "removeInstalledMarketplaceItem",
+			mpItem: modeItem,
+		})
+		expect(result.success).toBe(false)
+	})
+})
+
+describe("parseWebviewMessage boundary for marketplace remove/notification", () => {
+	it("accepts a valid removeInstalledMarketplaceItem message", () => {
+		const result = parseWebviewMessage({
+			type: "removeInstalledMarketplaceItem",
+			mpItem: modeItem,
+			mpInstallOptions: { target: "project" },
+		})
+		expect(result.ok).toBe(true)
+		if (result.ok) {
+			expect(result.message.type).toBe("removeInstalledMarketplaceItem")
+		}
+	})
+
+	it("rejects a removeInstalledMarketplaceItem message missing mpItem", () => {
+		const result = parseWebviewMessage({
+			type: "removeInstalledMarketplaceItem",
+			mpInstallOptions: { target: "project" },
+		})
+		expect(result.ok).toBe(false)
+		if (!result.ok) {
+			expect(result.error).toContain("removeInstalledMarketplaceItem")
+		}
+	})
+
+	it("rejects a removeInstalledMarketplaceItem message with a non-object mpItem", () => {
+		const result = parseWebviewMessage({
+			type: "removeInstalledMarketplaceItem",
+			mpItem: "nope",
+			mpInstallOptions: { target: "project" },
+		})
+		expect(result.ok).toBe(false)
+		if (!result.ok) {
+			expect(result.error).toContain("removeInstalledMarketplaceItem")
+		}
+	})
+
+	it("accepts a valid showMdmAuthRequiredNotification message", () => {
+		const result = parseWebviewMessage({ type: "showMdmAuthRequiredNotification" })
+		expect(result.ok).toBe(true)
+		if (result.ok) {
+			expect(result.message.type).toBe("showMdmAuthRequiredNotification")
+		}
+	})
+
+	it("rejects an unknown type literal at the schema level", () => {
+		// A wrong type literal is an unregistered pass-through at the boundary,
+		// but the registered schema itself must reject it.
+		expect(
+			showMdmAuthRequiredNotificationMessageSchema.safeParse({ type: "showMdmAuthRequiredNotification2" })
+				.success,
+		).toBe(false)
 	})
 })

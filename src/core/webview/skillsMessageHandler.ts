@@ -1,12 +1,18 @@
 import * as vscode from "vscode"
 
-import type { SkillMetadata, WebviewMessage } from "@roo-code/types"
+import type { SkillMetadata } from "@roo-code/types"
+import {
+	type SkillsMessage,
+	createSkillMessageSchema,
+	deleteSkillMessageSchema,
+	moveSkillMessageSchema,
+	openSkillFileMessageSchema,
+	updateSkillModesMessageSchema,
+} from "@roo-code/types"
 
 import type { ClineProvider } from "./ClineProvider"
 import { openFile } from "../../integrations/misc/open-file"
 import { t } from "../../i18n"
-
-type SkillSource = SkillMetadata["source"]
 
 export type SkillsProvider = Pick<ClineProvider, "getSkillsManager" | "postMessageToWebview" | "log">
 
@@ -36,19 +42,21 @@ export async function handleRequestSkills(provider: SkillsProvider): Promise<Ski
  */
 export async function handleCreateSkill(
 	provider: SkillsProvider,
-	message: WebviewMessage,
+	message: SkillsMessage,
 ): Promise<SkillMetadata[] | undefined> {
+	// `skillName`, `source` and `skillDescription` are required — reject malformed
+	// payloads before any side effects (source is now a z.enum, no cast needed).
+	const result = createSkillMessageSchema.safeParse(message)
+	if (!result.success) {
+		provider.log(`[skillsMessageHandler] Rejected malformed createSkill message: ${result.error.message}`)
+		return undefined
+	}
+
+	const { skillName, source, skillDescription, skillModeSlugs, skillMode } = result.data
+	// Support new modeSlugs array or fall back to legacy skillMode
+	const modeSlugs = skillModeSlugs ?? (skillMode ? [skillMode] : undefined)
+
 	try {
-		const skillName = message.skillName
-		const source = message.source as SkillSource
-		const skillDescription = message.skillDescription
-		// Support new modeSlugs array or fall back to legacy skillMode
-		const modeSlugs = message.skillModeSlugs ?? (message.skillMode ? [message.skillMode] : undefined)
-
-		if (!skillName || !source || !skillDescription) {
-			throw new Error(t("skills:errors.missing_create_fields"))
-		}
-
 		const skillsManager = provider.getSkillsManager()
 		if (!skillsManager) {
 			throw new Error(t("skills:errors.manager_unavailable"))
@@ -76,24 +84,26 @@ export async function handleCreateSkill(
  */
 export async function handleDeleteSkill(
 	provider: SkillsProvider,
-	message: WebviewMessage,
+	message: SkillsMessage,
 ): Promise<SkillMetadata[] | undefined> {
+	// `skillName` and `source` are required — reject malformed payloads first.
+	const result = deleteSkillMessageSchema.safeParse(message)
+	if (!result.success) {
+		provider.log(`[skillsMessageHandler] Rejected malformed deleteSkill message: ${result.error.message}`)
+		return undefined
+	}
+
+	const { skillName, source, skillModeSlugs, skillMode } = result.data
+	// Support new skillModeSlugs array or fall back to legacy skillMode
+	const skillModeToDelete = skillModeSlugs?.[0] ?? skillMode
+
 	try {
-		const skillName = message.skillName
-		const source = message.source as SkillSource
-		// Support new skillModeSlugs array or fall back to legacy skillMode
-		const skillMode = message.skillModeSlugs?.[0] ?? message.skillMode
-
-		if (!skillName || !source) {
-			throw new Error(t("skills:errors.missing_delete_fields"))
-		}
-
 		const skillsManager = provider.getSkillsManager()
 		if (!skillsManager) {
 			throw new Error(t("skills:errors.manager_unavailable"))
 		}
 
-		await skillsManager.deleteSkill(skillName, source, skillMode)
+		await skillsManager.deleteSkill(skillName, source, skillModeToDelete)
 
 		// Send updated skills list
 		const skills = skillsManager.getSkillsMetadata()
@@ -112,24 +122,24 @@ export async function handleDeleteSkill(
  */
 export async function handleMoveSkill(
 	provider: SkillsProvider,
-	message: WebviewMessage,
+	message: SkillsMessage,
 ): Promise<SkillMetadata[] | undefined> {
+	// `skillName` and `source` are required — reject malformed payloads first.
+	const result = moveSkillMessageSchema.safeParse(message)
+	if (!result.success) {
+		provider.log(`[skillsMessageHandler] Rejected malformed moveSkill message: ${result.error.message}`)
+		return undefined
+	}
+
+	const { skillName, source, skillMode, newSkillMode } = result.data
+
 	try {
-		const skillName = message.skillName
-		const source = message.source as SkillSource
-		const currentMode = message.skillMode
-		const newMode = message.newSkillMode
-
-		if (!skillName || !source) {
-			throw new Error(t("skills:errors.missing_move_fields"))
-		}
-
 		const skillsManager = provider.getSkillsManager()
 		if (!skillsManager) {
 			throw new Error(t("skills:errors.manager_unavailable"))
 		}
 
-		await skillsManager.moveSkill(skillName, source, currentMode, newMode)
+		await skillsManager.moveSkill(skillName, source, skillMode, newSkillMode)
 
 		// Send updated skills list
 		const skills = skillsManager.getSkillsMetadata()
@@ -148,23 +158,24 @@ export async function handleMoveSkill(
  */
 export async function handleUpdateSkillModes(
 	provider: SkillsProvider,
-	message: WebviewMessage,
+	message: SkillsMessage,
 ): Promise<SkillMetadata[] | undefined> {
+	// `skillName` and `source` are required — reject malformed payloads first.
+	const result = updateSkillModesMessageSchema.safeParse(message)
+	if (!result.success) {
+		provider.log(`[skillsMessageHandler] Rejected malformed updateSkillModes message: ${result.error.message}`)
+		return undefined
+	}
+
+	const { skillName, source, newSkillModeSlugs } = result.data
+
 	try {
-		const skillName = message.skillName
-		const source = message.source as SkillSource
-		const newModeSlugs = message.newSkillModeSlugs
-
-		if (!skillName || !source) {
-			throw new Error(t("skills:errors.missing_update_modes_fields"))
-		}
-
 		const skillsManager = provider.getSkillsManager()
 		if (!skillsManager) {
 			throw new Error(t("skills:errors.manager_unavailable"))
 		}
 
-		await skillsManager.updateSkillModes(skillName, source, newModeSlugs)
+		await skillsManager.updateSkillModes(skillName, source, newSkillModeSlugs)
 
 		// Send updated skills list
 		const skills = skillsManager.getSkillsMetadata()
@@ -181,15 +192,17 @@ export async function handleUpdateSkillModes(
 /**
  * Handles the openSkillFile message - opens a skill file in the editor
  */
-export async function handleOpenSkillFile(provider: SkillsProvider, message: WebviewMessage): Promise<void> {
+export async function handleOpenSkillFile(provider: SkillsProvider, message: SkillsMessage): Promise<void> {
+	// `skillName` and `source` are required — reject malformed payloads first.
+	const result = openSkillFileMessageSchema.safeParse(message)
+	if (!result.success) {
+		provider.log(`[skillsMessageHandler] Rejected malformed openSkillFile message: ${result.error.message}`)
+		return
+	}
+
+	const { skillName, source } = result.data
+
 	try {
-		const skillName = message.skillName
-		const source = message.source as SkillSource
-
-		if (!skillName || !source) {
-			throw new Error(t("skills:errors.missing_delete_fields"))
-		}
-
 		const skillsManager = provider.getSkillsManager()
 		if (!skillsManager) {
 			throw new Error(t("skills:errors.manager_unavailable"))

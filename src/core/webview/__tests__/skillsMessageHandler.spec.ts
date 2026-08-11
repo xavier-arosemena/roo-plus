@@ -1,6 +1,6 @@
 // npx vitest run src/core/webview/__tests__/skillsMessageHandler.spec.ts
 
-import type { SkillMetadata, WebviewMessage } from "@roo-code/types"
+import type { SkillMetadata, SkillsMessage } from "@roo-code/types"
 import type { ClineProvider } from "../ClineProvider"
 
 // Mock vscode first
@@ -41,6 +41,7 @@ import {
 	handleDeleteSkill,
 	handleMoveSkill,
 	handleOpenSkillFile,
+	handleUpdateSkillModes,
 } from "../skillsMessageHandler"
 
 describe("skillsMessageHandler", () => {
@@ -60,6 +61,7 @@ describe("skillsMessageHandler", () => {
 					createSkill: mockCreateSkill,
 					deleteSkill: mockDeleteSkill,
 					moveSkill: mockMoveSkill,
+					updateSkillModes: mockGetSkill,
 					getSkill: mockGetSkill,
 					findSkillByNameAndSource: mockFindSkillByNameAndSource,
 				}
@@ -137,7 +139,7 @@ describe("skillsMessageHandler", () => {
 				skillName: "new-skill",
 				source: "global",
 				skillDescription: "New skill description",
-			} as WebviewMessage)
+			})
 
 			expect(result).toEqual(mockSkills)
 			expect(mockCreateSkill).toHaveBeenCalledWith("new-skill", "global", "New skill description", undefined)
@@ -156,28 +158,25 @@ describe("skillsMessageHandler", () => {
 				source: "project",
 				skillDescription: "New skill description",
 				skillMode: "code",
-			} as WebviewMessage)
+			})
 
 			expect(result).toEqual(mockSkills)
 			expect(mockCreateSkill).toHaveBeenCalledWith("new-skill", "project", "New skill description", ["code"])
 		})
 
-		it("returns undefined when required fields are missing", async () => {
+		it("rejects a malformed message (missing source/skillDescription) before side effects", async () => {
 			const provider = createMockProvider(true)
 
+			// Intentionally malformed — bypass the type system to exercise the schema rejection.
 			const result = await handleCreateSkill(provider, {
 				type: "createSkill",
 				skillName: "new-skill",
-				// missing source and skillDescription
-			} as WebviewMessage)
+			} as unknown as SkillsMessage)
 
 			expect(result).toBeUndefined()
-			expect(mockLog).toHaveBeenCalledWith(
-				"Error creating skill: Missing required fields: skillName, source, or skillDescription",
-			)
-			expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-				"Failed to create skill: Missing required fields: skillName, source, or skillDescription",
-			)
+			expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed createSkill message"))
+			expect(mockCreateSkill).not.toHaveBeenCalled()
+			expect(vscode.window.showErrorMessage).not.toHaveBeenCalled()
 		})
 
 		it("returns undefined when skills manager is not available", async () => {
@@ -188,7 +187,7 @@ describe("skillsMessageHandler", () => {
 				skillName: "new-skill",
 				source: "global",
 				skillDescription: "New skill description",
-			} as WebviewMessage)
+			})
 
 			expect(result).toBeUndefined()
 			expect(mockLog).toHaveBeenCalledWith("Error creating skill: Skills manager not available")
@@ -208,7 +207,7 @@ describe("skillsMessageHandler", () => {
 				type: "deleteSkill",
 				skillName: "test-skill",
 				source: "global",
-			} as WebviewMessage)
+			})
 
 			expect(result).toEqual([mockSkills[1]])
 			expect(mockDeleteSkill).toHaveBeenCalledWith("test-skill", "global", undefined)
@@ -225,26 +224,25 @@ describe("skillsMessageHandler", () => {
 				skillName: "project-skill",
 				source: "project",
 				skillMode: "code",
-			} as WebviewMessage)
+			})
 
 			expect(result).toEqual([mockSkills[0]])
 			expect(mockDeleteSkill).toHaveBeenCalledWith("project-skill", "project", "code")
 		})
 
-		it("returns undefined when required fields are missing", async () => {
+		it("rejects a malformed message (missing source) before side effects", async () => {
 			const provider = createMockProvider(true)
 
+			// Intentionally malformed — bypass the type system to exercise the schema rejection.
 			const result = await handleDeleteSkill(provider, {
 				type: "deleteSkill",
 				skillName: "test-skill",
-				// missing source
-			} as WebviewMessage)
+			} as unknown as SkillsMessage)
 
 			expect(result).toBeUndefined()
-			expect(mockLog).toHaveBeenCalledWith("Error deleting skill: Missing required fields: skillName or source")
-			expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-				"Failed to delete skill: Missing required fields: skillName or source",
-			)
+			expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed deleteSkill message"))
+			expect(mockDeleteSkill).not.toHaveBeenCalled()
+			expect(vscode.window.showErrorMessage).not.toHaveBeenCalled()
 		})
 
 		it("returns undefined when skills manager is not available", async () => {
@@ -254,7 +252,7 @@ describe("skillsMessageHandler", () => {
 				type: "deleteSkill",
 				skillName: "test-skill",
 				source: "global",
-			} as WebviewMessage)
+			})
 
 			expect(result).toBeUndefined()
 			expect(mockLog).toHaveBeenCalledWith("Error deleting skill: Skills manager not available")
@@ -276,7 +274,7 @@ describe("skillsMessageHandler", () => {
 				source: "global",
 				skillMode: undefined,
 				newSkillMode: "code",
-			} as WebviewMessage)
+			})
 
 			expect(result).toEqual([mockSkills[0]])
 			expect(mockMoveSkill).toHaveBeenCalledWith("test-skill", "global", undefined, "code")
@@ -294,26 +292,25 @@ describe("skillsMessageHandler", () => {
 				source: "project",
 				skillMode: "code",
 				newSkillMode: "architect",
-			} as WebviewMessage)
+			})
 
 			expect(result).toEqual([mockSkills[1]])
 			expect(mockMoveSkill).toHaveBeenCalledWith("project-skill", "project", "code", "architect")
 		})
 
-		it("returns undefined when required fields are missing", async () => {
+		it("rejects a malformed message (missing source) before side effects", async () => {
 			const provider = createMockProvider(true)
 
+			// Intentionally malformed — bypass the type system to exercise the schema rejection.
 			const result = await handleMoveSkill(provider, {
 				type: "moveSkill",
 				skillName: "test-skill",
-				// missing source
-			} as WebviewMessage)
+			} as unknown as SkillsMessage)
 
 			expect(result).toBeUndefined()
-			expect(mockLog).toHaveBeenCalledWith("Error moving skill: Missing required fields: skillName or source")
-			expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-				"Failed to move skill: Missing required fields: skillName or source",
-			)
+			expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed moveSkill message"))
+			expect(mockMoveSkill).not.toHaveBeenCalled()
+			expect(vscode.window.showErrorMessage).not.toHaveBeenCalled()
 		})
 
 		it("returns undefined when skills manager is not available", async () => {
@@ -324,13 +321,46 @@ describe("skillsMessageHandler", () => {
 				skillName: "test-skill",
 				source: "global",
 				newSkillMode: "code",
-			} as WebviewMessage)
+			})
 
 			expect(result).toBeUndefined()
 			expect(mockLog).toHaveBeenCalledWith("Error moving skill: Skills manager not available")
 			expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
 				"Failed to move skill: Skills manager not available",
 			)
+		})
+	})
+
+	describe("handleUpdateSkillModes", () => {
+		it("updates skill modes successfully", async () => {
+			const provider = createMockProvider(true)
+			mockGetSkillsMetadata.mockReturnValue([mockSkills[1]])
+
+			const result = await handleUpdateSkillModes(provider, {
+				type: "updateSkillModes",
+				skillName: "project-skill",
+				source: "project",
+				newSkillModeSlugs: ["architect"],
+			})
+
+			expect(result).toEqual([mockSkills[1]])
+			expect(mockGetSkill).toHaveBeenCalledWith("project-skill", "project", ["architect"])
+			expect(mockPostMessageToWebview).toHaveBeenCalledWith({ type: "skills", skills: [mockSkills[1]] })
+		})
+
+		it("rejects a malformed message (missing source) before side effects", async () => {
+			const provider = createMockProvider(true)
+
+			// Intentionally malformed — bypass the type system to exercise the schema rejection.
+			const result = await handleUpdateSkillModes(provider, {
+				type: "updateSkillModes",
+				skillName: "project-skill",
+			} as unknown as SkillsMessage)
+
+			expect(result).toBeUndefined()
+			expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed updateSkillModes message"))
+			expect(mockGetSkill).not.toHaveBeenCalled()
+			expect(vscode.window.showErrorMessage).not.toHaveBeenCalled()
 		})
 	})
 
@@ -343,13 +373,13 @@ describe("skillsMessageHandler", () => {
 				type: "openSkillFile",
 				skillName: "test-skill",
 				source: "global",
-			} as WebviewMessage)
+			})
 
 			expect(mockFindSkillByNameAndSource).toHaveBeenCalledWith("test-skill", "global")
 			expect(openFile).toHaveBeenCalledWith("/path/to/test-skill/SKILL.md")
 		})
 
-		it("opens a skill file with mode restriction", async () => {
+		it("opens a project-scoped skill file", async () => {
 			const provider = createMockProvider(true)
 			mockFindSkillByNameAndSource.mockReturnValue(mockSkills[1])
 
@@ -357,28 +387,24 @@ describe("skillsMessageHandler", () => {
 				type: "openSkillFile",
 				skillName: "project-skill",
 				source: "project",
-				skillMode: "code",
-			} as WebviewMessage)
+			})
 
 			expect(mockFindSkillByNameAndSource).toHaveBeenCalledWith("project-skill", "project")
 			expect(openFile).toHaveBeenCalledWith("/project/.roo/skills/project-skill/SKILL.md")
 		})
 
-		it("shows error when required fields are missing", async () => {
+		it("rejects a malformed message (missing source) without side effects", async () => {
 			const provider = createMockProvider(true)
 
+			// Intentionally malformed — bypass the type system to exercise the schema rejection.
 			await handleOpenSkillFile(provider, {
 				type: "openSkillFile",
 				skillName: "test-skill",
-				// missing source
-			} as WebviewMessage)
+			} as unknown as SkillsMessage)
 
-			expect(mockLog).toHaveBeenCalledWith(
-				"Error opening skill file: Missing required fields: skillName or source",
-			)
-			expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-				"Failed to open skill file: Missing required fields: skillName or source",
-			)
+			expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed openSkillFile message"))
+			expect(mockFindSkillByNameAndSource).not.toHaveBeenCalled()
+			expect(vscode.window.showErrorMessage).not.toHaveBeenCalled()
 		})
 
 		it("shows error when skills manager is not available", async () => {
@@ -388,7 +414,7 @@ describe("skillsMessageHandler", () => {
 				type: "openSkillFile",
 				skillName: "test-skill",
 				source: "global",
-			} as WebviewMessage)
+			})
 
 			expect(mockLog).toHaveBeenCalledWith("Error opening skill file: Skills manager not available")
 			expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
@@ -404,7 +430,7 @@ describe("skillsMessageHandler", () => {
 				type: "openSkillFile",
 				skillName: "nonexistent-skill",
 				source: "global",
-			} as WebviewMessage)
+			})
 
 			expect(mockLog).toHaveBeenCalledWith('Error opening skill file: Skill "nonexistent-skill" not found')
 			expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(

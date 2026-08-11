@@ -1,4 +1,11 @@
-import { type WebviewMessage, type WebviewMessageType } from "@roo-code/types"
+import {
+	type WebviewMessage,
+	type WebviewMessageType,
+	createRuleMessageSchema,
+	deleteRuleMessageSchema,
+	openRuleFileMessageSchema,
+	openRulesDirectoryMessageSchema,
+} from "@roo-code/types"
 
 import {
 	handleCreateRule,
@@ -30,19 +37,43 @@ export async function handleRulesMessages(
 			break
 		}
 		case "createRule": {
-			await handleCreateRule(provider, getCurrentCwd(provider), message)
+			// `values` is a typed object — an invalid `scope`/`kind` enum value is
+			// rejected here before any side effects (the helper re-validates too).
+			const result = createRuleMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed createRule message: ${result.error.message}`)
+				break
+			}
+			await handleCreateRule(provider, getCurrentCwd(provider), result.data)
 			break
 		}
 		case "deleteRule": {
-			await handleDeleteRule(provider, getCurrentCwd(provider), message)
+			const result = deleteRuleMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed deleteRule message: ${result.error.message}`)
+				break
+			}
+			await handleDeleteRule(provider, getCurrentCwd(provider), result.data)
 			break
 		}
 		case "openRuleFile": {
-			await handleOpenRuleFile(provider, getCurrentCwd(provider), message)
+			const result = openRuleFileMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed openRuleFile message: ${result.error.message}`)
+				break
+			}
+			await handleOpenRuleFile(provider, getCurrentCwd(provider), result.data)
 			break
 		}
 		case "openRulesDirectory": {
-			await handleOpenRulesDirectory(provider, getCurrentCwd(provider), message)
+			const result = openRulesDirectoryMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed openRulesDirectory message: ${result.error.message}`,
+				)
+				break
+			}
+			await handleOpenRulesDirectory(provider, getCurrentCwd(provider), result.data)
 			break
 		}
 	}

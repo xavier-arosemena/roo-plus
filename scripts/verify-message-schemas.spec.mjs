@@ -77,13 +77,19 @@ describe("analyzeRegistry", () => {
 	})
 
 	it("passes when the untyped count decreases (at or below the limit)", () => {
-		const analysis = analyzeRegistry({}, ["a", "b"], [])
-		assert.equal(analysis.untypedCount, 2)
+		// The inbound limit is now 0 (all 165 types registered), so "at or below"
+		// means 0 untyped — a count above 0 must fail.
+		const analysis = analyzeRegistry({}, [], [])
+		assert.equal(analysis.untypedCount, 0)
 		assert.equal(evaluateRatchet(analysis, 2).ok, true)
 		assert.equal(evaluateRatchet(analysis, UNTYPED_MESSAGE_LIMIT).ok, true)
+
+		const aboveLimit = analyzeRegistry({}, ["a", "b"], [])
+		assert.equal(aboveLimit.untypedCount, 2)
+		assert.equal(evaluateRatchet(aboveLimit, UNTYPED_MESSAGE_LIMIT).ok, false)
 	})
 
-	it("passes exactly at the untyped limit and fails one above (147/148 boundary)", () => {
+	it(`passes exactly at the untyped limit and fails one above (${UNTYPED_MESSAGE_LIMIT}/${UNTYPED_MESSAGE_LIMIT + 1} boundary)`, () => {
 		const atLimitTypes = Array.from({ length: UNTYPED_MESSAGE_LIMIT }, (_, i) => `t${i}`)
 		const atLimit = analyzeRegistry({}, atLimitTypes, [])
 		assert.equal(atLimit.untypedCount, UNTYPED_MESSAGE_LIMIT)

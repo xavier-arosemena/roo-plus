@@ -39,16 +39,17 @@ Each domain's sender, handler, and tests migrate in the **same PR**; the `Webvie
 ## What Shipped
 
 - **16 security-sensitive message types** fully typed + runtime-validated (checkpoint, allowed/deniedCommands, updateSettings, provider config, marketplace installs, message queue, todos, custom modes).
+- **Phase 1 (DELIVERED 2026-08-11)**: all **165** `WebviewMessage.type` members registered in `webviewMessageSchemas` — **0 untyped**, `UNTYPED_MESSAGE_LIMIT = 0`. Landed as 13 atomic per-domain change sets (terminal, worktree, code-index, marketplace, images, skills+rules, commands, provider-profiles, settings, task, chat, mcp, debug+misc+loose) following the same-PR rule (schema + registry + handler + sender + tests + ratchet together). Handlers now consume `z.infer` domain unions with no `as any` payload casts.
 - **10 direction-mixed types** moved from `WebviewMessage` into `ExtensionMessage`.
-- **CI ratchet** enforces the 16 baseline types stay registered and the untyped count (147 of 165 total `WebviewMessage.type` members — 18 registered) never increases.
+- **CI ratchet** enforces the 165 baseline types stay registered and the untyped count never increases (now 0/165).
 - **Outbound scaffold (Phase 0)**: [`parseExtensionMessage`](packages/types/src/extension-messages/index.ts) + `extensionMessageSchemas` registry with 5 baseline types (state, commandExecutionStatus, mcpExecutionStatus, fileContent, indexingStatusUpdate) and an outbound ratchet (`EXTENSION_MESSAGE_BASELINE`, limit 72).
 
 This decision unlocked **S2** (domain-split dispatcher under [`src/core/webview/handlers/`](src/core/webview/handlers/)) and **S3** (slimmed `ClineProvider` with extracted services in [`src/core/services/`](src/core/services/)), documented in the changelog.
 
 ## Remaining Work
 
-- **147 transitional (unregistered) message types** still rely on the pass-through path; the ratchet forbids the count from increasing, and broadening is ongoing (worktree ×12, marketplace ×7, skills ×6, rules ×5, code-index ×10, terminal ×9, images ×4, debug ×4, misc).
-- **Outbound `ExtensionMessage` (77 types)** has not yet received the full discriminated-union/zod treatment — the Phase 0 scaffold ([`parseExtensionMessage`](packages/types/src/extension-messages/index.ts) + registry + outbound ratchet, 5 baseline types) has landed, but the full outbound migration remains — lower priority because the extension is the trusted producer.
+- **Inbound migration is COMPLETE** (Phase 1 delivered 2026-08-11): all 165 `WebviewMessage.type` members are registered and runtime-validated; `parseWebviewMessage` now strictly validates every message at the boundary. Residual: 11 "loose" union members registered with minimal structural schemas are unhandled by any dispatcher (direction-mixed/dead — `marketplaceButtonClicked` is confirmed outbound-only); these belong to the Phase 3 direction-mixing cleanup.
+- **Outbound `ExtensionMessage` (77 types)** has not yet received the full discriminated-union/zod treatment — the Phase 0 scaffold ([`parseExtensionMessage`](packages/types/src/extension-messages/index.ts) + registry + outbound ratchet, 5 baseline types) has landed, but the remaining 72 types await the Phase 2 migration. Lower priority because the extension is the trusted producer.
 
 ## Consequences
 
@@ -61,9 +62,9 @@ This decision unlocked **S2** (domain-split dispatcher under [`src/core/webview/
 
 ### Negative
 
-- Two code paths exist during the transition: strict validation for registered types, pass-through for unregistered ones.
+- Two code paths existed during the transition (strict validation for registered types, pass-through for unregistered ones); with Phase 1 complete the pass-through path is now vestigial — every inbound type is strictly validated.
 - Deriving the full `updateSettings`/`RooCodeSettings` schema incrementally required care (`strict: false` allow-list semantics for the transitional period).
-- ~147 types remain transitional and are not yet runtime-validated.
+- The inbound direction is fully typed; the outbound `ExtensionMessage` direction still trusts the producer (Phase 2).
 
 ### Neutral
 

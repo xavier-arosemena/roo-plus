@@ -2,7 +2,14 @@ import * as vscode from "vscode"
 import {
 	type WebviewMessage,
 	type WebviewMessageType,
+	deleteApiConfigurationMessageSchema,
+	enhancementApiConfigIdMessageSchema,
+	loadApiConfigurationByIdMessageSchema,
+	loadApiConfigurationMessageSchema,
+	lockApiConfigAcrossModesMessageSchema,
+	renameApiConfigurationMessageSchema,
 	saveApiConfigurationMessageSchema,
+	toggleApiConfigPinMessageSchema,
 	upsertApiConfigurationMessageSchema,
 } from "@roo-code/types"
 
@@ -46,32 +53,62 @@ export async function handleProviderProfilesMessages(
 ): Promise<void> {
 	switch (message.type) {
 		case "lockApiConfigAcrossModes": {
-			const enabled = message.bool ?? false
+			const result = lockApiConfigAcrossModesMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed lockApiConfigAcrossModes message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const enabled = result.data.bool ?? false
 			await provider.context.workspaceState.update("lockApiConfigAcrossModes", enabled)
 
 			await provider.postStateToWebview()
 			break
 		}
 
-		case "toggleApiConfigPin":
-			if (message.text) {
+		case "toggleApiConfigPin": {
+			const result = toggleApiConfigPinMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed toggleApiConfigPin message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { text } = result.data
+			if (text) {
 				const currentPinned = getGlobalState(provider, "pinnedApiConfigs") ?? {}
 				const updatedPinned: Record<string, boolean> = { ...currentPinned }
 
-				if (currentPinned[message.text]) {
-					delete updatedPinned[message.text]
+				if (currentPinned[text]) {
+					delete updatedPinned[text]
 				} else {
-					updatedPinned[message.text] = true
+					updatedPinned[text] = true
 				}
 
 				await updateGlobalState(provider, "pinnedApiConfigs", updatedPinned)
 				await provider.postStateToWebview()
 			}
 			break
-		case "enhancementApiConfigId":
-			await updateGlobalState(provider, "enhancementApiConfigId", message.text)
+		}
+		case "enhancementApiConfigId": {
+			const result = enhancementApiConfigIdMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed enhancementApiConfigId message: ${result.error.message}`,
+				)
+				break
+			}
+
+			await updateGlobalState(provider, "enhancementApiConfigId", result.data.text)
 			await provider.postStateToWebview()
 			break
+		}
 
 		case "saveApiConfiguration": {
 			const result = saveApiConfigurationMessageSchema.safeParse(message)
@@ -110,12 +147,22 @@ export async function handleProviderProfilesMessages(
 			await provider.upsertProviderProfile(m.text, m.apiConfiguration)
 			break
 		}
-		case "renameApiConfiguration":
-			if (message.values && message.apiConfiguration) {
-				try {
-					const { oldName, newName } = message.values
+		case "renameApiConfiguration": {
+			const result = renameApiConfigurationMessageSchema.safeParse(message)
 
-					if (oldName === newName) {
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed renameApiConfiguration message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { values, apiConfiguration } = result.data
+			if (values && apiConfiguration) {
+				try {
+					const { oldName, newName } = values
+
+					if (!oldName || !newName || oldName === newName) {
 						break
 					}
 
@@ -123,7 +170,7 @@ export async function handleProviderProfilesMessages(
 					const { id } = await provider.providerSettingsManager.getProfile({ name: oldName })
 
 					// Create a new configuration with the new name and old ID.
-					await provider.providerSettingsManager.saveConfig(newName, { ...message.apiConfiguration, id })
+					await provider.providerSettingsManager.saveConfig(newName, { ...apiConfiguration, id })
 
 					// Delete the old configuration.
 					await provider.providerSettingsManager.deleteConfig(oldName)
@@ -140,10 +187,21 @@ export async function handleProviderProfilesMessages(
 				}
 			}
 			break
-		case "loadApiConfiguration":
-			if (message.text) {
+		}
+		case "loadApiConfiguration": {
+			const result = loadApiConfigurationMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed loadApiConfiguration message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { text } = result.data
+			if (text) {
 				try {
-					await provider.activateProviderProfile({ name: message.text })
+					await provider.activateProviderProfile({ name: text })
 				} catch (error) {
 					provider.log(
 						`Error load api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
@@ -152,10 +210,21 @@ export async function handleProviderProfilesMessages(
 				}
 			}
 			break
-		case "loadApiConfigurationById":
-			if (message.text) {
+		}
+		case "loadApiConfigurationById": {
+			const result = loadApiConfigurationByIdMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed loadApiConfigurationById message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { text } = result.data
+			if (text) {
 				try {
-					await provider.activateProviderProfile({ id: message.text })
+					await provider.activateProviderProfile({ id: text })
 				} catch (error) {
 					provider.log(
 						`Error load api configuration by ID: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
@@ -164,8 +233,19 @@ export async function handleProviderProfilesMessages(
 				}
 			}
 			break
-		case "deleteApiConfiguration":
-			if (message.text) {
+		}
+		case "deleteApiConfiguration": {
+			const result = deleteApiConfigurationMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed deleteApiConfiguration message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { text } = result.data
+			if (text) {
 				const answer = await vscode.window.showInformationMessage(
 					t("common:confirmation.delete_config_profile"),
 					{ modal: true },
@@ -176,7 +256,7 @@ export async function handleProviderProfilesMessages(
 					break
 				}
 
-				const oldName = message.text
+				const oldName = text
 
 				const newName = (await provider.providerSettingsManager.listConfig()).filter(
 					(c) => c.name !== oldName,
@@ -199,6 +279,7 @@ export async function handleProviderProfilesMessages(
 				}
 			}
 			break
+		}
 		case "getListApiConfiguration":
 			try {
 				const listApiConfig = await provider.providerSettingsManager.listConfig()

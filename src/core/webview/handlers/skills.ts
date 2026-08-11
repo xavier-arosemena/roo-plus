@@ -1,4 +1,12 @@
-import { type WebviewMessage, type WebviewMessageType } from "@roo-code/types"
+import {
+	type WebviewMessage,
+	type WebviewMessageType,
+	createSkillMessageSchema,
+	deleteSkillMessageSchema,
+	moveSkillMessageSchema,
+	openSkillFileMessageSchema,
+	updateSkillModesMessageSchema,
+} from "@roo-code/types"
 
 import {
 	handleCreateSkill,
@@ -31,23 +39,59 @@ export async function handleSkillsMessages(
 			break
 		}
 		case "createSkill": {
-			await handleCreateSkill(provider, message)
+			// `skillName`, `source` and `skillDescription` are required — the handler
+			// previously null-checked them, so a crafted message is rejected here
+			// before any side effects (the helper re-validates defensively too).
+			const result = createSkillMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed createSkill message: ${result.error.message}`)
+				break
+			}
+			await handleCreateSkill(provider, result.data)
 			break
 		}
 		case "deleteSkill": {
-			await handleDeleteSkill(provider, message)
+			// `skillName` and `source` are required.
+			const result = deleteSkillMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed deleteSkill message: ${result.error.message}`)
+				break
+			}
+			await handleDeleteSkill(provider, result.data)
 			break
 		}
 		case "moveSkill": {
-			await handleMoveSkill(provider, message)
+			// `skillName` and `source` are required.
+			const result = moveSkillMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed moveSkill message: ${result.error.message}`)
+				break
+			}
+			await handleMoveSkill(provider, result.data)
 			break
 		}
 		case "updateSkillModes": {
-			await handleUpdateSkillModes(provider, message)
+			// `skillName` and `source` are required.
+			const result = updateSkillModesMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed updateSkillModes message: ${result.error.message}`,
+				)
+				break
+			}
+			await handleUpdateSkillModes(provider, result.data)
 			break
 		}
 		case "openSkillFile": {
-			await handleOpenSkillFile(provider, message)
+			// `skillName` and `source` are required.
+			const result = openSkillFileMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed openSkillFile message: ${result.error.message}`,
+				)
+				break
+			}
+			await handleOpenSkillFile(provider, result.data)
 			break
 		}
 	}

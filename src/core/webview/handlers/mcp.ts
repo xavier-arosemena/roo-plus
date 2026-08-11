@@ -1,7 +1,19 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs/promises"
-import { type WebviewMessage, type WebviewMessageType } from "@roo-code/types"
+import {
+	type WebviewMessage,
+	type WebviewMessageType,
+	deleteMcpServerMessageSchema,
+	openMcpSettingsMessageSchema,
+	openProjectMcpSettingsMessageSchema,
+	refreshAllMcpServersMessageSchema,
+	restartMcpServerMessageSchema,
+	toggleMcpServerMessageSchema,
+	toggleToolAlwaysAllowMessageSchema,
+	toggleToolEnabledForPromptMessageSchema,
+	updateMcpTimeoutMessageSchema,
+} from "@roo-code/types"
 
 import { safeWriteJson } from "../../../utils/safeWriteJson"
 import { openFile } from "../../../integrations/misc/open-file"
@@ -64,14 +76,25 @@ export async function handleMcpMessages(
 			break
 		}
 		case "deleteMcpServer": {
-			if (!message.serverName) {
+			const result = deleteMcpServerMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed deleteMcpServer message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { serverName, source } = result.data
+
+			if (!serverName) {
 				break
 			}
 
 			try {
-				provider.log(`Attempting to delete MCP server: ${message.serverName}`)
-				await provider.getMcpHub()?.deleteServer(message.serverName, message.source as "global" | "project")
-				provider.log(`Successfully deleted MCP server: ${message.serverName}`)
+				provider.log(`Attempting to delete MCP server: ${serverName}`)
+				await provider.getMcpHub()?.deleteServer(serverName, source)
+				provider.log(`Successfully deleted MCP server: ${serverName}`)
 
 				// Refresh the webview state
 				await provider.postStateToWebview()
@@ -83,61 +106,95 @@ export async function handleMcpMessages(
 			break
 		}
 		case "restartMcpServer": {
+			const result = restartMcpServerMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed restartMcpServer message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { text, source } = result.data
+
 			try {
-				await provider.getMcpHub()?.restartConnection(message.text!, message.source as "global" | "project")
+				await provider.getMcpHub()?.restartConnection(text, source)
 			} catch (error) {
 				provider.log(
-					`Failed to retry connection for ${message.text}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+					`Failed to retry connection for ${text}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 			}
 			break
 		}
 		case "toggleToolAlwaysAllow": {
+			const result = toggleToolAlwaysAllowMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed toggleToolAlwaysAllow message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { serverName, source, toolName, alwaysAllow } = result.data
+
 			try {
+				// `source` is optional on the message (matches the WebviewMessage
+				// interface) but McpHub requires it — default to "global" (the
+				// sender always provides it; this only covers hand-crafted payloads).
 				await provider
 					.getMcpHub()
-					?.toggleToolAlwaysAllow(
-						message.serverName!,
-						message.source as "global" | "project",
-						message.toolName!,
-						Boolean(message.alwaysAllow),
-					)
+					?.toggleToolAlwaysAllow(serverName, source ?? "global", toolName, Boolean(alwaysAllow))
 			} catch (error) {
 				provider.log(
-					`Failed to toggle auto-approve for tool ${message.toolName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+					`Failed to toggle auto-approve for tool ${toolName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 			}
 			break
 		}
 		case "toggleToolEnabledForPrompt": {
+			const result = toggleToolEnabledForPromptMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed toggleToolEnabledForPrompt message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { serverName, source, toolName, isEnabled } = result.data
+
 			try {
+				// `source` is optional on the message (matches the WebviewMessage
+				// interface) but McpHub requires it — default to "global" (the
+				// sender always provides it; this only covers hand-crafted payloads).
 				await provider
 					.getMcpHub()
-					?.toggleToolEnabledForPrompt(
-						message.serverName!,
-						message.source as "global" | "project",
-						message.toolName!,
-						Boolean(message.isEnabled),
-					)
+					?.toggleToolEnabledForPrompt(serverName, source ?? "global", toolName, Boolean(isEnabled))
 			} catch (error) {
 				provider.log(
-					`Failed to toggle enabled for prompt for tool ${message.toolName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+					`Failed to toggle enabled for prompt for tool ${toolName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 			}
 			break
 		}
 		case "toggleMcpServer": {
+			const result = toggleMcpServerMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed toggleMcpServer message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { serverName, disabled, source } = result.data
+
 			try {
-				await provider
-					.getMcpHub()
-					?.toggleServerDisabled(
-						message.serverName!,
-						message.disabled!,
-						message.source as "global" | "project",
-					)
+				await provider.getMcpHub()?.toggleServerDisabled(serverName, disabled, source)
 			} catch (error) {
 				provider.log(
-					`Failed to toggle MCP server ${message.serverName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+					`Failed to toggle MCP server ${serverName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 			}
 			break
@@ -152,23 +209,29 @@ export async function handleMcpMessages(
 			break
 		}
 
-		case "updateMcpTimeout":
-			if (message.serverName && typeof message.timeout === "number") {
+		case "updateMcpTimeout": {
+			const result = updateMcpTimeoutMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed updateMcpTimeout message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { serverName, timeout, source } = result.data
+
+			if (serverName && typeof timeout === "number") {
 				try {
-					await provider
-						.getMcpHub()
-						?.updateServerTimeout(
-							message.serverName,
-							message.timeout,
-							message.source as "global" | "project",
-						)
+					await provider.getMcpHub()?.updateServerTimeout(serverName, timeout, source)
 				} catch (error) {
 					provider.log(
-						`Failed to update timeout for ${message.serverName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+						`Failed to update timeout for ${serverName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					)
 					vscode.window.showErrorMessage(t("common:errors.update_server_timeout"))
 				}
 			}
 			break
+		}
 	}
 }

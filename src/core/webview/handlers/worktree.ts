@@ -1,5 +1,14 @@
 import * as vscode from "vscode"
-import { type WebviewMessage, type WebviewMessageType } from "@roo-code/types"
+import {
+	type WebviewMessage,
+	type WebviewMessageType,
+	checkBranchWorktreeIncludeMessageSchema,
+	checkoutBranchMessageSchema,
+	createWorktreeIncludeMessageSchema,
+	createWorktreeMessageSchema,
+	deleteWorktreeMessageSchema,
+	switchWorktreeMessageSchema,
+} from "@roo-code/types"
 
 import {
 	handleCheckBranchWorktreeInclude,
@@ -69,14 +78,26 @@ export async function handleWorktreeMessages(
 		}
 
 		case "createWorktree": {
+			// Boundary-validate the payload before use: `worktreePath` is required
+			// (the handler previously used `message.worktreePath!`), so a crafted
+			// message without it is rejected before any side effects.
+			const result = createWorktreeMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed createWorktree message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
 			try {
 				const { success, message: text } = await handleCreateWorktree(
 					provider,
 					{
-						path: message.worktreePath!,
-						branch: message.worktreeBranch,
-						baseBranch: message.worktreeBaseBranch,
-						createNewBranch: message.worktreeCreateNewBranch,
+						path: m.worktreePath,
+						branch: m.worktreeBranch,
+						baseBranch: m.worktreeBaseBranch,
+						createNewBranch: m.worktreeCreateNewBranch,
 					},
 					(progress) => {
 						void provider.postMessageToWebview({
@@ -97,11 +118,21 @@ export async function handleWorktreeMessages(
 		}
 
 		case "deleteWorktree": {
+			// `worktreePath` is required — the handler previously used `message.worktreePath!`.
+			const result = deleteWorktreeMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed deleteWorktree message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
 			try {
 				const { success, message: text } = await handleDeleteWorktree(
 					provider,
-					message.worktreePath!,
-					message.worktreeForce ?? false,
+					m.worktreePath,
+					m.worktreeForce ?? false,
 				)
 
 				await provider.postMessageToWebview({ type: "worktreeResult", success, text })
@@ -114,11 +145,21 @@ export async function handleWorktreeMessages(
 		}
 
 		case "switchWorktree": {
+			// `worktreePath` is required — the handler previously used `message.worktreePath!`.
+			const result = switchWorktreeMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed switchWorktree message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
 			try {
 				const { success, message: text } = await handleSwitchWorktree(
 					provider,
-					message.worktreePath!,
-					message.worktreeNewWindow ?? true,
+					m.worktreePath,
+					m.worktreeNewWindow ?? true,
 				)
 
 				await provider.postMessageToWebview({ type: "worktreeResult", success, text })
@@ -195,8 +236,18 @@ export async function handleWorktreeMessages(
 		}
 
 		case "checkBranchWorktreeInclude": {
+			const result = checkBranchWorktreeIncludeMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed checkBranchWorktreeInclude message: ${result.error.message}`,
+				)
+				break
+			}
+
+			// Keep the original guard semantics — the field is optional on the
+			// `WebviewMessage` interface, so only check when a branch is present.
+			const branch = result.data.worktreeBranch
 			try {
-				const branch = message.worktreeBranch
 				if (!branch) {
 					await provider.postMessageToWebview({
 						type: "branchWorktreeIncludeResult",
@@ -224,10 +275,18 @@ export async function handleWorktreeMessages(
 		}
 
 		case "createWorktreeInclude": {
+			const result = createWorktreeIncludeMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed createWorktreeInclude message: ${result.error.message}`,
+				)
+				break
+			}
+
 			try {
 				const { success, message: text } = await handleCreateWorktreeInclude(
 					provider,
-					message.worktreeIncludeContent ?? "",
+					result.data.worktreeIncludeContent ?? "",
 				)
 
 				await provider.postMessageToWebview({ type: "worktreeResult", success, text })
@@ -241,8 +300,17 @@ export async function handleWorktreeMessages(
 		}
 
 		case "checkoutBranch": {
+			// `worktreeBranch` is required — the handler previously used `message.worktreeBranch!`.
+			const result = checkoutBranchMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed checkoutBranch message: ${result.error.message}`,
+				)
+				break
+			}
+
 			try {
-				const { success, message: text } = await handleCheckoutBranch(provider, message.worktreeBranch!)
+				const { success, message: text } = await handleCheckoutBranch(provider, result.data.worktreeBranch)
 				await provider.postMessageToWebview({ type: "worktreeResult", success, text })
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error)

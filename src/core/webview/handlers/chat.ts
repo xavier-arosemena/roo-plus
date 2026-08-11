@@ -4,12 +4,22 @@ import {
 	type ClineMessage,
 	type WebviewMessage,
 	type WebviewMessageType,
+	askResponseMessageSchema,
 	checkoutDiffPayloadSchema,
 	checkoutRestorePayloadSchema,
+	deleteMessageConfirmMessageSchema,
+	deleteMessageMessageSchema,
+	editMessageConfirmMessageSchema,
 	editQueuedMessageMessageSchema,
+	enhancePromptMessageSchema,
 	getCompletionCheckpoint,
+	playTtsMessageSchema,
 	queueMessageMessageSchema,
 	removeQueuedMessageMessageSchema,
+	stopTtsMessageSchema,
+	submitEditedMessageMessageSchema,
+	ttsEnabledMessageSchema,
+	ttsSpeedMessageSchema,
 } from "@roo-code/types"
 
 import { saveTaskMessages } from "../../task-persistence"
@@ -440,17 +450,22 @@ export async function handleChatMessages(
 	message: WebviewMessage,
 ): Promise<void> {
 	switch (message.type) {
-		case "askResponse":
-			{
-				const resolved = await resolveIncomingImages(provider, {
-					text: message.text,
-					images: message.images,
-				})
-				provider
-					.getCurrentTask()
-					?.handleWebviewAskResponse(message.askResponse!, resolved.text, resolved.images)
+		case "askResponse": {
+			const result = askResponseMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed askResponse message: ${result.error.message}`)
+				break
 			}
+
+			const { text, images, askResponse } = result.data
+			const resolved = await resolveIncomingImages(provider, {
+				text,
+				images,
+			})
+			provider.getCurrentTask()?.handleWebviewAskResponse(askResponse, resolved.text, resolved.images)
 			break
+		}
 
 		case "checkpointDiff":
 			const result = checkoutDiffPayloadSchema.safeParse(message.payload)
@@ -538,62 +553,92 @@ export async function handleChatMessages(
 				break
 			}
 
-			if (typeof message.value !== "number" || !message.value) {
+			const result = deleteMessageMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed deleteMessage message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const value = result.data.value
+			if (typeof value !== "number" || !value) {
 				await vscode.window.showErrorMessage(t("common:errors.message.invalid_timestamp_for_deletion"))
 				break
 			}
 
-			await handleMessageModificationsOperation(provider, message.value, "delete")
+			await handleMessageModificationsOperation(provider, value, "delete")
 			break
 		}
 		case "submitEditedMessage": {
-			if (
-				provider.getCurrentTask() &&
-				typeof message.value === "number" &&
-				message.value &&
-				message.editedMessageContent
-			) {
-				await handleMessageModificationsOperation(
-					provider,
-					message.value,
-					"edit",
-					message.editedMessageContent,
-					message.images,
+			const result = submitEditedMessageMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed submitEditedMessage message: ${result.error.message}`,
 				)
+				break
+			}
+
+			const { value, editedMessageContent, images } = result.data
+			if (provider.getCurrentTask() && typeof value === "number" && value && editedMessageContent) {
+				await handleMessageModificationsOperation(provider, value, "edit", editedMessageContent, images)
 			}
 			break
 		}
-		case "deleteMessageConfirm":
-			if (!message.messageTs) {
+		case "deleteMessageConfirm": {
+			const result = deleteMessageConfirmMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed deleteMessageConfirm message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const messageTs = result.data.messageTs
+			if (!messageTs) {
 				await vscode.window.showErrorMessage(t("common:errors.message.cannot_delete_missing_timestamp"))
 				break
 			}
 
-			if (typeof message.messageTs !== "number") {
-				await vscode.window.showErrorMessage(t("common:errors.message.cannot_delete_invalid_timestamp"))
+			await handleDeleteMessageConfirm(provider, messageTs, result.data.restoreCheckpoint)
+			break
+		}
+		case "editMessageConfirm": {
+			const result = editMessageConfirmMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed editMessageConfirm message: ${result.error.message}`,
+				)
 				break
 			}
 
-			await handleDeleteMessageConfirm(provider, message.messageTs, message.restoreCheckpoint)
-			break
-		case "editMessageConfirm":
-			if (message.messageTs && message.text) {
+			const { messageTs, text, images, restoreCheckpoint } = result.data
+			if (messageTs && text) {
 				const resolved = await resolveIncomingImages(provider, {
-					text: message.text,
-					images: message.images,
+					text,
+					images,
 				})
-				await handleEditMessageConfirm(
-					provider,
-					message.messageTs,
-					resolved.text,
-					message.restoreCheckpoint,
-					resolved.images,
-				)
+				await handleEditMessageConfirm(provider, messageTs, resolved.text, restoreCheckpoint, resolved.images)
 			}
 			break
+		}
 
-		case "enhancePrompt":
-			if (message.text) {
+		case "enhancePrompt": {
+			const result = enhancePromptMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed enhancePrompt message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const text = result.data.text
+			if (text) {
 				try {
 					const state = await provider.getState()
 
@@ -607,8 +652,8 @@ export async function handleChatMessages(
 
 					const currentCline = provider.getCurrentTask()
 
-					const result = await MessageEnhancer.enhanceMessage({
-						text: message.text,
+					const enhanceResult = await MessageEnhancer.enhanceMessage({
+						text,
 						apiConfiguration,
 						customSupportPrompts,
 						listApiConfigMeta,
@@ -618,11 +663,14 @@ export async function handleChatMessages(
 						providerSettingsManager: provider.providerSettingsManager,
 					})
 
-					if (result.success && result.enhancedText) {
+					if (enhanceResult.success && enhanceResult.enhancedText) {
 						MessageEnhancer.captureTelemetry(currentCline?.taskId, includeTaskHistoryInEnhance)
-						await provider.postMessageToWebview({ type: "enhancedPrompt", text: result.enhancedText })
+						await provider.postMessageToWebview({
+							type: "enhancedPrompt",
+							text: enhanceResult.enhancedText,
+						})
 					} else {
-						throw new Error(result.error || "Unknown error")
+						throw new Error(enhanceResult.error || "Unknown error")
 					}
 				} catch (error) {
 					provider.log(
@@ -634,28 +682,54 @@ export async function handleChatMessages(
 				}
 			}
 			break
+		}
 
-		case "ttsEnabled":
-			const ttsEnabled = message.bool ?? true
+		case "ttsEnabled": {
+			const result = ttsEnabledMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed ttsEnabled message: ${result.error.message}`)
+				break
+			}
+
+			const ttsEnabled = result.data.bool ?? true
 			await updateGlobalState(provider, "ttsEnabled", ttsEnabled)
 			setTtsEnabled(ttsEnabled)
 			await provider.postStateToWebview()
 			break
-		case "ttsSpeed":
-			const ttsSpeed = message.value ?? 1.0
+		}
+		case "ttsSpeed": {
+			const result = ttsSpeedMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed ttsSpeed message: ${result.error.message}`)
+				break
+			}
+
+			const ttsSpeed = result.data.value ?? 1.0
 			await updateGlobalState(provider, "ttsSpeed", ttsSpeed)
 			setTtsSpeed(ttsSpeed)
 			await provider.postStateToWebview()
 			break
-		case "playTts":
-			if (message.text) {
-				void playTts(message.text, {
-					onStart: () => provider.postMessageToWebview({ type: "ttsStart", text: message.text }),
-					onStop: () => provider.postMessageToWebview({ type: "ttsStop", text: message.text }),
+		}
+		case "playTts": {
+			const result = playTtsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed playTts message: ${result.error.message}`)
+				break
+			}
+
+			const text = result.data.text
+			if (text) {
+				void playTts(text, {
+					onStart: () => provider.postMessageToWebview({ type: "ttsStart", text }),
+					onStop: () => provider.postMessageToWebview({ type: "ttsStop", text }),
 				})
 			}
 
 			break
+		}
 		case "stopTts":
 			stopTts()
 			break

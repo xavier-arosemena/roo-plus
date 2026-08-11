@@ -1,5 +1,5 @@
 import * as vscode from "vscode"
-import { type WebviewMessage, type WebviewMessageType } from "@roo-code/types"
+import { type WebviewMessage, type WebviewMessageType, terminalOperationMessageSchema } from "@roo-code/types"
 
 import { Terminal } from "../../../integrations/terminal/Terminal"
 import type { ClineProvider } from "../ClineProvider"
@@ -17,11 +17,20 @@ export async function handleTerminalMessages(
 	message: WebviewMessage,
 ): Promise<void> {
 	switch (message.type) {
-		case "terminalOperation":
-			if (message.terminalOperation) {
-				await provider.getCurrentTask()?.handleTerminalOperation(message.terminalOperation)
+		case "terminalOperation": {
+			// Boundary-validate the payload before use (see the marketplace handler
+			// precedent): a crafted non-enum `terminalOperation` never reaches the task.
+			const result = terminalOperationMessageSchema.safeParse(message)
+			if (result.success) {
+				const { terminalOperation } = result.data
+				// Keep the original guard semantics — the field is optional on the
+				// WebviewMessage interface, so only forward it when present.
+				if (terminalOperation) {
+					await provider.getCurrentTask()?.handleTerminalOperation(terminalOperation)
+				}
 			}
 			break
+		}
 		case "openTerminalProfilePicker": {
 			// Open VS Code's native terminal profile picker so the user can set the
 			// default shell without leaving VS Code's own settings UI.

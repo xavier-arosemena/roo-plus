@@ -2,7 +2,14 @@ import * as vscode from "vscode"
 import * as os from "os"
 import * as path from "path"
 import * as fs from "fs/promises"
-import { type Command as SlashCommand, type WebviewMessage, type WebviewMessageType } from "@roo-code/types"
+import {
+	type Command as SlashCommand,
+	type WebviewMessage,
+	type WebviewMessageType,
+	createCommandMessageSchema,
+	deleteCommandMessageSchema,
+	openCommandFileMessageSchema,
+} from "@roo-code/types"
 
 import { openFile } from "../../../integrations/misc/open-file"
 import { defaultModeSlug } from "../../../shared/modes"
@@ -106,15 +113,24 @@ export async function handleCommandsMessages(
 			break
 		}
 		case "openCommandFile": {
+			// `text` is a string — a non-string `text` is rejected here before
+			// any command lookup or file open.
+			const result = openCommandFileMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed openCommandFile message: ${result.error.message}`,
+				)
+				break
+			}
 			try {
-				if (message.text) {
+				if (result.data.text) {
 					const { getCommand } = await import("../../../services/command/commands")
-					const command = await getCommand(getCurrentCwd(provider), message.text)
+					const command = await getCommand(getCurrentCwd(provider), result.data.text)
 
 					if (command && command.filePath) {
 						await openFile(command.filePath)
 					} else {
-						vscode.window.showErrorMessage(t("common:errors.command_not_found", { name: message.text }))
+						vscode.window.showErrorMessage(t("common:errors.command_not_found", { name: result.data.text }))
 					}
 				}
 			} catch (error) {
@@ -126,17 +142,26 @@ export async function handleCommandsMessages(
 			break
 		}
 		case "deleteCommand": {
+			// `values.source` is a typed enum — an invalid `source` value is
+			// rejected here before any file deletion.
+			const result = deleteCommandMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed deleteCommand message: ${result.error.message}`,
+				)
+				break
+			}
 			try {
-				if (message.text && message.values?.source) {
+				if (result.data.text && result.data.values?.source) {
 					const { getCommand } = await import("../../../services/command/commands")
-					const command = await getCommand(getCurrentCwd(provider), message.text)
+					const command = await getCommand(getCurrentCwd(provider), result.data.text)
 
 					if (command && command.filePath) {
 						// Delete the command file
 						await fs.unlink(command.filePath)
 						provider.log(`Deleted command file: ${command.filePath}`)
 					} else {
-						vscode.window.showErrorMessage(t("common:errors.command_not_found", { name: message.text }))
+						vscode.window.showErrorMessage(t("common:errors.command_not_found", { name: result.data.text }))
 					}
 				}
 			} catch (error) {
@@ -146,9 +171,19 @@ export async function handleCommandsMessages(
 			break
 		}
 		case "createCommand": {
+			// `values.source` is a typed enum (`"global" | "project" | undefined`)
+			// — the runtime `as "global" | "project"` cast is gone and an invalid
+			// `source` value is rejected here before any directory/file write.
+			const result = createCommandMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed createCommand message: ${result.error.message}`,
+				)
+				break
+			}
 			try {
-				const source = message.values?.source as "global" | "project"
-				const fileName = message.text // Custom filename from user input
+				const source = result.data.values?.source
+				const fileName = result.data.text // Custom filename from user input
 
 				if (!source) {
 					provider.log("Missing source for createCommand")

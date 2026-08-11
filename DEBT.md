@@ -47,9 +47,9 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 ### 5. Webview Message Protocol — Transitional (Untyped) Types
 
 **Location**: [`packages/types/src/webview-messages/`](packages/types/src/webview-messages/index.ts)
-**Issue**: 147 of 165 `WebviewMessage.type` members remain unregistered — they have no zod schema and rely on the transitional pass-through in `parseWebviewMessage`. 18 are registered in `webviewMessageSchemas` (16 baseline + `fetchMarketplaceData` + `filterMarketplaceItems`). The CI ratchet ([`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs)) enforces the untyped count never increases — the limit is now 147 (was 149) — but broadening is ongoing.
-**Impact**: Untyped message types still lack runtime validation and payload-type coupling; a crafted webview can send any shape for these types.
-**Suggested Fix**: Migrate remaining domains into the registry per [`plans/s1-message-protocol.md`](plans/s1-message-protocol.md) (S1-M4): worktree ×12, marketplace ×7, skills ×6, rules ×5, code-index ×10, terminal ×9, images ×4, debug ×4, misc.
+**Issue**: All 165 `WebviewMessage.type` members are now registered — 165 are registered in `webviewMessageSchemas` (16 baseline + `fetchMarketplaceData` + `filterMarketplaceItems` + `removeInstalledMarketplaceItem` + `showMdmAuthRequiredNotification` + terminal ×3 + worktree ×11 + code-index ×8 + images ×3 + skills ×6 + rules ×5 + commands ×4 + provider-profiles ×13 + settings ×22 + task ×16 + chat ×12 + mcp ×9 + debug ×3 + misc ×19 + loose ×11). The CI ratchet ([`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs)) enforces the untyped count never increases — the limit is now 0 (was 33). A small number of types remain "transitional" by design: the 11 loose types (no handler; minimal empty-payload schemas) and a few `values` records (e.g. `switchTab`, `downloadErrorDiagnostics`) are documented as transitional in their schema modules.
+**Impact**: Every inbound message type now has runtime validation and payload-type coupling at the [`parseWebviewMessage`](packages/types/src/webview-messages/index.ts) boundary; a crafted webview can no longer send an arbitrary shape for any registered type.
+**Suggested Fix**: (Complete — inbound migration done.) Follow-up cleanup for Phase 2 (outbound `ExtensionMessage`) and the direction-mixed types (e.g. `marketplaceButtonClicked`).
 
 ### 6. Outbound `ExtensionMessage` Not Yet Typed/Validated
 

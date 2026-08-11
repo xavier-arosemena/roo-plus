@@ -2,7 +2,20 @@ import * as vscode from "vscode"
 import * as path from "path"
 import * as os from "os"
 import * as fs from "fs/promises"
-import { type WebviewMessage, type WebviewMessageType } from "@roo-code/types"
+import {
+	type WebviewMessage,
+	type WebviewMessageType,
+	dismissUpsellMessageSchema,
+	insertTextIntoTextareaMessageSchema,
+	openExternalMessageSchema,
+	openFileMessageSchema,
+	openKeyboardShortcutsMessageSchema,
+	openMarkdownPreviewMessageSchema,
+	openMentionMessageSchema,
+	readFileContentMessageSchema,
+	searchFilesMessageSchema,
+	switchTabMessageSchema,
+} from "@roo-code/types"
 import { customToolRegistry } from "@roo-code/core"
 import { TelemetryService } from "@roo-code/telemetry"
 
@@ -246,15 +259,32 @@ export async function handleMiscMessages(
 		case "resetState":
 			await provider.resetState()
 			break
-		case "openFile":
-			let filePath: string = message.text!
+		case "openFile": {
+			const result = openFileMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed openFile message: ${result.error.message}`)
+				break
+			}
+
+			let filePath: string = result.data.text
 			if (!path.isAbsolute(filePath)) {
 				filePath = path.join(getCurrentCwd(provider), filePath)
 			}
-			await openFile(filePath, message.values as { create?: boolean; content?: string; line?: number })
+			await openFile(filePath, result.data.values)
 			break
+		}
 		case "readFileContent": {
-			const relPath = message.text || ""
+			const result = readFileContentMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed readFileContent message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const relPath = result.data.text || ""
 			if (!relPath) {
 				await provider.postMessageToWebview({
 					type: "fileContent",
@@ -291,17 +321,42 @@ export async function handleMiscMessages(
 			}
 			break
 		}
-		case "openMention":
-			await openMention(getCurrentCwd(provider), message.text)
+		case "openMention": {
+			const result = openMentionMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed openMention message: ${result.error.message}`)
+				break
+			}
+
+			await openMention(getCurrentCwd(provider), result.data.text)
 			break
-		case "openExternal":
-			if (message.url) {
-				vscode.env.openExternal(vscode.Uri.parse(message.url))
+		}
+		case "openExternal": {
+			const result = openExternalMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed openExternal message: ${result.error.message}`)
+				break
+			}
+
+			if (result.data.url) {
+				vscode.env.openExternal(vscode.Uri.parse(result.data.url))
 			}
 			break
+		}
 		case "openKeyboardShortcuts": {
+			const result = openKeyboardShortcutsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed openKeyboardShortcuts message: ${result.error.message}`,
+				)
+				break
+			}
+
 			// Open VSCode keyboard shortcuts settings and optionally filter to show the Roo Code commands
-			const searchQuery = message.text || ""
+			const searchQuery = result.data.text || ""
 			if (searchQuery) {
 				// Open with a search query pre-filled
 				await vscode.commands.executeCommand("workbench.action.openGlobalKeybindings", searchQuery)
@@ -316,6 +371,13 @@ export async function handleMiscMessages(
 			break
 
 		case "searchFiles": {
+			const result = searchFilesMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed searchFiles message: ${result.error.message}`)
+				break
+			}
+
 			const workspacePath = getCurrentCwd(provider)
 
 			if (!workspacePath) {
@@ -323,7 +385,7 @@ export async function handleMiscMessages(
 				await provider.postMessageToWebview({
 					type: "fileSearchResults",
 					results: [],
-					requestId: message.requestId,
+					requestId: result.data.requestId,
 					error: "No workspace path available",
 				})
 				break
@@ -331,7 +393,7 @@ export async function handleMiscMessages(
 			try {
 				// Call file search service with query from message
 				const results = await searchWorkspaceFiles(
-					message.query || "",
+					result.data.query || "",
 					workspacePath,
 					20, // Use default limit, as filtering is now done in the backend
 				)
@@ -363,7 +425,7 @@ export async function handleMiscMessages(
 					await provider.postMessageToWebview({
 						type: "fileSearchResults",
 						results: filteredResults,
-						requestId: message.requestId,
+						requestId: result.data.requestId,
 					})
 				} finally {
 					// Dispose temporary controller to prevent resource leak
@@ -377,7 +439,7 @@ export async function handleMiscMessages(
 					type: "fileSearchResults",
 					results: [],
 					error: errorMessage,
-					requestId: message.requestId,
+					requestId: result.data.requestId,
 				})
 			}
 			break
@@ -407,17 +469,24 @@ export async function handleMiscMessages(
 			break
 		}
 		case "switchTab": {
-			if (message.tab) {
+			const result = switchTabMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed switchTab message: ${result.error.message}`)
+				break
+			}
+
+			if (result.data.tab) {
 				// Capture tab shown event for all switchTab messages (which are user-initiated).
 				if (TelemetryService.hasInstance()) {
-					TelemetryService.instance.captureTabShown(message.tab)
+					TelemetryService.instance.captureTabShown(result.data.tab)
 				}
 
 				await provider.postMessageToWebview({
 					type: "action",
 					action: "switchTab",
-					tab: message.tab,
-					values: message.values,
+					tab: result.data.tab,
+					values: result.data.values,
 				})
 			}
 			break
@@ -433,7 +502,16 @@ export async function handleMiscMessages(
 			break
 		}
 		case "insertTextIntoTextarea": {
-			const text = message.text
+			const result = insertTextIntoTextareaMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed insertTextIntoTextarea message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const text = result.data.text
 			if (text) {
 				// Send message to insert text into the chat textarea
 				await provider.postMessageToWebview({
@@ -444,15 +522,24 @@ export async function handleMiscMessages(
 			break
 		}
 		case "dismissUpsell": {
-			if (message.upsellId) {
+			const result = dismissUpsellMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed dismissUpsell message: ${result.error.message}`,
+				)
+				break
+			}
+
+			if (result.data.upsellId) {
 				try {
 					// Get current list of dismissed upsells
 					const dismissedUpsells = getGlobalState(provider, "dismissedUpsells") || []
 
 					// Add the new upsell ID if not already present
 					let updatedList = dismissedUpsells
-					if (!dismissedUpsells.includes(message.upsellId)) {
-						updatedList = [...dismissedUpsells, message.upsellId]
+					if (!dismissedUpsells.includes(result.data.upsellId)) {
+						updatedList = [...dismissedUpsells, result.data.upsellId]
 						await updateGlobalState(provider, "dismissedUpsells", updatedList)
 					}
 
@@ -479,7 +566,16 @@ export async function handleMiscMessages(
 		}
 
 		case "openMarkdownPreview": {
-			if (message.text) {
+			const result = openMarkdownPreviewMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed openMarkdownPreview message: ${result.error.message}`,
+				)
+				break
+			}
+
+			if (result.data.text) {
 				try {
 					// Create a private temporary directory (mode 0700) so the temp
 					// file is not written with a predictable name into the shared
@@ -488,7 +584,7 @@ export async function handleMiscMessages(
 					const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "roo-preview-"))
 					const tempFilePath = path.join(tmpDir, "preview.md")
 
-					await fs.writeFile(tempFilePath, message.text, { encoding: "utf8", mode: 0o600 })
+					await fs.writeFile(tempFilePath, result.data.text, { encoding: "utf8", mode: 0o600 })
 
 					const doc = await vscode.workspace.openTextDocument(tempFilePath)
 					await vscode.commands.executeCommand("markdown.showPreview", doc.uri)

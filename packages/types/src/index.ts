@@ -39,3 +39,10 @@ export * from "./providers/index.js"
 export * from "./utils/looksLikeFilePath.js"
 export * from "./webview-messages/index.js"
 export * from "./extension-messages/index.js"
+// `CodeIndexMessage` is exported by BOTH the inbound webview-messages registry
+// (S1 sub-task 3 — the code-index webview message union) and the outbound
+// extension-messages registry (Phase 2 — the indexing-status-update message).
+// The star re-exports above collide on the name, so disambiguate explicitly in
+// favor of the inbound type at the package root. The outbound type remains
+// available directly from "./extension-messages/index.js".
+export type { CodeIndexMessage } from "./webview-messages/index.js"

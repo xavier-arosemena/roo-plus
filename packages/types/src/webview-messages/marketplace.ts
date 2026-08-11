@@ -59,11 +59,38 @@ export const filterMarketplaceItemsMessageSchema = z.object({
 		.optional(),
 })
 
-/** Discriminated union of the marketplace-install domain's fully-typed messages. */
+/**
+ * Marketplace item removal. The handler guard requires BOTH `mpItem` and
+ * `mpInstallOptions` (see the `removeInstalledMarketplaceItem` case in
+ * `src/core/webview/handlers/marketplace.ts`), so both are required here — a
+ * crafted removal payload missing either field is rejected at the boundary.
+ * Both reuse the canonical `marketplaceItemSchema` and
+ * `installMarketplaceItemOptionsSchema`.
+ */
+export const removeInstalledMarketplaceItemMessageSchema = z.object({
+	type: z.literal("removeInstalledMarketplaceItem"),
+	mpItem: marketplaceItemSchema,
+	mpInstallOptions: installMarketplaceItemOptionsSchema,
+})
+
+/**
+ * MDM auth-required notification. Empty-payload message — the sender posts
+ * exactly `{ type: "showMdmAuthRequiredNotification" }` (see `App.tsx`
+ * `switchTab`) and the extension shows the org auth warning. Registered so
+ * protocol drift on this request fails loudly at the boundary instead of
+ * passing through structurally.
+ */
+export const showMdmAuthRequiredNotificationMessageSchema = z.object({
+	type: z.literal("showMdmAuthRequiredNotification"),
+})
+
+/** Discriminated union of the marketplace domain's fully-typed messages. */
 export const marketplaceMessageSchema = z.discriminatedUnion("type", [
 	installMarketplaceItemMessageSchema,
 	installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParametersMessageSchema,
+	removeInstalledMarketplaceItemMessageSchema,
+	showMdmAuthRequiredNotificationMessageSchema,
 ])
 
 export type MarketplaceMessage = z.infer<typeof marketplaceMessageSchema>

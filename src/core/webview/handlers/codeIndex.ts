@@ -1,4 +1,10 @@
-import { type WebviewMessage, type WebviewMessageType } from "@roo-code/types"
+import {
+	type WebviewMessage,
+	type WebviewMessageType,
+	saveCodeIndexSettingsAtomicMessageSchema,
+	setAutoEnableDefaultMessageSchema,
+	toggleWorkspaceIndexingMessageSchema,
+} from "@roo-code/types"
 
 import { CodeIndexManager } from "../../../services/code-index/manager"
 import { t } from "../../../i18n"
@@ -32,11 +38,19 @@ export async function handleCodeIndexMessages(
 ): Promise<void> {
 	switch (message.type) {
 		case "saveCodeIndexSettingsAtomic": {
-			if (!message.codeIndexSettings) {
+			// Boundary-validate the full settings payload before any global-state
+			// or secret write: a crafted message (missing required field, invalid
+			// embedder-provider enum, non-string secret) is rejected here. This
+			// keeps the old `if (!message.codeIndexSettings) break` guard
+			// semantics (break on parse failure) while replacing the implicit
+			// `any`-ish object access with a typed payload.
+			const result = saveCodeIndexSettingsAtomicMessageSchema.safeParse(message)
+			if (!result.success) {
+				provider.log(`Rejected malformed saveCodeIndexSettingsAtomic message: ${result.error.message}`)
 				break
 			}
 
-			const settings = message.codeIndexSettings
+			const settings = result.data.codeIndexSettings
 
 			try {
 				// Check if embedder provider has changed
@@ -344,7 +358,9 @@ export async function handleCodeIndexMessages(
 					provider.log("Cannot toggle workspace indexing: No workspace folder open")
 					return
 				}
-				const enabled = message.bool ?? false
+				// Boundary-validate the toggle payload (bool must be boolean | undefined).
+				const toggleResult = toggleWorkspaceIndexingMessageSchema.safeParse(message)
+				const enabled = toggleResult.success ? (toggleResult.data.bool ?? false) : false
 				await manager.setWorkspaceEnabled(enabled)
 				// Initialize unconditionally (idempotent) before evaluating feature flags
 				await manager.initialize(provider.contextProxy)
@@ -385,7 +401,11 @@ export async function handleCodeIndexMessages(
 				// Capture prior state for every manager before persisting the global change
 				const allManagers = CodeIndexManager.getAllInstances()
 				const priorStates = new Map(allManagers.map((m) => [m, m.isWorkspaceEnabled]))
-				await manager.setAutoEnableDefault(message.bool ?? true)
+				// Boundary-validate the auto-enable payload (bool must be boolean | undefined).
+				const autoEnableResult = setAutoEnableDefaultMessageSchema.safeParse(message)
+				await manager.setAutoEnableDefault(
+					autoEnableResult.success ? (autoEnableResult.data.bool ?? true) : true,
+				)
 				// Apply stop/start to every affected manager
 				for (const m of allManagers) {
 					const wasEnabled = priorStates.get(m)!

@@ -1,5 +1,20 @@
 import * as vscode from "vscode"
-import { type WebviewMessage, type WebviewMessageType, updateTodoListMessageSchema } from "@roo-code/types"
+import {
+	type WebviewMessage,
+	type WebviewMessageType,
+	abandonSubtaskWithIdMessageSchema,
+	condenseTaskContextRequestMessageSchema,
+	copySystemPromptMessageSchema,
+	deleteMultipleTasksWithIdsMessageSchema,
+	deleteTaskWithIdMessageSchema,
+	exportTaskWithIdMessageSchema,
+	getSystemPromptMessageSchema,
+	getTaskWithAggregatedCostsMessageSchema,
+	newTaskMessageSchema,
+	searchCommitsMessageSchema,
+	showTaskWithIdMessageSchema,
+	updateTodoListMessageSchema,
+} from "@roo-code/types"
 
 import { generateSystemPrompt } from "../generateSystemPrompt"
 import { setPendingTodoList } from "../../tools/UpdateTodoListTool"
@@ -56,22 +71,24 @@ export async function handleTaskMessages(
 	message: WebviewMessage,
 ): Promise<void> {
 	switch (message.type) {
-		case "newTask":
+		case "newTask": {
+			const result = newTaskMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed newTask message: ${result.error.message}`)
+				break
+			}
+
+			const { text, images, taskId, taskConfiguration } = result.data
 			// Initializing new instance of Cline will make sure that any
 			// agentically running promises in old instance don't affect our new
 			// task. This essentially creates a fresh slate for the new task.
 			try {
 				const resolved = await resolveIncomingImages(provider, {
-					text: message.text,
-					images: message.images,
+					text,
+					images,
 				})
-				await provider.createTask(
-					resolved.text,
-					resolved.images,
-					undefined,
-					{ taskId: message.taskId },
-					message.taskConfiguration,
-				)
+				await provider.createTask(resolved.text, resolved.images, undefined, { taskId }, taskConfiguration)
 				// Task created successfully - notify the UI to reset
 				await provider.postMessageToWebview({ type: "invoke", invoke: "newChat" })
 			} catch (error) {
@@ -83,6 +100,7 @@ export async function handleTaskMessages(
 				)
 			}
 			break
+		}
 		case "clearTask":
 			// Clear task resets the current session. Delegation flows are
 			// handled via metadata; parent resumption occurs through
@@ -106,92 +124,155 @@ export async function handleTaskMessages(
 
 			vscode.window.showErrorMessage(t("common:errors.share_not_enabled"))
 			break
-		case "showTaskWithId":
-			await provider.showTaskWithId(message.text!)
+		case "showTaskWithId": {
+			const result = showTaskWithIdMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed showTaskWithId message: ${result.error.message}`,
+				)
+				break
+			}
+
+			await provider.showTaskWithId(result.data.text)
 			break
-		case "condenseTaskContextRequest":
-			await provider.condenseTaskContext(message.text!)
+		}
+		case "condenseTaskContextRequest": {
+			const result = condenseTaskContextRequestMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed condenseTaskContextRequest message: ${result.error.message}`,
+				)
+				break
+			}
+
+			await provider.condenseTaskContext(result.data.text)
 			break
-		case "deleteTaskWithId":
-			await provider.deleteTaskWithId(message.text!)
+		}
+		case "deleteTaskWithId": {
+			const result = deleteTaskWithIdMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed deleteTaskWithId message: ${result.error.message}`,
+				)
+				break
+			}
+
+			await provider.deleteTaskWithId(result.data.text)
 			break
-		case "abandonSubtaskWithId":
+		}
+		case "abandonSubtaskWithId": {
+			const result = abandonSubtaskWithIdMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed abandonSubtaskWithId message: ${result.error.message}`,
+				)
+				break
+			}
+
 			provider
-				.abandonSubtask(message.text!)
+				.abandonSubtask(result.data.text)
 				.catch((error) =>
 					provider.log(
 						`[abandonSubtaskWithId] Failed: ${error instanceof Error ? error.message : String(error)}`,
 					),
 				)
 			break
+		}
 		case "deleteMultipleTasksWithIds": {
-			const ids = message.ids
+			const result = deleteMultipleTasksWithIdsMessageSchema.safeParse(message)
 
-			if (Array.isArray(ids)) {
-				// Process in batches of 20 (or another reasonable number)
-				const batchSize = 20
-				const results = []
-
-				// Only log start and end of the operation
-				console.log(`Batch deletion started: ${ids.length} tasks total`)
-
-				for (let i = 0; i < ids.length; i += batchSize) {
-					const batch = ids.slice(i, i + batchSize)
-
-					const batchPromises = batch.map(async (id) => {
-						try {
-							await provider.deleteTaskWithId(id)
-							return { id, success: true }
-						} catch (error) {
-							// Keep error logging for debugging purposes
-							console.log(
-								`Failed to delete task ${id}: ${error instanceof Error ? error.message : String(error)}`,
-							)
-							return { id, success: false }
-						}
-					})
-
-					// Process each batch in parallel but wait for completion before starting the next batch
-					const batchResults = await Promise.all(batchPromises)
-					results.push(...batchResults)
-
-					// Update the UI after each batch to show progress
-					await provider.postStateToWebview()
-				}
-
-				// Log final results
-				const successCount = results.filter((r) => r.success).length
-				const failCount = results.length - successCount
-				console.log(
-					`Batch deletion completed: ${successCount}/${ids.length} tasks successful, ${failCount} tasks failed`,
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed deleteMultipleTasksWithIds message: ${result.error.message}`,
 				)
+				break
 			}
+
+			const ids = result.data.ids
+
+			// Process in batches of 20 (or another reasonable number)
+			const batchSize = 20
+			const results = []
+
+			// Only log start and end of the operation
+			console.log(`Batch deletion started: ${ids.length} tasks total`)
+
+			for (let i = 0; i < ids.length; i += batchSize) {
+				const batch = ids.slice(i, i + batchSize)
+
+				const batchPromises = batch.map(async (id) => {
+					try {
+						await provider.deleteTaskWithId(id)
+						return { id, success: true }
+					} catch (error) {
+						// Keep error logging for debugging purposes
+						console.log(
+							`Failed to delete task ${id}: ${error instanceof Error ? error.message : String(error)}`,
+						)
+						return { id, success: false }
+					}
+				})
+
+				// Process each batch in parallel but wait for completion before starting the next batch
+				const batchResults = await Promise.all(batchPromises)
+				results.push(...batchResults)
+
+				// Update the UI after each batch to show progress
+				await provider.postStateToWebview()
+			}
+
+			// Log final results
+			const successCount = results.filter((r) => r.success).length
+			const failCount = results.length - successCount
+			console.log(
+				`Batch deletion completed: ${successCount}/${ids.length} tasks successful, ${failCount} tasks failed`,
+			)
 			break
 		}
-		case "exportTaskWithId":
-			await provider.exportTaskWithId(message.text!)
+		case "exportTaskWithId": {
+			const result = exportTaskWithIdMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed exportTaskWithId message: ${result.error.message}`,
+				)
+				break
+			}
+
+			await provider.exportTaskWithId(result.data.text)
 			break
+		}
 		case "getTaskWithAggregatedCosts": {
+			const result = getTaskWithAggregatedCostsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed getTaskWithAggregatedCosts message: ${result.error.message}`,
+				)
+				break
+			}
+
 			try {
-				const taskId = message.text
-				if (!taskId) {
-					throw new Error("Task ID is required")
-				}
-				const result = await provider.getTaskWithAggregatedCosts(taskId)
+				const taskId = result.data.text
+				const resultData = await provider.getTaskWithAggregatedCosts(taskId)
 				await provider.postMessageToWebview({
 					type: "taskWithAggregatedCosts",
 					// IMPORTANT: ChatView stores aggregatedCostsMap keyed by message.text (taskId)
 					// so we must include it here.
 					text: taskId,
-					historyItem: result.historyItem,
-					aggregatedCosts: result.aggregatedCosts,
+					historyItem: resultData.historyItem,
+					aggregatedCosts: resultData.aggregatedCosts,
 				})
 			} catch (error) {
 				console.error("Error getting task with aggregated costs:", error)
 				await provider.postMessageToWebview({
 					type: "taskWithAggregatedCosts",
 					// Include taskId when available for correlation in UI logs.
-					text: message.text,
+					text: result.data.text,
 					error: error instanceof Error ? error.message : String(error),
 				})
 			}
@@ -204,14 +285,23 @@ export async function handleTaskMessages(
 			// Cancel any pending auto-approval timeout for the current task
 			provider.getCurrentTask()?.cancelAutoApprovalTimeout()
 			break
-		case "getSystemPrompt":
+		case "getSystemPrompt": {
+			const result = getSystemPromptMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed getSystemPrompt message: ${result.error.message}`,
+				)
+				break
+			}
+
 			try {
-				const systemPrompt = await generateSystemPrompt(provider, message)
+				const systemPrompt = await generateSystemPrompt(provider, result.data)
 
 				await provider.postMessageToWebview({
 					type: "systemPrompt",
 					text: systemPrompt,
-					mode: message.mode,
+					mode: result.data.mode,
 				})
 			} catch (error) {
 				provider.log(
@@ -220,9 +310,19 @@ export async function handleTaskMessages(
 				vscode.window.showErrorMessage(t("common:errors.get_system_prompt"))
 			}
 			break
-		case "copySystemPrompt":
+		}
+		case "copySystemPrompt": {
+			const result = copySystemPromptMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed copySystemPrompt message: ${result.error.message}`,
+				)
+				break
+			}
+
 			try {
-				const systemPrompt = await generateSystemPrompt(provider, message)
+				const systemPrompt = await generateSystemPrompt(provider, result.data)
 
 				await vscode.env.clipboard.writeText(systemPrompt)
 				await vscode.window.showInformationMessage(t("common:info.clipboard_copy"))
@@ -233,11 +333,21 @@ export async function handleTaskMessages(
 				vscode.window.showErrorMessage(t("common:errors.get_system_prompt"))
 			}
 			break
+		}
 		case "searchCommits": {
+			const result = searchCommitsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed searchCommits message: ${result.error.message}`,
+				)
+				break
+			}
+
 			const cwd = getCurrentCwd(provider)
 			if (cwd) {
 				try {
-					const commits = await searchCommits(message.query || "", cwd)
+					const commits = await searchCommits(result.data.query || "", cwd)
 					await provider.postMessageToWebview({
 						type: "commitSearchResults",
 						commits,

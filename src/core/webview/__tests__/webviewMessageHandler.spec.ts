@@ -48,6 +48,19 @@ vi.mock("../rulesMessageHandler", () => ({
 	handleOpenRulesDirectory: vi.fn(),
 }))
 
+vi.mock("../worktree", () => ({
+	handleCheckBranchWorktreeInclude: vi.fn(),
+	handleCheckoutBranch: vi.fn(),
+	handleCreateWorktree: vi.fn(),
+	handleCreateWorktreeInclude: vi.fn(),
+	handleDeleteWorktree: vi.fn(),
+	handleGetAvailableBranches: vi.fn(),
+	handleGetWorktreeDefaults: vi.fn(),
+	handleGetWorktreeIncludeStatus: vi.fn(),
+	handleListWorktrees: vi.fn(),
+	handleSwitchWorktree: vi.fn(),
+}))
+
 vi.mock("../../tools/UpdateTodoListTool", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("../../tools/UpdateTodoListTool")>()
 	return {
@@ -55,6 +68,13 @@ vi.mock("../../tools/UpdateTodoListTool", async (importOriginal) => {
 		setPendingTodoList: vi.fn(),
 	}
 })
+
+vi.mock("../../../utils/tts", () => ({
+	playTts: vi.fn().mockResolvedValue(undefined),
+	setTtsEnabled: vi.fn(),
+	setTtsSpeed: vi.fn(),
+	stopTts: vi.fn(),
+}))
 
 import type { ModelRecord } from "@roo-code/types"
 
@@ -71,6 +91,9 @@ import {
 	handleOpenRulesDirectory,
 	handleRequestRules,
 } from "../rulesMessageHandler"
+import { handleCreateWorktree, handleDeleteWorktree, handleListWorktrees } from "../worktree"
+import { MessageEnhancer } from "../messageEnhancer"
+import { playTts, setTtsEnabled, setTtsSpeed } from "../../../utils/tts"
 const { openAiCodexOAuthManager } = await import("../../../integrations/openai-codex/oauth")
 const { fetchOpenAiCodexRateLimitInfo } = await import("../../../integrations/openai-codex/rate-limits")
 
@@ -82,6 +105,9 @@ const mockGetAccessToken = vi.mocked(openAiCodexOAuthManager.getAccessToken)
 const mockGetAccountId = vi.mocked(openAiCodexOAuthManager.getAccountId)
 const mockFetchOpenAiCodexRateLimitInfo = vi.mocked(fetchOpenAiCodexRateLimitInfo)
 const mockSetPendingTodoList = vi.mocked(setPendingTodoList)
+const mockHandleListWorktrees = vi.mocked(handleListWorktrees)
+const mockHandleCreateWorktree = vi.mocked(handleCreateWorktree)
+const mockHandleDeleteWorktree = vi.mocked(handleDeleteWorktree)
 
 // Mock ClineProvider
 const mockClineProvider = {
@@ -197,7 +223,24 @@ vi.mock("../../mentions/resolveImageMentions", () => ({
 	})),
 }))
 
+vi.mock("../../../integrations/misc/image-handler", () => ({
+	openImage: vi.fn().mockResolvedValue(undefined),
+	saveImage: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock("../../../integrations/misc/process-images", () => ({
+	selectImages: vi.fn().mockResolvedValue(["data:image/png;base64,abc"]),
+}))
+
+vi.mock("../../../utils/export", () => ({
+	resolveDefaultSaveUri: vi.fn().mockReturnValue({ fsPath: "/mock/downloads/img.png" }),
+	saveLastExportPath: vi.fn().mockResolvedValue(undefined),
+}))
+
 import { resolveImageMentions } from "../../mentions/resolveImageMentions"
+import { openImage, saveImage } from "../../../integrations/misc/image-handler"
+import { selectImages } from "../../../integrations/misc/process-images"
+import { resolveDefaultSaveUri, saveLastExportPath } from "../../../utils/export"
 import { Terminal } from "../../../integrations/terminal/Terminal"
 import { TerminalRegistry } from "../../../integrations/terminal/TerminalRegistry"
 
@@ -1373,6 +1416,57 @@ describe("webviewMessageHandler - openTerminalProfilePicker", () => {
 	})
 })
 
+describe("webviewMessageHandler - terminalOperation", () => {
+	const mockTaskWithTerminalOperation = () => {
+		const task = {
+			handleTerminalOperation: vi.fn().mockResolvedValue(undefined),
+		}
+		vi.mocked(mockClineProvider.getCurrentTask).mockReturnValue(
+			task as unknown as ReturnType<ClineProvider["getCurrentTask"]>,
+		)
+		return task
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("forwards a valid continue to the current task's handleTerminalOperation", async () => {
+		const task = mockTaskWithTerminalOperation()
+
+		await webviewMessageHandler(mockClineProvider, { type: "terminalOperation", terminalOperation: "continue" })
+
+		expect(task.handleTerminalOperation).toHaveBeenCalledWith("continue")
+	})
+
+	it("forwards a valid abort to the current task's handleTerminalOperation", async () => {
+		const task = mockTaskWithTerminalOperation()
+
+		await webviewMessageHandler(mockClineProvider, { type: "terminalOperation", terminalOperation: "abort" })
+
+		expect(task.handleTerminalOperation).toHaveBeenCalledWith("abort")
+	})
+
+	it("does not forward when terminalOperation is absent (guard semantics)", async () => {
+		const task = mockTaskWithTerminalOperation()
+
+		await webviewMessageHandler(mockClineProvider, { type: "terminalOperation" } as never)
+
+		expect(task.handleTerminalOperation).not.toHaveBeenCalled()
+	})
+
+	it("does not forward a malformed non-enum terminalOperation", async () => {
+		const task = mockTaskWithTerminalOperation()
+
+		await webviewMessageHandler(mockClineProvider, {
+			type: "terminalOperation",
+			terminalOperation: "pause",
+		} as never)
+
+		expect(task.handleTerminalOperation).not.toHaveBeenCalled()
+	})
+})
+
 describe("webviewMessageHandler - requestCommands", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -1815,5 +1909,330 @@ describe("webviewMessageHandler - unhandled message observability", () => {
 
 		expect(mockClineProvider.log).toHaveBeenCalledTimes(1)
 		expect(mockClineProvider.log).toHaveBeenCalledWith(expect.stringContaining("someUnregisteredMessageType"))
+	})
+})
+
+describe("webviewMessageHandler - worktree", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("listWorktrees posts worktreeList", async () => {
+		mockHandleListWorktrees.mockResolvedValue({
+			worktrees: [],
+			isGitRepo: true,
+			isMultiRoot: false,
+			isSubfolder: false,
+			gitRootPath: "/mock/repo",
+		})
+
+		await webviewMessageHandler(mockClineProvider, { type: "listWorktrees" })
+
+		expect(mockHandleListWorktrees).toHaveBeenCalledTimes(1)
+		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith(
+			expect.objectContaining({ type: "worktreeList", isGitRepo: true, gitRootPath: "/mock/repo" }),
+		)
+	})
+
+	it("deleteWorktree with worktreePath posts worktreeResult", async () => {
+		mockHandleDeleteWorktree.mockResolvedValue({ success: true, message: "Deleted worktree" })
+
+		await webviewMessageHandler(mockClineProvider, {
+			type: "deleteWorktree",
+			worktreePath: "/mock/wt",
+			worktreeForce: true,
+		})
+
+		expect(mockHandleDeleteWorktree).toHaveBeenCalledWith(mockClineProvider, "/mock/wt", true)
+		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith(
+			expect.objectContaining({ type: "worktreeResult", success: true, text: "Deleted worktree" }),
+		)
+	})
+
+	it("rejects a malformed createWorktree (missing path) before side effects", async () => {
+		await webviewMessageHandler(mockClineProvider, {
+			type: "createWorktree",
+			worktreeBranch: "feature/x",
+		})
+
+		expect(mockHandleCreateWorktree).not.toHaveBeenCalled()
+		expect(mockClineProvider.log).toHaveBeenCalledWith(expect.stringContaining("createWorktree"))
+		expect(mockClineProvider.postMessageToWebview).not.toHaveBeenCalledWith(
+			expect.objectContaining({ type: "worktreeResult" }),
+		)
+	})
+
+	it("createWorktree with worktreePath posts worktreeResult", async () => {
+		mockHandleCreateWorktree.mockResolvedValue({ success: true, message: "Created worktree" })
+
+		await webviewMessageHandler(mockClineProvider, {
+			type: "createWorktree",
+			worktreePath: "/mock/wt",
+			worktreeBranch: "feature/x",
+			worktreeBaseBranch: "main",
+			worktreeCreateNewBranch: true,
+		})
+
+		expect(mockHandleCreateWorktree).toHaveBeenCalledWith(
+			mockClineProvider,
+			expect.objectContaining({
+				path: "/mock/wt",
+				branch: "feature/x",
+				baseBranch: "main",
+				createNewBranch: true,
+			}),
+			expect.any(Function),
+		)
+		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith(
+			expect.objectContaining({ type: "worktreeResult", success: true, text: "Created worktree" }),
+		)
+	})
+})
+
+describe("webviewMessageHandler - images", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("selectImages posts selectedImages echoing context/messageTs", async () => {
+		vi.mocked(selectImages).mockResolvedValue(["data:image/png;base64,abc"])
+
+		await webviewMessageHandler(mockClineProvider, {
+			type: "selectImages",
+			context: "edit",
+			messageTs: 42,
+		})
+
+		expect(selectImages).toHaveBeenCalledOnce()
+		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
+			type: "selectedImages",
+			images: ["data:image/png;base64,abc"],
+			context: "edit",
+			messageTs: 42,
+		})
+	})
+
+	it("selectImages without context/messageTs posts selectedImages with undefined echo fields", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "selectImages" })
+
+		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
+			type: "selectedImages",
+			images: ["data:image/png;base64,abc"],
+			context: undefined,
+			messageTs: undefined,
+		})
+	})
+
+	it("saveImage with a dataUri triggers the save path", async () => {
+		await webviewMessageHandler(mockClineProvider, {
+			type: "saveImage",
+			dataUri: "data:image/png;base64,abc",
+		})
+
+		expect(resolveDefaultSaveUri).toHaveBeenCalledWith(
+			mockClineProvider.contextProxy,
+			"lastImageSavePath",
+			expect.stringMatching(/^img_\d+\.png$/),
+			{ useWorkspace: false, fallbackDir: expect.stringContaining("Downloads") },
+		)
+		expect(saveImage).toHaveBeenCalledWith("data:image/png;base64,abc", { fsPath: "/mock/downloads/img.png" })
+		expect(saveLastExportPath).not.toHaveBeenCalled()
+	})
+
+	it("saveImage without a dataUri does not trigger the save path (guard semantics)", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "saveImage" })
+
+		expect(saveImage).not.toHaveBeenCalled()
+		expect(resolveDefaultSaveUri).not.toHaveBeenCalled()
+	})
+
+	it("openImage opens the image with text and passes values through", async () => {
+		await webviewMessageHandler(mockClineProvider, {
+			type: "openImage",
+			text: "/test/image.png",
+			values: { action: "copy" },
+		})
+
+		expect(openImage).toHaveBeenCalledWith("/test/image.png", { values: { action: "copy" } })
+	})
+
+	it("rejects a malformed openImage (missing text) without opening", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "openImage" })
+
+		expect(openImage).not.toHaveBeenCalled()
+	})
+
+	it("rejects a malformed openImage (non-string text) without opening", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "openImage", text: 42 } as never)
+
+		expect(openImage).not.toHaveBeenCalled()
+	})
+})
+
+describe("webviewMessageHandler - settings domain", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		// Default configuration mock (each test may override for update assertions).
+		vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+			get: vi.fn(),
+			update: vi.fn(),
+		} as unknown as vscode.WorkspaceConfiguration)
+	})
+
+	it("getVSCodeSetting posts a vsCodeSetting response", async () => {
+		await webviewMessageHandler(mockClineProvider, {
+			type: "getVSCodeSetting",
+			setting: "terminal.integrated.inheritEnv",
+		})
+
+		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
+			type: "vsCodeSetting",
+			setting: "terminal.integrated.inheritEnv",
+			value: undefined,
+		})
+	})
+
+	it("rejects a malformed requestRouterModels (non-object values) without side effects", async () => {
+		await webviewMessageHandler(mockClineProvider, {
+			type: "requestRouterModels",
+			values: "not-an-object",
+		} as never)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(
+			expect.stringContaining("Rejected malformed requestRouterModels"),
+		)
+		expect(mockClineProvider.postMessageToWebview).not.toHaveBeenCalledWith(
+			expect.objectContaining({ type: "routerModels" }),
+		)
+	})
+
+	it("hasOpenedModeSelector updates global state and posts state", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "hasOpenedModeSelector", bool: true })
+
+		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("hasOpenedModeSelector", true)
+		expect(mockClineProvider.postStateToWebview).toHaveBeenCalled()
+	})
+
+	it("updateVSCodeSetting updates the configuration for an allowed setting", async () => {
+		const configUpdate = vi.fn()
+		vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+			get: vi.fn(),
+			update: configUpdate,
+		} as unknown as vscode.WorkspaceConfiguration)
+
+		// The `WebviewMessage` interface types `value?: number`, but the live
+		// sender passes a boolean — the schema accepts both, so the handler
+		// must too (tested via `as never` to bypass the interface's narrow type).
+		await webviewMessageHandler(mockClineProvider, {
+			type: "updateVSCodeSetting",
+			setting: "terminal.integrated.inheritEnv",
+			value: true,
+		} as never)
+
+		expect(configUpdate).toHaveBeenCalledWith("terminal.integrated.inheritEnv", true, true)
+	})
+
+	it("updateVSCodeSetting rejects a restricted setting without updating", async () => {
+		const configUpdate = vi.fn()
+		vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+			get: vi.fn(),
+			update: configUpdate,
+		} as unknown as vscode.WorkspaceConfiguration)
+
+		await webviewMessageHandler(mockClineProvider, {
+			type: "updateVSCodeSetting",
+			setting: "roo-plus.someRestrictedSetting",
+			value: 1,
+		})
+
+		expect(configUpdate).not.toHaveBeenCalled()
+		expect(vscode.window.showErrorMessage).toHaveBeenCalled()
+	})
+})
+
+describe("webviewMessageHandler - chat domain (S1 sub-task 11)", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("ttsEnabled updates global state, enables TTS and posts state", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "ttsEnabled", bool: true })
+
+		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("ttsEnabled", true)
+		expect(setTtsEnabled).toHaveBeenCalledWith(true)
+		expect(mockClineProvider.postStateToWebview).toHaveBeenCalled()
+	})
+
+	it("ttsEnabled defaults to true when bool is absent", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "ttsEnabled" })
+
+		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("ttsEnabled", true)
+		expect(setTtsEnabled).toHaveBeenCalledWith(true)
+	})
+
+	it("ttsEnabled rejects a malformed non-boolean bool", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "ttsEnabled", bool: "yes" } as never)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed ttsEnabled"))
+		expect(mockClineProvider.contextProxy.setValue).not.toHaveBeenCalledWith("ttsEnabled", "yes")
+		expect(setTtsEnabled).not.toHaveBeenCalled()
+	})
+
+	it("ttsSpeed updates global state, sets the speed and posts state", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "ttsSpeed", value: 0.75 })
+
+		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("ttsSpeed", 0.75)
+		expect(setTtsSpeed).toHaveBeenCalledWith(0.75)
+		expect(mockClineProvider.postStateToWebview).toHaveBeenCalled()
+	})
+
+	it("playTts with text triggers TTS", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "playTts", text: "Hello world" })
+
+		expect(playTts).toHaveBeenCalledWith("Hello world", expect.any(Object))
+	})
+
+	it("playTts rejects a malformed non-string text", async () => {
+		await webviewMessageHandler(mockClineProvider, { type: "playTts", text: 42 } as never)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed playTts"))
+		expect(playTts).not.toHaveBeenCalled()
+	})
+
+	it("deleteMessage rejects a malformed non-number value", async () => {
+		vi.mocked(mockClineProvider.getCurrentTask).mockReturnValue({
+			clineMessages: [],
+			apiConversationHistory: [],
+		} as never)
+
+		await webviewMessageHandler(mockClineProvider, { type: "deleteMessage", value: "nope" } as never)
+
+		expect(mockClineProvider.log).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed deleteMessage"))
+		expect(mockClineProvider.postMessageToWebview).not.toHaveBeenCalledWith(
+			expect.objectContaining({ type: "showDeleteMessageDialog" }),
+		)
+	})
+
+	it("enhancePrompt with text triggers the enhancer", async () => {
+		vi.mocked(mockClineProvider.getState).mockResolvedValue({} as never)
+		vi.mocked(mockClineProvider.getCurrentTask).mockReturnValue(undefined)
+
+		const enhanceSpy = vi
+			.spyOn(MessageEnhancer, "enhanceMessage")
+			.mockResolvedValue({ success: true, enhancedText: "Enhanced!" })
+		const telemetrySpy = vi.spyOn(MessageEnhancer, "captureTelemetry").mockImplementation(() => {})
+
+		try {
+			await webviewMessageHandler(mockClineProvider, { type: "enhancePrompt", text: "Write a test" })
+
+			expect(enhanceSpy).toHaveBeenCalledWith(expect.objectContaining({ text: "Write a test" }))
+			expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
+				type: "enhancedPrompt",
+				text: "Enhanced!",
+			})
+		} finally {
+			enhanceSpy.mockRestore()
+			telemetrySpy.mockRestore()
+		}
 	})
 })

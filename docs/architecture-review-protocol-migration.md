@@ -63,21 +63,37 @@ Status: all four sub-tasks landed and verified (inbound 147 untyped ≤ 147; out
 2. **Replaced the CLI direction hack**: [`message-processor.ts`](apps/cli/src/agent/message-processor.ts:111) now parses extension→CLI traffic with `parseExtensionMessage` (the outbound parser) instead of `parseWebviewMessage` + `as unknown as ExtensionMessage`; 10/10 CLI tests pass.
 3. **Updated [`DEBT.md`](DEBT.md:47), the ADR, and the plan** with verified counts (147 untyped / 77 outbound / 18 registered); stale 149/87/187 figures removed.
 
-### Phase 1 — Complete the inbound migration (147 types) — **the priority**
+### Phase 1 — Complete the inbound migration (147 types) — ✅ DELIVERED 2026-08-11
 
-Follow the S1-M4 domain list, ordered by security sensitivity (handlers already exist under `src/core/webview/handlers/`):
+Status: **all 147 transitional inbound types registered**. Final verified state (live run of [`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs)): `165 total, 165 registered, 0 untyped (limit 0)`; ratchet exit 0; `scripts/verify-message-schemas.spec.mjs` 13/13 green (0/1 boundary). `UNTYPED_MESSAGE_LIMIT` ratcheted 147 → 144 → 133 → 125 → 123 → 120 → 109 → 105 → 92 → 70 → 54 → 42 → 33 → **0** as each domain landed. Outbound untouched (still 72 untyped ≤ 72).
 
-| Order | Domain                  | Types   | Rationale                           |
-| ----- | ----------------------- | ------- | ----------------------------------- |
-| 1     | Terminal                | ×9      | command execution path              |
-| 2     | Worktree                | ×12     | filesystem mutation + path handling |
-| 3     | Code-index              | ×10     | settings + secret-status messages   |
-| 4     | Marketplace (remaining) | ×7      | install/remove side effects         |
-| 5     | Images                  | ×4      | file reads                          |
-| 6     | Skills + Rules          | ×6 + ×5 | metadata responses                  |
-| 7     | Debug + misc            | ×8+     | diagnostics                         |
+Delegated as 13 atomic change sets (one per domain, same-PR rule — schema + registry + handler + sender + tests + ratchet + DEBT.md together), each gated on build/ratchet/tsc/eslint/handler-spec/ratchet-spec verification:
 
-Each domain = one PR: per-domain zod file → registry entry → boundary stays as-is → handler narrowed to the `z.infer` union → sender updated → per-domain tests (mirror the existing [`__tests__/`](packages/types/src/webview-messages/__tests__/) pattern). Reuse existing schemas (`rooCodeSettingsSchema`, `modeConfigSchema`, `todoItemSchema`, …) to keep the schemas small. Batching (skills+rules, images+debug) cuts PR count roughly in half.
+| #   | Domain                  | Types | Registered | Cumulative untyped |
+| --- | ----------------------- | ----- | ---------- | ------------------ |
+| 1   | Terminal                | 3     | 21         | 144                |
+| 2   | Worktree                | 11    | 32         | 133                |
+| 3   | Code-index              | 8     | 40         | 125                |
+| 4   | Marketplace (remaining) | 2     | 42         | 123                |
+| 5   | Images                  | 3     | 45         | 120                |
+| 6   | Skills + Rules          | 6 + 5 | 56         | 109                |
+| 7   | Commands                | 4     | 60         | 105                |
+| 8   | ProviderProfiles        | 13    | 73         | 92                 |
+| 9   | Settings                | 22    | 95         | 70                 |
+| 10  | Task                    | 16    | 111        | 54                 |
+| 11  | Chat                    | 12    | 123        | 42                 |
+| 12  | MCP                     | 9     | 132        | 33                 |
+| 13  | Debug + Misc + loose    | 33    | 165        | **0**              |
+
+Notes:
+
+- The plan's stale per-domain counts (Terminal ×9, Worktree ×12, Code-index ×10, …) did not match the union; each sub-task extracted its exact list from the `WebviewMessage.type` union + the handler `ReadonlySet` exports (the authoritative S2 domain split). Actual totals: Terminal 3, Worktree 11, Code-index 8, Marketplace remaining 2, Images 3, Skills 6, Rules 5, Commands 4, ProviderProfiles 13, Settings 22, Task 16, Chat 12, MCP 9, Debug 3, Misc 19, loose 11.
+- Reused canonical schemas throughout (`marketplaceItemSchema`, `installMarketplaceItemOptionsSchema`, `rooCodeSettingsSchema`, `providerSettingsSchema`, `promptComponentSchema`); `values` records (rules, commands, settings model-fetch, openFile) typed precisely to remove `message.values as any` / `message.source as ...` casts.
+- 11 "loose" union members (`currentApiConfigName`, `updateCondensingPrompt`, `playSound`, `draggedImages`, `setopenAiCustomModelInfo`, `codebaseIndexEnabled`, `marketplaceButtonClicked`, `cancelMarketplaceInstall`, `imageGenerationSettings`, `switchMode`, `shareTaskSuccess`) have no dispatcher case — registered with minimal structural schemas and documented as direction-mixed/dead (Phase 2/3 cleanup). `marketplaceButtonClicked` is confirmed outbound-only (an `action` value).
+- One documented deviation: `updateVSCodeSetting.value` accepts `number | boolean` because the live `TerminalSettings.tsx` sender passes a boolean for the boolean `terminal.integrated.inheritEnv` setting (strict number would break real traffic).
+- The inbound barrel needed one disambiguation: `CodeIndexMessage` collided between the inbound and outbound registries; resolved in `packages/types/src/index.ts` with an explicit re-export preferring the inbound type (outbound type still importable from `./extension-messages/index.js`).
+
+`DEBT.md` item #5 updated incrementally by each sub-task; now reads: all 165 registered, limit 0, inbound complete.
 
 ### Phase 2 — Outbound `ExtensionMessage` typing (77 types)
 
