@@ -152,4 +152,33 @@ describe("ModesView Import Auto-Switch", () => {
 			}),
 		)
 	})
+
+	it("should reject a malformed importModeResult at the boundary (registered Domain 4 type)", async () => {
+		const consoleError = vitest.spyOn(console, "error").mockImplementation(() => {})
+		renderModesView()
+
+		// importModeResult is now a REGISTERED outbound type (Phase 2, Domain 4),
+		// so the strict parse must reject this payload (missing required `success`)
+		// instead of passing it through structurally.
+		window.dispatchEvent(
+			new MessageEvent("message", {
+				data: { type: "importModeResult", slug: "custom-test-mode" },
+			}),
+		)
+
+		await waitFor(() => {
+			expect(consoleError).toHaveBeenCalledWith(
+				expect.stringContaining("[ModesView] Rejected malformed extension message"),
+			)
+		})
+
+		// No mode switch happens for a rejected message.
+		expect(vscode.postMessage).not.toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: "mode",
+			}),
+		)
+
+		consoleError.mockRestore()
+	})
 })

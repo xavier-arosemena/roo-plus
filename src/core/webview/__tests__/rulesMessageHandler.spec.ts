@@ -1,4 +1,4 @@
-import type { RuleMetadata, WebviewMessage } from "@roo-code/types"
+import { parseExtensionMessage, type RuleMetadata, type RulesMessage } from "@roo-code/types"
 import type { ClineProvider } from "../ClineProvider"
 
 vi.mock("vscode", () => ({
@@ -89,7 +89,7 @@ describe("rulesMessageHandler", () => {
 		const result = await handleCreateRule(provider, "/workspace", {
 			type: "createRule",
 			values: { scope: "project", kind: "generic", fileName: "new.md" },
-		} as WebviewMessage)
+		})
 
 		expect(result).toEqual(mockRules)
 		expect(createRule).toHaveBeenCalledWith("/workspace", { scope: "project", kind: "generic", fileName: "new.md" })
@@ -103,7 +103,7 @@ describe("rulesMessageHandler", () => {
 		const result = await handleDeleteRule(provider, "/workspace", {
 			type: "deleteRule",
 			values: { scope: "global", kind: "generic", relativePath: "rule.md" },
-		} as WebviewMessage)
+		})
 
 		expect(result).toEqual(mockRules)
 		expect(deleteRule).toHaveBeenCalledWith("/workspace", {
@@ -121,7 +121,7 @@ describe("rulesMessageHandler", () => {
 		await handleOpenRuleFile(provider, "/workspace", {
 			type: "openRuleFile",
 			values: { scope: "project", kind: "generic", relativePath: "rule.md" },
-		} as WebviewMessage)
+		})
 
 		expect(resolveRuleFile).toHaveBeenCalledWith("/workspace", {
 			scope: "project",
@@ -137,7 +137,7 @@ describe("rulesMessageHandler", () => {
 		const result = await handleDeleteRule(provider, "/workspace", {
 			type: "deleteRule",
 			values: { scope: "global", kind: "generic" },
-		} as WebviewMessage)
+		})
 
 		expect(result).toBeUndefined()
 		expect(deleteRule).not.toHaveBeenCalled()
@@ -153,27 +153,25 @@ describe("rulesMessageHandler", () => {
 		await handleOpenRuleFile(provider, "/workspace", {
 			type: "openRuleFile",
 			values: { scope: "project", kind: "generic", relativePath: "missing.md" },
-		} as WebviewMessage)
+		})
 
 		expect(openFile).not.toHaveBeenCalled()
 		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith("Failed to open rule file: Rule file not found")
 	})
 
-	it("handleOpenRulesDirectory shows an error when directory input is invalid", async () => {
+	it("rejects a malformed openRulesDirectory (invalid scope enum) before side effects", async () => {
 		const provider = createMockProvider()
-		vi.mocked(getRulesDirectoryPath).mockImplementation(() => {
-			throw new Error("Invalid rule scope")
-		})
 
+		// Intentionally malformed — bypass the type system to exercise the schema rejection.
 		await handleOpenRulesDirectory(provider, "/workspace", {
 			type: "openRulesDirectory",
 			values: { scope: "team", kind: "generic" },
-		} as WebviewMessage)
+		} as unknown as RulesMessage)
 
+		expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed openRulesDirectory message"))
+		expect(getRulesDirectoryPath).not.toHaveBeenCalled()
 		expect(openFile).not.toHaveBeenCalled()
-		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-			"Failed to open rules directory: Invalid rule scope",
-		)
+		expect(vscode.window.showErrorMessage).not.toHaveBeenCalled()
 	})
 
 	it("handleCreateRule shows an error for missing required values before creating", async () => {
@@ -182,7 +180,7 @@ describe("rulesMessageHandler", () => {
 		const result = await handleCreateRule(provider, "/workspace", {
 			type: "createRule",
 			values: { scope: "project", kind: "generic" },
-		} as WebviewMessage)
+		})
 
 		expect(result).toBeUndefined()
 		expect(createRule).not.toHaveBeenCalled()
@@ -191,19 +189,19 @@ describe("rulesMessageHandler", () => {
 		)
 	})
 
-	it("handleCreateRule validates scope and kind before creating", async () => {
+	it("rejects a malformed createRule (invalid scope/kind enums) before side effects", async () => {
 		const provider = createMockProvider()
 
+		// Intentionally malformed — bypass the type system to exercise the schema rejection.
 		const result = await handleCreateRule(provider, "/workspace", {
 			type: "createRule",
 			values: { scope: "team", kind: "workspace", fileName: "new.md" },
-		} as WebviewMessage)
+		} as unknown as RulesMessage)
 
 		expect(result).toBeUndefined()
+		expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed createRule message"))
 		expect(createRule).not.toHaveBeenCalled()
-		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-			"Failed to create rule: Missing required fields: scope, kind, or fileName",
-		)
+		expect(vscode.window.showErrorMessage).not.toHaveBeenCalled()
 	})
 
 	it("handleCreateRule shows an error for missing workspace project rules and does not refresh", async () => {
@@ -213,7 +211,7 @@ describe("rulesMessageHandler", () => {
 		const result = await handleCreateRule(provider, "", {
 			type: "createRule",
 			values: { scope: "project", kind: "generic", fileName: "new.md" },
-		} as WebviewMessage)
+		})
 
 		expect(result).toBeUndefined()
 		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
@@ -240,7 +238,7 @@ describe("rulesMessageHandler", () => {
 		const result = await handleCreateRule(provider, "/workspace", {
 			type: "createRule",
 			values: { scope: "project", kind: "generic", fileName: "new.md" },
-		} as WebviewMessage)
+		})
 
 		expect(result).toBeUndefined()
 		expect(createRule).toHaveBeenCalledWith("/workspace", { scope: "project", kind: "generic", fileName: "new.md" })
@@ -258,7 +256,7 @@ describe("rulesMessageHandler", () => {
 		const result = await handleDeleteRule(provider, "/workspace", {
 			type: "deleteRule",
 			values: { scope: "global", kind: "generic", relativePath: "rule.md" },
-		} as WebviewMessage)
+		})
 
 		expect(result).toBeUndefined()
 		expect(deleteRule).toHaveBeenCalledWith("/workspace", {
@@ -279,7 +277,7 @@ describe("rulesMessageHandler", () => {
 		await handleOpenRulesDirectory(provider, "/workspace", {
 			type: "openRulesDirectory",
 			values: { scope: "project", kind: "mode", modeSlug: "code" },
-		} as WebviewMessage)
+		})
 
 		expect(getRulesDirectoryPath).toHaveBeenCalledWith("/workspace", {
 			scope: "project",
@@ -287,5 +285,34 @@ describe("rulesMessageHandler", () => {
 			modeSlug: "code",
 		})
 		expect(openFile).toHaveBeenCalledWith("/workspace/.roo/rules-code")
+	})
+
+	describe("outbound schema conformance (Phase 2, Domain 8)", () => {
+		it("posts a rules payload that parses through the registered outbound schema", async () => {
+			const provider = createMockProvider()
+
+			await handleRequestRules(provider, "/workspace")
+
+			const posted = mockPostMessageToWebview.mock.calls[0][0]
+			const result = parseExtensionMessage(posted)
+			expect(result.ok).toBe(true)
+			if (result.ok) {
+				expect(result.message.type).toBe("rules")
+			}
+		})
+
+		it("posts an empty rules payload that parses through the registered outbound schema", async () => {
+			const provider = createMockProvider()
+			vi.mocked(getRules).mockResolvedValue([])
+
+			await handleRequestRules(provider, "/workspace")
+
+			const posted = mockPostMessageToWebview.mock.calls[0][0]
+			const result = parseExtensionMessage(posted)
+			expect(result.ok).toBe(true)
+			if (result.ok) {
+				expect(result.message.type).toBe("rules")
+			}
+		})
 	})
 })

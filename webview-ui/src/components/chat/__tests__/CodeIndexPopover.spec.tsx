@@ -268,6 +268,65 @@ describe("CodeIndexPopover - indexing UI regression (VSIX #117)", () => {
 		})
 	})
 
+	it("shows secret placeholders after a codeIndexSecretStatus with secrets present", async () => {
+		renderPopover()
+
+		// The provider-specific secret fields live inside the (collapsed) Setup
+		// section — expand it so the OpenAI key field is in the DOM.
+		fireEvent.click(screen.getByRole("button", { name: SETUP_CONFIG_LABEL }))
+
+		dispatchMessage({
+			type: "codeIndexSecretStatus",
+			values: {
+				hasOpenAiKey: true,
+				hasQdrantApiKey: false,
+				hasOpenAiCompatibleApiKey: false,
+				hasGeminiApiKey: false,
+				hasMistralApiKey: false,
+				hasVercelAiGatewayApiKey: false,
+				hasOpenRouterApiKey: false,
+			},
+		})
+
+		await waitFor(() => {
+			expect(screen.getByDisplayValue("••••••••••••••••")).toBeInTheDocument()
+		})
+	})
+
+	it("does not show secret placeholders when no secrets are stored", async () => {
+		renderPopover()
+
+		dispatchMessage({
+			type: "codeIndexSecretStatus",
+			values: {
+				hasOpenAiKey: false,
+				hasQdrantApiKey: false,
+				hasOpenAiCompatibleApiKey: false,
+				hasGeminiApiKey: false,
+				hasMistralApiKey: false,
+				hasVercelAiGatewayApiKey: false,
+				hasOpenRouterApiKey: false,
+			},
+		})
+
+		await waitFor(() => {
+			expect(screen.queryByDisplayValue("••••••••••••••••")).not.toBeInTheDocument()
+		})
+	})
+
+	it("rejects a malformed codeIndexSecretStatus at the boundary without applying it", async () => {
+		renderPopover()
+		const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+		try {
+			dispatchMessage({ type: "codeIndexSecretStatus", values: { hasOpenAiKey: true } })
+			await waitFor(() => {
+				expect(screen.queryByDisplayValue("••••••••••••••••")).not.toBeInTheDocument()
+			})
+		} finally {
+			errorSpy.mockRestore()
+		}
+	})
+
 	it("transitions Semble from Standby to ready (Indexed) after starting and receiving a status update", async () => {
 		renderPopover({ provider: "semble" })
 

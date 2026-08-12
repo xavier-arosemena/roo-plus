@@ -2,6 +2,7 @@ import { useState, useEffect, FormEvent } from "react"
 import { VSCodeTextArea, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 
 import { supportPrompt, SupportPromptType } from "@roo/support-prompt"
+import { parseExtensionMessage } from "@roo-code/types"
 
 import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
@@ -54,7 +55,13 @@ const PromptsSettings = ({
 	useEffect(() => {
 		const handler = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate registered model/status messages (Phase 2, Domain 2).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[PromptsSettings] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			if (message.type === "enhancedPrompt") {
 				if (message.text) {
 					setTestPrompt(message.text)

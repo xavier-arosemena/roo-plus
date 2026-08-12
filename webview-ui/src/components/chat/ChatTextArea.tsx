@@ -3,7 +3,7 @@ import { useEvent } from "react-use"
 import DynamicTextArea from "react-textarea-autosize"
 import { VolumeX, Image, WandSparkles, SendHorizontal, X, ListEnd, Square } from "lucide-react"
 
-import type { ExtensionMessage } from "@roo-code/types"
+import { fileSearchResultsMessageSchema, parseExtensionMessage } from "@roo-code/types"
 
 import { mentionRegex, mentionRegexGlobal, commandRegexGlobal, unescapeSpaces } from "@roo/context-mentions"
 import { WebviewMessage } from "@roo/WebviewMessage"
@@ -131,7 +131,17 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		useEffect(() => {
 			const messageHandler = (event: MessageEvent) => {
 				if (!isTrustedMessage(event)) return
-				const message = event.data
+				// Boundary-validate extension→webview messages (Phase 2, Domain 3
+				// — task/chat/history responses): malformed registered payloads
+				// (e.g. `commitSearchResults` without `commits`) fail loudly in
+				// dev, and unknown/unregistered types are rejected (hard
+				// allowlist, fail-closed).
+				const parsed = parseExtensionMessage(event.data)
+				if (!parsed.ok) {
+					console.error(`[ChatTextArea] Rejected malformed extension message: ${parsed.error}`)
+					return
+				}
+				const message = parsed.message
 
 				if (message.type === "enhancedPrompt") {
 					if (message.text && textAreaRef.current) {
@@ -187,7 +197,7 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						}, 0)
 					}
 				} else if (message.type === "commitSearchResults") {
-					const commits = message.commits.map((commit: any) => ({
+					const commits = (message.commits ?? []).map((commit) => ({
 						type: ContextMenuOptionType.Git,
 						value: commit.hash,
 						label: commit.subject,
@@ -199,7 +209,13 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				} else if (message.type === "fileSearchResults") {
 					setSearchLoading(false)
 					if (message.requestId === searchRequestId) {
-						setFileSearchResults(message.results || [])
+						// Narrow through the registered domain schema: the flat
+						// `ExtensionMessage.results` is a union of several shapes,
+						// while the producer always posts the file-search shape.
+						// The message already passed `parseExtensionMessage` at the
+						// top of this handler, so this parse always succeeds.
+						const parsedResults = fileSearchResultsMessageSchema.safeParse(message)
+						setFileSearchResults(parsedResults.success ? parsedResults.data.results : [])
 					}
 				}
 			}
@@ -916,7 +932,16 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		const [isTtsPlaying, setIsTtsPlaying] = useState(false)
 
 		useEvent("message", (event: MessageEvent) => {
-			const message: ExtensionMessage = event.data
+			// Boundary-validate extension→webview messages (Phase 2, Domain 1):
+			// malformed registered payloads (e.g. `ttsStart`/`ttsStop` without a
+			// `text`) fail loudly in dev, and unknown/unregistered types are
+			// rejected (hard allowlist, fail-closed).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[ChatTextArea] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 
 			if (message.type === "ttsStart") {
 				setIsTtsPlaying(true)

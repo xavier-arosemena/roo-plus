@@ -5,6 +5,7 @@ import {
 	installMarketplaceItemMessageSchema,
 	installMarketplaceItemsMessageSchema,
 	installMarketplaceItemWithParametersMessageSchema,
+	removeInstalledMarketplaceItemMessageSchema,
 } from "@roo-code/types"
 
 import { MarketplaceManager, MarketplaceItemType } from "../../../services/marketplace"
@@ -124,16 +125,26 @@ export async function handleMarketplaceMessages(
 		}
 
 		case "removeInstalledMarketplaceItem": {
-			if (marketplaceManager && message.mpItem && message.mpInstallOptions) {
+			const result = removeInstalledMarketplaceItemMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed removeInstalledMarketplaceItem message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const m = result.data
+			if (marketplaceManager) {
 				try {
-					await marketplaceManager.removeInstalledMarketplaceItem(message.mpItem, message.mpInstallOptions)
+					await marketplaceManager.removeInstalledMarketplaceItem(m.mpItem, m.mpInstallOptions)
 					await provider.postStateToWebview()
 
 					// Send success message to webview
 					await provider.postMessageToWebview({
 						type: "marketplaceRemoveResult",
 						success: true,
-						slug: message.mpItem.id,
+						slug: m.mpItem.id,
 					})
 				} catch (error) {
 					console.error(`Error removing marketplace item: ${error}`)
@@ -148,26 +159,22 @@ export async function handleMarketplaceMessages(
 						type: "marketplaceRemoveResult",
 						success: false,
 						error: error instanceof Error ? error.message : String(error),
-						slug: message.mpItem.id,
+						slug: m.mpItem.id,
 					})
 				}
 			} else {
-				// MarketplaceManager not available or missing required parameters
-				const errorMessage = !marketplaceManager
-					? "Marketplace manager is not available"
-					: "Missing required parameters for marketplace item removal"
+				// MarketplaceManager not available (the payload already passed schema validation)
+				const errorMessage = "Marketplace manager is not available"
 				console.error(errorMessage)
 
 				vscode.window.showErrorMessage(errorMessage)
 
-				if (message.mpItem?.id) {
-					await provider.postMessageToWebview({
-						type: "marketplaceRemoveResult",
-						success: false,
-						error: errorMessage,
-						slug: message.mpItem.id,
-					})
-				}
+				await provider.postMessageToWebview({
+					type: "marketplaceRemoveResult",
+					success: false,
+					error: errorMessage,
+					slug: m.mpItem.id,
+				})
 			}
 			break
 		}

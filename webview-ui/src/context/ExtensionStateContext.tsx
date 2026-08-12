@@ -9,7 +9,6 @@ import {
 	type TodoItem,
 	type TelemetrySetting,
 	type OrganizationAllowList,
-	type ExtensionMessage,
 	type ExtensionState,
 	type MarketplaceInstalledMetadata,
 	type SkillMetadata,
@@ -20,6 +19,7 @@ import {
 	ORGANIZATION_ALLOW_ALL,
 	DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 	DEFAULT_DIFF_FUZZY_THRESHOLD,
+	parseExtensionMessage,
 } from "@roo-code/types"
 
 import { findLastIndex } from "@roo/array"
@@ -300,7 +300,16 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 
 	const handleMessage = useCallback(
 		(event: MessageEvent) => {
-			const message: ExtensionMessage = event.data
+			// Boundary-validate extension→webview messages (Phase 2, Domains
+			// 1-8 — all 77 outbound `ExtensionMessage` types are registered):
+			// registered payloads are strictly validated, and unknown/
+			// unregistered types are rejected (hard allowlist, fail-closed).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[ExtensionStateContext] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			switch (message.type) {
 				case "state": {
 					const newState = message.state ?? {}

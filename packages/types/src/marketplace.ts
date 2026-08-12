@@ -91,3 +91,16 @@ export interface MarketplaceInstalledMetadata {
 	project: Record<string, { type: string }>
 	global: Record<string, { type: string }>
 }
+
+/**
+ * Zod schema mirroring {@link MarketplaceInstalledMetadata}.
+ *
+ * Used by the outbound `marketplaceData` message schema
+ * (`packages/types/src/extension-messages/marketplace.ts`) so the payload field
+ * the webview consumer reads (`ExtensionStateContext.tsx` →
+ * `message.marketplaceInstalledMetadata`) survives zod's unknown-key stripping.
+ */
+export const marketplaceInstalledMetadataSchema = z.object({
+	project: z.record(z.string(), z.object({ type: z.string() })),
+	global: z.record(z.string(), z.object({ type: z.string() })),
+})

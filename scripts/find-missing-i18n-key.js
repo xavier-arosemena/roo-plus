@@ -1,6 +1,13 @@
 const fs = require("fs")
 const path = require("path")
 
+// Hierarchical tag identifying this process; every log line is prefixed so CI
+// logs are greppable per process.
+const TAG = "VERIFY:I18N-KEYS"
+const log = (msg) => console.log(`[${TAG}] ${msg}`)
+const logWarn = (msg) => console.warn(`[${TAG}] ${msg}`)
+const logErr = (msg) => console.error(`[${TAG}] ${msg}`)
+
 // Parse command-line arguments
 const args = process.argv.slice(2).reduce((acc, arg) => {
 	if (arg === "--help") {
@@ -154,7 +161,7 @@ function findMissingI18nKeys() {
 	Object.entries(DIRS).forEach(([name, config]) => {
 		const localeDirs = getLocaleDirs(config.localesDir)
 		if (localeDirs.length > 0) {
-			console.log(`\nChecking ${name} directory with ${localeDirs.length} languages: ${localeDirs.join(", ")}`)
+			log(`checking ${name} directory with ${localeDirs.length} languages: ${localeDirs.join(", ")}`)
 			walk(config.path, config.path, localeDirs, config.localesDir)
 		}
 	})
@@ -173,7 +180,7 @@ function main() {
 			})
 
 			if (!localeExists) {
-				console.error(`Error: Language '${args.locale}' not found in any locales directory`)
+				logErr(`Error: Language '${args.locale}' not found in any locales directory`)
 				process.exit(1)
 			}
 		}
@@ -181,24 +188,24 @@ function main() {
 		const missingKeys = findMissingI18nKeys()
 
 		if (missingKeys.length === 0) {
-			console.log("\n✅ All i18n keys are present!")
+			log("✅ All i18n keys are present!")
 			return
 		}
 
-		console.log("\nMissing i18n keys:\n")
+		log(`missing i18n keys found: ${missingKeys.length}`)
 		missingKeys.forEach(({ key, missingLocales, file }) => {
-			console.log(`File: ${file}`)
-			console.log(`Key: ${key}`)
-			console.log("Missing in:")
-			missingLocales.forEach((file) => console.log(`  - ${file}`))
-			console.log("-------------------")
+			log(`File: ${file}`)
+			log(`Key: ${key}`)
+			log("Missing in:")
+			missingLocales.forEach((file) => log(`  - ${file}`))
+			log("-------------------")
 		})
 
 		// Exit code 1 indicates missing keys
 		process.exit(1)
 	} catch (error) {
-		console.error("Error:", error.message)
-		console.error(error.stack)
+		logErr(`Error: ${error.message}`)
+		logErr(error.stack)
 		process.exit(1)
 	}
 }

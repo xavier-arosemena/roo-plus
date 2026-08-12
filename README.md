@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/banner.png" alt="Roo+ — 290 Modes — 89 Pre-Loaded" />
+  <img src="./assets/banner.png" alt="Roo+ — 301 Modes — 90 Pre-Loaded" />
 </div>
 <br/>
 
@@ -18,7 +18,7 @@
 <br/>
 
 <h1 align="center">🚀 Roo+</h1>
-<h3 align="center">Your AI Development Team — 290 Modes — 89 Pre-Loaded</h3>
+<h3 align="center">Your AI Development Team — 301 Modes — 90 Pre-Loaded</h3>
 
 <br/>
 
@@ -30,22 +30,23 @@
 
 ## ✨ What is Roo+?
 
-Roo+ extends the incredible foundation of Zoo Code with **89 custom modes** pre-loaded (from a canonical catalog of 290 modes), **enhanced features**, and a personalized configuration tailored for modern development workflows.
+Roo+ extends the incredible foundation of Zoo Code with **90 custom modes** pre-loaded (from a canonical catalog of 301 modes), **enhanced features**, and a personalized configuration tailored for modern development workflows.
 
-| Feature                          | Description                                                                                                                                 |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎯 **Custom Modes Library**      | **89 specialized modes** pre-loaded for every task                                                                                          |
-| 🎨 **Redesigned Welcome Screen** | Community links (report issue, discussions, star on GitHub, review on Open VSX) directly in the welcome panel (v3.77.4)                     |
-| 🤖 **AI Agent Team**             | Multiple AI agents working together in your editor                                                                                          |
-| 🔌 **MCP Support**               | Full Model Context Protocol integration                                                                                                     |
-| 🌍 **Multi-Provider**            | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                                             |
-| 📦 **Bulk Mode Install**         | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0)                  |
-| 🏷️ **Mode Subtitles**            | All 89 pre-loaded modes display descriptive subtitles in the mode selector UI (v3.73.0)                                                     |
-| 🛠️ **Terminal Integration**      | Smart terminal with shell integration                                                                                                       |
-| 📁 **Tree-Sitter Code Index**    | Intelligent code understanding for 30+ languages with reliable Semble search, diagnostics, and release-governed binaries (v3.77.0, v3.77.1) |
-| 🧮 **Accurate Context Window**   | Trusted, real context-window metrics with no fabricated token counts in the task header (v3.77.0)                                           |
-| 🔒 **Atomic File Writing**       | Safe, crash-proof file operations                                                                                                           |
-| 🌐 **Localization**              | Available in 18+ languages                                                                                                                  |
+| Feature                          | Description                                                                                                                                    |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎯 **Custom Modes Library**      | **90 specialized modes** pre-loaded for every task                                                                                             |
+| 🎨 **Redesigned Welcome Screen** | Community links (report issue, discussions, star on GitHub, review on Open VSX) directly in the welcome panel (v3.77.4)                        |
+| 🤖 **AI Agent Team**             | Multiple AI agents working together in your editor                                                                                             |
+| 🔌 **MCP Support**               | Full Model Context Protocol integration                                                                                                        |
+| 🌍 **Multi-Provider**            | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                                                |
+| 📦 **Bulk Mode Install**         | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0)                     |
+| 🏷️ **Mode Subtitles**            | All 90 pre-loaded modes display descriptive subtitles in the mode selector UI (v3.73.0)                                                        |
+| 🛠️ **Terminal Integration**      | Smart terminal with shell integration                                                                                                          |
+| 📁 **Tree-Sitter Code Index**    | Intelligent code understanding for 30+ languages with reliable Semble search, diagnostics, and release-governed binaries (v3.77.0, v3.77.1)    |
+| 🧮 **Accurate Context Window**   | Trusted, real context-window metrics with no fabricated token counts in the task header (v3.77.0)                                              |
+| 🔒 **Atomic File Writing**       | Safe, crash-proof file operations                                                                                                              |
+| 🛡️ **Typed Message Protocol**    | All 232 webview↔extension message types schema-registered and runtime-validated at the boundary; fail-closed with zero `any` escapes (v3.78.0) |
+| 🌐 **Localization**              | Available in 18+ languages                                                                                                                     |
 
 <br/>
 
@@ -53,7 +54,7 @@ Roo+ extends the incredible foundation of Zoo Code with **89 custom modes** pre-
 
 ## 🎯 Custom Modes Library
 
-Roo+ ships with **89 specialized AI modes** pre-configured and ready to use. Switch between them instantly to get expert-level assistance for any task.
+Roo+ ships with **90 specialized AI modes** pre-configured and ready to use. Switch between them instantly to get expert-level assistance for any task.
 
 > **💡 Tip:** Open the mode selector (bottom of the VS Code window) to browse and switch between all available agents.
 
@@ -127,20 +128,20 @@ Advanced reasoning personas implementing cutting-edge cognitive patterns:
 **Switching modes:**
 
 1. Click the **mode selector** at the bottom of VS Code (or press `Ctrl+Shift+P` → "Roo Code: Switch Mode")
-2. Browse the **89 pre-loaded modes** by name
+2. Browse the **90 pre-loaded modes** by name
 3. Select the agent that matches your current task
 4. The agent activates with its specialized role definition and toolset
 
 ### Full Agent Catalog
 
-Browse all **290 modes** with their slug, category, and pre-load status in the **[Agent Catalog](custom-modes/AGENT_CATALOG.md)**. Each entry shows:
+Browse all **301 modes** with their slug, category, and pre-load status in the **[Agent Catalog](custom-modes/AGENT_CATALOG.md)**. Each entry shows:
 
 - ✅ **Pre-loaded** — already available in the mode selector
 - ⬜ **Available** — in the submodule, ready to import
 
-### Adding More Modes (the remaining 201)
+### Adding More Modes (the remaining 211)
 
-The custom modes library contains **290 modes** in the canonical catalog. **89 are pre-loaded** in [`.roomodes`](.roomodes); the remaining **201 are available** in the Modes Marketplace and can be added at any time.
+The custom modes library contains **301 modes** in the canonical catalog. **90 are pre-loaded** in [`.roomodes`](.roomodes); the remaining **211 are available** in the Modes Marketplace and can be added at any time.
 
 **How [`custom-modes/manifest.json`](custom-modes/manifest.json) works:**
 
@@ -148,7 +149,7 @@ The custom modes library contains **290 modes** in the canonical catalog. **89 a
 - `includeSlugs` — adds INDIVIDUAL agents by their slug name, regardless of category
 - `excludeSlugs` — removes specific agents from the curated list
 
-Currently **0 categories** are set to `"all"` — all curation is via individual slugs. **89 individual slugs** define the curated set.
+Currently **0 categories** are set to `"all"` — all curation is via individual slugs. **90 individual slugs** define the curated set.
 
 **Option 0 — Install from the Mode Marketplace (easiest):**
 
@@ -164,7 +165,7 @@ The quickest way to add new modes is directly from the **Mode Marketplace** insi
     - A result summary shows per-item success/failure
 5. The mode(s) are immediately available in your mode selector — no reload needed
 
-The marketplace also supports **MCP servers** and includes bundled modes — **301 items** total (the 290-mode catalog plus 11 preserved originals).
+The marketplace also supports **MCP servers** and includes bundled modes — **301 items** total (the full 301-mode catalog).
 
 **Option A — Add via manifest (recommended for multiple agents):**
 
@@ -223,7 +224,7 @@ ovsx install xavier-arosemena/roo-plus
 git clone https://github.com/xavier-arosemena/roo-plus.git
 cd roo-plus
 
-# Initialize submodules (includes the 290-mode custom modes library)
+# Initialize submodules (includes the 301-mode custom modes library)
 git submodule update --init --recursive
 
 # Install dependencies
@@ -246,8 +247,8 @@ pnpm vsix
 
 ```
 roo-plus/
-├── .roomodes                # 89 custom modes (auto-generated)
-├── custom-modes/            # Git submodule: 290-mode library
+├── .roomodes                # 90 custom modes (auto-generated)
+├── custom-modes/            # Git submodule: 301-mode library
 │   ├── custom_modes.d/      # Canonical mode YAML files by category
 │   ├── manifest.json        # Curation manifest
 │   └── README-ROO-PLUS.md   # Submodule documentation
@@ -261,6 +262,7 @@ roo-plus/
 │   └── integrations/        # Editor integrations
 ├── webview-ui/              # React-based WebView UI
 ├── packages/                # Shared packages (types, core, IPC, etc.)
+│   └── types/               # Message schema registries (webview-messages/, extension-messages/) — single source of truth for the typed message protocol
 └── apps/                    # Applications (CLI, VS Code shim, e2e)
 ```
 
@@ -281,7 +283,7 @@ git merge upstream/main
 
 ### From Custom Modes Upstream
 
-The **89 custom modes** pre-loaded with Roo+ are sourced from the [**Custom-Modes-Roo-Code**](https://github.com/jtgsystems/Custom-Modes-Roo-Code) repository by [**jtgsystems**](https://github.com/jtgsystems). A huge thank you to the original author for curating and maintaining this comprehensive agent library — this project would not exist without that foundation.
+The **90 custom modes** pre-loaded with Roo+ are sourced from the [**Custom-Modes-Roo-Code**](https://github.com/jtgsystems/Custom-Modes-Roo-Code) repository by [**jtgsystems**](https://github.com/jtgsystems). A huge thank you to the original author for curating and maintaining this comprehensive agent library — this project would not exist without that foundation.
 
 > **📌 Attribution**: [`github.com/jtgsystems/Custom-Modes-Roo-Code`](https://github.com/jtgsystems/Custom-Modes-Roo-Code)
 

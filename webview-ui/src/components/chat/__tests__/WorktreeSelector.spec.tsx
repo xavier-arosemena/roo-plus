@@ -67,6 +67,22 @@ const simulateWorktreeListMessage = (worktrees: Worktree[], isGitRepo: boolean =
 	})
 }
 
+// Dispatch a `worktreeList` that is missing required schema fields — the
+// registered `worktreeList` schema rejects it at the parse boundary (Phase 2,
+// Domain 7), so the selector must not consume it.
+const simulateMalformedWorktreeListMessage = (worktrees: Worktree[]) => {
+	const message = {
+		type: "worktreeList",
+		worktrees,
+		isGitRepo: true,
+		// Intentionally missing isMultiRoot / isSubfolder / gitRootPath.
+	}
+
+	act(() => {
+		window.dispatchEvent(new MessageEvent("message", { data: message }))
+	})
+}
+
 describe("WorktreeSelector", () => {
 	beforeEach(() => {
 		mockPostMessage.mockClear()
@@ -295,5 +311,16 @@ describe("WorktreeSelector", () => {
 
 		// Should show "worktrees:noBranch" translation key for detached HEAD
 		expect(screen.getByText("worktrees:noBranch")).toBeInTheDocument()
+	})
+
+	test("rejects a malformed worktreeList at the parse boundary (Phase 2, Domain 7)", () => {
+		const { container } = render(<WorktreeSelector />)
+
+		// A `worktreeList` missing required schema fields (isMultiRoot,
+		// isSubfolder, gitRootPath) fails `parseExtensionMessage`, so the
+		// selector must NOT render the trigger (the worktrees list stays empty).
+		simulateMalformedWorktreeListMessage(mockWorktrees)
+
+		expect(container.querySelector('[data-testid="worktree-selector-trigger"]')).not.toBeInTheDocument()
 	})
 })

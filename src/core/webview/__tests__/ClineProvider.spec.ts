@@ -17,6 +17,7 @@ import {
 	DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 	DEFAULT_DIFF_FUZZY_THRESHOLD,
 	DEFAULT_WRITE_DELAY_MS,
+	parseExtensionMessage,
 	providerIdentifiers,
 } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
@@ -1396,17 +1397,18 @@ describe("ClineProvider", () => {
 
 		await provider.setValue("customModePrompts", existingPrompts)
 
-		// Test updating a prompt
+		// Test updating a prompt (`customPrompt` is a `PromptComponent` object per
+		// the `WebviewMessage` interface — a string never satisfied that type).
 		await messageHandler({
 			type: "updatePrompt",
 			promptMode: "code",
-			customPrompt: "new code prompt",
+			customPrompt: { customInstructions: "new code prompt" },
 		})
 
 		// Verify state was updated correctly
 		expect(mockContext.globalState.update).toHaveBeenCalledWith("customModePrompts", {
 			...existingPrompts,
-			code: "new code prompt",
+			code: { customInstructions: "new code prompt" },
 		})
 
 		// Verify state was posted to webview
@@ -1416,7 +1418,7 @@ describe("ClineProvider", () => {
 				state: expect.objectContaining({
 					customModePrompts: {
 						...existingPrompts,
-						code: "new code prompt",
+						code: { customInstructions: "new code prompt" },
 					},
 				}),
 			}),
@@ -2527,6 +2529,50 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 			slug: "mode-1",
 			hasContent: true,
 		})
+
+		// The outbound checkRulesDirectoryResult must pass the typed boundary (Phase 2, Domain 4).
+		const posted = vi.mocked(provider.postMessageToWebview).mock.calls.map((call) => call[0])
+		const checkResult = posted.find((message: { type?: string }) => message.type === "checkRulesDirectoryResult")
+		expect(checkResult).toBeDefined()
+		expect(parseExtensionMessage(checkResult).ok).toBe(true)
+	})
+
+	it("loads the named API configuration profile", async () => {
+		const activateProviderProfile = vi.fn().mockResolvedValue(undefined)
+		const provider = createProvider({ activateProviderProfile })
+
+		await webviewMessageHandler(provider, { type: "loadApiConfiguration", text: "my-profile" })
+
+		expect(activateProviderProfile).toHaveBeenCalledWith({ name: "my-profile" })
+	})
+
+	it("renames nothing when renameApiConfiguration is missing values/apiConfiguration", async () => {
+		const activateProviderProfile = vi.fn().mockResolvedValue(undefined)
+		const getProfile = vi.fn().mockResolvedValue({ id: "old-id" })
+		const saveConfig = vi.fn().mockResolvedValue(undefined)
+		const deleteConfig = vi.fn().mockResolvedValue(undefined)
+		const provider = createProvider({
+			activateProviderProfile,
+			providerSettingsManager: {
+				listConfig: vi.fn().mockResolvedValue([]),
+				getProfile,
+				saveConfig,
+				deleteConfig,
+			},
+		})
+
+		// Missing `apiConfiguration` (and missing `values`) must be rejected
+		// before any side effects — the handler guard short-circuits.
+		await webviewMessageHandler(provider, {
+			type: "renameApiConfiguration",
+			values: { oldName: "old", newName: "new" },
+		})
+		await webviewMessageHandler(provider, { type: "renameApiConfiguration" })
+
+		expect(getProfile).not.toHaveBeenCalled()
+		expect(saveConfig).not.toHaveBeenCalled()
+		expect(deleteConfig).not.toHaveBeenCalled()
+		expect(activateProviderProfile).not.toHaveBeenCalled()
 	})
 
 	it("covers all changed export-mode response paths", async () => {
@@ -2560,6 +2606,16 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 		expect(provider.postMessageToWebview).toHaveBeenCalledWith(
 			expect.objectContaining({ type: "exportModeResult", error: "export failed" }),
 		)
+
+		// Every outbound exportModeResult must pass the typed boundary (Phase 2, Domain 4).
+		const exportResults = vi
+			.mocked(provider.postMessageToWebview)
+			.mock.calls.map((call) => call[0])
+			.filter((message: { type?: string }) => message.type === "exportModeResult")
+		expect(exportResults.length).toBeGreaterThan(0)
+		for (const posted of exportResults) {
+			expect(parseExtensionMessage(posted).ok).toBe(true)
+		}
 	})
 
 	it("covers all changed import-mode response paths", async () => {
@@ -2594,6 +2650,16 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 		expect(provider.postMessageToWebview).toHaveBeenCalledWith(
 			expect.objectContaining({ type: "importModeResult", error: "dialog failed" }),
 		)
+
+		// Every outbound importModeResult must pass the typed boundary (Phase 2, Domain 4).
+		const importResults = vi
+			.mocked(provider.postMessageToWebview)
+			.mock.calls.map((call) => call[0])
+			.filter((message: { type?: string }) => message.type === "importModeResult")
+		expect(importResults.length).toBeGreaterThan(0)
+		for (const posted of importResults) {
+			expect(parseExtensionMessage(posted).ok).toBe(true)
+		}
 	})
 
 	it("covers changed indexing status, secret, and missing-manager responses", async () => {
@@ -2757,6 +2823,96 @@ describe("webviewMessageHandler no-floating-promises coverage", () => {
 		expect(provider.postMessageToWebview).toHaveBeenCalledWith(
 			expect.objectContaining({ type: "marketplaceRemoveResult", error: "Marketplace manager is not available" }),
 		)
+	})
+
+	it("calls removeInstalledMarketplaceItem and posts marketplaceRemoveResult on a valid removal", async () => {
+		const provider = createProvider()
+		const item = {
+			id: "item-1",
+			name: "Item 1",
+			description: "Test marketplace item",
+			type: "mode",
+			content: "slug: item-1",
+		} satisfies NonNullable<WebviewMessage["mpItem"]>
+		const options = { target: "project" } satisfies NonNullable<WebviewMessage["mpInstallOptions"]>
+		const removeInstalledMarketplaceItem = vi.fn().mockResolvedValue(undefined)
+		const marketplaceManager = {
+			removeInstalledMarketplaceItem,
+		} as unknown as NonNullable<Parameters<typeof webviewMessageHandler>[2]>
+
+		await webviewMessageHandler(
+			provider,
+			{ type: "removeInstalledMarketplaceItem", mpItem: item, mpInstallOptions: options },
+			marketplaceManager,
+		)
+
+		expect(removeInstalledMarketplaceItem).toHaveBeenCalledWith(item, options)
+		expect(provider.postMessageToWebview).toHaveBeenCalledWith({
+			type: "marketplaceRemoveResult",
+			success: true,
+			slug: item.id,
+		})
+	})
+
+	it("posts marketplace install/remove results that conform to the registered outbound schemas", async () => {
+		const provider = createProvider()
+		const item = {
+			id: "item-1",
+			name: "Item 1",
+			description: "Test marketplace item",
+			type: "mode",
+			content: "slug: item-1",
+		} satisfies NonNullable<WebviewMessage["mpItem"]>
+		const options = { target: "project" } satisfies NonNullable<WebviewMessage["mpInstallOptions"]>
+		const marketplaceManager = {
+			installMarketplaceItem: vi.fn().mockResolvedValue("/tmp/config.yaml"),
+			removeInstalledMarketplaceItem: vi.fn().mockResolvedValue(undefined),
+		} as unknown as NonNullable<Parameters<typeof webviewMessageHandler>[2]>
+
+		await webviewMessageHandler(
+			provider,
+			{ type: "installMarketplaceItem", mpItem: item, mpInstallOptions: options },
+			marketplaceManager,
+		)
+		await webviewMessageHandler(
+			provider,
+			{ type: "removeInstalledMarketplaceItem", mpItem: item, mpInstallOptions: options },
+			marketplaceManager,
+		)
+
+		const posted = vi.mocked(provider.postMessageToWebview).mock.calls.map(([m]) => m)
+		const installResult = posted.find((m) => m.type === "marketplaceInstallResult")
+		const removeResult = posted.find((m) => m.type === "marketplaceRemoveResult")
+
+		// Phase 2, Domain 5 producer-conformance: the posted payloads must be
+		// accepted by the registered outbound schemas (via parseExtensionMessage),
+		// otherwise the webview boundary would reject them loudly in dev.
+		expect(installResult).toBeDefined()
+		expect(removeResult).toBeDefined()
+		expect(parseExtensionMessage(installResult).ok).toBe(true)
+		expect(parseExtensionMessage(removeResult).ok).toBe(true)
+	})
+
+	it("rejects a malformed removeInstalledMarketplaceItem (missing mpItem) before side effects", async () => {
+		const provider = createProvider()
+		const removeInstalledMarketplaceItem = vi.fn().mockResolvedValue(undefined)
+		const marketplaceManager = {
+			removeInstalledMarketplaceItem,
+		} as unknown as NonNullable<Parameters<typeof webviewMessageHandler>[2]>
+
+		await webviewMessageHandler(
+			provider,
+			{ type: "removeInstalledMarketplaceItem", mpInstallOptions: { target: "project" } },
+			marketplaceManager,
+		)
+
+		// Malformed removal payload is rejected at the boundary: the manager is
+		// never touched and no result is posted to the webview.
+		expect(provider.log).toHaveBeenCalledWith(
+			expect.stringContaining("Rejected malformed removeInstalledMarketplaceItem message"),
+		)
+		expect(removeInstalledMarketplaceItem).not.toHaveBeenCalled()
+		expect(provider.postMessageToWebview).not.toHaveBeenCalled()
 	})
 })
 
@@ -3874,14 +4030,17 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 				expect(mockTask.checkpointDiff).toHaveBeenCalledWith({ mode: "full", commitHash: "abc123" })
 			})
 
-			test("passes through unregistered messages without boundary rejection", async () => {
+			test("rejects an unregistered message at the boundary (fail-closed)", async () => {
 				const logSpy = vi.spyOn(provider, "log")
 				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
 					.calls[0][0]
 
-				await messageHandler({ type: "requestModes" })
+				// Not in the webview registry → rejected by the hard-allowlist
+				// boundary (fail-closed): logged, never dispatched.
+				await messageHandler({ type: "totallyUnknownInboundType" })
 
-				expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
 			})
 
 			test("rejects a crafted malformed allowedCommands message at the boundary", async () => {
@@ -3961,6 +4120,22 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 					type: "upsertApiConfiguration",
 					text: "cfg",
 					apiConfiguration: { apiProvider: "bogus-provider" },
+				})
+
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
+			})
+
+			test("rejects a crafted malformed renameApiConfiguration message at the boundary", async () => {
+				const logSpy = vi.spyOn(provider, "log")
+				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
+					.calls[0][0]
+
+				// apiConfiguration must be an object; a string is clearly malformed.
+				await messageHandler({
+					type: "renameApiConfiguration",
+					values: { oldName: "old", newName: "new" },
+					apiConfiguration: "nope",
 				})
 
 				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))

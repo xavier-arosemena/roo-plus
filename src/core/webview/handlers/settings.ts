@@ -11,10 +11,27 @@ import {
 	type WebviewMessage,
 	type WebviewMessageType,
 	allowedCommandsMessageSchema,
+	autoApprovalEnabledMessageSchema,
+	checkRulesDirectoryMessageSchema,
+	customInstructionsMessageSchema,
+	debugSettingMessageSchema,
 	deleteCustomModeMessageSchema,
 	deniedCommandsMessageSchema,
+	exportModeMessageSchema,
+	flushRouterModelsMessageSchema,
+	getVSCodeSettingMessageSchema,
+	hasOpenedModeSelectorMessageSchema,
+	importModeMessageSchema,
+	modeMessageSchema,
+	requestLmStudioModelsMessageSchema,
+	requestOllamaModelsMessageSchema,
+	requestOpenAiModelsMessageSchema,
+	requestRouterModelsMessageSchema,
+	telemetrySettingMessageSchema,
 	updateCustomModeMessageSchema,
+	updatePromptMessageSchema,
 	updateSettingsMessageSchema,
+	updateVSCodeSettingMessageSchema,
 } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
 
@@ -92,9 +109,19 @@ export async function handleSettingsMessages(
 	message: WebviewMessage,
 ): Promise<void> {
 	switch (message.type) {
-		case "customInstructions":
-			await provider.updateCustomInstructions(message.text)
+		case "customInstructions": {
+			const result = customInstructionsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed customInstructions message: ${result.error.message}`,
+				)
+				break
+			}
+
+			await provider.updateCustomInstructions(result.data.text)
 			break
+		}
 
 		case "updateSettings": {
 			// The schema validates known setting-field types (via rooCodeSettingsSchema)
@@ -236,21 +263,44 @@ export async function handleSettingsMessages(
 			})
 
 			break
-		case "flushRouterModels":
-			const routerNameFlush: RouterName = toRouterName(message.text)
+		case "flushRouterModels": {
+			const result = flushRouterModelsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed flushRouterModels message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const routerNameFlush: RouterName = toRouterName(result.data.text)
 			// Note: flushRouterModels is a generic flush without credentials
 			// For providers that need credentials, use their specific handlers
 			await flushModels({ provider: routerNameFlush } as GetModelsOptions, true)
 			break
+		}
 		case "requestRouterModels": {
+			// The schema validates the typed `values` record at the boundary
+			// (every credential field + the optional provider filter), so the
+			// optional-chain soup below is gone and malformed payloads are
+			// rejected before any side effects.
+			const result = requestRouterModelsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed requestRouterModels message: ${result.error.message}`,
+				)
+				break
+			}
+
 			const { apiConfiguration } = await provider.getState()
 
 			// Optional single provider filter from webview
-			const requestedProvider = message?.values?.provider
+			const requestedProvider = result.data.values?.provider
 			const providerFilter = requestedProvider ? toRouterName(requestedProvider) : undefined
 
 			// Optional refresh flag to flush cache before fetching (useful for providers requiring credentials)
-			const shouldRefresh = message?.values?.refresh === true
+			const shouldRefresh = result.data.values?.refresh === true
 
 			const routerModels: Record<RouterName, ModelRecord> = providerFilter
 				? ({} as Record<RouterName, ModelRecord>)
@@ -307,13 +357,13 @@ export async function handleSettingsMessages(
 			// LiteLLM is conditional on baseUrl+apiKey.
 			// Prefer explicit values from message (current unsaved field state) over saved config,
 			// matching the pattern used for DeepSeek and other credential-carrying providers.
-			const litellmApiKey = message?.values?.litellmApiKey ?? apiConfiguration.litellmApiKey
-			const litellmBaseUrl = message?.values?.litellmBaseUrl ?? apiConfiguration.litellmBaseUrl
+			const litellmApiKey = result.data.values?.litellmApiKey ?? apiConfiguration.litellmApiKey
+			const litellmBaseUrl = result.data.values?.litellmBaseUrl ?? apiConfiguration.litellmBaseUrl
 
 			if (litellmApiKey && litellmBaseUrl) {
 				// If explicit credentials are provided in message.values (from Refresh Models button),
 				// flush the cache first to ensure we fetch fresh data with the new credentials
-				if (message?.values?.litellmApiKey || message?.values?.litellmBaseUrl) {
+				if (result.data.values?.litellmApiKey || result.data.values?.litellmBaseUrl) {
 					await flushModels({ provider: "litellm", apiKey: litellmApiKey, baseUrl: litellmBaseUrl }, true)
 				}
 
@@ -324,11 +374,11 @@ export async function handleSettingsMessages(
 			}
 
 			// Poe is conditional on apiKey
-			const poeApiKey = apiConfiguration.poeApiKey || message?.values?.poeApiKey
-			const poeBaseUrl = apiConfiguration.poeBaseUrl || message?.values?.poeBaseUrl
+			const poeApiKey = apiConfiguration.poeApiKey || result.data.values?.poeApiKey
+			const poeBaseUrl = apiConfiguration.poeBaseUrl || result.data.values?.poeBaseUrl
 
 			if (poeApiKey) {
-				if (message?.values?.poeApiKey || message?.values?.poeBaseUrl) {
+				if (result.data.values?.poeApiKey || result.data.values?.poeBaseUrl) {
 					await flushModels({ provider: "poe", apiKey: poeApiKey, baseUrl: poeBaseUrl }, true)
 				}
 
@@ -339,11 +389,11 @@ export async function handleSettingsMessages(
 			}
 
 			// DeepSeek is conditional on apiKey
-			const deepSeekApiKey = message?.values?.deepSeekApiKey ?? apiConfiguration.deepSeekApiKey
-			const deepSeekBaseUrl = message?.values?.deepSeekBaseUrl ?? apiConfiguration.deepSeekBaseUrl
+			const deepSeekApiKey = result.data.values?.deepSeekApiKey ?? apiConfiguration.deepSeekApiKey
+			const deepSeekBaseUrl = result.data.values?.deepSeekBaseUrl ?? apiConfiguration.deepSeekBaseUrl
 
 			if (deepSeekApiKey) {
-				if (message?.values?.deepSeekApiKey || message?.values?.deepSeekBaseUrl) {
+				if (result.data.values?.deepSeekApiKey || result.data.values?.deepSeekBaseUrl) {
 					await flushModels({ provider: "deepseek", apiKey: deepSeekApiKey, baseUrl: deepSeekBaseUrl }, true)
 				}
 
@@ -354,11 +404,11 @@ export async function handleSettingsMessages(
 			}
 
 			// Moonshot is conditional on apiKey
-			const moonshotApiKey = message?.values?.moonshotApiKey ?? apiConfiguration.moonshotApiKey
-			const moonshotBaseUrl = message?.values?.moonshotBaseUrl ?? apiConfiguration.moonshotBaseUrl
+			const moonshotApiKey = result.data.values?.moonshotApiKey ?? apiConfiguration.moonshotApiKey
+			const moonshotBaseUrl = result.data.values?.moonshotBaseUrl ?? apiConfiguration.moonshotBaseUrl
 
 			if (moonshotApiKey) {
-				if (message?.values?.moonshotApiKey || message?.values?.moonshotBaseUrl) {
+				if (result.data.values?.moonshotApiKey || result.data.values?.moonshotBaseUrl) {
 					await flushModels({ provider: "moonshot", apiKey: moonshotApiKey, baseUrl: moonshotBaseUrl }, true)
 				}
 
@@ -373,10 +423,10 @@ export async function handleSettingsMessages(
 			// above. Gating it behind a key meant the picker stayed empty (and fell back to the default
 			// model) whenever the key wasn't yet in apiConfiguration at fetch time. The key is still
 			// forwarded when present.
-			const opencodeGoApiKey = message?.values?.opencodeGoApiKey ?? apiConfiguration.opencodeGoApiKey
+			const opencodeGoApiKey = result.data.values?.opencodeGoApiKey ?? apiConfiguration.opencodeGoApiKey
 
 			// Refresh the cache when a new key is explicitly provided (e.g. the Refresh Models button).
-			if (message?.values?.opencodeGoApiKey) {
+			if (result.data.values?.opencodeGoApiKey) {
 				await flushModels({ provider: "opencode-go", apiKey: opencodeGoApiKey }, true)
 			}
 
@@ -390,10 +440,10 @@ export async function handleSettingsMessages(
 			// above. Gating it behind a key meant the picker stayed empty (and fell back to the default
 			// model) whenever the key wasn't yet in apiConfiguration at fetch time. The key is still
 			// forwarded when present.
-			const kenariApiKey = message?.values?.kenariApiKey ?? apiConfiguration.kenariApiKey
+			const kenariApiKey = result.data.values?.kenariApiKey ?? apiConfiguration.kenariApiKey
 
 			// Refresh the cache when a new key is explicitly provided (e.g. the Refresh Models button).
-			if (message?.values?.kenariApiKey) {
+			if (result.data.values?.kenariApiKey) {
 				await flushModels({ provider: "kenari", apiKey: kenariApiKey }, true)
 			}
 
@@ -405,10 +455,10 @@ export async function handleSettingsMessages(
 			if (!providerFilter || providerFilter === "kimi-code") {
 				const { kimiCodeOAuthManager } = await import("../../../integrations/kimi-code/oauth")
 				const kimiCodeAuthMethod =
-					message?.values?.kimiCodeAuthMethod ?? apiConfiguration.kimiCodeAuthMethod ?? "oauth"
+					result.data.values?.kimiCodeAuthMethod ?? apiConfiguration.kimiCodeAuthMethod ?? "oauth"
 				const kimiCodeApiKey =
 					kimiCodeAuthMethod === "api-key"
-						? (message?.values?.kimiCodeApiKey ?? apiConfiguration.kimiCodeApiKey)
+						? (result.data.values?.kimiCodeApiKey ?? apiConfiguration.kimiCodeApiKey)
 						: await kimiCodeOAuthManager.getAccessToken()
 				if (kimiCodeApiKey) {
 					candidates.push({
@@ -467,14 +517,24 @@ export async function handleSettingsMessages(
 			break
 		}
 		case "requestOllamaModels": {
+			// The schema validates the typed `values` record at the boundary.
+			const result = requestOllamaModelsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed requestOllamaModels message: ${result.error.message}`,
+				)
+				break
+			}
+
 			// Specific handler for Ollama models only.
 			const { apiConfiguration: ollamaApiConfig } = await provider.getState()
 			// Prefer the baseUrl/apiKey from the message values (which reflect
 			// the user's unsaved edits in the settings form) over the saved
 			// state, so the refresh uses the URL the user is actually looking
 			// at — not the stale one from before they started editing.
-			const baseUrl = message.values?.baseUrl ?? ollamaApiConfig.ollamaBaseUrl
-			const apiKey = message.values?.apiKey ?? ollamaApiConfig.ollamaApiKey
+			const baseUrl = result.data.values?.baseUrl ?? ollamaApiConfig.ollamaBaseUrl
+			const apiKey = result.data.values?.apiKey ?? ollamaApiConfig.ollamaApiKey
 			const logBaseUrl = baseUrl || "http://localhost:11434"
 			const ollamaOptions = {
 				provider: "ollama" as const,
@@ -515,10 +575,20 @@ export async function handleSettingsMessages(
 			break
 		}
 		case "requestLmStudioModels": {
+			// The schema validates the typed `values` record at the boundary.
+			const result = requestLmStudioModelsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed requestLmStudioModels message: ${result.error.message}`,
+				)
+				break
+			}
+
 			// Specific handler for LM Studio models only.
 			const { apiConfiguration: lmStudioApiConfig } = await provider.getState()
 			try {
-				const requestedBaseUrl = message.values?.baseUrl
+				const requestedBaseUrl = result.data.values?.baseUrl
 				const hasPreviewBaseUrl = typeof requestedBaseUrl === "string"
 				let lmStudioModels: ModelRecord
 				if (hasPreviewBaseUrl) {
@@ -554,18 +624,26 @@ export async function handleSettingsMessages(
 			})
 			break
 		}
-		case "requestOpenAiModels":
-			if (message?.values?.baseUrl && message?.values?.apiKey) {
-				const openAiModels = await getOpenAiModels(
-					message?.values?.baseUrl,
-					message?.values?.apiKey,
-					message?.values?.openAiHeaders,
+		case "requestOpenAiModels": {
+			// The schema validates the typed `values` record at the boundary.
+			const result = requestOpenAiModelsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed requestOpenAiModels message: ${result.error.message}`,
 				)
+				break
+			}
+
+			const { baseUrl, apiKey, openAiHeaders } = result.data.values ?? {}
+			if (baseUrl && apiKey) {
+				const openAiModels = await getOpenAiModels(baseUrl, apiKey, openAiHeaders)
 
 				await provider.postMessageToWebview({ type: "openAiModels", openAiModels })
 			}
 
 			break
+		}
 		case "requestVsCodeLmModels":
 			const vsCodeLmModels = await getVsCodeLmModels()
 			// TODO: Cache like we do for OpenRouter, etc?
@@ -627,7 +705,19 @@ export async function handleSettingsMessages(
 			break
 		}
 		case "updateVSCodeSetting": {
-			const { setting, value } = message
+			// The schema accepts number OR boolean `value` (see the schema docs —
+			// the terminal inheritEnv sender passes `e.target.checked`), rejecting
+			// anything else before touching the configuration.
+			const result = updateVSCodeSettingMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed updateVSCodeSetting message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { setting, value } = result.data
 
 			if (setting !== undefined && value !== undefined) {
 				if (ALLOWED_VSCODE_SETTINGS.has(setting)) {
@@ -639,8 +729,17 @@ export async function handleSettingsMessages(
 
 			break
 		}
-		case "getVSCodeSetting":
-			const { setting } = message
+		case "getVSCodeSetting": {
+			const result = getVSCodeSettingMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed getVSCodeSetting message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const { setting } = result.data
 
 			if (setting) {
 				try {
@@ -650,7 +749,7 @@ export async function handleSettingsMessages(
 						value: vscode.workspace.getConfiguration().get(setting),
 					})
 				} catch (error) {
-					console.error(`Failed to get VSCode setting ${message.setting}:`, error)
+					console.error(`Failed to get VSCode setting ${setting}:`, error)
 
 					await provider.postMessageToWebview({
 						type: "vsCodeSetting",
@@ -662,14 +761,33 @@ export async function handleSettingsMessages(
 			}
 
 			break
+		}
 
-		case "mode":
-			await provider.handleModeSwitch(message.text as Mode)
+		case "mode": {
+			const result = modeMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed mode message: ${result.error.message}`)
+				break
+			}
+
+			await provider.handleModeSwitch(result.data.text as Mode)
 			break
-		case "updatePrompt":
-			if (message.promptMode && message.customPrompt !== undefined) {
+		}
+		case "updatePrompt": {
+			const result = updatePromptMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed updatePrompt message: ${result.error.message}`)
+				break
+			}
+
+			if (result.data.promptMode && result.data.customPrompt !== undefined) {
 				const existingPrompts = getGlobalState(provider, "customModePrompts") ?? {}
-				const updatedPrompts = { ...existingPrompts, [message.promptMode]: message.customPrompt }
+				const updatedPrompts = {
+					...existingPrompts,
+					[result.data.promptMode]: result.data.customPrompt,
+				}
 				await updateGlobalState(provider, "customModePrompts", updatedPrompts)
 				const currentState = await provider.getStateToPostToWebview()
 				const stateWithPrompts = {
@@ -681,8 +799,8 @@ export async function handleSettingsMessages(
 
 				if (TelemetryService.hasInstance()) {
 					// Determine which setting was changed by comparing objects
-					const oldPrompt = existingPrompts[message.promptMode] || {}
-					const newPrompt = message.customPrompt
+					const oldPrompt = existingPrompts[result.data.promptMode] || {}
+					const newPrompt = result.data.customPrompt
 					const changedSettings = Object.keys(newPrompt).filter(
 						(key) =>
 							JSON.stringify((oldPrompt as Record<string, unknown>)[key]) !==
@@ -695,15 +813,36 @@ export async function handleSettingsMessages(
 				}
 			}
 			break
-		case "hasOpenedModeSelector":
-			await updateGlobalState(provider, "hasOpenedModeSelector", message.bool ?? true)
-			await provider.postStateToWebview()
-			break
+		}
+		case "hasOpenedModeSelector": {
+			const result = hasOpenedModeSelectorMessageSchema.safeParse(message)
 
-		case "autoApprovalEnabled":
-			await updateGlobalState(provider, "autoApprovalEnabled", message.bool ?? false)
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed hasOpenedModeSelector message: ${result.error.message}`,
+				)
+				break
+			}
+
+			await updateGlobalState(provider, "hasOpenedModeSelector", result.data.bool ?? true)
 			await provider.postStateToWebview()
 			break
+		}
+
+		case "autoApprovalEnabled": {
+			const result = autoApprovalEnabledMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed autoApprovalEnabled message: ${result.error.message}`,
+				)
+				break
+			}
+
+			await updateGlobalState(provider, "autoApprovalEnabled", result.data.bool ?? false)
+			await provider.postStateToWebview()
+			break
+		}
 		case "updateCustomMode": {
 			const result = updateCustomModeMessageSchema.safeParse(message)
 
@@ -830,21 +969,33 @@ export async function handleSettingsMessages(
 			await provider.postStateToWebview()
 			break
 		}
-		case "exportMode":
-			if (message.slug) {
+		case "exportMode": {
+			// `slug` is validated as a string at the boundary; presence is still
+			// guarded below (the webview only sends it for real exports).
+			const parseResult = exportModeMessageSchema.safeParse(message)
+
+			if (!parseResult.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed exportMode message: ${parseResult.error.message}`,
+				)
+				break
+			}
+
+			const { slug } = parseResult.data
+			if (slug) {
 				try {
 					// Get custom mode prompts to check if built-in mode has been customized
 					const customModePrompts = getGlobalState(provider, "customModePrompts") || {}
-					const customPrompt = customModePrompts[message.slug]
+					const customPrompt = customModePrompts[slug]
 
 					// Export the mode with any customizations merged directly
-					const result = await provider.customModesManager.exportModeWithRules(message.slug, customPrompt)
+					const result = await provider.customModesManager.exportModeWithRules(slug, customPrompt)
 
 					if (result.success && result.yaml) {
 						const defaultUri = await resolveDefaultSaveUri(
 							provider.contextProxy,
 							"lastModeExportPath",
-							`${message.slug}-export.yaml`,
+							`${slug}-export.yaml`,
 							{
 								useWorkspace: true,
 								fallbackDir: path.join(os.homedir(), "Downloads"),
@@ -871,18 +1022,18 @@ export async function handleSettingsMessages(
 							await provider.postMessageToWebview({
 								type: "exportModeResult",
 								success: true,
-								slug: message.slug,
+								slug: slug,
 							})
 
 							// Show info message
-							vscode.window.showInformationMessage(t("common:info.mode_exported", { mode: message.slug }))
+							vscode.window.showInformationMessage(t("common:info.mode_exported", { mode: slug }))
 						} else {
 							// User cancelled the save dialog
 							await provider.postMessageToWebview({
 								type: "exportModeResult",
 								success: false,
 								error: "Export cancelled",
-								slug: message.slug,
+								slug: slug,
 							})
 						}
 					} else {
@@ -891,24 +1042,34 @@ export async function handleSettingsMessages(
 							type: "exportModeResult",
 							success: false,
 							error: result.error,
-							slug: message.slug,
+							slug: slug,
 						})
 					}
 				} catch (error) {
 					const errorMessage = error instanceof Error ? error.message : String(error)
-					provider.log(`Failed to export mode ${message.slug}: ${errorMessage}`)
+					provider.log(`Failed to export mode ${slug}: ${errorMessage}`)
 
 					// Send error message to webview
 					await provider.postMessageToWebview({
 						type: "exportModeResult",
 						success: false,
 						error: errorMessage,
-						slug: message.slug,
+						slug: slug,
 					})
 				}
 			}
 			break
-		case "importMode":
+		}
+		case "importMode": {
+			const parseResult = importModeMessageSchema.safeParse(message)
+
+			if (!parseResult.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed importMode message: ${parseResult.error.message}`,
+				)
+				break
+			}
+
 			try {
 				// Get last used directory for import
 				const lastImportPath = getGlobalState(provider, "lastModeImportPath")
@@ -948,7 +1109,7 @@ export async function handleSettingsMessages(
 					// Import the mode with the specified source level
 					const result = await provider.customModesManager.importModeWithRules(
 						yamlContent,
-						message.source || "project", // Default to project if not specified
+						parseResult.data.source || "project", // Default to project if not specified
 					)
 
 					if (result.success) {
@@ -1000,19 +1161,42 @@ export async function handleSettingsMessages(
 				vscode.window.showErrorMessage(t("common:errors.mode_import_failed", { error: errorMessage }))
 			}
 			break
-		case "checkRulesDirectory":
-			if (message.slug) {
-				const hasContent = await provider.customModesManager.checkRulesDirectoryHasContent(message.slug)
+		}
+		case "checkRulesDirectory": {
+			const parseResult = checkRulesDirectoryMessageSchema.safeParse(message)
+
+			if (!parseResult.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed checkRulesDirectory message: ${parseResult.error.message}`,
+				)
+				break
+			}
+
+			const { slug } = parseResult.data
+			if (slug) {
+				const hasContent = await provider.customModesManager.checkRulesDirectoryHasContent(slug)
 
 				await provider.postMessageToWebview({
 					type: "checkRulesDirectoryResult",
-					slug: message.slug,
+					slug: slug,
 					hasContent: hasContent,
 				})
 			}
 			break
+		}
 		case "telemetrySetting": {
-			const telemetrySetting = message.text as TelemetrySetting
+			// `text` is validated as a string at the boundary; the `as
+			// TelemetrySetting` cast is retained for the enum literal union.
+			const result = telemetrySettingMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed telemetrySetting message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const telemetrySetting = result.data.text as TelemetrySetting
 			const previousSetting = getGlobalState(provider, "telemetrySetting") || "unset"
 			const isOptedIn = telemetrySetting !== "disabled"
 			const wasPreviouslyOptedIn = previousSetting !== "disabled"
@@ -1038,9 +1222,16 @@ export async function handleSettingsMessages(
 			break
 		}
 		case "debugSetting": {
+			const result = debugSettingMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed debugSetting message: ${result.error.message}`)
+				break
+			}
+
 			await vscode.workspace
 				.getConfiguration(Package.name)
-				.update("debug", message.bool ?? false, vscode.ConfigurationTarget.Global)
+				.update("debug", result.data.bool ?? false, vscode.ConfigurationTarget.Global)
 			await provider.postStateToWebview()
 			break
 		}

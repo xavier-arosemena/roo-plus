@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from "react"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { Checkbox } from "vscrui"
 
-import { type ProviderSettings, type ExtensionMessage, type ModelRecord, ollamaDefaultModelInfo } from "@roo-code/types"
+import { type ProviderSettings, type ModelRecord, ollamaDefaultModelInfo, parseExtensionMessage } from "@roo-code/types"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { useRouterModels } from "@src/components/ui/hooks/useRouterModels"
@@ -42,7 +42,13 @@ export const Ollama = ({ apiConfiguration, setApiConfigurationField }: OllamaPro
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message: ExtensionMessage = event.data
+			// Boundary-validate registered model/status messages (Phase 2, Domain 2).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[Ollama] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 
 			if (message.type === "ollamaModels") {
 				if (!message.error) {

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react"
-import type { OpenAiCodexRateLimitInfo } from "@roo-code/types"
+import { openAiCodexRateLimitsMessageSchema, type OpenAiCodexRateLimitInfo } from "@roo-code/types"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { isTrustedMessage } from "@src/utils/trustedMessages"
@@ -105,16 +105,29 @@ export const OpenAICodexRateLimitDashboard: React.FC<OpenAICodexRateLimitDashboa
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
-			if (message.type === "openAiCodexRateLimits") {
-				setIsLoading(false)
-				if (message.error) {
-					setError(message.error)
-					setRateLimits(null)
-				} else if (message.values) {
-					setRateLimits(message.values)
-					setError(null)
-				}
+			// This component only handles `openAiCodexRateLimits`; all other
+			// message types are ignored. The payload is validated against the
+			// registered domain schema (Phase 2, Domain 3 — task/chat/history
+			// responses) so malformed producer payloads fail loudly in dev, and
+			// `values` is narrowed to `OpenAiCodexRateLimitInfo` — draining the
+			// flat interface's `values?: any` escape on this path.
+			if ((event.data as { type?: unknown })?.type !== "openAiCodexRateLimits") {
+				return
+			}
+			const parsed = openAiCodexRateLimitsMessageSchema.safeParse(event.data)
+			if (!parsed.success) {
+				console.error(
+					`[OpenAICodexRateLimitDashboard] Rejected malformed openAiCodexRateLimits message: ${parsed.error.message}`,
+				)
+				return
+			}
+			setIsLoading(false)
+			if (parsed.data.error) {
+				setError(parsed.data.error)
+				setRateLimits(null)
+			} else if (parsed.data.values) {
+				setRateLimits(parsed.data.values)
+				setError(null)
 			}
 		}
 		window.addEventListener("message", handleMessage)

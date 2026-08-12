@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest"
+import { parseExtensionMessage } from "@roo-code/types"
 import { Task } from "../../task/Task"
 import { ClineProvider } from "../../webview/ClineProvider"
 import { checkpointSave, checkpointRestore, checkpointDiff, getCheckpointService } from "../index"
@@ -588,6 +589,52 @@ describe("Checkpoint functionality", () => {
 			// Test timeout error message i18n key
 			const errorMessage = i18nModule.t("common:errors.init_checkpoint_fail_long_time", { timeout: 30 })
 			expect(errorMessage).toBe("Checkpoint initialization failed after 30 seconds")
+		})
+	})
+
+	describe("checkpoint outbound messages pass the extension-message boundary (Phase 2, Domain 4)", () => {
+		it("accepts the object-form checkpointInitWarning posted by the producer", () => {
+			const result = parseExtensionMessage({
+				type: "checkpointInitWarning",
+				checkpointWarning: { type: "WAIT_TIMEOUT", timeout: 5 },
+			})
+			expect(result.ok).toBe(true)
+
+			const timeoutResult = parseExtensionMessage({
+				type: "checkpointInitWarning",
+				checkpointWarning: { type: "INIT_TIMEOUT", timeout: 10 },
+			})
+			expect(timeoutResult.ok).toBe(true)
+		})
+
+		it("accepts the string-form checkpointInitWarning posted by older producers/tests", () => {
+			const result = parseExtensionMessage({
+				type: "checkpointInitWarning",
+				checkpointWarning: "Checkpoint initialization is taking longer than 5 seconds...",
+			})
+			expect(result.ok).toBe(true)
+
+			// Empty-string "clear warning" form must also validate.
+			const clearResult = parseExtensionMessage({ type: "checkpointInitWarning", checkpointWarning: "" })
+			expect(clearResult.ok).toBe(true)
+		})
+
+		it("accepts the currentCheckpointUpdated messages posted by the producer", () => {
+			expect(parseExtensionMessage({ type: "currentCheckpointUpdated", text: "abc123" }).ok).toBe(true)
+			expect(
+				parseExtensionMessage({ type: "currentCheckpointUpdated", text: "abc123", suppressMessage: true }).ok,
+			).toBe(true)
+		})
+
+		it("rejects malformed checkpoint messages at the boundary", () => {
+			const badWarning = parseExtensionMessage({
+				type: "checkpointInitWarning",
+				checkpointWarning: { type: "BOGUS", timeout: 5 },
+			})
+			expect(badWarning.ok).toBe(false)
+
+			const missingText = parseExtensionMessage({ type: "currentCheckpointUpdated" })
+			expect(missingText.ok).toBe(false)
 		})
 	})
 })

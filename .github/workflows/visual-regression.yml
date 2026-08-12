@@ -37,7 +37,11 @@ jobs:
               with:
                   install-args: "--frozen-lockfile"
             - name: Run webview visual tests
-              run: pnpm --filter @roo-code/vscode-webview test:visual
+              run: |
+                  echo "::group::[CI:VISUAL-REGRESSION] Running webview visual tests"
+                  pnpm --filter @roo-code/vscode-webview test:visual
+                  echo "::notice::[CI:VISUAL-REGRESSION] webview visual tests passed"
+                  echo "::endgroup::"
             - name: Upload visual test coverage to Codecov
               if: always()
               uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4

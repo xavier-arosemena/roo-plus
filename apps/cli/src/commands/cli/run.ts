@@ -6,7 +6,7 @@ import { createElement } from "react"
 import pWaitFor from "p-wait-for"
 
 import { setLogger } from "@roo-code/vscode-shim"
-import { DebugLogger, setDebugLogEnabled } from "@roo-code/core/cli"
+import { DebugLogger, debugLog, setDebugLogEnabled } from "@roo-code/core/cli"
 
 import {
 	FlagOptions,
@@ -321,6 +321,15 @@ export async function run(promptArg: string | undefined, flagOptions: FlagOption
 
 	// Run!
 
+	debugLog("[CLI:RUN] Starting execution", {
+		workspace: effectiveWorkspacePath,
+		provider: extensionHostOptions.provider,
+		model: extensionHostOptions.model,
+		mode: isTuiEnabled ? "tui" : useStdinPromptStream ? "stdin-stream" : "print",
+		outputFormat,
+		resume: resolvedResumeSessionId ?? null,
+	})
+
 	if (isTuiEnabled) {
 		try {
 			const { render } = await import("ink")
@@ -355,6 +364,10 @@ export async function run(promptArg: string | undefined, flagOptions: FlagOption
 		extensionHostOptions.disableOutput = useJsonOutput
 
 		const host = new ExtensionHost(extensionHostOptions)
+		debugLog("[CLI:RUN:PRINT] Extension host created", {
+			workspace: extensionHostOptions.workspacePath,
+			provider: extensionHostOptions.provider,
+		})
 		let streamRequestId: string | undefined
 		let keepAliveInterval: NodeJS.Timeout | undefined
 		let isShuttingDown = false
@@ -369,6 +382,7 @@ export async function run(promptArg: string | undefined, flagOptions: FlagOption
 
 		const emitRuntimeError = (error: Error, source?: string) => {
 			const errorMessage = source ? `${source}: ${error.message}` : error.message
+			debugLog("[CLI:RUN:ERROR]", { source: source ?? "runtime", error: error.message, stack: error.stack })
 
 			if (useJsonOutput) {
 				const errorEvent = { type: "error", id: Date.now(), content: errorMessage }
@@ -494,6 +508,7 @@ export async function run(promptArg: string | undefined, flagOptions: FlagOption
 			}
 
 			isShuttingDown = true
+			debugLog("[CLI:RUN:SHUTDOWN]", { signal, exitCode })
 			process.off("SIGINT", onSigint)
 			process.off("SIGTERM", onSigterm)
 			process.off("uncaughtException", onUncaughtException)

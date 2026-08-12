@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 
-import type { Worktree, WorktreeListResponse, WorktreeIncludeStatus } from "@roo-code/types"
+import { parseExtensionMessage, type Worktree, type WorktreeIncludeStatus } from "@roo-code/types"
 
 import { Badge, Button, StandardTooltip, ToggleSwitch } from "@/components/ui"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -49,22 +49,32 @@ export const WorktreesView = () => {
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate extension→webview messages (Phase 2, Domain 7 —
+			// worktree responses): malformed registered payloads (e.g. a
+			// `worktreeList` without `worktrees`) fail loudly in dev, and
+			// unknown/unregistered types are rejected (hard allowlist, fail-closed).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[WorktreesView] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			switch (message.type) {
 				case "worktreeList": {
-					const response: WorktreeListResponse = message
-					setWorktrees(response.worktrees || [])
-					setIsGitRepo(response.isGitRepo)
-					setIsMultiRoot(response.isMultiRoot)
-					setIsSubfolder(response.isSubfolder)
-					setGitRootPath(response.gitRootPath)
-					setError(response.error || null)
+					// The registered `worktreeList` schema validated the payload,
+					// so the flat-interface optionals are present at runtime.
+					setWorktrees(message.worktrees || [])
+					setIsGitRepo(message.isGitRepo ?? true)
+					setIsMultiRoot(message.isMultiRoot ?? false)
+					setIsSubfolder(message.isSubfolder ?? false)
+					setGitRootPath(message.gitRootPath ?? "")
+					setError(message.error || null)
 					setIsLoading(false)
 					break
 				}
 				case "worktreeIncludeStatus": {
 					console.log("[WorktreesView] Received worktreeIncludeStatus:", message)
-					setIncludeStatus(message.worktreeIncludeStatus)
+					setIncludeStatus(message.worktreeIncludeStatus ?? null)
 					break
 				}
 				case "worktreeResult": {

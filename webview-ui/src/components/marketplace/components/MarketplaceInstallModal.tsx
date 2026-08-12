@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react"
-import { MarketplaceItem, McpParameter, McpInstallationMethod } from "@roo-code/types"
+import { MarketplaceItem, McpParameter, McpInstallationMethod, parseExtensionMessage } from "@roo-code/types"
 import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 import { useAppTranslation } from "@/i18n/TranslationContext"
@@ -132,7 +132,16 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate extension→webview messages (Phase 2, Domains 1-5
+			// — incl. marketplace responses): malformed registered payloads fail
+			// loudly in dev, and unknown/unregistered types are rejected (hard
+			// allowlist, fail-closed).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[MarketplaceInstallModal] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			if (message.type === "marketplaceInstallResult" && message.slug === item?.id) {
 				if (message.success) {
 					// Installation succeeded - show success state

@@ -2,7 +2,7 @@ import * as vscode from "vscode"
 import * as os from "os"
 import * as path from "path"
 import * as fs from "fs/promises"
-import { type WebviewMessage, type WebviewMessageType } from "@roo-code/types"
+import { type WebviewMessage, type WebviewMessageType, downloadErrorDiagnosticsMessageSchema } from "@roo-code/types"
 
 import { fileExistsAtPath } from "../../../utils/fs"
 import { generateErrorDiagnostics } from "../diagnosticsHandler"
@@ -80,6 +80,15 @@ export async function handleDebugMessages(
 		}
 
 		case "downloadErrorDiagnostics": {
+			const result = downloadErrorDiagnosticsMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed downloadErrorDiagnostics message: ${result.error.message}`,
+				)
+				break
+			}
+
 			const currentTask = provider.getCurrentTask()
 			if (!currentTask) {
 				vscode.window.showErrorMessage("No active task to generate diagnostics for")
@@ -89,7 +98,7 @@ export async function handleDebugMessages(
 			await generateErrorDiagnostics({
 				taskId: currentTask.taskId,
 				globalStoragePath: provider.contextProxy.globalStorageUri.fsPath,
-				values: message.values,
+				values: result.data.values,
 				log: (msg) => provider.log(msg),
 			})
 			break

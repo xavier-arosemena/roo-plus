@@ -4,7 +4,8 @@ import { Trans } from "react-i18next"
 import { Checkbox } from "vscrui"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
-import type { ProviderSettings, ExtensionMessage, ModelRecord } from "@roo-code/types"
+import type { ProviderSettings, ModelRecord } from "@roo-code/types"
+import { parseExtensionMessage } from "@roo-code/types"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { requestLmStudioModels } from "@src/components/ui/hooks/useLmStudioModels"
@@ -37,7 +38,13 @@ export const LMStudio = ({ apiConfiguration, setApiConfigurationField }: LMStudi
 	)
 
 	const onMessage = useCallback((event: MessageEvent) => {
-		const message: ExtensionMessage = event.data
+		// Boundary-validate registered model/status messages (Phase 2, Domain 2).
+		const parsed = parseExtensionMessage(event.data)
+		if (!parsed.ok) {
+			console.error(`[LMStudio] Rejected malformed extension message: ${parsed.error}`)
+			return
+		}
+		const message = parsed.message
 
 		switch (message.type) {
 			case "lmStudioModels":

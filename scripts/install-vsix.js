@@ -2,6 +2,12 @@ const { spawnSync } = require("child_process")
 const fs = require("fs")
 const readline = require("readline")
 
+// Hierarchical tag identifying this process; every log line is prefixed so CI
+// logs are greppable per process.
+const TAG = "INSTALL:VSIX"
+const log = (msg) => console.log(`[${TAG}] ${msg}`)
+const logErr = (msg) => console.error(`[${TAG}] ${msg}`)
+
 // Allowlist of supported editor CLI commands. The value may be supplied via the
 // interactive prompt or --editor=<name>; restricting it to this allowlist
 // prevents shell-command injection through the editor argument
@@ -55,13 +61,12 @@ async function main() {
 		const extensionId = `${publisher}.${name}`
 		const buildType = isNightly ? "Nightly" : "Regular"
 
-		console.log(`\n🚀 Roo Code VSIX Installer (${buildType})`)
-		console.log("========================")
-		console.log("\nThis script will:")
-		console.log("1. Uninstall any existing version of the Roo Code extension")
-		console.log("2. Install the newly built VSIX package")
-		console.log(`\nExtension: ${extensionId}`)
-		console.log(`VSIX file: ${vsixFileName}`)
+		log(`🚀 Roo Code VSIX Installer (${buildType})`)
+		log("This script will:")
+		log("1. Uninstall any existing version of the Roo Code extension")
+		log("2. Install the newly built VSIX package")
+		log(`Extension: ${extensionId}`)
+		log(`VSIX file: ${vsixFileName}`)
 
 		// Ask for editor command if not provided
 		let editorCommand = defaultEditor
@@ -78,15 +83,15 @@ async function main() {
 		const answer = autoYes ? "y" : await askQuestion("\nDo you wish to continue? (y/n): ")
 
 		if (answer.toLowerCase() !== "y") {
-			console.log("Installation cancelled.")
+			log("installation cancelled.")
 			rl.close()
 			process.exit(0)
 		}
 
 		// Validate the editor command against the allowlist before using it.
 		if (!SUPPORTED_EDITOR_COMMANDS.has(editorCommand)) {
-			console.error(
-				`\n❌ Unsupported editor command '${editorCommand}'. Supported commands: ${[
+			logErr(
+				`❌ Unsupported editor command '${editorCommand}'. Supported commands: ${[
 					...SUPPORTED_EDITOR_COMMANDS,
 				].join(", ")}`,
 			)
@@ -94,7 +99,7 @@ async function main() {
 			process.exit(1)
 		}
 
-		console.log(`\nProceeding with installation using '${editorCommand}' command...`)
+		log(`proceeding with installation using '${editorCommand}' command...`)
 
 		try {
 			// Use spawnSync with an args array (no shell) so the user-supplied
@@ -104,12 +109,12 @@ async function main() {
 				throw uninstall.error ?? new Error(`uninstall-extension exited with status ${uninstall.status}`)
 			}
 		} catch (e) {
-			console.log("Extension not installed, skipping uninstall step")
+			log("extension not installed, skipping uninstall step")
 		}
 
 		if (!fs.existsSync(vsixFileName)) {
-			console.error(`\n❌ VSIX file not found: ${vsixFileName}`)
-			console.error("Make sure the build completed successfully")
+			logErr(`❌ VSIX file not found: ${vsixFileName}`)
+			logErr("make sure the build completed successfully")
 			rl.close()
 			process.exit(1)
 		}
@@ -119,13 +124,13 @@ async function main() {
 			throw install.error ?? new Error(`install-extension exited with status ${install.status}`)
 		}
 
-		console.log(`\n✅ Successfully installed extension from ${vsixFileName}`)
-		console.log("\n⚠️  IMPORTANT: You need to restart VS Code for the changes to take effect.")
-		console.log("   Please close and reopen VS Code to use the updated extension.\n")
+		log(`✅ Successfully installed extension from ${vsixFileName}`)
+		log("⚠️  IMPORTANT: You need to restart VS Code for the changes to take effect.")
+		log("   Please close and reopen VS Code to use the updated extension.")
 
 		rl.close()
 	} catch (error) {
-		console.error("\n❌ Failed to install extension:", error.message)
+		logErr(`❌ Failed to install extension: ${error.message}`)
 		rl.close()
 		process.exit(1)
 	}

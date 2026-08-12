@@ -51,6 +51,11 @@ import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
+import { logStep, logEndGroup, logInfo, logOk, logWarn, logError, logSuccess } from "./lib/logger.mjs"
+
+// Hierarchical tag identifying this process.
+const TAG = "VERIFY:UPSTREAM-ALIGNMENT"
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, "..")
 const UPSTREAM_URL = process.env.UPSTREAM_URL || "https://github.com/Zoo-Code-Org/Zoo-Code.git"
@@ -329,7 +334,7 @@ async function main() {
 		process.exit(0)
 	}
 
-	console.log("🔗 Verifying the Qdrant code-index core stays aligned with upstream Zoo-Code...")
+	logStep(TAG, "Verifying the Qdrant code-index core stays aligned with upstream Zoo-Code")
 
 	// 1. Resolve upstream/main: local ref first (offline), fetch when missing
 	//    or when --fetch is passed.
@@ -348,25 +353,26 @@ async function main() {
 		const decision = decideRunMode({ localRef: false, fetchSucceeded: false, strict: isStrict })
 		const detail = fetchError ? fetchError.message : "no local upstream/main ref found"
 		if (decision.fail) {
-			console.error("✖ upstream/main is unavailable and --strict is set — refusing to skip the alignment gate.")
-			console.error(`   ${detail}`)
+			logError(TAG, "upstream/main is unavailable and --strict is set — refusing to skip the alignment gate.")
+			logError(TAG, detail)
 			process.exit(1)
 		}
-		console.warn("⚠ upstream/main is unavailable (no local ref; fetch failed or no network).")
-		console.warn(`   ${detail}`)
-		console.warn("   Skipping the alignment check — CI is NOT blocked for an infra reason.")
-		console.warn("   Re-run with network (or after `git fetch upstream main --depth=1`) to enforce.")
+		logWarn(TAG, "upstream/main is unavailable (no local ref; fetch failed or no network).")
+		logWarn(TAG, detail)
+		logWarn(TAG, "Skipping the alignment check — CI is NOT blocked for an infra reason.")
+		logWarn(TAG, "Re-run with network (or after `git fetch upstream main --depth=1`) to enforce.")
 		process.exit(0)
 	}
 
 	if (fetchError) {
-		console.warn(`⚠ Fetching upstream failed (${fetchError.message}) — falling back to the local upstream/main ref.`)
+		logWarn(TAG, `fetching upstream failed (${fetchError.message}) — falling back to the local upstream/main ref.`)
 	}
 
 	const upstreamSha = git(["rev-parse", resolved.ref]).trim()
-	console.log(`   upstream/main @ ${upstreamSha.slice(0, 12)}`)
+	logInfo(TAG, `upstream/main @ ${upstreamSha.slice(0, 12)}`)
 
 	// 2. Compare every core file.
+	logStep(`${TAG}:FILES`, "Comparing core files against upstream/main")
 	const results = []
 	for (const entry of CORE_FILES) {
 		let forkText = null
@@ -377,33 +383,35 @@ async function main() {
 		}
 		const upstreamText = upstreamFileContent(resolved.ref, entry.path)
 		const verdict = compareCoreFile(entry, forkText, upstreamText)
-		const badge = verdict.ok ? "✓" : "✖"
+		const badge = verdict.ok ? "✔" : "✖"
 		const detail = verdict.reason ? ` (${verdict.reason})` : ""
-		console.log(`   ${badge} ${entry.path} — ${verdict.status}${detail}`)
+		logInfo(`${TAG}:FILES`, `${badge} ${entry.path} — ${verdict.status}${detail}`)
 		results.push({ entry, verdict })
 	}
+	logEndGroup()
 
 	const failures = failedPaths(results)
 	if (failures.length > 0) {
-		console.error("\n✖ The Qdrant code-index core has drifted from upstream Zoo-Code:")
+		logError(`${TAG}:FILES`, "The Qdrant code-index core has drifted from upstream Zoo-Code:")
 		for (const result of results) {
 			if (!result.verdict.ok) {
-				console.error(`   - ${result.entry.path}: ${result.verdict.reason}`)
+				logError(`${TAG}:FILES`, `- ${result.entry.path}: ${result.verdict.reason}`)
 			}
 		}
-		console.error("\n   These files must stay byte-identical to upstream/main so upstream improvements")
-		console.error("   cherry-pick cleanly. Fix by reverting the fork change that touched a core file,")
-		console.error("   or (after confirming the drift is unwanted) restoring from upstream:")
-		console.error("     git fetch upstream main --depth=1")
-		console.error("     git checkout upstream/main -- <drifted-file>")
-		console.error("   See docs/architecture-review-code-index-semble.md (§3.1 / §6 item 6).")
+		logError(`${TAG}:FILES`, "These files must stay byte-identical to upstream/main so upstream improvements")
+		logError(`${TAG}:FILES`, "cherry-pick cleanly. Fix by reverting the fork change that touched a core file,")
+		logError(`${TAG}:FILES`, "or (after confirming the drift is unwanted) restoring from upstream:")
+		logError(`${TAG}:FILES`, "  git fetch upstream main --depth=1")
+		logError(`${TAG}:FILES`, "  git checkout upstream/main -- <drifted-file>")
+		logError(`${TAG}:FILES`, "See docs/architecture-review-code-index-semble.md (§3.1 / §6 item 6).")
 		process.exit(1)
 	}
 
 	const identical = results.filter((r) => r.verdict.status === "identical").length
 	const allowed = results.filter((r) => r.verdict.status === "allowed-diff").length
-	console.log(
-		`\n✅ Qdrant code-index core aligned with upstream/main: ${identical} identical, ${allowed} allow-listed branding/fork diff(s).`,
+	logSuccess(
+		TAG,
+		`Qdrant code-index core aligned with upstream/main: ${identical} identical, ${allowed} allow-listed branding/fork diff(s).`,
 	)
 	process.exit(0)
 }
@@ -412,7 +420,7 @@ async function main() {
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
 if (isMain) {
 	main().catch((error) => {
-		console.error(`✖ Unexpected error: ${error instanceof Error ? error.message : String(error)}`)
+		logError(TAG, `unexpected error: ${error instanceof Error ? error.message : String(error)}`)
 		process.exit(1)
 	})
 }

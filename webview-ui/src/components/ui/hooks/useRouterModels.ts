@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { type RouterModels, type ExtensionMessage } from "@roo-code/types"
+import { type RouterModels, parseExtensionMessage } from "@roo-code/types"
 
 import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
@@ -25,7 +25,13 @@ export const fetchRouterModels = async (provider?: string) =>
 
 		const handler = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message: ExtensionMessage = event.data
+			// Boundary-validate registered model/status messages (Phase 2, Domain 2).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[useRouterModels] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 
 			if (message.type === "routerModels") {
 				const msgProvider = message?.values?.provider as string | undefined

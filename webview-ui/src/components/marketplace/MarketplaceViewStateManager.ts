@@ -421,7 +421,9 @@ export class MarketplaceViewStateManager {
 		}
 
 		// Handle marketplace button clicks
-		if (message.type === "marketplaceButtonClicked") {
+		// The producer posts `{ type: "action", action: "marketplaceButtonClicked", values: { marketplaceTab } }`
+		// (webview-local navigation via `postMessage`), so match the action-typed shape.
+		if (message.type === "action" && message.action === "marketplaceButtonClicked") {
 			if (message.text) {
 				// Error case
 				void this.transition({ type: "FETCH_ERROR" })

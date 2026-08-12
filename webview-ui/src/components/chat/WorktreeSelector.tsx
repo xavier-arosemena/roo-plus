@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react"
 import { GitBranch, Check, ChevronDown, Plus } from "lucide-react"
 
-import type { Worktree, WorktreeListResponse } from "@roo-code/types"
+import { parseExtensionMessage, type Worktree } from "@roo-code/types"
 
 import { cn } from "@/lib/utils"
 import { useRooPortal } from "@/components/ui/hooks/useRooPortal"
@@ -37,11 +37,21 @@ export const WorktreeSelector = ({ disabled = false }: WorktreeSelectorProps) =>
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message = event.data
+			// Boundary-validate extension→webview messages (Phase 2, Domain 7 —
+			// worktree responses): a malformed registered `worktreeList` payload
+			// fails loudly in dev, and unknown/unregistered types are rejected
+			// (hard allowlist, fail-closed).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[WorktreeSelector] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 			if (message.type === "worktreeList") {
-				const response: WorktreeListResponse = message
-				setWorktrees(response.worktrees || [])
-				setIsGitRepo(response.isGitRepo)
+				// The registered `worktreeList` schema validated the payload, so
+				// the flat-interface optionals are present at runtime.
+				setWorktrees(message.worktrees || [])
+				setIsGitRepo(message.isGitRepo ?? true)
 			}
 		}
 

@@ -31,6 +31,12 @@ import * as path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import * as yaml from "yaml"
 
+import { logStep, logEndGroup, logInfo, logOk, logWarn, logError, logSuccess } from "./lib/logger.mjs"
+
+// Hierarchical tag identifying this process; sub-phases extend it (e.g.
+// SYNC:CUSTOM-MODES:ROOMODES) so each pipeline phase is identifiable in CI logs.
+const TAG = "SYNC:CUSTOM-MODES"
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, "..")
 
@@ -346,42 +352,48 @@ export function dedupeMarketplaceById(originalItems, agentItems) {
 }
 
 /**
- * Generate marketplace modes.yml with ALL agents + preserve original marketplace items.
+ * Generate marketplace modes.yml with ALL catalog agents.
+ *
+ * Issue #174 unified the catalog: every marketplace item now comes from the
+ * canonical catalog and carries the `custom-modes` tag — there are NO orphan
+ * "preserved originals" anymore. `dedupeMarketplaceById` is kept as a safety
+ * net that drops any legacy non-custom-modes item still committed in modes.yml
+ * (catalog wins), but with a unified catalog the preserved set is always empty.
  */
 async function generateMarketplaceModes(allAgents, curatedSlugs) {
-  // 1. Read existing marketplace modes.yml to preserve original items
-  let originalItems = []
+  // 1. Convert all agents to marketplace items (single source of truth).
+  const agentItems = allAgents.map(({ agent }) => convertToMarketplaceItem(agent, curatedSlugs))
+
+  // 2. Safety net: drop any legacy non-custom-modes items still committed in the
+  // existing modes.yml (catalog wins). With the unified 301-mode catalog this set
+  // is empty — the check only guards against accidental orphans reappearing.
+  let preservedOriginals = []
   try {
     const existingContent = await fs.readFile(MARKETPLACE_MODES_PATH, "utf-8")
     const existing = yaml.parse(existingContent)
     if (existing?.items) {
-      // Keep only items that are NOT from the custom-modes submodule
-      originalItems = existing.items.filter((item) => !item.tags?.includes("custom-modes"))
-      console.log(`   Preserved ${originalItems.length} original marketplace items`)
+      const originalItems = existing.items.filter((item) => !item.tags?.includes("custom-modes"))
+      if (originalItems.length > 0) {
+        const { preserved, dropped } = dedupeMarketplaceById(originalItems, agentItems)
+        preservedOriginals = preserved
+        console.log(
+          `   Note: dropped ${dropped.length} legacy non-custom-modes item(s) colliding with the catalog; ` +
+            `all ${originalItems.length} items are now unified into the custom-modes catalog.`,
+        )
+      }
     }
   } catch {
-    console.log("   No existing marketplace modes.yml found, creating new one")
+    // No existing modes.yml — building a fresh unified catalog
   }
 
-  // 2. Convert all agents to marketplace items
-  const agentItems = allAgents.map(({ agent }) => convertToMarketplaceItem(agent, curatedSlugs))
-
-  // 3. Dedupe preserved originals by id with CATALOG-WINS semantics.
-  const { preserved: preservedOriginals, dropped } = dedupeMarketplaceById(originalItems, agentItems)
-  if (dropped.length > 0) {
-    console.log(
-      `   Dropped ${dropped.length} legacy duplicate(s) colliding with catalog ids: ${dropped.map((d) => d.id).join(", ")}`,
-    )
-  }
-
-  // 4. Combine: preserved original items first, then agent items
+  // 3. Combine: preserved originals first (always empty after unification), then agent items.
   const allItems = [...preservedOriginals, ...agentItems]
 
-  // 5. Built-in collision guard: the extension core owns these slugs and they
+  // 4. Built-in collision guard: the extension core owns these slugs and they
   // must never appear in the marketplace catalog.
   assertNoBuiltInSlugs({ marketplaceItems: allItems })
 
-  // 6. Write combined modes.yml
+  // 5. Write modes.yml (all items tagged `custom-modes`).
   const output = yaml.stringify({ items: allItems }, { lineWidth: 0 })
   await fs.writeFile(MARKETPLACE_MODES_PATH, output, "utf-8")
 
@@ -392,21 +404,21 @@ async function generateMarketplaceModes(allAgents, curatedSlugs) {
  * Main entry point.
  */
 async function main() {
-  console.log("🔧 Roo+ Custom Modes Sync")
-  console.log("═".repeat(50))
+  logStep(TAG, "Roo+ Custom Modes Sync")
 
   // 1. Load manifest
-  console.log("\n📋 Loading curation manifest...")
+  logStep(`${TAG}:MANIFEST`, "Loading curation manifest")
   const manifest = await loadManifest()
   const fullCats = Object.entries(manifest.includeCategories || {})
     .filter(([, v]) => v === "all")
     .map(([k]) => k)
-  console.log(`   Full categories: ${fullCats.join(", ") || "none"}`)
-  console.log(`   Individual slugs: ${(manifest.includeSlugs || []).length}`)
-  console.log(`   Excluded slugs: ${(manifest.excludeSlugs || []).length}`)
+  logInfo(`${TAG}:MANIFEST`, `Full categories: ${fullCats.join(", ") || "none"}`)
+  logInfo(`${TAG}:MANIFEST`, `Individual slugs: ${(manifest.includeSlugs || []).length}`)
+  logInfo(`${TAG}:MANIFEST`, `Excluded slugs: ${(manifest.excludeSlugs || []).length}`)
+  logEndGroup()
 
   // 2. Check if the source directory exists (git submodule may not be initialized in CI)
-  console.log("\n🔍 Checking custom_modes.d directory...")
+  logStep(`${TAG}:SOURCE`, "Checking custom_modes.d directory")
   let agentsDirExists = false
   try {
     await fs.access(SOURCE_DIR)
@@ -424,36 +436,38 @@ async function main() {
     ])
 
     if (outputsExist.every(Boolean)) {
-      console.log("   ⚠ custom_modes.d directory not found (git submodule not initialized in CI)")
-      console.log("   ✓ All output files already exist — skipping sync")
-      console.log("\n" + "═".repeat(50))
-      console.log("✅ Sync complete (cached artifacts)")
+      logWarn(`${TAG}:SOURCE`, "custom_modes.d directory not found (git submodule not initialized in CI)")
+      logOk(`${TAG}:SOURCE`, "all output files already exist — skipping sync")
+      logSuccess(TAG, "Sync complete (cached artifacts)")
       return
     }
 
-    console.warn("\n⚠ custom_modes.d directory not found and output files missing.")
-    console.warn("   Run `git submodule update --init` to populate custom-modes/custom_modes.d/")
+    logWarn(`${TAG}:SOURCE`, "custom_modes.d directory not found and output files missing.")
+    logWarn(`${TAG}:SOURCE`, "run `git submodule update --init` to populate custom-modes/custom_modes.d/")
     return
   }
+  logOk(`${TAG}:SOURCE`, "custom_modes.d directory found")
+  logEndGroup()
 
   // Scan ALL agents
-  console.log("\n🔍 Scanning custom_modes.d catalog...")
+  logStep(`${TAG}:SCAN`, "Scanning custom_modes.d catalog")
   const allAgents = await scanAllAgents()
-  console.log(`   Found ${allAgents.length} total modes`)
+  logInfo(`${TAG}:SCAN`, `found ${allAgents.length} total modes`)
 
   if (allAgents.length === 0) {
-    console.log("\n⚠ No agents found. Nothing to do.")
+    logWarn(`${TAG}:SCAN`, "no agents found. Nothing to do.")
     return
   }
+  logEndGroup()
 
   // ===============================
   // PART 1: Generate .roomodes (curated set)
   // ===============================
-  console.log("\n📦 Part 1: Generating .roomodes (curated set)")
+  logStep(`${TAG}:ROOMODES`, "Part 1: Generating .roomodes (curated set)")
 
   // Filter curated agents
   const curated = filterCuratedAgents(allAgents, manifest)
-  console.log(`   Curated agents: ${curated.length}`)
+  logInfo(`${TAG}:ROOMODES`, `curated agents: ${curated.length}`)
 
   // Convert to .roomodes format
   const roomodesEntries = curated.map(({ agent }) => convertToRoomodesEntry(agent))
@@ -465,8 +479,9 @@ async function main() {
   // that previous pipelines committed so the collision guard below can never
   // trip on the regenerated output.
   const existingModes = existingModesRaw.filter((m) => !BUILT_IN_SLUGS.has(m.slug))
-  console.log(
-    `   Existing modes in .roomodes: ${existingModesRaw.length}` +
+  logInfo(
+    `${TAG}:ROOMODES`,
+    `Existing modes in .roomodes: ${existingModesRaw.length}` +
       (existingModesRaw.length !== existingModes.length
         ? ` (dropped ${existingModesRaw.length - existingModes.length} built-in)`
         : ""),
@@ -479,12 +494,12 @@ async function main() {
   const { merged: mergedModes, replaced, preserved } = mergeRoomodesModes(existingModes, roomodesEntries)
   const totalModes = mergedModes.length
 
-  console.log(`   Source entries: ${roomodesEntries.length} modes (source wins on conflict)`)
+  logInfo(`${TAG}:ROOMODES`, `source entries: ${roomodesEntries.length} modes (source wins on conflict)`)
   if (replaced.length > 0) {
-    console.log(`   Refreshed from source (slug conflict): ${replaced.map((m) => m.slug).join(", ")}`)
+    logInfo(`${TAG}:ROOMODES`, `refreshed from source (slug conflict): ${replaced.map((m) => m.slug).join(", ")}`)
   }
   if (preserved.length > 0) {
-    console.log(`   Preserved (not in curated source): ${preserved.map((m) => m.slug).join(", ")}`)
+    logInfo(`${TAG}:ROOMODES`, `preserved (not in curated source): ${preserved.map((m) => m.slug).join(", ")}`)
   }
 
   // Built-in collision guard: built-in mode slugs must never ship in the
@@ -502,20 +517,21 @@ async function main() {
   }
 
   if (roomodesYamlContent !== currentRoomodes) {
-    console.log("\n✍️ Writing .roomodes (source-wins refresh)...")
+    logInfo(`${TAG}:ROOMODES`, "writing .roomodes (source-wins refresh)...")
     await fs.writeFile(ROOMODES_PATH, roomodesYamlContent, "utf-8")
   } else {
-    console.log("   .roomodes already up to date (no changes)")
+    logInfo(`${TAG}:ROOMODES`, ".roomodes already up to date (no changes)")
   }
 
   // Write pre-installed-modes.yml (bundled in VSIX for first-run seeding)
-  console.log("\n📦 Writing pre-installed-modes.yml for extension bundling...")
+  logInfo(`${TAG}:ROOMODES`, "writing pre-installed-modes.yml for extension bundling...")
   await fs.writeFile(PRE_INSTALLED_MODES_PATH, roomodesYamlContent, "utf-8")
+  logEndGroup()
 
   // ===============================
   // PART 2: Generate Modes Marketplace catalog
   // ===============================
-  console.log("\n🛒 Part 2: Generating Modes Marketplace catalog")
+  logStep(`${TAG}:MARKETPLACE`, "Part 2: Generating Modes Marketplace catalog")
 
   const curatedSlugsForMarketplace = new Set([
     ...existingModes.map((m) => m.slug),
@@ -523,38 +539,37 @@ async function main() {
   ])
 
   const { originalCount, agentCount } = await generateMarketplaceModes(allAgents, curatedSlugsForMarketplace)
-  console.log(`   Original marketplace items preserved: ${originalCount}`)
-  console.log(`   Custom mode agents added to catalog: ${agentCount}`)
+  logInfo(`${TAG}:MARKETPLACE`, `legacy original marketplace items preserved: ${originalCount} (unified catalog — should be 0)`)
+  logInfo(`${TAG}:MARKETPLACE`, `unified catalog agents in marketplace: ${agentCount}`)
+  logEndGroup()
 
   // ===============================
   // SUMMARY
   // ===============================
-  console.log("\n" + "═".repeat(50))
-  console.log(`✅ Sync complete!`)
-  console.log(`   📄 .roomodes: ${totalModes} custom modes`)
-  console.log(`   📦 pre-installed-modes.yml: ${totalModes} modes (for extension bundling)`)
-  console.log(`   � Modes Marketplace: ${originalCount + agentCount} items available`)
-  console.log(`      - ${agentCount} agents from custom-modes submodule`)
-  console.log(`      - ${originalCount} original marketplace items`)
+  logSuccess(TAG, `Sync complete!`)
+  logInfo(TAG, `📄 .roomodes: ${totalModes} custom modes (preloaded)`)
+  logInfo(TAG, `📦 pre-installed-modes.yml: ${totalModes} modes (for extension bundling)`)
+  logInfo(TAG, `🛒 Modes Marketplace: ${originalCount + agentCount} items available (unified 301-mode catalog)`)
+  logInfo(TAG, `   - ${agentCount} modes from the unified custom-modes catalog (all tagged custom-modes)`)
+  logInfo(TAG, `   - ${originalCount} legacy original marketplace items (unified: 0)`)
 
   // Category breakdown for curated
   const byCategory = {}
   for (const { category } of curated) {
     byCategory[category] = (byCategory[category] || 0) + 1
   }
-  console.log("\n📊 Curated category breakdown:")
+  logStep(`${TAG}:SUMMARY`, "Curated category breakdown")
   for (const [cat, count] of Object.entries(byCategory).sort((a, b) => b[1] - a[1])) {
-    console.log(`   ${cat}: ${count} agents`)
+    logInfo(`${TAG}:SUMMARY`, `${cat}: ${count} agents`)
   }
-
-  console.log("\n💡 Tip: Open the Modes Marketplace to browse all available agents")
+  logEndGroup()
 }
 
 // Only run when executed directly (not when imported, e.g. by verify-roomodes-sync.mjs).
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
 if (isMain) {
   main().catch((err) => {
-    console.error("\n❌ Sync failed:", err.message)
+    logError(TAG, `sync failed: ${err.message}`)
     process.exit(1)
   })
 }

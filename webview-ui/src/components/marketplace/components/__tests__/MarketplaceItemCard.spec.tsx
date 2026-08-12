@@ -1,3 +1,4 @@
+import { act } from "@testing-library/react"
 import { render, screen } from "@/utils/test-utils"
 import userEvent from "@testing-library/user-event"
 
@@ -225,5 +226,60 @@ describe("MarketplaceItemCard", () => {
 		expect(installedBadges).toHaveLength(1)
 		// Should show Remove button
 		expect(screen.getByText("Remove")).toBeInTheDocument()
+	})
+
+	it("re-posts fetchMarketplaceData when a matching marketplaceRemoveResult success message arrives", () => {
+		renderWithProviders(<MarketplaceItemCard {...defaultProps} />)
+
+		act(() => {
+			window.dispatchEvent(
+				new MessageEvent("message", {
+					data: { type: "marketplaceRemoveResult", success: true, slug: "test-item" },
+				}),
+			)
+		})
+
+		// The card listens for the typed `marketplaceRemoveResult` (boundary
+		// validated via `parseExtensionMessage`); a successful removal for the
+		// matching slug refreshes the marketplace data.
+		expect(vscode.postMessage).toHaveBeenCalledWith({ type: "fetchMarketplaceData" })
+	})
+
+	it("shows the removal error when a matching marketplaceRemoveResult failure message arrives", async () => {
+		renderWithProviders(<MarketplaceItemCard {...defaultProps} />)
+
+		act(() => {
+			window.dispatchEvent(
+				new MessageEvent("message", {
+					data: {
+						type: "marketplaceRemoveResult",
+						success: false,
+						slug: "test-item",
+						error: "remove failed",
+					},
+				}),
+			)
+		})
+
+		// The error banner is rendered via the `marketplace:items.removeFailed`
+		// translation key (the test `t` mock returns the raw key with no
+		// interpolation), confirming the `error` field reached the consumer.
+		expect(await screen.findByText("marketplace:items.removeFailed")).toBeInTheDocument()
+	})
+
+	it("ignores a malformed registered marketplaceRemoveResult at the boundary", () => {
+		renderWithProviders(<MarketplaceItemCard {...defaultProps} />)
+
+		act(() => {
+			// Missing `success` — the registered schema rejects it, so the
+			// boundary parse fails and no UI side effect happens.
+			window.dispatchEvent(
+				new MessageEvent("message", {
+					data: { type: "marketplaceRemoveResult", slug: "test-item" },
+				}),
+			)
+		})
+
+		expect(vscode.postMessage).not.toHaveBeenCalledWith({ type: "fetchMarketplaceData" })
 	})
 })

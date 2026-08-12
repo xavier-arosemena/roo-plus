@@ -42,45 +42,64 @@ jobs:
 
             - name: Verify custom-modes submodule pin & committed artifact sync
               run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:SUBMODULE] Verifying submodule pin + .roomodes sync"
                   node scripts/verify-submodule-pin.mjs
                   node scripts/verify-roomodes-sync.mjs
+                  echo "::notice::[CI:RELEASE-VALIDATION:SUBMODULE] submodule pin and .roomodes sync verified"
+                  echo "::endgroup::"
 
             - name: Enforce mode descriptions (ensure_descriptions.py --check)
               run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:DESCRIPTIONS] Enforcing mode descriptions (--check)"
                   python3 -c "import yaml" >/dev/null 2>&1 || sudo apt-get update -qq && sudo apt-get install -y -qq python3-yaml
                   python3 scripts/ensure_descriptions.py --check
+                  echo "::notice::[CI:RELEASE-VALIDATION:DESCRIPTIONS] mode descriptions gate passed"
+                  echo "::endgroup::"
 
             - name: Validate package identity
               run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:IDENTITY] Validating package identity"
                   package_name=$(node -p "require('./src/package.json').name")
                   publisher=$(node -p "require('./src/package.json').publisher")
 
                   test "$package_name" = "roo-plus"
                   test "$publisher" = "xavier-arosemena"
+                  echo "::notice::[CI:RELEASE-VALIDATION:IDENTITY] package identity OK: $package_name / $publisher"
+                  echo "::endgroup::"
 
             - name: Validate release metadata
               run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:METADATA] Validating release metadata"
                   package_version=$(node -p "require('./src/package.json').version")
 
                   node -e 'const version = process.argv[1]; if (!/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) { throw new Error("Invalid SemVer version: " + version) }' "$package_version"
                   grep -q "## \\[$package_version\\]\\|## $package_version" CHANGELOG.md
+                  echo "::notice::[CI:RELEASE-VALIDATION:METADATA] release metadata OK for version $package_version"
+                  echo "::endgroup::"
 
             - name: Build workspace packages
               run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:BUILD] Building workspace packages"
                   pnpm --filter @roo-code/build build
                   pnpm --filter @roo-code/vscode-webview build
+                  echo "::notice::[CI:RELEASE-VALIDATION:BUILD] workspace packages built"
+                  echo "::endgroup::"
 
             - name: Bundle extension and verify README sync
               env:
                   POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
               run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:BUNDLE] Bundling extension + verifying README sync"
                   pnpm --filter ./src bundle --production
                   cmp README.md src/README.md
+                  echo "::notice::[CI:RELEASE-VALIDATION:BUNDLE] extension bundled and README in sync"
+                  echo "::endgroup::"
 
             - name: Package extension
               env:
                   POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
               run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:PACKAGE] Packaging VSIX"
                   package_version=$(node -p "require('./src/package.json').version")
                   pnpm --filter ./src vsix
 
@@ -95,9 +114,12 @@ jobs:
                   grep -q "extension/webview-ui/build/assets/index.js" /tmp/roo-plus-vsix-contents.txt
                   grep -q "extension/assets/codicons/codicon.ttf" /tmp/roo-plus-vsix-contents.txt
                   grep -q "extension/assets/vscode-material-icons/icons/3d.svg" /tmp/roo-plus-vsix-contents.txt
+                  echo "::notice::[CI:RELEASE-VALIDATION:PACKAGE] VSIX packaged: $vsix_path"
+                  echo "::endgroup::"
 
             - name: Validate packaged manifest identity
               run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:MANIFEST] Validating packaged manifest identity"
                   package_version=$(node -p "require('./src/package.json').version")
                   vsix_path="bin/roo-plus-${package_version}.vsix"
 
@@ -106,3 +128,5 @@ jobs:
                
                   test "$artifact_name" = "roo-plus"
                   test "$artifact_publisher" = "xavier-arosemena"
+                  echo "::notice::[CI:RELEASE-VALIDATION:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher"
+                  echo "::endgroup::"

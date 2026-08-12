@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { type ModelRecord, type ExtensionMessage } from "@roo-code/types"
+import { type ModelRecord, parseExtensionMessage } from "@roo-code/types"
 
 import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
@@ -18,7 +18,13 @@ const getOllamaModels = async () =>
 
 		const handler = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			const message: ExtensionMessage = event.data
+			// Boundary-validate registered model/status messages (Phase 2, Domain 2).
+			const parsed = parseExtensionMessage(event.data)
+			if (!parsed.ok) {
+				console.error(`[useOllamaModels] Rejected malformed extension message: ${parsed.error}`)
+				return
+			}
+			const message = parsed.message
 
 			if (message.type === "ollamaModels") {
 				clearTimeout(timeout)

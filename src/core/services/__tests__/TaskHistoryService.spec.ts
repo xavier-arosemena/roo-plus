@@ -1,6 +1,6 @@
 // npx vitest run core/services/__tests__/TaskHistoryService.spec.ts
 
-import type { HistoryItem } from "@roo-code/types"
+import { type HistoryItem, parseExtensionMessage } from "@roo-code/types"
 
 import {
 	TaskHistoryService,
@@ -89,6 +89,23 @@ describe("TaskHistoryService.updateTaskHistory", () => {
 			type: "taskHistoryItemUpdated",
 			taskHistoryItem: item,
 		})
+	})
+
+	it("emits task-history payloads that satisfy the registered outbound schemas (Phase 2, Domain 1)", async () => {
+		const h = makeHarness()
+		const item = makeHistoryItem({ id: "task-1", task: "Test task" })
+		h.store.get.mockReturnValue(item)
+
+		await h.service.updateTaskHistory(item)
+
+		// The producer's payload must survive the typed boundary — a schema
+		// regression here (e.g. a missing required HistoryItem field) would fail
+		// loudly at the webview/CLI boundary.
+		const itemMessage = h.postMessageToWebview.mock.calls.find(
+			(call: unknown[]) => (call[0] as { type?: string })?.type === "taskHistoryItemUpdated",
+		)?.[0]
+		expect(itemMessage).toBeDefined()
+		expect(parseExtensionMessage(itemMessage).ok).toBe(true)
 	})
 
 	it("does not broadcast when broadcast: false", async () => {

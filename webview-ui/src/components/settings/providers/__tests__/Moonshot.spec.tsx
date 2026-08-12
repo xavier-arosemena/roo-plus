@@ -213,7 +213,7 @@ describe("Moonshot Component", () => {
 		window.postMessage(
 			{
 				type: "routerModels",
-				values: { moonshot: { "kimi-k2-0905-preview": { maxTokens: 16384 } } },
+				routerModels: { moonshot: { "kimi-k2-0905-preview": { maxTokens: 16384 } } },
 			},
 			"*",
 		)
@@ -327,7 +327,7 @@ describe("Moonshot Component", () => {
 			window.postMessage(
 				{
 					type: "routerModels",
-					values: { moonshot: { "kimi-k2-0905-preview": { maxTokens: 16384 } } },
+					routerModels: { moonshot: { "kimi-k2-0905-preview": { maxTokens: 16384 } } },
 				},
 				"*",
 			)

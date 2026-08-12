@@ -365,6 +365,39 @@ describe("MarketplaceViewStateManager", () => {
 		})
 	})
 
+	describe("marketplace button click handling (action-typed)", () => {
+		it("should set the active tab and request a fetch for the action-typed message", async () => {
+			// The real producer posts `{ type: "action", action: "marketplaceButtonClicked", values: { marketplaceTab } }`
+			// (webview-local navigation, see McpView.tsx / ModesView.tsx / SkillsSettings.tsx / ModeSelector.tsx),
+			// NOT a standalone `{ type: "marketplaceButtonClicked" }` message.
+			const message = {
+				type: "action",
+				action: "marketplaceButtonClicked",
+				values: { marketplaceTab: "mode" },
+			}
+
+			await stateManager.handleMessage(message)
+			const state = stateManager.getState()
+
+			expect(state.activeTab).toBe("mode")
+			expect(state.isFetching).toBe(true)
+		})
+
+		it("should not treat an unrelated action as a marketplace button click", async () => {
+			const message = {
+				type: "action",
+				action: "someOtherAction",
+			}
+
+			await stateManager.handleMessage(message)
+			const state = stateManager.getState()
+
+			// Default state preserved — no tab switch / fetch triggered by this branch.
+			expect(state.activeTab).toBe("mcp")
+			expect(state.isFetching).toBe(true)
+		})
+	})
+
 	describe("state copying and immutability", () => {
 		it("should return new arrays in getState to prevent mutation", () => {
 			const state1 = stateManager.getState()

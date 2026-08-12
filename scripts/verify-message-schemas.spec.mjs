@@ -12,14 +12,18 @@ import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
 import {
+	EXTENSION_MESSAGE_BASELINE,
 	MESSAGE_SCHEMA_BASELINE,
+	UNTYPED_EXTENSION_MESSAGE_LIMIT,
 	UNTYPED_MESSAGE_LIMIT,
 	analyzeRegistry,
 	evaluateRatchet,
+	extractExtensionMessageTypesFromSource,
 	extractMessageTypesFromSource,
 } from "./message-schema-analysis.mjs"
 
 const REGISTRY = Object.fromEntries(MESSAGE_SCHEMA_BASELINE.map((type) => [type, {}]))
+const EXTENSION_REGISTRY = Object.fromEntries(EXTENSION_MESSAGE_BASELINE.map((type) => [type, {}]))
 
 describe("extractMessageTypesFromSource", () => {
 	it("parses the literal union from the WebviewMessage interface source", () => {
@@ -66,15 +70,178 @@ describe("analyzeRegistry", () => {
 	})
 
 	it("fails when the untyped count increases past the limit", () => {
-		const analysis = analyzeRegistry({}, ["a", "b", "c", "d"], [])
-		assert.equal(analysis.untypedCount, 4)
-		assert.equal(evaluateRatchet(analysis, 3).ok, false)
+		const overLimit = Array.from({ length: UNTYPED_MESSAGE_LIMIT + 1 }, (_, i) => `t${i}`)
+		const analysis = analyzeRegistry({}, overLimit, [])
+		assert.equal(analysis.untypedCount, UNTYPED_MESSAGE_LIMIT + 1)
+		assert.equal(evaluateRatchet(analysis, UNTYPED_MESSAGE_LIMIT).ok, false)
 	})
 
 	it("passes when the untyped count decreases (at or below the limit)", () => {
-		const analysis = analyzeRegistry({}, ["a", "b"], [])
-		assert.equal(analysis.untypedCount, 2)
+		// The inbound limit is now 0 (all 165 types registered), so "at or below"
+		// means 0 untyped — a count above 0 must fail.
+		const analysis = analyzeRegistry({}, [], [])
+		assert.equal(analysis.untypedCount, 0)
 		assert.equal(evaluateRatchet(analysis, 2).ok, true)
-		assert.equal(evaluateRatchet(analysis, 5).ok, true)
+		assert.equal(evaluateRatchet(analysis, UNTYPED_MESSAGE_LIMIT).ok, true)
+
+		const aboveLimit = analyzeRegistry({}, ["a", "b"], [])
+		assert.equal(aboveLimit.untypedCount, 2)
+		assert.equal(evaluateRatchet(aboveLimit, UNTYPED_MESSAGE_LIMIT).ok, false)
+	})
+
+	it(`passes exactly at the untyped limit and fails one above (${UNTYPED_MESSAGE_LIMIT}/${UNTYPED_MESSAGE_LIMIT + 1} boundary)`, () => {
+		const atLimitTypes = Array.from({ length: UNTYPED_MESSAGE_LIMIT }, (_, i) => `t${i}`)
+		const atLimit = analyzeRegistry({}, atLimitTypes, [])
+		assert.equal(atLimit.untypedCount, UNTYPED_MESSAGE_LIMIT)
+		assert.equal(evaluateRatchet(atLimit, UNTYPED_MESSAGE_LIMIT).ok, true)
+
+		const oneAboveTypes = Array.from({ length: UNTYPED_MESSAGE_LIMIT + 1 }, (_, i) => `t${i}`)
+		const oneAbove = analyzeRegistry({}, oneAboveTypes, [])
+		assert.equal(oneAbove.untypedCount, UNTYPED_MESSAGE_LIMIT + 1)
+		assert.equal(evaluateRatchet(oneAbove, UNTYPED_MESSAGE_LIMIT).ok, false)
+	})
+})
+
+describe("extractExtensionMessageTypesFromSource", () => {
+	it("parses the literal union from the ExtensionMessage interface source", () => {
+		const source = [
+			"export interface ExtensionMessage {",
+			"\ttype:",
+			'\t\t| "action"',
+			'\t\t| "state"',
+			"\t\t// a comment line is skipped",
+			'\t\t| "fileContent"',
+			"\ttext?: string",
+			"}",
+		].join("\n")
+		assert.deepEqual(extractExtensionMessageTypesFromSource(source), ["action", "state", "fileContent"])
+	})
+
+	it("throws a clear error when the interface is missing", () => {
+		assert.throws(
+			() => extractExtensionMessageTypesFromSource("export interface SomethingElse {}"),
+			/ExtensionMessage/,
+		)
+	})
+})
+
+describe("outbound extension-message ratchet (Phase 0)", () => {
+	const outboundTypeList = [...EXTENSION_MESSAGE_BASELINE, "taskHistoryUpdated", "theme", "mcpServers"]
+
+	it("passes when every baseline outbound type is registered", () => {
+		const analysis = analyzeRegistry(EXTENSION_REGISTRY, [...EXTENSION_MESSAGE_BASELINE], EXTENSION_MESSAGE_BASELINE)
+		assert.deepEqual(analysis.missingBaseline, [])
+		assert.equal(analysis.untypedCount, 0)
+		const verdict = evaluateRatchet(analysis, UNTYPED_EXTENSION_MESSAGE_LIMIT, "extensionMessageSchemas")
+		assert.equal(verdict.ok, true)
+	})
+
+	it("fails when a baseline outbound type loses its schema (regression)", () => {
+		const registryWithoutOne = { ...EXTENSION_REGISTRY }
+		delete registryWithoutOne.state
+		const analysis = analyzeRegistry(registryWithoutOne, outboundTypeList, EXTENSION_MESSAGE_BASELINE)
+		assert.deepEqual(analysis.missingBaseline, ["state"])
+		const verdict = evaluateRatchet(analysis, UNTYPED_EXTENSION_MESSAGE_LIMIT, "extensionMessageSchemas")
+		assert.equal(verdict.ok, false)
+		assert.match(verdict.problems.join("\n"), /state/)
+		assert.match(verdict.problems.join("\n"), /extensionMessageSchemas/)
+	})
+
+	it("fails when the outbound untyped count increases past the limit", () => {
+		const overLimit = Array.from({ length: UNTYPED_EXTENSION_MESSAGE_LIMIT + 1 }, (_, i) => `t${i}`)
+		const analysis = analyzeRegistry({}, overLimit, [])
+		assert.equal(analysis.untypedCount, UNTYPED_EXTENSION_MESSAGE_LIMIT + 1)
+		const verdict = evaluateRatchet(analysis, UNTYPED_EXTENSION_MESSAGE_LIMIT, "extensionMessageSchemas")
+		assert.equal(verdict.ok, false)
+	})
+
+	it("the outbound baseline is the Phase-0 set plus the Phase-2 Domain-1 (UI/navigation), Domain-2 (model/status), Domain-3 (task/chat/history), Domain-4 (checkpoint/modes), Domain-5 (marketplace), Domain-6 (code-index), Domain-7 (worktree) and Domain-8 (skills/rules/history-import) types", () => {
+		assert.deepEqual(EXTENSION_MESSAGE_BASELINE, [
+			"state",
+			"commandExecutionStatus",
+			"mcpExecutionStatus",
+			"fileContent",
+			"indexingStatusUpdate",
+			// Phase 2, Domain 1 — UI/navigation + state variants.
+			"action",
+			"invoke",
+			"messageUpdated",
+			"taskHistoryUpdated",
+			"taskHistoryItemUpdated",
+			"selectedImages",
+			"theme",
+			"workspaceUpdated",
+			"ttsStart",
+			"ttsStop",
+			"condenseTaskContextStarted",
+			"condenseTaskContextResponse",
+			"acceptInput",
+			"setHistoryPreviewCollapsed",
+			"autoApprovalEnabled",
+			"toggleApiConfigPin",
+			"updatePrompt",
+			// Phase 2, Domain 2 — model/status responses.
+			"routerModels",
+			"singleRouterModelFetchResponse",
+			"openAiModels",
+			"ollamaModels",
+			"lmStudioModels",
+			"vsCodeLmModels",
+			"vsCodeSetting",
+			"systemPrompt",
+			"enhancedPrompt",
+			"terminalProfiles",
+			"vsCodeLmApiAvailable",
+			"authenticatedUser",
+			// Phase 2, Domain 3 — task/chat/history responses.
+			"commitSearchResults",
+			"fileSearchResults",
+			"listApiConfig",
+			"mcpServers",
+			"showDeleteMessageDialog",
+			"showEditMessageDialog",
+			"commands",
+			"insertTextIntoTextarea",
+			"dismissedUpsells",
+			"customToolsResult",
+			"modes",
+			"taskWithAggregatedCosts",
+			"openAiCodexRateLimits",
+			"interactionRequired",
+			"organizationSwitchResult",
+			// Phase 2, Domain 4 — checkpoint/modes responses.
+			"currentCheckpointUpdated",
+			"checkpointInitWarning",
+			"updateCustomMode",
+			"deleteCustomMode",
+			"deleteCustomModeCheck",
+			"exportModeResult",
+			"importModeResult",
+			"checkRulesDirectoryResult",
+			// Phase 2, Domain 5 — marketplace responses.
+			"marketplaceInstallResult",
+			"marketplaceBulkInstallResult",
+			"marketplaceRemoveResult",
+			"marketplaceData",
+			"shareTaskSuccess",
+			// Phase 2, Domain 6 — code-index responses.
+			"codeIndexSettingsSaved",
+			"codeIndexSecretStatus",
+			"indexCleared",
+			"codebaseIndexConfig",
+			// Phase 2, Domain 7 — worktree responses.
+			"worktreeList",
+			"worktreeResult",
+			"worktreeCopyProgress",
+			"branchList",
+			"worktreeDefaults",
+			"worktreeIncludeStatus",
+			"branchWorktreeIncludeResult",
+			"folderSelected",
+			// Phase 2, Domain 8 — skills/rules/history-import responses.
+			"skills",
+			"rules",
+			"rooHistoryImportProgress",
+		])
 	})
 })

@@ -36,22 +36,21 @@ describe("parseWebviewMessage", () => {
 		})
 	})
 
-	describe("unregistered types (transitional pass-through)", () => {
-		it("passes through a garbage type without rejecting", () => {
+	describe("unregistered types (hard allowlist, fail-closed)", () => {
+		it("rejects a garbage type", () => {
 			const raw = { type: "totallyUnknownType", someField: 123 }
 			const result = parseWebviewMessage(raw)
-			expect(result.ok).toBe(true)
-			if (result.ok) {
-				expect(result.message).toBe(raw)
+			expect(result.ok).toBe(false)
+			if (!result.ok) {
+				expect(result.error).toContain("totallyUnknownType")
 			}
 		})
 
-		it("passes through a real unregistered inbound type", () => {
-			const raw = { type: "newTask", text: "hi", images: [] }
-			const result = parseWebviewMessage(raw)
-			expect(result.ok).toBe(true)
-			if (result.ok) {
-				expect(result.message.type).toBe("newTask")
+		it("rejects an unknown type (regression)", () => {
+			const result = parseWebviewMessage({ type: "someUnknownType" })
+			expect(result.ok).toBe(false)
+			if (!result.ok) {
+				expect(result.error).toContain("someUnknownType")
 			}
 		})
 	})
@@ -135,18 +134,171 @@ describe("parseWebviewMessage", () => {
 			"installMarketplaceItemWithParameters",
 			"fetchMarketplaceData",
 			"filterMarketplaceItems",
+			// Marketplace remaining domain (S1 sub-task 4)
+			"removeInstalledMarketplaceItem",
+			"showMdmAuthRequiredNotification",
 			"queueMessage",
 			"removeQueuedMessage",
 			"editQueuedMessage",
 			"updateTodoList",
 			"updateCustomMode",
 			"deleteCustomMode",
+			"terminalOperation",
+			"requestTerminalProfiles",
+			"openTerminalProfilePicker",
+			// Worktree domain (S1 sub-task 2)
+			"listWorktrees",
+			"createWorktree",
+			"deleteWorktree",
+			"switchWorktree",
+			"getAvailableBranches",
+			"getWorktreeDefaults",
+			"getWorktreeIncludeStatus",
+			"checkBranchWorktreeInclude",
+			"createWorktreeInclude",
+			"checkoutBranch",
+			"browseForWorktreePath",
+			// Code-index domain (S1 sub-task 3)
+			"clearIndexData",
+			"requestCodeIndexSecretStatus",
+			"requestIndexingStatus",
+			"saveCodeIndexSettingsAtomic",
+			"setAutoEnableDefault",
+			"startIndexing",
+			"stopIndexing",
+			"toggleWorkspaceIndexing",
+			// Images domain (S1 sub-task 5)
+			"openImage",
+			"saveImage",
+			"selectImages",
+			// Skills domain (S1 sub-task 6)
+			"requestSkills",
+			"createSkill",
+			"deleteSkill",
+			"moveSkill",
+			"updateSkillModes",
+			"openSkillFile",
+			// Rules domain (S1 sub-task 6)
+			"requestRules",
+			"createRule",
+			"deleteRule",
+			"openRuleFile",
+			"openRulesDirectory",
+			// Commands domain (S1 sub-task 7)
+			"requestCommands",
+			"openCommandFile",
+			"deleteCommand",
+			"createCommand",
+			// Provider-profiles domain (S1 sub-task 8)
+			"deleteApiConfiguration",
+			"enhancementApiConfigId",
+			"getListApiConfiguration",
+			"kimiCodeSignIn",
+			"kimiCodeSignOut",
+			"loadApiConfiguration",
+			"loadApiConfigurationById",
+			"lockApiConfigAcrossModes",
+			"openAiCodexSignIn",
+			"openAiCodexSignOut",
+			"renameApiConfiguration",
+			"requestOpenAiCodexRateLimits",
+			"toggleApiConfigPin",
+			// Settings domain (S1 sub-task 9)
+			"autoApprovalEnabled",
+			"checkRulesDirectory",
+			"customInstructions",
+			"debugSetting",
+			"exportMode",
+			"exportSettings",
+			"flushRouterModels",
+			"getVSCodeSetting",
+			"hasOpenedModeSelector",
+			"importMode",
+			"importSettings",
+			"mode",
+			"openCustomModesSettings",
+			"requestLmStudioModels",
+			"requestOllamaModels",
+			"requestOpenAiModels",
+			"requestRooModels",
+			"requestRouterModels",
+			"requestVsCodeLmModels",
+			"telemetrySetting",
+			"updatePrompt",
+			"updateVSCodeSetting",
+			// Task domain (S1 sub-task 10)
+			"newTask",
+			"clearTask",
+			"exportCurrentTask",
+			"shareCurrentTask",
+			"showTaskWithId",
+			"condenseTaskContextRequest",
+			"deleteTaskWithId",
+			"abandonSubtaskWithId",
+			"deleteMultipleTasksWithIds",
+			"exportTaskWithId",
+			"getTaskWithAggregatedCosts",
+			"cancelTask",
+			"cancelAutoApproval",
+			"getSystemPrompt",
+			"copySystemPrompt",
+			"searchCommits",
+			// Chat domain (S1 sub-task 11)
+			"askResponse",
+			"completionCheckpointDiff",
+			"completionCheckpointRestore",
+			"deleteMessage",
+			"submitEditedMessage",
+			"deleteMessageConfirm",
+			"editMessageConfirm",
+			"enhancePrompt",
+			"ttsEnabled",
+			"ttsSpeed",
+			"playTts",
+			"stopTts",
+			// MCP domain (S1 sub-task 12)
+			"deleteMcpServer",
+			"openMcpSettings",
+			"openProjectMcpSettings",
+			"restartMcpServer",
+			"toggleToolAlwaysAllow",
+			"toggleToolEnabledForPrompt",
+			"toggleMcpServer",
+			"refreshAllMcpServers",
+			"updateMcpTimeout",
+			// Debug domain (S1 sub-task 13)
+			"openDebugApiHistory",
+			"openDebugUiHistory",
+			"downloadErrorDiagnostics",
+			// Misc domain (S1 sub-task 13)
+			"webviewDidLaunch",
+			"didShowAnnouncement",
+			"importRooHistory",
+			"resetState",
+			"openFile",
+			"readFileContent",
+			"openMention",
+			"openExternal",
+			"openKeyboardShortcuts",
+			"taskSyncEnabled",
+			"searchFiles",
+			"refreshCustomTools",
+			"focusPanelRequest",
+			"switchTab",
+			"requestModes",
+			"insertTextIntoTextarea",
+			"dismissUpsell",
+			"getDismissedUpsells",
+			"openMarkdownPreview",
+			// Loose / transitional types (S1 sub-task 13) — no handler; typed + registered.
+			// (the other 8 dead members removed in Phase 3 — see loose.ts.)
+			"draggedImages",
 		]
 
 		for (const type of expected) {
 			expect(webviewMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(webviewMessageSchemas)).toHaveLength(18)
+		expect(Object.keys(webviewMessageSchemas)).toHaveLength(155)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

@@ -1,12 +1,14 @@
 import * as vscode from "vscode"
 
-import type {
-	CreateRuleInput,
-	DeleteRuleInput,
-	RuleKind,
-	RuleMetadata,
-	RuleScope,
-	WebviewMessage,
+import type { CreateRuleInput, DeleteRuleInput, RuleMetadata } from "@roo-code/types"
+import {
+	type CreateRuleValues,
+	type DeleteRuleValues,
+	type RulesMessage,
+	createRuleMessageSchema,
+	deleteRuleMessageSchema,
+	openRuleFileMessageSchema,
+	openRulesDirectoryMessageSchema,
 } from "@roo-code/types"
 
 import type { ClineProvider } from "./ClineProvider"
@@ -14,6 +16,18 @@ import { openFile } from "../../integrations/misc/open-file"
 import { createRule, deleteRule, getRules, getRulesDirectoryPath, resolveRuleFile } from "../../services/rules/rules"
 
 export type RulesProvider = Pick<ClineProvider, "getModes" | "postMessageToWebview" | "log">
+
+/** Minimal shape `parseCreateRuleInput` consumes (createRule member + text fallback). */
+interface CreateRuleInputMessage {
+	values?: CreateRuleValues
+	text?: string
+}
+
+/** Minimal shape `parseDeleteRuleInput` consumes (deleteRule/openRuleFile member + text fallback). */
+interface DeleteRuleInputMessage {
+	values?: DeleteRuleValues
+	text?: string
+}
 
 function getErrorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error)
@@ -35,10 +49,18 @@ export async function handleRequestRules(provider: RulesProvider, cwd: string): 
 export async function handleCreateRule(
 	provider: RulesProvider,
 	cwd: string,
-	message: WebviewMessage,
+	message: RulesMessage,
 ): Promise<RuleMetadata[] | undefined> {
+	// `values` is a typed object — an invalid `scope`/`kind` enum value is
+	// rejected before any side effects.
+	const result = createRuleMessageSchema.safeParse(message)
+	if (!result.success) {
+		provider.log(`[rulesMessageHandler] Rejected malformed createRule message: ${result.error.message}`)
+		return undefined
+	}
+
 	try {
-		const input = parseCreateRuleInput(message)
+		const input = parseCreateRuleInput(result.data)
 		const createdPath = await createRule(cwd, input)
 		await openFile(createdPath)
 	} catch (error) {
@@ -61,10 +83,16 @@ export async function handleCreateRule(
 export async function handleDeleteRule(
 	provider: RulesProvider,
 	cwd: string,
-	message: WebviewMessage,
+	message: RulesMessage,
 ): Promise<RuleMetadata[] | undefined> {
+	const result = deleteRuleMessageSchema.safeParse(message)
+	if (!result.success) {
+		provider.log(`[rulesMessageHandler] Rejected malformed deleteRule message: ${result.error.message}`)
+		return undefined
+	}
+
 	try {
-		const input = parseDeleteRuleInput(message)
+		const input = parseDeleteRuleInput(result.data)
 		await deleteRule(cwd, input)
 	} catch (error) {
 		const errorMessage = getErrorMessage(error)
@@ -83,9 +111,15 @@ export async function handleDeleteRule(
 	}
 }
 
-export async function handleOpenRuleFile(provider: RulesProvider, cwd: string, message: WebviewMessage): Promise<void> {
+export async function handleOpenRuleFile(provider: RulesProvider, cwd: string, message: RulesMessage): Promise<void> {
+	const result = openRuleFileMessageSchema.safeParse(message)
+	if (!result.success) {
+		provider.log(`[rulesMessageHandler] Rejected malformed openRuleFile message: ${result.error.message}`)
+		return
+	}
+
 	try {
-		const input = parseDeleteRuleInput(message)
+		const input = parseDeleteRuleInput(result.data)
 		const filePath = await resolveRuleFile(cwd, input)
 		if (!filePath) {
 			throw new Error("Rule file not found")
@@ -102,15 +136,25 @@ export async function handleOpenRuleFile(provider: RulesProvider, cwd: string, m
 export async function handleOpenRulesDirectory(
 	provider: RulesProvider,
 	cwd: string,
-	message: WebviewMessage,
+	message: RulesMessage,
 ): Promise<void> {
+	const result = openRulesDirectoryMessageSchema.safeParse(message)
+	if (!result.success) {
+		provider.log(`[rulesMessageHandler] Rejected malformed openRulesDirectory message: ${result.error.message}`)
+		return
+	}
+
 	try {
-		const values = message.values ?? {}
-		const directoryPath = getRulesDirectoryPath(cwd, {
-			scope: values.scope,
-			kind: values.kind,
-			modeSlug: values.modeSlug,
-		} as CreateRuleInput)
+		const values = result.data.values ?? {}
+		const scope = values.scope
+		const kind = values.kind
+		// scope/kind are optional on the schema (matching the interface fields);
+		// mirror getTargetRuleDirectory's runtime validation so an omitted
+		// scope/kind surfaces the same error as before.
+		if (!scope || !kind) {
+			throw new Error(scope ? "Invalid rule kind" : "Invalid rule scope")
+		}
+		const directoryPath = getRulesDirectoryPath(cwd, { scope, kind, modeSlug: values.modeSlug })
 		await openFile(directoryPath)
 	} catch (error) {
 		const errorMessage = getErrorMessage(error)
@@ -126,10 +170,10 @@ async function refreshRules(provider: RulesProvider, cwd: string): Promise<RuleM
 	return rules
 }
 
-function parseCreateRuleInput(message: WebviewMessage): CreateRuleInput {
+function parseCreateRuleInput(message: CreateRuleInputMessage): CreateRuleInput {
 	const values = message.values ?? {}
-	const scope = parseRuleScope(values.scope)
-	const kind = parseRuleKind(values.kind)
+	const scope = values.scope
+	const kind = values.kind
 	const fileName = values.fileName ?? message.text
 
 	if (!scope || !kind || !fileName) {
@@ -139,15 +183,15 @@ function parseCreateRuleInput(message: WebviewMessage): CreateRuleInput {
 	return {
 		scope,
 		kind,
-		modeSlug: typeof values.modeSlug === "string" ? values.modeSlug : undefined,
+		modeSlug: values.modeSlug,
 		fileName,
 	}
 }
 
-function parseDeleteRuleInput(message: WebviewMessage): DeleteRuleInput {
+function parseDeleteRuleInput(message: DeleteRuleInputMessage): DeleteRuleInput {
 	const values = message.values ?? {}
-	const scope = parseRuleScope(values.scope)
-	const kind = parseRuleKind(values.kind)
+	const scope = values.scope
+	const kind = values.kind
 	const relativePath = values.relativePath ?? message.text
 
 	if (!scope || !kind || !relativePath) {
@@ -155,18 +199,10 @@ function parseDeleteRuleInput(message: WebviewMessage): DeleteRuleInput {
 	}
 
 	return {
-		id: typeof values.id === "string" ? values.id : undefined,
+		id: values.id,
 		scope,
 		kind,
-		modeSlug: typeof values.modeSlug === "string" ? values.modeSlug : undefined,
+		modeSlug: values.modeSlug,
 		relativePath,
 	}
-}
-
-function parseRuleScope(value: unknown): RuleScope | undefined {
-	return value === "global" || value === "project" ? value : undefined
-}
-
-function parseRuleKind(value: unknown): RuleKind | undefined {
-	return value === "generic" || value === "mode" ? value : undefined
 }

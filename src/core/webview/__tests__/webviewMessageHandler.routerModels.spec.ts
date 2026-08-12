@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { parseExtensionMessage, type WebviewMessage } from "@roo-code/types"
 import { webviewMessageHandler } from "../webviewMessageHandler"
 import type { ClineProvider } from "../ClineProvider"
 
@@ -473,5 +474,36 @@ describe("webviewMessageHandler - requestRouterModels provider filter", () => {
 		)
 		expect(call).toBeTruthy()
 		expect(call[0].routerModels.moonshot).toEqual({})
+	})
+
+	it("posts routerModels payloads that pass the typed boundary (Phase 2, Domain 2)", async () => {
+		await webviewMessageHandler(mockProvider, { type: "requestRouterModels" } as WebviewMessage)
+
+		const routerModelsCalls = mockProvider.postMessageToWebview.mock.calls.filter(
+			(call) => call[0]?.type === "routerModels",
+		)
+		expect(routerModelsCalls.length).toBeGreaterThan(0)
+		for (const call of routerModelsCalls) {
+			const parsed = parseExtensionMessage(call[0])
+			expect(parsed.ok).toBe(true)
+		}
+	})
+
+	it("posts singleRouterModelFetchResponse payloads that pass the typed boundary (Phase 2, Domain 2)", async () => {
+		// Force a per-provider fetch failure so the error path posts a response.
+		getModelsMock.mockRejectedValueOnce(new Error("boom"))
+		await webviewMessageHandler(mockProvider, {
+			type: "requestRouterModels",
+			values: { provider: "openrouter" },
+		} as WebviewMessage)
+
+		const errorCalls = mockProvider.postMessageToWebview.mock.calls.filter(
+			(call) => call[0]?.type === "singleRouterModelFetchResponse",
+		)
+		expect(errorCalls.length).toBeGreaterThan(0)
+		for (const call of errorCalls) {
+			const parsed = parseExtensionMessage(call[0])
+			expect(parsed.ok).toBe(true)
+		}
 	})
 })

@@ -40,6 +40,8 @@ jobs:
                   submodules: recursive
             - name: Reject invisible / homoglyph Unicode
               run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:UNICODE] Scanning for invisible / homoglyph Unicode"
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:UNICODE] scanning src webview-ui packages apps .github"
                   if grep -rnP '[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}\x{FEFF}\x{00AD}]' \
                       --include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' \
                       --include='*.cjs' --include='*.cts' --include='*.mts' --include='*.sh' \
@@ -47,29 +49,52 @@ jobs:
                       --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=out \
                       --exclude-dir=coverage --exclude-dir=.turbo --exclude-dir=.vinxi \
                       src webview-ui packages apps .github; then
-                      echo "::error::Found invisible or homoglyph Unicode characters (zero-width / bidi-override / BOM / soft hyphen)"
+                      echo "::error::[CI:CODE-QA:STATIC-ANALYSIS:UNICODE] Found invisible or homoglyph Unicode characters (zero-width / bidi-override / BOM / soft hyphen)"
                       exit 1
                   fi
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:UNICODE] no invisible/homoglyph characters found"
+                  echo "::endgroup::"
             - name: Setup Node.js and pnpm
               uses: ./.github/actions/setup-node-pnpm
             - name: Verify custom-modes submodule pin & committed artifact sync
               run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:SUBMODULE] Verifying submodule pin + .roomodes sync"
                   node scripts/verify-submodule-pin.mjs
                   node scripts/verify-roomodes-sync.mjs
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:SUBMODULE] submodule pin and .roomodes sync verified"
+                  echo "::endgroup::"
             - name: Enforce mode descriptions (ensure_descriptions.py --check)
               run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:DESCRIPTIONS] Enforcing mode descriptions (--check)"
                   python3 -c "import yaml" >/dev/null 2>&1 || sudo apt-get update -qq && sudo apt-get install -y -qq python3-yaml
                   python3 scripts/ensure_descriptions.py --check
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:DESCRIPTIONS] mode descriptions gate passed"
+                  echo "::endgroup::"
             - name: Run scripts unit tests (sync + submodule pin gate)
-              run: pnpm run test:scripts
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:SCRIPT-TESTS] Running scripts unit tests"
+                  pnpm run test:scripts
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:SCRIPT-TESTS] scripts unit tests passed"
+                  echo "::endgroup::"
             - name: Verify all translations are complete
-              run: node scripts/find-missing-translations.js
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:TRANSLATIONS] Verifying translations are complete"
+                  node scripts/find-missing-translations.js
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:TRANSLATIONS] translations verification passed"
+                  echo "::endgroup::"
             - name: Run knip checks
-              run: pnpm knip
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:KNIP] Running knip checks"
+                  pnpm knip
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:KNIP] knip checks passed"
+                  echo "::endgroup::"
             - name: Verify message-schema ratchet (S1-M4)
               run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:MESSAGE-SCHEMAS] Verifying message-schema ratchet (S1-M4)"
                   pnpm --filter @roo-code/types build
                   node scripts/verify-message-schemas.mjs
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:MESSAGE-SCHEMAS] message-schema ratchet passed"
+                  echo "::endgroup::"
             # Release-readiness gate for the Semble code-index feature: confirms
             # the GitHub release tagged at SEMBLE_VERSION ships a
             # checksums-sha256.txt manifest whose hashes match the hardcoded
@@ -78,7 +103,11 @@ jobs:
             # version, or archive mismatch — i.e. if SEMBLE_VERSION drifts from
             # SEMBLE_SHA256 / SEMBLE_ARCHIVES.
             - name: Verify Semble release checksums (release-readiness gate)
-              run: node scripts/verify-semble-checksums.mjs
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:SEMBLE-CHECKSUMS] Verifying Semble release checksums"
+                  node scripts/verify-semble-checksums.mjs
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:SEMBLE-CHECKSUMS] Semble checksums gate passed (or skipped offline)"
+                  echo "::endgroup::"
             # Release-governance gate for the Semble code-index feature
             # (docs/SEMBLE-RELEASE-GOVERNANCE.md, review item 2c of
             # docs/architecture-review-code-index-semble.md): a diff that
@@ -91,7 +120,11 @@ jobs:
             # reason never blocks a PR; it HARD FAILS (exit 1) whenever the
             # diff is verifiable and the coupling is violated.
             - name: Verify Semble version↔checksum coupling (release-governance gate)
-              run: node scripts/verify-semble-release-coupling.mjs
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:SEMBLE-COUPLING] Verifying Semble version↔checksum coupling"
+                  node scripts/verify-semble-release-coupling.mjs
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:SEMBLE-COUPLING] Semble coupling gate passed (or skipped)"
+                  echo "::endgroup::"
             # Alignment gate for the Qdrant code-index core (architecture review
             # #6 — docs/architecture-review-code-index-semble.md): keeps the
             # non-Semble core byte-identical to upstream Zoo-Code so upstream
@@ -103,7 +136,11 @@ jobs:
             # only when it can actually verify. Pass --strict to make
             # upstream-unavailable a hard failure.
             - name: Verify code-index core stays aligned with upstream Zoo-Code
-              run: node scripts/verify-upstream-code-index-alignment.mjs
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:UPSTREAM-ALIGNMENT] Verifying code-index core alignment with upstream"
+                  node scripts/verify-upstream-code-index-alignment.mjs
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:UPSTREAM-ALIGNMENT] upstream alignment gate passed (or skipped)"
+                  echo "::endgroup::"
 
     audit-dependencies:
         runs-on: ubuntu-latest
@@ -161,11 +198,23 @@ jobs:
                       ${{ runner.os }}-turbo-${{ hashFiles('**/pnpm-lock.yaml') }}-
                       ${{ runner.os }}-turbo-
             - name: Run non-core coverage
-              run: pnpm turbo run test:coverage --filter="!@roo-code/core" --log-order grouped --output-logs new-only
+              run: |
+                  echo "::group::[CI:CODE-QA:UNIT-TEST:${{ matrix.name }}] Running non-core coverage"
+                  pnpm turbo run test:coverage --filter="!@roo-code/core" --log-order grouped --output-logs new-only
+                  echo "::notice::[CI:CODE-QA:UNIT-TEST:${{ matrix.name }}] non-core coverage complete"
+                  echo "::endgroup::"
             - name: Run core unit coverage
-              run: pnpm turbo run test:coverage:unit --filter="@roo-code/core" --log-order grouped --output-logs new-only
+              run: |
+                  echo "::group::[CI:CODE-QA:UNIT-TEST:${{ matrix.name }}] Running core unit coverage"
+                  pnpm turbo run test:coverage:unit --filter="@roo-code/core" --log-order grouped --output-logs new-only
+                  echo "::notice::[CI:CODE-QA:UNIT-TEST:${{ matrix.name }}] core unit coverage complete"
+                  echo "::endgroup::"
             - name: Run core integration coverage
-              run: pnpm turbo run test:coverage:integration --filter="@roo-code/core" --log-order grouped --output-logs new-only
+              run: |
+                  echo "::group::[CI:CODE-QA:UNIT-TEST:${{ matrix.name }}] Running core integration coverage"
+                  pnpm turbo run test:coverage:integration --filter="@roo-code/core" --log-order grouped --output-logs new-only
+                  echo "::notice::[CI:CODE-QA:UNIT-TEST:${{ matrix.name }}] core integration coverage complete"
+                  echo "::endgroup::"
             - name: Save Turbo cache
               if: steps.turbo-cache.outputs.cache-hit != 'true'
               uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4

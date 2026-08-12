@@ -45,6 +45,14 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+# Hierarchical tag identifying this process; every log line is prefixed so CI
+# logs are greppable per process.
+TAG = "ENSURE:DESCRIPTIONS"
+
+
+def log(msg: str) -> None:
+    print(f"[{TAG}] {msg}")
+
 # The submodule path can be overridden (e.g. by scripts/ensure_descriptions.spec.mjs
 # or CI fixtures) so the enforcer can be exercised against a temp copy without
 # touching the real custom-modes submodule. Mirrors the ROO_SUBMODULE_PATH
@@ -669,14 +677,14 @@ def print_drift_report() -> int:
     slugs = collect_slugs()
     custom = slugs.get("custom_modes.d", set())
     total_drift = len(custom)
-    print("\n=== Coverage report (canonical source: custom-modes/custom_modes.d/) ===")
-    print(f"\n  custom_modes.d: {len(custom)} slugs")
+    log("=== Coverage report (canonical source: custom-modes/custom_modes.d/) ===")
+    log(f"  custom_modes.d: {len(custom)} slugs")
 
     # Description coverage
-    print("\n  description coverage:")
+    log("  description coverage:")
     for name, (directory, fmt) in SETS.items():
         if not directory.exists():
-            print(f"    {name}: directory missing")
+            log(f"    {name}: directory missing")
             continue
         missing = []
         clones = []
@@ -690,11 +698,11 @@ def print_drift_report() -> int:
                 missing.append(mode.get("slug"))
             elif is_clone(desc, role):
                 clones.append(mode.get("slug"))
-        print(f"    {name}: missing={len(missing)} clone-of-roleDef={len(clones)}")
+        log(f"    {name}: missing={len(missing)} clone-of-roleDef={len(clones)}")
         if missing:
-            print(f"      missing: {', '.join(sorted(missing))}")
+            log(f"      missing: {', '.join(sorted(missing))}")
         if clones:
-            print(f"      clones: {', '.join(sorted(clones))}")
+            log(f"      clones: {', '.join(sorted(clones))}")
     return total_drift
 
 
@@ -768,8 +776,9 @@ def main(argv=None) -> int:
     if args.self_test:
         return run_self_test()
 
+    log("starting mode-description enforcement (canonical set: custom_modes.d)")
     if not CUSTOM_MODES_ROOT.exists():
-        print("⚠ custom-modes/ not found — run `git submodule update --init` first.")
+        log("⚠ custom-modes/ not found — run `git submodule update --init` first.")
         return 1
 
     dirs_to_process = [
@@ -780,7 +789,7 @@ def main(argv=None) -> int:
     grand_total = grand_changed = grand_errors = 0
     for name, (directory, fmt) in dirs_to_process:
         if not directory.exists():
-            print(f"\n=== {name}: directory missing ({directory}) — skipping ===")
+            log(f"=== {name}: directory missing ({directory}) — skipping ===")
             continue
         files = yaml_files_in(directory)
         changed = []
@@ -794,27 +803,28 @@ def main(argv=None) -> int:
                 if did_change:
                     changed.append(slug)
                     if not (args.check or args.report):
-                        print(f"  ✓ {path.relative_to(REPO_ROOT)}")
+                        log(f"  ✓ {path.relative_to(REPO_ROOT)}")
             except Exception as exc:  # noqa: BLE001 - surface any per-file failure
                 errors.append((path, exc))
         grand_changed += len(changed)
         grand_errors += len(errors)
         mode = "would change" if (args.check or args.report) else "changed"
-        print(f"\n=== {name}: {len(files)} files, {len(changed)} {mode}, {len(errors)} errors ===")
+        log(f"=== {name}: {len(files)} files, {len(changed)} {mode}, {len(errors)} errors ===")
         if changed:
-            print(f"    {', '.join(sorted(changed))}")
+            log(f"    {', '.join(sorted(changed))}")
         for path, exc in errors:
-            print(f"    ✗ {path.relative_to(REPO_ROOT)}: {exc}")
+            log(f"    ✗ {path.relative_to(REPO_ROOT)}: {exc}")
 
-    print(f"\nSUMMARY: {grand_total} modes processed, {grand_changed} {('pending' if (args.check or args.report) else 'modified')}, {grand_errors} errors")
+    log(f"SUMMARY: {grand_total} modes processed, {grand_changed} {('pending' if (args.check or args.report) else 'modified')}, {grand_errors} errors")
 
     if args.report:
         drift = print_drift_report()
-        print(f"\nTotal slugs in canonical set: {drift}")
+        log(f"Total slugs in canonical set: {drift}")
         return 0
 
     # --check is a CI-visible gate: non-zero when descriptions still need fixing.
     if args.check:
+        log("CHECK RESULT: " + ("FAIL — descriptions pending" if grand_changed > 0 else "PASS — no descriptions pending"))
         return 1 if grand_changed > 0 else 0
 
     return 1 if grand_errors > 0 else 0

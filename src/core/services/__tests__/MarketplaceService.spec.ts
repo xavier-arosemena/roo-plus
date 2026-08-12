@@ -1,5 +1,7 @@
 // npx vitest run core/services/__tests__/MarketplaceService.spec.ts
 
+import { parseExtensionMessage } from "@roo-code/types"
+
 import type { MarketplaceManager } from "../../../services/marketplace"
 
 import { MarketplaceService, type MarketplaceServiceDeps } from "../MarketplaceService"
@@ -22,7 +24,9 @@ const makeHarness = (): TestHarness => {
 	const marketplaceManager: MarketplaceManagerLike = {
 		getMarketplaceItems: vi.fn().mockResolvedValue({
 			organizationMcps: [],
-			marketplaceItems: [{ name: "Item 1", description: "desc", type: "mode" }],
+			marketplaceItems: [
+				{ id: "item-1", name: "Item 1", description: "desc", type: "mode", content: "slug: item-1" },
+			],
 		}),
 		getInstallationMetadata: vi.fn().mockResolvedValue({ project: {}, global: {} }),
 	}
@@ -63,6 +67,28 @@ describe("MarketplaceService.fetchMarketplaceData", () => {
 				marketplaceItems: [expect.objectContaining({ name: "Item 1" })],
 			}),
 		)
+	})
+
+	it("posts a marketplaceData payload that conforms to the registered outbound schema", async () => {
+		const h = makeHarness()
+
+		await h.service.fetchMarketplaceData()
+
+		const posted = h.postMessageToWebview.mock.calls.map(([m]) => m)
+		const dataMessage = posted.find((m) => m.type === "marketplaceData")
+
+		// Phase 2, Domain 5 producer-conformance: the posted payload must be
+		// accepted by the registered `marketplaceData` schema (via
+		// parseExtensionMessage), so the webview boundary never rejects the
+		// producer's real shape — including the consumer-read fields
+		// `marketplaceItems` / `marketplaceInstalledMetadata` that zod must not
+		// strip.
+		expect(dataMessage).toBeDefined()
+		const parsed = parseExtensionMessage(dataMessage)
+		expect(parsed.ok).toBe(true)
+		if (parsed.ok) {
+			expect(parsed.message.type).toBe("marketplaceData")
+		}
 	})
 
 	it("collects errors from getMarketplaceItems when that call rejects", async () => {
