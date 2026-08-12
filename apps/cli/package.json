@@ -29,7 +29,7 @@
 		"@trpc/client": "^11.18.0",
 		"@vscode/ripgrep": "^1.15.9",
 		"commander": "^12.1.0",
-		"execa": "^9.5.2",
+		"execa": "^10.0.1",
 		"fuzzysort": "^3.1.0",
 		"ink": "^6.6.0",
 		"p-wait-for": "^5.0.2",
