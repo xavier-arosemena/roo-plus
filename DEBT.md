@@ -88,6 +88,8 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 **Impact**: Undermines type safety and complicates the typed-message-protocol effort.
 **Suggested Fix**: Track per-file counts (extend the `src/eslint-suppressions.json` pattern), reduce over time, and prefer typed APIs.
 
+> **Progress (2026-08-12, DEBT #5/#6 Phase 3):** the interface-level `any` escapes on the message protocol are **fully drained** — `ExtensionMessage` / `ExtensionState` / `WebviewMessage` now carry **zero `any`** (`payload`/`settings`/`config` removed, `values` → `Record<string, unknown>`, `value` → `boolean | number`, `todos` → `TodoItem[]`, `marketplaceInstalledMetadata` → `MarketplaceInstalledMetadata`; the only documented `unknown`-typed field is the free-form `switchTab` `values` passthrough). The remaining `as any` / `@ts-ignore` occurrences outside the message interfaces are still tracked here.
+
 ### 12. `sync-custom-modes.mjs` Preserves Stale `.roomodes` Entries (Architecture Review 2026-07-31) — RESOLVED
 
 **Location**: [`scripts/sync-custom-modes.mjs`](scripts/sync-custom-modes.mjs:207)

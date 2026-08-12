@@ -1,5 +1,7 @@
 # Hand-off Prompt — Architecture Reviewer: Coordinate & Delegate Phase 3 (Direction-Mixing Cleanup + Vestigial Pass-Through Removal)
 
+> **✅ COMPLETED (2026-08-12)** — Phase 3 was delivered: direction-mixing cleanup (inbound union **165 → 155**), fail-closed hard-allowlist boundaries, and zero `any` escapes on the message interfaces. This hand-off prompt is retained as a historical execution record; see [`docs/architecture-review-protocol-migration.md`](architecture-review-protocol-migration.md) Phase 3 for the delivered state and the terminal-state ADR ([`src/docs/adr-typed-message-protocol.md`](../src/docs/adr-typed-message-protocol.md)).
+
 > **How to use:** Paste the block below verbatim into a new Architecture Reviewer session. It instructs that reviewer to coordinate and delegate Phase 3 through specialized `code`-mode sub-tasks, mirroring the Phase 1/Phase 2 execution model (13 inbound domains landed 2026-08-11, 8 outbound domains landed 2026-08-11 — see [`docs/architecture-review-protocol-migration.md`](architecture-review-protocol-migration.md) Phases 1 & 2 ✅ DELIVERED).
 
 ---

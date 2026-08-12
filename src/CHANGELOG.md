@@ -1,6 +1,17 @@
 # Roo+ Changelog
 
-## [Unreleased] — Mode Count Unification
+## [3.78.0] — 2026-08-12
+
+### Minor — Complete Typed Message Protocol & Mode Count Unification
+
+### 🚀 Enhancements
+
+- **Complete typed-message-protocol migration (Closes: #99, DEBT #5/#6)** — The webview↔extension message protocol is now **fully typed and runtime-validated in both directions**, landing as four atomic phases (2026-08-10 → 2026-08-12):
+    - **Phase 0 — Outbound scaffold & ratchet hardening** — Added the outbound registry [`extensionMessageSchemas`](packages/types/src/extension-messages/index.ts) with [`parseExtensionMessage`](packages/types/src/extension-messages/index.ts) and 5 baseline schemas; corrected the inbound untyped ceiling (149 → 147) and added the `UNTYPED_EXTENSION_MESSAGE_LIMIT = 72` outbound ratchet in [`scripts/message-schema-analysis.mjs`](scripts/message-schema-analysis.mjs). Replaced the CLI direction hack: [`message-processor.ts`](apps/cli/src/agent/message-processor.ts:111) now parses extension→CLI traffic with the outbound parser instead of `parseWebviewMessage` + `as unknown as ExtensionMessage`.
+    - **Phase 1 — Inbound migration complete** — All **165** `WebviewMessage.type` members registered across 13 per-domain change sets; **0 untyped** (`UNTYPED_MESSAGE_LIMIT` ratcheted 147 → 0). Every inbound handler now consumes the typed `z.infer` domain unions with no `as any` payload casts.
+    - **Phase 2 — Outbound migration complete** — All **77** `ExtensionMessage.type` members registered across 8 per-domain change sets; **0 untyped** (`UNTYPED_EXTENSION_MESSAGE_LIMIT` ratcheted 72 → 0). Webview + CLI consumers validate registered outbound types via `parseExtensionMessage`; the outbound "Type Lie" is closed.
+    - **Phase 3 — Direction-mixing cleanup & close-out** — Removed the outbound-only `marketplaceButtonClicked` and direction-mixed `shareTaskSuccess` (outbound authoritative) from the inbound union, deleted 8 confirmed-dead types, and typed `draggedImages` with its real `dataUrls` payload (inbound union **165 → 155**). `parseWebviewMessage`/`parseExtensionMessage` are now **hard-allowlist fail-closed** boundaries (unknown types rejected, never dispatched — vestigial pass-through removed). Drained every interface-level `any` escape on `ExtensionMessage`/`ExtensionState`/`WebviewMessage` (`payload`/`settings`/`config` removed, `values` → `Record<string, unknown>`, `value` → `boolean | number`, `todos` → `TodoItem[]`, `marketplaceInstalledMetadata` → `MarketplaceInstalledMetadata`) — **zero `any`** remains on the message interfaces.
+    - **Terminal state**: inbound 155/155 registered (0 untyped), outbound 77/77 registered (0 untyped); both ratchets green; types build (ESM+CJS+DTS); 13/13 ratchet specs. DEBT #5/#6 moved to the "Recently Resolved Debt" table in [`DEBT.md`](DEBT.md); ADR updated to the terminal state ([`adr-typed-message-protocol.md`](src/docs/adr-typed-message-protocol.md)).
 
 ### 🔧 Chores
 

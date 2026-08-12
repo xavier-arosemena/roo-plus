@@ -30,6 +30,7 @@ export const extensionStateSubsetSchema = z
 		autoCondenseContextPercent: z.number().optional(),
 		enableCheckpoints: z.boolean().optional(),
 		checkpointTimeout: z.number().optional(),
+		terminalShellIntegrationTimeout: z.number().optional(),
 		maxOpenTabsContext: z.number().optional(),
 		maxWorkspaceFiles: z.number().optional(),
 		maxImageFileSize: z.number().optional(),

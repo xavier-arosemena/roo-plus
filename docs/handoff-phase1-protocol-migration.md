@@ -1,5 +1,7 @@
 # Hand-off Prompt — Architecture Reviewer: Coordinate & Delegate Phase 1 (Inbound Protocol Migration)
 
+> **✅ COMPLETED (2026-08-11)** — Phase 1 was delivered: all **165** inbound `WebviewMessage.type` members registered, **0 untyped** (`UNTYPED_MESSAGE_LIMIT = 0`). This hand-off prompt is retained as a historical execution record; see [`docs/architecture-review-protocol-migration.md`](architecture-review-protocol-migration.md) Phase 1 for the delivered state and the terminal-state ADR ([`src/docs/adr-typed-message-protocol.md`](../src/docs/adr-typed-message-protocol.md)).
+
 > **How to use:** Paste the block below verbatim into a new Architecture Reviewer session. It instructs that reviewer to coordinate and delegate Phase 1 through specialized `code`-mode sub-tasks, mirroring the Phase 0 execution model.
 
 ---
