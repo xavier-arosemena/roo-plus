@@ -493,7 +493,7 @@
 		"fzf": "^0.5.2",
 		"get-folder-size": "^5.0.0",
 		"global-agent": "^3.0.0",
-		"google-auth-library": "^10.2.0",
+		"google-auth-library": "^11.0.0",
 		"http-proxy-agent": "^7.0.0",
 		"https-proxy-agent": "^7.0.0",
 		"gray-matter": "^4.0.3",
