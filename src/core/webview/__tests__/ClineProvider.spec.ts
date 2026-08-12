@@ -4030,14 +4030,17 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 				expect(mockTask.checkpointDiff).toHaveBeenCalledWith({ mode: "full", commitHash: "abc123" })
 			})
 
-			test("passes through unregistered messages without boundary rejection", async () => {
+			test("rejects an unregistered message at the boundary (fail-closed)", async () => {
 				const logSpy = vi.spyOn(provider, "log")
 				const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as ReturnType<typeof vi.fn>).mock
 					.calls[0][0]
 
-				await messageHandler({ type: "requestModes" })
+				// Not in the webview registry → rejected by the hard-allowlist
+				// boundary (fail-closed): logged, never dispatched.
+				await messageHandler({ type: "totallyUnknownInboundType" })
 
-				expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Rejected message"))
+				expect(mockPostMessage).not.toHaveBeenCalled()
 			})
 
 			test("rejects a crafted malformed allowedCommands message at the boundary", async () => {

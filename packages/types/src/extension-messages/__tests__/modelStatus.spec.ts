@@ -244,8 +244,12 @@ describe("model/status domain (Phase 2, Domain 2) schemas", () => {
 		if (!malformed.ok) {
 			expect(malformed.error).toContain("ollamaModels")
 		}
-		// Unregistered types still pass through structurally.
-		expect(parseExtensionMessage({ type: "mcpServers", mcpServers: [] }).ok).toBe(true)
+		// Hard allowlist (fail-closed): an unknown type is rejected at the boundary.
+		const unknown = parseExtensionMessage({ type: "totallyUnknownType" })
+		expect(unknown.ok).toBe(false)
+		if (!unknown.ok) {
+			expect(unknown.error).toContain("totallyUnknownType")
+		}
 	})
 
 	it("retains unknown ModelInfo fields on the model record (transitional passthrough)", () => {

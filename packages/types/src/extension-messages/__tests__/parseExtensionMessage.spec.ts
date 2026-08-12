@@ -41,22 +41,21 @@ describe("parseExtensionMessage", () => {
 		})
 	})
 
-	describe("unregistered types (transitional pass-through)", () => {
-		it("passes through a garbage type without rejecting", () => {
+	describe("unregistered types (hard allowlist, fail-closed)", () => {
+		it("rejects a garbage type", () => {
 			const raw = { type: "totallyUnknownOutboundType", someField: 123 }
 			const result = parseExtensionMessage(raw)
-			expect(result.ok).toBe(true)
-			if (result.ok) {
-				expect(result.message).toBe(raw)
+			expect(result.ok).toBe(false)
+			if (!result.ok) {
+				expect(result.error).toContain("totallyUnknownOutboundType")
 			}
 		})
 
-		it("passes through a real unregistered outbound type", () => {
-			const raw = { type: "mcpServers", mcpServers: [] }
-			const result = parseExtensionMessage(raw)
-			expect(result.ok).toBe(true)
-			if (result.ok) {
-				expect(result.message.type).toBe("mcpServers")
+		it("rejects an unknown type (regression)", () => {
+			const result = parseExtensionMessage({ type: "someUnknownType" })
+			expect(result.ok).toBe(false)
+			if (!result.ok) {
+				expect(result.error).toContain("someUnknownType")
 			}
 		})
 	})

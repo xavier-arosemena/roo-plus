@@ -183,19 +183,7 @@ import {
 	taskSyncEnabledMessageSchema,
 	webviewDidLaunchMessageSchema,
 } from "./misc.js"
-import {
-	cancelMarketplaceInstallMessageSchema,
-	codebaseIndexEnabledMessageSchema,
-	currentApiConfigNameMessageSchema,
-	draggedImagesMessageSchema,
-	imageGenerationSettingsMessageSchema,
-	marketplaceButtonClickedMessageSchema,
-	playSoundMessageSchema,
-	setopenAiCustomModelInfoMessageSchema,
-	shareTaskSuccessMessageSchema,
-	switchModeMessageSchema,
-	updateCondensingPromptMessageSchema,
-} from "./loose.js"
+import { draggedImagesMessageSchema } from "./loose.js"
 
 /**
  * String-literal union of every webview message type.
@@ -378,18 +366,10 @@ export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType
 	dismissUpsell: dismissUpsellMessageSchema,
 	getDismissedUpsells: getDismissedUpsellsMessageSchema,
 	openMarkdownPreview: openMarkdownPreviewMessageSchema,
-	// Loose / transitional types (S1 sub-task 13) — no handler; registered minimally.
-	currentApiConfigName: currentApiConfigNameMessageSchema,
-	updateCondensingPrompt: updateCondensingPromptMessageSchema,
-	playSound: playSoundMessageSchema,
+	// Loose / transitional types (S1 sub-task 13) — no handler; typed + registered.
+	// (marketplaceButtonClicked + shareTaskSuccess removed in Phase 3; the other 8
+	// dead members removed in Phase 3 — see loose.ts.)
 	draggedImages: draggedImagesMessageSchema,
-	setopenAiCustomModelInfo: setopenAiCustomModelInfoMessageSchema,
-	codebaseIndexEnabled: codebaseIndexEnabledMessageSchema,
-	marketplaceButtonClicked: marketplaceButtonClickedMessageSchema,
-	cancelMarketplaceInstall: cancelMarketplaceInstallMessageSchema,
-	imageGenerationSettings: imageGenerationSettingsMessageSchema,
-	switchMode: switchModeMessageSchema,
-	shareTaskSuccess: shareTaskSuccessMessageSchema,
 }
 
 /**
@@ -555,18 +535,10 @@ export const webviewMessageSchema = z.discriminatedUnion("type", [
 	dismissUpsellMessageSchema,
 	getDismissedUpsellsMessageSchema,
 	openMarkdownPreviewMessageSchema,
-	// Loose / transitional types (S1 sub-task 13) — no handler; registered minimally.
-	currentApiConfigNameMessageSchema,
-	updateCondensingPromptMessageSchema,
-	playSoundMessageSchema,
+	// Loose / transitional types (S1 sub-task 13) — no handler; typed + registered.
+	// (marketplaceButtonClicked + shareTaskSuccess removed in Phase 3; the other 8
+	// dead members removed in Phase 3 — see loose.ts.)
 	draggedImagesMessageSchema,
-	setopenAiCustomModelInfoMessageSchema,
-	codebaseIndexEnabledMessageSchema,
-	marketplaceButtonClickedMessageSchema,
-	cancelMarketplaceInstallMessageSchema,
-	imageGenerationSettingsMessageSchema,
-	switchModeMessageSchema,
-	shareTaskSuccessMessageSchema,
 ])
 
 export type ParseWebviewMessageResult = { ok: true; message: WebviewMessage } | { ok: false; error: string }
@@ -574,13 +546,13 @@ export type ParseWebviewMessageResult = { ok: true; message: WebviewMessage } | 
 /**
  * Boundary validation for webview→extension messages.
  *
- * Three modes:
+ * Hard allowlist (fail-closed):
  *  - non-object input or a missing/invalid `type` field → rejected
  *  - `type` with a registered schema → strict `safeParse`; failure → rejected
- *  - `type` unregistered → structural pass-through (transitional, never reject)
+ *  - `type` unregistered → rejected (unknown/forged message)
  *
- * This is the fail-closed gate that closes the webview→extension "Input Gap"
- * without breaking the existing `WebviewMessage` interface or its senders.
+ * Every `WebviewMessageType` member is registered (ratchet enforces 0
+ * untyped), so the allowlist cannot reject legitimate traffic.
  */
 export function parseWebviewMessage(raw: unknown): ParseWebviewMessageResult {
 	if (typeof raw !== "object" || raw === null) {
@@ -601,9 +573,9 @@ export function parseWebviewMessage(raw: unknown): ParseWebviewMessageResult {
 		return { ok: true, message: result.data as WebviewMessage }
 	}
 
-	// Transitional pass-through for unregistered types — keeps the migration
-	// incremental without breaking the existing sender construction sites.
-	return { ok: true, message: raw as WebviewMessage }
+	// Fail-closed: every `WebviewMessageType` member is registered (ratchet: 0
+	// untyped). A type with no schema is an unknown/forged message — reject it.
+	return { ok: false, error: `Unregistered webview message type '${type}'` }
 }
 
 export { checkpointDiffMessageSchema, checkpointRestoreMessageSchema } from "./checkpoint.js"
@@ -834,18 +806,5 @@ export {
 	miscMessageSchema,
 } from "./misc.js"
 export type { MiscMessage } from "./misc.js"
-export {
-	cancelMarketplaceInstallMessageSchema,
-	codebaseIndexEnabledMessageSchema,
-	currentApiConfigNameMessageSchema,
-	draggedImagesMessageSchema,
-	imageGenerationSettingsMessageSchema,
-	marketplaceButtonClickedMessageSchema,
-	playSoundMessageSchema,
-	setopenAiCustomModelInfoMessageSchema,
-	shareTaskSuccessMessageSchema,
-	switchModeMessageSchema,
-	updateCondensingPromptMessageSchema,
-	looseMessageSchema,
-} from "./loose.js"
+export { draggedImagesMessageSchema, looseMessageSchema } from "./loose.js"
 export type { LooseMessage } from "./loose.js"

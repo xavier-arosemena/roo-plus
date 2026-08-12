@@ -112,10 +112,10 @@ const App = () => {
 
 	const onMessage = useCallback(
 		(e: MessageEvent) => {
-			// Boundary-validate registered extension→webview messages (Phase 2,
-			// Domain 1 — UI/navigation + state variants): malformed registered
-			// payloads fail loudly in dev, while unregistered types still pass
-			// through structurally.
+			// Boundary-validate extension→webview messages (Phase 2, Domain 1 —
+			// UI/navigation + state variants): registered payloads are strictly
+			// validated, and unknown/unregistered types are rejected (hard
+			// allowlist, fail-closed).
 			const parsed = parseExtensionMessage(e.data)
 			if (!parsed.ok) {
 				console.error(`[App] Rejected malformed extension message: ${parsed.error}`)

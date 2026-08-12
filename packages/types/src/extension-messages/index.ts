@@ -283,14 +283,13 @@ export type ParseExtensionMessageResult = { ok: true; message: ExtensionMessage 
 /**
  * Boundary validation for extension→webview|CLI messages.
  *
- * Three modes (mirroring `parseWebviewMessage`):
+ * Hard allowlist (fail-closed, mirroring `parseWebviewMessage`):
  *  - non-object input or a missing/invalid `type` field → rejected
  *  - `type` with a registered schema → strict `safeParse`; failure → rejected
- *  - `type` unregistered → structural pass-through (transitional, never reject)
+ *  - `type` unregistered → rejected (unknown/forged message)
  *
- * This is the fail-closed gate that starts closing the outbound "Type Lie"
- * without breaking the existing flat `ExtensionMessage` interface or its
- * producers/consumers.
+ * Every `ExtensionMessageType` member is registered (ratchet enforces 0
+ * untyped), so the allowlist cannot reject legitimate traffic.
  */
 export function parseExtensionMessage(raw: unknown): ParseExtensionMessageResult {
 	if (typeof raw !== "object" || raw === null) {
@@ -311,9 +310,9 @@ export function parseExtensionMessage(raw: unknown): ParseExtensionMessageResult
 		return { ok: true, message: result.data as ExtensionMessage }
 	}
 
-	// Transitional pass-through for unregistered types — keeps the migration
-	// incremental without breaking the existing producer construction sites.
-	return { ok: true, message: raw as ExtensionMessage }
+	// Fail-closed: every `ExtensionMessageType` member is registered (ratchet: 0
+	// untyped). A type with no schema is an unknown/forged message — reject it.
+	return { ok: false, error: `Unregistered extension message type '${type}'` }
 }
 
 export { stateMessageSchema, extensionStateSubsetSchema } from "./state.js"

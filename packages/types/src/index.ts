@@ -91,16 +91,6 @@ export type { WorktreeMessage } from "./webview-messages/index.js"
 // the INBOUND schemas at the package root (the `CodeIndexMessage` precedent).
 // The outbound variants remain available directly from
 // "./extension-messages/index.js".
-// `shareTaskSuccessMessageSchema` is direction-mixed too: it is a member of
-// BOTH the inbound `WebviewMessage` union (where the webview acknowledges a
-// successful share — registered inbound in Phase 1 with a minimal schema in
-// `packages/types/src/webview-messages/loose.ts`) and the outbound
-// `ExtensionMessage` union (registered outbound in Phase 2, Domain 5 for
-// ratchet completeness — the outbound registration is authoritative, with NO
-// outbound producer — see `packages/types/src/extension-messages/marketplace.ts`).
-// Disambiguated in favor of the INBOUND schema at the package root; the
-// outbound variant remains available directly from
-// "./extension-messages/index.js".
 export {
 	autoApprovalEnabledMessageSchema,
 	checkRulesDirectoryMessageSchema,
@@ -109,11 +99,17 @@ export {
 	exportModeMessageSchema,
 	importModeMessageSchema,
 	insertTextIntoTextareaMessageSchema,
-	shareTaskSuccessMessageSchema,
 	toggleApiConfigPinMessageSchema,
 	updateCustomModeMessageSchema,
 	updatePromptMessageSchema,
 } from "./webview-messages/index.js"
+// `shareTaskSuccessMessageSchema` was direction-mixed (a member of BOTH the
+// inbound `WebviewMessage` union and the outbound `ExtensionMessage` union).
+// Phase 3 (2026-08-12) removed the dead INBOUND standalone member (no sender,
+// handler, or consumer anywhere in the repo); the OUTBOUND registration
+// (Phase 2, Domain 5 — `packages/types/src/extension-messages/marketplace.ts`)
+// is now the ONLY one and is re-exported from there at the package root.
+export { shareTaskSuccessMessageSchema } from "./extension-messages/index.js"
 // `skillsMessageSchema` and `rulesMessageSchema` are exported by BOTH
 // registries: the inbound webview-messages skills/rules modules (S1 — the
 // webview→extension request unions) and the outbound extension-messages

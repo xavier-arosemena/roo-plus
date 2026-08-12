@@ -367,8 +367,8 @@ describe("parseWebviewMessage boundary for marketplace remove/notification", () 
 	})
 
 	it("rejects an unknown type literal at the schema level", () => {
-		// A wrong type literal is an unregistered pass-through at the boundary,
-		// but the registered schema itself must reject it.
+		// The registered schema's type literal rejects any other type value —
+		// the boundary is a hard allowlist (fail-closed).
 		expect(
 			showMdmAuthRequiredNotificationMessageSchema.safeParse({ type: "showMdmAuthRequiredNotification2" })
 				.success,

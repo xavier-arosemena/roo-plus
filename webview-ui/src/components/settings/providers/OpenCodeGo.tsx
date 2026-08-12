@@ -46,8 +46,9 @@ export const OpenCodeGo = ({
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
 			if (!isTrustedMessage(event)) return
-			// Boundary-validate registered model/status messages (Phase 2, Domain 2):
-			// malformed payloads fail loudly in dev, unregistered types pass through.
+			// Boundary-validate model/status messages (Phase 2, Domain 2):
+			// malformed payloads fail loudly in dev, and unknown/unregistered
+			// types are rejected (hard allowlist, fail-closed).
 			const parsed = parseExtensionMessage(event.data)
 			if (!parsed.ok) {
 				console.error(`[OpenCodeGo] Rejected malformed extension message: ${parsed.error}`)

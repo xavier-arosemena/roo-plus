@@ -49,10 +49,10 @@ export const WorktreesView = () => {
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			// Boundary-validate registered extension→webview messages (Phase 2,
-			// Domain 7 — worktree responses): malformed registered payloads
-			// (e.g. a `worktreeList` without `worktrees`) fail loudly in dev,
-			// while unregistered types still pass through structurally.
+			// Boundary-validate extension→webview messages (Phase 2, Domain 7 —
+			// worktree responses): malformed registered payloads (e.g. a
+			// `worktreeList` without `worktrees`) fail loudly in dev, and
+			// unknown/unregistered types are rejected (hard allowlist, fail-closed).
 			const parsed = parseExtensionMessage(event.data)
 			if (!parsed.ok) {
 				console.error(`[WorktreesView] Rejected malformed extension message: ${parsed.error}`)

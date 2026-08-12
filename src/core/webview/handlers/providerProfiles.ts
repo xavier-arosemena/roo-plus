@@ -391,7 +391,10 @@ export async function handleProviderProfilesMessages(
 
 				await provider.postMessageToWebview({
 					type: "openAiCodexRateLimits",
-					values: rateLimits,
+					// `ExtensionMessage.values` is `Record<string, unknown>`; spread the
+					// typed info object into a plain object so the interface record
+					// accepts it (an `interface` has no implicit index signature).
+					values: { ...rateLimits },
 				})
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error)

@@ -124,15 +124,22 @@ Notes:
 
 `DEBT.md` item #6 updated incrementally by each sub-task; now reads: all 77 registered, limit 0, outbound complete (Phase 2 ✅ DELIVERED).
 
-### Phase 3 — Completion & close-out (≈1 day + doc updates) — NEXT (hand-off prompt prepared 2026-08-11)
+### Phase 3 — Completion & close-out — ✅ DELIVERED 2026-08-12
 
-With Phase 1 + Phase 2 complete, the remaining cleanup is:
+Status: all three workstreams landed as atomic change sets and verified. Final verified state (live run of [`scripts/verify-message-schemas.mjs`](scripts/verify-message-schemas.mjs)): **Inbound 155 total, 155 registered, 0 untyped (limit 0)**; **Outbound 77 total, 77 registered, 0 untyped (limit 0)**; ratchet exit 0; `scripts/verify-message-schemas.spec.mjs` 13/13 green.
 
-- **Direction-mixing cleanup**: move the misclassified outbound-only types out of `WebviewMessage` (the 11 "loose" types registered minimally in Phase 1 — no inbound dispatcher; `marketplaceButtonClicked` confirmed outbound-only) and the handful of direction-mixed types whose authoritative registration is now outbound (`shareTaskSuccess`, `autoApprovalEnabled`, `toggleApiConfigPin`, `updatePrompt`, `updateCustomMode`, `deleteCustomMode`), keeping every construction site compiling.
-- **Drop the vestigial pass-through paths**: the unregistered pass-through branch in `parseExtensionMessage` (and `parseWebviewMessage`) is now unreachable — every type in both directions is registered; remove or harden it to fail closed.
-- **Interface `any`-escape hardening**: drain the remaining interface-level `any` fields (`payload`, `values`, `value`, `settings`, `marketplaceInstalledMetadata`, …) that are not yet consumed through a typed schema on every path.
-- Mark DEBT #5 and #6 **RESOLVED** in [`DEBT.md`](DEBT.md) (same style as the "Recently Resolved Debt" table) — #5 and #6 are currently marked delivered; move them to the resolved table after Phase 3 lands.
-- Update the ADR to the terminal state once Phase 3 lands.
+**Workstream A — direction-mixing cleanup (inbound union 165 → 155):**
+
+- `marketplaceButtonClicked` — **outbound-only `action` VALUE** (extension posts `{ type: "action", action: "marketplaceButtonClicked" }` from [`registerCommands.ts`](src/activate/registerCommands.ts:155); webview posts the same `action` shape as a local navigation event). The standalone inbound member was dead — removed; the webview consumer check in [`MarketplaceViewStateManager.ts`](webview-ui/src/components/marketplace/MarketplaceViewStateManager.ts:426) was corrected to `message.type === "action" && message.action === "marketplaceButtonClicked"` (matching the real producer) with regression tests.
+- `shareTaskSuccess` — **direction-mixed**; the OUTBOUND registration (Phase 2, Domain 5) is authoritative — removed from the inbound union only; outbound untouched; package-barrel re-export re-pointed to the outbound schema.
+- **8 dead types removed** (no sender, no handler, no consumer): `currentApiConfigName` (global-state key only), `updateCondensingPrompt`, `playSound`, `setopenAiCustomModelInfo`, `codebaseIndexEnabled` (settings field only), `cancelMarketplaceInstall`, `imageGenerationSettings`, `switchMode` (tool name only).
+- `draggedImages` — **genuinely inbound** (live sender [`ChatTextArea.tsx`](webview-ui/src/components/chat/ChatTextArea.tsx:911)) — kept and typed properly with its real `dataUrls: string[]` payload.
+
+**Workstream B — vestigial pass-through dropped (fail-closed):** both [`parseWebviewMessage`](packages/types/src/webview-messages/index.ts) and [`parseExtensionMessage`](packages/types/src/extension-messages/index.ts) are now hard-allowlist boundaries — unknown/unregistered types are **rejected**, never dispatched (the "unregistered types pass through" branch and comments removed across the parsers, `ClineProvider`, CLI `message-processor`, `App.tsx`, `ExtensionStateContext.tsx`, and 14 webview consumers). A sender-enumeration audit confirmed every `vscode.postMessage` (inbound) and `postMessageToWebview` (outbound) type is registered in its direction.
+
+**Workstream C — interface `any`-escape hardening:** zero `any` remains on `ExtensionMessage`/`ExtensionState`/`WebviewMessage`. `payload`/`settings`/`config` removed (dead); `value` → `boolean | number`; `settings` → `CodebaseIndexConfig`; `todos` → `TodoItem[]`; `marketplaceInstalledMetadata` → `MarketplaceInstalledMetadata`; `values` → `Record<string, unknown>` (documented free-form `switchTab` passthrough — the only documented `unknown` on the interfaces).
+
+**Close-out:** DEBT #5 and #6 moved to the "Recently Resolved Debt" table in [`DEBT.md`](DEBT.md); the ADR ([`adr-typed-message-protocol.md`](src/docs/adr-typed-message-protocol.md)) updated to the terminal state. The migration is COMPLETE: both directions fully registered and runtime-validated, fail-closed at the boundary, with no vestigial pass-through and no irreducible `any` escapes.
 
 ---
 

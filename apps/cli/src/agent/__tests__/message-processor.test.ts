@@ -109,11 +109,11 @@ describe("MessageProcessor boundary validation", () => {
 		expect(errorSpy).not.toHaveBeenCalledWith("error", expect.anything())
 	})
 
-	it("passes through unregistered types (transitional, ignored by the dispatcher)", () => {
+	it("rejects unregistered types at the boundary (fail-closed, not dispatched)", () => {
 		const errorSpy = vi.spyOn(emitter, "emit")
 
-		// Not in the extension registry → passes the boundary structurally and is
-		// ignored by the dispatcher (not handled, no error routed).
+		// Not in the extension registry → rejected by the hard-allowlist boundary
+		// (fail-closed), debug-logged and dropped — never dispatched, no error routed.
 		expect(() => {
 			processor.processMessage({ type: "someUnknownType", value: 1 })
 		}).not.toThrow()

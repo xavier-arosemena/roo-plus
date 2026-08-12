@@ -9,6 +9,7 @@ import type { ClineMessage, QueuedMessage } from "./message.js"
 import type { MarketplaceItem, MarketplaceInstalledMetadata, InstallMarketplaceItemOptions } from "./marketplace.js"
 import type { TodoItem } from "./todo.js"
 import type { CloudUserInfo, OrganizationAllowList, ShareVisibility } from "./cloud.js"
+import type { CodebaseIndexConfig } from "./codebase-index.js"
 import type { SerializedCustomToolDefinition } from "./custom-tool.js"
 import type { GitCommit } from "./git.js"
 import type { McpServer } from "./mcp.js"
@@ -106,7 +107,6 @@ export interface ExtensionMessage {
 	text?: string
 	/** For fileContent: { path, content, error? } */
 	fileContent?: { path: string; content: string | null; error?: string }
-	payload?: any // eslint-disable-line @typescript-eslint/no-explicit-any
 	checkpointWarning?: {
 		type: "WAIT_TIMEOUT" | "INIT_TIMEOUT"
 		timeout: number
@@ -153,9 +153,24 @@ export interface ExtensionMessage {
 	customMode?: ModeConfig
 	slug?: string
 	success?: boolean
-	/** Generic payload for extension messages that use `values` */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	values?: Record<string, any>
+	/**
+	 * `values` payload for the `values`-carrying outbound messages. Most
+	 * producers post a per-message typed shape (boundary-validated by the
+	 * registered outbound schemas): `routerModels`/`singleRouterModelFetchResponse`
+	 * post `{ provider }`, `indexingStatusUpdate` posts `IndexingStatus`,
+	 * `codeIndexSecretStatus` posts the seven secret-presence booleans,
+	 * `indexCleared` posts `{ success, error? }` and `openAiCodexRateLimits`
+	 * posts `OpenAiCodexRateLimitInfo`. The `action`/`switchTab` producer
+	 * (`src/core/webview/handlers/misc.ts`) forwards the inbound `switchTab`
+	 * message's `values` untouched — a genuinely free-form record, so that path
+	 * stays `Record<string, unknown>` (mirroring the `actionMessageSchema`
+	 * boundary schema). A union of the known shapes is not usable here because
+	 * the webview consumers read `message.values?.provider`/`section`/
+	 * `marketplaceTab` directly (property access on a union requires the
+	 * property on every member), so the record remains the interface-level
+	 * fallback.
+	 */
+	values?: Record<string, unknown>
 	requestId?: string
 	promptText?: string
 	results?:
@@ -164,7 +179,8 @@ export interface ExtensionMessage {
 		| { slug: string; success: boolean; error?: string }[]
 	error?: string
 	setting?: string
-	value?: any // eslint-disable-line @typescript-eslint/no-explicit-any
+	/** For `vsCodeSetting`: the requested VS Code setting value (boolean/number). */
+	value?: boolean | number
 	/** Sanitized VS Code terminal profile names for the `terminalProfiles` message. */
 	profiles?: string[]
 	hasContent?: boolean
@@ -179,7 +195,8 @@ export interface ExtensionMessage {
 	tab?: string
 	errors?: string[]
 	rulesFolderPath?: string
-	settings?: any // eslint-disable-line @typescript-eslint/no-explicit-any
+	/** For `codeIndexSettingsSaved`: the persisted codebase-index config. */
+	settings?: CodebaseIndexConfig
 	messageTs?: number
 	hasCheckpoint?: boolean
 	context?: string
@@ -376,8 +393,7 @@ export type ExtensionState = Pick<
 	autoCondenseContext: boolean
 	autoCondenseContextPercent: number
 	marketplaceItems?: MarketplaceItem[]
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	marketplaceInstalledMetadata?: { project: Record<string, any>; global: Record<string, any> }
+	marketplaceInstalledMetadata?: MarketplaceInstalledMetadata
 	profileThresholds: Record<string, number>
 	hasOpenedModeSelector: boolean
 	openRouterImageApiKey?: string
@@ -431,8 +447,7 @@ export type ClineAskResponse = "yesButtonClicked" | "noButtonClicked" | "message
 export type AudioType = "notification" | "celebration" | "progress_loop"
 
 export interface UpdateTodoListPayload {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	todos: any[]
+	todos: TodoItem[]
 }
 
 export type EditQueuedMessagePayload = Pick<QueuedMessage, "id" | "text" | "images">
@@ -441,7 +456,6 @@ export interface WebviewMessage {
 	type:
 		| "updateTodoList"
 		| "deleteMultipleTasksWithIds"
-		| "currentApiConfigName"
 		| "saveApiConfiguration"
 		| "upsertApiConfiguration"
 		| "deleteApiConfiguration"
@@ -484,8 +498,6 @@ export interface WebviewMessage {
 		| "getVSCodeSetting"
 		| "requestTerminalProfiles"
 		| "openTerminalProfilePicker"
-		| "updateCondensingPrompt"
-		| "playSound"
 		| "playTts"
 		| "stopTts"
 		| "ttsEnabled"
@@ -515,14 +527,12 @@ export interface WebviewMessage {
 		| "autoApprovalEnabled"
 		| "updateCustomMode"
 		| "deleteCustomMode"
-		| "setopenAiCustomModelInfo"
 		| "openCustomModesSettings"
 		| "checkpointDiff"
 		| "checkpointRestore"
 		| "completionCheckpointDiff"
 		| "completionCheckpointRestore"
 		| "deleteMcpServer"
-		| "codebaseIndexEnabled"
 		| "telemetrySetting"
 		| "searchFiles"
 		| "toggleApiConfigPin"
@@ -542,10 +552,8 @@ export interface WebviewMessage {
 		| "focusPanelRequest"
 		| "openExternal"
 		| "filterMarketplaceItems"
-		| "marketplaceButtonClicked"
 		| "installMarketplaceItem"
 		| "installMarketplaceItemWithParameters"
-		| "cancelMarketplaceInstall"
 		| "switchTab"
 		| "exportMode"
 		| "importMode"
@@ -557,7 +565,6 @@ export interface WebviewMessage {
 		| "deleteCommand"
 		| "createCommand"
 		| "insertTextIntoTextarea"
-		| "imageGenerationSettings"
 		| "queueMessage"
 		| "removeQueuedMessage"
 		| "editQueuedMessage"
@@ -574,7 +581,6 @@ export interface WebviewMessage {
 		| "requestOpenAiCodexRateLimits"
 		| "refreshCustomTools"
 		| "requestModes"
-		| "switchMode"
 		| "debugSetting"
 		// Worktree messages
 		| "listWorktrees"
@@ -593,7 +599,6 @@ export interface WebviewMessage {
 		| "fetchMarketplaceData"
 		| "removeInstalledMarketplaceItem"
 		| "installMarketplaceItems"
-		| "shareTaskSuccess"
 		| "importRooHistory"
 		// Skills messages
 		| "requestSkills"
@@ -633,9 +638,23 @@ export interface WebviewMessage {
 	promptMode?: string | "enhance"
 	customPrompt?: PromptComponent
 	dataUrls?: string[]
-	/** Generic payload for webview messages that use `values` */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	values?: Record<string, any>
+	/**
+	 * `values` payload for the `values`-carrying inbound messages. Most
+	 * producers post a per-message typed shape (boundary-validated by the
+	 * registered inbound schemas): `openFile` posts `{ create?, content?,
+	 * line? }`, `requestRouterModels`/`requestOllamaModels`/
+	 * `requestOpenAiModels`/`requestLmStudioModels`/`requestRooModels`/
+	 * `requestVsCodeLmModels` post provider filters + credentials,
+	 * `renameApiConfiguration` posts `{ oldName, newName }`, the rule/command
+	 * CRUD messages post `{ id }`/`{ scope }`/`{ source }`, and
+	 * `downloadErrorDiagnostics` posts `{ timestamp }`. The `switchTab`
+	 * producer forwards `{ section }` and the handler posts it through to the
+	 * webview untouched — a genuinely free-form record, so that path stays
+	 * `Record<string, unknown>` (mirroring the `switchTabMessageSchema`
+	 * boundary schema). Consumers read `values` through their per-message
+	 * schemas, so the record remains the interface-level fallback.
+	 */
+	values?: Record<string, unknown>
 	query?: string
 	setting?: string
 	slug?: string
@@ -660,14 +679,10 @@ export interface WebviewMessage {
 	restoreCheckpoint?: boolean
 	historyPreviewCollapsed?: boolean
 	filters?: { type?: string; search?: string; tags?: string[] }
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	settings?: any
 	url?: string // For openExternal
 	mpItem?: MarketplaceItem
 	mpItems?: MarketplaceItem[]
 	mpInstallOptions?: InstallMarketplaceItemOptions
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	config?: Record<string, any> // Add config to the payload
 	visibility?: ShareVisibility // For share visibility
 	hasContent?: boolean // For checkRulesDirectoryResult
 	checkOnly?: boolean // For deleteCustomMode check

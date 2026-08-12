@@ -102,9 +102,10 @@ export class MessageProcessor {
 	 *
 	 * This is the main entry point for all extension messages. Every inbound
 	 * message is routed through the shared zod boundary (`parseExtensionMessage`)
-	 * first: registered extension→CLI types are strictly validated, unregistered
-	 * ones pass through structurally, and malformed input (non-object / missing
-	 * type / invalid registered payload) is rejected without being dispatched.
+	 * first (hard allowlist, fail-closed): registered extension→CLI types are
+	 * strictly validated, unknown/unregistered types are rejected, and malformed
+	 * input (non-object / missing type / invalid registered payload) is rejected
+	 * without being dispatched.
 	 *
 	 * @param message - The raw message from the extension
 	 */

@@ -89,7 +89,10 @@ export const TerminalSettings = ({
 		switch (message.type) {
 			case "vsCodeSetting":
 				if (message.setting === "terminal.integrated.inheritEnv") {
-					setInheritEnv(message.value ?? true)
+					// `message.value` is `boolean | number` (the boundary schema is
+					// generic across VS Code settings); `inheritEnv` is a boolean
+					// setting, so coerce the fallback to a boolean.
+					setInheritEnv(Boolean(message.value ?? true))
 				}
 				break
 			case "terminalProfiles":

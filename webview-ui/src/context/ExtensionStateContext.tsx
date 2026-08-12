@@ -300,10 +300,10 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 
 	const handleMessage = useCallback(
 		(event: MessageEvent) => {
-			// Boundary-validate registered extension→webview messages (Phase 2,
-			// Domains 1-8 — all 77 outbound `ExtensionMessage` types are now
-			// registered): malformed registered payloads fail loudly in dev,
-			// while unregistered types still pass through structurally.
+			// Boundary-validate extension→webview messages (Phase 2, Domains
+			// 1-8 — all 77 outbound `ExtensionMessage` types are registered):
+			// registered payloads are strictly validated, and unknown/
+			// unregistered types are rejected (hard allowlist, fail-closed).
 			const parsed = parseExtensionMessage(event.data)
 			if (!parsed.ok) {
 				console.error(`[ExtensionStateContext] Rejected malformed extension message: ${parsed.error}`)

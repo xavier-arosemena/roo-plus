@@ -34,10 +34,10 @@ export const About = ({ telemetrySetting, setTelemetrySetting, debug, setDebug, 
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
 			if (!isTrustedMessage(event)) return
-			// Boundary-validate registered extension→webview messages (Phase 2,
-			// Domain 8 — history-import responses): malformed registered payloads
-			// fail loudly in dev, while unregistered types still pass through
-			// structurally (same contract as `ExtensionStateContext`/`App`).
+			// Boundary-validate extension→webview messages (Phase 2, Domain 8 —
+			// history-import responses): malformed registered payloads fail
+			// loudly in dev, and unknown/unregistered types are rejected (hard
+			// allowlist, fail-closed — same contract as `ExtensionStateContext`/`App`).
 			const parsed = parseExtensionMessage(event.data)
 			if (!parsed.ok) {
 				console.error(`[About] Rejected malformed extension message: ${parsed.error}`)

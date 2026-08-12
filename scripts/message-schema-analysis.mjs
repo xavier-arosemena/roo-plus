@@ -183,18 +183,10 @@ export const MESSAGE_SCHEMA_BASELINE = [
 	"dismissUpsell",
 	"getDismissedUpsells",
 	"openMarkdownPreview",
-	// Loose / transitional types (S1 sub-task 13) — no handler; registered minimally.
-	"currentApiConfigName",
-	"updateCondensingPrompt",
-	"playSound",
+	// Loose / transitional types (S1 sub-task 13) — no handler; typed + registered.
+	// (marketplaceButtonClicked + shareTaskSuccess removed in Phase 3; the other 8
+	// dead members removed in Phase 3 — see loose.ts.)
 	"draggedImages",
-	"setopenAiCustomModelInfo",
-	"codebaseIndexEnabled",
-	"marketplaceButtonClicked",
-	"cancelMarketplaceInstall",
-	"imageGenerationSettings",
-	"switchMode",
-	"shareTaskSuccess",
 ]
 
 /**

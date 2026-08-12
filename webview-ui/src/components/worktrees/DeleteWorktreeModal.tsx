@@ -25,10 +25,10 @@ export const DeleteWorktreeModal = ({ open, onClose, worktree, onSuccess }: Dele
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			// Boundary-validate registered extension→webview messages (Phase 2,
-			// Domain 7 — worktree responses): a malformed registered
-			// `worktreeResult` payload fails loudly in dev, while unregistered
-			// types still pass through structurally.
+			// Boundary-validate extension→webview messages (Phase 2, Domain 7 —
+			// worktree responses): a malformed registered `worktreeResult` payload
+			// fails loudly in dev, and unknown/unregistered types are rejected
+			// (hard allowlist, fail-closed).
 			const parsed = parseExtensionMessage(event.data)
 			if (!parsed.ok) {
 				console.error(`[DeleteWorktreeModal] Rejected malformed extension message: ${parsed.error}`)

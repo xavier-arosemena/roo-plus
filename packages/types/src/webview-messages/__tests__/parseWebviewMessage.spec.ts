@@ -36,22 +36,21 @@ describe("parseWebviewMessage", () => {
 		})
 	})
 
-	describe("unregistered types (transitional pass-through)", () => {
-		it("passes through a garbage type without rejecting", () => {
+	describe("unregistered types (hard allowlist, fail-closed)", () => {
+		it("rejects a garbage type", () => {
 			const raw = { type: "totallyUnknownType", someField: 123 }
 			const result = parseWebviewMessage(raw)
-			expect(result.ok).toBe(true)
-			if (result.ok) {
-				expect(result.message).toBe(raw)
+			expect(result.ok).toBe(false)
+			if (!result.ok) {
+				expect(result.error).toContain("totallyUnknownType")
 			}
 		})
 
-		it("passes through a real unregistered inbound type", () => {
-			const raw = { type: "newTask", text: "hi", images: [] }
-			const result = parseWebviewMessage(raw)
-			expect(result.ok).toBe(true)
-			if (result.ok) {
-				expect(result.message.type).toBe("newTask")
+		it("rejects an unknown type (regression)", () => {
+			const result = parseWebviewMessage({ type: "someUnknownType" })
+			expect(result.ok).toBe(false)
+			if (!result.ok) {
+				expect(result.error).toContain("someUnknownType")
 			}
 		})
 	})
@@ -291,24 +290,15 @@ describe("parseWebviewMessage", () => {
 			"dismissUpsell",
 			"getDismissedUpsells",
 			"openMarkdownPreview",
-			// Loose / transitional types (S1 sub-task 13) — no handler; registered minimally.
-			"currentApiConfigName",
-			"updateCondensingPrompt",
-			"playSound",
+			// Loose / transitional types (S1 sub-task 13) — no handler; typed + registered.
+			// (the other 8 dead members removed in Phase 3 — see loose.ts.)
 			"draggedImages",
-			"setopenAiCustomModelInfo",
-			"codebaseIndexEnabled",
-			"marketplaceButtonClicked",
-			"cancelMarketplaceInstall",
-			"imageGenerationSettings",
-			"switchMode",
-			"shareTaskSuccess",
 		]
 
 		for (const type of expected) {
 			expect(webviewMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(webviewMessageSchemas)).toHaveLength(165)
+		expect(Object.keys(webviewMessageSchemas)).toHaveLength(155)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

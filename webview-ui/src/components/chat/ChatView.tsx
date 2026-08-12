@@ -890,11 +890,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const handleMessage = useCallback(
 		(e: MessageEvent) => {
-			// Boundary-validate registered extension→webview messages (Phase 2,
-			// Domains 1-4 — UI/navigation, model/status, task/chat/history and
-			// checkpoint/modes responses): malformed registered payloads fail
-			// loudly in dev, while unregistered types still pass through
-			// structurally.
+			// Boundary-validate extension→webview messages (Phase 2, Domains 1-4
+			// — UI/navigation, model/status, task/chat/history and checkpoint/
+			// modes responses): malformed registered payloads fail loudly in dev,
+			// and unknown/unregistered types are rejected (hard allowlist, fail-closed).
 			const parsed = parseExtensionMessage(e.data)
 			if (!parsed.ok) {
 				console.error(`[ChatView] Rejected malformed extension message: ${parsed.error}`)

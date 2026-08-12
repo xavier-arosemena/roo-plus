@@ -131,11 +131,11 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		useEffect(() => {
 			const messageHandler = (event: MessageEvent) => {
 				if (!isTrustedMessage(event)) return
-				// Boundary-validate registered extension→webview messages (Phase 2,
-				// Domain 3 — task/chat/history responses): malformed registered
-				// payloads (e.g. `commitSearchResults` without `commits`) fail
-				// loudly in dev, while unregistered types still pass through
-				// structurally.
+				// Boundary-validate extension→webview messages (Phase 2, Domain 3
+				// — task/chat/history responses): malformed registered payloads
+				// (e.g. `commitSearchResults` without `commits`) fail loudly in
+				// dev, and unknown/unregistered types are rejected (hard
+				// allowlist, fail-closed).
 				const parsed = parseExtensionMessage(event.data)
 				if (!parsed.ok) {
 					console.error(`[ChatTextArea] Rejected malformed extension message: ${parsed.error}`)
@@ -932,10 +932,10 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		const [isTtsPlaying, setIsTtsPlaying] = useState(false)
 
 		useEvent("message", (event: MessageEvent) => {
-			// Boundary-validate registered extension→webview messages (Phase 2,
-			// Domain 1): malformed registered payloads (e.g. `ttsStart`/`ttsStop`
-			// without a `text`) fail loudly in dev, while unregistered types still
-			// pass through structurally.
+			// Boundary-validate extension→webview messages (Phase 2, Domain 1):
+			// malformed registered payloads (e.g. `ttsStart`/`ttsStop` without a
+			// `text`) fail loudly in dev, and unknown/unregistered types are
+			// rejected (hard allowlist, fail-closed).
 			const parsed = parseExtensionMessage(event.data)
 			if (!parsed.ok) {
 				console.error(`[ChatTextArea] Rejected malformed extension message: ${parsed.error}`)

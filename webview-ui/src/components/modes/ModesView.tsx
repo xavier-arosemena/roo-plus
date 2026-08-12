@@ -546,8 +546,8 @@ const ModesView = () => {
 			// Domains 2-4 — model/status, task/chat/history and checkpoint/modes
 			// responses): the mode result/check messages handled below
 			// (exportModeResult, importModeResult, checkRulesDirectoryResult,
-			// deleteCustomModeCheck) are now registered and strictly validated;
-			// remaining unregistered types still pass through structurally.
+			// deleteCustomModeCheck) are registered and strictly validated;
+			// unknown/unregistered types are rejected (hard allowlist, fail-closed).
 			const parsed = parseExtensionMessage(event.data)
 			if (!parsed.ok) {
 				console.error(`[ModesView] Rejected malformed extension message: ${parsed.error}`)

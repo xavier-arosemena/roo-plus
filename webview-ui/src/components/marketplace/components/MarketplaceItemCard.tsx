@@ -59,10 +59,10 @@ export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			if (!isTrustedMessage(event)) return
-			// Boundary-validate registered extension→webview messages (Phase 2,
-			// Domains 1-5 — incl. marketplace responses): malformed registered
-			// payloads fail loudly in dev, while unregistered types still pass
-			// through structurally.
+			// Boundary-validate extension→webview messages (Phase 2, Domains 1-5
+			// — incl. marketplace responses): malformed registered payloads fail
+			// loudly in dev, and unknown/unregistered types are rejected (hard
+			// allowlist, fail-closed).
 			const parsed = parseExtensionMessage(event.data)
 			if (!parsed.ok) {
 				console.error(`[MarketplaceItemCard] Rejected malformed extension message: ${parsed.error}`)
