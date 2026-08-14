@@ -45,6 +45,7 @@ Our roadmap guides the project's direction. Align your contributions with these 
 
 - Streamline the UI/UX for clarity and intuitiveness.
 - Continuously improve the workflow to meet the high expectations developers have for daily-use tools.
+- Publish an official Roo+ CLI distribution so CLI users install the fork's build instead of the upstream CLI (see DEBT #16).
 
 ### Leading on Agent Performance
 

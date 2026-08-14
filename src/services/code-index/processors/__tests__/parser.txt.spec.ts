@@ -15,7 +15,7 @@ describe("CodeParser - plain text support", () => {
 		expect(shouldUseFallbackChunking(".txt")).toBe(true)
 
 		const content = [
-			"Zoo Code plain text indexing regression test.",
+			"Roo+ plain text indexing regression test.",
 			"This sentence contains searchable content that only exists in the text file.",
 			"The fallback parser should preserve every line while creating an indexable chunk.",
 		].join("\n")

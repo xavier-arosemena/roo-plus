@@ -142,6 +142,16 @@ decision and coverage reporting.
 
 **Suggested Fix**: Add the origin-based `isTrustedMessage()` guard to both, applying the same "trust by origin, never by source identity" rule from [`webview-ui/src/utils/trustedMessages.ts`](webview-ui/src/utils/trustedMessages.ts). Order: [`FileChangesPanel.tsx`](webview-ui/src/components/chat/FileChangesPanel.tsx) first (low blast radius), then the root [`ExtensionStateContext.tsx`](webview-ui/src/context/ExtensionStateContext.tsx) (largest blast radius) after validation across desktop + Remote-SSH. Regression spec: reuse the pattern in [`trustedMessages.spec.ts`](webview-ui/src/utils/__tests__/trustedMessages.spec.ts).
 
+### 16. Roo+ CLI Distribution Gap
+
+**Location**: [`apps/cli/`](apps/cli/), [`cli-release.yml`](.github/workflows/cli-release.yml)
+
+**Issue**: Roo+ builds and releases a CLI ([`cli-release.yml`](.github/workflows/cli-release.yml)), but there is no Roo+ distribution channel for it. The release notes and the inherited CLI README still point users at the upstream install script (`https://raw.githubusercontent.com/RooCodeInc/Roo-Code/main/apps/cli/install.sh`), which installs the upstream Zoo Code CLI rather than the Roo+ build — so CLI users either run upstream or must build from source.
+
+**Impact**: CLI users cannot easily install the Roo+ CLI; the branded release is effectively undiscoverable and users may unknowingly run the upstream CLI.
+
+**Suggested Fix**: Publish a Roo+ CLI distribution (e.g., GitHub Release binaries plus a Roo+ install script) and update [`cli-release.yml`](.github/workflows/cli-release.yml) release notes plus the CLI README to point at it once available.
+
 ---
 
 ## ✅ Recently Resolved Debt

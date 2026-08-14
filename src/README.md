@@ -306,7 +306,7 @@ pnpm run sync:custom-modes
 
 Contributions, issues, and feature requests are welcome!
 
-- 🐛 **Report a bug**: [Open an issue](https://github.com/xavier-arosemena/roo-plus/issues/new?template=bug_report.md)
+- 🐛 **Report a bug**: [Open an issue](https://github.com/xavier-arosemena/roo-plus/issues/new/choose)
 - 💡 **Suggest a feature**: [Open a discussion](https://github.com/xavier-arosemena/roo-plus/discussions)
 - 🔀 **Submit a PR**: Fork the repo and create a pull request
 - 🎯 **Add a custom mode agent**: Improve the agent library at [`custom-modes/`](custom-modes/) and submit a PR upstream

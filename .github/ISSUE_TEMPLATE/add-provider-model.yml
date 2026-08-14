@@ -1,0 +1,28 @@
+name: Add Provider Model
+description: Request a new model for an existing API provider
+labels: ["model"]
+title: "[MODEL] "
+body:
+  - type: input
+    id: model-name
+    attributes:
+      label: Model name
+      placeholder: e.g., GPT-5.4
+    validations:
+      required: true
+
+  - type: input
+    id: creator
+    attributes:
+      label: Model creator
+      placeholder: e.g., OpenAI
+    validations:
+      required: true
+
+  - type: input
+    id: link
+    attributes:
+      label: Link to the model
+      description: Official docs or announcement page
+    validations:
+      required: true
