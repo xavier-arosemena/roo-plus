@@ -1,0 +1,110 @@
+name: "Prepare Extension Publish"
+
+description: >
+  Validates the repository state required before building and publishing the
+  Roo+ extension: custom-modes submodule pin + .roomodes sync, package
+  identity, optional publish-ref enforcement, and optional marketplace token
+  validation. Shared by the stable (`marketplace-publish`) and pre-release
+  (`pre-release-publish`) workflows so the pre-flight logic lives in exactly
+  one place.
+
+inputs:
+    log-prefix:
+        description: "Prefix used in ::group:: / ::notice:: annotations (e.g. MARKETPLACE, PRERELEASE)"
+        required: false
+        default: "CI"
+    environment:
+        description: "GitHub environment that holds the marketplace secrets (used in guidance notices)"
+        required: false
+        default: ""
+    require-master-ref:
+        description: "Set to 'true' to require GITHUB_REF_NAME == master before publishing"
+        required: false
+        default: "false"
+    validate-tokens:
+        description: "Set to 'true' to validate (or warn when missing) the VSCE/OVSX marketplace tokens"
+        required: false
+        default: "false"
+    vsce-pat:
+        description: "VS Code Marketplace PAT (Manage scope for the xavier-arosemena publisher)"
+        required: false
+        default: ""
+    ovsx-pat:
+        description: "Open VSX access token for the xavier-arosemena publisher"
+        required: false
+        default: ""
+
+runs:
+    using: "composite"
+    steps:
+        - name: Verify custom-modes submodule pin & committed artifact sync
+          shell: bash
+          run: |
+              echo "::group::[${{ inputs.log-prefix }}:SUBMODULE] Verifying submodule pin + .roomodes sync"
+              node scripts/verify-submodule-pin.mjs
+              node scripts/verify-roomodes-sync.mjs
+              echo "::notice::[${{ inputs.log-prefix }}:SUBMODULE] submodule pin and .roomodes sync verified"
+              echo "::endgroup::"
+
+        - name: Validate package identity
+          shell: bash
+          run: |
+              echo "::group::[${{ inputs.log-prefix }}:IDENTITY] Validating package identity"
+              package_name=$(node -p "require('./src/package.json').name")
+              publisher=$(node -p "require('./src/package.json').publisher")
+
+              test "$package_name" = "roo-plus"
+              test "$publisher" = "xavier-arosemena"
+              echo "::notice::[${{ inputs.log-prefix }}:IDENTITY] package identity OK: $package_name / $publisher"
+              echo "::endgroup::"
+
+        - name: Validate publish ref
+          if: ${{ inputs.require-master-ref == 'true' }}
+          shell: bash
+          run: |
+              echo "::group::[${{ inputs.log-prefix }}:REF] Validating publish ref"
+              if [ "$GITHUB_REF_NAME" != "master" ]; then
+                  echo "::error::[${{ inputs.log-prefix }}:REF] Publishing must run from master, not ${GITHUB_REF_NAME}."
+                  exit 1
+              fi
+              echo "::notice::[${{ inputs.log-prefix }}:REF] publish ref OK: $GITHUB_REF_NAME"
+              echo "::endgroup::"
+
+        - name: Warn about missing VS Code Marketplace PAT
+          if: ${{ inputs.validate-tokens == 'true' && inputs.vsce-pat == '' }}
+          shell: bash
+          run: |
+              echo "::warning::[${{ inputs.log-prefix }}:VSCE-PAT] VSCE_PAT is not configured — the VS Code Marketplace publish step will be skipped."
+              echo "::notice::[${{ inputs.log-prefix }}:VSCE-PAT] To enable it, add a Personal Access Token (Manage scope, publisher 'xavier-arosemena') as the VSCE_PAT secret in the ${{ inputs.environment }} environment."
+
+        - name: Validate VS Code Marketplace PAT
+          if: ${{ inputs.validate-tokens == 'true' && inputs.vsce-pat != '' }}
+          shell: bash
+          env:
+              VSCE_PAT: ${{ inputs.vsce-pat }}
+          run: |
+              echo "::group::[${{ inputs.log-prefix }}:VSCE-PAT] Validating VS Code Marketplace PAT"
+              if ! npx @vscode/vsce verify-pat xavier-arosemena > /tmp/vsce-pat.log 2>&1; then
+                  echo "::error::[${{ inputs.log-prefix }}:VSCE-PAT] VSCE_PAT is invalid, expired, or lacks 'Manage' permission for publisher 'xavier-arosemena'."
+                  echo "::error::[${{ inputs.log-prefix }}:VSCE-PAT] Regenerate a PAT at https://marketplace.visualstudio.com/manage/publishers/xavier-arosemena (Marketplace -> Manage)."
+                  echo "::error::[${{ inputs.log-prefix }}:VSCE-PAT] Update the VSCE_PAT secret in the ${{ inputs.environment }} environment, then re-run."
+                  cat /tmp/vsce-pat.log
+                  exit 1
+              fi
+              echo "::notice::[${{ inputs.log-prefix }}:VSCE-PAT] VS Code Marketplace PAT verified for publisher xavier-arosemena"
+              echo "::endgroup::"
+
+        - name: Warn about missing Open VSX access token
+          if: ${{ inputs.validate-tokens == 'true' && inputs.ovsx-pat == '' }}
+          shell: bash
+          run: |
+              echo "::warning::[${{ inputs.log-prefix }}:OVSX-PAT] OVSX_PAT is not configured — the Open VSX publish step will be skipped."
+              echo "::notice::[${{ inputs.log-prefix }}:OVSX-PAT] To enable it, create an access token at https://open-vsx.org/user-settings/tokens (publisher 'xavier-arosemena') and add it as the OVSX_PAT secret in the ${{ inputs.environment }} environment."
+
+        - name: Validate Open VSX access token
+          if: ${{ inputs.validate-tokens == 'true' && inputs.ovsx-pat != '' }}
+          shell: bash
+          run: |
+              echo "::group::[${{ inputs.log-prefix }}:OVSX-PAT] Validating Open VSX access token"
+              echo "::notice::[${{ inputs.log-prefix }}:OVSX-PAT] Open VSX access token configured"
+              echo "::endgroup::"

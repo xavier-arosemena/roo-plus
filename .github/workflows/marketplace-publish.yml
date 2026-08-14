@@ -11,9 +11,21 @@ on:
 permissions:
   contents: read
 
+# Never run two stable publishes concurrently — a duplicate tag push or an
+# overlapping manual dispatch must not race on the same marketplace version.
+concurrency:
+  group: marketplace-production
+  cancel-in-progress: false
+
 jobs:
+  # Approval gate only applies to manual dispatches. Tag pushes already require
+  # write access to the repository (only maintainers can push v* tags), so the
+  # gate would be redundant for them and would only add latency to the common
+  # tag-triggered release path.
   check-pr-approval:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       pull-requests: read
       contents: read
@@ -79,7 +91,11 @@ jobs:
 
   publish-stable:
     needs: [check-pr-approval]
+    # The gate job is skipped for tag pushes (result == 'skipped'), so this runs
+    # for tags; for manual dispatches it only runs after the gate succeeded.
+    if: ${{ needs.check-pr-approval.result != 'failure' && needs.check-pr-approval.result != 'cancelled' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: marketplace-production
     permissions:
       contents: write
@@ -104,34 +120,17 @@ jobs:
         with:
           install-args: "--frozen-lockfile"
 
-      - name: Verify custom-modes submodule pin & committed artifact sync
-        run: |
-          echo "::group::[CI:MARKETPLACE:SUBMODULE] Verifying submodule pin + .roomodes sync"
-          node scripts/verify-submodule-pin.mjs
-          node scripts/verify-roomodes-sync.mjs
-          echo "::notice::[CI:MARKETPLACE:SUBMODULE] submodule pin and .roomodes sync verified"
-          echo "::endgroup::"
-
-      - name: Validate package identity
-        run: |
-          echo "::group::[CI:MARKETPLACE:IDENTITY] Validating package identity"
-          package_name=$(node -p "require('./src/package.json').name")
-          publisher=$(node -p "require('./src/package.json').publisher")
-       
-          test "$package_name" = "roo-plus"
-          test "$publisher" = "xavier-arosemena"
-          echo "::notice::[CI:MARKETPLACE:IDENTITY] package identity OK: $package_name / $publisher"
-          echo "::endgroup::"
-
-      - name: Validate publish ref
-        run: |
-          echo "::group::[CI:MARKETPLACE:REF] Validating publish ref"
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$GITHUB_REF_NAME" != "master" ]; then
-            echo "::error::[CI:MARKETPLACE:REF] Manual stable publishes must run from master, not ${GITHUB_REF_NAME}."
-            exit 1
-          fi
-          echo "::notice::[CI:MARKETPLACE:REF] publish ref OK: $GITHUB_REF_NAME"
-          echo "::endgroup::"
+      - name: Prepare extension publish
+        uses: ./.github/actions/prepare-extension
+        with:
+          log-prefix: MARKETPLACE
+          environment: marketplace-production
+          # Tag pushes carry their own tag ref; only manual dispatches must run
+          # from master.
+          require-master-ref: ${{ github.event_name == 'workflow_dispatch' }}
+          validate-tokens: "true"
+          vsce-pat: ${{ secrets.VSCE_PAT }}
+          ovsx-pat: ${{ secrets.OVSX_PAT }}
 
       - name: Validate release tag
         if: github.event_name == 'push'
@@ -145,41 +144,6 @@ jobs:
             exit 1
           fi
           echo "::notice::[CI:MARKETPLACE:TAG] release tag matches package version: $package_version"
-          echo "::endgroup::"
-
-      - name: Validate VS Code Marketplace PAT (if configured)
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: |
-          echo "::group::[CI:MARKETPLACE:VSCE-PAT] Validating VS Code Marketplace PAT"
-          if [ -z "$VSCE_PAT" ]; then
-            echo "::warning::[CI:MARKETPLACE:VSCE-PAT] VSCE_PAT is not configured — the VS Code Marketplace publish step will be skipped."
-            echo "::notice::[CI:MARKETPLACE:VSCE-PAT] To enable it, add a Personal Access Token (Manage scope, publisher 'xavier-arosemena') as the VSCE_PAT secret in the marketplace-production environment."
-            echo "::endgroup::"
-            exit 0
-          fi
-          if ! npx @vscode/vsce verify-pat xavier-arosemena > /tmp/vsce-pat.log 2>&1; then
-            echo "::error::[CI:MARKETPLACE:VSCE-PAT] VSCE_PAT is invalid, expired, or lacks 'Manage' permission for publisher 'xavier-arosemena'."
-            echo "::error::[CI:MARKETPLACE:VSCE-PAT] Regenerate a PAT at https://marketplace.visualstudio.com/manage/publishers/xavier-arosemena (Marketplace -> Manage)."
-            echo "::error::[CI:MARKETPLACE:VSCE-PAT] Update the VSCE_PAT secret in the marketplace-production environment, then re-run."
-            cat /tmp/vsce-pat.log
-            exit 1
-          fi
-          echo "::notice::[CI:MARKETPLACE:VSCE-PAT] VS Code Marketplace PAT verified for publisher xavier-arosemena"
-          echo "::endgroup::"
-
-      - name: Validate Open VSX access token (if configured)
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
-        run: |
-          echo "::group::[CI:MARKETPLACE:OVSX-PAT] Validating Open VSX access token"
-          if [ -z "$OVSX_PAT" ]; then
-            echo "::warning::[CI:MARKETPLACE:OVSX-PAT] OVSX_PAT is not configured — the Open VSX publish step will be skipped."
-            echo "::notice::[CI:MARKETPLACE:OVSX-PAT] To enable it, create an access token at https://open-vsx.org/user-settings/tokens (publisher 'xavier-arosemena') and add it as the OVSX_PAT secret in the marketplace-production environment."
-            echo "::endgroup::"
-            exit 0
-          fi
-          echo "::notice::[CI:MARKETPLACE:OVSX-PAT] Open VSX access token configured"
           echo "::endgroup::"
 
       - name: Verify Semble checksums (SEMBLE_VERSION lockstep)
@@ -227,7 +191,7 @@ jobs:
 
           artifact_name=$(unzip -p "$vsix_path" extension/package.json | jq -r '.name')
           artifact_publisher=$(unzip -p "$vsix_path" extension/package.json | jq -r '.publisher')
-       
+
           test "$artifact_name" = "roo-plus"
           test "$artifact_publisher" = "xavier-arosemena"
           echo "::notice::[CI:MARKETPLACE:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher"
@@ -250,6 +214,15 @@ jobs:
           pnpm exec ovsx publish "bin/roo-plus-${package_version}.vsix" --skip-duplicate
           echo "::notice::[CI:MARKETPLACE:PUBLISH:OVSX] Published xavier-arosemena.roo-plus ${package_version} to Open VSX Registry"
           echo "::endgroup::"
+
+      # Keep the packaged artifact attached to the run for audit and manual
+      # install even if the GitHub release creation below is ever skipped.
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: roo-plus-stable-${{ github.sha }}
+          path: bin/roo-plus-*.vsix
+          retention-days: 7
 
       - name: Create GitHub release
         env:
