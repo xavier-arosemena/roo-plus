@@ -20,17 +20,24 @@ export const ReasoningBlock = ({ content, isStreaming, isLast }: ReasoningBlockP
 
 	const [isCollapsed, setIsCollapsed] = useState(reasoningBlockCollapsed)
 
-	const startTimeRef = useRef<number>(Date.now())
+	const startTimeRef = useRef<number | null>(null)
 	const [elapsed, setElapsed] = useState<number>(0)
 	const contentRef = useRef<HTMLDivElement>(null)
 
-	useEffect(() => {
+	// Sync collapse state from the global setting during render (React's
+	// recommended "adjust state during render" pattern).
+	const [prevCollapsedSetting, setPrevCollapsedSetting] = useState(reasoningBlockCollapsed)
+	if (reasoningBlockCollapsed !== prevCollapsedSetting) {
+		setPrevCollapsedSetting(reasoningBlockCollapsed)
 		setIsCollapsed(reasoningBlockCollapsed)
-	}, [reasoningBlockCollapsed])
+	}
 
 	useEffect(() => {
 		if (isLast && isStreaming) {
-			const tick = () => setElapsed(Date.now() - startTimeRef.current)
+			// Capture the start time in the effect (not during render, which
+			// would be an impure Date.now() call).
+			startTimeRef.current = startTimeRef.current ?? Date.now()
+			const tick = () => setElapsed(Date.now() - (startTimeRef.current ?? 0))
 			tick()
 			const id = setInterval(tick, 1000)
 			return () => clearInterval(id)

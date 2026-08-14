@@ -14,6 +14,15 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 	const containerRef = useRef<HTMLDivElement>(null)
 	const { width } = useWindowSize()
 
+	// Reset the hover state when the image list changes. Done during render
+	// (React's recommended "adjust state during render" pattern) instead of in
+	// an effect.
+	const [prevImages, setPrevImages] = useState(images)
+	if (prevImages !== images) {
+		setPrevImages(images)
+		setHoveredIndex(null)
+	}
+
 	useLayoutEffect(() => {
 		if (containerRef.current) {
 			let height = containerRef.current.clientHeight
@@ -23,7 +32,6 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 			}
 			onHeightChange?.(height)
 		}
-		setHoveredIndex(null)
 	}, [images, width, onHeightChange])
 
 	const handleDelete = (index: number) => {

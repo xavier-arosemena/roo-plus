@@ -70,7 +70,10 @@ export const Ollama = ({ apiConfiguration, setApiConfigurationField }: OllamaPro
 		}
 	}, [])
 
-	const handleRefreshModels = useCallback(() => {
+	// Plain function (not useCallback) — the React Compiler flagged the manual
+	// memoization as not-preservable with optional-chained deps; it is only used
+	// as an event handler.
+	const handleRefreshModels = () => {
 		refreshStatusRef.current = "loading"
 		setRefreshStatus("loading")
 		setRefreshError(undefined)
@@ -81,7 +84,7 @@ export const Ollama = ({ apiConfiguration, setApiConfigurationField }: OllamaPro
 				apiKey: apiConfiguration?.ollamaApiKey,
 			},
 		})
-	}, [apiConfiguration?.ollamaBaseUrl, apiConfiguration?.ollamaApiKey])
+	}
 
 	// Refresh models on mount
 	useEffect(() => {

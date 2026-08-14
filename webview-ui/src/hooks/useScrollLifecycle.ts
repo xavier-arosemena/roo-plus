@@ -11,7 +11,7 @@
  *   moves to `USER_BROWSING_HISTORY` and prevents forced re-pinning
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useEvent } from "react-use"
 import debounce from "debounce"
 import type { VirtuosoHandle } from "react-virtuoso"
@@ -145,15 +145,20 @@ export function useScrollLifecycle({
 	// Scroll commands
 	// -----------------------------------------------------------------------
 
-	const scrollToBottomSmooth = useMemo(
-		() =>
-			debounce(
-				() => virtuosoRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" }),
-				10,
-				{ immediate: true },
-			),
-		[virtuosoRef],
-	)
+	// Debounced smooth-scroll helper. Created in an effect (not during render)
+	// so the ref access happens outside render.
+	const scrollToBottomSmoothRef = useRef<ReturnType<typeof debounce> | null>(null)
+
+	useEffect(() => {
+		scrollToBottomSmoothRef.current = debounce(
+			() => virtuosoRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" }),
+			10,
+			{ immediate: true },
+		)
+		return () => {
+			scrollToBottomSmoothRef.current?.clear()
+		}
+	}, [virtuosoRef])
 
 	const scrollToBottomAuto = useCallback(() => {
 		virtuosoRef.current?.scrollToIndex({
@@ -172,32 +177,37 @@ export function useScrollLifecycle({
 		}
 	}, [])
 
-	const finishHydrationWindow = useCallback(() => {
-		if (!isMountedRef.current || !isHydratingRef.current) {
-			return
-		}
-
-		if (scrollPhaseRef.current === "HYDRATING_PINNED_TO_BOTTOM") {
-			if (isAtBottomRef.current) {
-				enterAnchoredFollowing()
-			} else {
-				if (!hydrationRetryUsedRef.current) {
-					hydrationRetryUsedRef.current = true
-					scrollToBottomAuto()
-					hydrationTimeoutRef.current = window.setTimeout(() => {
-						finishHydrationWindow()
-					}, HYDRATION_RETRY_WINDOW_MS)
-					return
-				}
-
-				// Retry budget exhausted. Keep anchored follow rather than
-				// downgrading to browsing mode due to non-user transient drift.
-				enterAnchoredFollowing()
+	// Named function expression so the recursive retry can reference itself
+	// without the "accessed before declared" temporal-dead-zone issue.
+	const finishHydrationWindow = useCallback(
+		function finishHydrationWindowCb() {
+			if (!isMountedRef.current || !isHydratingRef.current) {
+				return
 			}
-		}
 
-		clearHydrationWindow()
-	}, [clearHydrationWindow, enterAnchoredFollowing, scrollToBottomAuto])
+			if (scrollPhaseRef.current === "HYDRATING_PINNED_TO_BOTTOM") {
+				if (isAtBottomRef.current) {
+					enterAnchoredFollowing()
+				} else {
+					if (!hydrationRetryUsedRef.current) {
+						hydrationRetryUsedRef.current = true
+						scrollToBottomAuto()
+						hydrationTimeoutRef.current = window.setTimeout(() => {
+							finishHydrationWindowCb()
+						}, HYDRATION_RETRY_WINDOW_MS)
+						return
+					}
+
+					// Retry budget exhausted. Keep anchored follow rather than
+					// downgrading to browsing mode due to non-user transient drift.
+					enterAnchoredFollowing()
+				}
+			}
+
+			clearHydrationWindow()
+		},
+		[clearHydrationWindow, enterAnchoredFollowing, scrollToBottomAuto],
+	)
 
 	const startHydrationWindow = useCallback(() => {
 		isHydratingRef.current = true
@@ -223,14 +233,24 @@ export function useScrollLifecycle({
 			isMountedRef.current = false
 			clearHydrationWindow()
 			cancelReanchorFrame()
-			scrollToBottomSmooth.clear()
+			scrollToBottomSmoothRef.current?.clear()
 		}
-	}, [cancelReanchorFrame, clearHydrationWindow, scrollToBottomSmooth])
+	}, [cancelReanchorFrame, clearHydrationWindow, scrollToBottomSmoothRef])
 
 	// Keep phase ref in sync with state
 	useEffect(() => {
 		scrollPhaseRef.current = scrollPhase
 	}, [scrollPhase])
+
+	// Reset the phase/show-scroll state on task switch. Done during render
+	// (React's recommended "adjust state during render" pattern); the phase ref
+	// is synced by the dedicated effect above.
+	const [prevTaskTs, setPrevTaskTs] = useState(taskTs)
+	if (taskTs !== prevTaskTs) {
+		setPrevTaskTs(taskTs)
+		setScrollPhase(taskTs ? "HYDRATING_PINNED_TO_BOTTOM" : "USER_BROWSING_HISTORY")
+		setShowScrollToBottom(false)
+	}
 
 	// Task switch: reset and begin a short hydration window
 	useEffect(() => {
@@ -239,19 +259,14 @@ export function useScrollLifecycle({
 		cancelReanchorFrame()
 
 		if (taskTs) {
-			transitionScrollPhase("HYDRATING_PINNED_TO_BOTTOM")
-			setShowScrollToBottom(false)
 			startHydrationWindow()
-		} else {
-			transitionScrollPhase("USER_BROWSING_HISTORY")
-			setShowScrollToBottom(false)
 		}
 
 		return () => {
 			clearHydrationWindow()
 			cancelReanchorFrame()
 		}
-	}, [cancelReanchorFrame, clearHydrationWindow, startHydrationWindow, taskTs, transitionScrollPhase])
+	}, [cancelReanchorFrame, clearHydrationWindow, startHydrationWindow, taskTs])
 
 	// -----------------------------------------------------------------------
 	// Row height change handler
@@ -269,13 +284,13 @@ export function useScrollLifecycle({
 			const shouldForcePinForAnchoredStreaming = scrollPhaseRef.current === "ANCHORED_FOLLOWING" && isStreaming
 			if (isAtBottomRef.current || shouldForcePinForAnchoredStreaming) {
 				if (isTaller) {
-					scrollToBottomSmooth()
+					scrollToBottomSmoothRef.current?.()
 				} else {
 					scrollToBottomAuto()
 				}
 			}
 		},
-		[isStreaming, scrollToBottomSmooth, scrollToBottomAuto],
+		[isStreaming, scrollToBottomSmoothRef, scrollToBottomAuto],
 	)
 
 	// -----------------------------------------------------------------------

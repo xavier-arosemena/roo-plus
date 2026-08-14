@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useMemo } from "react"
 import { Fzf } from "fzf"
 
 import { highlightFzfMatch } from "@/utils/highlight"
@@ -13,15 +13,16 @@ export const useTaskSearch = () => {
 	const [lastNonRelevantSort, setLastNonRelevantSort] = useState<SortOption | null>("newest")
 	const [showAllWorkspaces, setShowAllWorkspaces] = useState(false)
 
-	useEffect(() => {
-		if (searchQuery && sortOption !== "mostRelevant" && !lastNonRelevantSort) {
-			setLastNonRelevantSort(sortOption)
-			setSortOption("mostRelevant")
-		} else if (!searchQuery && sortOption === "mostRelevant" && lastNonRelevantSort) {
-			setSortOption(lastNonRelevantSort)
-			setLastNonRelevantSort(null)
-		}
-	}, [searchQuery, sortOption, lastNonRelevantSort])
+	// Keep the relevance-sort state machine in sync with the search query using
+	// the React-recommended "adjust state during render" pattern (each branch
+	// converges, so no infinite loop) instead of an effect.
+	if (searchQuery && sortOption !== "mostRelevant" && !lastNonRelevantSort) {
+		setLastNonRelevantSort(sortOption)
+		setSortOption("mostRelevant")
+	} else if (!searchQuery && sortOption === "mostRelevant" && lastNonRelevantSort) {
+		setSortOption(lastNonRelevantSort)
+		setLastNonRelevantSort(null)
+	}
 
 	const presentableTasks = useMemo(() => {
 		let tasks = taskHistory.filter((item) => item.ts && item.task)

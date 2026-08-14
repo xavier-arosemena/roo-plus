@@ -134,11 +134,29 @@ export const OpenAICodexRateLimitDashboard: React.FC<OpenAICodexRateLimitDashboa
 		return () => window.removeEventListener("message", handleMessage)
 	}, [])
 
+	// Fetch rate limits on mount/auth change. Loading state is set during render
+	// (React's recommended "adjust state during render" pattern); the request
+	// postMessage stays in an effect.
+	const [prevAuthenticated, setPrevAuthenticated] = useState(isAuthenticated)
+	if (isAuthenticated && !prevAuthenticated) {
+		setPrevAuthenticated(isAuthenticated)
+		setIsLoading(true)
+		setError(null)
+	}
+
 	useEffect(() => {
 		if (isAuthenticated) {
-			fetchRateLimits()
+			vscode.postMessage({ type: "requestOpenAiCodexRateLimits" })
 		}
-	}, [isAuthenticated, fetchRateLimits])
+	}, [isAuthenticated])
+
+	// Keep a live "now" so countdown labels update without calling Date.now()
+	// during render.
+	const [now, setNow] = useState<number>(() => Date.now())
+	useEffect(() => {
+		const id = setInterval(() => setNow(Date.now()), 1000)
+		return () => clearInterval(id)
+	}, [])
 
 	if (!isAuthenticated) return null
 
@@ -179,11 +197,11 @@ export const OpenAICodexRateLimitDashboard: React.FC<OpenAICodexRateLimitDashboa
 	const planLabel = formatPlanLabel(planType, t)
 
 	const primaryWindowLabel = primary ? formatWindowLabel(primary.windowMinutes, t) : undefined
-	const primaryTimeRemaining = primary?.resetsAt ? formatTimeRemainingMs(primary.resetsAt - Date.now(), t) : ""
+	const primaryTimeRemaining = primary?.resetsAt ? formatTimeRemainingMs(primary.resetsAt - now, t) : ""
 	const primaryUsed = primary ? Math.round(primary.usedPercent) : undefined
 
 	const secondaryWindowLabel = secondary ? formatWindowLabel(secondary.windowMinutes, t) : undefined
-	const secondaryTimeRemaining = secondary?.resetsAt ? formatTimeRemainingMs(secondary.resetsAt - Date.now(), t) : ""
+	const secondaryTimeRemaining = secondary?.resetsAt ? formatTimeRemainingMs(secondary.resetsAt - now, t) : ""
 	const secondaryUsed = secondary ? Math.round(secondary.usedPercent) : undefined
 
 	const getUsageStatusLabel = (used: number | undefined, timeRemaining: string, resetAt?: number) => {

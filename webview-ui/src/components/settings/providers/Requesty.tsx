@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { VSCodeCheckbox, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import {
@@ -42,10 +42,14 @@ export const Requesty = ({
 
 	const [requestyEndpointSelected, setRequestyEndpointSelected] = useState(!!apiConfiguration.requestyBaseUrl)
 
-	// This ensures that the "Use custom URL" checkbox is hidden when the user deletes the URL.
-	useEffect(() => {
+	// This ensures that the "Use custom URL" checkbox is hidden when the user
+	// deletes the URL. Done during render (React's recommended "adjust state
+	// during render" pattern).
+	const [prevRequestyUrl, setPrevRequestyUrl] = useState(apiConfiguration?.requestyBaseUrl)
+	if (apiConfiguration?.requestyBaseUrl !== prevRequestyUrl) {
+		setPrevRequestyUrl(apiConfiguration?.requestyBaseUrl)
 		setRequestyEndpointSelected(!!apiConfiguration?.requestyBaseUrl)
-	}, [apiConfiguration?.requestyBaseUrl])
+	}
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(

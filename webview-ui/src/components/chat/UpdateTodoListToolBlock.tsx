@@ -62,12 +62,12 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 	const [deleteId, setDeleteId] = useState<string | null>(null)
 	const [isEditing, setIsEditing] = useState(false)
 
-	// Automatically exit edit mode when external editable becomes false
-	useEffect(() => {
-		if (!editable && isEditing) {
-			setIsEditing(false)
-		}
-	}, [editable, isEditing])
+	// Automatically exit edit mode when external editable becomes false.
+	// Done during render (React's recommended "adjust state during render"
+	// pattern) — the guard converges.
+	if (!editable && isEditing) {
+		setIsEditing(false)
+	}
 
 	// Check if onChange is passed
 	useEffect(() => {
@@ -80,10 +80,13 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	// Sync when external props.todos changes
-	useEffect(() => {
+	// Sync when external props.todos changes. Done during render (React's
+	// recommended "adjust state during render" pattern).
+	const [prevTodos, setPrevTodos] = useState(todos)
+	if (todos !== prevTodos) {
+		setPrevTodos(todos)
 		setEditTodos(todos.length > 0 ? todos.map((todo) => ({ ...todo, id: todo.id || genId() })) : [])
-	}, [todos])
+	}
 
 	// Auto focus on new item
 	useEffect(() => {

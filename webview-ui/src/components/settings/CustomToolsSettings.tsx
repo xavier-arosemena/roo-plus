@@ -36,11 +36,19 @@ export const CustomToolsSettings = ({ enabled, onChange }: CustomToolsSettingsPr
 	const [isRefreshing, setIsRefreshing] = useState(false)
 	const [refreshError, setRefreshError] = useState<string | null>(null)
 
+	// Clear the tool list when disabled. Done during render (React's
+	// recommended "adjust state during render" pattern).
+	const [prevEnabled, setPrevEnabled] = useState(enabled)
+	if (enabled !== prevEnabled) {
+		setPrevEnabled(enabled)
+		if (!enabled) {
+			setTools([])
+		}
+	}
+
 	useEffect(() => {
 		if (enabled) {
 			vscode.postMessage({ type: "refreshCustomTools" })
-		} else {
-			setTools([])
 		}
 	}, [enabled])
 

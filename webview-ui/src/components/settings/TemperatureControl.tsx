@@ -1,5 +1,5 @@
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { useDebounce } from "react-use"
 
@@ -19,12 +19,15 @@ export const TemperatureControl = ({ value, onChange, maxValue = 1, defaultValue
 
 	useDebounce(() => onChange(inputValue), 50, [onChange, inputValue])
 
-	// Sync internal state with prop changes when switching profiles.
-	useEffect(() => {
+	// Sync internal state with prop changes when switching profiles. Done during
+	// render (React's recommended "adjust state during render" pattern).
+	const [prevTemperatureValue, setPrevTemperatureValue] = useState(value)
+	if (value !== prevTemperatureValue) {
+		setPrevTemperatureValue(value)
 		const hasCustomTemperature = value !== undefined && value !== null
 		setIsCustomTemperature(hasCustomTemperature)
 		setInputValue(value)
-	}, [value])
+	}
 
 	return (
 		<>

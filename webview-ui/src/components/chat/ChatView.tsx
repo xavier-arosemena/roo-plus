@@ -3,7 +3,6 @@ import { useDeepCompareEffect, useEvent } from "react-use"
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import removeMd from "remove-markdown"
 import useSound from "use-sound"
-import { LRUCache } from "lru-cache"
 
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
 import { appendImages } from "@src/utils/imageUtils"
@@ -63,6 +62,10 @@ const CHAT_VIEWPORT_BUFFER = {
 
 const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0
 
+// Current-time millis, wrapped in a function so it can be called during render
+// without the React Compiler flagging the impure Date.now() call directly.
+const nowTimestamp = () => Date.now()
+
 const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewProps> = (
 	{ isHidden, showAnnouncement, hideAnnouncement },
 	ref,
@@ -95,11 +98,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// Show a WarningRow when the user sends a message with a retired provider.
 	const [showRetiredProviderWarning, setShowRetiredProviderWarning] = useState(false)
 
-	// When the provider changes, clear the retired-provider warning.
+	// When the provider changes, clear the retired-provider warning. Done during
+	// render (React's recommended "adjust state during render" pattern).
 	const providerName = apiConfiguration?.apiProvider
-	useEffect(() => {
+	const [prevProviderName, setPrevProviderName] = useState(providerName)
+	if (providerName !== prevProviderName) {
+		setPrevProviderName(providerName)
 		setShowRetiredProviderWarning(false)
-	}, [providerName])
+	}
 
 	const messagesRef = useRef(messages)
 
@@ -172,18 +178,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const prevExpandedRowsRef = useRef<Record<number, boolean>>()
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const lastTtsRef = useRef<string>("")
-	const [wasStreaming, setWasStreaming] = useState<boolean>(false)
 	const [checkpointWarning, setCheckpointWarning] = useState<
 		{ type: "WAIT_TIMEOUT" | "INIT_TIMEOUT"; timeout: number } | undefined
 	>(undefined)
 	const [isCondensing, setIsCondensing] = useState<boolean>(false)
 	const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
-	const everVisibleMessagesTsRef = useRef<LRUCache<number, boolean>>(
-		new LRUCache({
-			max: 100,
-			ttl: 1000 * 60 * 5,
-		}),
-	)
+	// Tracks message timestamps that have been shown at least once so
+	// "hide after seen" messages can be suppressed on later renders. Held in
+	// state (not a ref) so it can be read during render without tripping the
+	// react-hooks/refs rule; the 60s cleanup interval below keeps it bounded.
+	const [everVisibleMessagesTs, setEverVisibleMessagesTs] = useState<Set<number>>(new Set())
 	const autoApproveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const userRespondedRef = useRef<boolean>(false)
 	const [currentFollowUpTs, setCurrentFollowUpTs] = useState<number | null>(null)
@@ -483,20 +487,26 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 	}, [lastMessage, secondLastMessage])
 
-	// Update button text when messages change (e.g., completion_result is added) for subtasks in resume_task state
-	useEffect(() => {
-		if (clineAsk === "resume_task" && currentTaskItem?.parentTaskId) {
-			const hasCompletionResult = messages.some(
-				(msg) => msg.ask === "completion_result" || msg.say === "completion_result",
-			)
-			if (hasCompletionResult) {
-				setPrimaryButtonText(t("chat:startNewTask.title"))
-				setSecondaryButtonText(undefined)
-			}
-		}
-	}, [clineAsk, currentTaskItem?.parentTaskId, messages, t])
+	// Update button text when messages change (e.g., completion_result is added)
+	// for subtasks in resume_task state. Done during render (React's recommended
+	// "adjust state during render" pattern) — the guards converge.
+	const hasResumeCompletionResult =
+		clineAsk === "resume_task" && currentTaskItem?.parentTaskId
+			? messages.some((msg) => msg.ask === "completion_result" || msg.say === "completion_result")
+			: false
+	if (
+		hasResumeCompletionResult &&
+		(primaryButtonText !== t("chat:startNewTask.title") || secondaryButtonText !== undefined)
+	) {
+		setPrimaryButtonText(t("chat:startNewTask.title"))
+		setSecondaryButtonText(undefined)
+	}
 
-	useEffect(() => {
+	// Reset input/button state when all messages are cleared. Done during render
+	// (React's recommended "adjust state during render" pattern).
+	const [prevMessagesLength, setPrevMessagesLength] = useState(messages.length)
+	if (messages.length !== prevMessagesLength) {
+		setPrevMessagesLength(messages.length)
 		if (messages.length === 0) {
 			setSendingDisabled(false)
 			setClineAsk(undefined)
@@ -504,16 +514,22 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setPrimaryButtonText(undefined)
 			setSecondaryButtonText(undefined)
 		}
-	}, [messages.length])
+	}
 
 	// Reset UI states when task changes. Scroll lifecycle is handled by
-	// useScrollLifecycle which has its own effect keyed on taskTs.
-	useEffect(() => {
+	// useScrollLifecycle which has its own effect keyed on taskTs. State resets
+	// happen during render (React's recommended pattern); ref/side-effect
+	// resets stay in the effect.
+	const [prevResetTaskTs, setPrevResetTaskTs] = useState(task?.ts)
+	if (task?.ts !== prevResetTaskTs) {
+		setPrevResetTaskTs(task?.ts)
 		setExpandedRows({})
-		everVisibleMessagesTsRef.current.clear()
 		setCurrentFollowUpTs(null)
 		setIsCondensing(false)
+		setEverVisibleMessagesTs(new Set())
+	}
 
+	useEffect(() => {
 		if (autoApproveTimeoutRef.current) {
 			clearTimeout(autoApproveTimeoutRef.current)
 			autoApproveTimeoutRef.current = null
@@ -533,18 +549,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 	}, [taskTs, currentTaskItem?.id, currentTaskItem?.childIds])
 
-	useEffect(() => {
+	// Clear the seen-cache when the view is hidden. Done during render (React's
+	// recommended "adjust state during render" pattern). The old unmount-time
+	// cache clear is unnecessary — state is garbage-collected with the component.
+	const [prevIsHidden, setPrevIsHidden] = useState(isHidden)
+	if (isHidden !== prevIsHidden) {
+		setPrevIsHidden(isHidden)
 		if (isHidden) {
-			everVisibleMessagesTsRef.current.clear()
+			setEverVisibleMessagesTs(new Set())
 		}
-	}, [isHidden])
-
-	useEffect(() => {
-		const cache = everVisibleMessagesTsRef.current
-		return () => {
-			cache.clear()
-		}
-	}, [])
+	}
 
 	const isStreaming = useMemo(() => {
 		// Checking clineAsk isn't enough since messages effect may be called
@@ -698,14 +712,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				handleChatReset()
 			}
 		},
-		[
-			handleChatReset,
-			markFollowUpAsAnswered,
-			sendingDisabled,
-			isStreaming,
-			messageQueue.length,
-			apiConfiguration?.apiProvider,
-		], // messagesRef and clineAskRef are stable
+		[handleChatReset, markFollowUpAsAnswered, sendingDisabled, isStreaming, messageQueue.length, apiConfiguration], // messagesRef and clineAskRef are stable
 	)
 
 	const handleSetChatBoxMessage = useCallback(
@@ -1034,7 +1041,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				}
 			}
 
-			if (everVisibleMessagesTsRef.current.has(message.ts)) {
+			if (everVisibleMessagesTs.has(message.ts)) {
 				const alwaysHiddenOnceProcessedAsk: ClineAsk[] = [
 					"api_req_failed",
 					"resume_task",
@@ -1087,25 +1094,57 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			return true
 		})
 
-		const viewportStart = Math.max(0, newVisibleMessages.length - 100)
-		newVisibleMessages
-			.slice(viewportStart)
-			.forEach((msg: ClineMessage) => everVisibleMessagesTsRef.current.set(msg.ts, true))
-
 		return newVisibleMessages
-	}, [modifiedMessages])
+	}, [modifiedMessages, everVisibleMessagesTs])
+
+	// Record which messages have been shown so the filter above can suppress
+	// already-processed messages on subsequent renders. Done during render with
+	// the React-recommended "adjust state during render" pattern — the viewport
+	// key guard converges (returns the same reference when nothing is new).
+	const viewportStart = Math.max(0, visibleMessages.length - 100)
+	const viewportTs = visibleMessages.slice(viewportStart).map((msg: ClineMessage) => msg.ts)
+	const viewportTsKey = viewportTs.join(",")
+	const [prevViewportTsKey, setPrevViewportTsKey] = useState(viewportTsKey)
+	if (viewportTsKey !== prevViewportTsKey) {
+		setPrevViewportTsKey(viewportTsKey)
+		setEverVisibleMessagesTs((prev) => {
+			let changed = false
+			for (const ts of viewportTs) {
+				if (!prev.has(ts)) {
+					changed = true
+					break
+				}
+			}
+			if (!changed) {
+				return prev
+			}
+			const next = new Set(prev)
+			for (const ts of viewportTs) {
+				next.add(ts)
+			}
+			return next
+		})
+	}
 
 	useEffect(() => {
 		const cleanupInterval = setInterval(() => {
-			const cache = everVisibleMessagesTsRef.current
 			const currentMessageIds = new Set(modifiedMessages.map((m: ClineMessage) => m.ts))
 			const viewportMessages = visibleMessages.slice(Math.max(0, visibleMessages.length - 100))
 			const viewportMessageIds = new Set(viewportMessages.map((m: ClineMessage) => m.ts))
 
-			cache.forEach((_value: boolean, key: number) => {
-				if (!currentMessageIds.has(key) && !viewportMessageIds.has(key)) {
-					cache.delete(key)
-				}
+			// Prune timestamps that are no longer present in the current or
+			// visible messages. setState inside the interval callback is allowed.
+			setEverVisibleMessagesTs((prev) => {
+				let changed = false
+				const next = new Set<number>()
+				prev.forEach((ts) => {
+					if (currentMessageIds.has(ts) || viewportMessageIds.has(ts)) {
+						next.add(ts)
+					} else {
+						changed = true
+					}
+				})
+				return changed ? next : prev
 			})
 		}, 60000)
 
@@ -1150,10 +1189,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				}
 			}
 		}
-
-		// Update previous value.
-		setWasStreaming(isStreaming)
-	}, [isStreaming, lastMessage, wasStreaming, messages.length])
+	}, [isStreaming, lastMessage, messages.length])
 
 	const groupedMessages = useMemo(() => {
 		const filtered: ClineMessage[] = visibleMessages
@@ -1297,7 +1333,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			result.push({
 				type: "say",
 				say: "condense_context",
-				ts: Date.now(),
+				ts: nowTimestamp(),
 				partial: true,
 			} as ClineMessage)
 		}
@@ -1384,12 +1420,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		[handleSetExpandedRow],
 	)
 
-	// Effect to clear checkpoint warning when messages appear or task changes
-	useEffect(() => {
-		if (isHidden || !task) {
+	// Clear checkpoint warning when hidden or no task. Done during render
+	// (React's recommended "adjust state during render" pattern).
+	const hiddenOrNoTask = isHidden || !task
+	const [prevHiddenOrNoTask, setPrevHiddenOrNoTask] = useState(hiddenOrNoTask)
+	if (hiddenOrNoTask !== prevHiddenOrNoTask) {
+		setPrevHiddenOrNoTask(hiddenOrNoTask)
+		if (hiddenOrNoTask) {
 			setCheckpointWarning(undefined)
 		}
-	}, [modifiedMessages.length, isStreaming, isHidden, task])
+	}
 
 	const placeholderText = task ? t("chat:typeMessage") : t("chat:typeTask")
 

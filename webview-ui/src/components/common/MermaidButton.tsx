@@ -29,6 +29,9 @@ export function MermaidButton({ containerRef, code, isLoading, svgToPng, childre
 	const [modalViewMode, setModalViewMode] = useState<"diagram" | "code">("diagram")
 	const [isDragging, setIsDragging] = useState(false)
 	const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
+	// The diagram HTML is captured in event handlers (not during render) so the
+	// container ref is never read while rendering.
+	const [modalSvgHtml, setModalSvgHtml] = useState<string | null>(null)
 	const { copyWithFeedback } = useCopyToClipboard()
 	const { t } = useAppTranslation()
 
@@ -40,6 +43,7 @@ export function MermaidButton({ containerRef, code, isLoading, svgToPng, childre
 		setShowModal(true)
 		setZoomLevel(1)
 		setModalViewMode("diagram")
+		setModalSvgHtml(containerRef.current?.innerHTML ?? "")
 	}
 
 	/**
@@ -151,7 +155,10 @@ export function MermaidButton({ containerRef, code, isLoading, svgToPng, childre
 							icon="graph"
 							label={t("common:mermaid.tabs.diagram")}
 							isActive={modalViewMode === "diagram"}
-							onClick={() => setModalViewMode("diagram")}
+							onClick={() => {
+								setModalViewMode("diagram")
+								setModalSvgHtml(containerRef.current?.innerHTML ?? "")
+							}}
 						/>
 						<TabButton
 							icon="code"
@@ -193,14 +200,14 @@ export function MermaidButton({ containerRef, code, isLoading, svgToPng, childre
 								}}
 								onMouseUp={() => setIsDragging(false)}
 								onMouseLeave={() => setIsDragging(false)}>
-								{containerRef.current && containerRef.current.innerHTML && (
+								{modalSvgHtml && (
 									// Mermaid's rendered SVG is re-injected into the modal here so the
 									// original diagram node stays untouched (zoom/drag transform must not
 									// detach it from the inline chat view). Sanitize the copied HTML so a
 									// malicious diagram cannot smuggle scripts into the modal.
 									<div
 										dangerouslySetInnerHTML={{
-											__html: sanitizeHtml(containerRef.current.innerHTML),
+											__html: sanitizeHtml(modalSvgHtml),
 										}}
 									/>
 								)}

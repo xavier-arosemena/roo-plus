@@ -30,13 +30,12 @@ export function MarketplaceView({ stateManager, onDone, targetTab }: Marketplace
 	const retryCountRef = useRef(0)
 	const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-	// Track when we receive the initial state
-	useEffect(() => {
-		// Check if we already have items (state might have been received before mount)
-		if (state.allItems.length > 0 && !hasReceivedInitialState) {
-			setHasReceivedInitialState(true)
-		}
-	}, [state.allItems, hasReceivedInitialState])
+	// Track when we receive the initial state. Latch the flag during render
+	// (React's recommended "adjust state during render" pattern) — the guard
+	// converges, so there is no infinite loop.
+	if (state.allItems.length > 0 && !hasReceivedInitialState) {
+		setHasReceivedInitialState(true)
+	}
 
 	useEffect(() => {
 		if (targetTab && (targetTab === "mcp" || targetTab === "mode")) {

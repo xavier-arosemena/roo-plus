@@ -35,15 +35,47 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 	const [validationError, setValidationError] = useState<string | null>(null)
 	const [installationComplete, setInstallationComplete] = useState(false)
 
-	// Reset state when item changes
-	React.useEffect(() => {
+	// Reset/initialize the install form when the item or selected method
+	// changes. Done during render (React's recommended "adjust state during
+	// render" pattern) instead of an effect.
+	const [prevInstallItem, setPrevInstallItem] = useState(item)
+	const [prevInstallIndex, setPrevInstallIndex] = useState(selectedMethodIndex)
+	if (prevInstallItem !== item || prevInstallIndex !== selectedMethodIndex) {
+		const itemChanged = prevInstallItem !== item
+		setPrevInstallItem(item)
+		setPrevInstallIndex(selectedMethodIndex)
+
 		if (item) {
-			setSelectedMethodIndex(0)
-			setParameterValues({})
-			setValidationError(null)
-			setInstallationComplete(false)
+			if (itemChanged) {
+				setSelectedMethodIndex(0)
+				setParameterValues({})
+				setValidationError(null)
+				setInstallationComplete(false)
+			}
+
+			// Initialize parameter values for the effective parameters of the
+			// (newly) selected method, keeping any user-entered values.
+			const globalParams = item.type === "mcp" ? item.parameters || [] : []
+			let methodParams: McpParameter[] = []
+			if (Array.isArray(item.content)) {
+				const selectedMethod = item.content[selectedMethodIndex] as McpInstallationMethod
+				methodParams = selectedMethod?.parameters || []
+			}
+			const paramMap = new Map<string, McpParameter>()
+			globalParams.forEach((p) => paramMap.set(p.key, p))
+			methodParams.forEach((p) => paramMap.set(p.key, p))
+			const currentEffectiveParams = Array.from(paramMap.values())
+
+			setParameterValues((prev) => {
+				const newValues: Record<string, string> = {}
+				currentEffectiveParams.forEach((param) => {
+					// Keep existing value if it exists, otherwise empty string
+					newValues[param.key] = prev[param.key] || ""
+				})
+				return newValues
+			})
 		}
-	}, [item])
+	}
 
 	// Check if item has multiple installation methods
 	const hasMultipleMethods = useMemo(() => {
@@ -95,37 +127,6 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 		// Combine and deduplicate prerequisites
 		const allPrereqs = [...globalPrereqs, ...methodPrereqs]
 		return Array.from(new Set(allPrereqs))
-	}, [item, selectedMethodIndex])
-
-	// Update parameter values when method changes
-	React.useEffect(() => {
-		if (item) {
-			// Get effective parameters for current method
-			const globalParams = item.type === "mcp" ? item.parameters || [] : []
-			let methodParams: McpParameter[] = []
-
-			if (Array.isArray(item.content)) {
-				const selectedMethod = item.content[selectedMethodIndex] as McpInstallationMethod
-				methodParams = selectedMethod?.parameters || []
-			}
-
-			// Create map with global params first, then override with method-specific ones
-			const paramMap = new Map<string, McpParameter>()
-			globalParams.forEach((p) => paramMap.set(p.key, p))
-			methodParams.forEach((p) => paramMap.set(p.key, p))
-
-			const currentEffectiveParams = Array.from(paramMap.values())
-
-			// Initialize parameter values for effective parameters
-			setParameterValues((prev) => {
-				const newValues: Record<string, string> = {}
-				currentEffectiveParams.forEach((param) => {
-					// Keep existing value if it exists, otherwise empty string
-					newValues[param.key] = prev[param.key] || ""
-				})
-				return newValues
-			})
-		}
 	}, [item, selectedMethodIndex])
 
 	// Listen for installation result messages
