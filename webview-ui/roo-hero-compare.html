@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RooHero — final “Roo+” preview</title>
+<style>
+	:root {
+		--bg: #1b1b1b;
+		--fg: #d4d4d4;
+		--card: #232323;
+		--border: #3a3a3a;
+		color-scheme: dark;
+	}
+	:root[data-theme="light"] {
+		--bg: #ffffff;
+		--fg: #1f1f1f;
+		--card: #f5f5f5;
+		--border: #d5d5d5;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	body {
+		background: var(--bg);
+		color: var(--fg);
+		font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+		margin: 0;
+		padding: 32px;
+	}
+	h1 { font-size: 18px; margin: 0 0 4px; }
+	p.note { color: var(--fg); opacity: 0.65; font-size: 13px; margin: 0 0 24px; }
+	.toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
+	.toolbar button, .toolbar select {
+		background: var(--card);
+		color: var(--fg);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 6px 14px;
+		font-size: 13px;
+		cursor: pointer;
+	}
+	.panel {
+		background: var(--card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 28px;
+		display: inline-block;
+	}
+	pre {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+		font-size: 13px;
+		line-height: 1.2;
+		margin: 0;
+		color: var(--fg);
+		white-space: pre;
+		font-variant-ligatures: none;
+		font-kerning: none;
+	}
+	code { background: rgba(128, 128, 128, 0.2); border-radius: 4px; padding: 0 4px; }
+</style>
+</head>
+<body>
+	<h1>RooHero — final “Roo+” preview</h1>
+	<p class="note">Same markup as <code>RooHero.tsx</code>: <code><pre></code> + monospace stack + <code>font-variant-ligatures:none</code> / <code>font-kerning:none</code>. Verify alignment at each size and on both themes.</p>
+
+	<div class="toolbar">
+		<button id="themeToggle" type="button">Toggle light / dark theme (current: dark)</button>
+		<select id="sizeSelect" aria-label="Font size">
+			<option value="11">11px</option>
+			<option value="12">12px</option>
+			<option value="13" selected>13px</option>
+			<option value="14">14px</option>
+			<option value="16">16px</option>
+			<option value="20">20px</option>
+		</select>
+	</div>
+
+	<div class="panel">
+		<pre id="art"> ____
+|  _ \ ___  ___    _
+| |_) / _ \/ _ \ _| |_
+|  _ < (_) |(_) |_   _|
+|_| \_\___/\___/  |_|  </pre>
+	</div>
+
+	<script>
+		const toggle = document.getElementById("themeToggle")
+		toggle.addEventListener("click", () => {
+			const root = document.documentElement
+			root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark"
+			toggle.textContent =
+				"Toggle light / dark theme (current: " + root.dataset.theme + ")"
+		})
+
+		const art = document.getElementById("art")
+		document.getElementById("sizeSelect").addEventListener("change", (e) => {
+			art.style.fontSize = e.target.value + "px"
+		})
+	</script>
+</body>
+</html>

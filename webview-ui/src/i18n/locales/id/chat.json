@@ -128,7 +128,7 @@
 	"enqueueMessage": "Tambahkan pesan ke antrean (akan dikirim setelah tugas saat ini selesai)",
 	"scrollToBottom": "Gulir ke bawah chat",
 	"scrollToLatestCheckpoint": "Gulir ke checkpoint sebelumnya",
-	"about": "Tim AI multi-agen Anda — 301 mode khusus untuk coding, DevOps, keamanan, dan arsitektur.",
+	"about": "Tim AI multi-agen Anda — <br/>301 mode khusus untuk coding, DevOps, keamanan, dan arsitektur.",
 	"support": {
 		"reportIssue": "Laporkan bug atau minta fitur",
 		"discussions": "Ikuti diskusinya",

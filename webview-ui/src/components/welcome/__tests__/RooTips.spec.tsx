@@ -9,6 +9,7 @@ vi.mock("react-i18next", () => ({
 	useTranslation: () => ({
 		t: (key: string) => key, // Simple mock that returns the key
 	}),
+	Trans: ({ i18nKey }: { i18nKey: string }) => <>{i18nKey}</>,
 }))
 
 vi.mock("@vscode/webview-ui-toolkit/react", () => ({

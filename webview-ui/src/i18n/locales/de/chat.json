@@ -98,7 +98,7 @@
 	"enqueueMessage": "Nachricht zur Warteschlange hinzufügen (wird nach Abschluss der aktuellen Aufgabe gesendet)",
 	"scrollToBottom": "Zum Chat-Ende scrollen",
 	"scrollToLatestCheckpoint": "Zum vorherigen Checkpoint scrollen",
-	"about": "Dein Multi-Agenten-KI-Team — 301 spezialisierte Modi für Coding, DevOps, Sicherheit und Architektur.",
+	"about": "Dein Multi-Agenten-KI-Team — <br/>301 spezialisierte Modi für Coding, DevOps, Sicherheit und Architektur.",
 	"support": {
 		"reportIssue": "Fehler melden oder Feature anfragen",
 		"discussions": "An den Diskussionen teilnehmen",

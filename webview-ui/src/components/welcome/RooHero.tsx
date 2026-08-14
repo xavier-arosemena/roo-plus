@@ -1,39 +1,31 @@
-import { useState } from "react"
+// "Roo+" figlet-style wordmark. Pure ASCII — renders identically in any
+// monospace font (every ASCII character advances one cell in a monospace font,
+// so there is none of the glyph-width risk that box-drawing characters have).
+// The "o"s sit together (the right border of the first "o" is the left border
+// of the second) and each carries a small circle "(_)" in the middle; the "+"
+// is a fancy form with a top cap. Rendered in the theme foreground color, so it
+// adapts to dark and light themes without a separate light-mode artwork.
+const ROO_PLUS_ASCII = [
+	" ____                         ",
+	"|  _ \\ ___  ___    _   ",
+	"| |_) / _ \\/ _ \\ _| |_ ",
+	"|  _ < (_) |(_) |_   _|",
+	"|_| \\_\\___/\\___/  |_|  ",
+].join("\n")
 
 const RooHero = () => {
-	const [imagesBaseUri] = useState(() => {
-		const w = window as any
-		return w.IMAGES_BASE_URI || ""
-	})
-	const [isHovered, setIsHovered] = useState(false)
-
 	return (
-		<div
-			className="mb-4 relative forced-color-adjust-none group flex flex-col items-center w-30 pt-4 overflow-clip"
-			onMouseEnter={() => setIsHovered(true)}
-			onMouseLeave={() => setIsHovered(false)}>
-			<div
+		<div className="mb-4 relative flex flex-col items-center">
+			<pre
+				role="img"
+				aria-label="Roo+ logo"
+				className="m-0 font-mono text-vscode-foreground text-[13px] leading-tight select-none whitespace-pre"
 				style={{
-					backgroundColor: "var(--vscode-foreground)",
-					WebkitMaskImage: `url('${imagesBaseUri}/roo-logo.svg')`,
-					WebkitMaskRepeat: "no-repeat",
-					WebkitMaskSize: "contain",
-					maskImage: `url('${imagesBaseUri}/roo-logo.svg')`,
-					maskRepeat: "no-repeat",
-					maskSize: "contain",
-					animation: isHovered ? "smooth-bounce 1s ease-in-out infinite" : "none",
-				}}
-				className="z-5 mr-auto translate-y-0 transition-transform duration-500">
-				<img src={imagesBaseUri + "/roo-logo.svg"} alt="Roo+ logo" className="h-8 opacity-0" />
-			</div>
-			<div
-				className="w-[200%] -mt-0.25 h-0.5 overflow-hidden opacity-0 group-hover:opacity-70 transition-opacity duration-300"
-				data-testid="roo-hero-ground">
-				<div className="w-full border-b-1 group-hover:border-b-1 border-dashed border-vscode-foreground animate-ground-slide" />
-			</div>
-			<div className="z-4 bg-gradient-to-r from-transparent to-vscode-sideBar-background absolute top-0 right-0 bottom-0 w-10 opacity-100" />
-			<div className="z-3 bg-gradient-to-l from-transparent to-vscode-sideBar-background absolute top-0 left-0 bottom-0 w-10 opacity-100" />
-			<div className="bg-vscode-foreground/10 rounded-full size-10 z-1 absolute -bottom-4 animate-sun opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-[2px]" />
+					fontVariantLigatures: "none",
+					fontKerning: "none",
+				}}>
+				{ROO_PLUS_ASCII}
+			</pre>
 		</div>
 	)
 }
