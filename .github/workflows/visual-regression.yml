@@ -42,8 +42,17 @@ jobs:
                   pnpm --filter @roo-code/vscode-webview test:visual
                   echo "::notice::[CI:VISUAL-REGRESSION] webview visual tests passed"
                   echo "::endgroup::"
+            # Coverage uploads must never fail CI: the CODECOV_TOKEN secret is
+            # not currently configured, so codecov/codecov-action falls back to
+            # tokenless upload which fails for PR builds ("Token required - not
+            # valid tokenless upload"). Uploading the token when the repo secret
+            # is added will restore coverage reporting; until then this step
+            # degrades gracefully (report-only) instead of failing the job.
+            # NOTE: the `secrets` context cannot be used in `if:` expressions
+            # (workflow parse error), so we use continue-on-error instead.
             - name: Upload visual test coverage to Codecov
               if: always()
+              continue-on-error: true
               uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
               with:
                   files: webview-ui/coverage-ct/lcov.info

@@ -97,13 +97,11 @@ suite("Roo Code MCP OAuth", function () {
 			const method = req.method || ""
 			// Sanitize newlines/control characters in the request method and URL
 			// before logging them. Both originate from an untrusted HTTP client and
-			// must not be able to forge log entries (log-injection). Control
-			// characters (U+0000–U+001F and U+007F) are replaced with a space.
-			const sanitize = (value: string) =>
-				value
-					.split("")
-					.map((char) => (char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127 ? " " : char))
-					.join("")
+			// must not be able to forge log entries (log-injection). CR/LF are
+			// stripped first (the log-forgery vector), then any remaining Unicode
+			// control/format characters (U+0000–U+001F, U+007F–U+009F, etc.) are
+			// replaced with a space.
+			const sanitize = (value: string) => value.replace(/[\r\n]+/g, " ").replace(/\p{C}/gu, " ")
 			console.log(`[MOCK SERVER] ${sanitize(method)} ${sanitize(url)}`)
 
 			// ── MCP endpoint ─────────────────────────────────────────────

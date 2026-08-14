@@ -8,6 +8,7 @@ import type { ClineMessage, ExtensionMessage } from "@roo-code/types"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui"
 import { cn } from "@/lib/utils"
 import { vscode } from "@src/utils/vscode"
+import { isTrustedMessage } from "@src/utils/trustedMessages"
 
 import { fileChangesFromMessages, type FileChangeEntry } from "./utils/fileChangesFromMessages"
 import CodeAccordion from "../common/CodeAccordion"
@@ -86,6 +87,11 @@ const FileChangesPanel = memo(({ clineMessages, className }: FileChangesPanelPro
 	// Listen for fileContent responses
 	useEffect(() => {
 		const handler = (event: MessageEvent) => {
+			// Only accept messages from the trusted VS Code extension host
+			// origin (see isTrustedMessage). Without this check, any cross-origin
+			// content embedded in the webview could post a forged "fileContent"
+			// message (missing-origin-check).
+			if (!isTrustedMessage(event)) return
 			const message: ExtensionMessage = event.data
 			if (message.type === "fileContent" && message.fileContent?.path != null) {
 				const fc = message.fileContent
