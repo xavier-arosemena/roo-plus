@@ -102,7 +102,7 @@ export type ExtensionMessageType = ExtensionMessage["type"]
  * Registry of zod schemas keyed by message type.
  *
  * A type only appears here once its payload is fully typed (see Phase 2 of
- * docs/architecture-review-protocol-migration.md for the migration of the
+ * plans/architecture-review-protocol-migration.md for the migration of the
  * remaining domains). The boundary (`parseExtensionMessage`) validates
  * registered types strictly and passes unregistered ones through structurally.
  */

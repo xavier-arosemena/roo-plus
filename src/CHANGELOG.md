@@ -95,7 +95,7 @@
 
 #### ✅ Quality
 
-- **Architecture Review** — [`docs/architecture-review-code-index-semble.md`](docs/architecture-review-code-index-semble.md) reviewed the code-index/Semble layer vs upstream: the Qdrant core is byte-identical to upstream (keep), the Semble layer is intentionally hardened (keep), and the field breakage was an operational/state-machine defect now closed by the R1/R2 fixes.
+- **Architecture Review** — [`plans/architecture-review-code-index-semble.md`](plans/architecture-review-code-index-semble.md) reviewed the code-index/Semble layer vs upstream: the Qdrant core is byte-identical to upstream (keep), the Semble layer is intentionally hardened (keep), and the field breakage was an operational/state-machine defect now closed by the R1/R2 fixes.
 - **New regression tests** — [`dist_assets.spec.ts`](src/__tests__/dist_assets.spec.ts) asserts every bundled mode/item carries a non-empty description that is not a clone of its `roleDefinition`; `CustomModesManager`, `ModeConfig`, `ModeSelector`, `modes`, `semble-downloader`, `provider`, and `SimpleInstaller` specs extended; scripts unit tests consolidated under `pnpm run test:scripts` (sync-custom-modes, ensure_descriptions, verify-submodule-pin, verify-semble-release-coupling, verify-upstream-code-index-alignment).
 - **`verify-roomodes-sync.mjs` hardened** — a missing/uninitialized `custom-modes` submodule is now a hard CI failure (packaging hazard), not a silent skip.
 - **CI gates wired** — [`code-qa.yml`](.github/workflows/code-qa.yml) and [`release-validation.yml`](.github/workflows/release-validation.yml) now check out submodules recursively and run the submodule-pin, roomodes-sync, descriptions, scripts-unit-test, Semble coupling, and upstream-alignment gates.

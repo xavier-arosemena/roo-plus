@@ -5,7 +5,7 @@
  *
  * CI diff-gate that enforces the SEMBLE_VERSION ↔ SEMBLE_SHA256 coupling rule
  * for the Semble code-index feature (release-governance item 2c of
- * docs/architecture-review-code-index-semble.md; full policy in
+ * plans/architecture-review-code-index-semble.md; full policy in
  * docs/SEMBLE-RELEASE-GOVERNANCE.md).
  *
  * The Semble downloader pins two constants that MUST always move together:

@@ -110,7 +110,7 @@ jobs:
                   echo "::endgroup::"
             # Release-governance gate for the Semble code-index feature
             # (docs/SEMBLE-RELEASE-GOVERNANCE.md, review item 2c of
-            # docs/architecture-review-code-index-semble.md): a diff that
+            # plans/architecture-review-code-index-semble.md): a diff that
             # changes SEMBLE_VERSION without SEMBLE_SHA256 (or vice versa) in
             # src/services/code-index/semble/semble-downloader.ts is rejected.
             # Compares the working tree against the merge base with a base ref
@@ -126,7 +126,7 @@ jobs:
                   echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:SEMBLE-COUPLING] Semble coupling gate passed (or skipped)"
                   echo "::endgroup::"
             # Alignment gate for the Qdrant code-index core (architecture review
-            # #6 — docs/architecture-review-code-index-semble.md): keeps the
+            # #6 — plans/architecture-review-code-index-semble.md): keeps the
             # non-Semble core byte-identical to upstream Zoo-Code so upstream
             # improvements cherry-pick cleanly. Fast lane (pure git + file
             # comparison, no build). Network behavior: uses the local

@@ -3,3 +3,7 @@ CHANGELOG.md
 LICENSE
 webview-ui
 assets/vscode-material-icons
+
+# The ADR-folder README (Documentation & ADR Protocol) is source documentation
+# and must be tracked despite the generated-package README rule above.
+!docs/README.md

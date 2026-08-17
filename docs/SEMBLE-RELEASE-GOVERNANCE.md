@@ -2,7 +2,7 @@
 
 **Status:** ✅ ACTIVE · **Owner:** Roo+ maintainers · **Applies to:** `Audare-est-Facere/sembleexec` (the fork's Semble installer repo) and this repository's [`semble-downloader.ts`](../src/services/code-index/semble/semble-downloader.ts:1)
 
-**Origin:** remediation item 2c of the architecture review — [`docs/architecture-review-code-index-semble.md`](architecture-review-code-index-semble.md:121). Registered in the ADR index — [`src/docs/ADR-INDEX.md`](../src/docs/ADR-INDEX.md:7).
+**Origin:** remediation item 2c of the architecture review — [`plans/architecture-review-code-index-semble.md`](../plans/architecture-review-code-index-semble.md:121). Registered in the ADR index — [`src/docs/ADR-INDEX.md`](../src/docs/ADR-INDEX.md:7).
 
 This document is the release policy for the Semble binary that powers the fork's local code-index (`codebaseIndexEmbedderProvider: "semble"`). It exists because the v0.5.2 era demonstrated that a **broken release is not self-healing**: the downloader's fast path trusts what is already on disk, so a tag that is "fixed in place" is invisible to machines that already cached the broken binary.
 
@@ -22,7 +22,7 @@ The downloader pins the release tag in [`SEMBLE_VERSION`](../src/services/code-i
 
 ### The motivating incident (the silent-exit-0 stub era)
 
-The earlier `v0.5.2` release shipped a **silent-exit-0 stub**: the binary exited `0` with no output, so the extension reported "ready" while every search returned nothing (documented in [`semble-smoke.mjs`](../scripts/semble-smoke.mjs:8)). The fix was applied to the _code_ (stub detection + hardened downloader), but a server that had already downloaded the stub kept reusing it because the fast path never re-verifies — the "fix" could not reach machines that trusted the old tag. The architecture review ([`architecture-review-code-index-semble.md`](architecture-review-code-index-semble.md:74), R1) confirms the field symptom was exactly this: **"works in Zoo-Code (fresh storage dir), broken in ours (stale cache)"**.
+The earlier `v0.5.2` release shipped a **silent-exit-0 stub**: the binary exited `0` with no output, so the extension reported "ready" while every search returned nothing (documented in [`semble-smoke.mjs`](../scripts/semble-smoke.mjs:8)). The fix was applied to the _code_ (stub detection + hardened downloader), but a server that had already downloaded the stub kept reusing it because the fast path never re-verifies — the "fix" could not reach machines that trusted the old tag. The architecture review ([`architecture-review-code-index-semble.md`](../plans/architecture-review-code-index-semble.md:74), R1) confirms the field symptom was exactly this: **"works in Zoo-Code (fresh storage dir), broken in ours (stale cache)"**.
 
 **Operational consequence:** a tag is a promise. Once `v0.5.2` is published, its assets are immutable facts. Any defect means shipping `v0.5.3` (or `v0.5.2-hotfix` — a _new_ tag either way) and bumping the pinned version, so cached installs are forced onto the new tag.
 
@@ -61,6 +61,6 @@ The three gates (steps 4–6) run **locally before merge** as a release checklis
 ## 4. Related ADRs and documents
 
 - [`src/docs/adr-semble-binary-download-only.md`](../src/docs/adr-semble-binary-download-only.md:1) — ADR: the Semble binary is **download-only** (checksum-verified download is the sole acquisition mechanism); the policy above governs how that download is released.
-- [`docs/architecture-review-code-index-semble.md`](architecture-review-code-index-semble.md:121) — review item 2c: "Formalize a release procedure so version + checksums always move together" (source of this document).
+- [`plans/architecture-review-code-index-semble.md`](../plans/architecture-review-code-index-semble.md:121) — review item 2c: "Formalize a release procedure so version + checksums always move together" (source of this document).
 - [`scripts/verify-semble-release-coupling.mjs`](../scripts/verify-semble-release-coupling.mjs:1) / [`scripts/verify-semble-checksums.mjs`](../scripts/verify-semble-checksums.mjs:1) / [`scripts/semble-smoke.mjs`](../scripts/semble-smoke.mjs:1) — the enforcing scripts.
 - Registered in the ADR index at [`src/docs/ADR-INDEX.md`](../src/docs/ADR-INDEX.md:7).
