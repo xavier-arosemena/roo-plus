@@ -40,7 +40,7 @@ Adopt an **upstream-alignment fork strategy**:
    `config-manager.ts`) — these are where the fork deliberately diverges and
    hardening lives.
 4. **Keep packaged artifacts hermetic** via the `custom-modes` submodule pin
-   (`4ee95d2`, see [`adr-custom-modes-canonical-catalog.md`](adr-custom-modes-canonical-catalog.md))
+   (`8cdf378b`, see [`adr-custom-modes-canonical-catalog.md`](adr-custom-modes-canonical-catalog.md))
    and the Semble version↔checksum coupling gate
    ([`docs/SEMBLE-RELEASE-GOVERNANCE.md`](../../docs/SEMBLE-RELEASE-GOVERNANCE.md)).
 

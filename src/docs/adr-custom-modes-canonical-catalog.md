@@ -54,7 +54,7 @@ whole sync pipeline around it** (Issue #159):
 - **Add a built-in slug guard**: `sync-custom-modes.mjs` fails the build if any
   core mode slug (`architect`, `code`, `ask`, `debug`, `orchestrator`) leaks into
   `.roomodes`, `pre-installed-modes.yml`, or `modes.yml`.
-- **Pin the submodule** at a recorded commit (currently `4ee95d2`) and enforce it
+- **Pin the submodule** at a recorded commit (currently `8cdf378b`) and enforce it
   with [`scripts/verify-submodule-pin.mjs`](../../scripts/verify-submodule-pin.mjs),
   wired into `prevsix` / `prebundle` / `prevscode:prepublish`, so every packaging
   path builds against a known-good, clean checkout.
