@@ -44,6 +44,8 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 **Impact**: Documentation drift is likely; the `src/` copy was already behind the root on the Option 0 marketplace instructions.
 **Suggested Fix**: Consider consolidating the `src/README.md` to reference the root README, or add a build step that copies `README.md` → `src/README.md`.
 
+> **Status (2026-08-17):** the two files are currently **byte-identical** (verified via `diff`), so no drift has reoccurred since the last sync — but nothing enforces it. There is no CI gate comparing the copies; the next edit to one side without the other will silently reintroduce drift (this is the exact class of gap the locale-README gate, [`verify-locale-readmes.mjs`](scripts/verify-locale-readmes.mjs), already closes for `locales/`).
+
 ---
 
 ## 🟢 Low Priority
@@ -99,6 +101,8 @@ locale READMEs are lightweight landing pages; the English
 
 > **Progress (2026-08-12, DEBT #5/#6 Phase 3):** the interface-level `any` escapes on the message protocol are **fully drained** — `ExtensionMessage` / `ExtensionState` / `WebviewMessage` now carry **zero `any`** (`payload`/`settings`/`config` removed, `values` → `Record<string, unknown>`, `value` → `boolean | number`, `todos` → `TodoItem[]`, `marketplaceInstalledMetadata` → `MarketplaceInstalledMetadata`; the only documented `unknown`-typed field is the free-form `switchTab` `values` passthrough). The remaining `as any` / `@ts-ignore` occurrences outside the message interfaces are still tracked here.
 
+> **Count snapshot (2026-08-17, production code only):** `src/` — **142** `as any` (top clusters: [`bedrock.ts`](src/api/providers/bedrock.ts) 21, [`Task.ts`](src/core/task/Task.ts) 11, [`extension/api.ts`](src/extension/api.ts) 9, [`error-handler.ts`](src/api/providers/utils/error-handler.ts) 7, [`lite-llm.ts`](src/api/providers/lite-llm.ts) 7) + **9** `@ts-ignore`/`@ts-ignore-next-line` (mostly `cache_control` extension points in [`openai.ts`](src/api/providers/openai.ts:115), [`caching/anthropic.ts`](src/api/transform/caching/anthropic.ts:6), [`caching/gemini.ts`](src/api/transform/caching/gemini.ts:11), [`caching/vercel-ai-gateway.ts`](src/api/transform/caching/vercel-ai-gateway.ts:8), plus the `pdf-parse` shim in [`extract-text.ts`](src/integrations/misc/extract-text.ts:2)). `webview-ui/src/` — **41** `as any` (top cluster: [`ExtensionStateContext.tsx`](webview-ui/src/context/ExtensionStateContext.tsx) 11 — including `(newState as any)` on the root state handler — and [`ModesView.tsx`](webview-ui/src/components/modes/ModesView.tsx) 5). `packages/` and `apps/cli/src/` — **0**. These are the current non-ratcheted baselines.
+
 ### 12. `sync-custom-modes.mjs` Preserves Stale `.roomodes` Entries (Architecture Review 2026-07-31) — RESOLVED
 
 **Location**: [`scripts/sync-custom-modes.mjs`](scripts/sync-custom-modes.mjs:207)
@@ -138,18 +142,20 @@ decision and coverage reporting.
 
 **Suggested Fix**: Export the built-in slug set from the extension core (or add a spec asserting `BUILT_IN_SLUGS` matches the `modes` export in `src/shared/modes.ts`), so the guard cannot drift from the runtime.
 
-### 15. Unguarded Webview Message Consumers — Defense-in-Depth (Architecture Review 2026-08-07)
+### 15. Unguarded Webview Message Consumers — Defense-in-Depth (Architecture Review 2026-08-07) — PARTIALLY RESOLVED
 
 **Locations**:
 
-- [`webview-ui/src/context/ExtensionStateContext.tsx`](webview-ui/src/context/ExtensionStateContext.tsx:473) — root state handler (`state`, `marketplaceData`, task history, …)
-- [`webview-ui/src/components/chat/FileChangesPanel.tsx`](webview-ui/src/components/chat/FileChangesPanel.tsx:105) — `fileContent` response listener
+- [`webview-ui/src/context/ExtensionStateContext.tsx`](webview-ui/src/context/ExtensionStateContext.tsx:302) — root state handler (`state`, `marketplaceData`, task history, …) — **still unguarded** (only schema-validates via `parseExtensionMessage`, no origin check)
+- ~~[`webview-ui/src/components/chat/FileChangesPanel.tsx`](webview-ui/src/components/chat/FileChangesPanel.tsx:94) — `fileContent` response listener~~ — **RESOLVED** (origin guard added)
 
-**Issue**: Following the v3.77.4 origin-only `isTrustedMessage()` fix (Issue #158), every extension→webview message consumer is either guarded with the origin-based check (24 consumers) or deliberately unguarded (these two). These two receive **all** messages, so they were never affected by the dropped-message bug — but they are the only consumers with no origin-based trust boundary, leaving the root state handler and the file-content listener open to any message dispatched into the webview.
+**Issue**: Following the v3.77.4 origin-only `isTrustedMessage()` fix (Issue #158), every extension→webview message consumer is either guarded with the origin-based check or deliberately unguarded. These consumers receive **all** messages, so they were never affected by the dropped-message bug — but they were the only consumers with no origin-based trust boundary, leaving the root state handler and the file-content listener open to any message dispatched into the webview.
 
-**Impact**: No functional bug today (they receive everything, which is why the app works). Residual inconsistency in the webview trust model: the two most security-sensitive consumers (root state, file contents) are the least protected.
+**Impact**: No functional bug today (they receive everything, which is why the app works). Residual inconsistency in the webview trust model: the most security-sensitive consumer (root state) is the least protected.
 
-**Suggested Fix**: Add the origin-based `isTrustedMessage()` guard to both, applying the same "trust by origin, never by source identity" rule from [`webview-ui/src/utils/trustedMessages.ts`](webview-ui/src/utils/trustedMessages.ts). Order: [`FileChangesPanel.tsx`](webview-ui/src/components/chat/FileChangesPanel.tsx) first (low blast radius), then the root [`ExtensionStateContext.tsx`](webview-ui/src/context/ExtensionStateContext.tsx) (largest blast radius) after validation across desktop + Remote-SSH. Regression spec: reuse the pattern in [`trustedMessages.spec.ts`](webview-ui/src/utils/__tests__/trustedMessages.spec.ts).
+**Status (2026-08-17)**: [`FileChangesPanel.tsx`](webview-ui/src/components/chat/FileChangesPanel.tsx:94) is now guarded with `isTrustedMessage(event)` (low-blast-radius half of the fix landed). The root [`ExtensionStateContext.tsx`](webview-ui/src/context/ExtensionStateContext.tsx:302) handler remains unguarded — it boundary-validates every message through `parseExtensionMessage` (hard allowlist, fail-closed) but still lacks the origin-based trust check that every other consumer has.
+
+**Suggested Fix**: Add the origin-based `isTrustedMessage()` guard to the root [`ExtensionStateContext.tsx`](webview-ui/src/context/ExtensionStateContext.tsx:302) handler, applying the same "trust by origin, never by source identity" rule from [`webview-ui/src/utils/trustedMessages.ts`](webview-ui/src/utils/trustedMessages.ts). Validate across desktop + Remote-SSH. Regression spec: reuse the pattern in [`trustedMessages.spec.ts`](webview-ui/src/utils/__tests__/trustedMessages.spec.ts).
 
 ### 16. Roo+ CLI Distribution Gap
 
@@ -160,6 +166,75 @@ decision and coverage reporting.
 **Impact**: CLI users cannot easily install the Roo+ CLI; the branded release is effectively undiscoverable and users may unknowingly run the upstream CLI.
 
 **Suggested Fix**: Publish a Roo+ CLI distribution (e.g., GitHub Release binaries plus a Roo+ install script) and update [`cli-release.yml`](.github/workflows/cli-release.yml) release notes plus the CLI README to point at it once available.
+
+> **Progress (2026-08-17):** [`cli-release.yml`](.github/workflows/cli-release.yml) now builds and uploads Roo+ tarballs for darwin-arm64 / linux-x64 / linux-arm64 to a GitHub Release (`roo-cli-<platform>.tar.gz` + `.sha256`, `bin/roo` wrapper, bundled extension). This closes the "no distribution channel" half. The open half is the **upgrade path**: the CLI [`upgrade`](apps/cli/src/commands/cli/upgrade.ts:6) command still resolves releases from the upstream `RooCodeInc/Roo-Code` API and pipes the **upstream** install script, so a Roo+ CLI user running `roo upgrade` is silently migrated to the upstream Zoo Code CLI (see #17). The README still shows the upstream one-liner with a warning callout instead of a Roo+ install script.
+
+---
+
+## 🟢 Low Priority (continued)
+
+### 17. CLI Rebrand Incomplete — Code, UI Strings, and Upgrade Path Still Point Upstream
+
+**Locations**:
+
+- [`apps/cli/src/index.ts`](apps/cli/src/index.ts:11) — `"Roo Code CLI - starts an interactive session…"` and `"Upgrade Roo Code CLI…"` help text
+- [`apps/cli/src/ui/components/Header.tsx`](apps/cli/src/ui/components/Header.tsx:35) — `Roo Code CLI v${version}` header
+- [`apps/cli/src/ui/components/onboarding/OnboardingScreen.tsx`](apps/cli/src/ui/components/onboarding/OnboardingScreen.tsx:17) — `"Welcome! Roo Code works without login…"`
+- [`apps/cli/src/agent/extension-client.ts`](apps/cli/src/agent/extension-client.ts:2), [`apps/cli/src/agent/extension-host.ts`](apps/cli/src/agent/extension-host.ts:2), [`apps/cli/src/agent/agent-state.ts`](apps/cli/src/agent/agent-state.ts:5) — "Roo Code" module docs
+- [`apps/cli/src/commands/cli/upgrade.ts`](apps/cli/src/commands/cli/upgrade.ts:6) — `RELEASES_URL` / `INSTALL_SCRIPT_COMMAND` point at upstream `RooCodeInc/Roo-Code`
+- [`apps/cli/README.md`](apps/cli/README.md:3) — "Command Line Interface for Roo Code…" plus upstream install one-liner
+- [`apps/cli/docs/AGENT_LOOP.md`](apps/cli/docs/AGENT_LOOP.md:5) — "how the Roo Code CLI detects…"
+
+**Issue**: The CLI codebase was not rebranded along with the extension. User-facing strings, help text, module docs, and the README still say "Roo Code"; the `upgrade` command resolves releases from the upstream repo and runs the upstream install script. (Tied to #16.)
+
+**Impact**: CLI users see the upstream brand; `roo upgrade` can actively replace the Roo+ build with the upstream Zoo Code build — a silent downgrade to a different project.
+
+**Suggested Fix**: Rebrand CLI strings/docs to Roo+; repoint `RELEASES_URL`/`INSTALL_SCRIPT_COMMAND` at the Roo+ GitHub Releases channel (or gate upgrade on a Roo+ release tag); add a regression test asserting the upgrade command resolves Roo+ assets only.
+
+### 18. Large Extension-Side Monoliths (`Task.ts`, `McpHub.ts`, `bedrock.ts`)
+
+**Locations**:
+
+- [`src/core/task/Task.ts`](src/core/task/Task.ts) — ~4.8k lines (largest file in the repo)
+- [`src/services/mcp/McpHub.ts`](src/services/mcp/McpHub.ts) — ~2.5k lines
+- [`src/api/providers/bedrock.ts`](src/api/providers/bedrock.ts) — ~1.7k lines (21 `as any`)
+- [`src/api/providers/openai-native.ts`](src/api/providers/openai-native.ts) — ~1.6k lines
+
+**Issue**: The webview decomposition tracked in #10 has a mirror image on the extension side. `Task.ts` is the core task orchestrator and the repo's largest file; `McpHub.ts` owns all MCP lifecycle; both mix orchestration, state, and I/O. `bedrock.ts` is the largest provider **and** the largest single `as any` cluster — and it is a gated upstream-aligned file ([`adr-upstream-alignment-fork-strategy.md`](src/docs/adr-upstream-alignment-fork-strategy.md)), so its type escapes cannot be cleaned up locally without upstream coordination.
+
+**Impact**: Hard to test and reason about; regressions cluster in these files; the `bedrock.ts` `as any` cluster is effectively frozen by the upstream-alignment diff-gate.
+
+**Suggested Fix**: Decompose `Task.ts` (message persistence, sub-task orchestration, lifecycle) and `McpHub.ts` into focused modules; track `bedrock.ts` `as any` reductions through upstream cherry-picks or allow-list review.
+
+### 19. Webview i18n Coverage Not Enforced in CI + `find-missing-i18n-key.js` False Positives
+
+**Locations**: [`scripts/find-missing-i18n-key.js`](scripts/find-missing-i18n-key.js), [`code-qa.yml`](.github/workflows/code-qa.yml:82)
+
+**Issue**: The extension-side translation gate ([`scripts/find-missing-translations.js`](scripts/find-missing-translations.js)) is wired into [`code-qa.yml`](.github/workflows/code-qa.yml:82) and passes, but the webview-side checker [`scripts/find-missing-i18n-key.js`](scripts/find-missing-i18n-key.js) is **not** wired into CI. Run manually today it reports **211 "missing" keys** across the 18 locales — but a large share are false positives: the checker only understands the `file:key` form and does not resolve bare keys against the default namespace (e.g. [`ErrorBoundary.tsx`](webview-ui/src/components/ErrorBoundary.tsx:71) calls `t("errorBoundary.title")` under `withTranslation("common")`, and the key exists in `common.json`), and it matches non-i18n tokens like `svg:line`, `message:done`, and `llama3:latest`. Genuine gaps do exist: `chat:autoApprove.selectAll` / `selectNone` used in [`AutoApproveDropdown.tsx`](webview-ui/src/components/chat/AutoApproveDropdown.tsx:238) are absent from `chat.json` (which has `all`/`none`), and `settings:browser.enable.*` referenced in [`SearchableSetting.tsx`](webview-ui/src/components/settings/SearchableSetting.tsx:38) is absent from `settings.json`.
+
+**Impact**: Webview UI can silently render raw key strings (auto-approve select-all aria labels, browser-enable setting, `PARALLEL_TOOL_EXECUTION.name`) across all locales with no CI signal.
+
+**Suggested Fix**: Fix the checker to resolve default-namespace keys and ignore non-i18n `x:y` tokens; wire it into `code-qa.yml`; then fill the genuine gaps (`chat:autoApprove.selectAll`/`selectNone`, `settings:browser.enable.*`, `settings:experimental.PARALLEL_TOOL_EXECUTION.name`) across all 18 locales.
+
+### 20. Stale Submodule-Pin References in ADRs
+
+**Locations**: [`adr-custom-modes-canonical-catalog.md`](src/docs/adr-custom-modes-canonical-catalog.md:57), [`adr-upstream-alignment-fork-strategy.md`](src/docs/adr-upstream-alignment-fork-strategy.md:43), [`ADR-INDEX.md`](src/docs/ADR-INDEX.md:19), [`CHANGELOG.md`](CHANGELOG.md:56)
+
+**Issue**: The canonical-catalog ADR states the `custom-modes` submodule is "currently `4ee95d2`", and the upstream-alignment ADR + ADR index repeat `4ee95d2`. The actual recorded pin is `8cdf378b` (re-pinned by commit `6dfa7ae4a` — "build(submodule): re-pin custom-modes to 8cdf378 (coding-teacher description fix)"). The runtime gate ([`scripts/verify-submodule-pin.mjs`](scripts/verify-submodule-pin.mjs)) reads the pin from git so packaging stays hermetic, but the ADR text — meant to be the permanent record — now records a pin that no longer exists.
+
+**Impact**: Documentation drift in the decision records; future maintainers may "correct" the runtime pin back to the value the ADR cites.
+
+**Suggested Fix**: Update the ADRs to reference the current pin, or better, phrase as "pinned at the recorded gitlink commit enforced by `verify-submodule-pin.mjs`" without hardcoding the SHA so they cannot go stale again.
+
+### 21. `PKG_OUTPUT_CHANNEL` Rebrand Residual in Build Configs
+
+**Locations**: [`webview-ui/vite.config.ts`](webview-ui/vite.config.ts:66), [`webview-ui/vite.config.ts`](webview-ui/vite.config.ts:82), [`webview-ui/playwright-ct.config.ts`](webview-ui/playwright-ct.config.ts:77)
+
+**Issue**: The webview build config hardcodes `process.env.PKG_OUTPUT_CHANNEL = "Zoo-Code"` (and `"Zoo-Code-Nightly"` for the nightly variant), while the shared runtime default in [`src/shared/package.ts`](src/shared/package.ts:13) is `"Roo+"`. The extension esbuild build ([`src/esbuild.mjs`](src/esbuild.mjs:49)) does not define `PKG_OUTPUT_CHANNEL`, so the runtime output channel is `"Roo+"` today — but any build that consumes the webview-defined constant (or a future define addition to esbuild) would surface the stale upstream name in the VS Code output channel.
+
+**Impact**: Branding inconsistency between build config and runtime default; the stale `"Zoo-Code"` name can leak into the user-visible output channel for webview-driven builds.
+
+**Suggested Fix**: Change the webview build defines (and the CT config) to `"Roo+"` / `"Roo+-Nightly"`, keeping the single `"Roo+"` default in [`src/shared/package.ts`](src/shared/package.ts:13).
 
 ---
 
@@ -224,22 +299,25 @@ Genuine `TODO`/`FIXME` markers in non-test production code. Doc-example and tool
 | [`src/utils/migrateSettings.ts`](src/utils/migrateSettings.ts:14)                                   | `TODO`  | Remove migration code (originally Sept 2025)                   |
 | [`src/shared/experiments.ts`](src/shared/experiments.ts:26)                                         | `TODO`  | Add i18n keys in same PR that enables `showInSettings`         |
 | [`src/shared/embeddingModels.ts`](src/shared/embeddingModels.ts:154)                                | `TODO`  | Make embedding selection configurable                          |
-| [`src/activate/registerCommands.ts`](src/activate/registerCommands.ts:263)                          | `TODO`  | Use better SVG icon with light/dark variants                   |
+| [`src/activate/registerCommands.ts`](src/activate/registerCommands.ts:268)                          | `TODO`  | Use better SVG icon with light/dark variants                   |
 | [`src/api/transform/model-params.ts`](src/api/transform/model-params.ts:161)                        | `TODO`  | Add `supportsTemperature` to model info                        |
 | [`src/api/providers/openai.ts`](src/api/providers/openai.ts:28)                                     | `TODO`  | Rename to `OpenAICompatibleHandler`                            |
 | [`src/api/providers/openrouter.ts`](src/api/providers/openrouter.ts:302)                            | `TODO`  | Add `promptCacheStratey` field to `ModelInfo` (typo in source) |
 | [`src/api/providers/mistral.ts`](src/api/providers/mistral.ts:189)                                  | `@TODO` | Move logic to `getModelParams`                                 |
 | [`src/integrations/editor/DiffViewProvider.ts`](src/integrations/editor/DiffViewProvider.ts:27)     | `TODO`  | Track upstream cline/cline PR #3354                            |
 | [`src/integrations/terminal/TerminalRegistry.ts`](src/integrations/terminal/TerminalRegistry.ts:33) | `TODO`  | Init code is VSCode-specific; abstract                         |
-| [`src/core/webview/handlers/settings.ts`](src/core/webview/handlers/settings.ts:571)                | `TODO`  | Cache model info like OpenRouter                               |
+| [`src/core/webview/handlers/settings.ts`](src/core/webview/handlers/settings.ts:649)                | `TODO`  | Cache model info like OpenRouter                               |
 | [`src/core/webview/ClineProvider.ts`](src/core/webview/ClineProvider.ts:756)                        | `TODO`  | Improve type safety for `promptType`                           |
 | [`src/core/services/ProviderProfileService.ts`](src/core/services/ProviderProfileService.ts:85)     | `TODO`  | Confirm `activateProfile` call is required                     |
 | [`src/core/services/ProviderProfileService.ts`](src/core/services/ProviderProfileService.ts:113)    | `TODO`  | Rename `buildApiHandler` for clarity                           |
 | [`src/core/config/ProviderSettingsManager.ts`](src/core/config/ProviderSettingsManager.ts:82)       | `TODO`  | Avoid async methods in constructor                             |
 | [`src/core/config/importExport.ts`](src/core/config/importExport.ts:237)                            | `TODO`  | Re-evaluate provider settings presence in export               |
 | [`src/core/task/Task.ts`](src/core/task/Task.ts:1165)                                               | `TODO`  | Be more efficient saving/posting only new messages             |
-| [`apps/cli/src/commands/cli/run.ts`](apps/cli/src/commands/cli/run.ts:187)                          | `TODO`  | Validate API key for chosen provider                           |
-| [`apps/cli/src/commands/cli/run.ts`](apps/cli/src/commands/cli/run.ts:188)                          | `TODO`  | Validate model for chosen provider                             |
+| [`apps/cli/src/commands/cli/run.ts`](apps/cli/src/commands/cli/run.ts:207)                          | `TODO`  | Validate API key for chosen provider                           |
+| [`apps/cli/src/commands/cli/run.ts`](apps/cli/src/commands/cli/run.ts:208)                          | `TODO`  | Validate model for chosen provider                             |
 | [`apps/cli/src/ui/hooks/useExtensionHost.ts`](apps/cli/src/ui/hooks/useExtensionHost.ts:39)         | `TODO`  | Unify TUI app props                                            |
+| [`apps/cli/src/ui/stores/uiStateStore.ts`](apps/cli/src/ui/stores/uiStateStore.ts:23)               | `TODO`  | TODO viewer overlay (stub state only)                          |
+| [`apps/cli/src/ui/stores/uiStateStore.ts`](apps/cli/src/ui/stores/uiStateStore.ts:46)               | `TODO`  | TODO viewer actions (stub state only)                          |
+| [`webview-ui/vite.config.ts`](webview-ui/vite.config.ts:71)                                         | `TODO`  | Use `@roo-code/build` to generate `define` once monorepo ships |
 
 All entries above are **open debt** (no owner assigned); triage per ICE and resolve in dedicated debt sprints.
