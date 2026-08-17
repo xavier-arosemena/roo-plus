@@ -1,0 +1,56 @@
+name: Assign security issues to maintainers
+
+# Routes issues labeled "security" to the maintainers.
+#
+# Background: GitHub CODEOWNERS only supports path-based ownership for pull
+# requests; it cannot route issues by label. This workflow closes that gap by
+# auto-assigning maintainers whenever the "security" label is applied to an
+# issue (including issues created by the security-alert-issue workflow, which
+# auto-creates and applies the same label).
+#
+# Only assignees with write access can be assigned. Update MAINTAINERS to
+# match the current security ownership set.
+
+on:
+  issues:
+    types: [labeled]
+
+# Least privilege: writing to issues is all this workflow needs.
+permissions:
+  issues: write
+
+concurrency:
+  group: security-issue-assign
+  cancel-in-progress: false
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    # Only react to the "security" label.
+    if: github.event.label.name == 'security'
+    steps:
+      - name: Assign issue to maintainers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const MAINTAINERS = ['taltas', 'JamesRobert20', 'navedmerchant', 'hannesrudolph', 'edelauna'];
+
+            const result = await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: MAINTAINERS,
+            });
+
+            const assigned = result.data.assignees.map((u) => `@${u.login}`).join(', ');
+            core.info(`Assigned issue #${context.issue.number} to ${assigned || 'no one (assignees must have write access)'}.`);
+
+            // Leave a lightweight breadcrumb so triage state is visible on the issue.
+            if (assigned) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `Security label detected — assigned to maintainers (${assigned}) for triage.`,
+              });
+            }

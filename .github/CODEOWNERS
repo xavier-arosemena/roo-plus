@@ -1,2 +1,10 @@
 # These owners will be the default owners for everything in the repo
 * @taltas @JamesRobert20 @navedmerchant @hannesrudolph @edelauna
+
+# Security-sensitive files require maintainer review on every PR.
+# NOTE: This is path-based ownership for pull-request reviews only. To route
+# issues labeled "security" to maintainers, see .github/workflows/security-issue-assign.yml.
+SECURITY.md @taltas @JamesRobert20 @navedmerchant @hannesrudolph @edelauna
+.github/dependabot.yml @taltas @JamesRobert20 @navedmerchant @hannesrudolph @edelauna
+.github/workflows/codeql.yml @taltas @JamesRobert20 @navedmerchant @hannesrudolph @edelauna
+.github/workflows/security-alert-*.yml @taltas @JamesRobert20 @navedmerchant @hannesrudolph @edelauna
