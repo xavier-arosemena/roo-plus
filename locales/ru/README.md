@@ -1,179 +1,51 @@
-<p align="center">
-          <a href="https://marketplace.visualstudio.com/items?itemName=ZooCodeOrganization.zoo-code"><img src="https://img.shields.io/badge/VS_Code_Marketplace-007ACC?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace"></a>
-          <a href="https://x.com/ZooCodeDev"><img src="https://img.shields.io/badge/ZooCode-000000?style=flat&logo=x&logoColor=white" alt="X"></a>
-          <a href="https://youtube.com/@roocodeyt?feature=shared"><img src="https://img.shields.io/badge/YouTube-FF0000?style=flat&logo=youtube&logoColor=white" alt="YouTube"></a>
-          <a href="https://discord.gg/VxfP4Vx3gX"><img src="https://img.shields.io/badge/Join%20Discord-5865F2?style=flat&logo=discord&logoColor=white" alt="Join Discord"></a>
-          <a href="https://www.reddit.com/r/ZooCode/"><img src="https://img.shields.io/badge/Join%20r%2FZooCode-FF4500?style=flat&logo=reddit&logoColor=white" alt="Join r/ZooCode"></a>
-          <a href="https://github.com/xavier-arosemena/roo-plus/issues"><img src="https://img.shields.io/badge/GitHub-Issues-181717?style=flat&logo=github&logoColor=white" alt="GitHub Issues"></a>
-        </p>
-        <p align="center">
-          <em>Нужна помощь быстро → <a href="https://discord.gg/VxfP4Vx3gX">Присоединяйся к Discord</a> • Предпочитаешь асинхронно? → <a href="https://www.reddit.com/r/ZooCode/">Присоединяйся к r/ZooCode</a></em>
-        </p>
-
-        # Roo+
-
-        > Твоя команда разработчиков на ИИ — прямо в редакторе
-
-        ## Мы — Roo+
-
-> Zoo Code продолжает разработку этого проекта после того, как команда Roo
-> прекратила активную разработку Roo Code, чтобы сосредоточиться на
-> [Roomote](https://roomote.dev/). Спасибо команде Roo за всё, что они
-> создали.
->
-> Мы хотим поблагодарить всю команду Roo за работу, которую они вложили в этот плагин. Мы не будем перечислять здесь каждого по имени, но все можем согласиться, что это выдающиеся разработчики и, что не менее важно, невероятные люди. Спасибо команде Roo.
->
-> Пользователи Roo очень разные. Кто-то использует его профессионально каждый день, кто-то — чтобы придумывать невероятно сложные workflow. Кто-то помогает улучшать сам Roo, а кто-то — модели, которые использует Roo (супер мета). Суть в том, что сообщество разнообразно, и хотя кенгуру 🦘🦘🦘 — благородное и достойное животное, нам показалось, что «Zoo» 🐘🦡🦒🦓🦛🦧🦭🦦 лучше отражает это разнообразие пользователей плагина.
->
-> Поэтому мы хотим объявить, что **Roo+** продолжит развитие этого важного проекта. Основная команда состоит из разработчиков, которые раньше уже вносили вклад в Roo и которым действительно небезразличен этот плагин. Мы продолжим обновлять модели, исправлять ошибки и выпускать новые функции. Но больше всего мы хотим слушать вас — сообщество, которое сделало этот плагин таким особенным. Так что присоединяйся к нашему [Discord](https://discord.gg/VxfP4Vx3gX), нашему [Reddit](https://www.reddit.com/r/ZooCode), или [открывай PR или issue](https://github.com/xavier-arosemena/roo-plus); но прежде всего мы просим тебя оставаться вовлеченным, на связи и активным как часть сообщества.
->
-> _-Roo+ Team_
-
-## Переход с Roo Code на Roo+
-
-Короткое руководство по переходу с Roo Code на Roo+ можно найти в [гайде по миграции Roo→Zoo](https://docs.zoocode.dev/roo-to-zoo-migration). Мы хотим как можно лучше помочь пользователям во время перехода, и именно для этого у нас есть [Reddit](https://www.reddit.com/r/ZooCode) и [Discord](https://discord.gg/VxfP4Vx3gX). Если у тебя возникнут проблемы или вопросы, заходи и спрашивай.
-
-## Что нового в v3.72.0
-
-- **Провайдеры Moonshot и Kimi Code** — динамически находите модели Moonshot или входите в Kimi Code через OAuth-поток для устройств.
-- **Поддержка новейших моделей** — используйте Claude Opus 5 у всех провайдеров, а также Kimi K3, Gemini 3.6 Flash и MiniMax-M3.
-- **Улучшенные рабочие процессы подзадач** — безопасно завершайте прерванные подзадачи благодаря более надёжной инвалидации истории и расширенному тестированию возобновления.
-- **Расширенная индексация кодовой базы** — индексируйте файлы Dart и обычные текстовые файлы.
-- **Надёжность провайдеров** — исправления GPT-5.6 Luna с ChatGPT OAuth, reasoning content LiteLLM и ввода изображений DeepSeek V4.
-- **Более удобные настройки** — улучшены доступ к Zoo Gateway и переключение режимов.
-- Улучшения API, типов провайдеров, зависимостей, локализации и CI.
-
-## Что Roo+ может сделать для ВАС?
-
-- Генерировать код из описаний на естественном языке
-- Адаптация с помощью режимов: Код, Архитектор, Вопрос, Отладка и Пользовательские режимы
-- Рефакторить и отлаживать существующий код
-- Писать и обновлять документацию
-- Отвечать на вопросы о вашей кодовой базе
-- Автоматизировать повторяющиеся задачи
-- Использовать серверы MCP
-
-## Режимы
-
-Roo+ адаптируется к вашему стилю работы, а не наоборот:
-
-- Режим Код: повседневное кодирование, правки и операции с файлами
-- Режим Архитектор: планирование систем, спецификаций и миграций
-- Режим Вопрос: быстрые ответы, объяснения и документация
-- Режим Отладка: отслеживание проблем, добавление логов, изоляция первопричин
-- Пользовательские режимы: создавайте специализированные режимы для вашей команды или рабочего процесса
-
-Подробнее: [Использование режимов](https://docs.zoocode.dev/basic-usage/using-modes) • [Пользовательские режимы](https://docs.zoocode.dev/advanced-usage/custom-modes)
-
-## Обучающие видео и видео о функциях
-
 <div align="center">
+<sub>
 
-|                                                                                                                                                                               |                                                                                                                                                                          |                                                                                                                                                                               |
-| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|     <a href="https://www.youtube.com/watch?v=Mcq3r1EPZ-4"><img src="https://img.youtube.com/vi/Mcq3r1EPZ-4/maxresdefault.jpg" width="100%"></a><br><b>Установка Roo+</b>      | <a href="https://www.youtube.com/watch?v=ZBML8h5cCgo"><img src="https://img.youtube.com/vi/ZBML8h5cCgo/maxresdefault.jpg" width="100%"></a><br><b>Настройка профилей</b> | <a href="https://www.youtube.com/watch?v=r1bpod1VWhg"><img src="https://img.youtube.com/vi/r1bpod1VWhg/maxresdefault.jpg" width="100%"></a><br><b>Индексация кодовой базы</b> |
-| <a href="https://www.youtube.com/watch?v=iiAv1eKOaxk"><img src="https://img.youtube.com/vi/iiAv1eKOaxk/maxresdefault.jpg" width="100%"></a><br><b>Пользовательские режимы</b> | <a href="https://www.youtube.com/watch?v=Ho30nyY332E"><img src="https://img.youtube.com/vi/Ho30nyY332E/maxresdefault.jpg" width="100%"></a><br><b>Контрольные точки</b>  |  <a href="https://www.youtube.com/watch?v=HmnNSasv7T8"><img src="https://img.youtube.com/vi/HmnNSasv7T8/maxresdefault.jpg" width="100%"></a><br><b>Управление Контекстом</b>  |
+[English](../../README.md) • [Català](../ca/README.md) • [Deutsch](../de/README.md) • [Español](../es/README.md) • [Français](../fr/README.md) • [हिंदी](../hi/README.md) • [Bahasa Indonesia](../id/README.md) • [Italiano](../it/README.md) • [日本語](../ja/README.md)
 
+</sub>
+<sub>
+
+[한국어](../ko/README.md) • [Nederlands](../nl/README.md) • [Polski](../pl/README.md) • [Português (BR)](../pt-BR/README.md) • <b>Русский</b> • [Türkçe](../tr/README.md) • [Tiếng Việt](../vi/README.md) • [简体中文](../zh-CN/README.md) • [繁體中文](../zh-TW/README.md)
+
+</sub>
 </div>
+
+# Roo+
+
 <p align="center">
-<a href="https://docs.zoocode.dev/tutorial-videos">Больше коротких обучающих видео и видео о функциях...</a>
+  <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
+    <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
+  </a>
+  <a href="https://github.com/xavier-arosemena/roo-plus/issues">
+    <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
+  </a>
 </p>
+
+Roo+ — это **форк Zoo Code**: ИИ-ассистент для разработки с **90 предустановленными пользовательскими режимами** из каталога из **301 режима**, а также с поддержкой **MCP** и **более чем 25 провайдерами**.
+
+## Установка
+
+1. Откройте **VS Code** или **VS Codium**.
+2. Перейдите в раздел **Расширения** (`Ctrl+Shift+X` / `Cmd+Shift+X`).
+3. Найдите **"Roo+"**.
+4. Нажмите **Установить**.
+
+Или установите его напрямую из командной строки:
+
+```bash
+ovsx install xavier-arosemena/roo-plus
+```
+
+Или соберите его из исходного кода, следуя разделу [Быстрый старт](../../README.md#quick-start) в README на английском языке.
 
 ## Ресурсы
 
-- **[Документация](https://docs.zoocode.dev):** Официальное руководство по установке, настройке и освоению Roo+.
-- **[Канал на YouTube](https://youtube.com/@roocodeyt?feature=shared):** Смотрите обучающие видео и функции в действии.
-- **[Сервер Discord](https://discord.gg/VxfP4Vx3gX):** Присоединяйтесь к сообществу для получения помощи и обсуждений в реальном времени.
-- **[Сообщество Reddit](https://www.reddit.com/r/ZooCode):** Делитесь своим опытом и смотрите, что создают другие.
-- **[Проблемы на GitHub](https://github.com/xavier-arosemena/roo-plus/issues):** Сообщайте об ошибках и отслеживайте разработку.
-- **[Запросы на новые функции](https://github.com/xavier-arosemena/roo-plus/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop):** Есть идея? Поделитесь ею с разработчиками.
+- **[Полный README (англ.)](../../README.md)** — Полная документация Roo+.
+- **[Как внести вклад](./CONTRIBUTING.md)** — Руководство по участию в проекте.
+- **[Issues на GitHub](https://github.com/xavier-arosemena/roo-plus/issues)** — Сообщайте об ошибках и следите за разработкой.
+- **[Обсуждения на GitHub](https://github.com/xavier-arosemena/roo-plus/discussions)** — Делитесь идеями и участвуйте в сообществе.
 
 ---
 
-## Локальная настройка и разработка
-
-1. **Клонируйте** репозиторий:
-
-```sh
-git clone https://github.com/xavier-arosemena/roo-plus.git
-```
-
-2. **Установите зависимости**:
-
-```sh
-pnpm install
-```
-
-3. **Запустите расширение**:
-
-Существует несколько способов запустить расширение Roo+:
-
-### Режим разработки (F5)
-
-Для активной разработки используйте встроенную отладку VSCode:
-
-Нажмите `F5` (или перейдите в меню **Выполнить** → **Начать отладку**) в VSCode. Это откроет новое окно VSCode с запущенным расширением Roo+.
-
-- Изменения в веб-представлении появятся немедленно.
-- Изменения в ядре расширения также будут автоматически перезагружены "на лету".
-
-### Автоматическая установка VSIX
-
-Чтобы собрать и установить расширение в виде пакета VSIX непосредственно в VSCode:
-
-```sh
-pnpm install:vsix [-y] [--editor=<command>]
-```
-
-Эта команда:
-
-- Спросит, какую команду редактора использовать (code/cursor/code-insiders) - по умолчанию 'code'
-- Удалит любую существующую версию расширения.
-- Соберет последний пакет VSIX.
-- Установит только что собранный VSIX.
-- Предложит вам перезапустить VS Code, чтобы изменения вступили в силу.
-
-Опции:
-
-- `-y`: Пропустить все запросы на подтверждение и использовать значения по умолчанию
-- `--editor=<command>`: Укажите команду редактора (например, `--editor=cursor` или `--editor=code-insiders`)
-
-### Ручная установка VSIX
-
-Если вы предпочитаете устанавливать пакет VSIX вручную:
-
-1.  Сначала соберите пакет VSIX:
-    ```sh
-    pnpm vsix
-    ```
-2.  Файл `.vsix` будет сгенерирован в каталоге `bin/` (например, `bin/zoo-code-<version>.vsix`).
-3.  Установите его вручную с помощью VSCode CLI:
-    ```sh
-    code --install-extension bin/zoo-code-<version>.vsix
-    ```
-
----
-
-Мы используем [changesets](https://github.com/changesets/changesets) для управления версиями и публикации. Проверьте наш `CHANGELOG.md` для получения информации о релизах.
-
----
-
-## Отказ от ответственности
-
-**Пожалуйста, обратите внимание**, что Roo+ **не делает** никаких заявлений и не дает никаких гарантий в отношении любого кода, моделей или других инструментов, предоставляемых или доступных в связи с Roo+, любых связанных сторонних инструментов или любых результирующих результатов. Вы принимаете на себя **все риски**, связанные с использованием любых таких инструментов или результатов; такие инструменты предоставляются на условиях **"КАК ЕСТЬ"** и **"ПО МЕРЕ ДОСТУПНОСТИ"**. Такие риски могут включать, без ограничений, нарушение прав интеллектуальной собственности, киберуязвимости или атаки, предвзятость, неточности, ошибки, дефекты, вирусы, простои, потерю или повреждение имущества и/или телесные повреждения. Вы несете полную ответственность за использование любых таких инструментов или результатов (включая, без ограничений, их законность, уместность и результаты).
-
----
-
-## Участие в разработке
-
-Мы любим вклад сообщества! Начните с прочтения нашего [CONTRIBUTING.md](CONTRIBUTING.md).
-
----
-
-## Лицензия
-
-[Apache 2.0 © 2025 Roo+ Org](../../LICENSE)
-
----
-
-**Наслаждайся Roo+!** Будешь ли ты держать его на коротком поводке или позволишь ему действовать автономно, нам не терпится увидеть, что ты построишь. Если у тебя есть вопросы или идеи для новых функций, открой [issue](https://github.com/xavier-arosemena/roo-plus/issues) или начни [discussion](https://github.com/xavier-arosemena/roo-plus/discussions). Приятного кодинга!
+**Приятного пользования Roo+!** Если у вас есть вопросы или идеи функций, откройте [issue](https://github.com/xavier-arosemena/roo-plus/issues) или начните [обсуждение](https://github.com/xavier-arosemena/roo-plus/discussions).

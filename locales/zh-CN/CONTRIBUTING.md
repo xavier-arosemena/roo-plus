@@ -81,7 +81,7 @@ Roo+ 是一个由社区驱动的项目，我们非常重视每一份贡献。为
 ### 决定做什么
 
 - 如需查看 issue，请访问 [GitHub Issues 页面](https://github.com/xavier-arosemena/roo-plus/issues)。
-- 如需文档，请访问 [Roo+ 文档](https://github.com/xavier-arosemena/roo-plus-Docs)。
+- 如需文档，请访问 [Roo+ 文档](https://github.com/xavier-arosemena/roo-plus/tree/master/docs)。
 
 ### 报告错误
 
@@ -99,7 +99,7 @@ Roo+ 是一个由社区驱动的项目，我们非常重视每一份贡献。为
 1. **复刻和克隆：**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **安装依赖项：**

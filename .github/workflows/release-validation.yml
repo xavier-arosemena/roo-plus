@@ -54,6 +54,13 @@ jobs:
                   echo "::notice::[CI:RELEASE-VALIDATION:DESCRIPTIONS] mode descriptions gate passed"
                   echo "::endgroup::"
 
+            - name: Verify locale README landing pages (verify-locale-readmes.mjs)
+              run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:LOCALE-README] Verifying locale README landing pages"
+                  node scripts/verify-locale-readmes.mjs
+                  echo "::notice::[CI:RELEASE-VALIDATION:LOCALE-README] 17 locale README landing pages verified (no upstream markers, required Roo+ content present)"
+                  echo "::endgroup::"
+
             - name: Validate release metadata
               run: |
                   echo "::group::[CI:RELEASE-VALIDATION:METADATA] Validating release metadata"

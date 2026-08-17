@@ -81,7 +81,7 @@ Roo+ — это проект, управляемый сообществом, и 
 ### Решение, над чем работать
 
 - Проверь [страницу GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues), чтобы найти issues.
-- Для документации посетите [Документацию Roo+](https://github.com/xavier-arosemena/roo-plus-Docs).
+- Для документации посетите [Документацию Roo+](https://github.com/xavier-arosemena/roo-plus/tree/master/docs).
 
 ### Сообщение об ошибках
 
@@ -99,7 +99,7 @@ Roo+ — это проект, управляемый сообществом, и 
 1. **Сделайте форк и клонируйте:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **Установите зависимости:**

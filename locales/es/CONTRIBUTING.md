@@ -81,7 +81,7 @@ Todas las contribuciones comienzan con una incidencia de GitHub utilizando nuest
 ### Decidir en qué trabajar
 
 - Consulta la [página de GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues) para ver las issues.
-- Para la documentación, visite [Documentos de Roo+](https://github.com/xavier-arosemena/roo-plus-Docs).
+- Para la documentación, visite [Documentos de Roo+](https://github.com/xavier-arosemena/roo-plus/tree/master/docs).
 
 ### Informar de errores
 
@@ -99,7 +99,7 @@ Todas las contribuciones comienzan con una incidencia de GitHub utilizando nuest
 1. **Bifurcar y clonar:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **Instalar dependencias:**

@@ -81,7 +81,7 @@ Semua kontribusi dimulai dengan Masalah GitHub menggunakan template ramping kami
 ### Memutuskan Apa yang Akan Dikerjakan
 
 - Periksa [halaman GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues) untuk melihat issues.
-- Untuk dokumentasi, kunjungi [Dokumentasi Roo+](https://github.com/xavier-arosemena/roo-plus-Docs).
+- Untuk dokumentasi, kunjungi [Dokumentasi Roo+](https://github.com/xavier-arosemena/roo-plus/tree/master/docs).
 
 ### Melaporkan Bug
 
@@ -99,7 +99,7 @@ Semua kontribusi dimulai dengan Masalah GitHub menggunakan template ramping kami
 1. **Fork & Klon:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **Instal Ketergantungan:**

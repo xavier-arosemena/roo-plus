@@ -54,12 +54,21 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 **Impact**: Coverage could regress between releases without visibility.
 **Suggested Fix**: Add a `coverage` threshold in vitest config (e.g., 80% branch coverage) and enforce in CI.
 
-### 8. Locale README Files Out of Sync
+### 8. Locale README Files Out of Sync — RESOLVED
 
 **Locations**: `locales/*/README.md` (17 locale directories)
-**Issue**: Localized README files exist but are not maintained in lockstep with the English root README. The agent count, feature list, and installation instructions may be stale in non-English READMEs.
-**Impact**: Non-English users may see outdated documentation.
-**Suggested Fix**: Add a CI check that compares locale README structure against the English README, or generate locale READMEs from templates.
+
+**Status**: Fixed. All 17 locale READMEs were rewritten as compact Roo+ landing
+pages, removing stale upstream Zoo Code references. A language switcher was
+added to the root [`README.md`](README.md), and CONTRIBUTING.md upstream links
+were fixed (root + 17 locales). A new CI guard —
+[`scripts/verify-locale-readmes.mjs`](scripts/verify-locale-readmes.mjs)
+(14 spec tests) — is wired into
+[`release-validation.yml`](.github/workflows/release-validation.yml) and
+[`test:scripts`](package.json:29) and enforces that locale READMEs contain no
+upstream markers and always include the required Roo+ content. **Policy**:
+locale READMEs are lightweight landing pages; the English
+[`README.md`](README.md) is the single canonical full document. (Closes: #220)
 
 ### 9. `scripts/` Directory Documentation
 
@@ -202,6 +211,7 @@ decision and coverage reporting.
 | Sync-custom-modes not in VSIX build pipeline                                                                  | Integrated into `vscode:prepublish`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | v3.70.1 |
 | Webview message protocol — transitional (untyped) inbound types (DEBT #5)                                     | All 165 inbound `WebviewMessage` types registered (Phase 1, 2026-08-11). Phase 3 direction-mixing cleanup (2026-08-12) classified the 11 loose types: `marketplaceButtonClicked` (outbound-only `action` value) and `shareTaskSuccess` (direction-mixed, outbound authoritative) removed from the inbound union, 8 dead types removed, `draggedImages` typed with its real `dataUrls` payload. Inbound union 165 → **155**, all registered, 0 untyped; `parseWebviewMessage` is now a hard-allowlist fail-closed boundary                                                                                                                 | v3.78.0 |
 | Outbound `ExtensionMessage` typing + vestigial pass-through paths (DEBT #6)                                   | All 77 outbound `ExtensionMessage` types registered (Phase 2, 2026-08-11). Phase 3 (2026-08-12) dropped the vestigial unregistered pass-through in `parseExtensionMessage`/`parseWebviewMessage` (fail-closed hard allowlist) and drained every interface-level `any` escape on `ExtensionMessage`/`ExtensionState`/`WebviewMessage` (`payload` removed, `values` → `Record<string, unknown>`, `value` → `boolean \| number`, `settings` → `CodebaseIndexConfig`/removed, `config` removed, `todos` → `TodoItem[]`, `marketplaceInstalledMetadata` → `MarketplaceInstalledMetadata`) — **zero `any`** remaining on the message interfaces | v3.78.0 |
+| Locale README files out of sync                                                                               | 17 locale READMEs rewritten as Roo+ landing pages (upstream Zoo Code references removed); language switcher added to root README; CONTRIBUTING.md upstream links fixed (root + 17 locales); CI guard `scripts/verify-locale-readmes.mjs` (14 spec tests) wired into `release-validation.yml` and `test:scripts`; locale READMEs are lightweight landing pages, English `README.md` is the single canonical full document (Closes: #220)                                                                                                                                                                                                   | v3.78.0 |
 
 ---
 

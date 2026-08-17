@@ -81,7 +81,7 @@ Roo+ एक समुदाय-संचालित परियोजना �
 ### क्या काम करना है यह तय करना
 
 - Issues के लिए [GitHub Issues page](https://github.com/xavier-arosemena/roo-plus/issues) देखें।
-- दस्तावेज़ों के लिए, [Roo+ दस्तावेज़](https://github.com/xavier-arosemena/roo-plus-Docs) पर जाएँ।
+- दस्तावेज़ों के लिए, [Roo+ दस्तावेज़](https://github.com/xavier-arosemena/roo-plus/tree/master/docs) पर जाएँ।
 
 ### बग की रिपोर्ट करना
 
@@ -99,7 +99,7 @@ Roo+ एक समुदाय-संचालित परियोजना �
 1. **फोर्क और क्लोन:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **निर्भरताएँ स्थापित करें:**

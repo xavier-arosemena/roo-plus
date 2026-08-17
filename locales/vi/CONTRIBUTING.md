@@ -81,7 +81,7 @@ Tất cả các đóng góp đều bắt đầu bằng một Vấn đề trên G
 ### Quyết định nên làm gì
 
 - Hãy xem [trang GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues) để tìm issues.
-- Để biết tài liệu, hãy truy cập [Tài liệu Roo+](https://github.com/xavier-arosemena/roo-plus-Docs).
+- Để biết tài liệu, hãy truy cập [Tài liệu Roo+](https://github.com/xavier-arosemena/roo-plus/tree/master/docs).
 
 ### Báo cáo lỗi
 
@@ -99,7 +99,7 @@ Tất cả các đóng góp đều bắt đầu bằng một Vấn đề trên G
 1. **Rẽ nhánh & Sao chép:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **Cài đặt các phụ thuộc:**

@@ -81,7 +81,7 @@ Tüm katkılar, basit şablonlarımızı kullanarak bir GitHub Sorunu ile başla
 ### Ne Üzerinde Çalışılacağına Karar Verme
 
 - Issue bulmak için [GitHub Issues sayfasına](https://github.com/xavier-arosemena/roo-plus/issues) bak.
-- Belgeler için [Roo+ Belgeleri](https://github.com/xavier-arosemena/roo-plus-Docs)ni ziyaret edin.
+- Belgeler için [Roo+ Belgeleri](https://github.com/xavier-arosemena/roo-plus/tree/master/docs)ni ziyaret edin.
 
 ### Hataları Bildirme
 
@@ -99,7 +99,7 @@ Tüm katkılar, basit şablonlarımızı kullanarak bir GitHub Sorunu ile başla
 1. **Çatallayın ve Klonlayın:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **Bağımlılıkları Yükleyin:**

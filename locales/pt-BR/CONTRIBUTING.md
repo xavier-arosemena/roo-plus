@@ -81,7 +81,7 @@ Todas as contribuições começam com uma Issue do GitHub usando nossos modelos 
 ### Decidindo no que trabalhar
 
 - Confira a [página de GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues) para ver as issues.
-- Para documentação, visite [Documentação do Roo+](https://github.com/xavier-arosemena/roo-plus-Docs).
+- Para documentação, visite [Documentação do Roo+](https://github.com/xavier-arosemena/roo-plus/tree/master/docs).
 
 ### Relatando bugs
 
@@ -99,7 +99,7 @@ Todas as contribuições começam com uma Issue do GitHub usando nossos modelos 
 1. **Fork e Clone:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **Instale as dependências:**

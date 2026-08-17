@@ -81,7 +81,7 @@ Alle bijdragen beginnen met een GitHub Issue met behulp van onze slanke sjablone
 ### Beslissen waaraan je wilt werken
 
 - Bekijk de [GitHub Issues-pagina](https://github.com/xavier-arosemena/roo-plus/issues) voor issues.
-- Ga voor documentatie naar [Roo+ Docs](https://github.com/xavier-arosemena/roo-plus-Docs).
+- Ga voor documentatie naar [Roo+ Docs](https://github.com/xavier-arosemena/roo-plus/tree/master/docs).
 
 ### Bugs rapporteren
 
@@ -99,7 +99,7 @@ Alle bijdragen beginnen met een GitHub Issue met behulp van onze slanke sjablone
 1. **Fork & Klonen:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **Afhankelijkheden installeren:**
