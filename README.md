@@ -221,6 +221,10 @@ Copy the mode YAML content from its file in [`custom-modes/custom_modes.d/`](cus
 3. Search for **"Roo+"**
 4. Click **Install**
 
+#### Install the Pre-Release Version
+
+Want to test the newest build before it ships as stable? Use the marketplace's **"Install Pre-Release Version"** dropdown on the Roo+ extension page (VS Code Marketplace and Open VSX both expose it). Pre-release builds are generated from every push to `master`, so you always run the latest code — great for validating fixes and new features ahead of a stable release.
+
 Or install directly from the command line:
 
 ```bash

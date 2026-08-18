@@ -243,12 +243,20 @@ export function useScrollLifecycle({
 	}, [scrollPhase])
 
 	// Reset the phase/show-scroll state on task switch. Done during render
-	// (React's recommended "adjust state during render" pattern); the phase ref
-	// is synced by the dedicated effect above.
-	const [prevTaskTs, setPrevTaskTs] = useState(taskTs)
+	// (React's recommended "adjust state during render" pattern). The phase ref
+	// must be updated synchronously here (not just via the sync effect below) so
+	// that event callbacks (e.g. Virtuoso atBottomStateChange) that fire before
+	// the effect pass observe the correct phase — otherwise a transient
+	// not-at-bottom signal during hydration is misread as USER_BROWSING_HISTORY
+	// and wrongly reveals the scroll-to-bottom CTA.
+	// Initialize with a sentinel (null) so the first render also enters this
+	// branch; initializing with `taskTs` would skip it on mount.
+	const [prevTaskTs, setPrevTaskTs] = useState<number | undefined>(undefined)
 	if (taskTs !== prevTaskTs) {
 		setPrevTaskTs(taskTs)
-		setScrollPhase(taskTs ? "HYDRATING_PINNED_TO_BOTTOM" : "USER_BROWSING_HISTORY")
+		const nextPhase = taskTs ? "HYDRATING_PINNED_TO_BOTTOM" : "USER_BROWSING_HISTORY"
+		scrollPhaseRef.current = nextPhase
+		setScrollPhase(nextPhase)
 		setShowScrollToBottom(false)
 	}
 

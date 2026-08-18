@@ -136,8 +136,11 @@ export const OpenAICodexRateLimitDashboard: React.FC<OpenAICodexRateLimitDashboa
 
 	// Fetch rate limits on mount/auth change. Loading state is set during render
 	// (React's recommended "adjust state during render" pattern); the request
-	// postMessage stays in an effect.
-	const [prevAuthenticated, setPrevAuthenticated] = useState(isAuthenticated)
+	// postMessage stays in an effect. Initialize the previous-auth sentinel with
+	// undefined so the first render with isAuthenticated=true also enters the
+	// loading branch — initializing with `isAuthenticated` would skip it on
+	// mount and leave the dashboard stuck in the empty state.
+	const [prevAuthenticated, setPrevAuthenticated] = useState<boolean | undefined>(undefined)
 	if (isAuthenticated && !prevAuthenticated) {
 		setPrevAuthenticated(isAuthenticated)
 		setIsLoading(true)

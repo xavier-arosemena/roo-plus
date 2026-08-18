@@ -72,7 +72,10 @@ export const usePromptHistory = ({
 	// Update prompt history when filtered history changes and reset navigation.
 	// Done during render (React's recommended "adjust state during render"
 	// pattern) instead of an effect.
-	const [prevFilteredHistory, setPrevFilteredHistory] = useState(filteredPromptHistory)
+	// Initialize with a sentinel (null) so the first render always syncs
+	// promptHistory. Initializing with `filteredPromptHistory` would make the
+	// comparison always false on mount, leaving promptHistory empty.
+	const [prevFilteredHistory, setPrevFilteredHistory] = useState<string[] | null>(null)
 	if (filteredPromptHistory !== prevFilteredHistory) {
 		setPrevFilteredHistory(filteredPromptHistory)
 		setPromptHistory(filteredPromptHistory)

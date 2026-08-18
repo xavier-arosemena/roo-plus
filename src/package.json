@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "xavier-arosemena",
-	"version": "3.77.4",
+	"version": "3.79.0",
 	"icon": "assets/icons/icon.png",
 	"galleryBanner": {
 		"color": "#617A91",
@@ -493,7 +493,7 @@
 		"fzf": "^0.5.2",
 		"get-folder-size": "^5.0.0",
 		"global-agent": "^3.0.0",
-		"google-auth-library": "^11.0.0",
+		"google-auth-library": "^10.2.0",
 		"http-proxy-agent": "^7.0.0",
 		"https-proxy-agent": "^7.0.0",
 		"gray-matter": "^4.0.3",
@@ -535,7 +535,7 @@
 		"zod": "3.25.76"
 	},
 	"devDependencies": {
-		"@ai-sdk/openai-compatible": "3.0.25",
+		"@ai-sdk/openai-compatible": "2.0.56",
 		"@roo-code/build": "workspace:^",
 		"@roo-code/config-eslint": "workspace:^",
 		"@roo-code/config-typescript": "workspace:^",

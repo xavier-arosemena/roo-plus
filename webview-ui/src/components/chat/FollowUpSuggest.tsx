@@ -50,7 +50,10 @@ export const FollowUpSuggest = ({
 		followupAutoApproveTimeoutMs,
 	].join("|")
 
-	const [prevCountdownKey, setPrevCountdownKey] = useState(countdownKey)
+	// Initialize with a sentinel (null) so the first render always triggers the
+	// countdown initialization below. Initializing with `countdownKey` would make
+	// the comparison always false on mount, leaving countdown stuck at null.
+	const [prevCountdownKey, setPrevCountdownKey] = useState<string | null>(null)
 	if (countdownKey !== prevCountdownKey) {
 		setPrevCountdownKey(countdownKey)
 		const active =
