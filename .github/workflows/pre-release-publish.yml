@@ -30,6 +30,11 @@ jobs:
     env:
       VSCE_PAT: ${{ secrets.VSCE_PAT }}
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      # Optional Slack failure notification. Exposed as job-level env so steps can
+      # gate on it with `if: env.* != ''` — the `secrets` context is not allowed
+      # inside `if:` expressions (workflow parse error otherwise).
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
 
     steps:
       - name: Checkout code
@@ -70,6 +75,20 @@ jobs:
           echo "skip=${skip}" >> "$GITHUB_OUTPUT"
           echo "::notice::[CI:PRERELEASE:RELEASE-CHECK] skip=${skip}"
           echo "::endgroup::"
+
+      - name: Fail fast when no marketplace token is configured
+        # A "successful" run that publishes nothing is a silent failure. Fail
+        # loudly when neither registry token is set so the run turns red and
+        # triggers notifications instead of quietly skipping both publishes.
+        if: steps.release-check.outputs.skip != 'true' && env.VSCE_PAT == '' && env.OVSX_PAT == ''
+        run: |
+          echo "::group::[CI:PRERELEASE:TOKEN-GUARD] Checking marketplace tokens"
+          echo "::error::[CI:PRERELEASE:TOKEN-GUARD] Neither VSCE_PAT nor OVSX_PAT is configured in the marketplace-prerelease environment — the pre-release cannot be published to any registry."
+          echo "::error::[CI:PRERELEASE:TOKEN-GUARD] Add a token at: Settings → Environments → marketplace-prerelease → Add secret, then re-run this workflow."
+          echo "::error::[CI:PRERELEASE:TOKEN-GUARD]   VSCE_PAT: VS Code Marketplace PAT (Manage scope, publisher 'xavier-arosemena')"
+          echo "::error::[CI:PRERELEASE:TOKEN-GUARD]   OVSX_PAT: https://open-vsx.org/user-settings/tokens (publisher 'xavier-arosemena')"
+          echo "::endgroup::"
+          exit 1
 
       - name: Set pre-release version
         if: steps.release-check.outputs.skip != 'true'
@@ -198,3 +217,19 @@ jobs:
           name: roo-plus-prerelease-${{ github.sha }}
           path: bin/roo-plus-*.vsix
           retention-days: 7
+
+      # Failure notification. Runs only when a previous step failed AND a Slack
+      # webhook is configured; continue-on-error so a notification problem can
+      # never mask the underlying failure.
+      - name: Notify Slack on failure
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        uses: ./.github/actions/slack-notify
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          channel: ${{ secrets.SLACK_CHANNEL }}
+          workflow-name: "Publish Pre-release Version"
+          # Single-job workflow with no `needs`, so `toJson(needs)` would be `{}`.
+          # This step only runs when the job already failed (`failure()`), so a
+          # static object naming the current job is the correct input here.
+          failed-jobs: '{"publish-prerelease":{"result":"failure"}}'

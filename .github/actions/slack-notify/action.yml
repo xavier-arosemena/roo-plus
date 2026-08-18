@@ -31,6 +31,7 @@ runs:
             "compile") failed_list="${failed_list}❌ Compile & lint\n" ;;
             "unit-test") failed_list="${failed_list}❌ Unit tests\n" ;;
             "integration-test") failed_list="${failed_list}❌ Integration tests\n" ;;
+            "publish-prerelease") failed_list="${failed_list}❌ Publish pre-release\n" ;;
           esac
         done
 
