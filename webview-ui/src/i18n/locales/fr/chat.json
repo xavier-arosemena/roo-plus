@@ -98,7 +98,7 @@
 	"enqueueMessage": "Ajouter le message à la file d'attente (sera envoyé après la fin de la tâche en cours)",
 	"scrollToBottom": "Défiler jusqu'au bas du chat",
 	"scrollToLatestCheckpoint": "Défiler jusqu'au checkpoint précédent",
-	"about": "Votre équipe d'IA multi-agents — 301 modes spécialisés pour le code, DevOps, la sécurité et l'architecture.",
+	"about": "Votre équipe d'IA multi-agents — <br/>301 modes spécialisés pour le code, DevOps, la sécurité et l'architecture.",
 	"support": {
 		"reportIssue": "Signaler un bug ou demander une fonctionnalité",
 		"discussions": "Rejoindre les discussions",

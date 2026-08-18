@@ -7,9 +7,9 @@
 ## Context
 
 Roo+ ships a large custom-modes library through a git submodule (`custom-modes/`),
-and several shipped artifacts are generated from it: [`.roomodes`](../.roomodes)
-(the pre-loaded modes), [`pre-installed-modes.yml`](../src/assets/marketplace/pre-installed-modes.yml)
-(the seeded modes), and the marketplace catalog [`modes.yml`](../src/assets/marketplace/modes.yml).
+and several shipped artifacts are generated from it: [`.roomodes`](../../.roomodes)
+(the pre-loaded modes), [`pre-installed-modes.yml`](../../src/assets/marketplace/pre-installed-modes.yml)
+(the seeded modes), and the marketplace catalog [`modes.yml`](../../src/assets/marketplace/modes.yml).
 
 Before this change the submodule contained **several overlapping catalogs** with
 different schemas and overlapping-but-not-identical slug sets:
@@ -41,9 +41,9 @@ whole sync pipeline around it** (Issue #159):
   split `.roomodes.00…10` batch artifacts. `custom_modes.d/` (one YAML file per
   mode, 301 modes) is the only source of truth.
 - **Regenerate all shipped artifacts from the canonical source**:
-  [`scripts/sync-custom-modes.mjs`](../scripts/sync-custom-modes.mjs) consumes
+  [`scripts/sync-custom-modes.mjs`](../../scripts/sync-custom-modes.mjs) consumes
   `custom_modes.d/**/*.yaml` (guided by the curation manifest
-  [`custom-modes/manifest.json`](../custom-modes/manifest.json)) and emits
+  [`custom-modes/manifest.json`](../../custom-modes/manifest.json)) and emits
   `.roomodes`, `pre-installed-modes.yml`, and the marketplace `modes.yml`
   (301 items = the 301-mode catalog).
 - **Keep SOURCE-WINS merge semantics** (`mergeRoomodesModes()`): on slug conflict
@@ -54,15 +54,15 @@ whole sync pipeline around it** (Issue #159):
 - **Add a built-in slug guard**: `sync-custom-modes.mjs` fails the build if any
   core mode slug (`architect`, `code`, `ask`, `debug`, `orchestrator`) leaks into
   `.roomodes`, `pre-installed-modes.yml`, or `modes.yml`.
-- **Pin the submodule** at a recorded commit (currently `4ee95d2`) and enforce it
-  with [`scripts/verify-submodule-pin.mjs`](../scripts/verify-submodule-pin.mjs),
+- **Pin the submodule** at a recorded commit (currently `8cdf378b`) and enforce it
+  with [`scripts/verify-submodule-pin.mjs`](../../scripts/verify-submodule-pin.mjs),
   wired into `prevsix` / `prebundle` / `prevscode:prepublish`, so every packaging
   path builds against a known-good, clean checkout.
 - **Regenerate and verify**: `.roomodes` reproducibility is guarded by
-  [`scripts/verify-roomodes-sync.mjs`](../scripts/verify-roomodes-sync.mjs); the
+  [`scripts/verify-roomodes-sync.mjs`](../../scripts/verify-roomodes-sync.mjs); the
   description pipeline is consolidated in
-  [`scripts/ensure_descriptions.py`](../scripts/ensure_descriptions.py) and
-  documented in [`scripts/DESCRIPTIONS.md`](../scripts/DESCRIPTIONS.md).
+  [`scripts/ensure_descriptions.py`](../../scripts/ensure_descriptions.py) and
+  documented in [`scripts/DESCRIPTIONS.md`](../../scripts/DESCRIPTIONS.md).
 
 ## Consequences
 
@@ -88,11 +88,11 @@ whole sync pipeline around it** (Issue #159):
 
 - `BUILT_IN_SLUGS` in the sync script duplicates the extension core's built-in
   mode slugs; the set is stable today but the duplication is unenforced (tracked
-  in [`DEBT.md`](../DEBT.md) item #14).
+  in [`DEBT.md`](../../DEBT.md) item #14).
 
 ## Related
 
 - Issue [#159](https://github.com/xavier-arosemena/roo-plus/issues/159) — "Roo-plus Custom Modes".
-- [`scripts/DESCRIPTIONS.md`](../scripts/DESCRIPTIONS.md) — canonical-source decision and enforcement for mode descriptions.
-- [`DEBT.md`](../DEBT.md) — technical debt register (item #14).
+- [`scripts/DESCRIPTIONS.md`](../../scripts/DESCRIPTIONS.md) — canonical-source decision and enforcement for mode descriptions.
+- [`DEBT.md`](../../DEBT.md) — technical debt register (item #14).
 - Registered in the ADR index at [`src/docs/ADR-INDEX.md`](ADR-INDEX.md).

@@ -209,7 +209,7 @@ export const UNTYPED_MESSAGE_LIMIT = 0
  * in `extensionMessageSchemas` (see `packages/types/src/extension-messages/index.ts`).
  *
  * Same rule as `MESSAGE_SCHEMA_BASELINE`: this list must only ever GROW. These
- * are the Phase-0 baseline types from docs/architecture-review-protocol-migration.md;
+ * are the Phase-0 baseline types from plans/architecture-review-protocol-migration.md;
  * newly typed outbound domains are appended here during follow-up migration work.
  */
 export const EXTENSION_MESSAGE_BASELINE = [

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, memo } from "react"
+import { useCallback, useMemo, useState, memo } from "react"
 import { Server, ChevronDown } from "lucide-react"
 import { useEvent } from "react-use"
 import { useTranslation } from "react-i18next"
@@ -91,8 +91,10 @@ export const McpExecution = ({
 		return { isJson: false, formatted: responseText }
 	}, [responseText, isResponseExpanded, tryParseJson, status])
 
-	// Only parse arguments data when complete to avoid parsing partial JSON
-	const argumentsData = useMemo(() => {
+	// Only parse arguments data when complete to avoid parsing partial JSON.
+	// Computed directly (not useMemo) — the React Compiler flags this as
+	// not-worth-memoizing.
+	const argumentsData = (() => {
 		if (!argumentsText) {
 			return { isJson: false, formatted: "" }
 		}
@@ -120,7 +122,7 @@ export const McpExecution = ({
 
 		// For non-JSON or incomplete data, just return as-is
 		return { isJson: false, formatted: argumentsText }
-	}, [argumentsText])
+	})()
 
 	const formattedResponseText = responseData.formatted
 	const formattedArgumentsText = argumentsData.formatted
@@ -163,26 +165,27 @@ export const McpExecution = ({
 
 	useEvent("message", onMessage)
 
-	// Initialize with text if provided and parse command/response sections
-	useEffect(() => {
-		// Handle arguments text - don't parse JSON here as it might be incomplete
-		if (text) {
-			setArgumentsText(text)
-		}
+	// Sync prop-derived state during render (React's recommended "adjust state
+	// during render" pattern) instead of in an effect.
+	const [prevPropText, setPrevPropText] = useState(text)
+	if (text && text !== prevPropText) {
+		setPrevPropText(text)
+		setArgumentsText(text)
+	}
 
-		// Handle response text
-		if (useMcpServer?.response) {
-			setResponseText(useMcpServer.response)
-		}
+	const [prevResponse, setPrevResponse] = useState(useMcpServer?.response)
+	if (useMcpServer?.response && useMcpServer.response !== prevResponse) {
+		setPrevResponse(useMcpServer.response)
+		setResponseText(useMcpServer.response)
+	}
 
-		if (initialServerName && initialServerName !== serverName) {
-			setServerName(initialServerName)
-		}
+	if (initialServerName && initialServerName !== serverName) {
+		setServerName(initialServerName)
+	}
 
-		if (initialToolName && initialToolName !== toolName) {
-			setToolName(initialToolName)
-		}
-	}, [text, useMcpServer, initialServerName, initialToolName, serverName, toolName, isArguments])
+	if (initialToolName && initialToolName !== toolName) {
+		setToolName(initialToolName)
+	}
 
 	return (
 		<>

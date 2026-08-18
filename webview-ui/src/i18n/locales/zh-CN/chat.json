@@ -98,7 +98,7 @@
 	"enqueueMessage": "将消息加入队列（当前任务完成后发送）",
 	"scrollToBottom": "滚动到聊天底部",
 	"scrollToLatestCheckpoint": "滚动到上一个检查点",
-	"about": "您的多智能体 AI 团队 — 涵盖编码、DevOps、安全和架构的 301 个专业模式。",
+	"about": "您的多智能体 AI 团队 — <br/>涵盖编码、DevOps、安全和架构的 301 个专业模式。",
 	"support": {
 		"reportIssue": "报告错误或请求功能",
 		"discussions": "加入讨论",

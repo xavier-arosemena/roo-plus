@@ -30,13 +30,13 @@ User clicks "Semble - Local" in settings
 
 ### Key Files
 
-| File                                                                                                             | Role                                                                  |
-| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [`src/services/code-index/semble/semble-downloader.ts`](src/services/code-index/semble/semble-downloader.ts:28)  | Contains `DOWNLOAD_BASE_URL` pointing to `Roo-Plus-Org/sembleexec`    |
-| [`src/services/code-index/semble/semble-downloader.ts`](src/services/code-index/semble/semble-downloader.ts:161) | `downloadSemble()` — downloads, verifies checksum, extracts binary    |
-| [`src/services/code-index/semble/provider.ts`](src/services/code-index/semble/provider.ts:80)                    | `SembleProvider._doInitialize()` — orchestrates download + validation |
-| [`src/services/code-index/manager.ts`](src/services/code-index/manager.ts:405)                                   | Branch: creates `SembleProvider` when provider is `"semble"`          |
-| [`webview-ui/src/components/chat/CodeIndexPopover.tsx`](webview-ui/src/components/chat/CodeIndexPopover.tsx:179) | UI schema — `"semble"` requires no API keys                           |
+| File                                                                                                                   | Role                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [`src/services/code-index/semble/semble-downloader.ts`](../../src/services/code-index/semble/semble-downloader.ts:28)  | Contains `DOWNLOAD_BASE_URL` pointing to `Roo-Plus-Org/sembleexec`    |
+| [`src/services/code-index/semble/semble-downloader.ts`](../../src/services/code-index/semble/semble-downloader.ts:161) | `downloadSemble()` — downloads, verifies checksum, extracts binary    |
+| [`src/services/code-index/semble/provider.ts`](../../src/services/code-index/semble/provider.ts:80)                    | `SembleProvider._doInitialize()` — orchestrates download + validation |
+| [`src/services/code-index/manager.ts`](../../src/services/code-index/manager.ts:405)                                   | Branch: creates `SembleProvider` when provider is `"semble"`          |
+| [`webview-ui/src/components/chat/CodeIndexPopover.tsx`](../../webview-ui/src/components/chat/CodeIndexPopover.tsx:179) | UI schema — `"semble"` requires no API keys                           |
 
 ---
 
@@ -63,14 +63,14 @@ https://github.com/Roo-Plus-Org/sembleexec/releases/download/v0.4.1/semble-linux
 
 ### 2.2 Underlying Architectural Issues
 
-| Issue                                | Detail                                                                                                                               | Location                                                                              |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| **Hardcoded single source**          | `DOWNLOAD_BASE_URL` is hardcoded to one GitHub repository with **no fallback**                                                       | [`semble-downloader.ts:28`](src/services/code-index/semble/semble-downloader.ts:28)   |
-| **No user-configurable binary path** | Users cannot point to a manually downloaded binary. The download is fully automated with zero user configuration for the binary path | [`semble-downloader.ts:161`](src/services/code-index/semble/semble-downloader.ts:161) |
-| **No mirror/fallback sources**       | If the primary URL fails, there are no alternative download locations attempted                                                      | [`semble-downloader.ts:194`](src/services/code-index/semble/semble-downloader.ts:194) |
-| **No retry mechanism**               | Download is one-shot — no exponential backoff or retry logic on transient failures                                                   | [`semble-downloader.ts:422`](src/services/code-index/semble/semble-downloader.ts:422) |
-| **2-minute timeout only**            | The single timeout is 120s. No network error classification or connectivity diagnosis                                                | [`semble-downloader.ts:480`](src/services/code-index/semble/semble-downloader.ts:480) |
-| **No graceful degradation**          | When download fails, user gets an error with no alternative setup path offered                                                       | [`provider.ts:101`](src/services/code-index/semble/provider.ts:101)                   |
+| Issue                                | Detail                                                                                                                               | Location                                                                                    |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| **Hardcoded single source**          | `DOWNLOAD_BASE_URL` is hardcoded to one GitHub repository with **no fallback**                                                       | [`semble-downloader.ts:28`](../../src/services/code-index/semble/semble-downloader.ts:28)   |
+| **No user-configurable binary path** | Users cannot point to a manually downloaded binary. The download is fully automated with zero user configuration for the binary path | [`semble-downloader.ts:161`](../../src/services/code-index/semble/semble-downloader.ts:161) |
+| **No mirror/fallback sources**       | If the primary URL fails, there are no alternative download locations attempted                                                      | [`semble-downloader.ts:194`](../../src/services/code-index/semble/semble-downloader.ts:194) |
+| **No retry mechanism**               | Download is one-shot — no exponential backoff or retry logic on transient failures                                                   | [`semble-downloader.ts:422`](../../src/services/code-index/semble/semble-downloader.ts:422) |
+| **2-minute timeout only**            | The single timeout is 120s. No network error classification or connectivity diagnosis                                                | [`semble-downloader.ts:480`](../../src/services/code-index/semble/semble-downloader.ts:480) |
+| **No graceful degradation**          | When download fails, user gets an error with no alternative setup path offered                                                       | [`provider.ts:101`](../../src/services/code-index/semble/provider.ts:101)                   |
 
 ---
 
@@ -120,7 +120,7 @@ If the `sembleexec` binary exists and needs a distribution home:
     - `semble-linux-arm64-fast.tar.gz`
     - `semble-macos-arm64-fast.tar.gz`
     - `semble-windows-x64-fast.zip`
-3. Update `SEMBLE_SHA256` checksums in [`semble-downloader.ts:38`](src/services/code-index/semble/semble-downloader.ts:38) to match the published binaries
+3. Update `SEMBLE_SHA256` checksums in [`semble-downloader.ts:38`](../../src/services/code-index/semble/semble-downloader.ts:38) to match the published binaries
 
 **Effort**: 1-2 hours (creating repo + uploading release assets)
 
@@ -134,21 +134,21 @@ Add a setting for an alternative semble binary path. This provides a fallback if
 
 **Changes required:**
 
-1. **Types layer** ([`types.ts`](src/services/code-index/semble/types.ts)): Add `SembleConfig.binaryPath?: string`
+1. **Types layer** ([`types.ts`](../../src/services/code-index/semble/types.ts)): Add `SembleConfig.binaryPath?: string`
 
-2. **Downloader** ([`semble-downloader.ts`](src/services/code-index/semble/semble-downloader.ts)):
+2. **Downloader** ([`semble-downloader.ts`](../../src/services/code-index/semble/semble-downloader.ts)):
     - Add `getSembleBinaryPath()` (already exists at line 296) to check for user-configured path
     - Modify `downloadSemble()` to accept optional `binaryPath` override, skipping download if provided
 
-3. **Provider** ([`provider.ts`](src/services/code-index/semble/provider.ts)):
+3. **Provider** ([`provider.ts`](../../src/services/code-index/semble/provider.ts)):
     - Accept optional binary path from config
     - If binary path provided, skip download and validate directly
 
-4. **UI** ([`CodeIndexPopover.tsx`](webview-ui/src/components/chat/CodeIndexPopover.tsx)):
+4. **UI** ([`CodeIndexPopover.tsx`](../../webview-ui/src/components/chat/CodeIndexPopover.tsx)):
     - Add optional text input for manual semble binary path (shown only for `"semble"` provider)
     - Show helper text with download instructions
 
-5. **Config Manager** ([`config-manager.ts`](src/services/code-index/config-manager.ts)):
+5. **Config Manager** ([`config-manager.ts`](../../src/services/code-index/config-manager.ts)):
     - Persist the user-configured binary path
 
 ### Solution C (Medium-term): Multi-Source Fallback

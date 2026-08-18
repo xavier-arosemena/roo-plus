@@ -158,7 +158,7 @@ It is wired so **no packaging path can bypass it**:
 | root `pnpm vsix` / `pnpm bundle`                 | root `prevsix` / `prebundle` |
 
 The gate is also chained into CI (`code-qa`, `release-validation`,
-`marketplace-publish`, `nightly-publish`), which now check out the submodule
+`marketplace-publish`, `pre-release-publish`), which now check out the submodule
 recursively with `actions/checkout` `submodules: recursive` — so CI builds from
 the **pinned** submodule state, never from committed-but-unverified artifacts.
 

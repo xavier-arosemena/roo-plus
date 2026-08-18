@@ -28,8 +28,8 @@ The CLI package (`apps/cli`) and the VS Code extension packaging both benefit fr
 
 ### Package Configuration
 
-- [`package.json`](package.json): Updated `engines.node` from `>=20.0.0` to `>=22.23.1`
-- [`apps/cli/package.json`](apps/cli/package.json): Updated `engines.node` to `>=22.23.1`
+- [`package.json`](../../package.json): Updated `engines.node` from `>=20.0.0` to `>=22.23.1`
+- [`apps/cli/package.json`](../../apps/cli/package.json): Updated `engines.node` to `>=22.23.1`
 - CI/CD workflow files updated to use Node.js 22.x
 
 ### CI/CD Impact

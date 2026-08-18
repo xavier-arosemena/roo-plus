@@ -199,7 +199,7 @@ const ModesView = () => {
 			// Exit tools edit mode when switching modes
 			setIsToolsEditMode(false)
 		},
-		[visualMode, switchMode],
+		[visualMode, switchMode, setIsToolsEditMode],
 	)
 
 	// Refs to track latest state/functions for message handler (which has no dependencies)
@@ -280,7 +280,9 @@ const ModesView = () => {
 		setRenameInputValue("")
 	}, [])
 
-	const handleSaveRenameMode = useCallback(() => {
+	// Plain function (not useCallback) — the React Compiler flagged the manual
+	// memoization as not-preservable; it is only used as an event handler.
+	const handleSaveRenameMode = () => {
 		const customMode = findModeBySlug(visualMode, customModes)
 		const trimmed = renameInputValue.trim()
 		if (!customMode || !trimmed) {
@@ -303,13 +305,14 @@ const ModesView = () => {
 		// Optimistically reflect rename in UI/search immediately
 		setLocalRenames((prev) => ({ ...prev, [visualMode]: trimmed }))
 		setIsRenamingMode(false)
-	}, [visualMode, customModes, renameInputValue, modes, updateCustomMode, findModeBySlug])
+	}
 
-	// Helper function to get current mode's config
-	const getCurrentMode = useCallback((): ModeConfig | undefined => {
+	// Helper function to get current mode's config (plain function; the React
+	// Compiler flagged the manual memoization as not-preservable).
+	const getCurrentMode = (): ModeConfig | undefined => {
 		const findMode = (m: ModeConfig): boolean => m.slug === visualMode
 		return customModes?.find(findMode) || modes.find(findMode)
-	}, [visualMode, customModes, modes])
+	}
 
 	// Check if the current mode has rules to export
 	const checkRulesDirectory = useCallback((slug: string) => {
@@ -319,13 +322,17 @@ const ModesView = () => {
 		})
 	}, [])
 
-	// Check rules directory when mode changes
+	// Check rules directory when mode changes. The current-mode lookup is
+	// inlined here (instead of depending on getCurrentMode) so the effect does
+	// not re-run on every render.
 	useEffect(() => {
-		const currentMode = getCurrentMode()
+		const currentMode =
+			customModes?.find((m: ModeConfig) => m.slug === visualMode) ??
+			modes.find((m: ModeConfig) => m.slug === visualMode)
 		if (currentMode?.slug && hasRulesToExport.get(currentMode.slug) === undefined) {
 			checkRulesDirectory(currentMode.slug)
 		}
-	}, [getCurrentMode, checkRulesDirectory, hasRulesToExport])
+	}, [customModes, visualMode, modes, checkRulesDirectory, hasRulesToExport])
 
 	// State for create mode dialog
 	const [newModeName, setNewModeName] = useState("")
@@ -345,8 +352,9 @@ const ModesView = () => {
 	const [roleDefinitionError, setRoleDefinitionError] = useState<string>("")
 	const [groupsError, setGroupsError] = useState<string>("")
 
-	// Helper to reset form state
-	const resetFormState = useCallback(() => {
+	// Helper to reset form state (plain function; the React Compiler flagged the
+	// manual memoization as not-preservable).
+	const resetFormState = () => {
 		// Reset form fields
 		setNewModeName("")
 		setNewModeSlug("")
@@ -363,21 +371,27 @@ const ModesView = () => {
 		setDescriptionError("")
 		setRoleDefinitionError("")
 		setGroupsError("")
-	}, [])
+	}
 
-	// Reset form fields when dialog opens
-	useEffect(() => {
+	// Reset form fields when dialog opens. Done during render (React's
+	// recommended "adjust state during render" pattern).
+	const [prevCreateDialogOpen, setPrevCreateDialogOpen] = useState(isCreateModeDialogOpen)
+	if (isCreateModeDialogOpen !== prevCreateDialogOpen) {
+		setPrevCreateDialogOpen(isCreateModeDialogOpen)
 		if (isCreateModeDialogOpen) {
 			resetFormState()
 		}
-	}, [isCreateModeDialogOpen, resetFormState])
+	}
 
-	// Ensure import dialog defaults to "project" each open
-	useEffect(() => {
+	// Ensure import dialog defaults to "project" each open. Done during render
+	// (React's recommended "adjust state during render" pattern).
+	const [prevShowImportDialog, setPrevShowImportDialog] = useState(showImportDialog)
+	if (showImportDialog !== prevShowImportDialog) {
+		setPrevShowImportDialog(showImportDialog)
 		if (showImportDialog) {
 			setImportLevel("project")
 		}
-	}, [showImportDialog])
+	}
 
 	// Helper function to generate a unique slug from a name
 	const generateSlug = useCallback((name: string, attempt = 0): string => {
@@ -394,10 +408,12 @@ const ModesView = () => {
 			setNewModeName(name)
 			setNewModeSlug(generateSlug(name))
 		},
-		[generateSlug],
+		[generateSlug, setNewModeSlug],
 	)
 
-	const handleCreateMode = useCallback(() => {
+	// Plain function (not useCallback) — it is only used as an event handler and
+	// depends on the plain resetFormState helper.
+	const handleCreateMode = () => {
 		// Clear previous errors
 		setNameError("")
 		setSlugError("")
@@ -454,29 +470,17 @@ const ModesView = () => {
 		switchMode(newModeSlug)
 		setIsCreateModeDialogOpen(false)
 		resetFormState()
-	}, [
-		newModeName,
-		newModeSlug,
-		newModeDescription,
-		newModeRoleDefinition,
-		newModeWhenToUse,
-		newModeCustomInstructions,
-		newModeGroups,
-		newModeSource,
-		newModeAllowedMcpServers,
-		updateCustomMode,
-		switchMode,
-		resetFormState,
-	])
+	}
 
-	const isNameOrSlugTaken = useCallback(
-		(name: string, slug: string) => {
-			return modes.some((m) => m.slug === slug || m.name === name)
-		},
-		[modes],
-	)
+	// Plain function (not useCallback) — the React Compiler flagged the manual
+	// memoization as not-preservable; it is only used by openCreateModeDialog.
+	const isNameOrSlugTaken = (name: string, slug: string) => {
+		return modes.some((m) => m.slug === slug || m.name === name)
+	}
 
-	const openCreateModeDialog = useCallback(() => {
+	// Plain function (not useCallback) — it is only used as an event handler and
+	// depends on the plain isNameOrSlugTaken helper.
+	const openCreateModeDialog = () => {
 		const baseNamePrefix = "New Custom Mode"
 		// Find unique name and slug
 		let attempt = 0
@@ -490,7 +494,7 @@ const ModesView = () => {
 		setNewModeName(name)
 		setNewModeSlug(slug)
 		setIsCreateModeDialogOpen(true)
-	}, [generateSlug, isNameOrSlugTaken])
+	}
 
 	// Handler for group checkbox changes
 	const handleGroupChange = useCallback(

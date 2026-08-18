@@ -1,0 +1,200 @@
+name: Publish Pre-release Version
+
+# Publishes the "pre-release" channel consumed via the marketplace's
+# "Install Pre-Release Version" option (VS Code Marketplace and Open VSX).
+# Every push to master produces a fresh pre-release build that outranks the
+# latest stable, letting testers run the newest code before it ships as a
+# stable release (previously named "Publish Pre-release Extension" /
+# nightly-publish.yml).
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: # Allows manual triggering.
+
+permissions:
+  contents: read
+
+concurrency:
+  group: marketplace-prerelease
+  cancel-in-progress: false
+
+jobs:
+  publish-prerelease:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: marketplace-prerelease
+    # Expose the marketplace tokens as job-level env so steps can gate on them
+    # with `if: env.* != ''` — GitHub Actions does NOT allow the `secrets`
+    # context inside `if:` expressions (workflow parse error otherwise).
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          # The VSIX embeds modes regenerated from the custom-modes submodule at
+          # build time, so CI MUST check it out at the recorded pin — otherwise the
+          # build would silently reuse stale committed artifacts.
+          submodules: recursive
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          install-args: "--frozen-lockfile"
+
+      - name: Prepare extension publish
+        uses: ./.github/actions/prepare-extension
+        with:
+          log-prefix: PRERELEASE
+          environment: marketplace-prerelease
+          require-master-ref: "true"
+          validate-tokens: "true"
+          vsce-pat: ${{ secrets.VSCE_PAT }}
+          ovsx-pat: ${{ secrets.OVSX_PAT }}
+
+      - name: Skip if this push is a release merge
+        id: release-check
+        run: |
+          echo "::group::[CI:PRERELEASE:RELEASE-CHECK] Checking whether this push is a release merge"
+          commit_subject=$(git log -1 --format=%s)
+          skip=false
+
+          if [[ "$commit_subject" =~ ^chore:\ prepare\ v[0-9]+\.[0-9]+\.[0-9]+\ release ]]; then
+            echo "::notice::[CI:PRERELEASE:RELEASE-CHECK] Commit '${commit_subject}' looks like a release-prep merge; skipping pre-release publish."
+            skip=true
+          fi
+
+          echo "skip=${skip}" >> "$GITHUB_OUTPUT"
+          echo "::notice::[CI:PRERELEASE:RELEASE-CHECK] skip=${skip}"
+          echo "::endgroup::"
+
+      - name: Set pre-release version
+        if: steps.release-check.outputs.skip != 'true'
+        id: version
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          echo "::group::[CI:PRERELEASE:VERSION] Setting pre-release version"
+          node <<'EOF'
+          const fs = require("fs")
+          const pkgPath = "src/package.json"
+          const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"))
+          const [major, minor] = pkg.version.split(".").map(Number)
+          // Keep the existing "next odd minor" strategy so the pre-release always
+          // outranks the latest stable (a marketplace requirement for offering the
+          // "Install Pre-Release Version" option), but emit a valid semver
+          // pre-release identifier (`-pre-release.<run>`) instead of the previous
+          // stable-looking `X.<minor>.<100000+run>` scheme. A proper pre-release
+          // semver is required for the marketplace to expose the version in the
+          // pre-release track and for the packaged manifest to carry it correctly.
+          const prereleaseMinor = minor % 2 === 0 ? minor + 1 : minor + 2
+          const prereleaseVersion = `${major}.${prereleaseMinor}.0-pre-release.${Number(process.env.RUN_NUMBER)}`
+
+          pkg.version = prereleaseVersion
+          fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, "\t")}\n`)
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `number=${prereleaseVersion}\n`)
+          console.log(`Pre-release version set to ${prereleaseVersion}`)
+          EOF
+          echo "::notice::[CI:PRERELEASE:VERSION] pre-release version set"
+          echo "::endgroup::"
+
+      - name: Build workspace packages
+        if: steps.release-check.outputs.skip != 'true'
+        env:
+          PKG_RELEASE_CHANNEL: prerelease
+        run: |
+          echo "::group::[CI:PRERELEASE:BUILD] Building workspace packages"
+          pnpm --filter @roo-code/build build
+          pnpm --filter @roo-code/vscode-webview build
+          echo "::notice::[CI:PRERELEASE:BUILD] workspace packages built"
+          echo "::endgroup::"
+
+      - name: Package pre-release VSIX
+        if: steps.release-check.outputs.skip != 'true'
+        env:
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          PKG_RELEASE_CHANNEL: prerelease
+        run: |
+          echo "::group::[CI:PRERELEASE:PACKAGE] Packaging pre-release VSIX"
+          mkdir -p bin
+          pnpm --filter ./src exec vsce package --pre-release --no-dependencies --out ../bin
+          echo "::notice::[CI:PRERELEASE:PACKAGE] pre-release VSIX packaged"
+          echo "::endgroup::"
+
+      - name: Verify VSIX contents
+        if: steps.release-check.outputs.skip != 'true'
+        env:
+          VERSION_NUMBER: ${{ steps.version.outputs.number }}
+        run: |
+          echo "::group::[CI:PRERELEASE:VERIFY-VSIX] Verifying VSIX contents"
+          vsix_path="bin/roo-plus-${VERSION_NUMBER}.vsix"
+          unzip -l "$vsix_path" > /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/package.json" /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/dist/extension.js" /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/webview-ui/build/assets/index.js" /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/webview-ui/audio/celebration.wav" /tmp/roo-plus-vsix-contents.txt
+          echo "::notice::[CI:PRERELEASE:VERIFY-VSIX] VSIX contents verified"
+          echo "::endgroup::"
+
+      - name: Validate packaged manifest identity
+        if: steps.release-check.outputs.skip != 'true'
+        env:
+          VERSION_NUMBER: ${{ steps.version.outputs.number }}
+        run: |
+          echo "::group::[CI:PRERELEASE:MANIFEST] Validating packaged manifest identity"
+          vsix_path="bin/roo-plus-${VERSION_NUMBER}.vsix"
+
+          artifact_name=$(unzip -p "$vsix_path" extension/package.json | jq -r '.name')
+          artifact_publisher=$(unzip -p "$vsix_path" extension/package.json | jq -r '.publisher')
+
+          test "$artifact_name" = "roo-plus"
+          test "$artifact_publisher" = "xavier-arosemena"
+          echo "::notice::[CI:PRERELEASE:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher"
+          echo "::endgroup::"
+
+      - name: Publish pre-release to VS Code Marketplace
+        if: steps.release-check.outputs.skip != 'true' && env.VSCE_PAT != ''
+        env:
+          VERSION_NUMBER: ${{ steps.version.outputs.number }}
+        run: |
+          echo "::group::[CI:PRERELEASE:PUBLISH:VSCE] Publishing pre-release to VS Code Marketplace"
+          npx @vscode/vsce publish --pre-release --skip-duplicate --packagePath "bin/roo-plus-${VERSION_NUMBER}.vsix"
+          echo "::notice::[CI:PRERELEASE:PUBLISH:VSCE] Published or skipped existing xavier-arosemena.roo-plus ${VERSION_NUMBER} as a VS Code Marketplace pre-release"
+          echo "::endgroup::"
+
+      # The VSIX built above with `vsce package --pre-release` already carries the
+      # Microsoft.VisualStudio.Code.PreRelease manifest property, which is what Open
+      # VSX reads to flag the version. `ovsx publish` ignores --pre-release for an
+      # already-packaged .vsix (it only applies when ovsx does the packaging itself),
+      # so it's intentionally omitted here.
+      #
+      # Open VSX's "latest" alias resolves to the highest semver across stable and
+      # pre-release alike (pre-release only breaks ties at equal major.minor.patch),
+      # so a pre-release build can transiently become "latest" until the next stable
+      # release outranks it. This mirrors how Marketplace pre-release users already
+      # track the newest published version, so it's an accepted trade-off here too.
+      - name: Publish pre-release to Open VSX Registry
+        if: steps.release-check.outputs.skip != 'true' && env.OVSX_PAT != ''
+        env:
+          VERSION_NUMBER: ${{ steps.version.outputs.number }}
+        run: |
+          echo "::group::[CI:PRERELEASE:PUBLISH:OVSX] Publishing pre-release to Open VSX Registry"
+          set -o pipefail
+          publish_output=$(pnpm exec ovsx publish "bin/roo-plus-${VERSION_NUMBER}.vsix" --skip-duplicate 2>&1 | tee /dev/stderr)
+          if echo "$publish_output" | grep -q "is already published"; then
+            echo "::notice::[CI:PRERELEASE:PUBLISH:OVSX] xavier-arosemena.roo-plus ${VERSION_NUMBER} was already published to Open VSX; skipped."
+          else
+            echo "::notice::[CI:PRERELEASE:PUBLISH:OVSX] Published xavier-arosemena.roo-plus ${VERSION_NUMBER} as an Open VSX pre-release"
+          fi
+          echo "::endgroup::"
+
+      - name: Upload pre-release VSIX artifact
+        if: steps.release-check.outputs.skip != 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: roo-plus-prerelease-${{ github.sha }}
+          path: bin/roo-plus-*.vsix
+          retention-days: 7

@@ -98,7 +98,7 @@
 	"enqueueMessage": "Agregar mensaje a la cola (se enviará después de que termine la tarea actual)",
 	"scrollToBottom": "Desplazarse al final del chat",
 	"scrollToLatestCheckpoint": "Desplazarse al checkpoint anterior",
-	"about": "Tu equipo de IA multiagente — 301 modos especializados para codificación, DevOps, seguridad y arquitectura.",
+	"about": "Tu equipo de IA multiagente — <br/>301 modos especializados para codificación, DevOps, seguridad y arquitectura.",
 	"support": {
 		"reportIssue": "Informa de un error o solicita una función",
 		"discussions": "Únete a los debates",

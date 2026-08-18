@@ -1,0 +1,182 @@
+name: Security alert issues
+
+on:
+  schedule:
+    # Every 6 hours.
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+# Least privilege: read repo contents and security alerts, write to issues.
+# The security-events scope is required by the alerts REST endpoints; without
+# it the alert queries degrade gracefully to a warning.
+permissions:
+  contents: read
+  issues: write
+  security-events: read
+
+concurrency:
+  group: security-alert-issues
+  cancel-in-progress: false
+
+jobs:
+  open-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Open issues for high/critical alerts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const highCritical = ['high', 'critical'];
+            let created = 0;
+            let skipped = 0;
+
+            // Labels must exist before they can be applied to a new issue.
+            async function ensureLabel(name, color) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (err) {
+                if (err.status === 404) {
+                  await github.rest.issues.createLabel({ owner, repo, name, color });
+                  core.info(`Created label ${name}.`);
+                }
+              }
+            }
+            await ensureLabel('security', 'b60205');
+            await ensureLabel('priority-high', 'd93f0b');
+
+            // Idempotency: an alert is only reported once. Primary lookup uses
+            // issue search; falls back to listing open issues when the search
+            // index is unavailable or stale.
+            async function findOpenIssue(fragment) {
+              let results = [];
+              try {
+                results = await github.paginate(github.rest.search.issuesAndPullRequests, {
+                  q: `repo:${owner}/${repo} type:issue state:open in:title "${fragment}"`,
+                  per_page: 100,
+                });
+              } catch (err) {
+                core.warning(`Issue search failed (${err.message}); falling back to listing open issues.`);
+              }
+              const hit = results.find((issue) => !issue.pull_request && issue.title.includes(fragment));
+              if (hit) return hit;
+              const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+                owner, repo, state: 'open', per_page: 100,
+              });
+              return openIssues.find((issue) => !issue.pull_request && issue.title.includes(fragment));
+            }
+
+            // ---- Dependabot alerts -------------------------------------------
+            let dependabotAlerts = [];
+            try {
+              dependabotAlerts = await github.paginate(github.rest.dependabot.listAlertsForRepo, {
+                owner, repo, state: 'open', per_page: 100,
+              });
+            } catch (err) {
+              core.warning(`Could not list Dependabot alerts (${err.status || err.message}).`);
+            }
+
+            for (const alert of dependabotAlerts) {
+              const advisory = alert.security_advisory || {};
+              const vuln = alert.security_vulnerability || {};
+              const severity = String(advisory.severity || vuln.severity || '').toLowerCase();
+              if (!highCritical.includes(severity)) continue;
+
+              const fragment = `Dependabot alert #${alert.number}`;
+              if (await findOpenIssue(fragment)) {
+                skipped++;
+                continue;
+              }
+
+              const ids = [];
+              if (advisory.ghsa_id) ids.push(advisory.ghsa_id);
+              if (advisory.cve_id) ids.push(advisory.cve_id);
+              const packageName = vuln.package?.name || 'unknown';
+              const body = [
+                `## ${fragment}: ${packageName}`,
+                '',
+                'This issue was auto-created from a high/critical Dependabot alert and is tracked for manual remediation.',
+                '',
+                '| Field | Value |',
+                '| --- | --- |',
+                `| Severity | **${severity}** |`,
+                `| Advisory | ${ids.join(' / ') || 'n/a'} |`,
+                `| Package | ${packageName} |`,
+                `| Manifest | ${vuln.manifest_path || 'n/a'} |`,
+                `| Patched version | ${vuln.first_patched_version?.identifier || 'none yet'} |`,
+                `| Alert | ${alert.html_url} |`,
+                '',
+                '### Fix guidance',
+                '',
+                'Update the affected dependency to the patched version above. Major-version bumps require a human maintainer review. Close this issue once the alert is resolved.',
+                '',
+                '_Managed by the security-alert-issue workflow._',
+              ].join('\n');
+
+              await github.rest.issues.create({
+                owner, repo,
+                title: `${fragment}: ${packageName} (${severity})`,
+                body,
+                labels: ['security', 'priority-high'],
+              });
+              created++;
+            }
+
+            // ---- Code scanning alerts -----------------------------------------
+            let codeScanningAlerts = [];
+            try {
+              codeScanningAlerts = await github.paginate(github.rest.codeScanning.listAlertsForRepo, {
+                owner, repo, state: 'open', per_page: 100,
+              });
+            } catch (err) {
+              core.warning(`Could not list code scanning alerts (${err.status || err.message}).`);
+            }
+
+            for (const alert of codeScanningAlerts) {
+              const severity = String(alert.security_severity_level || alert.severity || '').toLowerCase();
+              if (!highCritical.includes(severity)) continue;
+
+              const fragment = `CodeQL alert #${alert.number}`;
+              if (await findOpenIssue(fragment)) {
+                skipped++;
+                continue;
+              }
+
+              const rule = alert.rule || {};
+              const loc = alert.most_recent_instance?.location || {};
+              const ruleName = rule.description || rule.id || 'unknown';
+              const body = [
+                `## ${fragment}: ${ruleName}`,
+                '',
+                'This issue was auto-created from a high/critical code scanning alert and is tracked for manual remediation.',
+                '',
+                '| Field | Value |',
+                '| --- | --- |',
+                `| Severity | **${severity}** |`,
+                `| Rule | ${rule.id || 'n/a'} |`,
+                `| Tool | ${alert.tool?.name || 'n/a'} |`,
+                `| File | ${loc.path || 'n/a'} |`,
+                `| Alert | ${alert.html_url} |`,
+                '',
+                '### Fix guidance',
+                '',
+                'Review the flagged code, apply the fix, and push a new commit. The alert should auto-close when the fix is merged. Close this issue once the alert is resolved.',
+                '',
+                '_Managed by the security-alert-issue workflow._',
+              ].join('\n');
+
+              await github.rest.issues.create({
+                owner, repo,
+                title: `${fragment}: ${ruleName} (${severity})`,
+                body,
+                labels: ['security', 'priority-high'],
+              });
+              created++;
+            }
+
+            core.notice(`Created ${created} new issue(s), skipped ${skipped} already-tracked alert(s).`);
+            core.setOutput('created', String(created));
+            core.setOutput('skipped', String(skipped));

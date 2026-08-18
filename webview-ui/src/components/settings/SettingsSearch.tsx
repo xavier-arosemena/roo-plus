@@ -77,17 +77,21 @@ export function SettingsSearch({ index, onNavigate, sections }: SettingsSearchPr
 		[handleSelectResult, highlightedResultId, moveHighlight, results, setIsOpen],
 	)
 
-	// Reset highlight based on focus and available results
-	useEffect(() => {
+	// Reset highlight based on focus and available results. Done during render
+	// (React's recommended "adjust state during render" pattern).
+	const [prevSearchOpen, setPrevSearchOpen] = useState(isOpen)
+	const [prevSearchResults, setPrevSearchResults] = useState(results)
+	if (isOpen !== prevSearchOpen || results !== prevSearchResults) {
+		setPrevSearchOpen(isOpen)
+		setPrevSearchResults(results)
 		if (!isOpen || !results.length) {
 			setHighlightedResultId(undefined)
-			return
+		} else {
+			setHighlightedResultId((current) =>
+				current && results.some((r) => r.settingId === current) ? current : results[0]?.settingId,
+			)
 		}
-
-		setHighlightedResultId((current) =>
-			current && results.some((r) => r.settingId === current) ? current : results[0]?.settingId,
-		)
-	}, [isOpen, results])
+	}
 
 	// Ensure highlighted search result stays visible within dropdown
 	useEffect(() => {

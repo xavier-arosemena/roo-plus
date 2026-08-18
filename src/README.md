@@ -1,4 +1,17 @@
 <div align="center">
+<sub>
+
+<b>English</b> • [Català](locales/ca/README.md) • [Deutsch](locales/de/README.md) • [Español](locales/es/README.md) • [Français](locales/fr/README.md) • [हिंदी](locales/hi/README.md) • [Bahasa Indonesia](locales/id/README.md) • [Italiano](locales/it/README.md) • [日本語](locales/ja/README.md)
+
+</sub>
+<sub>
+
+[한국어](locales/ko/README.md) • [Nederlands](locales/nl/README.md) • [Polski](locales/pl/README.md) • [Português (BR)](locales/pt-BR/README.md) • [Русский](locales/ru/README.md) • [Türkçe](locales/tr/README.md) • [Tiếng Việt](locales/vi/README.md) • [简体中文](locales/zh-CN/README.md) • [繁體中文](locales/zh-TW/README.md)
+
+</sub>
+</div>
+
+<div align="center">
   <img src="./assets/banner.png" alt="Roo+ — 301 Modes — 90 Pre-Loaded" />
 </div>
 <br/>
@@ -208,6 +221,10 @@ Copy the mode YAML content from its file in [`custom-modes/custom_modes.d/`](cus
 3. Search for **"Roo+"**
 4. Click **Install**
 
+#### Install the Pre-Release Version
+
+Want to test the newest build before it ships as stable? Use the marketplace's **"Install Pre-Release Version"** dropdown on the Roo+ extension page (VS Code Marketplace and Open VSX both expose it). Pre-release builds are generated from every push to `master`, so you always run the latest code — great for validating fixes and new features ahead of a stable release.
+
 Or install directly from the command line:
 
 ```bash
@@ -306,7 +323,7 @@ pnpm run sync:custom-modes
 
 Contributions, issues, and feature requests are welcome!
 
-- 🐛 **Report a bug**: [Open an issue](https://github.com/xavier-arosemena/roo-plus/issues/new?template=bug_report.md)
+- 🐛 **Report a bug**: [Open an issue](https://github.com/xavier-arosemena/roo-plus/issues/new/choose)
 - 💡 **Suggest a feature**: [Open a discussion](https://github.com/xavier-arosemena/roo-plus/discussions)
 - 🔀 **Submit a PR**: Fork the repo and create a pull request
 - 🎯 **Add a custom mode agent**: Improve the agent library at [`custom-modes/`](custom-modes/) and submit a PR upstream

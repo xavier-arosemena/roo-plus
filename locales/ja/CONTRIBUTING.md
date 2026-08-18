@@ -81,7 +81,7 @@ PRでこれらの分野との連携について言及してください。
 ### 何に取り組むかを決める
 
 - issue を探すには [GitHub Issues ページ](https://github.com/xavier-arosemena/roo-plus/issues) を確認してください。
-- ドキュメントについては、[Roo+ドキュメント](https://github.com/xavier-arosemena/roo-plus-Docs)をご覧ください。
+- ドキュメントについては、[Roo+ドキュメント](https://github.com/xavier-arosemena/roo-plus/tree/master/docs)をご覧ください。
 
 ### バグの報告
 
@@ -99,7 +99,7 @@ PRでこれらの分野との連携について言及してください。
 1. **フォークとクローン：**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **依存関係のインストール：**

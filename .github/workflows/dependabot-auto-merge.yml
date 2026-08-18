@@ -1,0 +1,188 @@
+name: Dependabot auto-merge (CI gated)
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+
+# Least privilege: read repo contents and action metadata, write to pull
+# requests (approve, auto-merge, labels, comments). Never needs more.
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+concurrency:
+  # One evaluation at a time per PR; a new event queues behind the current run
+  # so a stale evaluation can never race a fresh one.
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      # Classifies the PR: dependency names, semver update type, directory and
+      # dependency group. Outputs feed the gates below.
+      - name: Fetch Dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          alert-lookup: true
+          compat-lookup: true
+
+      # Approves and arms auto-merge (SQUASH) only when EVERY gate passes.
+      # Any failing gate skips silently (no comment spam). The single exception
+      # is a semver-major bump, which gets one comment + a needs-review label.
+      - name: Approve and enable auto-merge (CI gated)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            const prAuthor = context.payload.pull_request.user && context.payload.pull_request.user.login;
+            const updateType = '${{ steps.dependabot-metadata.outputs.update-type }}';
+            const dependencyNames = '${{ steps.dependabot-metadata.outputs.dependency-names }}';
+
+            // Gate 1: author must be the Dependabot bot (checked against the
+            // event payload so it holds for every trigger type, including
+            // labeled/unlabeled where github.actor is the labeler, not the PR
+            // author). Drafts are never auto-merged.
+            if (context.payload.pull_request.draft) {
+              core.info(`PR #${prNumber}: draft PR. Skipping.`);
+              return;
+            }
+            if (prAuthor !== 'dependabot[bot]') {
+              core.info(`PR #${prNumber}: author is ${prAuthor}, not Dependabot. Skipping.`);
+              return;
+            }
+
+            // Gate 2: a needs-review label always wins over auto-merge.
+            const { data: pr } = await github.rest.pulls.get({
+              owner, repo, pull_number: prNumber,
+            });
+            const needsReviewLabel = pr.labels.some((label) => label.name === 'needs-review');
+            if (needsReviewLabel) {
+              core.info(`PR #${prNumber}: carries the needs-review label. Skipping auto-merge.`);
+              return;
+            }
+
+            // Gate 3: semver-major bumps need a human. Post one comment and
+            // try to add a needs-review label. This is the only case where a
+            // comment is written, and it is idempotent (marker-based).
+            const isMajor = updateType === 'version-update:semver-major';
+            if (isMajor) {
+              const marker = '<!-- roo-auto-merge:needs-human-review -->';
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number: prNumber, per_page: 100,
+              });
+              const alreadyNoted = comments.some(
+                (comment) => comment.body && comment.body.includes(marker),
+              );
+              if (!alreadyNoted) {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: prNumber,
+                  body: `${marker}\nThis Dependabot update is a **major (semver-major)** version bump and will **not** be auto-merged. A human maintainer must review it before merging.`,
+                });
+              }
+              if (!needsReviewLabel) {
+                try {
+                  await github.rest.issues.addLabels({
+                    owner, repo, issue_number: prNumber, labels: ['needs-review'],
+                  });
+                } catch (err) {
+                  // Label may not exist and this workflow has no issues:write
+                  // scope to create it; the comment above is the signal.
+                  core.warning(`Could not add needs-review label: ${err.message}`);
+                }
+              }
+              core.info(`PR #${prNumber}: semver-major bump (${dependencyNames}). Skipping auto-merge.`);
+              return;
+            }
+
+            // Gate 4: the PR must be mergeable right now (no conflicts, not
+            // blocked, not unstable, not dirty). This is the CI gate: we only
+            // arm auto-merge when the PR is currently in a clean state.
+            if (pr.mergeable !== true) {
+              core.info(`PR #${prNumber}: not mergeable yet (mergeable=${pr.mergeable}). Skipping.`);
+              return;
+            }
+            const blockedStates = [
+              'blocked', 'unstable', 'dirty', 'draft', 'has_hooks', 'behind', 'unknown',
+            ];
+            if (blockedStates.includes(pr.mergeable_state)) {
+              core.info(`PR #${prNumber}: mergeable_state=${pr.mergeable_state}. Skipping.`);
+              return;
+            }
+
+            // Gate 5: required checks must be passing. statusCheckRollup is the
+            // primary signal; if the GraphQL call fails, GitHub's own branch
+            // protection + auto-merge semantics remain the fallback CI gate.
+            const query = `query ($owner: String!, $repo: String!, $number: Int!) {
+              repository(owner: $owner, name: $repo) {
+                pullRequest(number: $number) {
+                  mergeStateStatus
+                  statusCheckRollup {
+                    __typename
+                    state
+                    ... on CheckRun { name status conclusion }
+                    ... on StatusContext { context state }
+                  }
+                }
+              }
+            }`;
+            let failingChecks = [];
+            let mergeStateStatus = 'UNKNOWN';
+            try {
+              const rollup = await github.graphql(query, { owner, repo, number: prNumber });
+              const pullRequest = rollup.repository.pullRequest;
+              mergeStateStatus = pullRequest.mergeStateStatus || 'UNKNOWN';
+              const items = pullRequest.statusCheckRollup || [];
+              failingChecks = items.filter((item) => {
+                const state = item.state || '';
+                const conclusion = item.conclusion || '';
+                return ['FAILURE', 'ERROR', 'CANCELLED', 'TIMED_OUT'].includes(state) ||
+                       ['FAILURE', 'ERROR', 'CANCELLED', 'TIMED_OUT'].includes(conclusion);
+              });
+            } catch (err) {
+              core.warning(`Could not read statusCheckRollup: ${err.message}`);
+            }
+            if (['BLOCKED', 'UNSTABLE', 'DIRTY', 'DRAFT', 'HAS_HOOKS'].includes(mergeStateStatus)) {
+              core.info(`PR #${prNumber}: mergeStateStatus=${mergeStateStatus}. Skipping.`);
+              return;
+            }
+            if (failingChecks.length > 0) {
+              core.info(`PR #${prNumber}: ${failingChecks.length} failing required check(s). Skipping.`);
+              return;
+            }
+
+            // Gate 6: idempotency - do nothing if auto-merge is already armed.
+            if (pr.auto_merge && pr.auto_merge.enabled_by) {
+              core.info(`PR #${prNumber}: auto-merge already enabled. Nothing to do.`);
+              return;
+            }
+
+            // Approve (tolerate already-approved / not-approvable responses).
+            try {
+              await github.rest.pulls.createReview({
+                owner, repo, pull_number: prNumber,
+                event: 'APPROVE',
+                body: 'Approved automatically by the CI-gated Dependabot auto-merge workflow.',
+              });
+              core.info(`PR #${prNumber}: approved.`);
+            } catch (err) {
+              if (err.status !== 422 && err.status !== 403) throw err;
+              core.info(`PR #${prNumber}: review already approved or not approvable (${err.status}).`);
+            }
+
+            // Arm auto-merge with SQUASH. GitHub merges only when all required
+            // checks pass, which is the ultimate CI gate.
+            try {
+              await github.rest.pulls.enableAutoMerge({
+                owner, repo, pull_number: prNumber,
+                merge_method: 'SQUASH',
+              });
+              core.info(`PR #${prNumber}: auto-merge (SQUASH) enabled.`);
+            } catch (err) {
+              if (err.status !== 422 && err.status !== 403 && err.status !== 404) throw err;
+              core.warning(`Could not enable auto-merge (${err.status}): ${err.message}`);
+            }

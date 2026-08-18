@@ -81,7 +81,7 @@ Roo+ 是一個由社群驅動的專案，我們非常重視每一份貢獻。為
 ### 決定做什麼
 
 - 若要查看 issue，請前往 [GitHub Issues 頁面](https://github.com/xavier-arosemena/roo-plus/issues)。
-- 如需文件，請造訪 [Roo+ Docs](https://github.com/xavier-arosemena/roo-plus-Docs)。
+- 如需文件，請造訪 [Roo+ Docs](https://github.com/xavier-arosemena/roo-plus/tree/master/docs)。
 
 ### 回報錯誤
 
@@ -99,7 +99,7 @@ Roo+ 是一個由社群驅動的專案，我們非常重視每一份貢獻。為
 1. **Fork 與 Clone：**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **安裝相依套件：**

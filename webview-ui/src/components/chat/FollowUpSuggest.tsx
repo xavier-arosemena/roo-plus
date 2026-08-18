@@ -33,47 +33,68 @@ export const FollowUpSuggest = ({
 	const [suggestionSelected, setSuggestionSelected] = useState(false)
 	const { t } = useAppTranslation()
 
-	// Start countdown timer when auto-approval is enabled for follow-up questions
-	useEffect(() => {
-		// Only start countdown if auto-approval is enabled for follow-up questions and no suggestion has been selected
-		// Also stop countdown if the question has been answered or auto-approval is paused (user is typing)
-		if (
+	// Derive the countdown inputs at render time so we can (re)initialize the
+	// countdown with the React-recommended "adjust state during render" pattern
+	// instead of calling setState inside an effect.
+	const timeoutMs =
+		typeof followupAutoApproveTimeoutMs === "number" && !isNaN(followupAutoApproveTimeoutMs)
+			? followupAutoApproveTimeoutMs
+			: DEFAULT_FOLLOWUP_TIMEOUT_MS
+	const countdownKey = [
+		autoApprovalEnabled,
+		alwaysAllowFollowupQuestions,
+		suggestions.length,
+		suggestionSelected,
+		isAnswered,
+		isFollowUpAutoApprovalPaused,
+		followupAutoApproveTimeoutMs,
+	].join("|")
+
+	// Initialize with a sentinel (null) so the first render always triggers the
+	// countdown initialization below. Initializing with `countdownKey` would make
+	// the comparison always false on mount, leaving countdown stuck at null.
+	const [prevCountdownKey, setPrevCountdownKey] = useState<string | null>(null)
+	if (countdownKey !== prevCountdownKey) {
+		setPrevCountdownKey(countdownKey)
+		const active =
 			autoApprovalEnabled &&
 			alwaysAllowFollowupQuestions &&
 			suggestions.length > 0 &&
 			!suggestionSelected &&
 			!isAnswered &&
 			!isFollowUpAutoApprovalPaused
+		setCountdown(active ? Math.floor(timeoutMs / 1000) : null)
+	}
+
+	// Update countdown every second while auto-approval is active.
+	useEffect(() => {
+		if (
+			!autoApprovalEnabled ||
+			!alwaysAllowFollowupQuestions ||
+			suggestions.length === 0 ||
+			suggestionSelected ||
+			isAnswered ||
+			isFollowUpAutoApprovalPaused
 		) {
-			// Start with the configured timeout in seconds
-			const timeoutMs =
-				typeof followupAutoApproveTimeoutMs === "number" && !isNaN(followupAutoApproveTimeoutMs)
-					? followupAutoApproveTimeoutMs
-					: DEFAULT_FOLLOWUP_TIMEOUT_MS
+			return
+		}
 
-			// Convert milliseconds to seconds for the countdown
-			setCountdown(Math.floor(timeoutMs / 1000))
+		const intervalId = setInterval(() => {
+			setCountdown((prevCountdown) => {
+				if (prevCountdown === null || prevCountdown <= 1) {
+					clearInterval(intervalId)
+					return null
+				}
+				return prevCountdown - 1
+			})
+		}, COUNTDOWN_INTERVAL_MS)
 
-			// Update countdown every second
-			const intervalId = setInterval(() => {
-				setCountdown((prevCountdown) => {
-					if (prevCountdown === null || prevCountdown <= 1) {
-						clearInterval(intervalId)
-						return null
-					}
-					return prevCountdown - 1
-				})
-			}, COUNTDOWN_INTERVAL_MS)
-
-			// Clean up interval on unmount and notify parent component
-			return () => {
-				clearInterval(intervalId)
-				// Notify parent component that this component is unmounting
-				// so it can clear any related timeouts
-				onCancelAutoApproval?.()
-			}
-		} else {
-			setCountdown(null)
+		// Clean up interval on unmount and notify parent component
+		return () => {
+			clearInterval(intervalId)
+			// Notify parent component that this component is unmounting
+			// so it can clear any related timeouts
+			onCancelAutoApproval?.()
 		}
 	}, [
 		autoApprovalEnabled,

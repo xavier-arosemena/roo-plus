@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import mermaid from "mermaid"
 import styled from "styled-components"
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
@@ -98,11 +98,15 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
 	const { showCopyFeedback, copyWithFeedback } = useCopyToClipboard()
 	const { t } = useAppTranslation()
 
-	// 1) Whenever `code` changes, mark that we need to re-render a new chart
-	useEffect(() => {
+	// 1) Whenever `code` changes, mark that we need to re-render a new chart.
+	// Done during render (React's recommended "adjust state during render"
+	// pattern) instead of an effect.
+	const [prevCode, setPrevCode] = useState(code)
+	if (code !== prevCode) {
+		setPrevCode(code)
 		setIsLoading(true)
 		setError(null)
-	}, [code])
+	}
 
 	// 2) Debounce the actual parse/render
 	useDebounceEffect(

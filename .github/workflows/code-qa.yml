@@ -1,4 +1,4 @@
-name: Code QA Roo Code
+name: Code QA
 
 on:
     workflow_dispatch:
@@ -110,7 +110,7 @@ jobs:
                   echo "::endgroup::"
             # Release-governance gate for the Semble code-index feature
             # (docs/SEMBLE-RELEASE-GOVERNANCE.md, review item 2c of
-            # docs/architecture-review-code-index-semble.md): a diff that
+            # plans/architecture-review-code-index-semble.md): a diff that
             # changes SEMBLE_VERSION without SEMBLE_SHA256 (or vice versa) in
             # src/services/code-index/semble/semble-downloader.ts is rejected.
             # Compares the working tree against the merge base with a base ref
@@ -126,7 +126,7 @@ jobs:
                   echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:SEMBLE-COUPLING] Semble coupling gate passed (or skipped)"
                   echo "::endgroup::"
             # Alignment gate for the Qdrant code-index core (architecture review
-            # #6 — docs/architecture-review-code-index-semble.md): keeps the
+            # #6 — plans/architecture-review-code-index-semble.md): keeps the
             # non-Semble core byte-identical to upstream Zoo-Code so upstream
             # improvements cherry-pick cleanly. Fast lane (pure git + file
             # comparison, no build). Network behavior: uses the local
@@ -169,23 +169,35 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
+                # Windows runners are only triggered on manual dispatch because
+                # they are significantly slower than Linux runners and provide
+                # marginal additional signal for unit-test feedback. Linux
+                # coverage already provides sufficient confidence for automated
+                # CI runs.
+                #
+                # NOTE: `matrix` is NOT an available context in a job-level
+                # `if` (only github/inputs/needs/vars), so the Windows combo is
+                # conditionally injected into the matrix instead of skipped via
+                # `if:`. A job-level `if` referencing `matrix` is a workflow
+                # file parse error ("This run likely failed because of a
+                # workflow file issue"). The `github` context IS available in
+                # `strategy.matrix.include`, so we filter there.
                 include:
                     - os: ubuntu-latest
                       name: ubuntu-latest
                       codecov-flag: ubuntu
                       upload-coverage: true
-                    - os: windows-latest
-                      name: windows-latest
-                      codecov-flag: windows
-                      upload-coverage: false
-        # Windows runners are only triggered on manual dispatch because they
-        # are significantly slower than Linux runners and provide marginal
-        # additional signal for unit-test feedback. Linux coverage already
-        # provides sufficient confidence for automated CI runs.
-        if: ${{ matrix.os != 'windows-latest' || github.event_name == 'workflow_dispatch' }}
+                    - ${{ fromJSON(github.event_name == 'workflow_dispatch' && '[{"os":"windows-latest","name":"windows-latest","codecov-flag":"windows","upload-coverage":false}]' || '[]') }}
         steps:
             - name: Checkout code
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  # `roo-plus:test:coverage` triggers `roo-plus#bundle`, whose
+                  # prebundle step runs verify-submodule-pin.mjs — a missing or
+                  # wrong-pin submodule is a packaging hazard for the VSIX, so it
+                  # must be checked out at the recorded pin (same as the
+                  # static-analysis and e2e jobs).
+                  submodules: recursive
             - name: Setup Node.js and pnpm
               uses: ./.github/actions/setup-node-pnpm
             - name: Restore Turbo cache
@@ -231,8 +243,17 @@ jobs:
             # core lanes and webview lane must be uploaded individually with
             # their own flag.
             # See https://docs.codecov.com/docs/flags
+            # Coverage uploads must never fail CI: the CODECOV_TOKEN secret is
+            # not currently configured, so codecov/codecov-action falls back to
+            # tokenless upload which fails for PR builds ("Token required - not
+            # valid tokenless upload"). Uploading the token when the repo secret
+            # is added will restore coverage reporting; until then these steps
+            # degrade gracefully (report-only) instead of blocking merges.
+            # NOTE: the `secrets` context cannot be used in `if:` expressions
+            # (workflow parse error), so we use continue-on-error instead.
             - name: Upload non-core coverage to Codecov
               if: matrix.upload-coverage
+              continue-on-error: true
               uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
               with:
                   files: >-
@@ -245,6 +266,7 @@ jobs:
                   token: ${{ secrets.CODECOV_TOKEN }}
             - name: Upload webview JSDOM coverage to Codecov
               if: matrix.upload-coverage
+              continue-on-error: true
               uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
               with:
                   files: webview-ui/coverage/lcov.info
@@ -253,6 +275,7 @@ jobs:
                   token: ${{ secrets.CODECOV_TOKEN }}
             - name: Upload core unit coverage to Codecov
               if: matrix.upload-coverage
+              continue-on-error: true
               uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
               with:
                   files: packages/core/coverage/unit/lcov.info
@@ -261,6 +284,7 @@ jobs:
                   token: ${{ secrets.CODECOV_TOKEN }}
             - name: Upload core integration coverage to Codecov
               if: matrix.upload-coverage
+              continue-on-error: true
               uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
               with:
                   files: packages/core/coverage/integration/lcov.info

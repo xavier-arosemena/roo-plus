@@ -5,7 +5,7 @@
  *
  * CI diff-gate that keeps the fork's Qdrant code-index core aligned with
  * upstream Zoo-Code (remediation item 6 from
- * docs/architecture-review-code-index-semble.md — see §3.1 for the file list
+ * plans/architecture-review-code-index-semble.md — see §3.1 for the file list
  * and §5/2a for the rationale).
  *
  * The review found the non-Semble code-index core is byte-identical to
@@ -304,7 +304,7 @@ Verifies the Qdrant code-index core stays aligned with upstream Zoo-Code so
 future upstream improvements cherry-pick cleanly. Fails when a core file
 differs from upstream/main beyond the allow-listed branding (bedrock.ts,
 openrouter.ts, qdrant-client.ts) / fork-specific (interfaces/config.ts
-sembleBinaryPath) exceptions. See docs/architecture-review-code-index-semble.md
+sembleBinaryPath) exceptions. See plans/architecture-review-code-index-semble.md
 (§3.1, §5 item 2a, §6 item 6).
 
 Usage:
@@ -403,7 +403,7 @@ async function main() {
 		logError(`${TAG}:FILES`, "or (after confirming the drift is unwanted) restoring from upstream:")
 		logError(`${TAG}:FILES`, "  git fetch upstream main --depth=1")
 		logError(`${TAG}:FILES`, "  git checkout upstream/main -- <drifted-file>")
-		logError(`${TAG}:FILES`, "See docs/architecture-review-code-index-semble.md (§3.1 / §6 item 6).")
+		logError(`${TAG}:FILES`, "See plans/architecture-review-code-index-semble.md (§3.1 / §6 item 6).")
 		process.exit(1)
 	}
 

@@ -11,7 +11,7 @@ import { SEMBLE_E2E_FIXTURE_DIR, SEMBLE_E2E_SUM_FILE } from "../../fixtures/code
 
 /**
  * Extension-host journey test for the Semble code-index provider (remediation
- * item 5 of docs/architecture-review-code-index-semble.md).
+ * item 5 of plans/architecture-review-code-index-semble.md).
  *
  * Covers the exact gap the binary-level smoke test cannot: enabling the
  * "Semble - Local" embedder -> the manager/provider reaching "Indexed" ->

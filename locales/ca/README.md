@@ -1,179 +1,51 @@
-<p align="center">
-          <a href="https://marketplace.visualstudio.com/items?itemName=ZooCodeOrganization.zoo-code"><img src="https://img.shields.io/badge/VS_Code_Marketplace-007ACC?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace"></a>
-          <a href="https://x.com/ZooCodeDev"><img src="https://img.shields.io/badge/ZooCode-000000?style=flat&logo=x&logoColor=white" alt="X"></a>
-          <a href="https://youtube.com/@roocodeyt?feature=shared"><img src="https://img.shields.io/badge/YouTube-FF0000?style=flat&logo=youtube&logoColor=white" alt="YouTube"></a>
-          <a href="https://discord.gg/VxfP4Vx3gX"><img src="https://img.shields.io/badge/Join%20Discord-5865F2?style=flat&logo=discord&logoColor=white" alt="Join Discord"></a>
-          <a href="https://www.reddit.com/r/ZooCode/"><img src="https://img.shields.io/badge/Join%20r%2FZooCode-FF4500?style=flat&logo=reddit&logoColor=white" alt="Join r/ZooCode"></a>
-          <a href="https://github.com/xavier-arosemena/roo-plus/issues"><img src="https://img.shields.io/badge/GitHub-Issues-181717?style=flat&logo=github&logoColor=white" alt="GitHub Issues"></a>
-        </p>
-        <p align="center">
-          <em>Obtén ajuda ràpid → <a href="https://discord.gg/VxfP4Vx3gX">Uneix-te a Discord</a> • Prefereixes anar al teu ritme? → <a href="https://www.reddit.com/r/ZooCode/">Uneix-te a r/ZooCode</a></em>
-        </p>
-
-        # Roo+
-
-        > El teu equip de desenvolupament impulsat per IA, directament al teu editor
-
-        ## Som Roo+
-
-> Zoo Code continua el desenvolupament d'aquest projecte després que l'equip de
-> Roo aturés el desenvolupament actiu de Roo Code per centrar-se en
-> [Roomote](https://roomote.dev/). Gràcies a l'equip de Roo per tot el que van
-> construir.
->
-> Volem donar les gràcies a tot l'equip de Roo per la feina que han posat en aquest plugin. No destacarem cada persona pel seu nom aquí, però tots podem coincidir que són desenvolupadors excepcionals i, igual d'important, persones increïbles. Gràcies a l'equip de Roo.
->
-> Els qui fem servir Roo venim de tota mena de perfils. Alguns l'utilitzen professionalment cada dia, altres el fan servir per imaginar fluxos de treball inimaginablement complexos. Alguns milloren Roo mateix, mentre que altres milloren els mateixos models que Roo utilitza (super meta). El que volem dir és que la comunitat és diversa i, tot i que un cangur 🦘🦘🦘 és un animal distingit i noble, vam sentir que un "Zoo" 🐘🦡🦒🦓🦛🦧🦭🦦 reflectia millor aquesta diversitat d'usuaris del plugin.
->
-> Per això volem anunciar que **Roo+** continuarà desenvolupant aquest projecte tan important. L'equip principal està format per desenvolupadors que ja havien contribuït a Roo i que valoren profundament aquest plugin. Continuarem actualitzant models, corregint errors i publicant funcionalitats. Però, per damunt de tot, pensem escoltar-vos a vosaltres, la comunitat, que heu fet aquest plugin tan especial. Així que uneix-te al nostre [Discord](https://discord.gg/VxfP4Vx3gX), al nostre [Reddit](https://www.reddit.com/r/ZooCode), o [crea un PR o una issue](https://github.com/xavier-arosemena/roo-plus); però, sobretot, et demanem que continuïs implicat, connectat i actiu com a comunitat.
->
-> _-Roo+ Team_
-
-## Migració de Roo Code a Roo+
-
-Pots trobar una guia ràpida per passar de Roo Code a Roo+ a la [guia de migració Roo→Zoo](https://docs.zoocode.dev/roo-to-zoo-migration). Volem ajudar tant com puguem durant la transició, i per això tens el nostre [Reddit](https://www.reddit.com/r/ZooCode) i [Discord](https://discord.gg/VxfP4Vx3gX) per a aquest suport. Si tens problemes o alguna pregunta, entra i pregunta.
-
-## Novetats a la v3.72.0
-
-- **Proveïdors Moonshot i Kimi Code** — descobreix dinàmicament els models de Moonshot o inicia la sessió a Kimi Code mitjançant el flux de dispositiu OAuth.
-- **Compatibilitat amb els models més recents** — utilitza Claude Opus 5 amb tots els proveïdors, a més de Kimi K3, Gemini 3.6 Flash i MiniMax-M3.
-- **Fluxos de subtasques millorats** — abandona subtasques interrompudes de manera neta, amb una invalidació més segura de l'historial de tasques i una millor cobertura de represa.
-- **Indexació de la base de codi ampliada** — indexa fitxers Dart i de text pla.
-- **Fiabilitat dels proveïdors** — correccions per a GPT-5.6 Luna amb ChatGPT OAuth, el contingut de raonament de LiteLLM i l'entrada d'imatges de DeepSeek V4.
-- **Configuració més fluida** — millores en l'inici de sessió de Zoo Gateway i en el canvi de mode.
-- Millores de l'API, els tipus de proveïdor, les dependències, la localització i la CI.
-
-## Què pot fer Roo+ per TU?
-
-- Generar codi a partir de descripcions en llenguatge natural
-- Adaptar-se amb modes: Codi, Arquitecte, Pregunta, Depuració i Modes personalitzats
-- Refactoritzar i depurar codi existent
-- Escriure i actualitzar documentació
-- Respondre preguntes sobre la teva base de codi
-- Automatitzar tasques repetitives
-- Utilitzar servidors MCP
-
-## Modes
-
-Roo+ s'adapta a la teva manera de treballar, no a l'inrevés:
-
-- Mode Codi: codificació diària, edicions i operacions de fitxers
-- Mode Arquitecte: planificar sistemes, especificacions i migracions
-- Mode Pregunta: respostes ràpides, explicacions i documents
-- Mode Depuració: rastrejar problemes, afegir registres, aïllar les causes arrel
-- Modes personalitzats: crea modes especialitzats per al teu equip o flux de treball
-
-Més informació: [Ús de Modes](https://docs.zoocode.dev/basic-usage/using-modes) • [Modes personalitzats](https://docs.zoocode.dev/advanced-usage/custom-modes)
-
-## Tutorials i vídeos de funcionalitats
-
 <div align="center">
+<sub>
 
-|                                                                                                                                                                                                                   |                                                                                                                                                                                                                     |                                                                                                                                                                                                                                  |
-| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|   <a href="https://www.youtube.com/watch?v=Mcq3r1EPZ-4"><img src="https://img.youtube.com/vi/Mcq3r1EPZ-4/maxresdefault.jpg" alt="Tutorial d'instal·lació de Roo+" width="100%"></a><br><b>Instal·lant Roo+</b>    | <a href="https://www.youtube.com/watch?v=ZBML8h5cCgo"><img src="https://img.youtube.com/vi/ZBML8h5cCgo/maxresdefault.jpg" alt="Tutorial de configuració de perfils" width="100%"></a><br><b>Configurant perfils</b> | <a href="https://www.youtube.com/watch?v=r1bpod1VWhg"><img src="https://img.youtube.com/vi/r1bpod1VWhg/maxresdefault.jpg" alt="Tutorial d'indexació de la base de codi" width="100%"></a><br><b>Indexació de la base de codi</b> |
-| <a href="https://www.youtube.com/watch?v=iiAv1eKOaxk"><img src="https://img.youtube.com/vi/iiAv1eKOaxk/maxresdefault.jpg" alt="Tutorial de modes personalitzats" width="100%"></a><br><b>Modes personalitzats</b> |      <a href="https://www.youtube.com/watch?v=Ho30nyY332E"><img src="https://img.youtube.com/vi/Ho30nyY332E/maxresdefault.jpg" alt="Tutorial de punts de control" width="100%"></a><br><b>Punts de control</b>      |           <a href="https://www.youtube.com/watch?v=HmnNSasv7T8"><img src="https://img.youtube.com/vi/HmnNSasv7T8/maxresdefault.jpg" alt="Tutorial de gestió de context" width="100%"></a><br><b>Gestió de Context</b>            |
+[English](../../README.md) • <b>Català</b> • [Deutsch](../de/README.md) • [Español](../es/README.md) • [Français](../fr/README.md) • [हिंदी](../hi/README.md) • [Bahasa Indonesia](../id/README.md) • [Italiano](../it/README.md) • [日本語](../ja/README.md)
 
+</sub>
+<sub>
+
+[한국어](../ko/README.md) • [Nederlands](../nl/README.md) • [Polski](../pl/README.md) • [Português (BR)](../pt-BR/README.md) • [Русский](../ru/README.md) • [Türkçe](../tr/README.md) • [Tiếng Việt](../vi/README.md) • [简体中文](../zh-CN/README.md) • [繁體中文](../zh-TW/README.md)
+
+</sub>
 </div>
+
+# Roo+
+
 <p align="center">
-<a href="https://docs.zoocode.dev/tutorial-videos">Més tutorials ràpids i vídeos de funcionalitats...</a>
+  <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
+    <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
+  </a>
+  <a href="https://github.com/xavier-arosemena/roo-plus/issues">
+    <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
+  </a>
 </p>
+
+Roo+ és un **fork de Zoo Code**: un assistent de desenvolupament amb IA amb **90 modes personalitzats preinstal·lats** d'un catàleg de **301 modes**, a més de suport per a **MCP** i **més de 25 proveïdors**.
+
+## Instal·lació
+
+1. Obre **VS Code** o **VS Codium**.
+2. Ves a **Extensions** (`Ctrl+Shift+X` / `Cmd+Shift+X`).
+3. Cerca **"Roo+"**.
+4. Fes clic a **Instal·la**.
+
+O instal·la'l directament des de la línia d'ordres:
+
+```bash
+ovsx install xavier-arosemena/roo-plus
+```
+
+O compila'l des del codi font seguint la secció [Guia d'inici ràpid](../../README.md#quick-start) del README en anglès.
 
 ## Recursos
 
-- **[Documentació](https://docs.zoocode.dev):** La guia oficial per instal·lar, configurar i dominar Roo+.
-- **[Canal de YouTube](https://youtube.com/@roocodeyt?feature=shared):** Mira tutorials i veu les funcionalitats en acció.
-- **[Servidor de Discord](https://discord.gg/VxfP4Vx3gX):** Uneix-te a la comunitat per obtenir ajuda i discutir en temps real.
-- **[Comunitat de Reddit](https://www.reddit.com/r/ZooCode):** Comparteix les teves experiències i veu què estan construint altres.
-- **[Incidències de GitHub](https://github.com/xavier-arosemena/roo-plus/issues):** Informa d'errors i segueix el desenvolupament.
-- **[Sol·licituds de funcionalitats](https://github.com/xavier-arosemena/roo-plus/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop):** Tens una idea? Comparteix-la amb els desenvolupadors.
+- **[README complet (anglès)](../../README.md)** — Documentació completa de Roo+.
+- **[Com contribuir](./CONTRIBUTING.md)** — Guia per contribuir al projecte.
+- **[Incidències de GitHub](https://github.com/xavier-arosemena/roo-plus/issues)** — Informa d'errors i segueix el desenvolupament.
+- **[Debats de GitHub](https://github.com/xavier-arosemena/roo-plus/discussions)** — Comparteix idees i participa en la comunitat.
 
 ---
 
-## Configuració i desenvolupament local
-
-1. **Clona** el repositori:
-
-```sh
-git clone https://github.com/xavier-arosemena/roo-plus.git
-```
-
-2. **Instal·la les dependències**:
-
-```sh
-pnpm install
-```
-
-3. **Executa l'extensió**:
-
-Hi ha diverses maneres d'executar l'extensió Roo+:
-
-### Mode de desenvolupament (F5)
-
-Per al desenvolupament actiu, utilitza la depuració integrada de VSCode:
-
-Prem `F5` (o ves a **Executa** → **Inicia la depuració**) a VSCode. Això obrirà una nova finestra de VSCode amb l'extensió Roo+ en funcionament.
-
-- Els canvis a la vista web apareixeran immediatament.
-- Els canvis a l'extensió principal també es recarregaran automàticament.
-
-### Instal·lació automatitzada de VSIX
-
-Per construir i instal·lar l'extensió com un paquet VSIX directament a VSCode:
-
-```sh
-pnpm install:vsix [-y] [--editor=<command>]
-```
-
-Aquesta comanda farà el següent:
-
-- Preguntarà quina comanda d'editor utilitzar (code/cursor/code-insiders) - per defecte és 'code'
-- Desinstal·larà qualsevol versió existent de l'extensió.
-- Construirà l'últim paquet VSIX.
-- Instal·larà el VSIX acabat de construir.
-- Et demanarà que reiniciïs VS Code perquè els canvis tinguin efecte.
-
-Opcions:
-
-- `-y`: Omet totes les confirmacions i utilitza els valors per defecte
-- `--editor=<command>`: Especifica la comanda de l'editor (p. ex., `--editor=cursor` o `--editor=code-insiders`)
-
-### Instal·lació manual de VSIX
-
-Si prefereixes instal·lar el paquet VSIX manualment:
-
-1.  Primer, construeix el paquet VSIX:
-    ```sh
-    pnpm vsix
-    ```
-2.  Es generarà un fitxer `.vsix` al directori `bin/` (p. ej., `bin/zoo-code-<versió>.vsix`).
-3.  Instal·la'l manualment utilitzant la CLI de VSCode:
-    ```sh
-    code --install-extension bin/zoo-code-<versió>.vsix
-    ```
-
----
-
-Utilitzem [changesets](https://github.com/changesets/changesets) per al versionat i la publicació. Consulta el nostre `CHANGELOG.md` per a les notes de la versió.
-
----
-
-## Avís legal
-
-**Tingueu en compte** que Roo+, Inc **no** fa cap representació ni garantia pel que fa a cap codi, model o altres eines proporcionades o posades a disposició en relació amb Roo+, qualsevol eina de tercers associada, o qualsevol resultat. Assumiu **tots els riscos** associats amb l'ús d'aquestes eines o resultats; aquestes eines es proporcionen **"TAL QUAL"** i **"SEGONS DISPONIBILITAT"**. Aquests riscos poden incloure, sense limitació, infraccions de propietat intel·lectual, vulnerabilitats o atacs cibernètics, biaix, inexactituds, errors, defectes, virus, temps d'inactivitat, pèrdua o dany de propietat i/o lesions personals. Sou l'únic responsable del vostre ús d'aquestes eines o resultats (incloent, sense limitació, la legalitat, idoneïtat i resultats dels mateixos).
-
----
-
-## Contribucions
-
-Ens encanten les contribucions de la comunitat! Comença llegint el nostre [CONTRIBUTING.md](CONTRIBUTING.md).
-
----
-
-## Llicència
-
-[Apache 2.0 © 2025 Roo+ Org](../../LICENSE)
-
----
-
-**Gaudeix de Roo+!** Tant si el portes curt com si el deixes voltar de manera autònoma, tenim moltes ganes de veure què construiràs. Si tens preguntes o idees de funcionalitats, obre una [issue](https://github.com/xavier-arosemena/roo-plus/issues) o inicia una [discussion](https://github.com/xavier-arosemena/roo-plus/discussions). Feliç codi!
+**Gaudeix de Roo+!** Si tens preguntes o idees de funcions, obre una [incidència](https://github.com/xavier-arosemena/roo-plus/issues) o inicia un [debat](https://github.com/xavier-arosemena/roo-plus/discussions).

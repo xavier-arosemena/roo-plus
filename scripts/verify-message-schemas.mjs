@@ -4,7 +4,7 @@
  * verify-message-schemas.mjs
  *
  * Ratchet guard for the typed webview↔extension message protocol (S1-M4,
- * extended in Phase 0 of docs/architecture-review-protocol-migration.md to the
+ * extended in Phase 0 of plans/architecture-review-protocol-migration.md to the
  * outbound extension→webview|CLI direction).
  *
  * Fails (exit 1) when, for EITHER direction:
@@ -108,7 +108,7 @@ async function main() {
 		}
 		logError(
 			TAG,
-			"Untyped types must not increase; baseline types must never lose their schema (see docs/architecture-review-protocol-migration.md).",
+			"Untyped types must not increase; baseline types must never lose their schema (see plans/architecture-review-protocol-migration.md).",
 		)
 		process.exit(1)
 	}

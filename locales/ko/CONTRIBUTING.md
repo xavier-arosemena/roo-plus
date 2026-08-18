@@ -81,7 +81,7 @@ PR에 이러한 영역과의 연관성을 언급하세요.
 ### 작업할 내용 결정하기
 
 - 이슈를 찾으려면 [GitHub Issues 페이지](https://github.com/xavier-arosemena/roo-plus/issues)를 확인하세요.
-- 문서는 [Roo+ 문서](https://github.com/xavier-arosemena/roo-plus-Docs)를 방문하세요.
+- 문서는 [Roo+ 문서](https://github.com/xavier-arosemena/roo-plus/tree/master/docs)를 방문하세요.
 
 ### 버그 신고하기
 
@@ -99,7 +99,7 @@ PR에 이러한 영역과의 연관성을 언급하세요.
 1. **포크 및 클론:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **의존성 설치:**

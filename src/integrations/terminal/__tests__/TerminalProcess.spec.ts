@@ -665,7 +665,7 @@ describe("TerminalProcess", () => {
 			expect(calledWith).toMatch(/^"\/bin\/bash" ".*roo-cmd-.*\.sh"$/)
 		})
 
-		it("uses VS Code default profile shell for temp-script when no Zoo Code profile override is set", async () => {
+		it("uses VS Code default profile shell for temp-script when no Roo+ profile override is set", async () => {
 			vi.spyOn(Terminal, "getProfileShell").mockReturnValue(undefined)
 			vi.spyOn(Terminal, "getConfiguredDefaultProfileName").mockReturnValue("bash")
 			vi.spyOn(Terminal, "getConfiguredProfiles").mockReturnValue({

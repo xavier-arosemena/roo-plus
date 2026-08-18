@@ -17,7 +17,7 @@ The semble code-index binary reached users through two mechanisms: a bundled lau
 Make **download the sole installation mechanism** for the semble binary, and fix the downloader to resolve the real executable in both archive layouts:
 
 - **Remove the bundled launcher.** Delete `bin/semble`, the `.vscodeignore` include, the `extensionPath` bundled-copy path in `downloadSemble`, and `scripts/bundle-semble.sh` (plus its `vsix` invocation). Semble is now **download-only**.
-- **Resolve the real executable.** New `resolveSembleBinary()`/`findFileNamed()` in [`src/services/code-index/semble/semble-downloader.ts`](src/services/code-index/semble/semble-downloader.ts) handle flat archives (`<base>/semble`) **and** PyInstaller one-dir archives (`<base>/semble/semble`). `getSembleBinaryPath()` is file-only — a directory is not runnable, so resolution returns the regular file, not the wrapper directory. Existing broken one-dir installs self-heal on the next resolution.
+- **Resolve the real executable.** New `resolveSembleBinary()`/`findFileNamed()` in [`src/services/code-index/semble/semble-downloader.ts`](../../src/services/code-index/semble/semble-downloader.ts) handle flat archives (`<base>/semble`) **and** PyInstaller one-dir archives (`<base>/semble/semble`). `getSembleBinaryPath()` is file-only — a directory is not runnable, so resolution returns the regular file, not the wrapper directory. Existing broken one-dir installs self-heal on the next resolution.
 - **Offline/air-gapped users** supply a manually-installed binary via the existing `codebaseIndexSembleBinaryPath` setting; no download is attempted when it is set.
 
 ## Consequences
@@ -41,4 +41,4 @@ Make **download the sole installation mechanism** for the semble binary, and fix
 ## See Also
 
 - [`arch-review-semble-download-404.md`](arch-review-semble-download-404.md) — the bundling option (Solution D) was superseded and rejected on 2026-07-31 for the same size/runtime reasons
-- [`DEBT.md`](../DEBT.md) — resolved-debt rows for the Semble EACCES one-dir layout and bundled-launcher removal
+- [`DEBT.md`](../../DEBT.md) — resolved-debt rows for the Semble EACCES one-dir layout and bundled-launcher removal

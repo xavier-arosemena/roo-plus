@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
     - name: Leave a Review
-      url: https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus&ssr=false#review-details
-      about: Enjoying Roo+? Leave a review here!
+      url: https://open-vsx.org/extension/xavier-arosemena/roo-plus
+      about: Enjoying Roo+? Leave a review on the Open VSX Registry!
+    - name: GitHub Discussions
+      url: https://github.com/xavier-arosemena/roo-plus/discussions
+      about: Ask questions, share ideas, and chat with the community.

@@ -81,7 +81,7 @@ Totes les contribucions comencen amb una incidència de GitHub utilitzant les no
 ### Decidir en què treballar
 
 - Consulta la [pàgina de GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues) per veure les issues.
-- Per a documents, visiteu [Documents de Roo+](https://github.com/xavier-arosemena/roo-plus-Docs).
+- Per a documents, visiteu [Documents de Roo+](https://github.com/xavier-arosemena/roo-plus/tree/master/docs).
 
 ### Informar d'errors
 
@@ -99,7 +99,7 @@ Totes les contribucions comencen amb una incidència de GitHub utilitzant les no
 1. **Bifurcació i clonació:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **Instal·leu les dependències:**

@@ -68,7 +68,7 @@ const App = () => {
 
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
 	const [tab, setTab] = useState<Tab>("chat")
-	const handledImportRef = useRef<number | undefined>(undefined)
+	const [handledImportTs, setHandledImportTs] = useState<number | undefined>(undefined)
 
 	const [deleteMessageDialogState, setDeleteMessageDialogState] = useState<DeleteMessageDialogState>({
 		isOpen: false,
@@ -86,6 +86,10 @@ const App = () => {
 
 	const settingsRef = useRef<SettingsViewRef>(null)
 	const chatViewRef = useRef<ChatViewRef>(null)
+
+	// Declared above switchTab/onMessage because both reference the setters.
+	const [currentSection, setCurrentSection] = useState<string | undefined>(undefined)
+	const [currentMarketplaceTab, setCurrentMarketplaceTab] = useState<string | undefined>(undefined)
 
 	const switchTab = useCallback(
 		(newTab: Tab) => {
@@ -106,9 +110,6 @@ const App = () => {
 		},
 		[mdmCompliant],
 	)
-
-	const [currentSection, setCurrentSection] = useState<string | undefined>(undefined)
-	const [currentMarketplaceTab, setCurrentMarketplaceTab] = useState<string | undefined>(undefined)
 
 	const onMessage = useCallback(
 		(e: MessageEvent) => {
@@ -168,30 +169,35 @@ const App = () => {
 				chatViewRef.current?.acceptInput()
 			}
 		},
-		[switchTab],
+		[switchTab, setCurrentSection, setCurrentMarketplaceTab],
 	)
 
 	useEvent("message", onMessage)
 
+	// Reveal the announcement banner during render (React's recommended "adjust
+	// state during render" pattern); the "didShowAnnouncement" postMessage stays
+	// in an effect.
+	if (shouldShowAnnouncement && tab === "chat" && !showAnnouncement) {
+		setShowAnnouncement(true)
+	}
+
 	useEffect(() => {
 		if (shouldShowAnnouncement && tab === "chat") {
-			setShowAnnouncement(true)
 			vscode.postMessage({ type: "didShowAnnouncement" })
 		}
 	}, [shouldShowAnnouncement, tab])
 
-	useEffect(() => {
-		const isRecoverableTab = tab === "settings" || tab === "marketplace"
-
-		if (showWelcome && settingsImportedAt && settingsImportedAt !== handledImportRef.current) {
-			handledImportRef.current = settingsImportedAt
-			if (!isRecoverableTab) {
-				setCurrentSection("providers")
-				setCurrentMarketplaceTab(undefined)
-				setTab("settings")
-			}
+	// Navigate to settings once per imported-settings timestamp. Done during
+	// render (React's recommended "adjust state during render" pattern); the
+	// handled-import guard converges so there is no loop.
+	if (showWelcome && settingsImportedAt && settingsImportedAt !== handledImportTs) {
+		setHandledImportTs(settingsImportedAt)
+		if (tab !== "settings" && tab !== "marketplace") {
+			setCurrentSection("providers")
+			setCurrentMarketplaceTab(undefined)
+			setTab("settings")
 		}
-	}, [showWelcome, settingsImportedAt, tab])
+	}
 
 	useEffect(() => {
 		if (didHydrateState) {

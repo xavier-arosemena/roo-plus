@@ -3,7 +3,7 @@
 **Status:** ✅ RESOLVED (v3.77.4) + proactive hardening recommendations
 **Date:** 2026-08-07
 **Scope:** Issue #158 — "Modes not present in the marketplace" (regression vs v3.72.0)
-**Related:** [`architecture-review-code-index-semble.md`](../../docs/architecture-review-code-index-semble.md) (v3.77.4 addendum), [`adr-typed-message-protocol.md`](adr-typed-message-protocol.md)
+**Related:** [`plans/architecture-review-code-index-semble.md`](../../plans/architecture-review-code-index-semble.md) (v3.77.4 addendum), [`adr-typed-message-protocol.md`](adr-typed-message-protocol.md)
 
 ## Summary
 
@@ -15,7 +15,7 @@ silently dropped every extension→webview message in remote/server webviews
 (VSCodium Desktop + Remote-SSH), and the marketplace was the only surface whose data is
 delivered exclusively through that filtered channel.
 
-Fixed in v3.77.4 by [`isTrustedMessage()`](../webview-ui/src/utils/trustedMessages.ts) trusting
+Fixed in v3.77.4 by [`isTrustedMessage()`](../../webview-ui/src/utils/trustedMessages.ts) trusting
 **origin only** (commit `ab232adb0`). This document validates that fix, explains why the
 symptom was marketplace-specific, and inventories every other message consumer so the same
 class of bug cannot recur.
@@ -33,27 +33,27 @@ Both depend on the same extension host, so the asymmetry is explained entirely b
 message channel each surface consumes:
 
 - The mode selector is populated from the `state` message, consumed by the unguarded root
-  handler in [`ExtensionStateContext.tsx`](../webview-ui/src/context/ExtensionStateContext.tsx:473).
+  handler in [`ExtensionStateContext.tsx`](../../webview-ui/src/context/ExtensionStateContext.tsx:473).
 - The marketplace list is populated **only** from the `marketplaceData` response message,
   consumed by the `isTrustedMessage`-guarded listener in
-  [`useStateManager.ts`](../webview-ui/src/components/marketplace/useStateManager.ts:29).
+  [`useStateManager.ts`](../../webview-ui/src/components/marketplace/useStateManager.ts:29).
 
 In remote webviews the guarded channel dropped every message, so `isFetching` stayed `true`
-forever and [`MarketplaceListView.tsx`](../webview-ui/src/components/marketplace/MarketplaceListView.tsx:229)
+forever and [`MarketplaceListView.tsx`](../../webview-ui/src/components/marketplace/MarketplaceListView.tsx:229)
 rendered the loader (`state.isFetching && isEmpty`) indefinitely.
 
 ## 2. What was verified as NOT the cause
 
 Reviewed to eliminate red herrings and confirm the regression window:
 
-| Candidate                                             | Result                                                                                                                                                                     |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `modes.yml` catalog (301 items)                       | ✅ Valid — 301 items, passes `modeMarketplaceResponse` zod validation (`yaml.parse` + `safeParse`)                                                                         |
-| `mcps.yml` catalog (63 items)                         | ✅ Valid                                                                                                                                                                   |
-| Backend fetch flow                                    | ✅ Unchanged since v3.72.0: `fetchMarketplaceData` → `marketplaceData` (extracted to `MarketplaceService` in v3.76.0, logic preserved exactly)                             |
-| Webview state machine (`MarketplaceViewStateManager`) | ✅ Byte-identical to v3.72.0                                                                                                                                               |
-| Typed message protocol (v3.76.0)                      | ✅ `fetchMarketplaceData` is an unregistered type → structural pass-through in [`parseWebviewMessage`](../packages/types/src/webview-messages/index.ts:95), never rejected |
-| Marketplace handler routing                           | ✅ `fetchMarketplaceData` dispatched to `handleMarketplaceMessages` via `marketplaceMessageTypes`                                                                          |
+| Candidate                                             | Result                                                                                                                                                                        |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modes.yml` catalog (301 items)                       | ✅ Valid — 301 items, passes `modeMarketplaceResponse` zod validation (`yaml.parse` + `safeParse`)                                                                            |
+| `mcps.yml` catalog (63 items)                         | ✅ Valid                                                                                                                                                                      |
+| Backend fetch flow                                    | ✅ Unchanged since v3.72.0: `fetchMarketplaceData` → `marketplaceData` (extracted to `MarketplaceService` in v3.76.0, logic preserved exactly)                                |
+| Webview state machine (`MarketplaceViewStateManager`) | ✅ Byte-identical to v3.72.0                                                                                                                                                  |
+| Typed message protocol (v3.76.0)                      | ✅ `fetchMarketplaceData` is an unregistered type → structural pass-through in [`parseWebviewMessage`](../../packages/types/src/webview-messages/index.ts:95), never rejected |
+| Marketplace handler routing                           | ✅ `fetchMarketplaceData` dispatched to `handleMarketplaceMessages` via `marketplaceMessageTypes`                                                                             |
 
 ## 3. Root cause (regression since v3.72.0)
 
@@ -86,7 +86,7 @@ export function isTrustedMessage(event: MessageEvent): boolean {
   rejected regardless of source — the original motivation for the filter is preserved.
 - **Coverage.** Applies uniformly to all 24 guarded consumers (marketplace, settings,
   chat/code-index, worktrees, modes, model hooks).
-- **Tests.** [`trustedMessages.spec.ts`](../webview-ui/src/utils/__tests__/trustedMessages.spec.ts)
+- **Tests.** [`trustedMessages.spec.ts`](../../webview-ui/src/utils/__tests__/trustedMessages.spec.ts)
   covers the exact "different same-origin Window" regression case plus cross-origin rejection
   cases — 13/13 pass. Marketplace suite 11/11 passes. Full run: 24/24 green.
 
@@ -113,10 +113,10 @@ Hooks: `useOllamaModels.ts`, `useRouterModels.ts`, `useLmStudioModels.ts`
 
 ### 5.2 Unguarded (never affected by the drop; **proactive hardening candidates**)
 
-| Consumer                                                                                                      | Messages                                    | Risk today          | Recommended action                                                                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`ExtensionStateContext.tsx`](../webview-ui/src/context/ExtensionStateContext.tsx:473) — root state handler   | `state`, `marketplaceData`, task history, … | None (receives all) | Add origin-based `isTrustedMessage` guard for defense-in-depth. **Largest blast radius** — treat as the final migration step after 5.2 next item ships + re-tested across desktop/remote. |
-| [`FileChangesPanel.tsx`](../webview-ui/src/components/chat/FileChangesPanel.tsx:105) — `fileContent` listener | `fileContent`                               | None (receives all) | Add origin-based `isTrustedMessage` guard (low blast radius, good first candidate)                                                                                                        |
+| Consumer                                                                                                         | Messages                                    | Risk today          | Recommended action                                                                                                                                                                        |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`ExtensionStateContext.tsx`](../../webview-ui/src/context/ExtensionStateContext.tsx:473) — root state handler   | `state`, `marketplaceData`, task history, … | None (receives all) | Add origin-based `isTrustedMessage` guard for defense-in-depth. **Largest blast radius** — treat as the final migration step after 5.2 next item ships + re-tested across desktop/remote. |
+| [`FileChangesPanel.tsx`](../../webview-ui/src/components/chat/FileChangesPanel.tsx:105) — `fileContent` listener | `fileContent`                               | None (receives all) | Add origin-based `isTrustedMessage` guard (low blast radius, good first candidate)                                                                                                        |
 
 The two unguarded consumers above receive every message, so they never suffered the drop
 bug — they are listed for **security consistency**, not correctness. Guarding them with the
@@ -125,9 +125,9 @@ trust model.
 
 ### 5.3 Extension-host side (outbound) — no analogous filtering
 
-`postMessageToWebview` ([`ClineProvider.ts`](../src/core/webview/ClineProvider.ts:952)) has no
+`postMessageToWebview` ([`ClineProvider.ts`](../../src/core/webview/ClineProvider.ts:952)) has no
 source/origin filtering; inbound messages are typed-boundary validated at
-[`ClineProvider.ts`](../src/core/webview/ClineProvider.ts:1187) and routed per-domain. No
+[`ClineProvider.ts`](../../src/core/webview/ClineProvider.ts:1187) and routed per-domain. No
 action needed.
 
 ## 6. Recommendations
@@ -141,12 +141,12 @@ action needed.
 3. **Add a marketplace retry/fallback** so a lost `marketplaceData` response cannot strand
    the UI on an infinite loader: on `hasReceivedInitialState` timeout, re-post
    `fetchMarketplaceData` (or surface the `errors[]` payload as an empty/error state).
-   Currently [`MarketplaceView.tsx`](../webview-ui/src/components/marketplace/MarketplaceView.tsx:44)
+   Currently [`MarketplaceView.tsx`](../../webview-ui/src/components/marketplace/MarketplaceView.tsx:44)
    posts the fetch exactly once and never retries.
 4. **Document the lesson** (this document + §10 addendum in the code-index review): webview
    "trusted message" hardening must key on origin, never source.
 5. **Keep the typed-protocol boundary pass-through** for unregistered types (as designed in
-   [`webview-messages/index.ts`](../packages/types/src/webview-messages/index.ts:114)) — a
+   [`webview-messages/index.ts`](../../packages/types/src/webview-messages/index.ts:114)) — a
    strict-reject boundary here would have converted this silent drop into a hard failure;
    adding `fetchMarketplaceData` to the schema registry is a cheap next ratchet.
 

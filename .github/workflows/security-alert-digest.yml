@@ -1,0 +1,226 @@
+name: Security & Quality Digest
+
+on:
+  schedule:
+    # Daily at 06:00 UTC.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+# Least privilege: read repo contents, write to issues (digest issue + dated
+# comments), and read security alerts (Dependabot / CodeQL / secret scanning).
+# The security-events scope is required by the alerts REST endpoints; without
+# it the alert queries degrade gracefully to a warning.
+permissions:
+  contents: read
+  issues: write
+  security-events: read
+
+concurrency:
+  group: security-alert-digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build and post security & quality digest
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const now = new Date();
+
+            // ---- Collect data (each query degrades gracefully) --------------
+            let dependabotAlerts = [];
+            let codeScanningAlerts = [];
+            let secretScanningAlerts = [];
+            let failedRuns = [];
+
+            try {
+              dependabotAlerts = await github.paginate(github.rest.dependabot.listAlertsForRepo, {
+                owner, repo, state: 'open', per_page: 100,
+              });
+            } catch (err) {
+              core.warning(`Could not list Dependabot alerts (${err.status || err.message}). Token may lack security-events: read.`);
+            }
+
+            try {
+              codeScanningAlerts = await github.paginate(github.rest.codeScanning.listAlertsForRepo, {
+                owner, repo, state: 'open', per_page: 100,
+              });
+            } catch (err) {
+              core.warning(`Could not list code scanning alerts (${err.status || err.message}).`);
+            }
+
+            try {
+              secretScanningAlerts = await github.paginate(github.rest.secretScanning.listAlertsForRepo, {
+                owner, repo, state: 'open', per_page: 100,
+              });
+            } catch (err) {
+              core.warning(`Could not list secret scanning alerts (${err.status || err.message}).`);
+            }
+
+            try {
+              const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+                owner, repo, status: 'failure', per_page: 100,
+              });
+              const cutoff = now.getTime() - 24 * 60 * 60 * 1000;
+              failedRuns = runs.filter((run) => new Date(run.created_at).getTime() >= cutoff);
+            } catch (err) {
+              core.warning(`Could not list failed workflow runs (${err.status || err.message}).`);
+            }
+
+            // ---- Build the markdown digest -----------------------------------
+            const severityOrder = ['critical', 'high', 'medium', 'low'];
+            const severityOf = (alert) => {
+              const advisory = alert.security_advisory || {};
+              const value = String(advisory.severity || alert.severity || '').toLowerCase();
+              const idx = severityOrder.indexOf(value);
+              return idx === -1 ? 99 : idx;
+            };
+
+            const lines = [];
+            const dateStamp = now.toISOString().slice(0, 10);
+            lines.push(`## Security & Quality Digest - ${dateStamp}`);
+            lines.push('');
+            lines.push(`Automated digest of open security alerts and failed CI runs for ${owner}/${repo}.`);
+            lines.push('');
+
+            // Dependabot alerts.
+            lines.push(`### Dependabot alerts: ${dependabotAlerts.length} open`);
+            if (dependabotAlerts.length > 0) {
+              lines.push('');
+              lines.push('| Alert | Severity | Package | GHSA / CVE | Manifest | Fixed version |');
+              lines.push('| --- | --- | --- | --- | --- | --- |');
+              dependabotAlerts.sort((a, b) => severityOf(a) - severityOf(b));
+              for (const alert of dependabotAlerts) {
+                const advisory = alert.security_advisory || {};
+                const vuln = alert.security_vulnerability || {};
+                const severity = advisory.severity || vuln.severity || 'unknown';
+                const ids = [];
+                if (advisory.ghsa_id) ids.push(advisory.ghsa_id);
+                if (advisory.cve_id) ids.push(advisory.cve_id);
+                lines.push(`| [#${alert.number}](${alert.html_url}) | ${severity} | ${vuln.package?.name || 'unknown'} | ${ids.join(' / ') || 'n/a'} | ${vuln.manifest_path || 'n/a'} | ${vuln.first_patched_version?.identifier || 'none'} |`);
+              }
+              lines.push('');
+            } else {
+              lines.push('');
+              lines.push('No open Dependabot alerts.');
+              lines.push('');
+            }
+
+            // Code scanning alerts.
+            lines.push(`### Code scanning alerts: ${codeScanningAlerts.length} open`);
+            if (codeScanningAlerts.length > 0) {
+              lines.push('');
+              lines.push('| Alert | Severity | Rule | Tool | Path |');
+              lines.push('| --- | --- | --- | --- | --- |');
+              for (const alert of codeScanningAlerts) {
+                const rule = alert.rule || {};
+                const severity = alert.security_severity_level || alert.severity || 'unknown';
+                const loc = alert.most_recent_instance?.location || {};
+                lines.push(`| [#${alert.number}](${alert.html_url}) | ${severity} | ${rule.id || rule.description || 'unknown'} | ${alert.tool?.name || 'unknown'} | ${loc.path || 'n/a'} |`);
+              }
+              lines.push('');
+            } else {
+              lines.push('');
+              lines.push('No open code scanning alerts.');
+              lines.push('');
+            }
+
+            // Secret scanning alerts.
+            lines.push(`### Secret scanning alerts: ${secretScanningAlerts.length} open`);
+            if (secretScanningAlerts.length > 0) {
+              lines.push('');
+              lines.push('| Alert | Secret type | Location |');
+              lines.push('| --- | --- | --- |');
+              for (const alert of secretScanningAlerts) {
+                lines.push(`| [#${alert.number}](${alert.html_url}) | ${alert.secret_type_display_name || alert.secret_type || 'unknown'} | ${alert.location || 'n/a'} |`);
+              }
+              lines.push('');
+            } else {
+              lines.push('');
+              lines.push('No open secret scanning alerts.');
+              lines.push('');
+            }
+
+            // Failed workflow runs in the last 24 hours.
+            lines.push(`### Failed workflow runs (last 24h): ${failedRuns.length}`);
+            if (failedRuns.length > 0) {
+              lines.push('');
+              lines.push('| Run | Workflow | Branch | Created |');
+              lines.push('| --- | --- | --- | --- |');
+              for (const run of failedRuns) {
+                lines.push(`| [${run.name}](${run.html_url}) | ${run.name} | ${run.head_branch || 'n/a'} | ${run.created_at} |`);
+              }
+              lines.push('');
+            } else {
+              lines.push('');
+              lines.push('No failed workflow runs in the last 24 hours.');
+              lines.push('');
+            }
+
+            const totalAlerts = dependabotAlerts.length + codeScanningAlerts.length + secretScanningAlerts.length;
+            if (totalAlerts === 0 && failedRuns.length === 0) {
+              lines.push('---');
+              lines.push('');
+              lines.push('**ALL CLEAR** - no open security alerts and no failed CI runs in the last 24 hours.');
+            }
+
+            lines.push('---');
+            lines.push(`_Generated by the Security & Quality Digest workflow on ${now.toISOString()}._`);
+            const digestBody = lines.join('\n');
+
+            // ---- Post to the digest issue (idempotent) ----------------------
+            // Ensure the security label exists before tagging a new issue.
+            async function ensureLabel(name, color) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (err) {
+                if (err.status === 404) {
+                  await github.rest.issues.createLabel({ owner, repo, name, color });
+                  core.info(`Created label ${name}.`);
+                }
+              }
+            }
+            await ensureLabel('security', 'b60205');
+
+            const digestTitle = 'Security & Quality Digest';
+            let existing = null;
+            try {
+              const searchResults = await github.paginate(github.rest.search.issuesAndPullRequests, {
+                q: `repo:${owner}/${repo} type:issue state:open in:title "${digestTitle}"`,
+                per_page: 100,
+              });
+              existing = searchResults.find((issue) => issue.title === digestTitle && !issue.pull_request);
+            } catch (err) {
+              core.warning(`Could not search for the digest issue (${err.message}); falling back to listing open issues.`);
+              const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+                owner, repo, state: 'open', per_page: 100,
+              });
+              existing = openIssues.find((issue) => issue.title === digestTitle && !issue.pull_request);
+            }
+
+            let issueNumber;
+            if (existing) {
+              issueNumber = existing.number;
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issueNumber, body: digestBody,
+              });
+              core.info(`Added dated digest comment to issue #${issueNumber}.`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner, repo, title: digestTitle, body: digestBody, labels: ['security'],
+              });
+              issueNumber = created.data.number;
+              core.info(`Created digest issue #${issueNumber}.`);
+            }
+
+            core.setOutput('digest-issue', String(issueNumber));
+            core.setOutput('dependabot-alerts', String(dependabotAlerts.length));
+            core.setOutput('code-scanning-alerts', String(codeScanningAlerts.length));
+            core.setOutput('secret-scanning-alerts', String(secretScanningAlerts.length));
+            core.setOutput('failed-runs-24h', String(failedRuns.length));

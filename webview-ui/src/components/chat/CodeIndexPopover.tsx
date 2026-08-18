@@ -254,44 +254,51 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 	// Current settings state - tracks user changes
 	const [currentSettings, setCurrentSettings] = useState<LocalCodeIndexSettings>(getDefaultSettings())
 
-	// Update indexing status from parent
-	useEffect(() => {
+	// Update indexing status from parent. Done during render (React's
+	// recommended "adjust state during render" pattern).
+	const [prevExternalIndexingStatus, setPrevExternalIndexingStatus] = useState(externalIndexingStatus)
+	if (externalIndexingStatus !== prevExternalIndexingStatus) {
+		setPrevExternalIndexingStatus(externalIndexingStatus)
 		setIndexingStatus(externalIndexingStatus)
-	}, [externalIndexingStatus])
+	}
 
-	// Initialize settings from global state
+	// Initialize settings from global state. Done during render (React's
+	// recommended "adjust state during render" pattern); the secret-status
+	// postMessage stays in an effect.
+	const [prevCodebaseIndexConfig, setPrevCodebaseIndexConfig] = useState<typeof codebaseIndexConfig>(undefined)
+	if (codebaseIndexConfig && codebaseIndexConfig !== prevCodebaseIndexConfig) {
+		setPrevCodebaseIndexConfig(codebaseIndexConfig)
+		const settings = {
+			codebaseIndexEnabled: codebaseIndexConfig.codebaseIndexEnabled ?? true,
+			codebaseIndexQdrantUrl: codebaseIndexConfig.codebaseIndexQdrantUrl || "",
+			codebaseIndexEmbedderProvider: codebaseIndexConfig.codebaseIndexEmbedderProvider || "openai",
+			codebaseIndexEmbedderBaseUrl: codebaseIndexConfig.codebaseIndexEmbedderBaseUrl || "",
+			codebaseIndexEmbedderModelId: codebaseIndexConfig.codebaseIndexEmbedderModelId || "",
+			codebaseIndexEmbedderModelDimension: codebaseIndexConfig.codebaseIndexEmbedderModelDimension || undefined,
+			codebaseIndexSearchMaxResults:
+				codebaseIndexConfig.codebaseIndexSearchMaxResults ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
+			codebaseIndexSearchMinScore:
+				codebaseIndexConfig.codebaseIndexSearchMinScore ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_MIN_SCORE,
+			codebaseIndexBedrockRegion: codebaseIndexConfig.codebaseIndexBedrockRegion || "",
+			codebaseIndexBedrockProfile: codebaseIndexConfig.codebaseIndexBedrockProfile || "",
+			codeIndexOpenAiKey: "",
+			codeIndexQdrantApiKey: "",
+			codebaseIndexOpenAiCompatibleBaseUrl: codebaseIndexConfig.codebaseIndexOpenAiCompatibleBaseUrl || "",
+			codebaseIndexOpenAiCompatibleApiKey: "",
+			codebaseIndexGeminiApiKey: "",
+			codebaseIndexMistralApiKey: "",
+			codebaseIndexVercelAiGatewayApiKey: "",
+			codebaseIndexOpenRouterApiKey: "",
+			codebaseIndexOpenRouterSpecificProvider: codebaseIndexConfig.codebaseIndexOpenRouterSpecificProvider || "",
+			codebaseIndexSembleBinaryPath: codebaseIndexConfig.codebaseIndexSembleBinaryPath || "",
+		}
+		setInitialSettings(settings)
+		setCurrentSettings(settings)
+	}
+
 	useEffect(() => {
+		// Request secret status to check if secrets exist
 		if (codebaseIndexConfig) {
-			const settings = {
-				codebaseIndexEnabled: codebaseIndexConfig.codebaseIndexEnabled ?? true,
-				codebaseIndexQdrantUrl: codebaseIndexConfig.codebaseIndexQdrantUrl || "",
-				codebaseIndexEmbedderProvider: codebaseIndexConfig.codebaseIndexEmbedderProvider || "openai",
-				codebaseIndexEmbedderBaseUrl: codebaseIndexConfig.codebaseIndexEmbedderBaseUrl || "",
-				codebaseIndexEmbedderModelId: codebaseIndexConfig.codebaseIndexEmbedderModelId || "",
-				codebaseIndexEmbedderModelDimension:
-					codebaseIndexConfig.codebaseIndexEmbedderModelDimension || undefined,
-				codebaseIndexSearchMaxResults:
-					codebaseIndexConfig.codebaseIndexSearchMaxResults ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
-				codebaseIndexSearchMinScore:
-					codebaseIndexConfig.codebaseIndexSearchMinScore ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_MIN_SCORE,
-				codebaseIndexBedrockRegion: codebaseIndexConfig.codebaseIndexBedrockRegion || "",
-				codebaseIndexBedrockProfile: codebaseIndexConfig.codebaseIndexBedrockProfile || "",
-				codeIndexOpenAiKey: "",
-				codeIndexQdrantApiKey: "",
-				codebaseIndexOpenAiCompatibleBaseUrl: codebaseIndexConfig.codebaseIndexOpenAiCompatibleBaseUrl || "",
-				codebaseIndexOpenAiCompatibleApiKey: "",
-				codebaseIndexGeminiApiKey: "",
-				codebaseIndexMistralApiKey: "",
-				codebaseIndexVercelAiGatewayApiKey: "",
-				codebaseIndexOpenRouterApiKey: "",
-				codebaseIndexOpenRouterSpecificProvider:
-					codebaseIndexConfig.codebaseIndexOpenRouterSpecificProvider || "",
-				codebaseIndexSembleBinaryPath: codebaseIndexConfig.codebaseIndexSembleBinaryPath || "",
-			}
-			setInitialSettings(settings)
-			setCurrentSettings(settings)
-
-			// Request secret status to check if secrets exist
 			vscode.postMessage({ type: "requestCodeIndexSecretStatus" })
 		}
 	}, [codebaseIndexConfig])
@@ -317,9 +324,12 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 		return () => window.removeEventListener("message", handleMessage)
 	}, [open])
 
-	// Use a ref to capture current settings for the save handler
+	// Use a ref to capture current settings for the save handler. Synced in an
+	// effect (not during render).
 	const currentSettingsRef = useRef(currentSettings)
-	currentSettingsRef.current = currentSettings
+	useEffect(() => {
+		currentSettingsRef.current = currentSettings
+	}, [currentSettings])
 
 	// Listen for indexing status updates and save responses
 	useEffect(() => {
@@ -1526,7 +1536,6 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 													onBlur={(e: any) => {
 														// Set default Qdrant URL if field is empty
 														if (!e.target.value.trim()) {
-															currentSettings.codebaseIndexQdrantUrl = DEFAULT_QDRANT_URL
 															updateSetting("codebaseIndexQdrantUrl", DEFAULT_QDRANT_URL)
 														}
 													}}

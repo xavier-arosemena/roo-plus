@@ -40,13 +40,11 @@ jobs:
               with:
                   install-args: "--frozen-lockfile"
 
-            - name: Verify custom-modes submodule pin & committed artifact sync
-              run: |
-                  echo "::group::[CI:RELEASE-VALIDATION:SUBMODULE] Verifying submodule pin + .roomodes sync"
-                  node scripts/verify-submodule-pin.mjs
-                  node scripts/verify-roomodes-sync.mjs
-                  echo "::notice::[CI:RELEASE-VALIDATION:SUBMODULE] submodule pin and .roomodes sync verified"
-                  echo "::endgroup::"
+            - name: Prepare extension publish
+              uses: ./.github/actions/prepare-extension
+              with:
+                  log-prefix: RELEASE-VALIDATION
+                  environment: marketplace-production
 
             - name: Enforce mode descriptions (ensure_descriptions.py --check)
               run: |
@@ -56,15 +54,11 @@ jobs:
                   echo "::notice::[CI:RELEASE-VALIDATION:DESCRIPTIONS] mode descriptions gate passed"
                   echo "::endgroup::"
 
-            - name: Validate package identity
+            - name: Verify locale README landing pages (verify-locale-readmes.mjs)
               run: |
-                  echo "::group::[CI:RELEASE-VALIDATION:IDENTITY] Validating package identity"
-                  package_name=$(node -p "require('./src/package.json').name")
-                  publisher=$(node -p "require('./src/package.json').publisher")
-
-                  test "$package_name" = "roo-plus"
-                  test "$publisher" = "xavier-arosemena"
-                  echo "::notice::[CI:RELEASE-VALIDATION:IDENTITY] package identity OK: $package_name / $publisher"
+                  echo "::group::[CI:RELEASE-VALIDATION:LOCALE-README] Verifying locale README landing pages"
+                  node scripts/verify-locale-readmes.mjs
+                  echo "::notice::[CI:RELEASE-VALIDATION:LOCALE-README] 17 locale README landing pages verified (no upstream markers, required Roo+ content present)"
                   echo "::endgroup::"
 
             - name: Validate release metadata

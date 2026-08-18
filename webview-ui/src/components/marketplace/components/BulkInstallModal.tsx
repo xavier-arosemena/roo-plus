@@ -36,15 +36,18 @@ export const BulkInstallModal: React.FC<BulkInstallModalProps> = ({ items, isOpe
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [results, setResults] = useState<BulkInstallResult[]>([])
 
-	// Reset state when modal opens/closes
-	useEffect(() => {
+	// Reset state each time the modal opens. Done during render (React's
+	// recommended "adjust state during render" pattern) instead of an effect.
+	const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
+	if (isOpen !== prevIsOpen) {
+		setPrevIsOpen(isOpen)
 		if (isOpen) {
 			setInstallState("idle")
 			setCurrentIndex(0)
 			setResults([])
 			setScope(hasWorkspace ? "project" : "global")
 		}
-	}, [isOpen, hasWorkspace])
+	}
 
 	// Listen for bulk install results
 	useEffect(() => {

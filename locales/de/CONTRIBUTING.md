@@ -81,7 +81,7 @@ Alle Beiträge beginnen mit einem GitHub-Issue unter Verwendung unserer schlanke
 ### Entscheiden, woran du arbeiten möchtest
 
 - Prüfe die [GitHub-Issues-Seite](https://github.com/xavier-arosemena/roo-plus/issues) auf Issues.
-- Für Dokumentation besuche [Roo+ Docs](https://github.com/xavier-arosemena/roo-plus-Docs).
+- Für Dokumentation besuche [Roo+ Docs](https://github.com/xavier-arosemena/roo-plus/tree/master/docs).
 
 ### Fehler melden
 
@@ -99,7 +99,7 @@ Alle Beiträge beginnen mit einem GitHub-Issue unter Verwendung unserer schlanke
 1. **Fork & Klonen:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **Abhängigkeiten installieren:**

@@ -123,13 +123,14 @@ const ApiOptions = ({
 		return Object.entries(headers)
 	})
 
-	useEffect(() => {
-		const propHeaders = apiConfiguration?.openAiHeaders || {}
-
-		if (JSON.stringify(customHeaders) !== JSON.stringify(Object.entries(propHeaders))) {
-			setCustomHeaders(Object.entries(propHeaders))
-		}
-	}, [apiConfiguration?.openAiHeaders, customHeaders])
+	// Sync local header state with the configuration when they diverge. Done
+	// during render (React's recommended "adjust state during render" pattern)
+	// — the equality guard converges.
+	const propHeaders = apiConfiguration?.openAiHeaders || {}
+	const propHeadersEntries = Object.entries(propHeaders)
+	if (JSON.stringify(customHeaders) !== JSON.stringify(propHeadersEntries)) {
+		setCustomHeaders(propHeadersEntries)
+	}
 
 	// Helper to convert array of tuples to object (filtering out empty keys).
 

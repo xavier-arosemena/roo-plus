@@ -560,8 +560,8 @@ export class TerminalProcess extends BaseTerminalProcess {
 		// fall back to { ... } wrapping (accepts the VSCode zero-chunk bug as a
 		// lesser evil than invoking a non-existent "sh" on Windows).
 		//
-		// Try the Zoo Code profile first; if unset, fall back to the VS Code default
-		// profile so users who haven't configured a Zoo Code profile override still
+		// Try the Roo+ profile first; if unset, fall back to the VS Code default
+		// profile so users who haven't configured a Roo+ profile override still
 		// get the temp-file path instead of { ... } wrapping.
 		let shellExe = Terminal.getProfileShell()?.shellPath
 		if (!shellExe) {

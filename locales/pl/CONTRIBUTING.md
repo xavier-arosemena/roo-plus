@@ -81,7 +81,7 @@ Wszystkie wkłady zaczynają się od zgłoszenia na GitHubie przy użyciu naszyc
 ### Decydowanie, nad czym pracować
 
 - Sprawdź [stronę GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues), aby znaleźć issues.
-- Aby uzyskać dokumentację, odwiedź [dokumentację Roo+](https://github.com/xavier-arosemena/roo-plus-Docs).
+- Aby uzyskać dokumentację, odwiedź [dokumentację Roo+](https://github.com/xavier-arosemena/roo-plus/tree/master/docs).
 
 ### Zgłaszanie błędów
 
@@ -99,7 +99,7 @@ Wszystkie wkłady zaczynają się od zgłoszenia na GitHubie przy użyciu naszyc
 1. **Sforkuj i sklonuj:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/Zoo-Code.git
+git clone https://github.com/YOUR_USERNAME/roo-plus.git
 ```
 
 2. **Zainstaluj zależności:**

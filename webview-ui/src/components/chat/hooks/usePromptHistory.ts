@@ -1,5 +1,5 @@
 import { ClineMessage, HistoryItem } from "@roo-code/types"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 
 interface UsePromptHistoryProps {
 	clineMessages: ClineMessage[] | undefined
@@ -69,13 +69,20 @@ export const usePromptHistory = ({
 			.slice(0, MAX_PROMPT_HISTORY_SIZE)
 	}, [clineMessages, taskHistory, cwd])
 
-	// Update prompt history when filtered history changes and reset navigation
-	useEffect(() => {
+	// Update prompt history when filtered history changes and reset navigation.
+	// Done during render (React's recommended "adjust state during render"
+	// pattern) instead of an effect.
+	// Initialize with a sentinel (null) so the first render always syncs
+	// promptHistory. Initializing with `filteredPromptHistory` would make the
+	// comparison always false on mount, leaving promptHistory empty.
+	const [prevFilteredHistory, setPrevFilteredHistory] = useState<string[] | null>(null)
+	if (filteredPromptHistory !== prevFilteredHistory) {
+		setPrevFilteredHistory(filteredPromptHistory)
 		setPromptHistory(filteredPromptHistory)
 		// Reset navigation state when switching between history sources
 		setHistoryIndex(-1)
 		setTempInput("")
-	}, [filteredPromptHistory])
+	}
 
 	// Reset history navigation when user types (but not when we're setting it programmatically)
 	const resetOnInputChange = useCallback(() => {

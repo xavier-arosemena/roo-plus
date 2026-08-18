@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react"
+import { useCallback, useState } from "react"
 import { Checkbox } from "vscrui"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
@@ -41,10 +41,13 @@ export const Bedrock = ({ apiConfiguration, setApiConfigurationField, selectedMo
 	const supportsServiceTiers =
 		!!apiConfiguration?.apiModelId && BEDROCK_SERVICE_TIER_MODEL_IDS.includes(apiConfiguration.apiModelId as any)
 
-	// Update the endpoint enabled state when the configuration changes
-	useEffect(() => {
+	// Update the endpoint enabled state when the configuration changes. Done
+	// during render (React's recommended "adjust state during render" pattern).
+	const [prevEndpointEnabled, setPrevEndpointEnabled] = useState(apiConfiguration?.awsBedrockEndpointEnabled)
+	if (apiConfiguration?.awsBedrockEndpointEnabled !== prevEndpointEnabled) {
+		setPrevEndpointEnabled(apiConfiguration?.awsBedrockEndpointEnabled)
 		setAwsEndpointSelected(!!apiConfiguration?.awsBedrockEndpointEnabled)
-	}, [apiConfiguration?.awsBedrockEndpointEnabled])
+	}
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(

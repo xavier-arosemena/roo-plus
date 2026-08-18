@@ -1,6 +1,6 @@
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { Bug, MessagesSquare, Star, Store } from "lucide-react"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 import { EXTERNAL_LINKS } from "@src/constants/externalLinks"
 import { vscode } from "@src/utils/vscode"
@@ -33,19 +33,23 @@ const RooTips = () => {
 
 	return (
 		<div className="flex flex-col gap-2 mb-4 max-w-[500px] text-vscode-descriptionForeground">
-			<p className="my-0 pr-2">{t("chat:about")}</p>
+			<p className="my-0 pr-2">
+				<Trans i18nKey="chat:about" components={{ br: <br /> }} />
+			</p>
 			<div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
 				{supportLinks.map((link) => (
 					<VSCodeLink
 						key={link.labelKey}
 						href={link.href}
-						className="inline-flex items-center gap-1.5 text-muted-foreground underline"
+						className="text-muted-foreground underline"
 						onClick={(e) => {
 							e.preventDefault()
 							vscode.postMessage({ type: "openExternal", url: link.href })
 						}}>
-						{link.icon}
-						<span>{t(link.labelKey)}</span>
+						<span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+							{link.icon}
+							<span>{t(link.labelKey)}</span>
+						</span>
 					</VSCodeLink>
 				))}
 			</div>

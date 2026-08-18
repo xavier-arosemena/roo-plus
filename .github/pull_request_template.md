@@ -15,18 +15,16 @@ Closes: # <!-- Replace with the issue number, e.g., Closes: #123 -->
 ### Description
 
 <!--
-Briefly summarize the changes in this PR and how they address the linked issue.
-The issue should cover the "what" and "why"; this section should focus on:
+Briefly summarize the changes in this PR. Focus on:
 - The "how": key implementation details, design choices, or trade-offs made.
-- Anything specific reviewers should pay attention to in this PR.
+- Anything specific reviewers should pay attention to.
 -->
 
 ### Test Procedure
 
 <!--
-Detail the steps to test your changes. This helps reviewers verify your work.
-- How did you test this specific implementation? (e.g., unit tests, manual testing steps)
-- How can reviewers reproduce your tests or verify the fix/feature?
+Detail the steps to test your changes so reviewers can verify them.
+- How did you test this implementation? (e.g., unit tests, manual testing steps)
 - Include relevant testing environment details if applicable.
 -->
 
@@ -42,31 +40,13 @@ Detail the steps to test your changes. This helps reviewers verify your work.
 - [ ] **Documentation Impact**: I have considered if my changes require documentation updates (see "Documentation Updates" section below).
 - [ ] **Contribution Guidelines**: I have read and agree to the [Contributor Guidelines](/CONTRIBUTING.md).
 
-### Visual Snapshots
+### Screenshots / Videos
 
 <!--
-For UI changes to static rendered state, the primary artifact is a committed
-Playwright CT snapshot (`*.visual.tsx` in `webview-ui/`) — that baseline
-becomes durable regression coverage for the surface. See
-`webview-ui/AGENTS.md` for what deserves a snapshot.
-
-Before/after screenshots pasted here are welcome as a review aid but are not a
-substitute for the committed baseline. If a snapshot is possible, prefer the
-snapshot.
--->
-
-### Videos (interaction / animation only)
-
-<!--
-Snapshots cannot capture motion or multi-step flows. Attach a short screen
-recording here when reviewers need to see:
-  - A new interactive flow (dropdown, form, dialog progression)
-  - Animation, transition, or timing behavior
-  - A regression that only manifests during interaction
-
-Videos are a review aid, not regression coverage. If the *result* of the
-interaction has a distinct rendered state worth protecting, still commit a
-`*.visual.tsx` snapshot of that end-state alongside the video.
+For UI changes, attach screenshots or a short screen recording of the new or
+changed behavior. For static rendered state, prefer committing a Playwright CT
+snapshot (`*.visual.tsx` in `webview-ui/`) — it becomes durable regression
+coverage. See `webview-ui/AGENTS.md` for what deserves a snapshot.
 -->
 
 ### Documentation Updates
