@@ -113,6 +113,16 @@ jobs:
           const prereleaseVersion = `${major}.${prereleaseMinor}.0-pre-release.${Number(process.env.RUN_NUMBER)}`
 
           pkg.version = prereleaseVersion
+          // Stamp the VS Code pre-release marker into package.json as well.
+          // `vsce package --pre-release` only writes
+          // `Microsoft.VisualStudio.Code.PreRelease` to the XML
+          // `extension.vsixmanifest` (what the VS Code Marketplace reads), but
+          // the ovsx CLI drops `--pre-release` for pre-built .vsix files and
+          // Open VSX detects pre-releases from the `extension/package.json`
+          // JSON manifest inside the VSIX. Without this stamp the Open VSX
+          // upload would be flagged as a regular stable version instead of a
+          // pre-release (see bug #243).
+          pkg["Microsoft.VisualStudio.Code.PreRelease"] = true
           fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, "\t")}\n`)
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `number=${prereleaseVersion}\n`)
           console.log(`Pre-release version set to ${prereleaseVersion}`)
@@ -168,10 +178,16 @@ jobs:
 
           artifact_name=$(unzip -p "$vsix_path" extension/package.json | jq -r '.name')
           artifact_publisher=$(unzip -p "$vsix_path" extension/package.json | jq -r '.publisher')
+          artifact_prerelease=$(unzip -p "$vsix_path" extension/package.json | jq -r '."Microsoft.VisualStudio.Code.PreRelease" // empty')
 
           test "$artifact_name" = "roo-plus"
           test "$artifact_publisher" = "xavier-arosemena"
-          echo "::notice::[CI:PRERELEASE:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher"
+          # Open VSX reads this marker from extension/package.json to flag the
+          # version as a pre-release (the ovsx CLI ignores --pre-release for a
+          # pre-built .vsix). Fail loudly if it is missing so a regression can
+          # never publish a "pre-release" as a stable version again (bug #243).
+          test "$artifact_prerelease" = "true"
+          echo "::notice::[CI:PRERELEASE:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher (pre-release marker: $artifact_prerelease)"
           echo "::endgroup::"
 
       - name: Publish pre-release to VS Code Marketplace
@@ -184,11 +200,14 @@ jobs:
           echo "::notice::[CI:PRERELEASE:PUBLISH:VSCE] Published or skipped existing xavier-arosemena.roo-plus ${VERSION_NUMBER} as a VS Code Marketplace pre-release"
           echo "::endgroup::"
 
-      # The VSIX built above with `vsce package --pre-release` already carries the
-      # Microsoft.VisualStudio.Code.PreRelease manifest property, which is what Open
-      # VSX reads to flag the version. `ovsx publish` ignores --pre-release for an
-      # already-packaged .vsix (it only applies when ovsx does the packaging itself),
-      # so it's intentionally omitted here.
+      # `ovsx publish` ignores --pre-release for an already-packaged .vsix (it only
+      # applies when ovsx does the packaging itself), so the pre-release marker must
+      # already be embedded in the VSIX. `vsce package --pre-release` writes
+      # Microsoft.VisualStudio.Code.PreRelease to the XML extension.vsixmanifest
+      # (what the VS Code Marketplace reads); the "Set pre-release version" step also
+      # stamps it into extension/package.json, which is what Open VSX reads to flag
+      # the version as a pre-release (see bug #243). The "Validate packaged manifest
+      # identity" step asserts both are present before we get here.
       #
       # Open VSX's "latest" alias resolves to the highest semver across stable and
       # pre-release alike (pre-release only breaks ties at equal major.minor.patch),
