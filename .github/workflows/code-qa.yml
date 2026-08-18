@@ -191,6 +191,13 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  # `roo-plus:test:coverage` triggers `roo-plus#bundle`, whose
+                  # prebundle step runs verify-submodule-pin.mjs — a missing or
+                  # wrong-pin submodule is a packaging hazard for the VSIX, so it
+                  # must be checked out at the recorded pin (same as the
+                  # static-analysis and e2e jobs).
+                  submodules: recursive
             - name: Setup Node.js and pnpm
               uses: ./.github/actions/setup-node-pnpm
             - name: Restore Turbo cache
