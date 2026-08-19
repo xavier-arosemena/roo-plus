@@ -48,14 +48,7 @@ export default defineConfig({
 	use: {
 		ctTemplateDir: "./playwright",
 		ctViteConfig: {
-			plugins: [
-				react({
-					babel: {
-						plugins: [["babel-plugin-react-compiler", { target: "18" }]],
-					},
-				}),
-				tailwindcss(),
-			],
+			plugins: [react(), tailwindcss()],
 			resolve: {
 				alias: {
 					"@src/i18n/TranslationContext": path.resolve(dirname, "./playwright/TranslationContext.ts"),

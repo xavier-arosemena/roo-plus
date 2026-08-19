@@ -163,6 +163,23 @@ jobs:
               run: pnpm lint
             - name: Check types
               run: pnpm check-types
+            # Issue #250 systemic quality gate — webview build/test toolchain
+            # parity. The webview test suite (vitest) and the production build
+            # (vite) MUST compile with identical Babel/React tooling. A
+            # divergence (e.g. babel-plugin-react-compiler enabled in
+            # vite.config.ts but not vitest.config.ts) previously let the
+            # 1,629-test suite stay green while the shipped webview crashed at
+            # startup with React error #301 ("Too many re-renders"). This gate
+            # rebuilds the production bundle and fails if it contains React
+            # Compiler runtime markers, and fails if the react() plugin config
+            # diverges across vite.config.ts / playwright-ct.config.ts /
+            # vitest.config.ts. Runs on every PR and master push.
+            - name: Verify webview build/test toolchain parity (issue #250 gate)
+              run: |
+                  echo "::group::[CI:CODE-QA:COMPILE:WEBVIEW-PARITY] Verifying webview build/test toolchain parity"
+                  node webview-ui/scripts/verify-webview-build-parity.mjs
+                  echo "::notice::[CI:CODE-QA:COMPILE:WEBVIEW-PARITY] webview toolchain parity gate passed"
+                  echo "::endgroup::"
 
     unit-test:
         name: platform-unit-test (${{ matrix.name }})

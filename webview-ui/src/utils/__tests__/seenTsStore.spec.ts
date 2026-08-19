@@ -1,7 +1,7 @@
 import { createSeenTsStore } from "../seenTsStore"
 
 describe("createSeenTsStore", () => {
-	const makeStore = () => createSeenTsStore(3, 1000 * 60 * 5)
+	const makeStore = () => createSeenTsStore()
 
 	describe("has/add", () => {
 		it("should_report_added_timestamps_as_seen_and_absent_ones_as_not_seen", () => {
@@ -182,57 +182,61 @@ describe("createSeenTsStore", () => {
 		})
 	})
 
-	describe("bounded memory", () => {
-		it("should_evict_least_recently_used_entries_beyond_max", () => {
-			// Arrange
-			const store = makeStore() // max = 3
+	describe("unbounded by capacity (LRU churn regression, issue #250)", () => {
+		it("should_keep_every_added_timestamp_regardless_of_how_many_are_added", () => {
+			// Arrange: previously the store was an LRUCache(max=100); once more
+			// than 100 timestamps were added, older ones were evicted — which
+			// un-hid still-visible messages and re-added them forever.
+			const store = makeStore()
 
-			// Act
-			store.add(1)
-			store.add(2)
-			store.add(3)
-			store.add(4) // evicts 1 (LRU)
+			// Act: add far more than any prior capacity
+			for (let ts = 0; ts < 1000; ts++) {
+				store.add(ts)
+			}
 
-			// Assert
-			expect(store.has(1)).toBe(false)
-			expect(store.has(2)).toBe(true)
-			expect(store.has(3)).toBe(true)
-			expect(store.has(4)).toBe(true)
+			// Assert: every single timestamp is still seen — no eviction
+			for (let ts = 0; ts < 1000; ts++) {
+				expect(store.has(ts)).toBe(true)
+			}
 		})
 
-		it("should_expire_entries_after_ttl", async () => {
-			// Arrange: lru-cache clocks via performance.now(), which vitest fake
-			// timers do not advance, so use a real short ttl + real delay.
-			const store = createSeenTsStore(100, 25) // 25ms ttl
+		it("should_keep_timestamps_of_messages_in_the_current_message_set_after_prune", () => {
+			// Arrange
+			const store = makeStore()
+			for (let ts = 0; ts < 1000; ts++) {
+				store.add(ts)
+			}
 
-			// Act
-			store.add(1)
-			expect(store.has(1)).toBe(true)
-			await new Promise((resolve) => setTimeout(resolve, 120)) // 4x ttl
+			// Act: prune against a message set that contains every timestamp
+			const keep = new Set(Array.from({ length: 1000 }, (_, i) => i))
+			store.prune(keep)
 
-			// Assert
-			expect(store.has(1)).toBe(false)
+			// Assert: nothing removed because everything is still a message
+			for (let ts = 0; ts < 1000; ts++) {
+				expect(store.has(ts)).toBe(true)
+			}
 		})
 	})
 
-	describe("LRU reordering", () => {
-		it("should_refresh_recency_when_re_adding_an_existing_key", () => {
+	describe("re-adding an existing timestamp", () => {
+		it("should_be_a_no_op_and_not_notify", () => {
 			// Arrange
-			const store = makeStore() // max = 3
-
-			// Act: re-adding 1 refreshes its recency (mirrors the viewport write
-			// pattern, which re-adds visible timestamps on every render)
+			const store = makeStore()
 			store.add(1)
 			store.add(2)
-			store.add(3)
-			store.add(1) // 1 becomes MRU; 2 is now LRU
-			store.add(4) // evicts 2
+			const listener = vi.fn()
+			store.subscribe(listener)
+			const snapshot = store.getSnapshot()
 
-			// Assert
+			// Act: re-adding an already-seen timestamp (mirrors the viewport
+			// write pattern, which re-adds visible timestamps on every render)
+			store.add(1)
+
+			// Assert: no-op, no notify, no snapshot bump
+			expect(listener).not.toHaveBeenCalled()
+			expect(store.getSnapshot()).toBe(snapshot)
 			expect(store.has(1)).toBe(true)
-			expect(store.has(2)).toBe(false)
-			expect(store.has(3)).toBe(true)
-			expect(store.has(4)).toBe(true)
+			expect(store.has(2)).toBe(true)
 		})
 	})
 })

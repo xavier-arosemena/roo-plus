@@ -83,17 +83,7 @@ export default defineConfig(({ mode }) => {
 		define["process.env.PKG_RELEASE_CHANNEL"] = JSON.stringify("prerelease")
 	}
 
-	const plugins: PluginOption[] = [
-		react({
-			babel: {
-				plugins: [["babel-plugin-react-compiler", { target: "18" }]],
-			},
-		}),
-		tailwindcss(),
-		persistPortPlugin(),
-		wasmPlugin(),
-		sourcemapPlugin(),
-	]
+	const plugins: PluginOption[] = [react(), tailwindcss(), persistPortPlugin(), wasmPlugin(), sourcemapPlugin()]
 
 	return {
 		plugins,

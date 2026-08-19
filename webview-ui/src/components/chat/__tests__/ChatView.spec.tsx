@@ -1406,5 +1406,62 @@ describe("ChatView - Context Condensing Indicator Tests", () => {
 				errorSpy.mockRestore()
 			}
 		})
+
+		it("does not render-loop with more than 100 messages (seen-set LRU churn, issue #250)", async () => {
+			// Arrange: the seen-set LRU churn failure mode. The viewport effect
+			// marks the bottom 100 visible message timestamps as "seen"; with
+			// more than 100 messages the old capacity-bounded LRUCache(max=100)
+			// evicted older timestamps, un-hiding those messages, which made
+			// them visible again, which re-added them — an endless
+			// render→effect→render cycle (UI freeze). The seen-set must be
+			// unbounded by capacity and pruned only against the message set.
+			const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+
+			try {
+				renderChatView()
+
+				const taskTs = Date.now() - 5000
+				// 150 messages: a task header + 149 follow-ups. The last 100
+				// include api_req_finished/resume_task rows so marking them seen
+				// hides them (the visibleMessages filter), which is exactly the
+				// churn trigger with a capacity-bounded store.
+				const messages: ClineMessage[] = [{ type: "say", say: "task", ts: taskTs, text: "Initial task" }]
+				for (let i = 1; i < 150; i++) {
+					const ts = taskTs + i
+					if (i < 50) {
+						messages.push({ type: "say", say: "text", ts, text: `message ${i}` })
+					} else if (i % 2 === 0) {
+						messages.push({ type: "say", say: "api_req_finished", ts, text: JSON.stringify({}) })
+					} else {
+						messages.push({ type: "say", say: "api_req_started", ts, text: JSON.stringify({ cost: 0 }) })
+					}
+				}
+
+				// Act: hydrate the large conversation in one state message.
+				mockPostMessage({ clineMessages: messages })
+				await waitFor(() => {
+					expect(screen.getByText(/message 49/)).toBeInTheDocument()
+				})
+
+				// Re-emit the same 150-message conversation 20 times with fresh
+				// object/array references (simulates extension state round-trips
+				// while the seen-set keeps re-adding viewport timestamps).
+				for (let i = 0; i < 20; i++) {
+					mockPostMessage({
+						clineMessages: messages.map((message) => ({ ...message })),
+					})
+				}
+				await waitFor(() => {
+					expect(screen.getByText(/message 49/)).toBeInTheDocument()
+				})
+
+				// Assert: conversation still renders, no render loop / UI freeze.
+				expect(screen.getByText(/message 49/)).toBeInTheDocument()
+				expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining("Maximum update depth exceeded"))
+				expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining("Too many re-renders"))
+			} finally {
+				errorSpy.mockRestore()
+			}
+		})
 	})
 })

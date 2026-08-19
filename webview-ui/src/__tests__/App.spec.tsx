@@ -595,5 +595,41 @@ describe("App", () => {
 				errorSpy.mockRestore()
 			}
 		})
+
+		it("mounts without render-looping for an existing user with an announcement pending (issue #250)", () => {
+			// Arrange: existing-user state — a configured apiConfiguration (api
+			// key present => showWelcome=false) with the announcement flag on.
+			// The production build previously compiled this render-phase
+			// "adjust state during render" sequence with the React Compiler,
+			// which looped and crashed startup with React error #301 ("Too many
+			// re-renders"). The compiler-off build (matching the vitest suite)
+			// converges, so mounting must not log that error.
+			const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+
+			try {
+				mockUseExtensionState.mockReturnValue({
+					didHydrateState: true,
+					showWelcome: false,
+					shouldShowAnnouncement: true,
+					apiConfiguration: { apiProvider: "anthropic", apiKey: "sk-test-key" },
+					experiments: {},
+					language: "en",
+					telemetrySetting: "enabled",
+				})
+
+				// Act: mount with the announcement pending on the chat tab.
+				render(<AppWithProviders />)
+
+				// Assert: chat view is shown with the announcement and no
+				// render-loop error was logged.
+				const chatView = screen.getByTestId("chat-view")
+				expect(chatView.getAttribute("data-announcement")).toBe("true")
+				expect(screen.getByTestId("dismiss-announcement")).toBeInTheDocument()
+				expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining("Maximum update depth exceeded"))
+				expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining("Too many re-renders"))
+			} finally {
+				errorSpy.mockRestore()
+			}
+		})
 	})
 })

@@ -1,5 +1,3 @@
-import { LRUCache } from "lru-cache"
-
 /**
  * External store backing the ChatView "ever-visible messages" seen-set.
  *
@@ -8,9 +6,14 @@ import { LRUCache } from "lru-cache"
  * something actually changed — which is what makes the render→effect→render
  * cycle converge instead of looping.
  *
- * Memory is bounded by the LRUCache (`max` entries, `ttl` expiry) plus the
- * optional periodic `prune()` that drops keys no longer in the current
- * message/viewport sets.
+ * Memory is bounded by the current message set, NOT by a small capacity LRU:
+ * `prune()` (called periodically by ChatView keyed on the message set) drops
+ * every timestamp no longer present in the current messages/viewport, so the
+ * set can never outgrow the messages that exist. A capacity/ttl-bounded LRU
+ * would instead evict timestamps of messages that are still visible, which
+ * un-hides those messages, which re-adds them on the next viewport effect,
+ * evicting other still-visible timestamps in turn — an endless
+ * render→effect→render churn (UI freeze) with more than `max` messages.
  */
 export interface SeenTsStore {
 	/** Monotonically increasing version; stable between actual mutations. */
@@ -26,8 +29,8 @@ export interface SeenTsStore {
 	prune: (keep: ReadonlySet<number>) => void
 }
 
-export function createSeenTsStore(max = 100, ttlMs = 1000 * 60 * 5): SeenTsStore {
-	const cache = new LRUCache<number, true>({ max, ttl: ttlMs })
+export function createSeenTsStore(): SeenTsStore {
+	const seen = new Set<number>()
 	let version = 0
 	const listeners = new Set<() => void>()
 
@@ -44,27 +47,24 @@ export function createSeenTsStore(max = 100, ttlMs = 1000 * 60 * 5): SeenTsStore
 				listeners.delete(listener)
 			}
 		},
-		has: (ts) => cache.has(ts),
+		has: (ts) => seen.has(ts),
 		add: (ts) => {
-			const isNew = !cache.has(ts)
-			// Always set() so existing keys refresh their recency (matches the
-			// original `everVisibleMessagesTsRef.current.set(...)` behavior).
-			cache.set(ts, true)
-			if (isNew) {
+			if (!seen.has(ts)) {
+				seen.add(ts)
 				emit()
 			}
 		},
 		clear: () => {
-			if (cache.size > 0) {
-				cache.clear()
+			if (seen.size > 0) {
+				seen.clear()
 				emit()
 			}
 		},
 		prune: (keep) => {
 			let changed = false
-			for (const key of cache.keys()) {
+			for (const key of seen) {
 				if (!keep.has(key)) {
-					cache.delete(key)
+					seen.delete(key)
 					changed = true
 				}
 			}
