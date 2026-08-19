@@ -15,11 +15,11 @@ const ROO_PLUS_ASCII = [
 
 const RooHero = () => {
 	return (
-		<div className="mb-4 relative flex flex-col items-center">
+		<div className="relative flex flex-col items-start">
 			<pre
 				role="img"
 				aria-label="Roo+ logo"
-				className="m-0 font-mono text-vscode-foreground text-[13px] leading-tight select-none whitespace-pre"
+				className="m-0 font-mono text-vscode-foreground text-[13px] leading-tight select-none whitespace-pre bg-transparent"
 				style={{
 					fontVariantLigatures: "none",
 					fontKerning: "none",
