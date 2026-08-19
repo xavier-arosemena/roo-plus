@@ -11,6 +11,8 @@ vi.mock("@src/utils/vscode", () => ({
 	},
 }))
 
+import { vscode } from "@src/utils/vscode"
+
 // Mock the ErrorBoundary component
 vi.mock("@src/components/ErrorBoundary", () => ({
 	__esModule: true,
@@ -27,10 +29,23 @@ vi.mock("@src/utils/TelemetryClient", () => ({
 
 vi.mock("@src/components/chat/ChatView", () => ({
 	__esModule: true,
-	default: function ChatView({ isHidden }: { isHidden: boolean }) {
+	default: function ChatView({
+		isHidden,
+		showAnnouncement,
+		hideAnnouncement,
+	}: {
+		isHidden: boolean
+		showAnnouncement: boolean
+		hideAnnouncement: () => void
+	}) {
 		return (
-			<div data-testid="chat-view" data-hidden={isHidden}>
+			<div data-testid="chat-view" data-hidden={isHidden} data-announcement={String(showAnnouncement)}>
 				Chat View
+				{showAnnouncement && (
+					<button onClick={hideAnnouncement} data-testid="dismiss-announcement">
+						Dismiss announcement
+					</button>
+				)}
 			</div>
 		)
 	},
@@ -475,5 +490,110 @@ describe("App", () => {
 		const chatView = screen.getByTestId("chat-view")
 		expect(chatView.getAttribute("data-hidden")).toBe("false")
 		expect(screen.queryByTestId("marketplace-view")).not.toBeInTheDocument()
+	})
+
+	describe("announcement", () => {
+		const announcementState = (shouldShowAnnouncement: boolean) => ({
+			didHydrateState: true,
+			showWelcome: false,
+			shouldShowAnnouncement,
+			experiments: {},
+			language: "en",
+			telemetrySetting: "enabled",
+		})
+
+		const didShowAnnouncementCalls = () =>
+			vi
+				.mocked(vscode.postMessage)
+				.mock.calls.filter((call) => (call[0] as { type?: string }).type === "didShowAnnouncement")
+
+		it("shows the announcement once when the extension flag is true on the chat tab at mount", () => {
+			// Arrange
+			mockUseExtensionState.mockReturnValue(announcementState(true))
+
+			// Act
+			render(<AppWithProviders />)
+
+			// Assert
+			const chatView = screen.getByTestId("chat-view")
+			expect(chatView.getAttribute("data-announcement")).toBe("true")
+			expect(screen.getByTestId("dismiss-announcement")).toBeInTheDocument()
+			expect(didShowAnnouncementCalls()).toHaveLength(1)
+		})
+
+		it("does not immediately re-show the announcement after dismissal while the extension flag is still true", () => {
+			// Arrange: the flag is true; the extension round-trip for
+			// `didShowAnnouncement` is async, so it may still be true after the
+			// user dismisses the dialog.
+			mockUseExtensionState.mockReturnValue(announcementState(true))
+			const { rerender } = render(<AppWithProviders />)
+			const chatView = screen.getByTestId("chat-view")
+			expect(chatView.getAttribute("data-announcement")).toBe("true")
+
+			// Act: user dismisses the announcement.
+			act(() => {
+				screen.getByTestId("dismiss-announcement").click()
+			})
+			expect(chatView.getAttribute("data-announcement")).toBe("false")
+
+			// Re-render with the extension flag still true (pending round-trip).
+			mockUseExtensionState.mockReturnValue(announcementState(true))
+			rerender(<AppWithProviders />)
+
+			// Assert: the announcement must NOT come back (regression for the
+			// "announcement not dismissible" bug).
+			expect(chatView.getAttribute("data-announcement")).toBe("false")
+			expect(didShowAnnouncementCalls()).toHaveLength(1)
+		})
+
+		it("re-shows the announcement after dismissal when a new episode starts", () => {
+			// Arrange: first episode.
+			mockUseExtensionState.mockReturnValue(announcementState(true))
+			const { rerender } = render(<AppWithProviders />)
+			expect(screen.getByTestId("chat-view").getAttribute("data-announcement")).toBe("true")
+
+			// Act: dismiss, episode ends, new episode begins.
+			act(() => {
+				screen.getByTestId("dismiss-announcement").click()
+			})
+			expect(screen.getByTestId("chat-view").getAttribute("data-announcement")).toBe("false")
+
+			mockUseExtensionState.mockReturnValue(announcementState(false))
+			rerender(<AppWithProviders />)
+			mockUseExtensionState.mockReturnValue(announcementState(true))
+			rerender(<AppWithProviders />)
+
+			// Assert
+			expect(screen.getByTestId("chat-view").getAttribute("data-announcement")).toBe("true")
+			expect(didShowAnnouncementCalls()).toHaveLength(2)
+		})
+
+		it("does not render-loop when the extension re-emits reference-unstable state", () => {
+			// Arrange: this is the #301 regression — a render-phase guard that
+			// compares reference-unstable values would cascade "Too many
+			// re-renders". The announcement guards compare primitives only.
+			const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+
+			try {
+				mockUseExtensionState.mockReturnValue(announcementState(true))
+				const { rerender } = render(<AppWithProviders />)
+				expect(screen.getByTestId("chat-view").getAttribute("data-announcement")).toBe("true")
+
+				// Simulate many consecutive context updates that change no logical
+				// value (fresh object references every time).
+				for (let i = 0; i < 20; i++) {
+					mockUseExtensionState.mockReturnValue(announcementState(true))
+					rerender(<AppWithProviders />)
+				}
+
+				// Assert: no loop, no re-post, still shown.
+				expect(screen.getByTestId("chat-view").getAttribute("data-announcement")).toBe("true")
+				expect(didShowAnnouncementCalls()).toHaveLength(1)
+				expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining("Maximum update depth exceeded"))
+				expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining("Too many re-renders"))
+			} finally {
+				errorSpy.mockRestore()
+			}
+		})
 	})
 })

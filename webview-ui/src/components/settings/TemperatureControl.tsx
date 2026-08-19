@@ -1,6 +1,7 @@
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { useState } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 import { useDebounce } from "react-use"
 
 import { Slider } from "@/components/ui"
@@ -21,13 +22,12 @@ export const TemperatureControl = ({ value, onChange, maxValue = 1, defaultValue
 
 	// Sync internal state with prop changes when switching profiles. Done during
 	// render (React's recommended "adjust state during render" pattern).
-	const [prevTemperatureValue, setPrevTemperatureValue] = useState(value)
-	if (value !== prevTemperatureValue) {
-		setPrevTemperatureValue(value)
+	// `value` is a value-stable number primitive.
+	usePrimitiveSync(value, () => {
 		const hasCustomTemperature = value !== undefined && value !== null
 		setIsCustomTemperature(hasCustomTemperature)
 		setInputValue(value)
-	}
+	})
 
 	return (
 		<>

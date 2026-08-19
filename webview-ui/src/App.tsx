@@ -68,7 +68,6 @@ const App = () => {
 
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
 	const [tab, setTab] = useState<Tab>("chat")
-	const [handledImportTs, setHandledImportTs] = useState<number | undefined>(undefined)
 
 	const [deleteMessageDialogState, setDeleteMessageDialogState] = useState<DeleteMessageDialogState>({
 		isOpen: false,
@@ -174,25 +173,39 @@ const App = () => {
 
 	useEvent("message", onMessage)
 
-	// Reveal the announcement banner during render (React's recommended "adjust
-	// state during render" pattern); the "didShowAnnouncement" postMessage stays
-	// in an effect.
-	if (shouldShowAnnouncement && tab === "chat" && !showAnnouncement) {
+	// Show the announcement once per episode and keep it dismissible even while
+	// the extension flag is still pending (async `didShowAnnouncement` round
+	// trip). Render-phase adjust with primitive boolean guards — provably
+	// convergent. The `didShowAnnouncement` post stays in an effect (pure side
+	// effect, no setState) so it is lint-clean.
+	const shouldShowAnnouncementNow = shouldShowAnnouncement && tab === "chat"
+	const [announcementHandled, setAnnouncementHandled] = useState(false)
+
+	if (shouldShowAnnouncementNow && !showAnnouncement && !announcementHandled) {
 		setShowAnnouncement(true)
+		setAnnouncementHandled(true)
+	}
+	if (!shouldShowAnnouncement && announcementHandled) {
+		setAnnouncementHandled(false)
 	}
 
 	useEffect(() => {
-		if (shouldShowAnnouncement && tab === "chat") {
+		if (shouldShowAnnouncementNow) {
 			vscode.postMessage({ type: "didShowAnnouncement" })
 		}
-	}, [shouldShowAnnouncement, tab])
+	}, [shouldShowAnnouncementNow])
 
-	// Navigate to settings once per imported-settings timestamp. Done during
-	// render (React's recommended "adjust state during render" pattern); the
-	// handled-import guard converges so there is no loop.
-	if (showWelcome && settingsImportedAt && settingsImportedAt !== handledImportTs) {
-		setHandledImportTs(settingsImportedAt)
-		if (tab !== "settings" && tab !== "marketplace") {
+	// Navigate to the providers settings once per import timestamp — including an
+	// import already present on mount (matching the old effect, which always ran
+	// once). Render-phase adjust on the primitive `settingsImportedAt` (a
+	// number): the "handled" marker is written into state in the same pass, so
+	// it converges and never re-fires for the same timestamp or on unrelated
+	// re-renders.
+	const [handledImportAt, setHandledImportAt] = useState<number | undefined>(undefined)
+	if (showWelcome && settingsImportedAt !== undefined && settingsImportedAt !== handledImportAt) {
+		setHandledImportAt(settingsImportedAt)
+		const isRecoverableTab = tab === "settings" || tab === "marketplace"
+		if (!isRecoverableTab) {
 			setCurrentSection("providers")
 			setCurrentMarketplaceTab(undefined)
 			setTab("settings")

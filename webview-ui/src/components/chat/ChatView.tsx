@@ -1,4 +1,13 @@
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react"
+import React, {
+	forwardRef,
+	useCallback,
+	useEffect,
+	useImperativeHandle,
+	useMemo,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from "react"
 import { useDeepCompareEffect, useEvent } from "react-use"
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import removeMd from "remove-markdown"
@@ -8,6 +17,7 @@ import { useDebounceEffect } from "@src/utils/useDebounceEffect"
 import { appendImages } from "@src/utils/imageUtils"
 import { getCostBreakdownIfNeeded } from "@src/utils/costFormatting"
 import { batchConsecutive } from "@src/utils/batchConsecutive"
+import { createSeenTsStore } from "@src/utils/seenTsStore"
 
 import type { ClineAsk, ClineSayTool, ClineMessage, AudioType, SuggestionItem } from "@roo-code/types"
 import { getCompletionCheckpoint, getSuggestionMode, isRetiredProvider, parseExtensionMessage } from "@roo-code/types"
@@ -42,6 +52,7 @@ import { QueuedMessages } from "./QueuedMessages"
 import { WorktreeSelector } from "./WorktreeSelector"
 import FileChangesPanel from "./FileChangesPanel"
 import { useScrollLifecycle } from "@src/hooks/useScrollLifecycle"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 
 export interface ChatViewProps {
 	isHidden: boolean
@@ -98,14 +109,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// Show a WarningRow when the user sends a message with a retired provider.
 	const [showRetiredProviderWarning, setShowRetiredProviderWarning] = useState(false)
 
-	// When the provider changes, clear the retired-provider warning. Done during
-	// render (React's recommended "adjust state during render" pattern).
+	// When the provider changes, clear the retired-provider warning.
+	// Render-phase sync on the primitive provider name: converges because the
+	// string is value-stable across unrelated re-renders.
 	const providerName = apiConfiguration?.apiProvider
-	const [prevProviderName, setPrevProviderName] = useState(providerName)
-	if (providerName !== prevProviderName) {
-		setPrevProviderName(providerName)
+	usePrimitiveSync(providerName, () => {
 		setShowRetiredProviderWarning(false)
-	}
+	})
 
 	const messagesRef = useRef(messages)
 
@@ -183,11 +193,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	>(undefined)
 	const [isCondensing, setIsCondensing] = useState<boolean>(false)
 	const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
-	// Tracks message timestamps that have been shown at least once so
-	// "hide after seen" messages can be suppressed on later renders. Held in
-	// state (not a ref) so it can be read during render without tripping the
-	// react-hooks/refs rule; the 60s cleanup interval below keeps it bounded.
-	const [everVisibleMessagesTs, setEverVisibleMessagesTs] = useState<Set<number>>(new Set())
+	// External store backing the "ever-visible messages" seen-set. Read during
+	// render via useSyncExternalStore (no ref read during render); mutated only
+	// from effects. All mutations are idempotent — they notify only on an actual
+	// change — so the render→effect→render cycle converges instead of looping.
+	const [seenTsStore] = useState(() => createSeenTsStore())
+	const _seenVersion = useSyncExternalStore(seenTsStore.subscribe, seenTsStore.getSnapshot)
 	const autoApproveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const userRespondedRef = useRef<boolean>(false)
 	const [currentFollowUpTs, setCurrentFollowUpTs] = useState<number | null>(null)
@@ -487,57 +498,59 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 	}, [lastMessage, secondLastMessage])
 
-	// Update button text when messages change (e.g., completion_result is added)
-	// for subtasks in resume_task state. Done during render (React's recommended
-	// "adjust state during render" pattern) — the guards converge.
-	const hasResumeCompletionResult =
-		clineAsk === "resume_task" && currentTaskItem?.parentTaskId
-			? messages.some((msg) => msg.ask === "completion_result" || msg.say === "completion_result")
-			: false
-	if (
-		hasResumeCompletionResult &&
-		(primaryButtonText !== t("chat:startNewTask.title") || secondaryButtonText !== undefined)
-	) {
-		setPrimaryButtonText(t("chat:startNewTask.title"))
-		setSecondaryButtonText(undefined)
-	}
+	// Update button text when a resume_task subtask gains a completion_result.
+	// Render-phase sync on a DERIVED string key — never on the `messages`
+	// reference — so the guard is value-stable and converges.
+	const hasCompletionResult = messages.some(
+		(msg) => msg.ask === "completion_result" || msg.say === "completion_result",
+	)
+	const resumeTaskApply: "apply" | "idle" =
+		clineAsk === "resume_task" && !!currentTaskItem?.parentTaskId && hasCompletionResult ? "apply" : "idle"
 
-	// Reset input/button state when all messages are cleared. Done during render
-	// (React's recommended "adjust state during render" pattern).
-	const [prevMessagesLength, setPrevMessagesLength] = useState(messages.length)
-	if (messages.length !== prevMessagesLength) {
-		setPrevMessagesLength(messages.length)
-		if (messages.length === 0) {
-			setSendingDisabled(false)
-			setClineAsk(undefined)
-			setEnableButtons(false)
-			setPrimaryButtonText(undefined)
+	usePrimitiveSync(resumeTaskApply, (prev, next) => {
+		if (next === "apply" && prev !== "apply") {
+			setPrimaryButtonText(t("chat:startNewTask.title"))
 			setSecondaryButtonText(undefined)
 		}
+	})
+
+	// When messages are cleared, reset input/button UI state. Render-phase
+	// adjust guarded by the primitive `messages.length`, which converges.
+	const [prevMessagesEmpty, setPrevMessagesEmpty] = useState(messages.length === 0)
+	if (messages.length === 0 && !prevMessagesEmpty) {
+		setPrevMessagesEmpty(true)
+		setSendingDisabled(false)
+		setClineAsk(undefined)
+		setEnableButtons(false)
+		setPrimaryButtonText(undefined)
+		setSecondaryButtonText(undefined)
+	}
+	if (messages.length !== 0 && prevMessagesEmpty) {
+		setPrevMessagesEmpty(false)
 	}
 
 	// Reset UI states when task changes. Scroll lifecycle is handled by
-	// useScrollLifecycle which has its own effect keyed on taskTs. State resets
-	// happen during render (React's recommended pattern); ref/side-effect
-	// resets stay in the effect.
-	const [prevResetTaskTs, setPrevResetTaskTs] = useState(task?.ts)
-	if (task?.ts !== prevResetTaskTs) {
-		setPrevResetTaskTs(task?.ts)
+	// useScrollLifecycle which has its own effect keyed on taskTs.
+	// State resets happen during render guarded by the primitive `task?.ts`
+	// (converges — the guard is written into state in the same pass); ref and
+	// timer cleanup stays in an effect where it is lint-legal (no setState).
+	const taskTs = task?.ts
+	const [prevTaskTs, setPrevTaskTs] = useState(taskTs)
+	if (taskTs !== prevTaskTs) {
+		setPrevTaskTs(taskTs)
 		setExpandedRows({})
 		setCurrentFollowUpTs(null)
 		setIsCondensing(false)
-		setEverVisibleMessagesTs(new Set())
 	}
 
 	useEffect(() => {
+		seenTsStore.clear()
 		if (autoApproveTimeoutRef.current) {
 			clearTimeout(autoApproveTimeoutRef.current)
 			autoApproveTimeoutRef.current = null
 		}
 		userRespondedRef.current = false
-	}, [task?.ts])
-
-	const taskTs = task?.ts
+	}, [taskTs, seenTsStore])
 
 	// Request aggregated costs when task changes and has childIds
 	useEffect(() => {
@@ -549,16 +562,17 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 	}, [taskTs, currentTaskItem?.id, currentTaskItem?.childIds])
 
-	// Clear the seen-cache when the view is hidden. Done during render (React's
-	// recommended "adjust state during render" pattern). The old unmount-time
-	// cache clear is unnecessary — state is garbage-collected with the component.
-	const [prevIsHidden, setPrevIsHidden] = useState(isHidden)
-	if (isHidden !== prevIsHidden) {
-		setPrevIsHidden(isHidden)
+	useEffect(() => {
 		if (isHidden) {
-			setEverVisibleMessagesTs(new Set())
+			seenTsStore.clear()
 		}
-	}
+	}, [isHidden, seenTsStore])
+
+	useEffect(() => {
+		return () => {
+			seenTsStore.clear()
+		}
+	}, [seenTsStore])
 
 	const isStreaming = useMemo(() => {
 		// Checking clineAsk isn't enough since messages effect may be called
@@ -1008,6 +1022,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	useEvent("message", handleMessage)
 
 	const visibleMessages = useMemo(() => {
+		// Recompute whenever the seen-set changes: `_seenVersion` (the
+		// useSyncExternalStore snapshot) is that trigger and is intentionally
+		// referenced so the dependency stays explicit for exhaustive-deps.
+		void _seenVersion
+
 		// Pre-compute checkpoint hashes that have associated user messages for O(1) lookup
 		const userMessageCheckpointHashes = new Set<string>()
 		modifiedMessages.forEach((msg) => {
@@ -1041,7 +1060,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				}
 			}
 
-			if (everVisibleMessagesTs.has(message.ts)) {
+			if (seenTsStore.has(message.ts)) {
 				const alwaysHiddenOnceProcessedAsk: ClineAsk[] = [
 					"api_req_failed",
 					"resume_task",
@@ -1095,61 +1114,28 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		})
 
 		return newVisibleMessages
-	}, [modifiedMessages, everVisibleMessagesTs])
+	}, [modifiedMessages, _seenVersion, seenTsStore])
 
-	// Record which messages have been shown so the filter above can suppress
-	// already-processed messages on subsequent renders. Done during render with
-	// the React-recommended "adjust state during render" pattern — the viewport
-	// key guard converges (returns the same reference when nothing is new).
-	const viewportStart = Math.max(0, visibleMessages.length - 100)
-	const viewportTs = visibleMessages.slice(viewportStart).map((msg: ClineMessage) => msg.ts)
-	const viewportTsKey = viewportTs.join(",")
-	const [prevViewportTsKey, setPrevViewportTsKey] = useState(viewportTsKey)
-	if (viewportTsKey !== prevViewportTsKey) {
-		setPrevViewportTsKey(viewportTsKey)
-		setEverVisibleMessagesTs((prev) => {
-			let changed = false
-			for (const ts of viewportTs) {
-				if (!prev.has(ts)) {
-					changed = true
-					break
-				}
-			}
-			if (!changed) {
-				return prev
-			}
-			const next = new Set(prev)
-			for (const ts of viewportTs) {
-				next.add(ts)
-			}
-			return next
-		})
-	}
+	// Record the viewport's "ever-visible" timestamps after commit. `add` is
+	// idempotent (re-adding existing timestamps neither notifies nor re-renders),
+	// so this converges; it also refreshes recency exactly like the old
+	// `everVisibleMessagesTsRef.current.set(...)` did during render.
+	useEffect(() => {
+		const viewportStart = Math.max(0, visibleMessages.length - 100)
+		visibleMessages.slice(viewportStart).forEach((msg: ClineMessage) => seenTsStore.add(msg.ts))
+	}, [visibleMessages, seenTsStore])
 
 	useEffect(() => {
 		const cleanupInterval = setInterval(() => {
 			const currentMessageIds = new Set(modifiedMessages.map((m: ClineMessage) => m.ts))
-			const viewportMessages = visibleMessages.slice(Math.max(0, visibleMessages.length - 100))
-			const viewportMessageIds = new Set(viewportMessages.map((m: ClineMessage) => m.ts))
-
-			// Prune timestamps that are no longer present in the current or
-			// visible messages. setState inside the interval callback is allowed.
-			setEverVisibleMessagesTs((prev) => {
-				let changed = false
-				const next = new Set<number>()
-				prev.forEach((ts) => {
-					if (currentMessageIds.has(ts) || viewportMessageIds.has(ts)) {
-						next.add(ts)
-					} else {
-						changed = true
-					}
-				})
-				return changed ? next : prev
-			})
+			const viewportMessageIds = new Set(
+				visibleMessages.slice(Math.max(0, visibleMessages.length - 100)).map((m: ClineMessage) => m.ts),
+			)
+			seenTsStore.prune(new Set([...currentMessageIds, ...viewportMessageIds]))
 		}, 60000)
 
 		return () => clearInterval(cleanupInterval)
-	}, [modifiedMessages, visibleMessages])
+	}, [modifiedMessages, visibleMessages, seenTsStore])
 
 	useDebounceEffect(
 		() => {
@@ -1420,13 +1406,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		[handleSetExpandedRow],
 	)
 
-	// Clear checkpoint warning when hidden or no task. Done during render
-	// (React's recommended "adjust state during render" pattern).
-	const hiddenOrNoTask = isHidden || !task
-	const [prevHiddenOrNoTask, setPrevHiddenOrNoTask] = useState(hiddenOrNoTask)
-	if (hiddenOrNoTask !== prevHiddenOrNoTask) {
-		setPrevHiddenOrNoTask(hiddenOrNoTask)
-		if (hiddenOrNoTask) {
+	// Clear the checkpoint warning when hidden or when there is no task.
+	// Render-phase adjust on the primitive boolean condition (value-stable even
+	// when `task` is a fresh object reference), so it converges.
+	const shouldClearCheckpoint = isHidden || !task
+	const [prevShouldClearCheckpoint, setPrevShouldClearCheckpoint] = useState(shouldClearCheckpoint)
+	if (shouldClearCheckpoint !== prevShouldClearCheckpoint) {
+		setPrevShouldClearCheckpoint(shouldClearCheckpoint)
+		if (shouldClearCheckpoint) {
 			setCheckpointWarning(undefined)
 		}
 	}

@@ -14,6 +14,7 @@ import { safeJsonParse } from "@roo/core"
 
 import { cn } from "@src/lib/utils"
 import { Button } from "@src/components/ui"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 
 import CodeBlock from "../common/CodeBlock"
 import McpToolRow from "../mcp/McpToolRow"
@@ -166,18 +167,19 @@ export const McpExecution = ({
 	useEvent("message", onMessage)
 
 	// Sync prop-derived state during render (React's recommended "adjust state
-	// during render" pattern) instead of in an effect.
-	const [prevPropText, setPrevPropText] = useState(text)
-	if (text && text !== prevPropText) {
-		setPrevPropText(text)
-		setArgumentsText(text)
-	}
+	// during render" pattern) instead of in an effect. Both triggers are
+	// value-stable primitives (`string | undefined`), so the guard converges.
+	usePrimitiveSync(text, () => {
+		if (text) {
+			setArgumentsText(text)
+		}
+	})
 
-	const [prevResponse, setPrevResponse] = useState(useMcpServer?.response)
-	if (useMcpServer?.response && useMcpServer.response !== prevResponse) {
-		setPrevResponse(useMcpServer.response)
-		setResponseText(useMcpServer.response)
-	}
+	usePrimitiveSync(useMcpServer?.response, () => {
+		if (useMcpServer?.response) {
+			setResponseText(useMcpServer.response)
+		}
+	})
 
 	if (initialServerName && initialServerName !== serverName) {
 		setServerName(initialServerName)

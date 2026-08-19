@@ -3,6 +3,7 @@ import { MarketplaceItem, marketplaceBulkInstallResultMessageSchema, parseExtens
 import { isTrustedMessage } from "@/utils/trustedMessages"
 import { vscode } from "@/utils/vscode"
 import { useAppTranslation } from "@/i18n/TranslationContext"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 import {
 	Dialog,
 	DialogContent,
@@ -38,16 +39,15 @@ export const BulkInstallModal: React.FC<BulkInstallModalProps> = ({ items, isOpe
 
 	// Reset state each time the modal opens. Done during render (React's
 	// recommended "adjust state during render" pattern) instead of an effect.
-	const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
-	if (isOpen !== prevIsOpen) {
-		setPrevIsOpen(isOpen)
+	// `isOpen` is a value-stable boolean prop.
+	usePrimitiveSync(isOpen, () => {
 		if (isOpen) {
 			setInstallState("idle")
 			setCurrentIndex(0)
 			setResults([])
 			setScope(hasWorkspace ? "project" : "global")
 		}
-	}
+	})
 
 	// Listen for bulk install results
 	useEffect(() => {

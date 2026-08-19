@@ -48,6 +48,7 @@ import {
 } from "@src/components/ui"
 import { useRooPortal } from "@src/components/ui/hooks/useRooPortal"
 import { useEscapeKey } from "@src/hooks/useEscapeKey"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 import {
 	useOpenRouterModelProviders,
 	OPENROUTER_DEFAULT_PROVIDER_NAME,
@@ -255,45 +256,80 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 	const [currentSettings, setCurrentSettings] = useState<LocalCodeIndexSettings>(getDefaultSettings())
 
 	// Update indexing status from parent. Done during render (React's
-	// recommended "adjust state during render" pattern).
-	const [prevExternalIndexingStatus, setPrevExternalIndexingStatus] = useState(externalIndexingStatus)
-	if (externalIndexingStatus !== prevExternalIndexingStatus) {
-		setPrevExternalIndexingStatus(externalIndexingStatus)
+	// recommended "adjust state during render" pattern). The guard compares a
+	// stable derived key — the status prop object reference may be recreated by
+	// the parent, so a reference-equality guard would not converge.
+	const externalIndexingStatusKey = JSON.stringify([
+		externalIndexingStatus.systemStatus,
+		externalIndexingStatus.message ?? "",
+		externalIndexingStatus.processedItems,
+		externalIndexingStatus.totalItems,
+		externalIndexingStatus.currentItemUnit ?? "",
+		externalIndexingStatus.workspacePath ?? "",
+		externalIndexingStatus.workspaceEnabled ?? false,
+		externalIndexingStatus.autoEnableDefault ?? false,
+	])
+	usePrimitiveSync(externalIndexingStatusKey, () => {
 		setIndexingStatus(externalIndexingStatus)
-	}
+	})
 
 	// Initialize settings from global state. Done during render (React's
 	// recommended "adjust state during render" pattern); the secret-status
-	// postMessage stays in an effect.
-	const [prevCodebaseIndexConfig, setPrevCodebaseIndexConfig] = useState<typeof codebaseIndexConfig>(undefined)
-	if (codebaseIndexConfig && codebaseIndexConfig !== prevCodebaseIndexConfig) {
-		setPrevCodebaseIndexConfig(codebaseIndexConfig)
-		const settings = {
-			codebaseIndexEnabled: codebaseIndexConfig.codebaseIndexEnabled ?? true,
-			codebaseIndexQdrantUrl: codebaseIndexConfig.codebaseIndexQdrantUrl || "",
-			codebaseIndexEmbedderProvider: codebaseIndexConfig.codebaseIndexEmbedderProvider || "openai",
-			codebaseIndexEmbedderBaseUrl: codebaseIndexConfig.codebaseIndexEmbedderBaseUrl || "",
-			codebaseIndexEmbedderModelId: codebaseIndexConfig.codebaseIndexEmbedderModelId || "",
-			codebaseIndexEmbedderModelDimension: codebaseIndexConfig.codebaseIndexEmbedderModelDimension || undefined,
-			codebaseIndexSearchMaxResults:
+	// postMessage stays in an effect. The guard compares a stable derived key
+	// built from the primitive config fields — the config object from context
+	// is recreated on every extension state push, so a reference guard would
+	// loop. The previous key starts as a sentinel (null) so the first render
+	// with a loaded config still initializes the settings.
+	const codebaseIndexConfigKey = codebaseIndexConfig
+		? JSON.stringify([
+				codebaseIndexConfig.codebaseIndexEnabled ?? true,
+				codebaseIndexConfig.codebaseIndexQdrantUrl || "",
+				codebaseIndexConfig.codebaseIndexEmbedderProvider || "openai",
+				codebaseIndexConfig.codebaseIndexEmbedderBaseUrl || "",
+				codebaseIndexConfig.codebaseIndexEmbedderModelId || "",
+				codebaseIndexConfig.codebaseIndexEmbedderModelDimension || undefined,
 				codebaseIndexConfig.codebaseIndexSearchMaxResults ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
-			codebaseIndexSearchMinScore:
 				codebaseIndexConfig.codebaseIndexSearchMinScore ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_MIN_SCORE,
-			codebaseIndexBedrockRegion: codebaseIndexConfig.codebaseIndexBedrockRegion || "",
-			codebaseIndexBedrockProfile: codebaseIndexConfig.codebaseIndexBedrockProfile || "",
-			codeIndexOpenAiKey: "",
-			codeIndexQdrantApiKey: "",
-			codebaseIndexOpenAiCompatibleBaseUrl: codebaseIndexConfig.codebaseIndexOpenAiCompatibleBaseUrl || "",
-			codebaseIndexOpenAiCompatibleApiKey: "",
-			codebaseIndexGeminiApiKey: "",
-			codebaseIndexMistralApiKey: "",
-			codebaseIndexVercelAiGatewayApiKey: "",
-			codebaseIndexOpenRouterApiKey: "",
-			codebaseIndexOpenRouterSpecificProvider: codebaseIndexConfig.codebaseIndexOpenRouterSpecificProvider || "",
-			codebaseIndexSembleBinaryPath: codebaseIndexConfig.codebaseIndexSembleBinaryPath || "",
+				codebaseIndexConfig.codebaseIndexBedrockRegion || "",
+				codebaseIndexConfig.codebaseIndexBedrockProfile || "",
+				codebaseIndexConfig.codebaseIndexOpenAiCompatibleBaseUrl || "",
+				codebaseIndexConfig.codebaseIndexOpenRouterSpecificProvider || "",
+				codebaseIndexConfig.codebaseIndexSembleBinaryPath || "",
+			])
+		: null
+	const [prevCodebaseIndexConfigKey, setPrevCodebaseIndexConfigKey] = useState<string | null>(null)
+	if (codebaseIndexConfigKey !== prevCodebaseIndexConfigKey) {
+		setPrevCodebaseIndexConfigKey(codebaseIndexConfigKey)
+		if (codebaseIndexConfig) {
+			const settings = {
+				codebaseIndexEnabled: codebaseIndexConfig.codebaseIndexEnabled ?? true,
+				codebaseIndexQdrantUrl: codebaseIndexConfig.codebaseIndexQdrantUrl || "",
+				codebaseIndexEmbedderProvider: codebaseIndexConfig.codebaseIndexEmbedderProvider || "openai",
+				codebaseIndexEmbedderBaseUrl: codebaseIndexConfig.codebaseIndexEmbedderBaseUrl || "",
+				codebaseIndexEmbedderModelId: codebaseIndexConfig.codebaseIndexEmbedderModelId || "",
+				codebaseIndexEmbedderModelDimension:
+					codebaseIndexConfig.codebaseIndexEmbedderModelDimension || undefined,
+				codebaseIndexSearchMaxResults:
+					codebaseIndexConfig.codebaseIndexSearchMaxResults ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
+				codebaseIndexSearchMinScore:
+					codebaseIndexConfig.codebaseIndexSearchMinScore ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_MIN_SCORE,
+				codebaseIndexBedrockRegion: codebaseIndexConfig.codebaseIndexBedrockRegion || "",
+				codebaseIndexBedrockProfile: codebaseIndexConfig.codebaseIndexBedrockProfile || "",
+				codeIndexOpenAiKey: "",
+				codeIndexQdrantApiKey: "",
+				codebaseIndexOpenAiCompatibleBaseUrl: codebaseIndexConfig.codebaseIndexOpenAiCompatibleBaseUrl || "",
+				codebaseIndexOpenAiCompatibleApiKey: "",
+				codebaseIndexGeminiApiKey: "",
+				codebaseIndexMistralApiKey: "",
+				codebaseIndexVercelAiGatewayApiKey: "",
+				codebaseIndexOpenRouterApiKey: "",
+				codebaseIndexOpenRouterSpecificProvider:
+					codebaseIndexConfig.codebaseIndexOpenRouterSpecificProvider || "",
+				codebaseIndexSembleBinaryPath: codebaseIndexConfig.codebaseIndexSembleBinaryPath || "",
+			}
+			setInitialSettings(settings)
+			setCurrentSettings(settings)
 		}
-		setInitialSettings(settings)
-		setCurrentSettings(settings)
 	}
 
 	useEffect(() => {

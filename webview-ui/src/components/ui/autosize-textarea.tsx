@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 
 interface UseAutosizeTextAreaProps {
 	textAreaRef: React.MutableRefObject<HTMLTextAreaElement | null>
@@ -83,13 +84,12 @@ export const AutosizeTextarea = React.forwardRef<AutosizeTextAreaRef, AutosizeTe
 		}))
 
 		// Trigger auto-size when the value changes. Done during render (React's
-		// recommended "adjust state during render" pattern).
+		// recommended "adjust state during render" pattern). `triggerKey` is a
+		// value-stable derived string.
 		const triggerKey = `${props?.defaultValue ?? ""}|${value ?? ""}`
-		const [prevTriggerKey, setPrevTriggerKey] = React.useState(triggerKey)
-		if (triggerKey !== prevTriggerKey) {
-			setPrevTriggerKey(triggerKey)
+		usePrimitiveSync(triggerKey, () => {
 			setTriggerAutoSize(value as string)
-		}
+		})
 
 		return (
 			<textarea

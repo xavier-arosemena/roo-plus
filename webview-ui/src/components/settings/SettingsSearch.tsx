@@ -78,12 +78,16 @@ export function SettingsSearch({ index, onNavigate, sections }: SettingsSearchPr
 	)
 
 	// Reset highlight based on focus and available results. Done during render
-	// (React's recommended "adjust state during render" pattern).
+	// (React's recommended "adjust state during render" pattern). The guard
+	// compares isOpen (boolean) and a stable key of the result setting ids —
+	// the results array reference is recreated on every search re-run, so a
+	// reference guard would not converge.
+	const resultsKey = results.map((result) => result.settingId).join(",")
 	const [prevSearchOpen, setPrevSearchOpen] = useState(isOpen)
-	const [prevSearchResults, setPrevSearchResults] = useState(results)
-	if (isOpen !== prevSearchOpen || results !== prevSearchResults) {
+	const [prevResultsKey, setPrevResultsKey] = useState(resultsKey)
+	if (isOpen !== prevSearchOpen || resultsKey !== prevResultsKey) {
 		setPrevSearchOpen(isOpen)
-		setPrevSearchResults(results)
+		setPrevResultsKey(resultsKey)
 		if (!isOpen || !results.length) {
 			setHighlightedResultId(undefined)
 		} else {

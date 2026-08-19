@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 
 import MarkdownBlock from "../common/MarkdownBlock"
 import { Lightbulb, ChevronUp } from "lucide-react"
@@ -25,12 +26,11 @@ export const ReasoningBlock = ({ content, isStreaming, isLast }: ReasoningBlockP
 	const contentRef = useRef<HTMLDivElement>(null)
 
 	// Sync collapse state from the global setting during render (React's
-	// recommended "adjust state during render" pattern).
-	const [prevCollapsedSetting, setPrevCollapsedSetting] = useState(reasoningBlockCollapsed)
-	if (reasoningBlockCollapsed !== prevCollapsedSetting) {
-		setPrevCollapsedSetting(reasoningBlockCollapsed)
+	// recommended "adjust state during render" pattern). `reasoningBlockCollapsed`
+	// is a value-stable boolean from extension state.
+	usePrimitiveSync(reasoningBlockCollapsed, () => {
 		setIsCollapsed(reasoningBlockCollapsed)
-	}
+	})
 
 	useEffect(() => {
 		if (isLast && isStreaming) {

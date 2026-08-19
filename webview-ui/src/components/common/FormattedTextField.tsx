@@ -33,11 +33,15 @@ function FormattedTextFieldInner<T>(
 
 	// Update raw input when the external value changes (but not while actively
 	// typing). Done during render (React's recommended "adjust state during
-	// render" pattern) instead of an effect.
-	const [prevValue, setPrevValue] = useState(value)
-	if (!isTyping && value !== prevValue) {
-		setPrevValue(value)
-		setRawInput(formatter.format(value))
+	// render" pattern) instead of an effect. The guard compares the formatted
+	// string (a stable primitive for any T) — the raw `value` may be an object
+	// whose reference is recreated on every parent render, so a reference
+	// guard would not converge.
+	const formattedValue = formatter.format(value)
+	const [prevFormattedValue, setPrevFormattedValue] = useState(formattedValue)
+	if (!isTyping && formattedValue !== prevFormattedValue) {
+		setPrevFormattedValue(formattedValue)
+		setRawInput(formattedValue)
 	}
 
 	const handleInput = useCallback(

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
 import MarkdownBlock from "../common/MarkdownBlock"
 
@@ -81,12 +82,13 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 	}, [])
 
 	// Sync when external props.todos changes. Done during render (React's
-	// recommended "adjust state during render" pattern).
-	const [prevTodos, setPrevTodos] = useState(todos)
-	if (todos !== prevTodos) {
-		setPrevTodos(todos)
+	// recommended "adjust state during render" pattern). The guard compares a
+	// stable content key — the todos prop array reference may be recreated on
+	// every parent render, so a reference guard would not converge.
+	const todosKey = JSON.stringify(todos.map(({ id, content, status }) => [id ?? "", content, status ?? ""]))
+	usePrimitiveSync(todosKey, () => {
 		setEditTodos(todos.length > 0 ? todos.map((todo) => ({ ...todo, id: todo.id || genId() })) : [])
-	}
+	})
 
 	// Auto focus on new item
 	useEffect(() => {

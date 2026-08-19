@@ -1,6 +1,7 @@
 import React, { useState, useRef, useLayoutEffect, memo } from "react"
 import { useWindowSize } from "react-use"
 import { vscode } from "@src/utils/vscode"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 
 interface ThumbnailsProps {
 	images: string[]
@@ -16,12 +17,13 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 
 	// Reset the hover state when the image list changes. Done during render
 	// (React's recommended "adjust state during render" pattern) instead of in
-	// an effect.
-	const [prevImages, setPrevImages] = useState(images)
-	if (prevImages !== images) {
-		setPrevImages(images)
+	// an effect. The guard compares a stable content key — the images prop
+	// array reference may be recreated on every parent render, so a reference
+	// guard would not converge.
+	const imagesKey = JSON.stringify(images)
+	usePrimitiveSync(imagesKey, () => {
 		setHoveredIndex(null)
-	}
+	})
 
 	useLayoutEffect(() => {
 		if (containerRef.current) {

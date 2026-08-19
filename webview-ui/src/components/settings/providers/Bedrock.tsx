@@ -13,6 +13,7 @@ import {
 } from "@roo-code/types"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, StandardTooltip } from "@src/components/ui"
 
 import { inputEventTransform, noTransform } from "../transforms"
@@ -43,11 +44,10 @@ export const Bedrock = ({ apiConfiguration, setApiConfigurationField, selectedMo
 
 	// Update the endpoint enabled state when the configuration changes. Done
 	// during render (React's recommended "adjust state during render" pattern).
-	const [prevEndpointEnabled, setPrevEndpointEnabled] = useState(apiConfiguration?.awsBedrockEndpointEnabled)
-	if (apiConfiguration?.awsBedrockEndpointEnabled !== prevEndpointEnabled) {
-		setPrevEndpointEnabled(apiConfiguration?.awsBedrockEndpointEnabled)
+	// `apiConfiguration?.awsBedrockEndpointEnabled` is a value-stable boolean.
+	usePrimitiveSync(apiConfiguration?.awsBedrockEndpointEnabled, () => {
 		setAwsEndpointSelected(!!apiConfiguration?.awsBedrockEndpointEnabled)
-	}
+	})
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(

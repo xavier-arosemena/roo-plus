@@ -1,7 +1,7 @@
 // pnpm --filter @roo-code/vscode-webview test src/components/chat/__tests__/ChatView.spec.tsx
 
 import React from "react"
-import { render, waitFor, act, fireEvent } from "@/utils/test-utils"
+import { render, waitFor, act, fireEvent, screen } from "@/utils/test-utils"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 import { ExtensionStateContextProvider } from "@src/context/ExtensionStateContext"
@@ -1357,5 +1357,54 @@ describe("ChatView - Context Condensing Indicator Tests", () => {
 			},
 			{ timeout: 2000 },
 		)
+	})
+
+	describe("ChatView - seen-set convergence (regression for #301)", () => {
+		beforeEach(() => vi.clearAllMocks())
+
+		it("does not render-loop when the extension re-emits reference-unstable message arrays", async () => {
+			// Arrange: the #301 failure mode — a render-phase guard that compares
+			// reference-unstable values (fresh arrays/objects every context
+			// update) cascades "Too many re-renders". The seen-set store and the
+			// primitive sync guards must converge instead.
+			const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+
+			try {
+				renderChatView()
+
+				const taskTs = Date.now() - 5000
+				const messages: ClineMessage[] = [
+					{ type: "say", say: "task", ts: taskTs, text: "Initial task" },
+					// api_req_started.text is JSON-parsed by the apiMetrics memo,
+					// so it must be valid JSON in the test fixture.
+					{ type: "say", say: "api_req_started", ts: taskTs + 1, text: JSON.stringify({ cost: 0 }) },
+					{ type: "say", say: "text", ts: taskTs + 2, text: "hello world" },
+				]
+
+				// Act: hydrate the initial conversation.
+				mockPostMessage({ clineMessages: messages })
+				await waitFor(() => {
+					expect(screen.getByText(/hello world/)).toBeInTheDocument()
+				})
+
+				// Re-emit the same logical conversation 20 times with fresh
+				// object/array references (simulates extension state round-trips).
+				for (let i = 0; i < 20; i++) {
+					mockPostMessage({
+						clineMessages: messages.map((message) => ({ ...message })),
+					})
+				}
+				await waitFor(() => {
+					expect(screen.getByText(/hello world/)).toBeInTheDocument()
+				})
+
+				// Assert: conversation still renders, no render loop.
+				expect(screen.getByText(/hello world/)).toBeInTheDocument()
+				expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining("Maximum update depth exceeded"))
+				expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining("Too many re-renders"))
+			} finally {
+				errorSpy.mockRestore()
+			}
+		})
 	})
 })

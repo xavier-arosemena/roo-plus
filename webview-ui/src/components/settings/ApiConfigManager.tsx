@@ -5,6 +5,7 @@ import { TriangleAlert } from "lucide-react"
 import type { ProviderSettingsEntry, OrganizationAllowList } from "@roo-code/types"
 
 import { useAppTranslation } from "@/i18n/TranslationContext"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 import {
 	type SearchableSelectOption,
 	Button,
@@ -114,12 +115,11 @@ const ApiConfigManager = ({
 
 	// Reset state when current profile changes. Done during render (React's
 	// recommended "adjust state during render" pattern).
-	const [prevConfigName, setPrevConfigName] = useState(currentApiConfigName)
-	if (currentApiConfigName !== prevConfigName) {
-		setPrevConfigName(currentApiConfigName)
+	// `currentApiConfigName` is a value-stable string prop.
+	usePrimitiveSync(currentApiConfigName, () => {
 		resetCreateState()
 		resetRenameState()
-	}
+	})
 
 	const handleSelectConfig = (configName: string) => {
 		if (!configName) return

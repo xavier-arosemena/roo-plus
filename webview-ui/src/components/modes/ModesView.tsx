@@ -60,6 +60,7 @@ import { DeleteModeDialog } from "@src/components/modes/DeleteModeDialog"
 import McpServerRestriction from "@src/components/modes/McpServerRestriction"
 import McpServerChecklist from "@src/components/modes/McpServerChecklist"
 import { useEscapeKey } from "@src/hooks/useEscapeKey"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 
 // Get all available groups that should show in prompts view
 const availableGroups = (Object.keys(TOOL_GROUPS) as ToolGroup[]).filter((group) => !TOOL_GROUPS[group].alwaysAvailable)
@@ -374,24 +375,21 @@ const ModesView = () => {
 	}
 
 	// Reset form fields when dialog opens. Done during render (React's
-	// recommended "adjust state during render" pattern).
-	const [prevCreateDialogOpen, setPrevCreateDialogOpen] = useState(isCreateModeDialogOpen)
-	if (isCreateModeDialogOpen !== prevCreateDialogOpen) {
-		setPrevCreateDialogOpen(isCreateModeDialogOpen)
+	// recommended "adjust state during render" pattern). Both triggers are
+	// value-stable boolean state.
+	usePrimitiveSync(isCreateModeDialogOpen, () => {
 		if (isCreateModeDialogOpen) {
 			resetFormState()
 		}
-	}
+	})
 
 	// Ensure import dialog defaults to "project" each open. Done during render
 	// (React's recommended "adjust state during render" pattern).
-	const [prevShowImportDialog, setPrevShowImportDialog] = useState(showImportDialog)
-	if (showImportDialog !== prevShowImportDialog) {
-		setPrevShowImportDialog(showImportDialog)
+	usePrimitiveSync(showImportDialog, () => {
 		if (showImportDialog) {
 			setImportLevel("project")
 		}
-	}
+	})
 
 	// Helper function to generate a unique slug from a name
 	const generateSlug = useCallback((name: string, attempt = 0): string => {

@@ -6,6 +6,7 @@ import { RefreshCw, Loader2, FileCode } from "lucide-react"
 import { parseExtensionMessage, type SerializedCustomToolDefinition } from "@roo-code/types"
 
 import { useAppTranslation } from "@/i18n/TranslationContext"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 
 import { vscode } from "@/utils/vscode"
 
@@ -37,14 +38,13 @@ export const CustomToolsSettings = ({ enabled, onChange }: CustomToolsSettingsPr
 	const [refreshError, setRefreshError] = useState<string | null>(null)
 
 	// Clear the tool list when disabled. Done during render (React's
-	// recommended "adjust state during render" pattern).
-	const [prevEnabled, setPrevEnabled] = useState(enabled)
-	if (enabled !== prevEnabled) {
-		setPrevEnabled(enabled)
+	// recommended "adjust state during render" pattern). `enabled` is a
+	// value-stable boolean prop.
+	usePrimitiveSync(enabled, () => {
 		if (!enabled) {
 			setTools([])
 		}
-	}
+	})
 
 	useEffect(() => {
 		if (enabled) {

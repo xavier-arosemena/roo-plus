@@ -10,6 +10,7 @@ import {
 
 import { vscode } from "@src/utils/vscode"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 import { Button } from "@src/components/ui"
 
 import { inputEventTransform } from "../transforms"
@@ -44,12 +45,11 @@ export const Requesty = ({
 
 	// This ensures that the "Use custom URL" checkbox is hidden when the user
 	// deletes the URL. Done during render (React's recommended "adjust state
-	// during render" pattern).
-	const [prevRequestyUrl, setPrevRequestyUrl] = useState(apiConfiguration?.requestyBaseUrl)
-	if (apiConfiguration?.requestyBaseUrl !== prevRequestyUrl) {
-		setPrevRequestyUrl(apiConfiguration?.requestyBaseUrl)
+	// during render" pattern). `apiConfiguration?.requestyBaseUrl` is a
+	// value-stable string.
+	usePrimitiveSync(apiConfiguration?.requestyBaseUrl, () => {
 		setRequestyEndpointSelected(!!apiConfiguration?.requestyBaseUrl)
-	}
+	})
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(

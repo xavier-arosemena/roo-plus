@@ -37,12 +37,16 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 
 	// Reset/initialize the install form when the item or selected method
 	// changes. Done during render (React's recommended "adjust state during
-	// render" pattern) instead of an effect.
-	const [prevInstallItem, setPrevInstallItem] = useState(item)
+	// render" pattern) instead of an effect. The item guard compares a stable
+	// identity key (the required unique `id`) — the item prop object reference
+	// may be recreated on every parent render, so a reference guard would not
+	// converge.
+	const installItemKey = item?.id ?? null
+	const [prevInstallItemKey, setPrevInstallItemKey] = useState<string | null>(installItemKey)
 	const [prevInstallIndex, setPrevInstallIndex] = useState(selectedMethodIndex)
-	if (prevInstallItem !== item || prevInstallIndex !== selectedMethodIndex) {
-		const itemChanged = prevInstallItem !== item
-		setPrevInstallItem(item)
+	if (prevInstallItemKey !== installItemKey || prevInstallIndex !== selectedMethodIndex) {
+		const itemChanged = prevInstallItemKey !== installItemKey
+		setPrevInstallItemKey(installItemKey)
 		setPrevInstallIndex(selectedMethodIndex)
 
 		if (item) {

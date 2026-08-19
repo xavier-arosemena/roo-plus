@@ -2,6 +2,7 @@ import { useRef, useState } from "react"
 import mermaid from "mermaid"
 import styled from "styled-components"
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
+import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 import { vscode } from "@src/utils/vscode"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { useCopyToClipboard } from "@src/utils/clipboard"
@@ -100,13 +101,11 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
 
 	// 1) Whenever `code` changes, mark that we need to re-render a new chart.
 	// Done during render (React's recommended "adjust state during render"
-	// pattern) instead of an effect.
-	const [prevCode, setPrevCode] = useState(code)
-	if (code !== prevCode) {
-		setPrevCode(code)
+	// pattern) instead of an effect. `code` is a value-stable string prop.
+	usePrimitiveSync(code, () => {
 		setIsLoading(true)
 		setError(null)
-	}
+	})
 
 	// 2) Debounce the actual parse/render
 	useDebounceEffect(
