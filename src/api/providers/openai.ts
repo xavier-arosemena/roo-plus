@@ -5,6 +5,8 @@ import axios from "axios"
 import {
 	type ModelInfo,
 	azureOpenAiDefaultApiVersion,
+	isAzureAiInferenceBaseUrl,
+	isAzureOpenAiBaseUrl,
 	openAiModelInfoSaneDefaults,
 	DEEP_SEEK_DEFAULT_TEMPERATURE,
 	OPENAI_AZURE_AI_INFERENCE_PATH,
@@ -19,7 +21,7 @@ import { convertToR1Format } from "../transform/r1-format"
 import { ApiStream, ApiStreamUsageChunk } from "../transform/stream"
 import { getModelParams } from "../transform/model-params"
 
-import { DEFAULT_HEADERS } from "./constants"
+import { DEFAULT_HEADERS, NOT_PROVIDED } from "./constants"
 import { BaseProvider } from "./base-provider"
 import type { SingleCompletionHandler, ApiHandlerCreateMessageMetadata, CompletePromptOptions } from "../index"
 import { handleOpenAIError } from "./utils/error-handler"
@@ -38,10 +40,9 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 		this.options = options
 
 		const baseURL = this.options.openAiBaseUrl || "https://api.openai.com/v1"
-		const apiKey = this.options.openAiApiKey ?? "not-provided"
+		const apiKey = this.options.openAiApiKey ?? NOT_PROVIDED
 		const isAzureAiInference = this._isAzureAiInference(this.options.openAiBaseUrl)
-		const urlHost = this._getUrlHost(this.options.openAiBaseUrl)
-		const isAzureOpenAi = urlHost === "azure.com" || urlHost.endsWith(".azure.com") || options.openAiUseAzure
+		const isAzureOpenAi = isAzureOpenAiBaseUrl(this.options.openAiBaseUrl, options.openAiUseAzure)
 
 		const headers = {
 			...DEFAULT_HEADERS,
@@ -60,8 +61,9 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 		} else if (isAzureOpenAi) {
 			// Azure API shape slightly differs from the core API shape:
 			// https://github.com/openai/openai-node?tab=readme-ov-file#microsoft-azure-openai
+			const azureBaseURL = `${baseURL.replace(/\/openai\/?$/i, "").replace(/\/$/, "")}/openai`
 			this.client = new AzureOpenAI({
-				baseURL,
+				baseURL: azureBaseURL,
 				apiKey,
 				apiVersion: this.options.azureApiVersion || azureOpenAiDefaultApiVersion,
 				defaultHeaders: headers,
@@ -520,8 +522,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 	}
 
 	protected _isAzureAiInference(baseUrl?: string): boolean {
-		const urlHost = this._getUrlHost(baseUrl)
-		return urlHost.endsWith(".services.ai.azure.com")
+		return isAzureAiInferenceBaseUrl(baseUrl)
 	}
 
 	/**

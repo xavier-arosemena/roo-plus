@@ -11,6 +11,7 @@ import {
 	isProviderName,
 	isRetiredProvider,
 	localProviders,
+	MODELS_BY_PROVIDER,
 	providerIdentifiers,
 	providerNames,
 	providerNamesSchema,
@@ -30,6 +31,7 @@ const expectedProviderIdentifiers = [
 	"deepseek",
 	"opencode-go",
 	"kenari",
+	"nanogpt",
 	"ollama",
 	"lmstudio",
 	"vscode-lm",
@@ -103,12 +105,19 @@ describe("provider identifiers", () => {
 			providerIdentifiers.moonshot,
 			providerIdentifiers.opencodeGo,
 			providerIdentifiers.kenari,
+			providerIdentifiers.nanogpt,
 			providerIdentifiers.kimiCode,
 		])
 		expect(localProviders).toEqual([providerIdentifiers.ollama, providerIdentifiers.lmstudio])
 		expect(internalProviders).toEqual([providerIdentifiers.vscodeLm])
 		expect(customProviders).toEqual([providerIdentifiers.openai])
 		expect(fauxProviders).toEqual([providerIdentifiers.fakeAi])
+	})
+
+	it("keeps model provider ids aligned with their keys", () => {
+		for (const [identifier, providerModels] of Object.entries(MODELS_BY_PROVIDER)) {
+			expect(providerModels.id).toBe(identifier)
+		}
 	})
 
 	it("preserves provider category type guards", () => {

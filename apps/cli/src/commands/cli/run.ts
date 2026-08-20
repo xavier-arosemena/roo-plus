@@ -5,11 +5,14 @@ import { fileURLToPath } from "url"
 import { createElement } from "react"
 import pWaitFor from "p-wait-for"
 
+import { providerIdentifiers } from "@roo-code/types"
 import { setLogger } from "@roo-code/vscode-shim"
 import { DebugLogger, debugLog, setDebugLogEnabled } from "@roo-code/core/cli"
 
 import {
 	FlagOptions,
+	ReasoningEffortFlagOptions,
+	SupportedProvider,
 	isSupportedProvider,
 	supportedProviders,
 	DEFAULT_FLAGS,
@@ -53,6 +56,35 @@ async function bootstrapResumeForStdinStream(host: ExtensionHost, sessionId: str
 
 function normalizeError(error: unknown): Error {
 	return error instanceof Error ? error : new Error(String(error))
+}
+
+export function resolveModel(flagModel?: string, settingsModel?: string): string {
+	return flagModel || settingsModel || DEFAULT_FLAGS.model
+}
+
+export function resolveReasoningEffort(
+	flagReasoningEffort?: ReasoningEffortFlagOptions,
+	settingsReasoningEffort?: ReasoningEffortFlagOptions,
+): ReasoningEffortFlagOptions {
+	return flagReasoningEffort || settingsReasoningEffort || DEFAULT_FLAGS.reasoningEffort
+}
+
+export function resolveProvider(
+	flagProvider?: SupportedProvider,
+	settingsProvider?: SupportedProvider,
+): SupportedProvider {
+	return flagProvider ?? settingsProvider ?? providerIdentifiers.openrouter
+}
+
+export function resolveWorkspacePath(workspace?: string): string {
+	return workspace ? path.resolve(workspace) : process.cwd()
+}
+
+export function resolveLegacyRequireApproval(
+	requireApproval?: boolean,
+	dangerouslySkipPermissions?: boolean,
+): boolean | undefined {
+	return requireApproval ?? (dangerouslySkipPermissions === undefined ? undefined : !dangerouslySkipPermissions)
 }
 
 // Prefix the shim's context label (e.g. "OutputChannel") onto the message so it
@@ -139,14 +171,14 @@ export async function run(promptArg: string | undefined, flagOptions: FlagOption
 
 	// Determine effective values: CLI flags > settings file > DEFAULT_FLAGS.
 	const effectiveMode = flagOptions.mode || settings.mode || DEFAULT_FLAGS.mode
-	const effectiveModel = flagOptions.model || settings.model || DEFAULT_FLAGS.model
-	const effectiveReasoningEffort =
-		flagOptions.reasoningEffort || settings.reasoningEffort || DEFAULT_FLAGS.reasoningEffort
-	const effectiveProvider = flagOptions.provider ?? settings.provider ?? "openrouter"
-	const effectiveWorkspacePath = flagOptions.workspace ? path.resolve(flagOptions.workspace) : process.cwd()
-	const legacyRequireApprovalFromSettings =
-		settings.requireApproval ??
-		(settings.dangerouslySkipPermissions === undefined ? undefined : !settings.dangerouslySkipPermissions)
+	const effectiveModel = resolveModel(flagOptions.model, settings.model)
+	const effectiveReasoningEffort = resolveReasoningEffort(flagOptions.reasoningEffort, settings.reasoningEffort)
+	const effectiveProvider = resolveProvider(flagOptions.provider, settings.provider)
+	const effectiveWorkspacePath = resolveWorkspacePath(flagOptions.workspace)
+	const legacyRequireApprovalFromSettings = resolveLegacyRequireApproval(
+		settings.requireApproval,
+		settings.dangerouslySkipPermissions,
+	)
 	const effectiveRequireApproval = flagOptions.requireApproval || legacyRequireApprovalFromSettings || false
 	const effectiveExitOnComplete = flagOptions.print || flagOptions.oneshot || settings.oneshot || false
 	const rawConsecutiveMistakeLimit =

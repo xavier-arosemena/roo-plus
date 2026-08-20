@@ -310,6 +310,7 @@ export async function handleSettingsMessages(
 						litellm: {},
 						requesty: {},
 						unbound: {},
+						nanogpt: {},
 						ollama: {},
 						lmstudio: {},
 						poe: {},

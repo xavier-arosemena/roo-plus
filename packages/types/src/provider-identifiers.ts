@@ -13,6 +13,7 @@ export const providerIdentifiers = {
 	deepseek: "deepseek",
 	opencodeGo: "opencode-go",
 	kenari: "kenari",
+	nanogpt: "nanogpt",
 	ollama: "ollama",
 	lmstudio: "lmstudio",
 	vscodeLm: "vscode-lm",

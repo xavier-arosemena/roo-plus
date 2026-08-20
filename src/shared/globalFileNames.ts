@@ -7,4 +7,5 @@ export const GlobalFileNames = {
 	historyItem: "history_item.json",
 	historyIndex: "_index.json",
 	preInstalledModes: "pre-installed-modes.yml",
+	delegationRepairIntent: "_delegation_repair_intent.json",
 }

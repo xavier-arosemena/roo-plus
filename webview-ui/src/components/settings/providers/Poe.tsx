@@ -7,6 +7,9 @@ import {
 	type OrganizationAllowList,
 	type ExtensionMessage,
 	poeDefaultModelId,
+	providerIdentifiers,
+	allRouterModelsProvider,
+	RouterModelsMessageType,
 	type ProviderName,
 	parseExtensionMessage,
 } from "@roo-code/types"
@@ -32,6 +35,13 @@ type PoeProps = {
 	simplifySettings?: boolean
 }
 
+enum RefreshStatus {
+	Idle = "idle",
+	Loading = "loading",
+	Success = "success",
+	Error = "error",
+}
+
 export const Poe = ({
 	apiConfiguration,
 	setApiConfigurationField,
@@ -42,7 +52,7 @@ export const Poe = ({
 	const { t } = useAppTranslation()
 	const queryClient = useQueryClient()
 	const { routerModels } = useExtensionState()
-	const [refreshStatus, setRefreshStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+	const [refreshStatus, setRefreshStatus] = useState(RefreshStatus.Idle)
 	const [refreshError, setRefreshError] = useState<string | undefined>()
 	const poeErrorJustReceived = useRef(false)
 
@@ -56,20 +66,25 @@ export const Poe = ({
 				return
 			}
 			const message = parsed.message
-			if (message.type === "singleRouterModelFetchResponse" && !message.success) {
+			if (message.type === RouterModelsMessageType.singleRouterModelFetchResponse && !message.success) {
 				const providerName = message.values?.provider as RouterName
-				if (providerName === "poe") {
+				if (providerName === providerIdentifiers.poe) {
 					poeErrorJustReceived.current = true
-					setRefreshStatus("error")
+					setRefreshStatus(RefreshStatus.Error)
 					setRefreshError(message.error)
 				}
-			} else if (message.type === "routerModels") {
-				if (refreshStatus === "loading") {
+			} else if (message.type === RouterModelsMessageType.routerModels) {
+				if (refreshStatus === RefreshStatus.Loading) {
 					if (!poeErrorJustReceived.current) {
-						setRefreshStatus("success")
-						// Invalidate the react-query router models cache so
-						// validation in ApiOptions picks up the refreshed list.
-						queryClient.invalidateQueries({ queryKey: ["routerModels"] })
+						setRefreshStatus(RefreshStatus.Success)
+						// Refresh the provider-scoped cache used by useSelectedModel and the shared cache used by
+						// ApiOptions without invalidating every other provider's query.
+						void queryClient.invalidateQueries({
+							queryKey: [RouterModelsMessageType.routerModels, providerIdentifiers.poe],
+						})
+						void queryClient.invalidateQueries({
+							queryKey: [RouterModelsMessageType.routerModels, allRouterModelsProvider],
+						})
 					}
 				}
 			}
@@ -94,19 +109,19 @@ export const Poe = ({
 
 	const handleRefreshModels = useCallback(() => {
 		poeErrorJustReceived.current = false
-		setRefreshStatus("loading")
+		setRefreshStatus(RefreshStatus.Loading)
 		setRefreshError(undefined)
 
 		const key = apiConfiguration.poeApiKey
 
 		if (!key) {
-			setRefreshStatus("error")
+			setRefreshStatus(RefreshStatus.Error)
 			setRefreshError(t("settings:providers.refreshModels.missingConfig"))
 			return
 		}
 
 		vscode.postMessage({
-			type: "requestRouterModels",
+			type: RouterModelsMessageType.requestRouterModels,
 			values: { poeApiKey: key, poeBaseUrl: apiConfiguration.poeBaseUrl },
 		})
 	}, [apiConfiguration, t])
@@ -132,9 +147,9 @@ export const Poe = ({
 			<Button
 				variant="outline"
 				onClick={handleRefreshModels}
-				disabled={refreshStatus === "loading" || !apiConfiguration.poeApiKey}>
+				disabled={refreshStatus === RefreshStatus.Loading || !apiConfiguration.poeApiKey}>
 				<div className="flex items-center gap-2">
-					{refreshStatus === "loading" ? (
+					{refreshStatus === RefreshStatus.Loading ? (
 						<span className="codicon codicon-loading codicon-modifier-spin" />
 					) : (
 						<span className="codicon codicon-refresh" />
@@ -142,15 +157,15 @@ export const Poe = ({
 					{t("settings:providers.refreshModels.label")}
 				</div>
 			</Button>
-			{refreshStatus === "loading" && (
+			{refreshStatus === RefreshStatus.Loading && (
 				<div className="text-sm text-vscode-descriptionForeground">
 					{t("settings:providers.refreshModels.loading")}
 				</div>
 			)}
-			{refreshStatus === "success" && (
+			{refreshStatus === RefreshStatus.Success && (
 				<div className="text-sm text-vscode-foreground">{t("settings:providers.refreshModels.success")}</div>
 			)}
-			{refreshStatus === "error" && (
+			{refreshStatus === RefreshStatus.Error && (
 				<div className="text-sm text-vscode-errorForeground">
 					{refreshError || t("settings:providers.refreshModels.error")}
 				</div>
@@ -167,7 +182,7 @@ export const Poe = ({
 				errorMessage={modelValidationError}
 				simplifySettings={simplifySettings}
 				onModelChange={(modelId) =>
-					handleModelChangeSideEffects("poe" as ProviderName, modelId, setApiConfigurationField)
+					handleModelChangeSideEffects(providerIdentifiers.poe, modelId, setApiConfigurationField)
 				}
 			/>
 		</>

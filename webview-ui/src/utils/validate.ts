@@ -3,14 +3,9 @@ import i18next from "i18next"
 import {
 	type ProviderSettings,
 	type OrganizationAllowList,
-	type ProviderName,
 	type RouterModels,
-	modelIdKeysByProvider,
-	isProviderName,
-	isRetiredProvider,
+	getModelId,
 	isDynamicProvider,
-	isFauxProvider,
-	isCustomProvider,
 	providerIdentifiers,
 } from "@roo-code/types"
 
@@ -144,7 +139,12 @@ function validateModelsAndKeysProvided(apiConfiguration: ProviderSettings): stri
 				return i18next.t("settings:validation.apiKey")
 			}
 			break
-		case "baseten":
+		case providerIdentifiers.nanogpt:
+			if (!apiConfiguration.nanoGptApiKey) {
+				return i18next.t("settings:validation.apiKey")
+			}
+			break
+		case providerIdentifiers.baseten:
 			if (!apiConfiguration.basetenApiKey) {
 				return i18next.t("settings:validation.apiKey")
 			}
@@ -180,8 +180,7 @@ function validateProviderAgainstOrganizationSettings(
 		}
 
 		if (!providerConfig.allowAll) {
-			const activeProvider = isRetiredProvider(provider) ? undefined : provider
-			const modelId = activeProvider ? getModelIdForProvider(apiConfiguration, activeProvider) : undefined
+			const modelId = getModelId(apiConfiguration)
 			const allowedModels = providerConfig.models || []
 
 			if (modelId && !allowedModels.includes(modelId)) {
@@ -195,18 +194,6 @@ function validateProviderAgainstOrganizationSettings(
 			}
 		}
 	}
-}
-
-function getModelIdForProvider(apiConfiguration: ProviderSettings, provider: ProviderName): string | undefined {
-	if (provider === providerIdentifiers.vscodeLm) {
-		return apiConfiguration.vsCodeLmModelSelector?.id
-	}
-
-	if (isCustomProvider(provider) || isFauxProvider(provider)) {
-		return apiConfiguration.apiModelId
-	}
-
-	return apiConfiguration[modelIdKeysByProvider[provider]]
 }
 
 /**
@@ -252,7 +239,7 @@ function validateDynamicProviderModelId(
 		return undefined
 	}
 
-	const modelId = getModelIdForProvider(apiConfiguration, provider)
+	const modelId = getModelId(apiConfiguration)
 
 	if (!modelId) {
 		return i18next.t("settings:validation.modelId")
@@ -276,9 +263,7 @@ export function getModelValidationError(
 	routerModels?: RouterModels,
 	organizationAllowList?: OrganizationAllowList,
 ): string | undefined {
-	const modelId = isProviderName(apiConfiguration.apiProvider)
-		? getModelIdForProvider(apiConfiguration, apiConfiguration.apiProvider)
-		: apiConfiguration.apiModelId
+	const modelId = getModelId(apiConfiguration) ?? apiConfiguration.apiModelId
 
 	const configWithModelId = {
 		...apiConfiguration,

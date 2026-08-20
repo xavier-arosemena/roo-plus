@@ -5,3 +5,5 @@ export const DEFAULT_HEADERS = {
 	"X-Title": "Roo+",
 	"User-Agent": `RooPlus/${Package.version}`,
 }
+
+export const NOT_PROVIDED = "not-provided"

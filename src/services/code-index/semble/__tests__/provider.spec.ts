@@ -4,6 +4,8 @@ import { SembleProvider } from "../provider"
 import { SembleCLI } from "../semble-cli"
 import { SEMBLE_DEFAULTS } from "../types"
 
+import { clearAllMocks } from "../../../../test-utils/reset"
+
 // Mock SembleCLI - use a shared mock instance
 const sharedMockCli = {
 	checkInstalled: vi.fn(),
@@ -84,7 +86,7 @@ describe("SembleProvider", () => {
 	let mockContext: any
 
 	beforeEach(() => {
-		vi.clearAllMocks()
+		clearAllMocks()
 		;(isSembleSupportedPlatform as any).mockReturnValue(true)
 		;(downloadSemble as any).mockResolvedValue("/mock/storage/semble/semble")
 		vi.mocked(getInstalledSembleVersion).mockResolvedValue("v0.5.2")

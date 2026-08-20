@@ -3,6 +3,7 @@ import React, {
 	useCallback,
 	useEffect,
 	useImperativeHandle,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -16,8 +17,9 @@ import useSound from "use-sound"
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
 import { appendImages } from "@src/utils/imageUtils"
 import { getCostBreakdownIfNeeded } from "@src/utils/costFormatting"
-import { batchConsecutive } from "@src/utils/batchConsecutive"
 import { createSeenTsStore } from "@src/utils/seenTsStore"
+import { batchNearby } from "@src/utils/batchNearby"
+import { isBoundary, isIgnorableBetweenTargets } from "@src/utils/chatBatchingPredicates"
 
 import type { ClineAsk, ClineSayTool, ClineMessage, AudioType, SuggestionItem } from "@roo-code/types"
 import { getCompletionCheckpoint, getSuggestionMode, isRetiredProvider, parseExtensionMessage } from "@roo-code/types"
@@ -90,6 +92,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const {
 		clineMessages: messages,
+		currentTaskId,
 		currentTaskItem,
 		currentTaskTodos,
 		taskHistory,
@@ -118,6 +121,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	})
 
 	const messagesRef = useRef(messages)
+	const currentTaskIdRef = useRef(currentTaskId)
+
+	useLayoutEffect(() => {
+		currentTaskIdRef.current = currentTaskId
+	}, [currentTaskId])
 
 	useEffect(() => {
 		messagesRef.current = messages
@@ -541,6 +549,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		setExpandedRows({})
 		setCurrentFollowUpTs(null)
 		setIsCondensing(false)
+		setAggregatedCostsMap(new Map())
 	}
 
 	useEffect(() => {
@@ -967,7 +976,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					// Handle both manual and automatic condensation start
 					// We don't check the task ID because:
 					// 1. There can only be one active task at a time
-					// 2. Task switching resets isCondensing to false (see useEffect with task?.ts dependency)
+					// 2. Task switching resets isCondensing to false (see useEffect with currentTaskId dependency)
 					// 3. For new tasks, currentTaskItem may not be populated yet due to async state updates
 					if (message.text) {
 						setIsCondensing(true)
@@ -991,12 +1000,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					playSound("notification")
 					break
 				case "taskWithAggregatedCosts":
-					if (message.text && message.aggregatedCosts) {
-						setAggregatedCostsMap((prev) => {
-							const newMap = new Map(prev)
-							newMap.set(message.text!, message.aggregatedCosts!)
-							return newMap
-						})
+					if (message.text && message.text === currentTaskIdRef.current && message.aggregatedCosts) {
+						setAggregatedCostsMap(new Map([[message.text, message.aggregatedCosts]]))
 					}
 					break
 			}
@@ -1310,10 +1315,27 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			}
 		}
 
-		// Consolidate consecutive ask messages into batches
-		const readFileBatched = batchConsecutive(filtered, isReadFileAsk, synthesizeReadFileBatch)
-		const listFilesBatched = batchConsecutive(readFileBatched, isListFilesAsk, synthesizeListFilesBatch)
-		const result = batchConsecutive(listFilesBatched, isEditFileAsk, synthesizeEditFileBatch)
+		// Consolidate tool asks into batches, allowing ignorable messages between targets.
+		// batchNearby skips over api_req_started, empty text rows, and reasoning rows that
+		// models like qwen insert between tool calls during streaming.
+		const readFileBatched = batchNearby(filtered, {
+			isTarget: isReadFileAsk,
+			isIgnorableBetweenTargets,
+			isBoundary,
+			synthesize: synthesizeReadFileBatch,
+		})
+		const listFilesBatched = batchNearby(readFileBatched, {
+			isTarget: isListFilesAsk,
+			isIgnorableBetweenTargets,
+			isBoundary,
+			synthesize: synthesizeListFilesBatch,
+		})
+		const result = batchNearby(listFilesBatched, {
+			isTarget: isEditFileAsk,
+			isIgnorableBetweenTargets,
+			isBoundary,
+			synthesize: synthesizeEditFileBatch,
+		})
 
 		if (isCondensing) {
 			result.push({
@@ -1648,6 +1670,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}
 
 	const areButtonsVisible = showScrollToBottom || primaryButtonText || secondaryButtonText
+	const currentTaskAggregatedCosts = currentTaskId ? aggregatedCostsMap.get(currentTaskId) : undefined
 
 	return (
 		<div
@@ -1675,22 +1698,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						cacheWrites={apiMetrics.totalCacheWrites}
 						cacheReads={apiMetrics.totalCacheReads}
 						totalCost={apiMetrics.totalCost}
-						aggregatedCost={
-							currentTaskItem?.id && aggregatedCostsMap.has(currentTaskItem.id)
-								? aggregatedCostsMap.get(currentTaskItem.id)!.totalCost
-								: undefined
-						}
-						hasSubtasks={
-							!!(
-								currentTaskItem?.id &&
-								aggregatedCostsMap.has(currentTaskItem.id) &&
-								aggregatedCostsMap.get(currentTaskItem.id)!.childrenCost > 0
-							)
-						}
+						aggregatedCost={currentTaskAggregatedCosts?.totalCost}
+						hasSubtasks={(currentTaskAggregatedCosts?.childrenCost ?? 0) > 0}
 						parentTaskId={currentTaskItem?.parentTaskId}
 						costBreakdown={
-							currentTaskItem?.id && aggregatedCostsMap.has(currentTaskItem.id)
-								? getCostBreakdownIfNeeded(aggregatedCostsMap.get(currentTaskItem.id)!, {
+							currentTaskAggregatedCosts
+								? getCostBreakdownIfNeeded(currentTaskAggregatedCosts, {
 										own: t("common:costs.own"),
 										subtasks: t("common:costs.subtasks"),
 									})

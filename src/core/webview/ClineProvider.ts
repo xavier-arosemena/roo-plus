@@ -6,6 +6,8 @@ import EventEmitter from "events"
 import { Anthropic } from "@anthropic-ai/sdk"
 import delay from "delay"
 import axios from "axios"
+import debounce from "lodash.debounce"
+import pWaitFor from "p-wait-for"
 import * as vscode from "vscode"
 
 import {
@@ -41,6 +43,7 @@ import {
 	parseWebviewMessage,
 	DEFAULT_WRITE_DELAY_MS,
 	DEFAULT_DIFF_FUZZY_THRESHOLD,
+	DEFAULT_DESTRUCTIVE_COMMAND_GUARD_ENABLED,
 	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES,
 	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED,
 	DEFAULT_AUTO_CLOSE_ZOO_OPENED_NEW_FILES,
@@ -61,7 +64,7 @@ import { Package } from "../../shared/package"
 import { findLast } from "../../shared/array"
 import { supportPrompt } from "../../shared/support-prompt"
 import { GlobalFileNames } from "../../shared/globalFileNames"
-import { Mode, defaultModeSlug } from "../../shared/modes"
+import { Mode, defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import { experimentDefault } from "../../shared/experiments"
 import { formatLanguage } from "../../shared/language"
 import { EMBEDDING_MODEL_PROFILES } from "../../shared/embeddingModels"
@@ -120,6 +123,42 @@ export type ClineProviderEvents = {
 	clineCreated: [cline: Task]
 }
 
+function runDelegationTransition<T>(
+	locks: Map<string, Promise<void>>,
+	parentTaskId: string,
+	fn: () => Promise<T>,
+): Promise<T> {
+	const previous = locks.get(parentTaskId) ?? Promise.resolve()
+	// Fail-forward: run fn even if the previous transition rejected. A failed
+	// cancelTask must not permanently block a subsequent reopenParentFromDelegation.
+	// The cancelledDelegationChildIds guard inside each fn is the safety net.
+	const current = previous.then(fn, fn)
+	const tail = current.then(
+		() => {},
+		() => {},
+	)
+
+	locks.set(parentTaskId, tail)
+
+	void tail.finally(() => {
+		if (locks.get(parentTaskId) === tail) {
+			locks.delete(parentTaskId)
+		}
+	})
+
+	return current
+}
+
+function scheduleTask(scheduler: TaskScheduler, task: Task, source: string): void {
+	void scheduler
+		.schedule(task, () => task.run())
+		.catch((error) => console.error(`[${source}] taskScheduler.schedule failed:`, error))
+}
+
+type GetStateOptions = {
+	includeTaskHistory?: boolean
+}
+
 export class ClineProvider
 	extends EventEmitter<TaskProviderEvents>
 	implements vscode.WebviewViewProvider, TelemetryPropertiesProvider, TaskProviderLike
@@ -151,13 +190,32 @@ export class ClineProvider
 	private taskEventListeners: WeakMap<Task, Array<() => void>> = new WeakMap()
 	private currentWorkspacePath: string | undefined
 	private _disposed = false
+	private readonly _postStateToWebviewThrottled = debounce(
+		async () => {
+			try {
+				await this.postStateToWebviewWithoutTaskHistory()
+			} catch (error) {
+				this.log(
+					`[ClineProvider#postStateToWebviewThrottled] Failed to post state: ${
+						error instanceof Error ? error.message : String(error)
+					}`,
+				)
+			}
+		},
+		500,
+		{ leading: true, trailing: true, maxWait: 1000 },
+	)
 	private readonly rateLimitClock: RateLimitClock = createRateLimitClock()
 
 	private recentTasksCache?: string[]
 	public readonly taskHistoryStore: TaskHistoryStore
 	private taskHistoryStoreInitialized = false
 	private readonly taskHistoryService: TaskHistoryService
-	private static readonly PENDING_OPERATION_TIMEOUT_MS = 30000 // 30 seconds
+	private globalStateWriteThroughTimer: ReturnType<typeof setTimeout> | null = null
+	private static readonly GLOBAL_STATE_WRITE_THROUGH_DEBOUNCE_MS = 5000 // 5 seconds
+	public static readonly PENDING_OPERATION_TIMEOUT_MS = 30000 // 30 seconds
+	private providerProfileMutationQueue = Promise.resolve()
+	private historyTaskCreationQueue = Promise.resolve()
 
 	private runDelegationTransition<T>(parentTaskId: string, fn: () => Promise<T>): Promise<T> {
 		return ClineProvider.getTaskOrchestrator(this).runDelegationTransition(parentTaskId, fn)
@@ -242,6 +300,61 @@ export class ClineProvider
 			getRateLimitClock: () => provider.rateLimitClock,
 		})
 	}
+
+	private enqueueProviderProfileMutation<T>(fn: (signal: AbortSignal) => Promise<T>): Promise<T> {
+		const controller = new AbortController()
+		// Run fn after either outcome so a rejected mutation never poisons the queue.
+		const run = this.providerProfileMutationQueue.then(
+			() => fn(controller.signal),
+			() => fn(controller.signal),
+		)
+		const callerResult = this.withProviderProfileMutationTimeout(run, () => {
+			controller.abort()
+			this.log("Provider profile mutation timed out; aborting in-flight mutation")
+		})
+
+		void run.then(
+			() => {
+				if (controller.signal.aborted) {
+					this.log("Provider profile mutation completed after cancellation")
+				}
+			},
+			(error) => {
+				if (controller.signal.aborted) {
+					this.log(
+						`Provider profile mutation errored after cancellation: ${
+							error instanceof Error ? error.message : String(error)
+						}`,
+					)
+				}
+			},
+		)
+
+		// Advance from the timeout-bounded result. Each fn checks its AbortSignal before
+		// writing state, so advancing the queue on timeout cannot produce stale overwrites.
+		this.providerProfileMutationQueue = callerResult.then(
+			() => undefined,
+			() => undefined,
+		)
+		return callerResult
+	}
+
+	private withProviderProfileMutationTimeout<T>(operation: Promise<T>, onTimeout: () => void): Promise<T> {
+		let timeoutId: ReturnType<typeof setTimeout> | undefined
+		const timeout = new Promise<never>((_, reject) => {
+			timeoutId = setTimeout(() => {
+				onTimeout()
+				reject(new Error("Provider profile mutation timed out"))
+			}, ClineProvider.PENDING_OPERATION_TIMEOUT_MS)
+		})
+
+		return Promise.race([operation, timeout]).finally(() => {
+			if (timeoutId) {
+				clearTimeout(timeoutId)
+			}
+		})
+	}
+
 	private readonly pendingEditOperations: PendingEditOperationStore
 
 	/**
@@ -639,6 +752,7 @@ export class ClineProvider
 		}
 
 		this._disposed = true
+		this._postStateToWebviewThrottled.cancel()
 		this.log("Disposing ClineProvider...")
 
 		// Reject any tasks still waiting for a scheduler permit so they don't
@@ -942,11 +1056,263 @@ export class ClineProvider
 		}
 	}
 
-	public async createTaskWithHistoryItem(
+	public createTaskWithHistoryItem(
 		historyItem: HistoryItem & { rootTask?: Task; parentTask?: Task },
 		options?: { startTask?: boolean },
-	) {
-		return ClineProvider.getTaskOrchestrator(this).createTaskWithHistoryItem(historyItem, options)
+	): Promise<Task> {
+		// History navigation can arrive concurrently (for example, two rapid
+		// showTaskWithId messages). Serialize the full eviction/installation
+		// transition so both callers cannot observe the same previous registry
+		// state and schedule distinct Task instances for one history item.
+		// Fail forward so one rejected restoration does not poison the queue.
+		const previous = this.historyTaskCreationQueue ?? Promise.resolve()
+		const run = previous.then(
+			() => ClineProvider.prototype.createTaskWithHistoryItemUnlocked.call(this, historyItem, options),
+		)
+		this.historyTaskCreationQueue = run.then(
+			() => {},
+			() => {},
+		)
+		return run
+	}
+
+	private async createTaskWithHistoryItemUnlocked(
+		historyItem: HistoryItem & { rootTask?: Task; parentTask?: Task },
+		options?: { startTask?: boolean },
+	): Promise<Task> {
+		const isCliRuntime = process.env.ROO_CLI_RUNTIME === "1"
+		// CLI injects runtime provider settings from command flags/env at startup.
+		// Restoring provider profiles from task history can overwrite those
+		// runtime settings with stale/incomplete persisted profiles.
+		const skipProfileRestoreFromHistory = isCliRuntime
+
+		// Check if we're rehydrating the current task to avoid flicker
+		const currentTask = this.getCurrentTask()
+		const isRehydratingCurrentTask = currentTask && currentTask.taskId === historyItem.id
+
+		if (!isRehydratingCurrentTask) {
+			await this.evictCurrentTask()
+		}
+
+		// If the history item has a saved mode, restore it and its associated API configuration.
+		if (historyItem.mode) {
+			// Validate that the mode still exists
+			const customModes = await this.customModesManager.getCustomModes()
+			const modeExists = getModeBySlug(historyItem.mode, customModes) !== undefined
+
+			if (!modeExists) {
+				// Mode no longer exists, fall back to default mode.
+				this.log(
+					`Mode '${historyItem.mode}' from history no longer exists. Falling back to default mode '${defaultModeSlug}'.`,
+				)
+				historyItem.mode = defaultModeSlug
+			}
+
+			await this.updateGlobalState("mode", historyItem.mode)
+
+			// Load the saved API config for the restored mode if it exists.
+			// Skip mode-based profile activation if historyItem.apiConfigName exists,
+			// since the task's specific provider profile will override it anyway.
+			const lockApiConfigAcrossModes = this.context.workspaceState.get("lockApiConfigAcrossModes", false)
+
+			if (!historyItem.apiConfigName && !lockApiConfigAcrossModes && !skipProfileRestoreFromHistory) {
+				const savedConfigId = await this.providerSettingsManager.getModeConfigId(historyItem.mode)
+				const listApiConfig = await this.providerSettingsManager.listConfig()
+
+				// Update listApiConfigMeta first to ensure UI has latest data.
+				await this.updateGlobalState("listApiConfigMeta", listApiConfig)
+
+				// If this mode has a saved config, use it.
+				if (savedConfigId) {
+					const profile = listApiConfig.find(({ id }) => id === savedConfigId)
+
+					if (profile?.name) {
+						try {
+							// Check if the profile has actual API configuration (not just an id).
+							// In CLI mode, the ProviderSettingsManager may return empty default profiles
+							// that only contain 'id' and 'name' fields. Activating such a profile would
+							// overwrite the CLI's working API configuration with empty settings.
+							const fullProfile = await this.providerSettingsManager.getProfile({ name: profile.name })
+							const hasActualSettings = !!fullProfile.apiProvider
+
+							if (hasActualSettings) {
+								await this.activateProviderProfile({ name: profile.name })
+							} else {
+								// The task will continue with the current/default configuration.
+							}
+						} catch (error) {
+							// Log the error but continue with task restoration.
+							this.log(
+								`Failed to restore API configuration for mode '${historyItem.mode}': ${
+									error instanceof Error ? error.message : String(error)
+								}. Continuing with default configuration.`,
+							)
+							// The task will continue with the current/default configuration.
+						}
+					}
+				}
+			}
+		}
+
+		// If the history item has a saved API config name (provider profile), restore it.
+		// This overrides any mode-based config restoration above, because the task's
+		// specific provider profile takes precedence over mode defaults.
+		if (historyItem.apiConfigName && !skipProfileRestoreFromHistory) {
+			const listApiConfig = await this.providerSettingsManager.listConfig()
+			// Keep global state/UI in sync with latest profiles for parity with mode restoration above.
+			await this.updateGlobalState("listApiConfigMeta", listApiConfig)
+			const profile = listApiConfig.find(({ name }) => name === historyItem.apiConfigName)
+
+			if (profile?.name) {
+				try {
+					if (profile.apiProvider) {
+						await this.activateProviderProfile(
+							{ name: profile.name },
+							{ persistModeConfig: false, persistTaskHistory: false },
+						)
+					}
+				} catch (error) {
+					// Log the error but continue with task restoration.
+					this.log(
+						`Failed to restore API configuration '${historyItem.apiConfigName}' for task: ${
+							error instanceof Error ? error.message : String(error)
+						}. Continuing with current configuration.`,
+					)
+				}
+			} else {
+				// Profile no longer exists, log warning but continue
+				this.log(
+					`Provider profile '${historyItem.apiConfigName}' from history no longer exists. Using current configuration.`,
+				)
+			}
+		} else if (historyItem.apiConfigName && skipProfileRestoreFromHistory) {
+			this.log(
+				`Skipping restore of provider profile '${historyItem.apiConfigName}' for task ${historyItem.id} in CLI runtime.`,
+			)
+		}
+
+		const {
+			apiConfiguration,
+			enableCheckpoints,
+			checkpointTimeout,
+			experiments,
+			taskSyncEnabled,
+			diffFuzzyThreshold,
+		} = await this.getState()
+
+		const task = new Task({
+			provider: this,
+			apiConfiguration,
+			enableCheckpoints,
+			checkpointTimeout,
+			consecutiveMistakeLimit: apiConfiguration.consecutiveMistakeLimit,
+			historyItem,
+			experiments,
+			rootTask: historyItem.rootTask,
+			parentTask: historyItem.parentTask,
+			taskNumber: historyItem.number,
+			workspacePath: historyItem.workspace,
+			onCreated: this.taskCreationCallback,
+			startTask: false,
+			// Preserve the status from the history item to avoid overwriting it when the task saves messages
+			initialStatus: historyItem.status,
+			rateLimitClock: this.rateLimitClock,
+			diffFuzzyThreshold,
+		})
+
+		if (isRehydratingCurrentTask) {
+			// Replace the current task in-place to avoid UI flicker
+			const oldTask = this.taskRegistry.current
+
+			if (oldTask) {
+				// Abort the old task to stop running processes and mark as abandoned
+				try {
+					await oldTask.abortTask(true)
+				} catch (e) {
+					this.log(
+						`[createTaskWithHistoryItem] abortTask() failed for old task ${oldTask.taskId}.${oldTask.instanceId}: ${e.message}`,
+					)
+				}
+
+				// Remove event listeners from the old task
+				const cleanupFunctions = this.taskEventListeners.get(oldTask)
+				if (cleanupFunctions) {
+					cleanupFunctions.forEach((cleanup) => cleanup())
+					this.taskEventListeners.delete(oldTask)
+				}
+
+				// Replace in-place: preserves stack index and current pointer
+				this.taskRegistry.replace(oldTask.taskId, task)
+			}
+
+			task.emit(RooCodeEventName.TaskFocused)
+
+			// Perform preparation tasks and set up event listeners
+			await this.performPreparationTasks(task)
+
+			this.log(
+				`[createTaskWithHistoryItem] rehydrated task ${task.taskId}.${task.instanceId} in-place (flicker-free)`,
+			)
+
+			if (options?.startTask !== false) {
+				scheduleTask(this.taskScheduler, task, "createTaskWithHistoryItem")
+			}
+		} else {
+			await this.addClineToStack(task)
+
+			this.log(
+				`[createTaskWithHistoryItem] ${task.parentTask ? "child" : "parent"} task ${task.taskId}.${task.instanceId} instantiated`,
+			)
+
+			if (options?.startTask !== false) {
+				scheduleTask(this.taskScheduler, task, "createTaskWithHistoryItem")
+			}
+		}
+
+		// Check if there's a pending edit after checkpoint restoration
+		const operationId = `task-${task.taskId}`
+		const pendingEdit = this.getPendingEditOperation(operationId)
+		if (pendingEdit) {
+			this.clearPendingEditOperation(operationId) // Clear the pending edit
+
+			this.log(`[createTaskWithHistoryItem] Processing pending edit after checkpoint restoration`)
+
+			// Process the pending edit after a short delay to ensure the task is fully initialized
+			setTimeout(async () => {
+				try {
+					// Find the message index in the restored state
+					const { messageIndex, apiConversationHistoryIndex } = (() => {
+						const messageIndex = task.clineMessages.findIndex((msg) => msg.ts === pendingEdit.messageTs)
+						const apiConversationHistoryIndex = task.apiConversationHistory.findIndex(
+							(msg) => msg.ts === pendingEdit.messageTs,
+						)
+						return { messageIndex, apiConversationHistoryIndex }
+					})()
+
+					if (messageIndex !== -1) {
+						// Remove the target message and all subsequent messages
+						await task.overwriteClineMessages(task.clineMessages.slice(0, messageIndex))
+
+						if (apiConversationHistoryIndex !== -1) {
+							await task.overwriteApiConversationHistory(
+								task.apiConversationHistory.slice(0, apiConversationHistoryIndex),
+							)
+						}
+
+						// Process the edited message
+						await task.handleWebviewAskResponse(
+							"messageResponse",
+							pendingEdit.editedContent,
+							pendingEdit.images,
+						)
+					}
+				} catch (error) {
+					this.log(`[createTaskWithHistoryItem] Error processing pending edit: ${error}`)
+				}
+			}, 100) // Small delay to ensure task is fully ready
+		}
+
+		return task
 	}
 
 	public async postMessageToWebview(message: ExtensionMessage) {
@@ -1200,9 +1566,21 @@ export class ClineProvider
 	/**
 	 * Handle switching to a new mode, including updating the associated API configuration
 	 * @param newMode The mode to switch to
+	 * @param targetTask The task whose in-memory mode should be updated. Defaults to the
+	 * current task. Pass null to apply only global mode/profile effects for a pending child.
 	 */
-	public async handleModeSwitch(newMode: Mode) {
-		const task = this.getCurrentTask()
+	public async handleModeSwitch(newMode: Mode, targetTask: Task | null | undefined = this.getCurrentTask()) {
+		return this.enqueueProviderProfileMutation((signal) =>
+			this.handleModeSwitchUnlocked(newMode, targetTask, signal),
+		)
+	}
+
+	private async handleModeSwitchUnlocked(
+		newMode: Mode,
+		targetTask: Task | null | undefined,
+		signal?: AbortSignal,
+	): Promise<void> {
+		const task = targetTask
 
 		if (task) {
 			TelemetryService.instance.captureModeSwitch(task.taskId, newMode)
@@ -1239,13 +1617,19 @@ export class ClineProvider
 		// If workspace lock is on, keep the current API config — don't load mode-specific config
 		const lockApiConfigAcrossModes = this.context.workspaceState.get("lockApiConfigAcrossModes", false)
 		if (lockApiConfigAcrossModes) {
-			await this.postStateToWebview()
+			if (targetTask !== null) {
+				await this.postStateToWebview()
+			}
 			return
 		}
+
+		if (signal?.aborted) return
 
 		// Load the saved API config for the new mode if it exists.
 		const savedConfigId = await this.providerSettingsManager.getModeConfigId(newMode)
 		const listApiConfig = await this.providerSettingsManager.listConfig()
+
+		if (signal?.aborted) return
 
 		// Update listApiConfigMeta first to ensure UI has latest data.
 		await this.updateGlobalState("listApiConfigMeta", listApiConfig)
@@ -1265,7 +1649,11 @@ export class ClineProvider
 				const hasActualSettings = !!fullProfile.apiProvider
 
 				if (hasActualSettings) {
-					await this.activateProviderProfile({ name: profile.name })
+					await this.activateProviderProfileUnlocked(
+						{ name: profile.name },
+						targetTask === null ? { skipCurrentTaskRebuild: true } : undefined,
+						signal,
+					)
 				} else {
 					// The task will continue with the current/default configuration.
 				}
@@ -1285,7 +1673,9 @@ export class ClineProvider
 			}
 		}
 
-		await this.postStateToWebview()
+		if (targetTask !== null) {
+			await this.postStateToWebview()
+		}
 	}
 
 	// Provider Profile Management
@@ -1301,8 +1691,9 @@ export class ClineProvider
 	 */
 	private updateTaskApiHandlerIfNeeded(
 		providerSettings: ProviderSettings,
-		options: { forceRebuild?: boolean } = {},
+		options: { forceRebuild?: boolean; skipCurrentTaskRebuild?: boolean } = {},
 	): void {
+		if (options.skipCurrentTaskRebuild) return
 		const task = this.getCurrentTask()
 		if (!task) return
 
@@ -1345,18 +1736,176 @@ export class ClineProvider
 		providerSettings: ProviderSettings,
 		activate: boolean = true,
 	): Promise<string | undefined> {
-		return this.providerProfileService.upsertProviderProfile(name, providerSettings, activate)
+		try {
+			return await this.enqueueProviderProfileMutation(async (signal) => {
+				// TODO: Do we need to be calling `activateProfile`? It's not
+				// clear to me what the source of truth should be; in some cases
+				// we rely on the `ContextProxy`'s data store and in other cases
+				// we rely on the `ProviderSettingsManager`'s data store. It might
+				// be simpler to unify these two.
+				const id = await this.providerSettingsManager.saveConfig(name, providerSettings)
+
+				if (signal.aborted) return id
+
+				if (activate) {
+					const { mode } = await this.getState()
+
+					// These promises do the following:
+					// 1. Adds or updates the list of provider profiles.
+					// 2. Sets the current provider profile.
+					// 3. Sets the current mode's provider profile.
+					// 4. Copies the provider settings to the context.
+					//
+					// Note: 1, 2, and 4 can be done in one `ContextProxy` call:
+					// this.contextProxy.setValues({ ...providerSettings, listApiConfigMeta: ..., currentApiConfigName: ... })
+					// We should probably switch to that and verify that it works.
+					// I left the original implementation in just to be safe.
+					await Promise.all([
+						this.updateGlobalState("listApiConfigMeta", await this.providerSettingsManager.listConfig()),
+						this.updateGlobalState("currentApiConfigName", name),
+						this.providerSettingsManager.setModeConfig(mode, id),
+						this.contextProxy.setProviderSettings(providerSettings),
+					])
+
+					// Change the provider for the current task.
+					// TODO: We should rename `buildApiHandler` for clarity (e.g. `getProviderClient`).
+					this.updateTaskApiHandlerIfNeeded(providerSettings, { forceRebuild: true })
+
+					// Keep the current task's sticky provider profile in sync with the newly-activated profile.
+					await this.persistStickyProviderProfileToCurrentTask(name)
+				} else {
+					await this.updateGlobalState("listApiConfigMeta", await this.providerSettingsManager.listConfig())
+				}
+
+				await this.postStateToWebview()
+				return id
+			})
+		} catch (error) {
+			this.log(
+				`Error create new api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+			)
+
+			vscode.window.showErrorMessage(t("common:errors.create_api_config"))
+			return undefined
+		}
 	}
 
 	async deleteProviderProfile(profileToDelete: ProviderSettingsEntry) {
-		return this.providerProfileService.deleteProviderProfile(profileToDelete)
+		const globalSettings = this.contextProxy.getValues()
+		let profileToActivate: string | undefined = globalSettings.currentApiConfigName
+
+		if (profileToDelete.name === profileToActivate) {
+			profileToActivate = this.getProviderProfileEntries().find(({ name }) => name !== profileToDelete.name)?.name
+		}
+
+		if (!profileToActivate) {
+			throw new Error("You cannot delete the last profile")
+		}
+
+		const entries = this.getProviderProfileEntries().filter(({ name }) => name !== profileToDelete.name)
+
+		await this.contextProxy.setValues({
+			...globalSettings,
+			currentApiConfigName: profileToActivate,
+			listApiConfigMeta: entries,
+		})
+
+		await this.postStateToWebview()
+	}
+
+	private async persistStickyProviderProfileToCurrentTask(
+		apiConfigName: string,
+		options: { skipCurrentTaskRebuild?: boolean } = {},
+	): Promise<void> {
+		if (options.skipCurrentTaskRebuild) return
+		const task = this.getCurrentTask()
+		if (!task) {
+			return
+		}
+
+		try {
+			// Update in-memory state immediately so sticky behavior works even before the task has
+			// been persisted into taskHistory (it will be captured on the next save).
+			task.setTaskApiConfigName(apiConfigName)
+
+			const taskHistoryItem =
+				this.taskHistoryStore.get(task.taskId) ??
+				(this.getGlobalState("taskHistory") ?? []).find((item) => item.id === task.taskId)
+
+			if (taskHistoryItem) {
+				await this.updateTaskHistory({ ...taskHistoryItem, apiConfigName })
+			}
+		} catch (error) {
+			// If persistence fails, log the error but don't fail the profile switch.
+			this.log(
+				`Failed to persist provider profile switch for task ${task.taskId}: ${
+					error instanceof Error ? error.message : String(error)
+				}`,
+			)
+		}
 	}
 
 	async activateProviderProfile(
 		args: { name: string } | { id: string },
-		options?: { persistModeConfig?: boolean; persistTaskHistory?: boolean },
+		options?: {
+			persistModeConfig?: boolean
+			persistTaskHistory?: boolean
+			skipCurrentTaskRebuild?: boolean
+		},
 	) {
-		return this.providerProfileService.activateProviderProfile(args, options)
+		return this.enqueueProviderProfileMutation((signal) =>
+			this.activateProviderProfileUnlocked(args, options, signal),
+		)
+	}
+
+	private async activateProviderProfileUnlocked(
+		args: { name: string } | { id: string },
+		options?: {
+			persistModeConfig?: boolean
+			persistTaskHistory?: boolean
+			skipCurrentTaskRebuild?: boolean
+		},
+		signal?: AbortSignal,
+	): Promise<void> {
+		const { name, id, ...providerSettings } = await this.providerSettingsManager.activateProfile(args)
+
+		if (signal?.aborted) return
+
+		const persistModeConfig = options?.persistModeConfig ?? true
+		const persistTaskHistory = options?.persistTaskHistory ?? true
+		const skipCurrentTaskRebuild = options?.skipCurrentTaskRebuild ?? false
+
+		if (!skipCurrentTaskRebuild) {
+			// See `upsertProviderProfile` for a description of what this is doing.
+			await Promise.all([
+				this.contextProxy.setValue("listApiConfigMeta", await this.providerSettingsManager.listConfig()),
+				this.contextProxy.setValue("currentApiConfigName", name),
+				this.contextProxy.setProviderSettings(providerSettings),
+			])
+		}
+
+		const { mode } = await this.getState()
+
+		if (id && persistModeConfig) {
+			await this.providerSettingsManager.setModeConfig(mode, id)
+		}
+
+		// Change the provider for the current task.
+		this.updateTaskApiHandlerIfNeeded(providerSettings, { forceRebuild: true, skipCurrentTaskRebuild })
+
+		// Update the current task's sticky provider profile, unless this activation is
+		// being used purely as a non-persisting restoration (e.g., reopening a task from history).
+		if (persistTaskHistory) {
+			await this.persistStickyProviderProfileToCurrentTask(name, { skipCurrentTaskRebuild })
+		}
+
+		if (!skipCurrentTaskRebuild) {
+			await this.postStateToWebview()
+		}
+
+		if (providerSettings.apiProvider && !skipCurrentTaskRebuild) {
+			this.emit(RooCodeEventName.ProviderProfileChanged, { name, provider: providerSettings.apiProvider })
+		}
 	}
 
 	async updateCustomInstructions(instructions?: string) {
@@ -1661,11 +2210,33 @@ export class ClineProvider
 	 *   `taskHistoryUpdated` / `taskHistoryItemUpdated`.
 	 */
 	async postStateToWebviewWithoutTaskHistory(): Promise<void> {
-		const state = await this.getStateToPostToWebview()
+		const state = await this.getStateToPostToWebview({ includeTaskHistory: false })
 		this.clineMessagesSeq++
 		state.clineMessagesSeq = this.clineMessagesSeq
 		const { taskHistory: _omit, ...rest } = state
 		await this.postMessageToWebview({ type: "state", state: rest })
+	}
+
+	/**
+	 * Schedules a debounced state-post attempt. A call made while the debounce timer is active returns
+	 * the result of the most recent invocation, so awaiting this method does not wait for the trailing
+	 * invocation scheduled by that call. Use `flushPostStateToWebviewThrottled()` to force and await any
+	 * pending trailing invocation before continuing.
+	 */
+	async postStateToWebviewThrottled(): Promise<void> {
+		if (this._disposed) {
+			return
+		}
+
+		await this._postStateToWebviewThrottled()
+	}
+
+	async flushPostStateToWebviewThrottled(): Promise<void> {
+		if (this._disposed) {
+			return
+		}
+
+		await this._postStateToWebviewThrottled.flush()
 	}
 
 	/**
@@ -1680,7 +2251,7 @@ export class ClineProvider
 	 *   (cloud auth, org settings, profiles, etc.) without interfering with task message streaming.
 	 */
 	async postStateToWebviewWithoutClineMessages(): Promise<void> {
-		const state = await this.getStateToPostToWebview()
+		const state = await this.getStateToPostToWebview({ includeTaskHistory: false })
 		const { clineMessages: _omitMessages, taskHistory: _omitHistory, ...rest } = state
 		await this.postMessageToWebview({ type: "state", state: rest })
 	}
@@ -1749,7 +2320,7 @@ export class ClineProvider
 		}
 	}
 
-	async getStateToPostToWebview(): Promise<ExtensionState> {
+	async getStateToPostToWebview({ includeTaskHistory = true }: GetStateOptions = {}): Promise<ExtensionState> {
 		// Ensure the store is initialized before reading task history
 		await this.taskHistoryStore.initialized
 
@@ -1763,6 +2334,7 @@ export class ClineProvider
 			alwaysAllowWriteOutsideWorkspace,
 			alwaysAllowWriteProtected,
 			alwaysAllowExecute,
+			destructiveCommandGuardEnabled,
 			allowedCommands,
 			deniedCommands,
 			alwaysAllowMcp,
@@ -1777,7 +2349,6 @@ export class ClineProvider
 			ttsSpeed,
 			enableCheckpoints,
 			checkpointTimeout,
-			taskHistory,
 			soundVolume,
 			writeDelayMs,
 			diffFuzzyThreshold,
@@ -1834,7 +2405,7 @@ export class ClineProvider
 			autoCloseZooOpenedFiles,
 			autoCloseZooOpenedFilesAfterUserEdited,
 			autoCloseZooOpenedNewFiles,
-		} = await this.getState()
+		} = await this.getState({ includeTaskHistory: false })
 
 		const telemetryKey = process.env.POSTHOG_API_KEY
 		const machineId = vscode.env.machineId
@@ -1853,6 +2424,7 @@ export class ClineProvider
 			alwaysAllowWriteOutsideWorkspace: alwaysAllowWriteOutsideWorkspace ?? false,
 			alwaysAllowWriteProtected: alwaysAllowWriteProtected ?? false,
 			alwaysAllowExecute: alwaysAllowExecute ?? false,
+			destructiveCommandGuardEnabled,
 			alwaysAllowMcp: alwaysAllowMcp ?? false,
 			alwaysAllowModeSwitch: alwaysAllowModeSwitch ?? false,
 			alwaysAllowSubtasks: alwaysAllowSubtasks ?? false,
@@ -1866,7 +2438,9 @@ export class ClineProvider
 			clineMessages: currentTask?.clineMessages || [],
 			currentTaskTodos: currentTask?.todoList || [],
 			messageQueue: currentTask?.messageQueueService?.messages,
-			taskHistory: this.taskHistoryStore.getAll().filter((item: HistoryItem) => item.ts && item.task),
+			taskHistory: includeTaskHistory
+				? this.taskHistoryStore.getAll().filter((item: HistoryItem) => item.ts && item.task)
+				: [],
 			soundEnabled: soundEnabled ?? false,
 			ttsEnabled: ttsEnabled ?? false,
 			ttsSpeed: ttsSpeed ?? 1.0,
@@ -1993,7 +2567,7 @@ export class ClineProvider
 	 * https://www.eliostruyf.com/devhack-code-extension-storage-options/
 	 */
 
-	async getState(): Promise<
+	async getState({ includeTaskHistory = true }: GetStateOptions = {}): Promise<
 		Omit<
 			ExtensionState,
 			"clineMessages" | "renderContext" | "hasOpenedModeSelector" | "version" | "shouldShowAnnouncement"
@@ -2030,6 +2604,8 @@ export class ClineProvider
 			alwaysAllowWriteOutsideWorkspace: stateValues.alwaysAllowWriteOutsideWorkspace ?? false,
 			alwaysAllowWriteProtected: stateValues.alwaysAllowWriteProtected ?? false,
 			alwaysAllowExecute: stateValues.alwaysAllowExecute ?? false,
+			destructiveCommandGuardEnabled:
+				stateValues.destructiveCommandGuardEnabled ?? DEFAULT_DESTRUCTIVE_COMMAND_GUARD_ENABLED,
 			alwaysAllowMcp: stateValues.alwaysAllowMcp ?? false,
 			alwaysAllowModeSwitch: stateValues.alwaysAllowModeSwitch ?? false,
 			alwaysAllowSubtasks: stateValues.alwaysAllowSubtasks ?? false,
@@ -2040,7 +2616,7 @@ export class ClineProvider
 			allowedMaxCost: stateValues.allowedMaxCost,
 			autoCondenseContext: stateValues.autoCondenseContext ?? true,
 			autoCondenseContextPercent: stateValues.autoCondenseContextPercent ?? 100,
-			taskHistory: this.taskHistoryStore.getAll(),
+			taskHistory: includeTaskHistory ? this.taskHistoryStore.getAll() : [],
 			allowedCommands: stateValues.allowedCommands,
 			deniedCommands: stateValues.deniedCommands,
 			soundEnabled: stateValues.soundEnabled ?? false,

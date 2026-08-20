@@ -2,8 +2,13 @@ import { useState, useCallback, useMemo } from "react"
 import { useEvent } from "react-use"
 import { LanguageModelChatSelector } from "vscode"
 
-import type { ProviderSettings, ModelInfo } from "@roo-code/types"
-import { parseExtensionMessage } from "@roo-code/types"
+import {
+	type ProviderSettings,
+	type ExtensionMessage,
+	type ModelInfo,
+	VsCodeLmModelsMessageType,
+	parseExtensionMessage,
+} from "@roo-code/types"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 
@@ -29,7 +34,7 @@ export const VSCodeLM = ({ apiConfiguration, setApiConfigurationField }: VSCodeL
 		const message = parsed.message
 
 		switch (message.type) {
-			case "vsCodeLmModels":
+			case VsCodeLmModelsMessageType.vsCodeLmModels:
 				{
 					const newModels = message.vsCodeLmModels ?? []
 					setVsCodeLmModels(newModels)

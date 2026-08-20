@@ -275,8 +275,6 @@ export class GenerateImageTool extends BaseTool<"generate_image"> {
 
 			task.didEditFile = true
 
-			task.recordToolUsage("generate_image")
-
 			const fullImagePath = path.join(task.cwd, finalPath)
 
 			let imageUri = provider?.convertToWebviewUri?.(fullImagePath) ?? vscode.Uri.file(fullImagePath).toString()

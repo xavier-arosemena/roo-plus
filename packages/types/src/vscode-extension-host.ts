@@ -13,7 +13,11 @@ import type { CodebaseIndexConfig } from "./codebase-index.js"
 import type { SerializedCustomToolDefinition } from "./custom-tool.js"
 import type { GitCommit } from "./git.js"
 import type { McpServer } from "./mcp.js"
-import type { ModelRecord, RouterModels } from "./model.js"
+import { RouterModelsMessageType, type ModelRecord, type RouterModels } from "./model.js"
+import { LmStudioModelsMessageType } from "./providers/lm-studio.js"
+import { OllamaModelsMessageType } from "./providers/ollama.js"
+import { OpenAiModelsMessageType } from "./providers/openai.js"
+import { VsCodeLmModelsMessageType } from "./providers/vscode-llm.js"
 import type { OpenAiCodexRateLimitInfo } from "./providers/openai-codex-rate-limits.js"
 import type { SkillMetadata } from "./skills.js"
 import type { RuleMetadata } from "./rules.js"
@@ -39,11 +43,11 @@ export interface ExtensionMessage {
 		| "enhancedPrompt"
 		| "commitSearchResults"
 		| "listApiConfig"
-		| "routerModels"
-		| "openAiModels"
-		| "ollamaModels"
-		| "lmStudioModels"
-		| "vsCodeLmModels"
+		| typeof RouterModelsMessageType.routerModels
+		| typeof OpenAiModelsMessageType.openAiModels
+		| typeof OllamaModelsMessageType.ollamaModels
+		| typeof LmStudioModelsMessageType.lmStudioModels
+		| typeof VsCodeLmModelsMessageType.vsCodeLmModels
 		| "vsCodeLmApiAvailable"
 		| "updatePrompt"
 		| "systemPrompt"
@@ -69,7 +73,7 @@ export interface ExtensionMessage {
 		| "authenticatedUser"
 		| "condenseTaskContextStarted"
 		| "condenseTaskContextResponse"
-		| "singleRouterModelFetchResponse"
+		| typeof RouterModelsMessageType.singleRouterModelFetchResponse
 		| "indexingStatusUpdate"
 		| "indexCleared"
 		| "codebaseIndexConfig"
@@ -299,6 +303,7 @@ export type ExtensionState = Pick<
 	| "alwaysAllowSubtasks"
 	| "alwaysAllowFollowupQuestions"
 	| "alwaysAllowExecute"
+	| "destructiveCommandGuardEnabled"
 	| "followupAutoApproveTimeoutMs"
 	| "allowedCommands"
 	| "deniedCommands"
@@ -480,13 +485,13 @@ export interface WebviewMessage {
 		| "importSettings"
 		| "exportSettings"
 		| "resetState"
-		| "flushRouterModels"
-		| "requestRouterModels"
-		| "requestOpenAiModels"
-		| "requestOllamaModels"
-		| "requestLmStudioModels"
+		| typeof RouterModelsMessageType.flushRouterModels
+		| typeof RouterModelsMessageType.requestRouterModels
+		| typeof OpenAiModelsMessageType.requestOpenAiModels
+		| typeof OllamaModelsMessageType.requestOllamaModels
+		| typeof LmStudioModelsMessageType.requestLmStudioModels
 		| "requestRooModels"
-		| "requestVsCodeLmModels"
+		| typeof VsCodeLmModelsMessageType.requestVsCodeLmModels
 		| "openImage"
 		| "saveImage"
 		| "openFile"

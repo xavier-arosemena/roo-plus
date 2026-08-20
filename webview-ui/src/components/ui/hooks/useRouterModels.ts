@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { type RouterModels, parseExtensionMessage } from "@roo-code/types"
+import {
+	allRouterModelsProvider,
+	RouterModelsMessageType,
+	type RouterModels,
+	type ExtensionMessage,
+	parseExtensionMessage,
+} from "@roo-code/types"
 
 import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
@@ -33,7 +39,7 @@ export const fetchRouterModels = async (provider?: string) =>
 			}
 			const message = parsed.message
 
-			if (message.type === "routerModels") {
+			if (message.type === RouterModelsMessageType.routerModels) {
 				const msgProvider = message?.values?.provider as string | undefined
 
 				// Verify response matches request
@@ -55,16 +61,16 @@ export const fetchRouterModels = async (provider?: string) =>
 
 		window.addEventListener("message", handler)
 		if (provider) {
-			vscode.postMessage({ type: "requestRouterModels", values: { provider } })
+			vscode.postMessage({ type: RouterModelsMessageType.requestRouterModels, values: { provider } })
 		} else {
-			vscode.postMessage({ type: "requestRouterModels" })
+			vscode.postMessage({ type: RouterModelsMessageType.requestRouterModels })
 		}
 	})
 
 export const useRouterModels = (opts: UseRouterModelsOptions = {}) => {
 	const provider = opts.provider || undefined
 	return useQuery({
-		queryKey: ["routerModels", provider || "all"],
+		queryKey: [RouterModelsMessageType.routerModels, provider || allRouterModelsProvider],
 		queryFn: () => fetchRouterModels(provider),
 		enabled: opts.enabled !== false,
 	})

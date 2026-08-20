@@ -3,7 +3,7 @@ import * as os from "os"
 import * as fs from "fs/promises"
 import { readFileSync } from "fs"
 
-import { runTests } from "@vscode/test-electron"
+import { downloadAndUnzipVSCode, runTests } from "@vscode/test-electron"
 import { LLMock } from "@copilotkit/aimock"
 
 import { addApplyDiffResultFixtures } from "./fixtures/apply-diff"
@@ -17,11 +17,13 @@ import { addColdShellInitFixtures } from "./fixtures/cold-shell-init"
 import { addTerminalProfileResultFixtures } from "./fixtures/terminal-profile"
 import { addListFilesResultFixtures } from "./fixtures/list-files"
 import { addReadFileResultFixtures } from "./fixtures/read-file"
+import { addCodebaseSearchSembleFixtures } from "./fixtures/codebase-search-semble"
 import { addSearchFilesResultFixtures } from "./fixtures/search-files"
 import { addSubtaskFixtures } from "./fixtures/subtasks"
 import { addUseMcpToolResultFixtures } from "./fixtures/use-mcp-tool"
 import { addWriteToFileResultFixtures } from "./fixtures/write-to-file"
-import { addCodebaseSearchSembleFixtures } from "./fixtures/codebase-search-semble"
+import { createScenarioWorkspace, removeScenarioWorkspace } from "./restart/scenarioWorkspace"
+import { runRestartScenario } from "./restart/vscodeCoordinator"
 
 function getCliFlagValue(flag: string) {
 	return process.argv.find((arg, index) => process.argv[index - 1] === flag)
@@ -44,6 +46,14 @@ function isBedrockTargetedRun(testFile?: string, testGrep?: string) {
 	return testGrep?.toLowerCase().includes("bedrock") ?? false
 }
 
+function isRestartPersistenceTargetedRun(testFile?: string, testGrep?: string): boolean {
+	if (testFile?.toLowerCase().includes("restart-persistence")) {
+		return true
+	}
+
+	return testGrep?.toLowerCase().includes("restart persistence") ?? false
+}
+
 async function main() {
 	const isRecord = process.env.AIMOCK_RECORD === "true"
 	const testGrep = getCliFlagValue("--grep") || process.env.TEST_GREP
@@ -51,6 +61,7 @@ async function main() {
 	const isDeepSeekTest = isDeepSeekTargetedRun(testFile, testGrep)
 	const isGeminiTest = testFile?.toLowerCase().includes("gemini.test") ?? false
 	const isBedrockTest = isBedrockTargetedRun(testFile, testGrep)
+	const isRestartPersistenceTest = isRestartPersistenceTargetedRun(testFile, testGrep)
 
 	if (isRecord && isDeepSeekTest && !process.env.DEEPSEEK_API_KEY) {
 		throw new Error("AIMOCK_RECORD=true requires DEEPSEEK_API_KEY to record DeepSeek fixtures")
@@ -84,11 +95,14 @@ async function main() {
 	const extensionTestsPath = path.resolve(__dirname, "./suite/index")
 
 	let testWorkspace: string | undefined
+	let scenarioWorkspace: Awaited<ReturnType<typeof createScenarioWorkspace>> | undefined
 
 	try {
-		// Create a temporary workspace folder for tests before installing fixtures that
-		// need workspace-specific paths.
-		testWorkspace = await fs.mkdtemp(path.join(os.tmpdir(), "roo-test-workspace-"))
+		// Create a temporary workspace folder for regular tests. Restart scenarios own
+		// all of their paths under the dedicated scenario root below.
+		if (!isRestartPersistenceTest) {
+			testWorkspace = await fs.mkdtemp(path.join(os.tmpdir(), "roo-test-workspace-"))
+		}
 
 		if (useMock) {
 			const fixturesDir = path.resolve(__dirname, "../fixtures")
@@ -175,19 +189,45 @@ async function main() {
 		const pkg = JSON.parse(readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"))
 		const vscodeVersion = process.env.VSCODE_VERSION || pkg.devDependencies["@types/vscode"]
 
-		await runTests({
-			extensionDevelopmentPath,
-			extensionTestsPath,
-			launchArgs: [testWorkspace],
-			extensionTestsEnv,
-			version: vscodeVersion,
-		})
+		if (isRestartPersistenceTest) {
+			scenarioWorkspace = await createScenarioWorkspace()
+			const vscodeExecutablePath = await downloadAndUnzipVSCode({
+				version: vscodeVersion,
+				extensionDevelopmentPath,
+			})
+			await runRestartScenario({
+				vscodeExecutablePath,
+				extensionDevelopmentPath,
+				extensionTestsPath,
+				scenario: "restart-persistence",
+				workspace: scenarioWorkspace,
+				environment: extensionTestsEnv,
+				expectedExitPolicies: [
+					{ phase: "create", termination: "graceful-quit", code: 1, signal: null },
+					{ phase: "verify", termination: "graceful-quit", code: 1, signal: null },
+				],
+			})
+		} else {
+			if (!testWorkspace) {
+				throw new Error("Regular E2E runs require a temporary test workspace")
+			}
+			await runTests({
+				extensionDevelopmentPath,
+				extensionTestsPath,
+				launchArgs: [testWorkspace],
+				extensionTestsEnv,
+				version: vscodeVersion,
+			})
+		}
 	} catch (error) {
 		console.error("Failed to run tests", error)
 		process.exitCode = 1
 	} finally {
 		if (testWorkspace) {
 			await fs.rm(testWorkspace, { recursive: true, force: true })
+		}
+		if (scenarioWorkspace) {
+			await removeScenarioWorkspace(scenarioWorkspace)
 		}
 		await mock?.stop()
 	}

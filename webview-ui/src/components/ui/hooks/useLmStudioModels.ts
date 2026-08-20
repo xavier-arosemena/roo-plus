@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { type ModelRecord, parseExtensionMessage } from "@roo-code/types"
+import { type ModelRecord, type ExtensionMessage, LmStudioModelsMessageType, parseExtensionMessage } from "@roo-code/types"
 
 import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 
 export const requestLmStudioModels = (baseUrl?: string) =>
 	vscode.postMessage({
-		type: "requestLmStudioModels",
+		type: LmStudioModelsMessageType.requestLmStudioModels,
 		values: typeof baseUrl === "string" ? { baseUrl } : undefined,
 	})
 
@@ -32,7 +32,7 @@ const getLmStudioModels = async (baseUrl?: string) =>
 			}
 			const message = parsed.message
 
-			if (message.type === "lmStudioModels") {
+			if (message.type === LmStudioModelsMessageType.lmStudioModels) {
 				clearTimeout(timeout)
 				cleanup()
 

@@ -332,6 +332,10 @@
 		"execute": {
 			"label": "Esegui",
 			"description": "Esegui automaticamente i comandi del terminale consentiti senza richiedere approvazione",
+			"destructiveCommandGuard": {
+				"label": "Abilita la protezione dai comandi distruttivi",
+				"description": "Scarica e usa Destructive Command Guard (DCG) per questa piattaforma. I comandi consentiti da DCG vengono eseguiti automaticamente. I comandi bloccati da DCG richiedono la tua approvazione. Gli elenchi dei comandi di Zoo vengono disabilitati mentre questa opzione è attiva. L'eseguibile scaricato viene conservato se la disattivi."
+			},
 			"allowedCommands": "Comandi di auto-esecuzione consentiti",
 			"allowedCommandsDescription": "Prefissi di comando che possono essere auto-eseguiti quando \"Approva sempre operazioni di esecuzione\" è abilitato. Aggiungi * per consentire tutti i comandi (usare con cautela).",
 			"deniedCommands": "Comandi negati",
@@ -388,6 +392,25 @@
 		"getOpencodeGoApiKey": "Ottieni chiave API Opencode Go",
 		"kenariApiKey": "Chiave API Kenari",
 		"getKenariApiKey": "Ottieni chiave API Kenari",
+		"nanoGpt": {
+			"provider": "NanoGPT",
+			"apiKey": "Chiave API NanoGPT",
+			"getApiKey": "Ottieni chiave API NanoGPT",
+			"model": "Modello",
+			"routingPreference": "Preferenza di routing",
+			"routingOptions": {
+				"automatic": "Automatica",
+				"fastest": "Più veloce",
+				"cheapest": "Più economica",
+				"lowestLatency": "Latenza più bassa",
+				"highestThroughput": "Throughput più alto",
+				"toolCapable": "Compatibile con gli strumenti",
+				"cacheCapable": "Compatibile con la cache"
+			},
+			"automaticExplanation": "Automatica non applica alcun suffisso di routing.",
+			"billingWarning": "Le preferenze di routing avanzate possono usare il routing a consumo e possono escludere la copertura dell'abbonamento, in base alle regole di fatturazione attuali di NanoGPT.",
+			"routingDocs": "Visualizza i dettagli di routing e fatturazione di NanoGPT"
+		},
 		"apiKeyStorageNotice": "Le chiavi API sono memorizzate in modo sicuro nell'Archivio Segreto di VSCode",
 		"openAiCodexRateLimits": {
 			"title": "Usage Limits for Codex{{planLabel}}",
@@ -495,6 +518,9 @@
 		"openAiApiKey": "Chiave API OpenAI",
 		"apiKey": "Chiave API",
 		"openAiBaseUrl": "URL base",
+		"azureOpenAiBaseUrlPlaceholder": "https://<resource>.openai.azure.com/openai",
+		"azureOpenAiDeploymentName": "Nome della distribuzione Azure",
+		"azureOpenAiDeploymentNameDescription": "Inserisci il nome della distribuzione configurato in Azure AI Studio, non il nome del modello sottostante.",
 		"getOpenAiApiKey": "Ottieni chiave API OpenAI",
 		"mistralApiKey": "Chiave API Mistral",
 		"getMistralApiKey": "Ottieni chiave API Mistral / Codestral",
@@ -1050,6 +1076,12 @@
 	"limitMaxTokensDescription": "Limita il numero massimo di token nella risposta",
 	"maxOutputTokensLabel": "Token di output massimi",
 	"maxTokensGenerateDescription": "Token massimi da generare nella risposta",
+	"openAiCodexSpeed": {
+		"label": "Velocità",
+		"tooltip": "La modalità veloce usa l'elaborazione prioritaria di Codex per una velocità circa 1,5 volte superiore e consuma più quota dell'abbonamento.",
+		"standard": "Standard",
+		"fast": "Veloce (velocità 1,5 volte superiore, utilizzo maggiore)"
+	},
 	"serviceTier": {
 		"label": "Livello di servizio",
 		"tooltip": "Per un'elaborazione più rapida delle richieste API, prova il livello di servizio di elaborazione prioritaria. Per prezzi più bassi con una latenza maggiore, prova il livello di elaborazione flessibile.",

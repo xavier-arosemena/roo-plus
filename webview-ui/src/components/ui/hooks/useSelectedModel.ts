@@ -20,8 +20,8 @@ import {
 	vscodeLlmDefaultModelId,
 	openAiCodexModels,
 	sambaNovaModels,
-	internationalZAiModels,
-	mainlandZAiModels,
+	getZAiModels,
+	zaiApiLineConfigs,
 	fireworksModels,
 	friendliModels,
 	basetenModels,
@@ -37,6 +37,7 @@ import {
 	requestyDefaultModelInfo,
 	unboundDefaultModelInfo,
 	vercelAiGatewayDefaultModelInfo,
+	nanoGptDefaultModelInfo,
 	BEDROCK_1M_CONTEXT_MODEL_IDS,
 	VERTEX_1M_CONTEXT_MODEL_IDS,
 	isDynamicProvider,
@@ -75,12 +76,14 @@ function getTableModelInfo(table: Record<string, ModelInfo>, id: string, default
 }
 
 export const useSelectedModel = (apiConfiguration?: ProviderSettings) => {
-	const provider = apiConfiguration?.apiProvider || "openrouter"
+	const provider = apiConfiguration?.apiProvider || providerIdentifiers.openrouter
 	const activeProvider: ProviderName | undefined = isRetiredProvider(provider) ? undefined : provider
 	const dynamicProvider = activeProvider && isDynamicProvider(activeProvider) ? activeProvider : undefined
-	const openRouterModelId = activeProvider === "openrouter" ? apiConfiguration?.openRouterModelId : undefined
-	const lmStudioModelId = activeProvider === "lmstudio" ? apiConfiguration?.lmStudioModelId : undefined
-	const ollamaModelId = activeProvider === "ollama" ? apiConfiguration?.ollamaModelId : undefined
+	const openRouterModelId =
+		activeProvider === providerIdentifiers.openrouter ? apiConfiguration?.openRouterModelId : undefined
+	const lmStudioModelId =
+		activeProvider === providerIdentifiers.lmstudio ? apiConfiguration?.lmStudioModelId : undefined
+	const ollamaModelId = activeProvider === providerIdentifiers.ollama ? apiConfiguration?.ollamaModelId : undefined
 
 	// Only fetch router models for dynamic providers
 	const shouldFetchRouterModels = !!dynamicProvider
@@ -95,7 +98,7 @@ export const useSelectedModel = (apiConfiguration?: ProviderSettings) => {
 
 	// Compute readiness only for the data actually needed for the selected provider
 	const needRouterModels = shouldFetchRouterModels
-	const needOpenRouterProviders = activeProvider === "openrouter"
+	const needOpenRouterProviders = activeProvider === providerIdentifiers.openrouter
 	const needLmStudio = typeof lmStudioModelId !== "undefined"
 	const needOllama = typeof ollamaModelId !== "undefined"
 
@@ -114,7 +117,12 @@ export const useSelectedModel = (apiConfiguration?: ProviderSettings) => {
 					lmStudioModels: (lmStudioModels.data || undefined) as ModelRecord | undefined,
 					ollamaModels: (ollamaModels.data || undefined) as ModelRecord | undefined,
 				})
-			: { id: getProviderDefaultModelId(activeProvider ?? "openrouter"), info: undefined }
+			: activeProvider === providerIdentifiers.kimiCode && apiConfiguration
+				? {
+						id: apiConfiguration.apiModelId || getProviderDefaultModelId(providerIdentifiers.kimiCode),
+						info: kimiCodeDefaultModelInfo,
+					}
+				: { id: getProviderDefaultModelId(activeProvider ?? providerIdentifiers.openrouter), info: undefined }
 
 	return {
 		provider,
@@ -185,11 +193,17 @@ function getSelectedModel({
 			// default model, so we never substitute a hardcoded default here -- when
 			// nothing is configured we return an empty ID so the picker shows "no
 			// selection" rather than a phantom model that does not exist on the server.
-			const hasModels = routerModels.litellm && Object.keys(routerModels.litellm).length > 0
+			const hasModels =
+				routerModels[providerIdentifiers.litellm] &&
+				Object.keys(routerModels[providerIdentifiers.litellm]).length > 0
 			const id = hasModels
-				? getValidatedModelId(apiConfiguration.litellmModelId, routerModels.litellm, defaultModelId)
+				? getValidatedModelId(
+						apiConfiguration.litellmModelId,
+						routerModels[providerIdentifiers.litellm],
+						defaultModelId,
+					)
 				: (apiConfiguration.litellmModelId ?? "")
-			const routerInfo = routerModels.litellm?.[id]
+			const routerInfo = routerModels[providerIdentifiers.litellm]?.[id]
 			return { id, info: routerInfo ?? litellmDefaultModelInfo }
 		}
 		case providerIdentifiers.xai: {
@@ -256,7 +270,7 @@ function getSelectedModel({
 				? { ...deepSeekModels, ...routerModels.deepseek }
 				: deepSeekModels
 			const id = getValidatedModelId(apiConfiguration.apiModelId, availableModels, defaultModelId)
-			const routerInfo = routerModels.deepseek?.[id]
+			const routerInfo = routerModels[providerIdentifiers.deepseek]?.[id]
 			const staticInfo = deepSeekModels[id as keyof typeof deepSeekModels]
 			return {
 				id,
@@ -268,7 +282,7 @@ function getSelectedModel({
 				? { ...moonshotModels, ...routerModels.moonshot }
 				: moonshotModels
 			const id = getValidatedModelId(apiConfiguration.apiModelId, availableModels, defaultModelId)
-			const routerInfo = routerModels.moonshot?.[id]
+			const routerInfo = routerModels[providerIdentifiers.moonshot]?.[id]
 			const staticInfo = moonshotModels[id as keyof typeof moonshotModels]
 			return {
 				id,
@@ -277,7 +291,7 @@ function getSelectedModel({
 		}
 		case providerIdentifiers.kimiCode: {
 			const configuredId = apiConfiguration.apiModelId
-			const availableModels = routerModels["kimi-code"]
+			const availableModels = routerModels[providerIdentifiers.kimiCode]
 			const id = configuredId || defaultModelId
 			return { id, info: availableModels?.[id] ?? kimiCodeDefaultModelInfo }
 		}
@@ -291,11 +305,13 @@ function getSelectedModel({
 			return { id, info }
 		}
 		case providerIdentifiers.zai: {
-			const isChina = apiConfiguration.zaiApiLine === "china_coding"
-			const models = isChina ? mainlandZAiModels : internationalZAiModels
+			const apiLine = apiConfiguration.zaiApiLine ?? "international_coding"
+			const isChina = zaiApiLineConfigs[apiLine].isChina
+			const models = getZAiModels(apiLine)
 			const defaultModelId = getProviderDefaultModelId(provider, { isChina })
-			const id = apiConfiguration.apiModelId ?? defaultModelId
-			return { id, info: getTableModelInfo(models, id, defaultModelId) }
+			const id = getValidatedModelId(apiConfiguration.apiModelId, models, defaultModelId)
+			const info = models[id]
+			return { id, info }
 		}
 		case providerIdentifiers.openaiNative: {
 			const id = apiConfiguration.apiModelId ?? defaultModelId
@@ -387,7 +403,7 @@ function getSelectedModel({
 		case providerIdentifiers.vercelAiGateway: {
 			const id = getValidatedModelId(
 				apiConfiguration.vercelAiGatewayModelId,
-				routerModels["vercel-ai-gateway"],
+				routerModels[providerIdentifiers.vercelAiGateway],
 				defaultModelId,
 			)
 			const info = routerModels["vercel-ai-gateway"]?.[id] ?? vercelAiGatewayDefaultModelInfo
@@ -396,19 +412,32 @@ function getSelectedModel({
 		case providerIdentifiers.opencodeGo: {
 			const id = getValidatedModelId(
 				apiConfiguration.opencodeGoModelId,
-				routerModels["opencode-go"],
+				routerModels[providerIdentifiers.opencodeGo],
 				defaultModelId,
 			)
 			// Fall back to the provider's default ModelInfo so capability-driven UI
 			// keeps working when the /models list is empty or unavailable.
-			const info = routerModels["opencode-go"]?.[id] ?? opencodeGoDefaultModelInfo
+			const info = routerModels[providerIdentifiers.opencodeGo]?.[id] ?? opencodeGoDefaultModelInfo
 			return { id, info }
 		}
 		case providerIdentifiers.kenari: {
-			const id = getValidatedModelId(apiConfiguration.kenariModelId, routerModels["kenari"], defaultModelId)
+			const id = getValidatedModelId(
+				apiConfiguration.kenariModelId,
+				routerModels[providerIdentifiers.kenari],
+				defaultModelId,
+			)
 			// Fall back to the provider's default ModelInfo so capability-driven UI
 			// keeps working when the /models list is empty or unavailable.
-			const info = routerModels["kenari"]?.[id] ?? kenariDefaultModelInfo
+			const info = routerModels[providerIdentifiers.kenari]?.[id] ?? kenariDefaultModelInfo
+			return { id, info }
+		}
+		case providerIdentifiers.nanogpt: {
+			const id = getValidatedModelId(
+				apiConfiguration.nanoGptModelId,
+				routerModels[providerIdentifiers.nanogpt],
+				defaultModelId,
+			)
+			const info = routerModels[providerIdentifiers.nanogpt]?.[id] ?? nanoGptDefaultModelInfo
 			return { id, info }
 		}
 		case providerIdentifiers.anthropic:
