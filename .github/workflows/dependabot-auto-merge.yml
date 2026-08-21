@@ -19,6 +19,12 @@ concurrency:
 
 jobs:
   auto-merge:
+    # This workflow only acts on Dependabot PRs. `dependabot/fetch-metadata`
+    # fails with "PR is not from Dependabot, nothing to do." for any other
+    # author, which would turn every non-Dependabot PR red. Skip the job
+    # entirely for non-Dependabot authors instead (checked via the event
+    # payload so it holds for every pull_request_target trigger type).
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       # Classifies the PR: dependency names, semver update type, directory and
