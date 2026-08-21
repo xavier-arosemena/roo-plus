@@ -1,9 +1,6 @@
 name: Publish Stable Extension
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
   workflow_dispatch:
 
 # Least privilege: publish-stable escalates to contents: write via its own
@@ -11,19 +8,17 @@ on:
 permissions:
   contents: read
 
-# Never run two stable publishes concurrently — a duplicate tag push or an
-# overlapping manual dispatch must not race on the same marketplace version.
+# Never run two stable publishes concurrently — overlapping manual dispatches
+# must not race on the same marketplace version.
 concurrency:
   group: marketplace-production
   cancel-in-progress: false
 
 jobs:
-  # Approval gate only applies to manual dispatches. Tag pushes already require
-  # write access to the repository (only maintainers can push v* tags), so the
-  # gate would be redundant for them and would only add latency to the common
-  # tag-triggered release path.
+  # Approval gate for manual dispatches. Users with write/admin access bypass
+  # the PR-approval check; everyone else must have an approved PR for the
+  # dispatched commit.
   check-pr-approval:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -91,9 +86,8 @@ jobs:
 
   publish-stable:
     needs: [check-pr-approval]
-    # The gate job is skipped for tag pushes (result == 'skipped'), so this runs
-    # for tags; for manual dispatches it only runs after the gate succeeded.
-    if: ${{ needs.check-pr-approval.result != 'failure' && needs.check-pr-approval.result != 'cancelled' }}
+    # Only runs after the approval gate succeeds.
+    if: ${{ needs.check-pr-approval.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: marketplace-production
@@ -125,26 +119,11 @@ jobs:
         with:
           log-prefix: MARKETPLACE
           environment: marketplace-production
-          # Tag pushes carry their own tag ref; only manual dispatches must run
-          # from master.
-          require-master-ref: ${{ github.event_name == 'workflow_dispatch' }}
+          # Stable publishes always run from master.
+          require-master-ref: "true"
           validate-tokens: "true"
           vsce-pat: ${{ secrets.VSCE_PAT }}
           ovsx-pat: ${{ secrets.OVSX_PAT }}
-
-      - name: Validate release tag
-        if: github.event_name == 'push'
-        run: |
-          echo "::group::[CI:MARKETPLACE:TAG] Validating release tag"
-          package_version=$(node -p "require('./src/package.json').version")
-          tag_version="${GITHUB_REF_NAME#v}"
-
-          if [ "$package_version" != "$tag_version" ]; then
-            echo "::error::[CI:MARKETPLACE:TAG] Tag v${tag_version} does not match src/package.json version ${package_version}."
-            exit 1
-          fi
-          echo "::notice::[CI:MARKETPLACE:TAG] release tag matches package version: $package_version"
-          echo "::endgroup::"
 
       - name: Verify Semble checksums (SEMBLE_VERSION lockstep)
         run: |
@@ -229,11 +208,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           package_version=$(node -p "require('./src/package.json').version")
-          if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
-            tag_name="$GITHUB_REF_NAME"
-          else
-            tag_name="v${package_version}"
-          fi
+          tag_name="v${package_version}"
           vsix_path="bin/roo-plus-${package_version}.vsix"
 
           changelog_content=$(awk -v version="$package_version" '
