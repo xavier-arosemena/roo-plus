@@ -4,7 +4,6 @@ import { LanguageModelChatSelector } from "vscode"
 
 import {
 	type ProviderSettings,
-	type ExtensionMessage,
 	type ModelInfo,
 	VsCodeLmModelsMessageType,
 	parseExtensionMessage,

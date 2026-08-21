@@ -6,7 +6,6 @@ import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import {
 	type ProviderSettings,
-	type ExtensionMessage,
 	type ModelRecord,
 	LmStudioModelsMessageType,
 	parseExtensionMessage,

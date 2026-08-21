@@ -242,7 +242,7 @@ describe("Moonshot Component", () => {
 			.find((button) => button.getAttribute("data-variant") === "outline")!
 		fireEvent.click(refreshButton)
 		act(() => {
-			window.dispatchEvent(new MessageEvent("message", { data: { type: "routerModels" } }))
+			window.dispatchEvent(new MessageEvent("message", { data: { type: "routerModels", routerModels: {} } }))
 		})
 
 		await waitFor(() => {

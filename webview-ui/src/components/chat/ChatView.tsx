@@ -552,6 +552,19 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		setAggregatedCostsMap(new Map())
 	}
 
+	// Reset the aggregated-costs cache when the task IDENTITY changes. The
+	// render-phase guard above keys on `task?.ts`, but task switching can reuse
+	// the same timestamp (e.g. a new task created in the same second), so
+	// `currentTaskId` — not the timestamp — must drive this reset to avoid
+	// showing a stale cost from the previously selected task. Guarded the same
+	// way as `prevTaskTs` (render-phase sync on a primitive string) so it
+	// converges and avoids setState-in-effect.
+	const [prevCurrentTaskId, setPrevCurrentTaskId] = useState(currentTaskId)
+	if (currentTaskId !== prevCurrentTaskId) {
+		setPrevCurrentTaskId(currentTaskId)
+		setAggregatedCostsMap(new Map())
+	}
+
 	useEffect(() => {
 		seenTsStore.clear()
 		if (autoApproveTimeoutRef.current) {

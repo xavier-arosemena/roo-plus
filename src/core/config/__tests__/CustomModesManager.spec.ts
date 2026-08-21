@@ -70,7 +70,7 @@ describe("CustomModesManager", () => {
 
 		// mockWorkspacePath is now defined at the top level
 		mockWorkspaceFolders = [{ uri: makeUri(mockWorkspacePath) }]
-		;(vscode.workspace as any).workspaceFolders = mockWorkspaceFolders
+		mockWorkspace.workspaceFolders = mockWorkspaceFolders
 		;(vscode.workspace.onDidSaveTextDocument as Mock).mockReturnValue({ dispose: vi.fn() })
 		;(getWorkspacePath as Mock).mockReturnValue(mockWorkspacePath)
 		;(fileExistsAtPath as Mock).mockImplementation(async (path: string) => {

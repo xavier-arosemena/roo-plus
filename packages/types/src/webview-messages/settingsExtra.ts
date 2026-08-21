@@ -58,6 +58,7 @@ const requestRouterModelsValuesSchema = z.object({
 	moonshotBaseUrl: z.string().optional(),
 	opencodeGoApiKey: z.string().optional(),
 	kenariApiKey: z.string().optional(),
+	nanoGptApiKey: z.string().optional(),
 	kimiCodeAuthMethod: z.string().optional(),
 	kimiCodeApiKey: z.string().optional(),
 })

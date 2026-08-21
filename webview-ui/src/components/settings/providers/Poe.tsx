@@ -10,7 +10,6 @@ import {
 	providerIdentifiers,
 	allRouterModelsProvider,
 	RouterModelsMessageType,
-	type ProviderName,
 	parseExtensionMessage,
 } from "@roo-code/types"
 

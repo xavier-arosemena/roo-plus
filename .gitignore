@@ -25,7 +25,7 @@ AGENTS.local.md
 .vscode-test/
 
 # Docs
-docs/_site/
+docs/
 
 # Dotenv
 .env

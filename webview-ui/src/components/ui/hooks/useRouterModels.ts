@@ -4,7 +4,6 @@ import {
 	allRouterModelsProvider,
 	RouterModelsMessageType,
 	type RouterModels,
-	type ExtensionMessage,
 	parseExtensionMessage,
 } from "@roo-code/types"
 

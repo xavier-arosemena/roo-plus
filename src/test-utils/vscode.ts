@@ -141,6 +141,9 @@ export function makeExtensionContext(overrides: Partial<vscode.ExtensionContext>
 			delete: vi.fn().mockResolvedValue(undefined),
 			onDidChange: new Map(),
 		},
+		extension: {
+			packageJSON: { version: "0.0.0-test" },
+		},
 		extensionPath: "/mock/extension",
 		extensionUri: makeUri("/mock/extension"),
 		storagePath: "/mock/storage",

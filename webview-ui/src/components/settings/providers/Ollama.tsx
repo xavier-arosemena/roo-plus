@@ -4,7 +4,6 @@ import { Checkbox } from "vscrui"
 
 import {
 	type ProviderSettings,
-	type ExtensionMessage,
 	type ModelRecord,
 	ollamaDefaultModelInfo,
 	OllamaModelsMessageType,
@@ -84,7 +83,10 @@ export const Ollama = ({ apiConfiguration, setApiConfigurationField }: OllamaPro
 		}
 	}, [])
 
-	const handleRefreshModels = useCallback(() => {
+	// Plain function (not useCallback): the React Compiler auto-memoizes and the
+	// manual dependency list could not be preserved exactly, so a wrapper would
+	// only add noise.
+	const handleRefreshModels = () => {
 		refreshStatusRef.current = RefreshStatus.Loading
 		setRefreshStatus(RefreshStatus.Loading)
 		setRefreshError(undefined)
@@ -95,7 +97,7 @@ export const Ollama = ({ apiConfiguration, setApiConfigurationField }: OllamaPro
 				apiKey: apiConfiguration?.ollamaApiKey,
 			},
 		})
-	}, [apiConfiguration?.ollamaBaseUrl, apiConfiguration?.ollamaApiKey])
+	}
 
 	// Refresh models on mount
 	useEffect(() => {

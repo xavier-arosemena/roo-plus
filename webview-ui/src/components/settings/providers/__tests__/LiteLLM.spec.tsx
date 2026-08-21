@@ -73,7 +73,7 @@ describe("LiteLLM", () => {
 
 		fireEvent.click(screen.getByTestId("refresh-button"))
 		act(() => {
-			window.dispatchEvent(new MessageEvent("message", { data: { type: "routerModels" } }))
+			window.dispatchEvent(new MessageEvent("message", { data: { type: "routerModels", routerModels: {} } }))
 		})
 
 		await waitFor(() => {
@@ -142,7 +142,7 @@ describe("LiteLLM", () => {
 					},
 				}),
 			)
-			window.dispatchEvent(new MessageEvent("message", { data: { type: "routerModels" } }))
+			window.dispatchEvent(new MessageEvent("message", { data: { type: "routerModels", routerModels: {} } }))
 		})
 
 		expect(screen.getByText("LiteLLM unavailable")).toBeInTheDocument()

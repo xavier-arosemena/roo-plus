@@ -124,7 +124,7 @@ describe("Poe", () => {
 
 		fireEvent.click(screen.getByTestId("refresh-button"))
 		act(() => {
-			window.dispatchEvent(new MessageEvent("message", { data: { type: "routerModels" } }))
+			window.dispatchEvent(new MessageEvent("message", { data: { type: "routerModels", routerModels: {} } }))
 		})
 
 		await waitFor(() => {

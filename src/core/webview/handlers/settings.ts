@@ -49,6 +49,7 @@ import { exportSettings, importSettingsWithFeedback } from "../../config/importE
 import { getOpenAiModels } from "../../../api/providers/openai"
 import { getVsCodeLmModels } from "../../../api/providers/vscode-lm"
 import { getRouterRemovalMessage } from "../../config/routerRemoval"
+import { ensureDcgInstalled } from "../../../services/destructive-command-guard"
 import { getModels, flushModels } from "../../../api/providers/fetchers/modelCache"
 import { getLMStudioModels } from "../../../api/providers/fetchers/lmstudio"
 import { getWorkspacePath } from "../../../utils/path"
@@ -96,6 +97,7 @@ export async function handleSettingsMessages(
 		| "updateCustomInstructions"
 		| "getMcpHub"
 		| "contextProxy"
+		| "context"
 		| "postStateToWebview"
 		| "customModesManager"
 		| "postMessageToWebview"
@@ -138,6 +140,27 @@ export async function handleSettingsMessages(
 
 			const m = result.data
 			if (m.updatedSettings) {
+				// Enabling the Destructive Command Guard requires the binary to be
+				// installed first. If installation fails (or the platform is
+				// unsupported), revert the setting so the UI does not show the
+				// guard as active when it is not actually available.
+				if (m.updatedSettings.destructiveCommandGuardEnabled === true) {
+					try {
+						const binaryPath = await ensureDcgInstalled(provider.context.globalStorageUri.fsPath)
+						if (!binaryPath) {
+							m.updatedSettings.destructiveCommandGuardEnabled = false
+							vscode.window.showErrorMessage(t("common:errors.destructiveCommandGuard.unavailable"))
+						}
+					} catch (error) {
+						m.updatedSettings.destructiveCommandGuardEnabled = false
+						vscode.window.showErrorMessage(
+							t("common:errors.destructiveCommandGuard.enableFailed", {
+								error: error instanceof Error ? error.message : String(error),
+							}),
+						)
+					}
+				}
+
 				for (const [key, value] of Object.entries(m.updatedSettings)) {
 					let newValue = value
 
@@ -451,6 +474,19 @@ export async function handleSettingsMessages(
 			candidates.push({
 				key: "kenari",
 				options: { provider: "kenari", apiKey: kenariApiKey },
+			})
+
+			// NanoGPT's detailed catalog is public, while an optional key can expose a
+			// different allowlist. Prefer an explicitly supplied unsaved key and use the
+			// same key-scoped options for refresh and retrieval.
+			const nanoGptApiKey = result.data.values?.nanoGptApiKey ?? apiConfiguration.nanoGptApiKey
+			if (result.data.values?.nanoGptApiKey !== undefined) {
+				await flushModels({ provider: "nanogpt", apiKey: nanoGptApiKey }, true)
+			}
+
+			candidates.push({
+				key: "nanogpt",
+				options: { provider: "nanogpt", apiKey: nanoGptApiKey },
 			})
 
 			if (!providerFilter || providerFilter === "kimi-code") {

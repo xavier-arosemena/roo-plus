@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { type ModelRecord, type ExtensionMessage, OllamaModelsMessageType, parseExtensionMessage } from "@roo-code/types"
+import { type ModelRecord, OllamaModelsMessageType, parseExtensionMessage } from "@roo-code/types"
 
 import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"

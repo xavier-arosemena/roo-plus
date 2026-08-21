@@ -24,11 +24,22 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
 	const { t } = useAppTranslation()
 
 	// Whenever the source or host theme changes, invalidate in-flight rendering.
-	useEffect(() => {
-		renderVersionRef.current += 1
+	// The loading/error reset happens during render (guarded by a primitive key)
+	// to avoid a synchronous setState-in-effect, which the React Compiler flags
+	// as cascading; the ref bump stays in an effect because refs cannot be
+	// mutated during render. Declared before the debounced render so the bump is
+	// observed by the next render pass.
+	const renderKey = `${code}\u0000${theme.signature}`
+	const [prevRenderKey, setPrevRenderKey] = useState(renderKey)
+	if (renderKey !== prevRenderKey) {
+		setPrevRenderKey(renderKey)
 		setIsLoading(true)
 		setError(null)
-	}, [code, theme.signature])
+	}
+
+	useEffect(() => {
+		renderVersionRef.current += 1
+	}, [renderKey])
 
 	useDebounceEffect(
 		() => {
