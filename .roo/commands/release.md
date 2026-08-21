@@ -24,10 +24,10 @@ mode: code
 
 4. Summarize the changes. If the user did not specify a release type, ask whether this should be a major, minor, or patch release.
 
-    - Before choosing the target release version, treat the nightly pre-release lane as separate from the stable lane.
-    - Roo+ nightlies should stay on `major.ODD_NUMBER.patch` and use a large patch number for CI-generated pre-releases.
-    - Stable releases should stay on `major.EVEN_NUMBER.patch`.
-    - When preparing a stable release after an odd-minor pre-release line, advance to the next even minor instead of reusing the odd-minor pre-release lane.
+    - The pre-release lane is separate from the stable lane.
+    - CI generates a pre-release automatically on every `master` push as `major.ODD_MINOR.0-pre-release.<run>` (the odd minor keeps the pre-release outranking the latest stable on both marketplaces).
+    - A stable release is a manual dispatch of the "Publish Stable Extension" workflow on `master`; it publishes the exact version in `src/package.json`.
+    - When promoting a pre-release line to stable, use the same major.minor.patch as the pre-release (e.g. `3.81.0` for the `3.81.0-pre-release.N` line) so the stable build outranks the pre-release builds.
 
 5. Review and update the Marketplace-facing root `README.md`.
 
@@ -89,31 +89,26 @@ mode: code
     - If the release includes translated README or package-localization updates, include those files in the same PR.
     - Let the release validation workflow and normal PR checks run before merge.
 
-11. Once the release PR is open and passing checks, get it approved by a reviewer before proceeding.
-
-    - Do not create the tag until the PR has at least one approval — the publish workflow enforces this automatically and will fail if no approved PR is found for the tagged commit.
-
-12. After the PR is approved, create the release tag on the release branch tip and push it:
+11. Once the release PR is open and passing checks, get it approved by a reviewer, then merge it to `master` (the version bump and changelog must be on `master` before publishing).
 
     ```bash
-    git tag v[version]
-    git push origin v[version]
+    gh pr merge [pr-number] --squash
     ```
 
-    - Tag the branch tip as-is. Do not rebase or merge additional commits into the release branch before tagging — doing so changes the commit SHA and may pull in unreviewed changes that weren't part of the approval.
-    - The publish workflow validates that the tag version matches `src/package.json`.
+    - Do not create a `v[version]` tag — stable publishes are triggered manually, not by tag pushes.
 
-13. The tag push triggers the stable publish workflow.
+12. Manually trigger the stable publish workflow on `master`.
 
-    - The workflow first checks that the tagged commit belongs to an approved PR. If the PR is not yet approved this step fails — approve the PR first, then retrigger by recreating and pushing the tag: `git tag -d v[version] && git push origin :refs/tags/v[version] && git tag v[version] && git push origin v[version]`.
-    - Once the approval check passes, the `marketplace-production` environment gate fires and notifies the configured approvers.
-    - A human approver must then approve the deployment before the extension is published to VS Code Marketplace and Open VSX.
+    - In GitHub, go to **Actions → Publish Stable Extension → Run workflow**, select the `master` branch, and run it (or dispatch via the CLI: `gh workflow run marketplace-publish.yml --ref master`).
+    - The workflow's approval gate bypasses users with write/admin access; other users must have an approved PR for the dispatched commit.
+    - It builds and packages the version in `src/package.json`, publishes to VS Code Marketplace and Open VSX, and creates the GitHub release `v[version]` (with changelog notes) at the dispatched `master` commit.
 
-14. After a successful deployment, add the release PR to the merge queue.
+13. Approve the `marketplace-production` environment deployment.
 
-    ```bash
-    gh pr merge [pr-number] --auto --squash
-    ```
+    - The environment gate fires and notifies the configured approvers.
+    - A human approver must approve the deployment before the extension is published to either marketplace.
 
-    - Do not merge before the deployment succeeds — merging first and then discovering a publish failure leaves `master` ahead of what was actually shipped.
-    - The merge queue runs all required checks against the release branch before merging to `master`.
+14. Verify the release.
+
+    - Confirm the GitHub release `v[version]` exists with the VSIX attached, and the extension version is live on both marketplaces.
+    - No further action is needed on `master`; the next `master` push automatically produces the next pre-release.

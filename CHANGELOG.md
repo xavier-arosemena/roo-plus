@@ -4,6 +4,24 @@
 
 ---
 
+## [3.81.0] — 2026-08-21
+
+### Patch — Webview Reliability, Pre-Release Channel Hardening & Release Governance Cleanup
+
+### 🐛 Bug Fixes
+
+- **Webview React #301 startup crash and seen-set churn resolved (Closes: #250)** — The webview production build compiled with the React Compiler while the vitest suite did not, so the `#245` render-loop fix regressed under the compiler's auto-memoization. `babel-plugin-react-compiler` is now disabled in the production and component-test webview builds (with a new CI toolchain-parity gate that canaries the production bundle), and the `seenTsStore` LRU churn is fixed: with >100 messages the capacity-bounded LRU evicted already-seen timestamps, un-hiding messages and causing an endless render → effect → render cycle. Replaced with a `Set` bounded by the current message set via the existing 60s prune, with regression tests for the startup path, >100-message churn, and store prune cases.
+- **Render-phase `setState` loops eliminated (Closes: #245)** — React error #301 ("Too many re-renders") in `3.81.0-pre-release.4` was introduced by commit `f8505866f`, which converted effect-based state sync into render-phase "adjust state during render" `setState` across the webview; non-convergent guards caused an infinite render loop on startup. Replaced every unsafe guard with loop-safe patterns: a new `usePrimitiveSync` hook for value-stable primitives, stable derived string keys for object/array props and context objects, `useSyncExternalStore` for the ChatView seen-set, and effect-based sync where render-phase `setState` is not expressible safely. Behavioral fixes: the announcement no longer re-shows immediately after dismissal, settings-import navigation converges, `CodeIndexPopover` no longer clobbers user edits on every extension-state push, and `UpdateTodoListToolBlock` no longer regenerates todo IDs on reference churn.
+
+### 🔧 Chores
+
+- **Open VSX pre-release marker stamped into packaged manifest (Closes: #243)** — `vsce package --pre-release` only writes `Microsoft.VisualStudio.Code.PreRelease` to the XML `extension.vsixmanifest`, and the `ovsx` CLI ignores `--pre-release` for pre-built VSIX files, so Open VSX was flagging pre-releases as stable. The marker is now stamped into [`src/package.json`](src/package.json) during the pre-release version step and asserted before publishing so a regression fails loudly (bug #243).
+- **Pre-release publish fails loudly with notifications (PR #244 by @xavier-arosemena)** — The pre-release publish workflow previously reported success even when no marketplace token was configured, silently publishing nothing. A fail-fast token guard now turns the run red when both `VSCE_PAT` and `OVSX_PAT` are missing, and the existing Slack notify action is wired in so publish failures trigger a notification.
+- **Stale release-governance docs and announcement visualization removed** — `docs/RELEASE-WORKFLOWS.md`, `docs/SEMBLE-RELEASE-GOVERNANCE.md`, `sembleexec-release-guard.yml`, and `announcement-visualization.html` (no longer referenced anywhere in the repository) were removed as part of the release-cycle cleanup.
+- **CI audit, submodule checkout, and RooHero visual snapshot fixed (PR #241 by @xavier-arosemena)** — `pnpm-workspace.yaml` gains patched `js-yaml` overrides (CVE-2026-59870) and a `nanoid >=3.3.18` override (GHSA-2v37-7h3g-55p8) to fix the audit-dependencies job; `code-qa.yml` checks out the `custom-modes` submodule recursively in the unit-test job so `verify-submodule-pin` passes; and the `zoo-hero-dark.png` visual snapshot was regenerated after the welcome-screen ASCII-figlet redesign (Issue #196).
+
+---
+
 ## [3.79.0] — 2026-08-17
 
 ### Minor — CI Stabilization, Webview Reliability & Release Channel Cleanup
