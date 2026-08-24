@@ -103,7 +103,7 @@
 		"reportIssue": "Báo lỗi hoặc yêu cầu tính năng",
 		"discussions": "Tham gia thảo luận",
 		"starUs": "Cho chúng tôi một sao trên GitHub",
-		"reviewUs": "Đánh giá chúng tôi trên Open VSX"
+		"reviewUs": "Đánh giá chúng tôi trên <marketplaceLink>VS Code Marketplace</marketplaceLink> và <openVsxLink>Open VSX</openVsxLink>"
 	},
 	"onboarding": "Danh sách nhiệm vụ của bạn trong không gian làm việc này đang trống.",
 	"selectMode": "Chọn chế độ tương tác",

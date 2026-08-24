@@ -1,7 +1,7 @@
 import { memo, type ReactNode, useState } from "react"
 import { Trans } from "react-i18next"
 import { SiGithub } from "react-icons/si"
-import { GoLinkExternal } from "react-icons/go"
+import { GoLinkExternal, GoPackage } from "react-icons/go"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 
 import { Package } from "@roo/package"
@@ -80,6 +80,11 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 								icon={<GoLinkExternal className="w-4 h-4" aria-hidden />}
 								label="Open VSX Registry"
 								href={EXTERNAL_LINKS.OPEN_VSX_REGISTRY}
+							/>
+							<SocialLink
+								icon={<GoPackage className="w-4 h-4" aria-hidden />}
+								label="VS Code Marketplace"
+								href={EXTERNAL_LINKS.MARKETPLACE}
 							/>
 						</div>
 					</div>

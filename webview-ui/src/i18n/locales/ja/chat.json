@@ -103,7 +103,7 @@
 		"reportIssue": "バグを報告するか機能をリクエスト",
 		"discussions": "ディスカッションに参加",
 		"starUs": "GitHub でスターを付ける",
-		"reviewUs": "Open VSX でレビューする"
+		"reviewUs": "<marketplaceLink>VS Code Marketplace</marketplaceLink>と<openVsxLink>Open VSX</openVsxLink>でレビューする"
 	},
 	"onboarding": "このワークスペースのタスクリストは空です。",
 	"selectMode": "対話モードを選択",

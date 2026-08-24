@@ -1,9 +1,15 @@
+import type { MouseEvent, ReactNode } from "react"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { Bug, MessagesSquare, Star, Store } from "lucide-react"
 import { Trans, useTranslation } from "react-i18next"
 
 import { EXTERNAL_LINKS } from "@src/constants/externalLinks"
 import { vscode } from "@src/utils/vscode"
+
+const openExternal = (url: string) => (event: MouseEvent) => {
+	event.preventDefault()
+	vscode.postMessage({ type: "openExternal", url })
+}
 
 const supportLinks = [
 	{
@@ -21,12 +27,25 @@ const supportLinks = [
 		labelKey: "support.starUs",
 		href: EXTERNAL_LINKS.GITHUB_REPO,
 	},
-	{
-		icon: <Store className="size-4 shrink-0" aria-hidden />,
-		labelKey: "support.reviewUs",
-		href: EXTERNAL_LINKS.OPEN_VSX_REGISTRY,
-	},
 ]
+
+const MarketplaceReviewLink = ({ children }: { children?: ReactNode }) => (
+	<VSCodeLink
+		href={EXTERNAL_LINKS.MARKETPLACE_REVIEW}
+		className="text-muted-foreground underline"
+		onClick={openExternal(EXTERNAL_LINKS.MARKETPLACE_REVIEW)}>
+		{children}
+	</VSCodeLink>
+)
+
+const OpenVSXReviewLink = ({ children }: { children?: ReactNode }) => (
+	<VSCodeLink
+		href={EXTERNAL_LINKS.OPEN_VSX_REGISTRY}
+		className="text-muted-foreground underline"
+		onClick={openExternal(EXTERNAL_LINKS.OPEN_VSX_REGISTRY)}>
+		{children}
+	</VSCodeLink>
+)
 
 const RooTips = () => {
 	const { t } = useTranslation("chat")
@@ -52,6 +71,16 @@ const RooTips = () => {
 						</span>
 					</VSCodeLink>
 				))}
+				<span className="inline-flex items-center gap-1.5">
+					<Store className="size-4 shrink-0" aria-hidden />
+					<Trans
+						i18nKey="chat:support.reviewUs"
+						components={{
+							marketplaceLink: <MarketplaceReviewLink />,
+							openVsxLink: <OpenVSXReviewLink />,
+						}}
+					/>
+				</span>
 			</div>
 		</div>
 	)

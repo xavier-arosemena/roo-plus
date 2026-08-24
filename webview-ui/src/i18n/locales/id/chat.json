@@ -133,7 +133,7 @@
 		"reportIssue": "Laporkan bug atau minta fitur",
 		"discussions": "Ikuti diskusinya",
 		"starUs": "Beri kami bintang di GitHub",
-		"reviewUs": "Beri ulasan kami di Open VSX"
+		"reviewUs": "Beri ulasan kami di <marketplaceLink>VS Code Marketplace</marketplaceLink> dan <openVsxLink>Open VSX</openVsxLink>"
 	},
 	"onboarding": "Daftar tugas Anda di ruang kerja ini kosong.",
 	"selectMode": "Pilih mode untuk interaksi",

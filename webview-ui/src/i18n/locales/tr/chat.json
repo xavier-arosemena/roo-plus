@@ -103,7 +103,7 @@
 		"reportIssue": "Hata bildir veya özellik iste",
 		"discussions": "Tartışmalara katıl",
 		"starUs": "GitHub'da bize yıldız ver",
-		"reviewUs": "Open VSX'te bizi değerlendir"
+		"reviewUs": "Bizi <marketplaceLink>VS Code Marketplace</marketplaceLink> ve <openVsxLink>Open VSX</openVsxLink>'te değerlendir"
 	},
 	"onboarding": "Bu çalışma alanındaki görev listeniz boş.",
 	"selectMode": "Etkileşim modunu seçin",

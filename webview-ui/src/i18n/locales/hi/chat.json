@@ -103,7 +103,7 @@
 		"reportIssue": "बग रिपोर्ट करें या फ़ीचर मांगें",
 		"discussions": "चर्चाओं में शामिल हों",
 		"starUs": "GitHub पर हमें स्टार दें",
-		"reviewUs": "Open VSX पर हमें रेट करें"
+		"reviewUs": "हमें <marketplaceLink>VS Code Marketplace</marketplaceLink> और <openVsxLink>Open VSX</openVsxLink> पर रेट करें"
 	},
 	"onboarding": "इस कार्यक्षेत्र में आपकी कार्य सूची खाली है।",
 	"selectMode": "इंटरैक्शन मोड चुनें",

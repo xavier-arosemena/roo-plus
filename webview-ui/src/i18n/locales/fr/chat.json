@@ -103,7 +103,7 @@
 		"reportIssue": "Signaler un bug ou demander une fonctionnalité",
 		"discussions": "Rejoindre les discussions",
 		"starUs": "Mettez-nous une étoile sur GitHub",
-		"reviewUs": "Notez-nous sur Open VSX"
+		"reviewUs": "Notez-nous sur <marketplaceLink>VS Code Marketplace</marketplaceLink> et sur <openVsxLink>Open VSX</openVsxLink>"
 	},
 	"onboarding": "Votre liste de tâches dans cet espace de travail est vide.",
 	"selectMode": "Sélectionner le mode d'interaction",

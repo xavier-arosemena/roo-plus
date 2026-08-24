@@ -20,6 +20,9 @@
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
     <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
   </a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus">
+    <img src="https://img.shields.io/badge/VS_Code_Marketplace-0078D4?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace">
+  </a>
   <a href="https://github.com/xavier-arosemena/roo-plus/issues">
     <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
   </a>
@@ -228,6 +231,9 @@ Want to test the newest build before it ships as stable? Use the marketplace's *
 Or install directly from the command line:
 
 ```bash
+# Via the VS Code Marketplace
+code --install-extension xavier-arosemena.roo-plus
+
 # Via the Open VSX CLI
 ovsx install xavier-arosemena/roo-plus
 ```
