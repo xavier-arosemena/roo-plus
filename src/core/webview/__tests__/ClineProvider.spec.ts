@@ -24,6 +24,8 @@ import { TelemetryService } from "@roo-code/telemetry"
 
 import { defaultModeSlug } from "../../../shared/modes"
 import { experimentDefault } from "../../../shared/experiments"
+import { Package } from "../../../shared/package"
+import * as announcementsModule from "../../../shared/announcements"
 import { setTtsEnabled } from "../../../utils/tts"
 import { ContextProxy } from "../../config/ContextProxy"
 import { Task, TaskOptions } from "../../task/Task"
@@ -1325,6 +1327,61 @@ describe("ClineProvider", () => {
 		const state = await provider.getStateToPostToWebview()
 
 		expect(state.destructiveCommandGuardEnabled).toBe(false)
+	})
+
+	describe("announcement version-derived trigger (bug #265)", () => {
+		afterEach(() => {
+			vi.restoreAllMocks()
+		})
+
+		test("latestAnnouncementId is derived from Package.version", () => {
+			expect(provider.latestAnnouncementId).toBe(`v${Package.version}`)
+			// The hardcoded literal is gone: it must not reference a stale version.
+			expect(provider.latestAnnouncementId).toContain(Package.version)
+		})
+
+		test("shouldShowAnnouncement is false when the persisted id matches the current version", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			await provider.contextProxy.setValue("telemetrySetting", "enabled")
+			await provider.contextProxy.setValue("lastShownAnnouncementId", provider.latestAnnouncementId)
+
+			const state = await provider.getStateToPostToWebview()
+
+			expect(state.shouldShowAnnouncement).toBe(false)
+		})
+
+		test("shouldShowAnnouncement is true when the version changed and announcement data exists", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			await provider.contextProxy.setValue("telemetrySetting", "enabled")
+			await provider.contextProxy.setValue("lastShownAnnouncementId", "v3.80.0")
+
+			const state = await provider.getStateToPostToWebview()
+
+			expect(state.shouldShowAnnouncement).toBe(true)
+		})
+
+		test("shouldShowAnnouncement stays false when telemetry is unset even after a version change", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			await provider.contextProxy.setValue("telemetrySetting", "unset")
+			await provider.contextProxy.setValue("lastShownAnnouncementId", "v3.80.0")
+
+			const state = await provider.getStateToPostToWebview()
+
+			expect(state.shouldShowAnnouncement).toBe(false)
+		})
+
+		test("shouldShowAnnouncement stays false when the version has no announcement content (noise mitigation)", async () => {
+			vi.spyOn(announcementsModule, "hasAnnouncementForVersion").mockReturnValue(false)
+
+			await provider.resolveWebviewView(mockWebviewView)
+			await provider.contextProxy.setValue("telemetrySetting", "enabled")
+			await provider.contextProxy.setValue("lastShownAnnouncementId", "v3.80.0")
+
+			const state = await provider.getStateToPostToWebview()
+
+			expect(state.shouldShowAnnouncement).toBe(false)
+			expect(announcementsModule.hasAnnouncementForVersion).toHaveBeenCalledWith(Package.version)
+		})
 	})
 
 	test("language is set to VSCode language", async () => {

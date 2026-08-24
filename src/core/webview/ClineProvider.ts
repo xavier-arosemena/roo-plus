@@ -61,6 +61,7 @@ import { aggregateTaskCostsRecursive, type AggregatedCosts } from "./aggregateTa
 import { TelemetryService } from "@roo-code/telemetry"
 
 import { Package } from "../../shared/package"
+import { hasAnnouncementForVersion } from "../../shared/announcements"
 import { findLast } from "../../shared/array"
 import { supportPrompt } from "../../shared/support-prompt"
 import { GlobalFileNames } from "../../shared/globalFileNames"
@@ -365,7 +366,18 @@ export class ClineProvider
 
 	public isViewLaunched = false
 	public settingsImportedAt?: number
-	public readonly latestAnnouncementId = "aug-2026-v3.83.0-glm5-diff-lite-llm" // v3.83.0 GLM-5.2 support, diff UX + auto-close tabs, LiteLLM reliability
+	/**
+	 * Version-derived identity for the "What's New" popup (bug #265).
+	 *
+	 * Derived from `Package.version` instead of a manually-maintained literal so
+	 * the popup re-arms automatically on every version bump — no manual edit
+	 * required for the English release channel. `didShowAnnouncement` persists
+	 * this value as `lastShownAnnouncementId`, so a user sees the popup at most
+	 * once per version.
+	 */
+	public get latestAnnouncementId(): string {
+		return `v${Package.version}`
+	}
 	public readonly providerSettingsManager: ProviderSettingsManager
 	public readonly customModesManager: CustomModesManager
 	private readonly providerProfileService: ProviderProfileService
@@ -2447,7 +2459,11 @@ export class ClineProvider
 			enableCheckpoints: enableCheckpoints ?? true,
 			checkpointTimeout: checkpointTimeout ?? DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 			shouldShowAnnouncement:
-				telemetrySetting !== "unset" && lastShownAnnouncementId !== this.latestAnnouncementId,
+				telemetrySetting !== "unset" &&
+				lastShownAnnouncementId !== this.latestAnnouncementId &&
+				// Noise mitigation: only re-arm the popup when the current version
+				// actually has announcement content (derived from the changelog).
+				hasAnnouncementForVersion(Package.version),
 			allowedCommands: mergedAllowedCommands,
 			deniedCommands: mergedDeniedCommands,
 			soundVolume: soundVolume ?? 0.5,

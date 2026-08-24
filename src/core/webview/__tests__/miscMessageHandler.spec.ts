@@ -95,7 +95,7 @@ vi.mock("../handlers/shared", () => ({
 }))
 
 import { openFile } from "../../../integrations/misc/open-file"
-import { getGlobalState } from "../handlers/shared"
+import { getGlobalState, updateGlobalState } from "../handlers/shared"
 import { handleMiscMessages } from "../handlers/misc"
 
 describe("miscMessageHandler", () => {
@@ -232,6 +232,30 @@ describe("miscMessageHandler", () => {
 			await handleMiscMessages(provider, undefined, { type: "getDismissedUpsells" })
 
 			expect(mockPostMessageToWebview).toHaveBeenCalledWith({ type: "dismissedUpsells", list: [] })
+		})
+	})
+
+	describe("didShowAnnouncement", () => {
+		it("persists the computed version-derived announcement id and re-posts state", async () => {
+			const provider = createMockProvider()
+			// The mock provider exposes latestAnnouncementId as a plain property
+			// (the real class exposes a getter derived from Package.version); the
+			// handler must persist whatever value it reads.
+			Object.assign(provider, { latestAnnouncementId: "v3.81.0" })
+
+			await handleMiscMessages(provider, undefined, { type: "didShowAnnouncement" })
+
+			expect(updateGlobalState).toHaveBeenCalledWith(provider, "lastShownAnnouncementId", "v3.81.0")
+			expect(vi.mocked(provider.postStateToWebview)).toHaveBeenCalled()
+		})
+
+		it("uses the provider's current id so a version bump re-arms the popup once", async () => {
+			const provider = createMockProvider()
+			Object.assign(provider, { latestAnnouncementId: "v3.82.0" })
+
+			await handleMiscMessages(provider, undefined, { type: "didShowAnnouncement" })
+
+			expect(updateGlobalState).toHaveBeenCalledWith(provider, "lastShownAnnouncementId", "v3.82.0")
 		})
 	})
 

@@ -4,6 +4,7 @@ import React from "react"
 import { render, screen, act, cleanup } from "@/utils/test-utils"
 
 import AppWithProviders from "../App"
+import Announcement from "../components/chat/Announcement"
 
 vi.mock("@src/utils/vscode", () => ({
 	vscode: {
@@ -171,6 +172,35 @@ vi.mock("process.env", () => ({
 	NODE_ENV: "test",
 	PKG_VERSION: "1.0.0-test",
 }))
+
+// The real Announcement component (rendered directly below) reads its content
+// from @roo/announcements (generated from src/CHANGELOG.md) keyed by
+// Package.version. Mock both so the block can assert the new content source and
+// its i18n fallback deterministically.
+vi.mock("@roo/package", () => ({
+	Package: {
+		version: "3.81.0",
+	},
+}))
+
+vi.mock("@roo/announcements", () => {
+	const announcements: Record<string, { version: string; highlights: string[] }> = {
+		"3.81.0": {
+			version: "3.81.0",
+			highlights: ["App-level generated highlight"],
+		},
+	}
+
+	return {
+		Announcements: announcements,
+		hasAnnouncementForVersion: (version: string) => {
+			const entry = announcements[version]
+			return entry !== undefined && entry.highlights.length > 0
+		},
+	}
+})
+
+import { Announcements } from "@roo/announcements"
 
 describe("App", () => {
 	beforeEach(() => {
@@ -506,6 +536,33 @@ describe("App", () => {
 			vi
 				.mocked(vscode.postMessage)
 				.mock.calls.filter((call) => (call[0] as { type?: string }).type === "didShowAnnouncement")
+
+		beforeEach(() => {
+			// Restore the data source for the current version so each test starts
+			// from the "data present" state.
+			Announcements["3.81.0"] = { version: "3.81.0", highlights: ["App-level generated highlight"] }
+		})
+
+		it("renders the changelog-derived per-version highlights (new content source)", () => {
+			// ChatView is mocked above, so the real Announcement is rendered
+			// directly to verify it consumes the @roo/announcements data source
+			// (generated from src/CHANGELOG.md) instead of static i18n keys.
+			render(<Announcement hideAnnouncement={vi.fn()} />)
+
+			expect(screen.getByText("App-level generated highlight")).toBeInTheDocument()
+		})
+
+		it("falls back to the translated i18n highlights when no data exists for the current version", () => {
+			// A version without generated announcement data (e.g. a pre-release
+			// build) must fall back to the existing translated highlights.
+			delete Announcements["3.81.0"]
+
+			render(<Announcement hideAnnouncement={vi.fn()} />)
+
+			expect(screen.getByText("chat:announcement.release.highlight1")).toBeInTheDocument()
+			expect(screen.getByText("chat:announcement.release.highlight2")).toBeInTheDocument()
+			expect(screen.getByText("chat:announcement.release.highlight3")).toBeInTheDocument()
+		})
 
 		it("shows the announcement once when the extension flag is true on the chat tab at mount", () => {
 			// Arrange
