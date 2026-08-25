@@ -339,9 +339,9 @@
 		"support": "Sostieni Roo+ lasciandoci una stella su <githubLink>GitHub</githubLink> e sul <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novità:",
-			"highlight1": "Servizi cloud rimossi e stabilità migliorata. L'estensione non attende più il backend cloud dismesso, quindi avvio e connessioni remote sono più veloci e affidabili.",
-			"highlight2": "Semble e code-index resi affidabili. La ricerca nella codebase è verificata tramite checksum e resiliente — niente più ricerche bloccate o barra della finestra di contesto rotta.",
-			"highlight3": "Modalità personalizzate potenziate. Ora ogni modalità mostra una descrizione e puoi installare più modalità del marketplace in blocco."
+			"highlight1": "Supporto per GLM-5.2 con livelli di sforzo di ragionamento High/Max — il ragionamento profondo resta attivabile su richiesta per impostazione predefinita. Il provider Opencode Go ottiene anche la tariffazione della cache MiniMax M3, un cursore per l'output massimo di DeepSeek V4 e un instradamento in formato Anthropic più affidabile.",
+			"highlight2": "La modifica dei diff ha ricevuto una revisione completa della UX. I diff si aprono scorrendo fino alla prima riga modificata, lo stato di scorrimento e delle schede di anteprima/bloccate viene ripristinato dopo l'accettazione/il rifiuto e le nuove impostazioni consentono di chiudere automaticamente le schede dell'editor che Zoo apre durante le modifiche.",
+			"highlight3": "LiteLLM e i provider di instradamento sono più affidabili — risolte le collisioni delle chiavi di cache tra profili e il fallback silenzioso a un modello predefinito inesistente, e aggiunta un'intestazione X-Zoo-Session-ID per correlare le conversazioni nei log di LiteLLM."
 		}
 	},
 	"costs": {

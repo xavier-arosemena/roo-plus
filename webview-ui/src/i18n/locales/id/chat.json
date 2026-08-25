@@ -368,9 +368,9 @@
 		"support": "Dukung Roo+ dengan memberi kami bintang di <githubLink>GitHub</githubLink> dan di <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Yang Baru:",
-			"highlight1": "Layanan cloud dihapus dan stabilitas diperbaiki. Ekstensi tidak lagi menunggu backend cloud yang dihentikan, sehingga startup dan koneksi jarak jauh lebih cepat dan andal.",
-			"highlight2": "Semble dan code-index dibuat andal. Pencarian codebase terverifikasi checksum dan tangguh — tidak ada lagi pencarian macet atau bilah jendela konteks yang rusak.",
-			"highlight3": "Custom modes ditingkatkan. Setiap mode kini menampilkan deskripsi, dan Anda dapat menginstal banyak mode marketplace sekaligus."
+			"highlight1": "Dukungan GLM-5.2 dengan tingkat upaya penalaran High/Max — penalaran mendalam tetap opt-in secara default. Provider Opencode Go juga mendapat harga cache MiniMax M3, penggeser keluaran maksimal DeepSeek V4, dan perutean format Anthropic yang lebih andal.",
+			"highlight2": "Pengeditan diff mendapat perombakan UX. Diff terbuka dengan gulir ke baris berubah pertama, status gulir dan tab pratinjau/disematkan dipulihkan setelah menerima/menolak, dan pengaturan baru memungkinkan Anda menutup otomatis tab editor yang dibuka Zoo selama pengeditan.",
+			"highlight3": "LiteLLM dan provider router lebih andal — memperbaiki tabrakan kunci cache antar profil dan fallback diam-diam ke model default yang tidak ada, serta menambahkan header X-Zoo-Session-ID agar percakapan dapat dikorelasikan di log LiteLLM."
 		}
 	},
 	"reasoning": {

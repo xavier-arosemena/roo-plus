@@ -365,7 +365,7 @@ export class ClineProvider
 
 	public isViewLaunched = false
 	public settingsImportedAt?: number
-	public readonly latestAnnouncementId = "aug-2026-v3.77.4-cloud-semble-custom-modes" // v3.77.4 cloud services removed, Semble/code-index reliability, custom modes upgrade
+	public readonly latestAnnouncementId = "aug-2026-v3.83.0-glm5-diff-lite-llm" // v3.83.0 GLM-5.2 support, diff UX + auto-close tabs, LiteLLM reliability
 	public readonly providerSettingsManager: ProviderSettingsManager
 	public readonly customModesManager: CustomModesManager
 	private readonly providerProfileService: ProviderProfileService
@@ -1066,8 +1066,8 @@ export class ClineProvider
 		// state and schedule distinct Task instances for one history item.
 		// Fail forward so one rejected restoration does not poison the queue.
 		const previous = this.historyTaskCreationQueue ?? Promise.resolve()
-		const run = previous.then(
-			() => ClineProvider.prototype.createTaskWithHistoryItemUnlocked.call(this, historyItem, options),
+		const run = previous.then(() =>
+			ClineProvider.prototype.createTaskWithHistoryItemUnlocked.call(this, historyItem, options),
 		)
 		this.historyTaskCreationQueue = run.then(
 			() => {},
