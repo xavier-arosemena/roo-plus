@@ -141,6 +141,19 @@ jobs:
                   node scripts/verify-upstream-code-index-alignment.mjs
                   echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:UPSTREAM-ALIGNMENT] upstream alignment gate passed (or skipped)"
                   echo "::endgroup::"
+            # Release-readiness gate for the "What's New" announcement popup
+            # (bug #265): the popup content lives in the generated
+            # src/shared/announcements.ts (derived from src/CHANGELOG.md). A
+            # version bump without regenerating that asset would silently stop
+            # the popup from showing, so this gate HARD FAILS (exit 1) whenever
+            # the current version in src/package.json has no matching, non-empty
+            # announcement data in sync with the changelog.
+            - name: Verify announcement data matches the current version (release-readiness gate)
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:ANNOUNCEMENT] Verifying announcement data matches the current version"
+                  node scripts/verify-announcement-version.mjs
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:ANNOUNCEMENT] announcement data verified for the current version"
+                  echo "::endgroup::"
 
     audit-dependencies:
         runs-on: ubuntu-latest

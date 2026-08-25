@@ -1,10 +1,11 @@
 import { memo, type ReactNode, useState } from "react"
 import { Trans } from "react-i18next"
 import { SiGithub } from "react-icons/si"
-import { GoLinkExternal } from "react-icons/go"
+import { GoLinkExternal, GoPackage } from "react-icons/go"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 
 import { Package } from "@roo/package"
+import { Announcements } from "@roo/announcements"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { vscode } from "@src/utils/vscode"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@src/components/ui"
@@ -15,17 +16,28 @@ interface AnnouncementProps {
 }
 
 /**
- * You must update the `latestAnnouncementId` in ClineProvider for new
- * announcements to show to users. This new id will be compared with what's in
- * state for the 'last announcement shown', and if it's different then the
- * announcement will render. As soon as an announcement is shown, the id will be
- * updated in state. This ensures that announcements are not shown more than
- * once, even if the user doesn't close it themselves.
+ * The popup trigger is version-derived (`ClineProvider.latestAnnouncementId`
+ * returns `v${Package.version}`) and the content is changelog-derived
+ * (`@roo/announcements`), so a version bump needs NO manual announcement edits
+ * for the English release channel.
+ *
+ * Localisation trade-off: the per-version highlights are auto-generated from
+ * the English changelog (src/CHANGELOG.md → src/shared/announcements.ts) and
+ * are therefore English-only. When the current version has generated highlights
+ * they are shown to every locale. The translated
+ * `chat:announcement.release.highlightN` keys are used only as a fallback when
+ * no generated data exists for the current version (e.g. pre-release/preview
+ * builds or a build whose data asset was not regenerated).
  */
 
 const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 	const { t } = useAppTranslation()
 	const [open, setOpen] = useState(true)
+
+	// Per-version highlights derived from the changelog (English-only); falls
+	// back to the translated i18n highlights when the current version has no
+	// generated data.
+	const generatedHighlights = Announcements[Package.version]?.highlights
 
 	return (
 		<Dialog
@@ -45,9 +57,15 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 					<div className="mb-4">
 						<p className="mb-3">{t("chat:announcement.release.heading")}</p>
 						<ul className="list-disc list-inside text-sm space-y-1.5">
-							<li>{t("chat:announcement.release.highlight1")}</li>
-							<li>{t("chat:announcement.release.highlight2")}</li>
-							<li>{t("chat:announcement.release.highlight3")}</li>
+							{generatedHighlights?.length ? (
+								generatedHighlights.map((highlight) => <li key={highlight}>{highlight}</li>)
+							) : (
+								<>
+									<li>{t("chat:announcement.release.highlight1")}</li>
+									<li>{t("chat:announcement.release.highlight2")}</li>
+									<li>{t("chat:announcement.release.highlight3")}</li>
+								</>
+							)}
 						</ul>
 					</div>
 
@@ -62,6 +80,11 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 								icon={<GoLinkExternal className="w-4 h-4" aria-hidden />}
 								label="Open VSX Registry"
 								href={EXTERNAL_LINKS.OPEN_VSX_REGISTRY}
+							/>
+							<SocialLink
+								icon={<GoPackage className="w-4 h-4" aria-hidden />}
+								label="VS Code Marketplace"
+								href={EXTERNAL_LINKS.MARKETPLACE}
 							/>
 						</div>
 					</div>

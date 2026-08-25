@@ -103,7 +103,7 @@
 		"reportIssue": "버그 신고 또는 기능 요청",
 		"discussions": "토론에 참여하기",
 		"starUs": "GitHub에서 스타 주기",
-		"reviewUs": "Open VSX에서 리뷰하기"
+		"reviewUs": "<marketplaceLink>VS Code Marketplace</marketplaceLink> 및 <openVsxLink>Open VSX</openVsxLink>에서 리뷰하기"
 	},
 	"onboarding": "이 작업 공간의 작업 목록이 비어 있습니다.",
 	"selectMode": "상호작용 모드 선택",

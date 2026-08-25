@@ -10,4 +10,6 @@ export const EXTERNAL_LINKS = {
 	REDDIT: "https://www.reddit.com/r/RooPlus/",
 	DISCORD: "https://discord.gg/VxfP4Vx3gX",
 	OPEN_VSX_REGISTRY: "https://open-vsx.org/extension/xavier-arosemena/roo-plus",
+	MARKETPLACE: "https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus",
+	MARKETPLACE_REVIEW: "https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus#review-details",
 } as const

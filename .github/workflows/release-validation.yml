@@ -71,6 +71,13 @@ jobs:
                   echo "::notice::[CI:RELEASE-VALIDATION:METADATA] release metadata OK for version $package_version"
                   echo "::endgroup::"
 
+            - name: Verify announcement data matches the current version (release-readiness gate)
+              run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:ANNOUNCEMENT] Verifying announcement data matches the current version"
+                  node scripts/verify-announcement-version.mjs
+                  echo "::notice::[CI:RELEASE-VALIDATION:ANNOUNCEMENT] announcement data verified for the current version"
+                  echo "::endgroup::"
+
             - name: Build workspace packages
               run: |
                   echo "::group::[CI:RELEASE-VALIDATION:BUILD] Building workspace packages"

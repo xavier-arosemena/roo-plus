@@ -130,7 +130,7 @@
 		"reportIssue": "回報錯誤或請求功能",
 		"discussions": "加入討論",
 		"starUs": "在 GitHub 上為我們按星",
-		"reviewUs": "在 Open VSX 上為我們評分"
+		"reviewUs": "在 <marketplaceLink>VS Code Marketplace</marketplaceLink> 和 <openVsxLink>Open VSX</openVsxLink> 上為我們評分"
 	},
 	"onboarding": "想要做什麼呢？",
 	"selectMode": "選擇互動模式",

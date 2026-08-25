@@ -12,13 +12,16 @@
 </div>
 
 <div align="center">
-  <img src="./assets/banner.png" alt="Roo+ — 301 Modes — 90 Pre-Loaded" />
+  <img src="./assets/banner.png" alt="Roo+ — 302 Modes — 90 Pre-Loaded" />
 </div>
 <br/>
 
 <p align="center">
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
     <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
+  </a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus">
+    <img src="https://img.shields.io/badge/VS_Code_Marketplace-0078D4?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace">
   </a>
   <a href="https://github.com/xavier-arosemena/roo-plus/issues">
     <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
@@ -31,7 +34,7 @@
 <br/>
 
 <h1 align="center">🚀 Roo+</h1>
-<h3 align="center">Your AI Development Team — 301 Modes — 90 Pre-Loaded</h3>
+<h3 align="center">Your AI Development Team — 302 Modes — 90 Pre-Loaded</h3>
 
 <br/>
 
@@ -43,7 +46,7 @@
 
 ## ✨ What is Roo+?
 
-Roo+ extends the incredible foundation of Zoo Code with **90 custom modes** pre-loaded (from a canonical catalog of 301 modes), **enhanced features**, and a personalized configuration tailored for modern development workflows.
+Roo+ extends the incredible foundation of Zoo Code with **90 custom modes** pre-loaded (from a canonical catalog of 302 modes), **enhanced features**, and a personalized configuration tailored for modern development workflows.
 
 | Feature                          | Description                                                                                                                                    |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -147,14 +150,14 @@ Advanced reasoning personas implementing cutting-edge cognitive patterns:
 
 ### Full Agent Catalog
 
-Browse all **301 modes** with their slug, category, and pre-load status in the **[Agent Catalog](custom-modes/AGENT_CATALOG.md)**. Each entry shows:
+Browse all **302 modes** with their slug, category, and pre-load status in the **[Agent Catalog](custom-modes/AGENT_CATALOG.md)**. Each entry shows:
 
 - ✅ **Pre-loaded** — already available in the mode selector
 - ⬜ **Available** — in the submodule, ready to import
 
-### Adding More Modes (the remaining 211)
+### Adding More Modes (the remaining 212)
 
-The custom modes library contains **301 modes** in the canonical catalog. **90 are pre-loaded** in [`.roomodes`](.roomodes); the remaining **211 are available** in the Modes Marketplace and can be added at any time.
+The custom modes library contains **302 modes** in the canonical catalog. **90 are pre-loaded** in [`.roomodes`](.roomodes); the remaining **212 are available** in the Modes Marketplace and can be added at any time.
 
 **How [`custom-modes/manifest.json`](custom-modes/manifest.json) works:**
 
@@ -178,7 +181,7 @@ The quickest way to add new modes is directly from the **Mode Marketplace** insi
     - A result summary shows per-item success/failure
 5. The mode(s) are immediately available in your mode selector — no reload needed
 
-The marketplace also supports **MCP servers** and includes bundled modes — **301 items** total (the full 301-mode catalog).
+The marketplace also supports **MCP servers** and includes bundled modes — **302 items** total (the full 302-mode catalog).
 
 **Option A — Add via manifest (recommended for multiple agents):**
 
@@ -228,6 +231,9 @@ Want to test the newest build before it ships as stable? Use the marketplace's *
 Or install directly from the command line:
 
 ```bash
+# Via the VS Code Marketplace
+code --install-extension xavier-arosemena.roo-plus
+
 # Via the Open VSX CLI
 ovsx install xavier-arosemena/roo-plus
 ```
@@ -241,7 +247,7 @@ ovsx install xavier-arosemena/roo-plus
 git clone https://github.com/xavier-arosemena/roo-plus.git
 cd roo-plus
 
-# Initialize submodules (includes the 301-mode custom modes library)
+# Initialize submodules (includes the 302-mode custom modes library)
 git submodule update --init --recursive
 
 # Install dependencies
@@ -265,7 +271,7 @@ pnpm vsix
 ```
 roo-plus/
 ├── .roomodes                # 90 custom modes (auto-generated)
-├── custom-modes/            # Git submodule: 301-mode library
+├── custom-modes/            # Git submodule: 302-mode library
 │   ├── custom_modes.d/      # Canonical mode YAML files by category
 │   ├── manifest.json        # Curation manifest
 │   └── README-ROO-PLUS.md   # Submodule documentation

@@ -103,7 +103,7 @@
 		"reportIssue": "Сообщить об ошибке или запросить функцию",
 		"discussions": "Присоединиться к обсуждениям",
 		"starUs": "Поставьте нам звезду на GitHub",
-		"reviewUs": "Оцените нас на Open VSX"
+		"reviewUs": "Оцените нас в <marketplaceLink>VS Code Marketplace</marketplaceLink> и на <openVsxLink>Open VSX</openVsxLink>"
 	},
 	"onboarding": "Ваш список задач в этом рабочем пространстве пуст.",
 	"selectMode": "Выберите режим взаимодействия",

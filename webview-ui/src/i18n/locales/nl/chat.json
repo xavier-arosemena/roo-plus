@@ -103,7 +103,7 @@
 		"reportIssue": "Meld een bug of vraag een functie aan",
 		"discussions": "Doe mee met de discussies",
 		"starUs": "Geef ons een ster op GitHub",
-		"reviewUs": "Beoordeel ons op Open VSX"
+		"reviewUs": "Beoordeel ons op <marketplaceLink>VS Code Marketplace</marketplaceLink> en op <openVsxLink>Open VSX</openVsxLink>"
 	},
 	"onboarding": "Je takenlijst in deze werkruimte is leeg.",
 	"selectMode": "Selecteer modus voor interactie",

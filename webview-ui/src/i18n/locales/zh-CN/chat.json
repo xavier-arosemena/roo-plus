@@ -103,7 +103,7 @@
 		"reportIssue": "报告错误或请求功能",
 		"discussions": "加入讨论",
 		"starUs": "在 GitHub 上为我们点赞",
-		"reviewUs": "在 Open VSX 上为我们评分"
+		"reviewUs": "在 <marketplaceLink>VS Code Marketplace</marketplaceLink> 和 <openVsxLink>Open VSX</openVsxLink> 上为我们评分"
 	},
 	"onboarding": "此工作区中的任务列表为空。",
 	"selectMode": "选择交互模式",

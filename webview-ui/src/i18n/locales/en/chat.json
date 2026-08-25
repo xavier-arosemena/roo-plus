@@ -130,7 +130,7 @@
 		"reportIssue": "Report a bug or request a feature",
 		"discussions": "Join the discussions",
 		"starUs": "Star us on GitHub",
-		"reviewUs": "Review us on Open VSX"
+		"reviewUs": "Review us on <marketplaceLink>VS Code Marketplace</marketplaceLink> and <openVsxLink>Open VSX</openVsxLink>"
 	},
 	"onboarding": "What would you like to do?",
 	"selectMode": "Select mode for interaction",

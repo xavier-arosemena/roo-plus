@@ -4,6 +4,21 @@
 
 ---
 
+## [3.84.0] — 2026-08-25
+
+### Minor — Red-Team Mode, Marketplace Expansion & Release Polish
+
+### 🚀 Enhancements
+
+- **Red-team mode added to the Mode Marketplace** — Add 🔴 Red Team Mode, a structured, constructive adversary that stress-tests proposals by attacking assumptions, building attack trees, running failure-mode analysis, and pairing every finding with concrete hardening options (#255). The canonical catalog grows to 302 modes (90 pre-loaded).
+- **Marketplace links surfaced in the README** — Add prominent Open VSX and VS Code Marketplace links to the README header so users can find and install the extension directly (#266).
+
+### 🐛 Bug Fixes
+
+- **What's New popup re-arms per version** — The announcement popup's identity is now derived from the extension version instead of a manually-maintained literal, so it reliably reappears after every version bump instead of being suppressed after the first release (#265).
+
+---
+
 ## [3.83.0] — 2026-08-25
 
 ### Minor — Provider Expansion, Diff UX & Shell Auto-Approval Hardening
