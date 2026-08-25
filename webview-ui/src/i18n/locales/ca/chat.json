@@ -339,9 +339,9 @@
 		"support": "Si us plau, dóna suport a Roo+ posant una estrella a <githubLink>GitHub</githubLink> i al <openVsxLink>Registre Open VSX</openVsxLink>.",
 		"release": {
 			"heading": "Novetats:",
-			"highlight1": "Serveis al núvol eliminats i estabilitat millorada. L'extensió ja no espera el backend al núvol retirat, de manera que l'inici i les connexions remotes són més ràpids i fiables.",
-			"highlight2": "Semble i l'índex de codi més fiables. La cerca a la base de codi és verificada per sumes de comprovació i resilient — sense més cerques encallades ni barra de finestra de context trencada.",
-			"highlight3": "Modes personalitzats millorats. Ara cada mode mostra una descripció i pots instal·lar diversos modes del mercat en bloc."
+			"highlight1": "Suport per a GLM-5.2 amb nivells d'esforç de raonament High/Max — el raonament profund continua sent opt-in per defecte. El proveïdor Opencode Go també incorpora preus de memòria cau MiniMax M3, un control lliscant de sortida màxima per a DeepSeek V4 i un encaminament més fiable en format Anthropic.",
+			"highlight2": "L'edició de diffs ha rebut una revisió completa de la UX. Els diffs s'obren desplaçats fins a la primera línia modificada, l'estat de desplaçament i de les pestanyes de vista prèvia/fixades es restaura després d'acceptar/refusar, i les noves opcions permeten tancar automàticament les pestanyes de l'editor que Zoo obre durant les edicions.",
+			"highlight3": "LiteLLM i els proveïdors d'encaminament són més fiables — s'han corregit les col·lisions de claus de memòria cau entre perfils i la fallada silenciosa a un model per defecte inexistent, i s'ha afegit una capçalera X-Zoo-Session-ID per correlacionar les converses als registres de LiteLLM."
 		}
 	},
 	"costs": {

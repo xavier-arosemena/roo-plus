@@ -4,6 +4,28 @@
 
 ---
 
+## [3.83.0] — 2026-08-25
+
+### Minor — Provider Expansion, Diff UX & Shell Auto-Approval Hardening
+
+### 🚀 Enhancements
+
+- **GLM-5.2 support with High/Max `reasoning_effort` tiers** — Add GLM-5.2 support with High/Max `reasoning_effort` tiers. The default effort is High (deep reasoning stays opt-in), Max is selected only when the user explicitly picks it, and the parameter is omitted entirely when reasoning is disabled. Also refines the Opencode Go provider per review: bill MiniMax M3 cache writes (`cacheWritesPrice`), expose the max-output slider for DeepSeek V4 models (`supportsMaxTokens`), wrap pre-stream Anthropic-format errors with the provider prefix, and type the Anthropic streaming path's model info as `ModelInfo` so cost calculation can no longer silently return `$0`.
+- **Settings to control auto-closing editor tabs after diff edits** — Add settings to control whether editor tabs Zoo opens during diff edits are auto-closed after accept/reject: auto-close transiently-opened files, auto-close even after user interaction (a refinement of the first), and auto-close newly created files.
+- **Forward task ID to LiteLLM proxies as `X-Zoo-Session-ID`** — Forward the active task ID to the LiteLLM proxy as an `X-Zoo-Session-ID` request header so individual conversations can be correlated in LiteLLM logs and spend tracking. The header is only sent when a task ID is present, and follows the `x-<vendor>-session-id` convention used by Claude Code (`x-claude-code-session-id`) and GitHub Copilot (`x-copilot-session-id`).
+- **Enhanced `apply_diff` tool instructions for smaller models** — Enhance the `apply_diff` tool description and parameter instructions to recommend `:start_line:` with exact syntax and emphasize copy-paste exact matching requirements, improving success rates for Gemini Flash and other smaller/faster models.
+- **`apiRequestTimeout` validation hardened** — Updated `apiRequestTimeout` validation. Values must be integers between 1 and 3600 seconds; invalid or out-of-range values, including `0`, now fall back to 600 seconds. This aligns with the SDK's default timeout value.
+
+### 🐛 Bug Fixes
+
+- **Anthropic provider honors custom model IDs** — Fix the Anthropic provider silently replacing a custom/unrecognized `apiModelId` with the hardcoded default model. `AnthropicHandler.getModel()` coerced any `apiModelId` not present in the static `anthropicModels` table down to `anthropicDefaultModelId` ("claude-sonnet-4-5"), silently ignoring a user-configured custom model name (e.g. a custom Anthropic-compatible deployment or proxy). The same fallback also affected capability lookups used to build the `thinking` request parameter. The model id sent to the API now always honors a user-configured `apiModelId`; for unrecognized values, capabilities are best-effort guessed by matching known model-family substrings (mirroring the existing `BedrockHandler.guessModelInfoFromId` heuristic).
+- **Diff view scroll position and tab handling restored** — Fix diff view scroll position and tab handling when applying edits. The diff now opens scrolled to the first changed line (including end-of-file removals) instead of forcing the viewport to the top. After accepting or rejecting a diff, files that were already open are restored to their pre-edit scroll position, and files that were not open before the edit have their transiently opened tab closed — unless the user activated that tab during the diff, in which case it is kept open. Focus is no longer pulled back to the edited file when the user has navigated elsewhere. Preview-tab and pinned-tab states are preserved across the edit.
+- **LiteLLM cache key collision and model-selection desync fixed** — Fix LiteLLM provider cache key collision, credential priority, and model-selection fallback to a non-existent default. URL-scoped providers (LiteLLM, Ollama, LM Studio, Poe, DeepSeek, Requesty) previously shared one cache entry keyed only on the provider name; they now use a compound `provider:baseUrl` key plus an irreversible API-key discriminator so switching profiles never serves a stale model list. The silent fallback to the hardcoded `claude-3-7-sonnet-20250219` default is removed: the configured model ID is preserved when the list is empty, the router-models cache is invalidated after "Sync Models", current credentials are passed in the debounced `requestRouterModels` message, and message values take precedence over stale saved config.
+- **Command auto-approval for multi-line quoted constructs and heredocs fixed** — Fix command auto-approval for multi-line shell constructs that must be treated as a single command. Quoted multi-line arguments (`sh -c '...'`, `$'...'`, `"..."`), heredocs (`<< EOF`, `<< 'EOF'`, etc.), and locale quoting (`$"..."`) are now masked before the newline split so embedded newlines and operators stay within their command; quote masking is comment-aware; and unterminated quotes/heredocs are returned as single opaque tokens. The command pattern breakdown UI now uses the same quote- and heredoc-aware parser.
+- **Bedrock DNS resolution fixed behind corporate proxies** — Fix Bedrock DNS resolution when behind a corporate proxy.
+
+---
+
 ## [3.81.0] — 2026-08-21
 
 ### Patch — Webview Reliability, Pre-Release Channel Hardening & Release Governance Cleanup

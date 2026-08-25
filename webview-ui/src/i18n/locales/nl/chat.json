@@ -312,9 +312,9 @@
 		"support": "Steun Roo+ door ons een ster te geven op <githubLink>GitHub</githubLink> en op de <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Wat is nieuw:",
-			"highlight1": "Clouddiensten verwijderd en stabiliteit verbeterd. De extensie wacht niet meer op het stopgezette cloud-backend, dus opstarten en externe verbindingen zijn sneller en betrouwbaarder.",
-			"highlight2": "Semble en code-index betrouwbaar gemaakt. Codebase-zoekopdracht is checksum-geverifieerd en veerkrachtig — geen vastgelopen zoekopdrachten of kapotte contextvensterbalk meer.",
-			"highlight3": "Aangepaste modi verbeterd. Elke modus toont nu een beschrijving en je kunt meerdere marketplace-modi in bulk installeren."
+			"highlight1": "Ondersteuning voor GLM-5.2 met High/Max-redeneerinspanningniveaus — diep redeneren blijft standaard opt-in. De Opencode Go-provider krijgt ook MiniMax M3-cacheprijzen, een schuifregelaar voor maximale uitvoer van DeepSeek V4 en betrouwbaardere routering in Anthropic-formaat.",
+			"highlight2": "Diff-bewerking heeft een UX-herziening gekregen. Diffs openen gescrold naar de eerste gewijzigde regel, de scroll- en voorbeeld-/vastgezette tabstatus worden hersteld na accepteren/weigeren, en nieuwe instellingen laten je editor-tabs die Zoo tijdens bewerkingen opent automatisch sluiten.",
+			"highlight3": "LiteLLM- en routerproviders zijn betrouwbaarder — cachekeybotsingen tussen profielen en de stille fallback naar een niet-bestaand standaardmodel zijn verholpen, en er is een X-Zoo-Session-ID-header toegevoegd zodat gesprekken in LiteLLM-logs kunnen worden gecorreleerd."
 		}
 	},
 	"reasoning": {
