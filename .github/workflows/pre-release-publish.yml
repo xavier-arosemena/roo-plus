@@ -102,15 +102,24 @@ jobs:
           const pkgPath = "src/package.json"
           const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"))
           const [major, minor] = pkg.version.split(".").map(Number)
-          // Keep the existing "next odd minor" strategy so the pre-release always
-          // outranks the latest stable (a marketplace requirement for offering the
-          // "Install Pre-Release Version" option), but emit a valid semver
-          // pre-release identifier (`-pre-release.<run>`) instead of the previous
-          // stable-looking `X.<minor>.<100000+run>` scheme. A proper pre-release
-          // semver is required for the marketplace to expose the version in the
-          // pre-release track and for the packaged manifest to carry it correctly.
-          const prereleaseMinor = minor % 2 === 0 ? minor + 1 : minor + 2
-          const prereleaseVersion = `${major}.${prereleaseMinor}.0-pre-release.${Number(process.env.RUN_NUMBER)}`
+          // Pre-releases must be PLAIN major.minor.patch: the VS Code Marketplace
+          // does not support semver pre-release tags (e.g. `-pre-release.N`) — it
+          // only supports major.minor.patch, and versions must be different between
+          // pre-release and regular
+          // (https://code.visualstudio.com/api/working-with-extensions/publishing-extension#prerelease-extensions).
+          // The pre-release nature is carried by the
+          // `Microsoft.VisualStudio.Code.PreRelease` manifest marker (stamped below
+          // and by `vsce package --pre-release`), not by the version string.
+          //
+          // We use the "gap" minor between odd-minor stables: stable 3.83.0 →
+          // pre-releases 3.84.<run> → next stable 3.85.0. This keeps pre-releases
+          // (a) above the latest stable, so the Marketplace offers "Install
+          // Pre-Release Version"; (b) below the NEXT stable, so the next stable
+          // outranks them on Open VSX's `latest` alias; and (c) on a version line
+          // that never collides with a stable version. The run number in the patch
+          // keeps every pre-release build unique.
+          const prereleaseMinor = minor + 1
+          const prereleaseVersion = `${major}.${prereleaseMinor}.${Number(process.env.RUN_NUMBER)}`
 
           pkg.version = prereleaseVersion
           // Stamp the VS Code pre-release marker into package.json as well.
@@ -212,8 +221,10 @@ jobs:
       # Open VSX's "latest" alias resolves to the highest semver across stable and
       # pre-release alike (pre-release only breaks ties at equal major.minor.patch),
       # so a pre-release build can transiently become "latest" until the next stable
-      # release outranks it. This mirrors how Marketplace pre-release users already
-      # track the newest published version, so it's an accepted trade-off here too.
+      # outranks it. The gap-minor scheme (pre-releases on minor+1, next stable on
+      # minor+2) guarantees the next stable always outranks the pre-releases, so this
+      # is transient per release cycle. This mirrors how Marketplace pre-release users
+      # track the newest published version — an accepted trade-off.
       - name: Publish pre-release to Open VSX Registry
         if: steps.release-check.outputs.skip != 'true' && env.OVSX_PAT != ''
         env:
