@@ -20,7 +20,7 @@ import {
 	parseChangelogSection,
 	renderAnnouncementsModule,
 } from "./generate-announcements.mjs"
-import { assessAnnouncementVersion } from "./verify-announcement-version.mjs"
+import { assessAnnouncementVersion, isPreReleaseChannel } from "./verify-announcement-version.mjs"
 
 const SAMPLE_CHANGELOG = `# Roo+ Changelog
 
@@ -167,6 +167,21 @@ describe("assessAnnouncementVersion", () => {
 	it("fails when the asset is missing entirely (empty file)", () => {
 		const verdict = assessAnnouncementVersion("3.81.0", SAMPLE_CHANGELOG, "")
 		assert.equal(verdict.ok, false)
+	})
+})
+
+describe("isPreReleaseChannel", () => {
+	it("returns false when PKG_RELEASE_CHANNEL is unset (stable/local/CI gates)", () => {
+		assert.equal(isPreReleaseChannel({}), false)
+		assert.equal(isPreReleaseChannel({ PKG_RELEASE_CHANNEL: undefined }), false)
+	})
+
+	it("returns false for the stable channel", () => {
+		assert.equal(isPreReleaseChannel({ PKG_RELEASE_CHANNEL: "stable" }), false)
+	})
+
+	it("returns true for the pre-release channel", () => {
+		assert.equal(isPreReleaseChannel({ PKG_RELEASE_CHANNEL: "prerelease" }), true)
 	})
 })
 

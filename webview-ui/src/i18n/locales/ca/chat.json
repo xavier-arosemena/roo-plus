@@ -98,7 +98,7 @@
 	"enqueueMessage": "Afegeix el missatge a la cua (s'enviarà quan acabi la tasca actual)",
 	"scrollToBottom": "Desplaça't al final del xat",
 	"scrollToLatestCheckpoint": "Desplaça't al checkpoint anterior",
-	"about": "El teu equip d'IA multiagent — <br/>301 modes especialitzats per a codificació, DevOps, seguretat i arquitectura.",
+	"about": "El teu equip d'IA multiagent — <br/>302 modes especialitzats per a codificació, DevOps, seguretat i arquitectura.",
 	"support": {
 		"reportIssue": "Informa d'un error o demana una funció",
 		"discussions": "Uneix-te als debats",
