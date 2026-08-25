@@ -98,7 +98,7 @@
 	"enqueueMessage": "Aggiungi il messaggio alla coda (sarà inviato dopo che l'attività corrente sarà terminata)",
 	"scrollToBottom": "Scorri fino alla fine della chat",
 	"scrollToLatestCheckpoint": "Scorri al checkpoint precedente",
-	"about": "Il tuo team AI multi-agente — <br/>301 modalità specializzate per coding, DevOps, sicurezza e architettura.",
+	"about": "Il tuo team AI multi-agente — <br/>302 modalità specializzate per coding, DevOps, sicurezza e architettura.",
 	"support": {
 		"reportIssue": "Segnala un bug o richiedi una funzionalità",
 		"discussions": "Unisciti alle discussioni",

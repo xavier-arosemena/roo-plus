@@ -90,6 +90,30 @@ jobs:
           echo "::endgroup::"
           exit 1
 
+      - name: Verify announcement data for the committed version
+        # Release-readiness gate for the "What's New" popup (bug #265), run on the
+        # COMMITTED checkout BEFORE the "Set pre-release version" step mutates
+        # src/package.json. The packaged pre-release version is derived
+        # (`<major>.<minor>.<run>`, see below) and has no CHANGELOG section or
+        # announcement entry by design, so the strict announcement gate must never
+        # run against it at packaging time — verify-announcement-version.mjs skips
+        # itself when PKG_RELEASE_CHANNEL=prerelease (set on the package steps
+        # below). Verifying here, while the committed version (which DOES carry
+        # announcement data) is still in place, keeps the bug #265 protection for
+        # pre-release builds without failing the package.
+        #
+        # Republish note: after this fix is merged, a pre-release MUST be
+        # re-published from master (push, or dispatch this workflow) so the merged
+        # features — red-team mode and the VS Code Marketplace links — actually
+        # ship: the last published pre-release (v3.84.11) predates them, and no
+        # automation can backfill a publish that never ran.
+        if: steps.release-check.outputs.skip != 'true'
+        run: |
+          echo "::group::[CI:PRERELEASE:ANNOUNCEMENT] Verifying announcement data for the committed version"
+          node scripts/verify-announcement-version.mjs
+          echo "::notice::[CI:PRERELEASE:ANNOUNCEMENT] announcement data verified for the committed version"
+          echo "::endgroup::"
+
       - name: Set pre-release version
         if: steps.release-check.outputs.skip != 'true'
         id: version
@@ -111,15 +135,24 @@ jobs:
           // `Microsoft.VisualStudio.Code.PreRelease` manifest marker (stamped below
           // and by `vsce package --pre-release`), not by the version string.
           //
-          // We use the "gap" minor between odd-minor stables: stable 3.83.0 →
-          // pre-releases 3.84.<run> → next stable 3.85.0. This keeps pre-releases
-          // (a) above the latest stable, so the Marketplace offers "Install
-          // Pre-Release Version"; (b) below the NEXT stable, so the next stable
-          // outranks them on Open VSX's `latest` alias; and (c) on a version line
-          // that never collides with a stable version. The run number in the patch
-          // keeps every pre-release build unique.
-          const prereleaseMinor = minor + 1
-          const prereleaseVersion = `${major}.${prereleaseMinor}.${Number(process.env.RUN_NUMBER)}`
+          // VERSION SCHEME (decided policy, matching the "chore: prepare v3.84.0
+          // pre-release" commit 2070bd8ad): the COMMITTED `src/package.json`
+          // version IS the pre-release line version. The release process bumps it
+          // to the "gap" minor between stables (stable 3.83.0 → committed 3.84.0
+          // pre-release line → next stable 3.85.0) and ships announcement data
+          // keyed to that committed version. We publish the committed MAJOR.MINOR
+          // with the patch replaced by the run number (`<major>.<minor>.<run>`,
+          // e.g. 3.84.<run>), which keeps every pre-release build unique while
+          // staying:
+          //   (a) above the latest stable (3.83.0), so the Marketplace offers
+          //       "Install Pre-Release Version";
+          //   (b) below the NEXT stable (3.85.0), so the next stable outranks them
+          //       on Open VSX's `latest` alias; and
+          //   (c) on the committed line, so it never collides with a stable.
+          // Do NOT add 1 to the minor here: the committed version already sits on
+          // the gap minor, and adding 1 would publish 3.85.<run> and collide with
+          // the next stable 3.85.0.
+          const prereleaseVersion = `${major}.${minor}.${Number(process.env.RUN_NUMBER)}`
 
           pkg.version = prereleaseVersion
           // Stamp the VS Code pre-release marker into package.json as well.
@@ -221,8 +254,9 @@ jobs:
       # Open VSX's "latest" alias resolves to the highest semver across stable and
       # pre-release alike (pre-release only breaks ties at equal major.minor.patch),
       # so a pre-release build can transiently become "latest" until the next stable
-      # outranks it. The gap-minor scheme (pre-releases on minor+1, next stable on
-      # minor+2) guarantees the next stable always outranks the pre-releases, so this
+      # outranks it. The committed-line scheme (pre-releases on the committed gap
+      # minor, e.g. 3.84.<run>, next stable one minor higher, 3.85.0) guarantees the
+      # next stable always outranks the pre-releases, so this
       # is transient per release cycle. This mirrors how Marketplace pre-release users
       # track the newest published version — an accepted trade-off.
       - name: Publish pre-release to Open VSX Registry

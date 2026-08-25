@@ -51,6 +51,33 @@ const PACKAGE_JSON_PATH = path.join(ROOT, "src", "package.json")
 const TAG = "VERIFY:ANNOUNCEMENT-VERSION"
 
 /**
+ * Whether the strict announcement check should be SKIPPED because the caller is
+ * building for the pre-release channel (PKG_RELEASE_CHANNEL=prerelease).
+ *
+ * The pre-release publish workflow packages a DERIVED version
+ * (`<major>.<minor>.<run>`, see the "Set pre-release version" step) that by
+ * design never has a CHANGELOG section or a generated announcement entry — the
+ * gap-minor pre-release line is not a released stable, so the "What's New"
+ * popup content is keyed to the COMMITTED version instead. That committed
+ * version (which does carry announcement data) is verified by the pre-release
+ * workflow in an early verification step BEFORE the version is mutated. This
+ * gate therefore skips itself for pre-release builds so the
+ * `prevsix`/`prebundle`/`prevscode:prepublish` hooks do not fail the package at
+ * version-mutation time (bug #265 guard; this resolves the pre-release publish
+ * regression where the derived version has no announcement entry).
+ *
+ * Stable-channel builds (the default, and every CI gate that does not set
+ * PKG_RELEASE_CHANNEL) keep the strict check: a version bump without
+ * announcement data must still fail loudly.
+ *
+ * @param {Record<string, string | undefined>} env - Environment (defaults to process.env).
+ * @returns {boolean}
+ */
+export function isPreReleaseChannel(env = process.env) {
+	return env.PKG_RELEASE_CHANNEL === "prerelease"
+}
+
+/**
  * Pure verdict for a single version: does the committed announcement asset
  * cover it, with non-empty highlights, byte-identical to a fresh generation?
  * @param {string} version - Current extension version (from src/package.json).
@@ -87,6 +114,24 @@ export function assessAnnouncementVersion(version, changelogText, assetText) {
 
 async function main() {
 	logStep(TAG, "Verifying announcement data matches the current extension version")
+
+	if (isPreReleaseChannel()) {
+		// Pre-release packaging derives `<major>.<minor>.<run>` from the committed
+		// version (see the "Set pre-release version" step in
+		// .github/workflows/pre-release-publish.yml), and that derived version has
+		// no CHANGELOG section or announcement entry by design. The committed
+		// version was already verified strictly by the workflow's early
+		// verification step before the mutation, so skip here instead of failing
+		// every pre-release build.
+		logInfo(
+			TAG,
+			"PKG_RELEASE_CHANNEL=prerelease: skipping strict announcement check — the packaged version is the derived <major>.<minor>.<run> pre-release version, which has no CHANGELOG/announcement entry by design; the committed version is verified by the pre-release workflow's early verification step.",
+		)
+		logEndGroup()
+		logSuccess(TAG, "announcement verification skipped (pre-release channel)")
+		process.exit(0)
+	}
+
 	const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8"))
 	const version = packageJson.version
 	logInfo(TAG, `current extension version: ${version}`)
