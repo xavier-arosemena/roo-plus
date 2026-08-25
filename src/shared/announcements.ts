@@ -12,14 +12,12 @@ export interface ReleaseAnnouncement {
 }
 
 export const Announcements: Record<string, ReleaseAnnouncement> = {
-	"3.81.0": {
-		version: "3.81.0",
+	"3.84.0": {
+		version: "3.84.0",
 		highlights: [
-			"Webview React #301 startup crash and seen-set churn resolved",
-			"Render-phase `setState` loops eliminated",
-			"Open VSX pre-release marker stamped into packaged manifest",
-			"Pre-release publish fails loudly with notifications",
-			"Stale release-governance docs and announcement visualization removed",
+			"Red-team mode added to the Mode Marketplace",
+			"Marketplace links surfaced in the README",
+			"What's New popup re-arms per version",
 		],
 	},
 }
