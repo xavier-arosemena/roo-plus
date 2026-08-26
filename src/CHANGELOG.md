@@ -4,6 +4,20 @@
 
 ---
 
+## [3.86.0] — 2026-08-26
+
+### Minor — Milestone One Wrap-Up: Local-First & Agentic
+
+Milestone one is a wrap — a stable release, 300+ modes, and a clear roadmap for the road ahead. Milestone two begins now: doubling down on a local-first, agentic IDE extension that makes AI spend legible and knowledge portable. This pre-release line also restructures the docs (ADRs move to `docs/adr/`, a `ROADMAP.md` is added) and normalizes `.roomodes` custom-mode text.
+
+### 🎉 Announcement
+
+- 🎉 Milestone one is a wrap — a stable release, 300+ modes, and a clear roadmap for the road ahead. We couldn't be more excited about what's next.
+- 🚀 Milestone two begins now — guided by your feedback, we're doubling down on building a local-first, agentic IDE extension that makes your AI spend legible and your knowledge portable.
+- ❤️ To our 5.2k active users — thank you for choosing Roo+ and sharing this milestone with us. We're honored to have you on board — and we can't wait for the journey ahead.
+
+---
+
 ## [3.85.0] — 2026-08-26
 
 ### Minor — Stable Release: Red-Team Mode, Marketplace Expansion & Release Polish
