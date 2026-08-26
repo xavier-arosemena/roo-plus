@@ -12,8 +12,8 @@ export interface ReleaseAnnouncement {
 }
 
 export const Announcements: Record<string, ReleaseAnnouncement> = {
-	"3.84.0": {
-		version: "3.84.0",
+	"3.85.0": {
+		version: "3.85.0",
 		highlights: [
 			"Red-team mode added to the Mode Marketplace",
 			"Marketplace links surfaced in the README",
