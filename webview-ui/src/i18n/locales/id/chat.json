@@ -368,9 +368,9 @@
 		"support": "Dukung Roo+ dengan memberi kami bintang di <githubLink>GitHub</githubLink> dan di <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Yang Baru:",
-			"highlight1": "Dukungan GLM-5.2 dengan tingkat upaya penalaran High/Max — penalaran mendalam tetap opt-in secara default. Provider Opencode Go juga mendapat harga cache MiniMax M3, penggeser keluaran maksimal DeepSeek V4, dan perutean format Anthropic yang lebih andal.",
-			"highlight2": "Pengeditan diff mendapat perombakan UX. Diff terbuka dengan gulir ke baris berubah pertama, status gulir dan tab pratinjau/disematkan dipulihkan setelah menerima/menolak, dan pengaturan baru memungkinkan Anda menutup otomatis tab editor yang dibuka Zoo selama pengeditan.",
-			"highlight3": "LiteLLM dan provider router lebih andal — memperbaiki tabrakan kunci cache antar profil dan fallback diam-diam ke model default yang tidak ada, serta menambahkan header X-Zoo-Session-ID agar percakapan dapat dikorelasikan di log LiteLLM."
+			"highlight1": "🎉 Tonggak satu telah selesai — rilis stabil, 300+ mode, dan peta jalan yang jelas untuk langkah ke depan. Kami sangat antusias dengan apa yang akan datang.",
+			"highlight2": "🚀 Tonggak dua dimulai sekarang — dipandu oleh masukan Anda, kami semakin serius membangun ekstensi IDE agenik dan local-first yang membuat pengeluaran AI Anda transparan dan pengetahuan Anda portabel.",
+			"highlight3": "❤️ Untuk 5,2 ribu pengguna aktif kami — terima kasih telah memilih Roo+ dan berbagi tonggak ini bersama kami. Kami merasa terhormat memiliki Anda di sini — dan kami tidak sabar menanti perjalanan ke depan."
 		}
 	},
 	"reasoning": {

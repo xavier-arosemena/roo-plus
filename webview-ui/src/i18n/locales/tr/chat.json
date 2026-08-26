@@ -340,9 +340,9 @@
 		"support": "Lütfen <githubLink>GitHub</githubLink>'da ve <openVsxLink>Open VSX Registry</openVsxLink>'de bize yıldız vererek Roo+'u destekle.",
 		"release": {
 			"heading": "Yenilikler:",
-			"highlight1": "High/Max akıl yürütme çabası seviyeleriyle GLM-5.2 desteği — derin akıl yürütme varsayılan olarak isteğe bağlı kalır. Opencode Go sağlayıcısı ayrıca MiniMax M3 önbellek fiyatlandırması, DeepSeek V4 maksimum çıktı kaydırıcısı ve daha güvenilir Anthropic biçimi yönlendirme kazanıyor.",
-			"highlight2": "Diff düzenleme UX'i baştan yenilendi. Diff'ler ilk değiştirilen satıra kaydırılmış olarak açılır, kabul/red sonrası kaydırma ve önizleme/sabitlenmiş sekme durumu geri yüklenir ve yeni ayarlar, Zoo'nun düzenleme sırasında açtığı düzenleyici sekmelerini otomatik kapatmanıza olanak tanır.",
-			"highlight3": "LiteLLM ve yönlendirici sağlayıcıları daha güvenilir — profiller arasındaki önbellek anahtarı çakışmaları ve var olmayan bir varsayılan modele sessiz geri dönüş düzeltildi ve LiteLLM günlüklerinde konuşmaların ilişkilendirilebilmesi için bir X-Zoo-Session-ID başlığı eklendi."
+			"highlight1": "🎉 Birinci kilometre taşı tamamlandı — kararlı bir sürüm, 300'den fazla mod ve ilerideki yol için net bir yol haritası. Sırada ne olduğu için daha heyecanlı olamazdık.",
+			"highlight2": "🚀 İkinci kilometre taşı şimdi başlıyor — geri bildirimlerinizle, AI harcamanızı anlaşılır ve bilginizi taşınabilir kılan, yerel öncelikli (local-first), ajan tabanlı bir IDE uzantısı oluşturmaya odaklanıyoruz.",
+			"highlight3": "❤️ 5,2 bin aktif kullanıcımıza — Roo+'ı seçtiğiniz ve bu kilometre taşını bizimle paylaştığınız için teşekkür ederiz. Sizinle birlikte olduğumuz için onur duyuyoruz ve önümüzdeki yolculuk için sabırsızlanıyoruz."
 		}
 	},
 	"costs": {

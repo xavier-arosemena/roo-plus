@@ -339,9 +339,9 @@
 		"support": "Apoie o Roo+ nos dando uma estrela no <githubLink>GitHub</githubLink> e no <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novidades:",
-			"highlight1": "Suporte a GLM-5.2 com níveis de esforço de raciocínio High/Max — o raciocínio profundo continua opcional por padrão. O provedor Opencode Go também ganha precificação de cache MiniMax M3, um controle deslizante de saída máxima para DeepSeek V4 e roteamento em formato Anthropic mais confiável.",
-			"highlight2": "A edição de diffs passou por uma reformulação completa de UX. Os diffs abrem rolados até a primeira linha alterada, o estado de rolagem e das abas de pré-visualização/fixadas é restaurado após aceitar/rejeitar, e novas configurações permitem fechar automaticamente as abas do editor que o Zoo abre durante as edições.",
-			"highlight3": "O LiteLLM e os provedores de roteamento estão mais confiáveis — corrigidas as colisões de chaves de cache entre perfis e o fallback silencioso para um modelo padrão inexistente, e adicionado um cabeçalho X-Zoo-Session-ID para correlacionar conversas nos logs do LiteLLM."
+			"highlight1": "🎉 O marco um está fechado: uma versão estável, mais de 300 modos e um roteiro claro para o caminho à frente. Não poderíamos estar mais empolgados com o que vem por aí.",
+			"highlight2": "🚀 O marco dois começa agora — guiados pelo seu feedback, estamos dobrando a aposta na construção de uma extensão IDE agêntica e local-first que torne seus gastos com IA legíveis e seu conhecimento portátil.",
+			"highlight3": "❤️ Aos nossos 5,2 mil usuários ativos — obrigado por escolherem o Roo+ e compartilharem este marco conosco. É uma honra tê-los a bordo — e mal podemos esperar pela jornada que está por vir."
 		}
 	},
 	"costs": {

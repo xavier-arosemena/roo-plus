@@ -339,9 +339,9 @@
 		"support": "Si us plau, dóna suport a Roo+ posant una estrella a <githubLink>GitHub</githubLink> i al <openVsxLink>Registre Open VSX</openVsxLink>.",
 		"release": {
 			"heading": "Novetats:",
-			"highlight1": "Suport per a GLM-5.2 amb nivells d'esforç de raonament High/Max — el raonament profund continua sent opt-in per defecte. El proveïdor Opencode Go també incorpora preus de memòria cau MiniMax M3, un control lliscant de sortida màxima per a DeepSeek V4 i un encaminament més fiable en format Anthropic.",
-			"highlight2": "L'edició de diffs ha rebut una revisió completa de la UX. Els diffs s'obren desplaçats fins a la primera línia modificada, l'estat de desplaçament i de les pestanyes de vista prèvia/fixades es restaura després d'acceptar/refusar, i les noves opcions permeten tancar automàticament les pestanyes de l'editor que Zoo obre durant les edicions.",
-			"highlight3": "LiteLLM i els proveïdors d'encaminament són més fiables — s'han corregit les col·lisions de claus de memòria cau entre perfils i la fallada silenciosa a un model per defecte inexistent, i s'ha afegit una capçalera X-Zoo-Session-ID per correlacionar les converses als registres de LiteLLM."
+			"highlight1": "🎉 El primer fita ja és aquí: una versió estable, més de 300 modes i un full de ruta clar per al camí que tenim al davant. No podríem estar més emocionats amb el que ve.",
+			"highlight2": "🚀 La segona fita comença ara: guiats pels teus comentaris, ens aboquem a construir una extensió IDE agèntica i local-first que faci la teva despesa d'IA llegible i el teu coneixement portable.",
+			"highlight3": "❤️ Als nostres 5,2 mil usuaris actius: gràcies per triar Roo+ i compartir aquesta fita amb nosaltres. És un honor tenir-te a bord, i esperem amb ganes el camí que tenim per davant."
 		}
 	},
 	"costs": {
