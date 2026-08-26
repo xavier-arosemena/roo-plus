@@ -24,8 +24,8 @@ AGENTS.local.md
 .test_env
 .vscode-test/
 
-# Docs
-docs/
+# Internal roadmap
+internal-docs/
 
 # Dotenv
 .env

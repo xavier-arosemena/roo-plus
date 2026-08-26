@@ -240,7 +240,7 @@ ovsx install xavier-arosemena/roo-plus
 
 ### Install from VSIX
 
-> **Prerequisite:** Node.js 22+ (`^22.22.2`, see [`.nvmrc`](.nvmrc)) and `pnpm`. Building the extension from source requires the Node.js v22 LTS toolchain (see the [Node.js v22 ADR](src/docs/adr-nodejs-v22.md)).
+> **Prerequisite:** Node.js 22+ (`^22.22.2`, see [`.nvmrc`](.nvmrc)) and `pnpm`. Building the extension from source requires the Node.js v22 LTS toolchain (see the [Node.js v22 ADR](docs/adr/adr-nodejs-v22.md)).
 
 ```bash
 # Clone the repo
