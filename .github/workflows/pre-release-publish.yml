@@ -64,12 +64,28 @@ jobs:
         id: release-check
         run: |
           echo "::group::[CI:PRERELEASE:RELEASE-CHECK] Checking whether this push is a release merge"
-          commit_subject=$(git log -1 --format=%s)
           skip=false
+          # Matches both "chore: prepare vX.Y.Z release" and "chore: prepare vX.Y.Z stable release",
+          # but NOT "chore: prepare vX.Y.Z pre-release" (those SHOULD publish).
+          release_re='^chore: prepare v[0-9]+\.[0-9]+\.[0-9]+( stable)? release'
 
-          if [[ "$commit_subject" =~ ^chore:\ prepare\ v[0-9]+\.[0-9]+\.[0-9]+\ release ]]; then
-            echo "::notice::[CI:PRERELEASE:RELEASE-CHECK] Commit '${commit_subject}' looks like a release-prep merge; skipping pre-release publish."
+          # Direct push of a release-prep commit (e.g. cutting a stable).
+          commit_subject=$(git log -1 --format=%s)
+          if echo "$commit_subject" | grep -qE "$release_re"; then
+            echo "::notice::[CI:PRERELEASE:RELEASE-CHECK] Commit '${commit_subject}' is a release-prep; skipping pre-release publish."
             skip=true
+          fi
+
+          # Merge that brought in a release-prep commit (e.g. "Merge pull request #N from .../release/vX.Y.Z").
+          # The pre-release workflow triggers on the merge push; without this, merging a stable-prep branch
+          # would publish <committed-minor>.<run> pre-releases on the stable line and hijack Open VSX
+          # 'latest' (see the 3.85.14 incident after merging the v3.85.0 stable-prep).
+          if [ "$skip" = "false" ] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
+            merged_subject=$(git log HEAD^2 -1 --format=%s)
+            if echo "$merged_subject" | grep -qE "$release_re"; then
+              echo "::notice::[CI:PRERELEASE:RELEASE-CHECK] Merge brought in release-prep '${merged_subject}'; skipping pre-release publish."
+              skip=true
+            fi
           fi
 
           echo "skip=${skip}" >> "$GITHUB_OUTPUT"
