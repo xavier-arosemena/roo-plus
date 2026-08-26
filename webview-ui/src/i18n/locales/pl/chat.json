@@ -339,9 +339,9 @@
 		"support": "Wesprzyj Roo+, dając nam gwiazdkę na <githubLink>GitHub</githubLink> i w <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Co nowego:",
-			"highlight1": "Obsługa GLM-5.2 z poziomami wysiłku rozumowania High/Max — głębokie rozumowanie pozostaje domyślnie opcjonalne. Dostawca Opencode Go zyskuje też cennik pamięci podręcznej MiniMax M3, suwak maksymalnej liczby tokenów wyjściowych dla DeepSeek V4 oraz bardziej niezawodne kierowanie ruchu w formacie Anthropic.",
-			"highlight2": "Edytowanie diffów przeszło gruntowną przebudowę UX. Diffy otwierają się przewinięte do pierwszej zmienionej linii, po zaakceptowaniu/odrzuceniu przywracany jest stan przewinięcia oraz kart podglądu/przypiętych, a nowe ustawienia pozwalają automatycznie zamykać karty edytora otwierane przez Zoo podczas edycji.",
-			"highlight3": "LiteLLM i dostawcy routingu są bardziej niezawodni — naprawiono kolizje kluczy pamięci podręcznej między profilami oraz ciche przełączanie na nieistniejący domyślny model, a także dodano nagłówek X-Zoo-Session-ID, aby korelować rozmowy w dziennikach LiteLLM."
+			"highlight1": "🎉 Kamień milowy numer jeden za nami — stabilna wersja, ponad 300 trybów i jasna mapa drogowa na przyszłość. Nie możemy być bardziej podekscytowani tym, co przed nami.",
+			"highlight2": "🚀 Kamień milowy numer dwa zaczyna się teraz — kierując się Twoim feedbackiem, podwajamy wysiłki, aby zbudować lokalne, agentowe rozszerzenie IDE, które czyni Twoje wydatki na AI czytelnymi, a Twoją wiedzę przenośną.",
+			"highlight3": "❤️ Do naszych 5,2 tys. aktywnych użytkowników — dziękujemy za wybór Roo+ i wspólne świętowanie tego kamienia milowego. To dla nas zaszczyt mieć Was na pokładzie — i nie możemy się doczekać dalszej podróży."
 		}
 	},
 	"costs": {

@@ -361,9 +361,9 @@
 		"support": "請在 <githubLink>GitHub</githubLink> 和 <openVsxLink>Open VSX Registry</openVsxLink> 上為 Roo+ 加星支持我們。",
 		"release": {
 			"heading": "新增功能：",
-			"highlight1": "支援 GLM-5.2，提供 High/Max 推理強度檔位——深度推理預設維持按需啟用。Opencode Go 供應商還新增了 MiniMax M3 快取定價、DeepSeek V4 最大輸出滑桿，以及更可靠的 Anthropic 格式路由。",
-			"highlight2": "diff 編輯體驗全面升級。diff 開啟時會捲動到第一個變更行，接受/拒絕後會還原捲動位置以及預覽/固定標籤頁狀態，新設定還讓你可以自動關閉 Zoo 在編輯時開啟的編輯器標籤頁。",
-			"highlight3": "LiteLLM 和路由器供應商更可靠——已修復設定檔之間的快取鍵衝突，以及靜默回復到不存在的預設模型的問題，並新增了 X-Zoo-Session-ID 標頭，以便在 LiteLLM 日誌中關聯對話。"
+			"highlight1": "🎉 里程碑一圓滿收官——穩定版發布、300+ 模式，以及一條清晰的前進路線圖。我們對接下來的一切充滿期待。",
+			"highlight2": "🚀 里程碑二現在開啟——在您的回饋指引下，我們將加倍投入，打造一個本地優先、智慧體化的 IDE 擴充功能，讓您的 AI 開銷一目了然，讓您的知識隨身可攜。",
+			"highlight3": "❤️ 致我們 5.2k 活躍使用者——感謝您選擇 Roo+ 並與我們共同見證這項里程碑。能與您同行是我們的榮幸——我們已迫不及待迎接未來的旅程。"
 		}
 	},
 	"reasoning": {

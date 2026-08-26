@@ -12,12 +12,12 @@ export interface ReleaseAnnouncement {
 }
 
 export const Announcements: Record<string, ReleaseAnnouncement> = {
-	"3.85.0": {
-		version: "3.85.0",
+	"3.86.0": {
+		version: "3.86.0",
 		highlights: [
-			"Red-team mode added to the Mode Marketplace",
-			"Marketplace links surfaced in the README",
-			"What's New popup re-arms per version",
+			"🎉 Milestone one is a wrap — a stable release, 300+ modes, and a clear roadmap for the road ahead. We couldn't be more excited about what's next.",
+			"🚀 Milestone two begins now — guided by your feedback, we're doubling down on building a local-first, agentic IDE extension that makes your AI spend legible and your knowledge portable.",
+			"❤️ To our 5.2k active users — thank you for choosing Roo+ and sharing this milestone with us. We're honored to have you on board — and we can't wait for the journey ahead.",
 		],
 	},
 }

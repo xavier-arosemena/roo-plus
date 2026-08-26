@@ -200,7 +200,7 @@ decision and coverage reporting.
 - [`src/api/providers/bedrock.ts`](src/api/providers/bedrock.ts) — ~1.7k lines (21 `as any`)
 - [`src/api/providers/openai-native.ts`](src/api/providers/openai-native.ts) — ~1.6k lines
 
-**Issue**: The webview decomposition tracked in #10 has a mirror image on the extension side. `Task.ts` is the core task orchestrator and the repo's largest file; `McpHub.ts` owns all MCP lifecycle; both mix orchestration, state, and I/O. `bedrock.ts` is the largest provider **and** the largest single `as any` cluster — and it is a gated upstream-aligned file ([`adr-upstream-alignment-fork-strategy.md`](src/docs/adr-upstream-alignment-fork-strategy.md)), so its type escapes cannot be cleaned up locally without upstream coordination.
+**Issue**: The webview decomposition tracked in #10 has a mirror image on the extension side. `Task.ts` is the core task orchestrator and the repo's largest file; `McpHub.ts` owns all MCP lifecycle; both mix orchestration, state, and I/O. `bedrock.ts` is the largest provider **and** the largest single `as any` cluster — and it is a gated upstream-aligned file ([`adr-upstream-alignment-fork-strategy.md`](docs/adr/adr-upstream-alignment-fork-strategy.md)), so its type escapes cannot be cleaned up locally without upstream coordination.
 
 **Impact**: Hard to test and reason about; regressions cluster in these files; the `bedrock.ts` `as any` cluster is effectively frozen by the upstream-alignment diff-gate.
 
@@ -218,7 +218,7 @@ decision and coverage reporting.
 
 ### 20. Stale Submodule-Pin References in ADRs — RESOLVED
 
-**Locations**: [`adr-custom-modes-canonical-catalog.md`](src/docs/adr-custom-modes-canonical-catalog.md:57), [`adr-upstream-alignment-fork-strategy.md`](src/docs/adr-upstream-alignment-fork-strategy.md:43), [`ADR-INDEX.md`](src/docs/ADR-INDEX.md:19), [`CHANGELOG.md`](CHANGELOG.md:83)
+**Locations**: [`adr-custom-modes-canonical-catalog.md`](docs/adr/adr-custom-modes-canonical-catalog.md:57), [`adr-upstream-alignment-fork-strategy.md`](docs/adr/adr-upstream-alignment-fork-strategy.md:43), [`ADR-INDEX.md`](src/docs/ADR-INDEX.md:19), [`CHANGELOG.md`](CHANGELOG.md:83)
 
 **Issue**: The canonical-catalog ADR states the `custom-modes` submodule is "currently `4ee95d2`", and the upstream-alignment ADR + ADR index repeat `4ee95d2`. The actual recorded pin is `8cdf378b` (re-pinned by commit `6dfa7ae4a` — "build(submodule): re-pin custom-modes to 8cdf378 (coding-teacher description fix)"). The runtime gate ([`scripts/verify-submodule-pin.mjs`](scripts/verify-submodule-pin.mjs)) reads the pin from git so packaging stays hermetic, but the ADR text — meant to be the permanent record — now records a pin that no longer exists.
 

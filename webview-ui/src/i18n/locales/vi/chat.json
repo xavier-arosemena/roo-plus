@@ -340,9 +340,9 @@
 		"support": "Hãy ủng hộ Roo+ bằng cách tặng sao cho chúng tôi trên <githubLink>GitHub</githubLink> và <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Có gì mới:",
-			"highlight1": "Hỗ trợ GLM-5.2 với các mức nỗ lực suy luận High/Max — suy luận sâu vẫn mặc định tùy chọn (opt-in). Nhà cung cấp Opencode Go cũng có thêm giá bộ nhớ đệm MiniMax M3, thanh trượt đầu ra tối đa DeepSeek V4 và định tuyến định dạng Anthropic đáng tin cậy hơn.",
-			"highlight2": "Chỉnh sửa diff đã được đại tu UX. Diff mở ra được cuộn đến dòng thay đổi đầu tiên, trạng thái cuộn và tab xem trước/ghim được khôi phục sau khi chấp nhận/từ chối, và cài đặt mới cho phép bạn tự động đóng các tab trình chỉnh sửa mà Zoo mở trong khi chỉnh sửa.",
-			"highlight3": "LiteLLM và các nhà cung cấp định tuyến đáng tin cậy hơn — đã khắc phục xung đột khóa bộ nhớ đệm giữa các hồ sơ và việc dự phòng ngầm sang mô hình mặc định không tồn tại, đồng thời thêm tiêu đề X-Zoo-Session-ID để tương quan các cuộc trò chuyện trong nhật ký LiteLLM."
+			"highlight1": "🎉 Cột mốc một đã hoàn thành — một bản phát hành ổn định, hơn 300 chế độ và lộ trình rõ ràng cho chặng đường phía trước. Chúng tôi vô cùng hào hứng với những gì sắp tới.",
+			"highlight2": "🚀 Cột mốc hai bắt đầu ngay bây giờ — được dẫn dắt bởi phản hồi của bạn, chúng tôi dồn sức xây dựng một tiện ích mở rộng IDE agentic và local-first, giúp chi phí AI của bạn rõ ràng và kiến thức của bạn dễ dàng mang theo.",
+			"highlight3": "❤️ Gửi đến 5,2 nghìn người dùng tích cực của chúng tôi — cảm ơn bạn đã chọn Roo+ và chia sẻ cột mốc này với chúng tôi. Thật vinh dự khi có bạn đồng hành — và chúng tôi rất mong chờ hành trình phía trước."
 		}
 	},
 	"costs": {
