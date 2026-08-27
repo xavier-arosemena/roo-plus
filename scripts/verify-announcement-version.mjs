@@ -8,18 +8,30 @@
  * The popup content lives in the build-time-generated
  * src/shared/announcements.ts (derived from src/CHANGELOG.md by
  * scripts/generate-announcements.mjs) and the popup only re-arms when the
- * current version has non-empty highlights. If the version is bumped without
- * regenerating that asset, the announcement silently stops showing — a
- * regression that would otherwise ship unreviewed.
+ * current version's LINE BASE has non-empty highlights. Under the
+ * iterate-then-stabilize release policy the committed version IS the published
+ * version (no build-time derivation or mutation), pre-releases are consecutive
+ * patches on the current minor (3.88.0, 3.88.1, ...), and the CHANGELOG keeps
+ * ONE section per minor titled `## [<major>.<minor>.0]`. Announcements are
+ * keyed to that line base, so ANY patch on the minor (pre-release or stable)
+ * must resolve to it — this is the line-resolution fix that makes the popup
+ * fire in pre-release builds (the old build-time version mutation produced a
+ * derived version with no announcement entry, so the popup silently never
+ * showed).
  *
- * This gate asserts, for the CURRENT version in src/package.json:
- *   1. The changelog has a section for that version (a version bump without a
- *      changelog entry fails).
+ * This gate asserts, for the CURRENT version in src/package.json (RESOLVED to
+ * its line base `<major>.<minor>.0`):
+ *   1. The changelog has a section for the resolved line (a version bump
+ *      without a changelog entry fails).
  *   2. That section yields non-empty release highlights (a version bump without
  *      announcement content fails).
  *   3. src/shared/announcements.ts is byte-identical to what the generator
- *      would emit for the current version (a stale / un-regenerated asset
+ *      would emit for the resolved line (a stale / un-regenerated asset
  *      fails).
+ *
+ * It runs for BOTH release channels — there is no pre-release skip because the
+ * committed version IS the published version and the line always carries
+ * content.
  *
  * Wired as `prevsix`, `prebundle` and `prevscode:prepublish` in root +
  * src/package.json (so it cannot be bypassed by any packaging path) and into
@@ -43,6 +55,7 @@ import {
 	OUTPUT_PATH,
 	parseChangelogSection,
 	renderAnnouncementsModule,
+	resolveLineVersion,
 } from "./generate-announcements.mjs"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -51,35 +64,15 @@ const PACKAGE_JSON_PATH = path.join(ROOT, "src", "package.json")
 const TAG = "VERIFY:ANNOUNCEMENT-VERSION"
 
 /**
- * Whether the strict announcement check should be SKIPPED because the caller is
- * building for the pre-release channel (PKG_RELEASE_CHANNEL=prerelease).
- *
- * The pre-release publish workflow packages a DERIVED version
- * (`<major>.<minor>.<run>`, see the "Set pre-release version" step) that by
- * design never has a CHANGELOG section or a generated announcement entry — the
- * gap-minor pre-release line is not a released stable, so the "What's New"
- * popup content is keyed to the COMMITTED version instead. That committed
- * version (which does carry announcement data) is verified by the pre-release
- * workflow in an early verification step BEFORE the version is mutated. This
- * gate therefore skips itself for pre-release builds so the
- * `prevsix`/`prebundle`/`prevscode:prepublish` hooks do not fail the package at
- * version-mutation time (bug #265 guard; this resolves the pre-release publish
- * regression where the derived version has no announcement entry).
- *
- * Stable-channel builds (the default, and every CI gate that does not set
- * PKG_RELEASE_CHANNEL) keep the strict check: a version bump without
- * announcement data must still fail loudly.
- *
- * @param {Record<string, string | undefined>} env - Environment (defaults to process.env).
- * @returns {boolean}
- */
-export function isPreReleaseChannel(env = process.env) {
-	return env.PKG_RELEASE_CHANNEL === "prerelease"
-}
-
-/**
  * Pure verdict for a single version: does the committed announcement asset
- * cover it, with non-empty highlights, byte-identical to a fresh generation?
+ * cover the version's LINE BASE, with non-empty highlights, byte-identical to a
+ * fresh generation?
+ *
+ * The version is first resolved to its line base `<major>.<minor>.0` (see
+ * `resolveLineVersion`), because announcements are keyed once per minor line
+ * while builds are per-patch — a committed pre-release patch like 3.86.19
+ * verifies against the `## [3.86.0]` section and the asset keyed 3.86.0.
+ *
  * @param {string} version - Current extension version (from src/package.json).
  * @param {string} changelogText - Contents of src/CHANGELOG.md.
  * @param {string} assetText - Contents of src/shared/announcements.ts.
@@ -88,24 +81,36 @@ export function isPreReleaseChannel(env = process.env) {
 export function assessAnnouncementVersion(version, changelogText, assetText) {
 	const reasons = []
 
-	const section = parseChangelogSection(changelogText, version)
+	const lineBase = resolveLineVersion(version)
+	if (lineBase === undefined) {
+		return {
+			ok: false,
+			reasons: [
+				`version ${version} is not a plain major.minor.patch — it cannot resolve to an announcement line base`,
+			],
+		}
+	}
+
+	const section = parseChangelogSection(changelogText, lineBase)
 	if (!section) {
 		return {
 			ok: false,
 			reasons: [
-				`version ${version} has no section in ${CHANGELOG_PATH} — a version bump must ship a changelog entry`,
+				`version ${version} (line ${lineBase}) has no section in ${CHANGELOG_PATH} — a version bump must ship a changelog entry`,
 			],
 		}
 	}
 
 	if (section.highlights.length === 0) {
-		reasons.push(`version ${version} has no release highlights in ${CHANGELOG_PATH} — the popup would be empty`)
+		reasons.push(
+			`version ${version} (line ${lineBase}) has no release highlights in ${CHANGELOG_PATH} — the popup would be empty`,
+		)
 	}
 
 	const expected = renderAnnouncementsModule(section)
 	if (assetText !== expected) {
 		reasons.push(
-			`${OUTPUT_PATH} is stale for version ${version} — regenerate it with \`pnpm generate:announcements\``,
+			`${OUTPUT_PATH} is stale for version ${version} (line ${lineBase}) — regenerate it with \`pnpm generate:announcements\``,
 		)
 	}
 
@@ -114,23 +119,6 @@ export function assessAnnouncementVersion(version, changelogText, assetText) {
 
 async function main() {
 	logStep(TAG, "Verifying announcement data matches the current extension version")
-
-	if (isPreReleaseChannel()) {
-		// Pre-release packaging derives `<major>.<minor>.<run>` from the committed
-		// version (see the "Set pre-release version" step in
-		// .github/workflows/pre-release-publish.yml), and that derived version has
-		// no CHANGELOG section or announcement entry by design. The committed
-		// version was already verified strictly by the workflow's early
-		// verification step before the mutation, so skip here instead of failing
-		// every pre-release build.
-		logInfo(
-			TAG,
-			"PKG_RELEASE_CHANNEL=prerelease: skipping strict announcement check — the packaged version is the derived <major>.<minor>.<run> pre-release version, which has no CHANGELOG/announcement entry by design; the committed version is verified by the pre-release workflow's early verification step.",
-		)
-		logEndGroup()
-		logSuccess(TAG, "announcement verification skipped (pre-release channel)")
-		process.exit(0)
-	}
 
 	const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8"))
 	const version = packageJson.version

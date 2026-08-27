@@ -5,7 +5,7 @@ import { GoLinkExternal, GoPackage } from "react-icons/go"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 
 import { Package } from "@roo/package"
-import { Announcements } from "@roo/announcements"
+import { getAnnouncementForVersion } from "@roo/announcements"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { vscode } from "@src/utils/vscode"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@src/components/ui"
@@ -16,28 +16,34 @@ interface AnnouncementProps {
 }
 
 /**
- * The popup trigger is version-derived (`ClineProvider.latestAnnouncementId`
- * returns `v${Package.version}`) and the content is changelog-derived
- * (`@roo/announcements`), so a version bump needs NO manual announcement edits
- * for the English release channel.
+ * LINE-KEYED announcement content (iterate-then-stabilize release policy).
  *
- * Localisation trade-off: the per-version highlights are auto-generated from
- * the English changelog (src/CHANGELOG.md → src/shared/announcements.ts) and
- * are therefore English-only. When the current version has generated highlights
- * they are shown to every locale. The translated
+ * The popup trigger is version-derived (`ClineProvider.latestAnnouncementId`
+ * returns the RESOLVED line base `v<major>.<minor>.0`, arming once per minor)
+ * and the content is changelog-derived (`@roo/announcements`). Announcements
+ * are keyed once per MINOR LINE at the line base `<major>.<minor>.0`; ANY patch
+ * on the minor (pre-release patches like 3.86.19 or the stable patch like
+ * 3.88.3) resolves to the line base's highlights at runtime via
+ * `getAnnouncementForVersion`, so a version bump needs NO manual announcement
+ * edits for the English release channel.
+ *
+ * Localisation trade-off: the per-line highlights are auto-generated from the
+ * English changelog (src/CHANGELOG.md → src/shared/announcements.ts) and are
+ * therefore English-only. When the resolved line has generated highlights they
+ * are shown to every locale. The translated
  * `chat:announcement.release.highlightN` keys are used only as a fallback when
- * no generated data exists for the current version (e.g. pre-release/preview
- * builds or a build whose data asset was not regenerated).
+ * no generated data exists for the current minor line.
  */
 
 const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 	const { t } = useAppTranslation()
 	const [open, setOpen] = useState(true)
 
-	// Per-version highlights derived from the changelog (English-only); falls
-	// back to the translated i18n highlights when the current version has no
-	// generated data.
-	const generatedHighlights = Announcements[Package.version]?.highlights
+	// Per-line highlights derived from the changelog (English-only), resolved
+	// from Package.version to its line base <major>.<minor>.0; falls back to the
+	// translated i18n highlights when the current minor line has no generated
+	// data.
+	const generatedHighlights = getAnnouncementForVersion(Package.version)?.highlights
 
 	return (
 		<Dialog

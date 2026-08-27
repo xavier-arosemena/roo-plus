@@ -211,7 +211,13 @@ jobs:
           tag_name="v${package_version}"
           vsix_path="bin/roo-plus-${package_version}.vsix"
 
-          changelog_content=$(awk -v version="$package_version" '
+          # Under the iterate-then-stabilize policy the changelog keeps ONE
+          # accumulating section per minor (`## [<major>.<minor>.0]`) while the
+          # stable version may be a later patch on that minor (e.g. 3.88.3), so
+          # resolve the release notes to the LINE BASE section; fall back to a
+          # generic title when no section is found.
+          line_version=$(node -e "const p=require('./src/package.json').version.split('.'); process.stdout.write(p[0]+'.'+p[1]+'.0')")
+          changelog_content=$(awk -v version="$line_version" '
             $0 ~ "^## \\[" version "\\]" { found = 1 }
             found && $0 == "---" { exit }
             found && $0 ~ "^## " && $0 !~ "^## \\[" version "\\]" { exit }

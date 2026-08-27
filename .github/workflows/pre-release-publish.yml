@@ -6,6 +6,16 @@ name: Publish Pre-release Version
 # latest stable, letting testers run the newest code before it ships as a
 # stable release (previously named "Publish Pre-release Extension" /
 # nightly-publish.yml).
+#
+# VERSIONING (iterate-then-stabilize, same minor): the committed version in
+# src/package.json IS the published version — there is NO build-time derivation
+# or mutation of the version number. Pre-releases are committed consecutive
+# patches on the current minor (3.86.19, 3.86.20, ...); the stable is the next
+# patch on that same minor; the next cycle starts a new minor. The Open VSX API
+# query below is a pure GUARD (duplicate + monotonicity), not a derivation. The
+# Microsoft.VisualStudio.Code.PreRelease marker is stamped EPHEMERALLY around
+# packaging so the committed tree stays clean (only the marker field is added,
+# never the version). See docs/adr/adr-release-versioning-policy.md.
 
 on:
   push:
@@ -78,8 +88,8 @@ jobs:
 
           # Merge that brought in a release-prep commit (e.g. "Merge pull request #N from .../release/vX.Y.Z").
           # The pre-release workflow triggers on the merge push; without this, merging a stable-prep branch
-          # would publish <committed-minor>.<run> pre-releases on the stable line and hijack Open VSX
-          # 'latest' (see the 3.85.14 incident after merging the v3.85.0 stable-prep).
+          # would publish the committed STABLE patch as a pre-release and hijack Open VSX
+          # 'latest' ahead of the stable release it was prepared for.
           if [ "$skip" = "false" ] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
             merged_subject=$(git log HEAD^2 -1 --format=%s)
             if echo "$merged_subject" | grep -qE "$release_re"; then
@@ -107,22 +117,16 @@ jobs:
           exit 1
 
       - name: Verify announcement data for the committed version
-        # Release-readiness gate for the "What's New" popup (bug #265), run on the
-        # COMMITTED checkout BEFORE the "Set pre-release version" step mutates
-        # src/package.json. The packaged pre-release version is derived
-        # (`<major>.<minor>.<run>`, see below) and has no CHANGELOG section or
-        # announcement entry by design, so the strict announcement gate must never
-        # run against it at packaging time — verify-announcement-version.mjs skips
-        # itself when PKG_RELEASE_CHANNEL=prerelease (set on the package steps
-        # below). Verifying here, while the committed version (which DOES carry
-        # announcement data) is still in place, keeps the bug #265 protection for
-        # pre-release builds without failing the package.
-        #
-        # Republish note: after this fix is merged, a pre-release MUST be
-        # re-published from master (push, or dispatch this workflow) so the merged
-        # features — red-team mode and the VS Code Marketplace links — actually
-        # ship: the last published pre-release (v3.84.11) predates them, and no
-        # automation can backfill a publish that never ran.
+        # Release-readiness gate for the "What's New" popup (bug #265), run as a
+        # fast-fail on the COMMITTED checkout. Under the iterate-then-stabilize
+        # policy the committed version IS the published version (no build-time
+        # mutation), and verify-announcement-version.mjs resolves ANY patch to its
+        # line base <major>.<minor>.0 — so a pre-release patch like 3.86.19
+        # verifies against the `## [3.86.0]` changelog section and the asset keyed
+        # 3.86.0. This is redundant with the prevsix/prebundle/prevscode:prepublish
+        # hooks (which also run on the packaging path) but kept as an explicit
+        # fast-fail so the build stops loudly before spending minutes on packaging
+        # if the line base has no announcement content.
         if: steps.release-check.outputs.skip != 'true'
         run: |
           echo "::group::[CI:PRERELEASE:ANNOUNCEMENT] Verifying announcement data for the committed version"
@@ -130,61 +134,39 @@ jobs:
           echo "::notice::[CI:PRERELEASE:ANNOUNCEMENT] announcement data verified for the committed version"
           echo "::endgroup::"
 
-      - name: Set pre-release version
+      - name: Guard committed version is unique and monotonic on its minor line
+        # iterate-then-stabilize GUARD (not a derivation). The version is never
+        # derived or mutated in CI — the committed src/package.json version IS the
+        # published version. This step queries the Open VSX API (15s timeout) and
+        # FAILS if:
+        #   (a) the committed version is already published — a duplicate the
+        #       --skip-duplicate flags would otherwise silently swallow; or
+        #   (b) the committed version is not GREATER than the max published patch
+        #       on the same <major>.<minor> line — each pre-release must be higher
+        #       than the last published (e.g. the 3.86 line is published through
+        #       3.86.18, so the next committed pre-release must be 3.86.19 or
+        #       higher; bump with `pnpm bump:pre-release`).
+        # No `github.run_number` involvement — this is a guard, not a derivation.
         if: steps.release-check.outputs.skip != 'true'
-        id: version
-        env:
-          RUN_NUMBER: ${{ github.run_number }}
         run: |
-          echo "::group::[CI:PRERELEASE:VERSION] Setting pre-release version"
-          node <<'EOF'
-          const fs = require("fs")
-          const https = require("https")
-          const pkgPath = "src/package.json"
-          const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"))
-          const [major, minor] = pkg.version.split(".").map(Number)
-          // Pre-releases must be PLAIN major.minor.patch: the VS Code Marketplace
-          // does not support semver pre-release tags (e.g. `-pre-release.N`) — it
-          // only supports major.minor.patch, and versions must be different between
-          // pre-release and regular
-          // (https://code.visualstudio.com/api/working-with-extensions/publishing-extension#prerelease-extensions).
-          // The pre-release nature is carried by the
-          // `Microsoft.VisualStudio.Code.PreRelease` manifest marker (stamped below
-          // and by `vsce package --pre-release`), not by the version string.
-          //
-          // VERSION SCHEME (decided policy, matching the "chore: prepare v3.84.0
-          // pre-release" commit 2070bd8ad): the COMMITTED `src/package.json`
-          // version IS the pre-release line version. The release process bumps it
-          // to the "gap" minor between stables (stable 3.83.0 → committed 3.84.0
-          // pre-release line → next stable 3.85.0) and ships announcement data
-          // keyed to that committed version. We publish the committed MAJOR.MINOR
-          // with the patch derived from the highest already-published patch on the
-          // same <major>.<minor> line plus one (`<major>.<minor>.<max+1>`,
-          // e.g. 3.84.1, 3.84.2, ... 3.84.N), which keeps every pre-release build
-          // unique while staying:
-          //   (a) above the latest stable (3.83.0), so the Marketplace offers
-          //       "Install Pre-Release Version";
-          //   (b) below the NEXT stable (3.85.0), so the next stable outranks them
-          //       on Open VSX's `latest` alias; and
-          //   (c) on the committed line, so it never collides with a stable.
-          // Do NOT add 1 to the minor here: the committed version already sits on
-          // the gap minor, and adding 1 would publish 3.85.<max+1> and collide
-          // with the next stable 3.85.0.
-          //
-          // PATCH RESET PER MINOR (this change): the patch restarts at 1 whenever
-          // a NEW minor line begins (no prior `<major>.<minor>.<patch>` is
-          // published), instead of the cumulative `github.run_number` counter
-          // which never resets (hence the 3.84.11/13, 3.85.14, 3.86.17/18 jumps).
-          // When a new minor is committed (e.g. 3.87.0) the first pre-release is
-          // 3.87.1. For the already-started 3.86 line the next patch is 3.86.19
-          // (max published 18 + 1); we never reuse 17/18 because reusing a lower
-          // number would break ordering and could be rejected by the marketplaces.
-          //
-          // The patch is resolved by querying the Open VSX API for the published
-          // versions and taking max(patch) + 1 across the current <major>.<minor>
-          // line. If the API call fails or times out, fall back to
-          // `github.run_number` (the previous cumulative counter) so a transient
-          // API failure can never block the publish.
+          echo "::group::[CI:PRERELEASE:GUARD] Verifying the committed version is unique and monotonic"
+          # Run as ESM (--input-type=module) so top-level `await` and `import`
+          # coexist; a CJS stdin script with both require() and top-level await
+          # throws ERR_AMBIGUOUS_MODULE_SYNTAX.
+          node --input-type=module <<'EOF'
+          import fs from "node:fs"
+          import https from "node:https"
+          const pkg = JSON.parse(fs.readFileSync("src/package.json", "utf8"))
+          const version = pkg.version
+          const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(version)
+          if (!m) {
+            console.log(`::error::[CI:PRERELEASE:GUARD] committed version "${version}" is not a plain major.minor.patch`)
+            process.exit(1)
+          }
+          const major = Number(m[1])
+          const minor = Number(m[2])
+          const patch = Number(m[3])
+
           function fetchOpenVsxVersions() {
             return new Promise((resolve, reject) => {
               const req = https.get(
@@ -214,43 +196,32 @@ jobs:
             })
           }
 
-          async function resolvePatch() {
-            try {
-              const versions = await fetchOpenVsxVersions()
-              const lineRe = new RegExp(`^${major}\\.${minor}\\.(\\d+)$`)
-              let maxPatch = 0
-              for (const v of versions) {
-                const m = v.match(lineRe)
-                if (m) maxPatch = Math.max(maxPatch, Number(m[1]))
-              }
-              console.log(`[CI:PRERELEASE:VERSION] max published patch for ${major}.${minor}.x: ${maxPatch}`)
-              // No prior version on this minor line -> start the patch counter at 1.
-              return maxPatch + 1
-            } catch (err) {
-              console.log(`[CI:PRERELEASE:VERSION] Open VSX query failed (${err.message}); falling back to github.run_number`)
-              return Number(process.env.RUN_NUMBER)
-            }
+          let published
+          try {
+            published = await fetchOpenVsxVersions()
+          } catch (err) {
+            console.log(`::error::[CI:PRERELEASE:GUARD] could not query Open VSX to guard against duplicate/out-of-order publishes (${err.message}); aborting to avoid a silent skip or a non-monotonic publish`)
+            process.exit(1)
           }
 
-          resolvePatch().then((patch) => {
-            const prereleaseVersion = `${major}.${minor}.${patch}`
-            pkg.version = prereleaseVersion
-            // Stamp the VS Code pre-release marker into package.json as well.
-            // `vsce package --pre-release` only writes
-            // `Microsoft.VisualStudio.Code.PreRelease` to the XML
-            // `extension.vsixmanifest` (what the VS Code Marketplace reads), but
-            // the ovsx CLI drops `--pre-release` for pre-built .vsix files and
-            // Open VSX detects pre-releases from the `extension/package.json`
-            // JSON manifest inside the VSIX. Without this stamp the Open VSX
-            // upload would be flagged as a regular stable version instead of a
-            // pre-release (see bug #243).
-            pkg["Microsoft.VisualStudio.Code.PreRelease"] = true
-            fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, "\t")}\n`)
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `number=${prereleaseVersion}\n`)
-            console.log(`Pre-release version set to ${prereleaseVersion}`)
-          })
+          if (published.includes(version)) {
+            console.log(`::error::[CI:PRERELEASE:GUARD] ${version} is ALREADY published to Open VSX — bump src/package.json to the next pre-release patch on the ${major}.${minor} line (pnpm bump:pre-release)`)
+            process.exit(1)
+          }
+
+          const lineRe = new RegExp("^" + major + "\\." + minor + "\\.(\\d+)$")
+          let maxPatch = -1
+          for (const v of published) {
+            const pm = v.match(lineRe)
+            if (pm) maxPatch = Math.max(maxPatch, Number(pm[1]))
+          }
+          console.log(`[CI:PRERELEASE:GUARD] max published patch on ${major}.${minor}.x: ${maxPatch < 0 ? "none" : maxPatch}`)
+          if (patch <= maxPatch) {
+            console.log(`::error::[CI:PRERELEASE:GUARD] committed ${version} is not greater than the max published ${major}.${minor}.${Math.max(maxPatch, 0)} on the ${major}.${minor} line — each pre-release must be higher than the last published; bump to the next patch (pnpm bump:pre-release)`)
+            process.exit(1)
+          }
+          console.log(`::notice::[CI:PRERELEASE:GUARD] ${version} is unique and monotonic on the ${major}.${minor} line — proceeding`)
           EOF
-          echo "::notice::[CI:PRERELEASE:VERSION] pre-release version set"
           echo "::endgroup::"
 
       - name: Build workspace packages
@@ -271,6 +242,17 @@ jobs:
           PKG_RELEASE_CHANNEL: prerelease
         run: |
           echo "::group::[CI:PRERELEASE:PACKAGE] Packaging pre-release VSIX"
+          # Ephemeral Open VSX pre-release marker. `vsce package --pre-release`
+          # writes Microsoft.VisualStudio.Code.PreRelease to the XML
+          # extension.vsixmanifest (what the VS Code Marketplace reads), but the
+          # ovsx CLI drops --pre-release for a pre-built .vsix and Open VSX reads
+          # the marker from extension/package.json inside the VSIX (bug #243).
+          # Stamp it around packaging ONLY, then restore the backup immediately
+          # (via the EXIT trap) — the VERSION is never touched and the committed
+          # tree stays clean.
+          cp src/package.json /tmp/roo-plus-src-package.json.bak
+          trap 'mv /tmp/roo-plus-src-package.json.bak src/package.json' EXIT
+          node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync('src/package.json','utf8')); p['Microsoft.VisualStudio.Code.PreRelease']=true; fs.writeFileSync('src/package.json', JSON.stringify(p,null,'\t')+'\n')"
           mkdir -p bin
           pnpm --filter ./src exec vsce package --pre-release --no-dependencies --out ../bin
           echo "::notice::[CI:PRERELEASE:PACKAGE] pre-release VSIX packaged"
@@ -278,11 +260,11 @@ jobs:
 
       - name: Verify VSIX contents
         if: steps.release-check.outputs.skip != 'true'
-        env:
-          VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
           echo "::group::[CI:PRERELEASE:VERIFY-VSIX] Verifying VSIX contents"
-          vsix_path="bin/roo-plus-${VERSION_NUMBER}.vsix"
+          package_version=$(node -p "require('./src/package.json').version")
+          vsix_path="bin/roo-plus-${package_version}.vsix"
+          test -f "$vsix_path"
           unzip -l "$vsix_path" > /tmp/roo-plus-vsix-contents.txt
           grep -q "extension/package.json" /tmp/roo-plus-vsix-contents.txt
           grep -q "extension/dist/extension.js" /tmp/roo-plus-vsix-contents.txt
@@ -293,11 +275,10 @@ jobs:
 
       - name: Validate packaged manifest identity
         if: steps.release-check.outputs.skip != 'true'
-        env:
-          VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
           echo "::group::[CI:PRERELEASE:MANIFEST] Validating packaged manifest identity"
-          vsix_path="bin/roo-plus-${VERSION_NUMBER}.vsix"
+          package_version=$(node -p "require('./src/package.json').version")
+          vsix_path="bin/roo-plus-${package_version}.vsix"
 
           artifact_name=$(unzip -p "$vsix_path" extension/package.json | jq -r '.name')
           artifact_publisher=$(unzip -p "$vsix_path" extension/package.json | jq -r '.publisher')
@@ -315,43 +296,43 @@ jobs:
 
       - name: Publish pre-release to VS Code Marketplace
         if: steps.release-check.outputs.skip != 'true' && env.VSCE_PAT != ''
-        env:
-          VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
           echo "::group::[CI:PRERELEASE:PUBLISH:VSCE] Publishing pre-release to VS Code Marketplace"
-          npx @vscode/vsce publish --pre-release --skip-duplicate --packagePath "bin/roo-plus-${VERSION_NUMBER}.vsix"
-          echo "::notice::[CI:PRERELEASE:PUBLISH:VSCE] Published or skipped existing xavier-arosemena.roo-plus ${VERSION_NUMBER} as a VS Code Marketplace pre-release"
+          package_version=$(node -p "require('./src/package.json').version")
+          npx @vscode/vsce publish --pre-release --skip-duplicate --packagePath "bin/roo-plus-${package_version}.vsix"
+          echo "::notice::[CI:PRERELEASE:PUBLISH:VSCE] Published or skipped existing xavier-arosemena.roo-plus ${package_version} as a VS Code Marketplace pre-release"
           echo "::endgroup::"
 
       # `ovsx publish` ignores --pre-release for an already-packaged .vsix (it only
       # applies when ovsx does the packaging itself), so the pre-release marker must
       # already be embedded in the VSIX. `vsce package --pre-release` writes
       # Microsoft.VisualStudio.Code.PreRelease to the XML extension.vsixmanifest
-      # (what the VS Code Marketplace reads); the "Set pre-release version" step also
-      # stamps it into extension/package.json, which is what Open VSX reads to flag
-      # the version as a pre-release (see bug #243). The "Validate packaged manifest
-      # identity" step asserts both are present before we get here.
+      # (what the VS Code Marketplace reads); the "Package pre-release VSIX" step
+      # also stamps it into extension/package.json around packaging (EPHEMERALLY —
+      # the committed tree is restored immediately), which is what Open VSX reads
+      # to flag the version as a pre-release (see bug #243). The "Validate packaged
+      # manifest identity" step asserts both are present before we get here.
       #
       # Open VSX's "latest" alias resolves to the highest semver across stable and
       # pre-release alike (pre-release only breaks ties at equal major.minor.patch),
       # so a pre-release build can transiently become "latest" until the next stable
-      # outranks it. The committed-line scheme (pre-releases on the committed gap
-      # minor, e.g. 3.84.<run>, next stable one minor higher, 3.85.0) guarantees the
-      # next stable always outranks the pre-releases, so this
-      # is transient per release cycle. This mirrors how Marketplace pre-release users
-      # track the newest published version — an accepted trade-off.
+      # outranks it. Under iterate-then-stabilize the stable is the NEXT PATCH on
+      # the same minor (e.g. 3.88.3 outranks pre-releases 3.88.1/3.88.2) and the
+      # next cycle starts a new minor, so the next stable always outranks the
+      # pre-releases on its line. This is transient per release cycle and mirrors
+      # how Marketplace pre-release users track the newest published version — an
+      # accepted trade-off.
       - name: Publish pre-release to Open VSX Registry
         if: steps.release-check.outputs.skip != 'true' && env.OVSX_PAT != ''
-        env:
-          VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
           echo "::group::[CI:PRERELEASE:PUBLISH:OVSX] Publishing pre-release to Open VSX Registry"
+          package_version=$(node -p "require('./src/package.json').version")
           set -o pipefail
-          publish_output=$(pnpm exec ovsx publish "bin/roo-plus-${VERSION_NUMBER}.vsix" --skip-duplicate 2>&1 | tee /dev/stderr)
+          publish_output=$(pnpm exec ovsx publish "bin/roo-plus-${package_version}.vsix" --skip-duplicate 2>&1 | tee /dev/stderr)
           if echo "$publish_output" | grep -q "is already published"; then
-            echo "::notice::[CI:PRERELEASE:PUBLISH:OVSX] xavier-arosemena.roo-plus ${VERSION_NUMBER} was already published to Open VSX; skipped."
+            echo "::notice::[CI:PRERELEASE:PUBLISH:OVSX] xavier-arosemena.roo-plus ${package_version} was already published to Open VSX; skipped."
           else
-            echo "::notice::[CI:PRERELEASE:PUBLISH:OVSX] Published xavier-arosemena.roo-plus ${VERSION_NUMBER} as an Open VSX pre-release"
+            echo "::notice::[CI:PRERELEASE:PUBLISH:OVSX] Published xavier-arosemena.roo-plus ${package_version} as an Open VSX pre-release"
           fi
           echo "::endgroup::"
 

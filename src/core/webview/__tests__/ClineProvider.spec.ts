@@ -1340,6 +1340,20 @@ describe("ClineProvider", () => {
 			expect(provider.latestAnnouncementId).toContain(Package.version)
 		})
 
+		test("latestAnnouncementId resolves to the line base, not the raw patch version", () => {
+			// Under the iterate-then-stabilize policy all builds on a minor share
+			// one announcement identity: any patch on the line (e.g. a pre-release
+			// 3.86.19) resolves to the line base via getAnnouncementForVersion, so
+			// the id is `v3.86.0`, not `v3.86.19`.
+			vi.spyOn(announcementsModule, "getAnnouncementForVersion").mockReturnValue({
+				version: "3.86.0",
+				highlights: ["Generated"],
+			})
+
+			expect(provider.latestAnnouncementId).toBe("v3.86.0")
+			expect(announcementsModule.getAnnouncementForVersion).toHaveBeenCalledWith(Package.version)
+		})
+
 		test("shouldShowAnnouncement is false when the persisted id matches the current version", async () => {
 			await provider.resolveWebviewView(mockWebviewView)
 			await provider.contextProxy.setValue("telemetrySetting", "enabled")

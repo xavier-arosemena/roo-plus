@@ -259,3 +259,60 @@ the pinned submodule clean) that flags a missing/blank description:
 Both were validated against a fixture with a mode that omits `description`
 (see completion summary for the exact diffstat). Apply them via the custom-modes
 repo workflow when next touching that repository.
+
+## Release versioning & announcement scripts (iterate-then-stabilize)
+
+The announcement/versioning scripts implement the **iterate-then-stabilize,
+same-minor** release policy. The full rationale lives in
+[`docs/adr/adr-release-versioning-policy.md`](../docs/adr/adr-release-versioning-policy.md);
+in short: the committed version in `src/package.json` **IS** the published
+version (no build-time derivation/mutation), pre-releases are consecutive
+patches on the current minor, the stable is the next patch on that same minor,
+and the next cycle starts a new minor.
+
+### [`scripts/generate-announcements.mjs`](generate-announcements.mjs) — line-keyed
+
+Generates `src/shared/announcements.ts` from the top `## [<major>.<minor>.0]`
+section of `src/CHANGELOG.md`. The generated module is keyed to the **line
+base** `<major>.<minor>.0` and embeds `resolveLineVersion`,
+`getAnnouncementForVersion` (exact match → line fallback) and
+`hasAnnouncementForVersion` (via `getAnnouncementForVersion`), so ANY patch on
+the minor resolves to the line base at runtime. The module also re-exports
+`resolveLineVersion` (in the generated TS) and the script itself exports the JS
+`resolveLineVersion` shared with the verifier.
+
+```bash
+pnpm generate:announcements   # regenerates src/shared/announcements.ts
+```
+
+### [`scripts/verify-announcement-version.mjs`](verify-announcement-version.mjs) — line-resolved, both channels
+
+Fail-fast guard wired into `prevsix` / `prebundle` / `prevscode:prepublish`
+(and `code-qa.yml` / `test:scripts`). It resolves the committed version to its
+line base `<major>.<minor>.0` **before** checking the changelog section and
+byte-comparing the generated asset — a pre-release patch like `3.86.19`
+verifies against the `## [3.86.0]` section and the asset keyed `3.86.0`. There
+is **no** pre-release skip: both channels verify the resolved line (the old
+`isPreReleaseChannel()` skip was removed because the committed version IS the
+published version).
+
+```bash
+pnpm verify:announcement-version   # exit 0 = ok, 1 = missing/empty/stale
+```
+
+### [`scripts/bump-pre-release-version.mjs`](bump-pre-release-version.mjs) — next patch / new line
+
+Deterministic local helper (no registry queries — the CI guard enforces
+monotonicity against Open VSX):
+
+```bash
+pnpm bump:pre-release   # 3.86.0 → 3.86.1; 3.86.19 → 3.86.20 (next patch on minor)
+pnpm bump:line          # 3.86.19 → 3.87.0 (start a new minor line, patch 0)
+```
+
+The pure `computeNextVersion(version, mode)` is exported and covered by
+[`scripts/bump-pre-release-version.spec.mjs`](bump-pre-release-version.spec.mjs)
+(node:test, wired into `pnpm test:scripts`). The write is atomic (temp file +
+rename); `src/utils/safeWriteJson.ts` is not importable from a plain `.mjs`
+script (it is a TypeScript module with runtime deps), so the same atomicity
+intent is implemented inline.

@@ -61,7 +61,7 @@ import { aggregateTaskCostsRecursive, type AggregatedCosts } from "./aggregateTa
 import { TelemetryService } from "@roo-code/telemetry"
 
 import { Package } from "../../shared/package"
-import { hasAnnouncementForVersion } from "../../shared/announcements"
+import { getAnnouncementForVersion, hasAnnouncementForVersion } from "../../shared/announcements"
 import { findLast } from "../../shared/array"
 import { supportPrompt } from "../../shared/support-prompt"
 import { GlobalFileNames } from "../../shared/globalFileNames"
@@ -367,16 +367,20 @@ export class ClineProvider
 	public isViewLaunched = false
 	public settingsImportedAt?: number
 	/**
-	 * Version-derived identity for the "What's New" popup (bug #265).
+	 * LINE-BASE identity for the "What's New" popup (bug #265).
 	 *
-	 * Derived from `Package.version` instead of a manually-maintained literal so
-	 * the popup re-arms automatically on every version bump — no manual edit
-	 * required for the English release channel. `didShowAnnouncement` persists
-	 * this value as `lastShownAnnouncementId`, so a user sees the popup at most
-	 * once per version.
+	 * Announcements are keyed ONCE PER MINOR at the line base
+	 * `<major>.<minor>.0` (see src/shared/announcements.ts); every patch on the
+	 * minor (pre-release patches and the stable patch alike) resolves to it at
+	 * runtime via `getAnnouncementForVersion`. `latestAnnouncementId` therefore
+	 * uses the RESOLVED line base, not the raw patch version, so all builds on a
+	 * minor share one announcement identity and the popup arms at most once per
+	 * minor (decided cadence — not per-stable, not per-build).
+	 * `didShowAnnouncement` persists this value as `lastShownAnnouncementId`.
 	 */
 	public get latestAnnouncementId(): string {
-		return `v${Package.version}`
+		const announcement = getAnnouncementForVersion(Package.version)
+		return `v${announcement ? announcement.version : Package.version}`
 	}
 	public readonly providerSettingsManager: ProviderSettingsManager
 	public readonly customModesManager: CustomModesManager

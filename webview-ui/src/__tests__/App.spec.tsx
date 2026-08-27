@@ -191,10 +191,31 @@ vi.mock("@roo/announcements", () => {
 		},
 	}
 
+	const resolveLineVersion = (version: string): string | undefined => {
+		const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version)
+		if (!match) {
+			return undefined
+		}
+		return `${match[1]}.${match[2]}.0`
+	}
+
+	const getAnnouncementForVersion = (version: string) => {
+		const exact = announcements[version]
+		if (exact !== undefined) {
+			return exact
+		}
+		const lineBase = resolveLineVersion(version)
+		if (lineBase === undefined) {
+			return undefined
+		}
+		return announcements[lineBase]
+	}
+
 	return {
 		Announcements: announcements,
+		getAnnouncementForVersion,
 		hasAnnouncementForVersion: (version: string) => {
-			const entry = announcements[version]
+			const entry = getAnnouncementForVersion(version)
 			return entry !== undefined && entry.highlights.length > 0
 		},
 	}

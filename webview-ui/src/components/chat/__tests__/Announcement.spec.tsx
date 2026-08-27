@@ -18,19 +18,44 @@ vi.mock("@roo/package", () => ({
 }))
 
 // Mutable data source mirroring src/shared/announcements.ts so tests can
-// exercise both the generated-highlights path and the i18n fallback path.
+// exercise both the generated-highlights path and the i18n fallback path. The
+// data is LINE-KEYED: it lives at the line base "3.77.0" while Package.version
+// is the patch "3.77.4", so the resolver (getAnnouncementForVersion) must map
+// the patch to the line base — exactly the pre-release popup regression from
+// the old derived-version scheme.
 vi.mock("@roo/announcements", () => {
 	const announcements: Record<string, { version: string; highlights: string[] }> = {
-		"3.77.4": {
-			version: "3.77.4",
+		"3.77.0": {
+			version: "3.77.0",
 			highlights: ["Generated highlight one", "Generated highlight two", "Generated highlight three"],
 		},
 	}
 
+	const resolveLineVersion = (version: string): string | undefined => {
+		const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version)
+		if (!match) {
+			return undefined
+		}
+		return `${match[1]}.${match[2]}.0`
+	}
+
+	const getAnnouncementForVersion = (version: string) => {
+		const exact = announcements[version]
+		if (exact !== undefined) {
+			return exact
+		}
+		const lineBase = resolveLineVersion(version)
+		if (lineBase === undefined) {
+			return undefined
+		}
+		return announcements[lineBase]
+	}
+
 	return {
 		Announcements: announcements,
+		getAnnouncementForVersion,
 		hasAnnouncementForVersion: (version: string) => {
-			const entry = announcements[version]
+			const entry = getAnnouncementForVersion(version)
 			return entry !== undefined && entry.highlights.length > 0
 		},
 	}
@@ -85,8 +110,9 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 
 describe("Announcement", () => {
 	beforeEach(() => {
-		// Reset the data source to the default "data present" state.
-		Announcements["3.77.4"] = { version: "3.77.4", highlights: [...GENERATED_HIGHLIGHTS] }
+		// Reset the data source to the default "data present" state, keyed at the
+		// line base (Package.version is the patch 3.77.4 and resolves to it).
+		Announcements["3.77.0"] = { version: "3.77.0", highlights: [...GENERATED_HIGHLIGHTS] }
 	})
 
 	it("renders the announcement title with the current version", () => {
@@ -111,10 +137,28 @@ describe("Announcement", () => {
 		expect(screen.getAllByRole("listitem")).toHaveLength(GENERATED_HIGHLIGHTS.length)
 	})
 
-	it("falls back to the translated i18n highlights when no generated data exists for the current version", () => {
-		// Simulate a version without generated announcement data (e.g. a
-		// pre-release/preview build whose version is absent from the data source).
-		delete Announcements["3.77.4"]
+	it("resolves a pre-release patch version to its line base and renders the generated highlights", () => {
+		// Package.version is the patch "3.77.4" while the data source is keyed
+		// ONLY at the line base "3.77.0". The component must resolve the patch to
+		// the line base via getAnnouncementForVersion and render the generated
+		// highlights — NOT the i18n fallback. This is the pre-release "What's New"
+		// popup regression: the old build-time derived version had no announcement
+		// entry, so the popup fell back to i18n (or, before line-resolution,
+		// never fired at all).
+		render(<Announcement hideAnnouncement={vi.fn()} />)
+
+		for (const highlight of GENERATED_HIGHLIGHTS) {
+			expect(screen.getByText(highlight)).toBeInTheDocument()
+		}
+		expect(screen.queryByText(I18N_HIGHLIGHTS[0])).not.toBeInTheDocument()
+	})
+
+	it("falls back to the translated i18n highlights when the line has no generated data", () => {
+		// Simulate a minor line without generated announcement data (e.g. a
+		// preview build whose line base is absent from the data source). With the
+		// line key removed, the resolved line base 3.77.0 has no content and the
+		// component falls back to the translated i18n highlights.
+		delete Announcements["3.77.0"]
 
 		render(<Announcement hideAnnouncement={vi.fn()} />)
 
