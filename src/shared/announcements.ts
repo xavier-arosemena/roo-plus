@@ -3,6 +3,12 @@
 // src/CHANGELOG.md (top versioned section). Highlights are English-only,
 // auto-derived from changeset summaries; non-English locales fall back to the
 // translated chat:announcement.release.highlightN keys.
+//
+// LINE-KEYED RELEASE POLICY (iterate-then-stabilize, same minor): one
+// announcement per MINOR LINE, keyed at the line base <major>.<minor>.0. Every
+// patch on the line (pre-release patches and the stable patch alike) resolves
+// to the line base at runtime via getAnnouncementForVersion, so the "What's
+// New" popup shows the right highlights for any build without per-patch data.
 
 /** Release highlights for a specific extension version (English-only). */
 export interface ReleaseAnnouncement {
@@ -23,11 +29,43 @@ export const Announcements: Record<string, ReleaseAnnouncement> = {
 }
 
 /**
+ * Resolves a full <major>.<minor>.<patch> version to its announcement LINE BASE
+ * <major>.<minor>.0. Announcements are keyed once per minor line, so every patch
+ * on a minor shares the line base's highlights. Versions without a third segment
+ * cannot resolve and return undefined (no false positives).
+ */
+export function resolveLineVersion(version: string): string | undefined {
+	const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version)
+	if (!match) {
+		return undefined
+	}
+	return match[1] + "." + match[2] + ".0"
+}
+
+/**
+ * Returns the announcement for a version, resolving any patch on a minor to the
+ * line base <major>.<minor>.0. Exact matches win; a version without a third
+ * segment (or a line with no content) returns undefined.
+ */
+export function getAnnouncementForVersion(version: string): ReleaseAnnouncement | undefined {
+	const exact = Announcements[version]
+	if (exact !== undefined) {
+		return exact
+	}
+	const lineBase = resolveLineVersion(version)
+	if (lineBase === undefined) {
+		return undefined
+	}
+	return Announcements[lineBase]
+}
+
+/**
  * True when the given version has non-empty announcement content to show.
- * Used by the extension trigger so the popup only re-arms when there is real
- * per-version content (noise mitigation).
+ * Used by the extension trigger so the popup only re-arms when the resolved
+ * line actually has content (noise mitigation). Line-resolved: any patch on a
+ * minor resolves to the line base.
  */
 export function hasAnnouncementForVersion(version: string): boolean {
-	const announcement = Announcements[version]
+	const announcement = getAnnouncementForVersion(version)
 	return announcement !== undefined && announcement.highlights.length > 0
 }

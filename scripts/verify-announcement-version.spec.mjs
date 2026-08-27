@@ -19,8 +19,9 @@ import {
 	cleanHighlight,
 	parseChangelogSection,
 	renderAnnouncementsModule,
+	resolveLineVersion,
 } from "./generate-announcements.mjs"
-import { assessAnnouncementVersion, isPreReleaseChannel } from "./verify-announcement-version.mjs"
+import { assessAnnouncementVersion } from "./verify-announcement-version.mjs"
 
 const SAMPLE_CHANGELOG = `# Roo+ Changelog
 
@@ -116,7 +117,7 @@ describe("parseChangelogSection", () => {
 })
 
 describe("renderAnnouncementsModule", () => {
-	it("emits a deterministic TS module keyed by version", () => {
+	it("emits a deterministic TS module keyed by the line base version", () => {
 		const out = renderAnnouncementsModule({ version: "3.81.0", highlights: ["Alpha", "Beta"] })
 		assert.match(out, /export const Announcements: Record<string, ReleaseAnnouncement> = \{/)
 		assert.match(out, /"3\.81\.0": \{/)
@@ -125,6 +126,32 @@ describe("renderAnnouncementsModule", () => {
 		assert.match(out, /export function hasAnnouncementForVersion\(version: string\): boolean \{/)
 		// Re-rendering the same section is byte-identical (the verifier relies on this).
 		assert.equal(out, renderAnnouncementsModule({ version: "3.81.0", highlights: ["Alpha", "Beta"] }))
+	})
+
+	it("emits the line-resolving resolver functions", () => {
+		const out = renderAnnouncementsModule({ version: "3.81.0", highlights: ["Alpha"] })
+		assert.match(out, /export function resolveLineVersion\(version: string\): string \| undefined \{/)
+		assert.match(out, /export function getAnnouncementForVersion\(version: string\): ReleaseAnnouncement \| undefined \{/)
+		// The emitted resolver must embed exact-match-first + line-fallback logic.
+		assert.match(out, /const exact = Announcements\[version\]/)
+		assert.match(out, /const lineBase = resolveLineVersion\(version\)/)
+		assert.match(out, /if \(lineBase === undefined\) \{/)
+		assert.match(out, /return Announcements\[lineBase\]/)
+		// hasAnnouncementForVersion must be implemented via getAnnouncementForVersion.
+		assert.match(out, /const announcement = getAnnouncementForVersion\(version\)/)
+	})
+
+	it("resolveLineVersion is the shared single source of truth for line-resolution", () => {
+		// The generated module embeds the same logic as this export, which the
+		// verify script reuses — testing it proves the emitted resolver behaviour:
+		// exact line match, patch → line base, and no false positive for absent
+		// lines / two-part versions.
+		assert.equal(resolveLineVersion("3.81.0"), "3.81.0")
+		assert.equal(resolveLineVersion("3.81.19"), "3.81.0")
+		assert.equal(resolveLineVersion("3.86.19"), "3.86.0")
+		assert.equal(resolveLineVersion("3.81"), undefined)
+		assert.equal(resolveLineVersion("3.81.0.1"), undefined)
+		assert.equal(resolveLineVersion("not-a-version"), undefined)
 	})
 
 	it("escapes quote characters inside highlights", () => {
@@ -150,6 +177,28 @@ describe("assessAnnouncementVersion", () => {
 		assert.match(verdict.reasons[0], /no section/)
 	})
 
+	it("passes when a patch version on the line resolves to the line base section", () => {
+		// 3.81.1 is a patch on the 3.81 line: it must verify against the
+		// `## [3.81.0]` section and the asset keyed 3.81.0 (line-resolution —
+		// this is what lets pre-release patches like 3.86.19 pass).
+		const verdict = assessAnnouncementVersion("3.81.1", SAMPLE_CHANGELOG, ASSET)
+		assert.equal(verdict.ok, true)
+		assert.deepEqual(verdict.reasons, [])
+	})
+
+	it("fails when a patch version's line has no section", () => {
+		// 3.82.1 resolves to line 3.82.0, which has no changelog section.
+		const verdict = assessAnnouncementVersion("3.82.1", SAMPLE_CHANGELOG, ASSET)
+		assert.equal(verdict.ok, false)
+		assert.match(verdict.reasons[0], /no section/)
+	})
+
+	it("fails when the version is not a plain major.minor.patch", () => {
+		const verdict = assessAnnouncementVersion("3.81", SAMPLE_CHANGELOG, ASSET)
+		assert.equal(verdict.ok, false)
+		assert.match(verdict.reasons[0], /not a plain/)
+	})
+
 	it("fails when the version's changelog section has no highlights", () => {
 		const verdict = assessAnnouncementVersion("3.81.0", EMPTY_SECTION_CHANGELOG, ASSET)
 		assert.equal(verdict.ok, false)
@@ -167,21 +216,6 @@ describe("assessAnnouncementVersion", () => {
 	it("fails when the asset is missing entirely (empty file)", () => {
 		const verdict = assessAnnouncementVersion("3.81.0", SAMPLE_CHANGELOG, "")
 		assert.equal(verdict.ok, false)
-	})
-})
-
-describe("isPreReleaseChannel", () => {
-	it("returns false when PKG_RELEASE_CHANNEL is unset (stable/local/CI gates)", () => {
-		assert.equal(isPreReleaseChannel({}), false)
-		assert.equal(isPreReleaseChannel({ PKG_RELEASE_CHANNEL: undefined }), false)
-	})
-
-	it("returns false for the stable channel", () => {
-		assert.equal(isPreReleaseChannel({ PKG_RELEASE_CHANNEL: "stable" }), false)
-	})
-
-	it("returns true for the pre-release channel", () => {
-		assert.equal(isPreReleaseChannel({ PKG_RELEASE_CHANNEL: "prerelease" }), true)
 	})
 })
 
