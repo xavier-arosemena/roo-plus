@@ -262,7 +262,7 @@ jobs:
         if: steps.release-check.outputs.skip != 'true'
         run: |
           echo "::group::[CI:PRERELEASE:VERIFY-VSIX] Verifying VSIX contents"
-          package_version=$(node -p "require('./src/package.json').version")
+          package_version=$(jq -r .version src/package.json)
           vsix_path="bin/roo-plus-${package_version}.vsix"
           test -f "$vsix_path"
           unzip -l "$vsix_path" > /tmp/roo-plus-vsix-contents.txt
@@ -277,7 +277,7 @@ jobs:
         if: steps.release-check.outputs.skip != 'true'
         run: |
           echo "::group::[CI:PRERELEASE:MANIFEST] Validating packaged manifest identity"
-          package_version=$(node -p "require('./src/package.json').version")
+          package_version=$(jq -r .version src/package.json)
           vsix_path="bin/roo-plus-${package_version}.vsix"
 
           artifact_name=$(unzip -p "$vsix_path" extension/package.json | jq -r '.name')
@@ -298,7 +298,7 @@ jobs:
         if: steps.release-check.outputs.skip != 'true' && env.VSCE_PAT != ''
         run: |
           echo "::group::[CI:PRERELEASE:PUBLISH:VSCE] Publishing pre-release to VS Code Marketplace"
-          package_version=$(node -p "require('./src/package.json').version")
+          package_version=$(jq -r .version src/package.json)
           npx @vscode/vsce publish --pre-release --skip-duplicate --packagePath "bin/roo-plus-${package_version}.vsix"
           echo "::notice::[CI:PRERELEASE:PUBLISH:VSCE] Published or skipped existing xavier-arosemena.roo-plus ${package_version} as a VS Code Marketplace pre-release"
           echo "::endgroup::"
@@ -326,7 +326,7 @@ jobs:
         if: steps.release-check.outputs.skip != 'true' && env.OVSX_PAT != ''
         run: |
           echo "::group::[CI:PRERELEASE:PUBLISH:OVSX] Publishing pre-release to Open VSX Registry"
-          package_version=$(node -p "require('./src/package.json').version")
+          package_version=$(jq -r .version src/package.json)
           set -o pipefail
           publish_output=$(pnpm exec ovsx publish "bin/roo-plus-${package_version}.vsix" --skip-duplicate 2>&1 | tee /dev/stderr)
           if echo "$publish_output" | grep -q "is already published"; then
