@@ -139,6 +139,7 @@ jobs:
           echo "::group::[CI:PRERELEASE:VERSION] Setting pre-release version"
           node <<'EOF'
           const fs = require("fs")
+          const https = require("https")
           const pkgPath = "src/package.json"
           const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"))
           const [major, minor] = pkg.version.split(".").map(Number)
@@ -157,33 +158,97 @@ jobs:
           // to the "gap" minor between stables (stable 3.83.0 → committed 3.84.0
           // pre-release line → next stable 3.85.0) and ships announcement data
           // keyed to that committed version. We publish the committed MAJOR.MINOR
-          // with the patch replaced by the run number (`<major>.<minor>.<run>`,
-          // e.g. 3.84.<run>), which keeps every pre-release build unique while
-          // staying:
+          // with the patch derived from the highest already-published patch on the
+          // same <major>.<minor> line plus one (`<major>.<minor>.<max+1>`,
+          // e.g. 3.84.1, 3.84.2, ... 3.84.N), which keeps every pre-release build
+          // unique while staying:
           //   (a) above the latest stable (3.83.0), so the Marketplace offers
           //       "Install Pre-Release Version";
           //   (b) below the NEXT stable (3.85.0), so the next stable outranks them
           //       on Open VSX's `latest` alias; and
           //   (c) on the committed line, so it never collides with a stable.
           // Do NOT add 1 to the minor here: the committed version already sits on
-          // the gap minor, and adding 1 would publish 3.85.<run> and collide with
-          // the next stable 3.85.0.
-          const prereleaseVersion = `${major}.${minor}.${Number(process.env.RUN_NUMBER)}`
+          // the gap minor, and adding 1 would publish 3.85.<max+1> and collide
+          // with the next stable 3.85.0.
+          //
+          // PATCH RESET PER MINOR (this change): the patch restarts at 1 whenever
+          // a NEW minor line begins (no prior `<major>.<minor>.<patch>` is
+          // published), instead of the cumulative `github.run_number` counter
+          // which never resets (hence the 3.84.11/13, 3.85.14, 3.86.17/18 jumps).
+          // When a new minor is committed (e.g. 3.87.0) the first pre-release is
+          // 3.87.1. For the already-started 3.86 line the next patch is 3.86.19
+          // (max published 18 + 1); we never reuse 17/18 because reusing a lower
+          // number would break ordering and could be rejected by the marketplaces.
+          //
+          // The patch is resolved by querying the Open VSX API for the published
+          // versions and taking max(patch) + 1 across the current <major>.<minor>
+          // line. If the API call fails or times out, fall back to
+          // `github.run_number` (the previous cumulative counter) so a transient
+          // API failure can never block the publish.
+          function fetchOpenVsxVersions() {
+            return new Promise((resolve, reject) => {
+              const req = https.get(
+                "https://open-vsx.org/api/xavier-arosemena/roo-plus",
+                { timeout: 15000 },
+                (res) => {
+                  if (res.statusCode !== 200) {
+                    res.resume()
+                    reject(new Error(`Open VSX API returned HTTP ${res.statusCode}`))
+                    return
+                  }
+                  let body = ""
+                  res.setEncoding("utf8")
+                  res.on("data", (chunk) => { body += chunk })
+                  res.on("end", () => {
+                    try {
+                      const data = JSON.parse(body)
+                      resolve(Object.keys(data.allVersions || {}))
+                    } catch (err) {
+                      reject(err)
+                    }
+                  })
+                }
+              )
+              req.on("timeout", () => { req.destroy(new Error("Open VSX API request timed out")) })
+              req.on("error", reject)
+            })
+          }
 
-          pkg.version = prereleaseVersion
-          // Stamp the VS Code pre-release marker into package.json as well.
-          // `vsce package --pre-release` only writes
-          // `Microsoft.VisualStudio.Code.PreRelease` to the XML
-          // `extension.vsixmanifest` (what the VS Code Marketplace reads), but
-          // the ovsx CLI drops `--pre-release` for pre-built .vsix files and
-          // Open VSX detects pre-releases from the `extension/package.json`
-          // JSON manifest inside the VSIX. Without this stamp the Open VSX
-          // upload would be flagged as a regular stable version instead of a
-          // pre-release (see bug #243).
-          pkg["Microsoft.VisualStudio.Code.PreRelease"] = true
-          fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, "\t")}\n`)
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `number=${prereleaseVersion}\n`)
-          console.log(`Pre-release version set to ${prereleaseVersion}`)
+          async function resolvePatch() {
+            try {
+              const versions = await fetchOpenVsxVersions()
+              const lineRe = new RegExp(`^${major}\\.${minor}\\.(\\d+)$`)
+              let maxPatch = 0
+              for (const v of versions) {
+                const m = v.match(lineRe)
+                if (m) maxPatch = Math.max(maxPatch, Number(m[1]))
+              }
+              console.log(`[CI:PRERELEASE:VERSION] max published patch for ${major}.${minor}.x: ${maxPatch}`)
+              // No prior version on this minor line -> start the patch counter at 1.
+              return maxPatch + 1
+            } catch (err) {
+              console.log(`[CI:PRERELEASE:VERSION] Open VSX query failed (${err.message}); falling back to github.run_number`)
+              return Number(process.env.RUN_NUMBER)
+            }
+          }
+
+          resolvePatch().then((patch) => {
+            const prereleaseVersion = `${major}.${minor}.${patch}`
+            pkg.version = prereleaseVersion
+            // Stamp the VS Code pre-release marker into package.json as well.
+            // `vsce package --pre-release` only writes
+            // `Microsoft.VisualStudio.Code.PreRelease` to the XML
+            // `extension.vsixmanifest` (what the VS Code Marketplace reads), but
+            // the ovsx CLI drops `--pre-release` for pre-built .vsix files and
+            // Open VSX detects pre-releases from the `extension/package.json`
+            // JSON manifest inside the VSIX. Without this stamp the Open VSX
+            // upload would be flagged as a regular stable version instead of a
+            // pre-release (see bug #243).
+            pkg["Microsoft.VisualStudio.Code.PreRelease"] = true
+            fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, "\t")}\n`)
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `number=${prereleaseVersion}\n`)
+            console.log(`Pre-release version set to ${prereleaseVersion}`)
+          })
           EOF
           echo "::notice::[CI:PRERELEASE:VERSION] pre-release version set"
           echo "::endgroup::"
