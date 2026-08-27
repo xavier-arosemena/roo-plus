@@ -18,8 +18,8 @@ export interface ReleaseAnnouncement {
 }
 
 export const Announcements: Record<string, ReleaseAnnouncement> = {
-	"3.86.0": {
-		version: "3.86.0",
+	"3.87.0": {
+		version: "3.87.0",
 		highlights: [
 			"🎉 Milestone one is a wrap — a stable release, 300+ modes, and a clear roadmap for the road ahead. We couldn't be more excited about what's next.",
 			"🚀 Milestone two begins now — guided by your feedback, we're doubling down on building a local-first, agentic IDE extension that makes your AI spend legible and your knowledge portable.",
