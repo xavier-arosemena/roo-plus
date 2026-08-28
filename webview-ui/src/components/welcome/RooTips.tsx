@@ -1,4 +1,4 @@
-import type { MouseEvent, ReactNode } from "react"
+import type { MouseEvent } from "react"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { Bug, MessagesSquare, Star, Store } from "lucide-react"
 import { Trans, useTranslation } from "react-i18next"
@@ -27,25 +27,17 @@ const supportLinks = [
 		labelKey: "support.starUs",
 		href: EXTERNAL_LINKS.GITHUB_REPO,
 	},
+	{
+		icon: <Store className="size-4 shrink-0" aria-hidden />,
+		labelKey: "support.reviewUsOpenVsx",
+		href: EXTERNAL_LINKS.OPEN_VSX_REGISTRY,
+	},
+	{
+		icon: <Store className="size-4 shrink-0" aria-hidden />,
+		labelKey: "support.reviewUsMarketplace",
+		href: EXTERNAL_LINKS.MARKETPLACE_REVIEW,
+	},
 ]
-
-const MarketplaceReviewLink = ({ children }: { children?: ReactNode }) => (
-	<VSCodeLink
-		href={EXTERNAL_LINKS.MARKETPLACE_REVIEW}
-		className="text-muted-foreground underline"
-		onClick={openExternal(EXTERNAL_LINKS.MARKETPLACE_REVIEW)}>
-		{children}
-	</VSCodeLink>
-)
-
-const OpenVSXReviewLink = ({ children }: { children?: ReactNode }) => (
-	<VSCodeLink
-		href={EXTERNAL_LINKS.OPEN_VSX_REGISTRY}
-		className="text-muted-foreground underline"
-		onClick={openExternal(EXTERNAL_LINKS.OPEN_VSX_REGISTRY)}>
-		{children}
-	</VSCodeLink>
-)
 
 const RooTips = () => {
 	const { t } = useTranslation("chat")
@@ -61,26 +53,13 @@ const RooTips = () => {
 						key={link.labelKey}
 						href={link.href}
 						className="text-muted-foreground underline"
-						onClick={(e) => {
-							e.preventDefault()
-							vscode.postMessage({ type: "openExternal", url: link.href })
-						}}>
+						onClick={openExternal(link.href)}>
 						<span className="inline-flex items-center gap-1.5 whitespace-nowrap">
 							{link.icon}
 							<span>{t(link.labelKey)}</span>
 						</span>
 					</VSCodeLink>
 				))}
-				<span className="inline-flex items-center gap-1.5">
-					<Store className="size-4 shrink-0" aria-hidden />
-					<Trans
-						i18nKey="chat:support.reviewUs"
-						components={{
-							marketplaceLink: <MarketplaceReviewLink />,
-							openVsxLink: <OpenVSXReviewLink />,
-						}}
-					/>
-				</span>
 			</div>
 		</div>
 	)

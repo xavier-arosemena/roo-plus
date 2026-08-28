@@ -125,12 +125,13 @@
 	},
 	"scrollToBottom": "Scroll to bottom of chat",
 	"scrollToLatestCheckpoint": "Scroll to previous checkpoint",
-	"about": "Your multi-agent AI team — <br/>302 specialized modes for coding, DevOps, security, and architecture.",
+	"about": "The local-first, bring-your-own-model agentic IDE extension — <br/>Know your cost, trust your cache, keep your knowledge.",
 	"support": {
 		"reportIssue": "Report a bug or request a feature",
 		"discussions": "Join the discussions",
 		"starUs": "Star us on GitHub",
-		"reviewUs": "Review us on <marketplaceLink>VS Code Marketplace</marketplaceLink> and <openVsxLink>Open VSX</openVsxLink>"
+		"reviewUsOpenVsx": "Review us on Open VSX",
+		"reviewUsMarketplace": "Review us on VS Code Marketplace"
 	},
 	"onboarding": "What would you like to do?",
 	"selectMode": "Select mode for interaction",
@@ -354,8 +355,8 @@
 		"triggerLabelAll": "BRRR"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} Released",
-		"support": "Please support Roo+ by starring us on <githubLink>GitHub</githubLink> and on the <openVsxLink>Open VSX Registry</openVsxLink>.",
+		"title": "Roo+ {{version}} Released",
+		"support": "Please support Roo+ on <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink>, and on the <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "What's New:",
 			"highlight1": "🎉 Milestone one is a wrap — a stable release, 300+ modes, and a clear roadmap for the road ahead. We couldn't be more excited about what's next.",

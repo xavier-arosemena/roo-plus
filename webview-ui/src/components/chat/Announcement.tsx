@@ -100,8 +100,8 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 							i18nKey="chat:announcement.support"
 							components={{
 								githubLink: <GitHubLink />,
+								marketplaceLink: <MarketplaceLink />,
 								openVsxLink: <OpenVSXLink />,
-								br: <br />,
 							}}
 						/>
 					</div>
@@ -141,6 +141,17 @@ const OpenVSXLink = ({ children }: { children?: ReactNode }) => (
 		onClick={(e) => {
 			e.preventDefault()
 			vscode.postMessage({ type: "openExternal", url: EXTERNAL_LINKS.OPEN_VSX_REGISTRY })
+		}}>
+		{children}
+	</VSCodeLink>
+)
+
+const MarketplaceLink = ({ children }: { children?: ReactNode }) => (
+	<VSCodeLink
+		href={EXTERNAL_LINKS.MARKETPLACE}
+		onClick={(e) => {
+			e.preventDefault()
+			vscode.postMessage({ type: "openExternal", url: EXTERNAL_LINKS.MARKETPLACE })
 		}}>
 		{children}
 	</VSCodeLink>

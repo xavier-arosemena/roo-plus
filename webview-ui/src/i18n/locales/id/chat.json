@@ -128,12 +128,13 @@
 	"enqueueMessage": "Tambahkan pesan ke antrean (akan dikirim setelah tugas saat ini selesai)",
 	"scrollToBottom": "Gulir ke bawah chat",
 	"scrollToLatestCheckpoint": "Gulir ke checkpoint sebelumnya",
-	"about": "Tim AI multi-agen Anda — <br/>302 mode khusus untuk coding, DevOps, keamanan, dan arsitektur.",
+	"about": "Ekstensi IDE agentik local-first, bawa modelmu sendiri — <br/>Ketahui biayamu, percayai cache-mu, simpan pengetahuammu.",
 	"support": {
 		"reportIssue": "Laporkan bug atau minta fitur",
 		"discussions": "Ikuti diskusinya",
 		"starUs": "Beri kami bintang di GitHub",
-		"reviewUs": "Beri ulasan kami di <marketplaceLink>VS Code Marketplace</marketplaceLink> dan <openVsxLink>Open VSX</openVsxLink>"
+		"reviewUsOpenVsx": "Beri ulasan kami di Open VSX",
+		"reviewUsMarketplace": "Beri ulasan kami di VS Code Marketplace"
 	},
 	"onboarding": "Daftar tugas Anda di ruang kerja ini kosong.",
 	"selectMode": "Pilih mode untuk interaksi",
@@ -364,8 +365,8 @@
 		"triggerLabelAll": "BRRR"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} Dirilis",
-		"support": "Dukung Roo+ dengan memberi kami bintang di <githubLink>GitHub</githubLink> dan di <openVsxLink>Open VSX Registry</openVsxLink>.",
+		"title": "Roo+ {{version}} Dirilis",
+		"support": "Dukung Roo+ di <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink>, dan di <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Yang Baru:",
 			"highlight1": "🎉 Tonggak satu telah selesai — rilis stabil, 300+ mode, dan peta jalan yang jelas untuk langkah ke depan. Kami sangat antusias dengan apa yang akan datang.",

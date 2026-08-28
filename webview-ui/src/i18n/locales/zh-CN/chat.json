@@ -98,12 +98,13 @@
 	"enqueueMessage": "将消息加入队列（当前任务完成后发送）",
 	"scrollToBottom": "滚动到聊天底部",
 	"scrollToLatestCheckpoint": "滚动到上一个检查点",
-	"about": "您的多智能体 AI 团队 — <br/>涵盖编码、DevOps、安全和架构的 302 个专业模式。",
+	"about": "本地优先、自带模型的智能体 IDE 扩展 — <br/>了解你的成本，信任你的缓存，守护你的知识。",
 	"support": {
 		"reportIssue": "报告错误或请求功能",
 		"discussions": "加入讨论",
 		"starUs": "在 GitHub 上为我们点赞",
-		"reviewUs": "在 <marketplaceLink>VS Code Marketplace</marketplaceLink> 和 <openVsxLink>Open VSX</openVsxLink> 上为我们评分"
+		"reviewUsOpenVsx": "在 Open VSX 上为我们评分",
+		"reviewUsMarketplace": "在 VS Code Marketplace 上为我们评分"
 	},
 	"onboarding": "此工作区中的任务列表为空。",
 	"selectMode": "选择交互模式",
@@ -336,8 +337,8 @@
 		"timerPrefix": "自动批准已启用。{{seconds}}秒后选择中…"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} 已发布",
-		"support": "请在 <githubLink>GitHub</githubLink> 和 <openVsxLink>Open VSX Registry</openVsxLink> 上为 Roo+ 点星支持我们。",
+		"title": "Roo+ {{version}} 已发布",
+		"support": "请在 <githubLink>GitHub</githubLink>、<marketplaceLink>Visual Studio</marketplaceLink> 和 <openVsxLink>Open VSX Registry</openVsxLink> 上支持 Roo+。",
 		"release": {
 			"heading": "新增功能：",
 			"highlight1": "🎉 里程碑一圆满收官——稳定版发布、300+ 模式，以及一条清晰的前进路线图。我们对接下来的一切无比期待。",

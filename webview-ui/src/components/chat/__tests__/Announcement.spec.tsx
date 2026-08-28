@@ -82,7 +82,13 @@ vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 vi.mock("react-i18next", () => ({
 	Trans: ({ i18nKey, components }: { i18nKey: string; components?: Record<string, React.ReactElement> }) => {
 		if (i18nKey === "chat:announcement.support" && components?.githubLink) {
-			return React.cloneElement(components.githubLink, undefined, "GitHub")
+			return (
+				<>
+					{React.cloneElement(components.githubLink, undefined, "GitHub")}
+					{React.cloneElement(components.marketplaceLink, undefined, "Visual Studio")}
+					{React.cloneElement(components.openVsxLink, undefined, "Open VSX Registry")}
+				</>
+			)
 		}
 
 		return <span>{i18nKey}</span>
@@ -178,6 +184,19 @@ describe("Announcement", () => {
 		expect(githubLinks.length).toBeGreaterThan(0)
 		for (const link of githubLinks) {
 			expect(link).toHaveAttribute("href", EXTERNAL_LINKS.GITHUB_REPO)
+		}
+	})
+
+	it("links support users to the VS Code Marketplace", () => {
+		render(<Announcement hideAnnouncement={vi.fn()} />)
+
+		// The support footer renders a "Visual Studio" link that must point at
+		// the VS Code Marketplace (the social-link row uses a separate
+		// "VS Code Marketplace" accessible name, so this targets the footer link).
+		const marketplaceLinks = screen.getAllByRole("link", { name: "Visual Studio" })
+		expect(marketplaceLinks.length).toBeGreaterThan(0)
+		for (const link of marketplaceLinks) {
+			expect(link).toHaveAttribute("href", EXTERNAL_LINKS.MARKETPLACE)
 		}
 	})
 })

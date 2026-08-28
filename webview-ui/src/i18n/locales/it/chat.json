@@ -98,12 +98,13 @@
 	"enqueueMessage": "Aggiungi il messaggio alla coda (sarà inviato dopo che l'attività corrente sarà terminata)",
 	"scrollToBottom": "Scorri fino alla fine della chat",
 	"scrollToLatestCheckpoint": "Scorri al checkpoint precedente",
-	"about": "Il tuo team AI multi-agente — <br/>302 modalità specializzate per coding, DevOps, sicurezza e architettura.",
+	"about": "L'estensione IDE agentica local-first, porta il tuo modello — <br/>Conosci i tuoi costi, fidati della tua cache, conserva le tue conoscenze.",
 	"support": {
 		"reportIssue": "Segnala un bug o richiedi una funzionalità",
 		"discussions": "Unisciti alle discussioni",
 		"starUs": "Lasciaci una stella su GitHub",
-		"reviewUs": "Valutaci su <marketplaceLink>VS Code Marketplace</marketplaceLink> e su <openVsxLink>Open VSX</openVsxLink>"
+		"reviewUsOpenVsx": "Valutaci su Open VSX",
+		"reviewUsMarketplace": "Valutaci su VS Code Marketplace"
 	},
 	"onboarding": "La tua lista di attività in questo spazio di lavoro è vuota.",
 	"selectMode": "Seleziona modalità di interazione",
@@ -336,7 +337,7 @@
 	},
 	"announcement": {
 		"title": "Rilasciato Roo+ {{version}}",
-		"support": "Sostieni Roo+ lasciandoci una stella su <githubLink>GitHub</githubLink> e sul <openVsxLink>Open VSX Registry</openVsxLink>.",
+		"support": "Sostieni Roo+ su <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> e sul <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novità:",
 			"highlight1": "🎉 Il traguardo uno è raggiunto: una versione stabile, oltre 300 modalità e una roadmap chiara per il cammino che ci attende. Non potremmo essere più entusiasti di ciò che verrà.",

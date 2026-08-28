@@ -98,12 +98,13 @@
 	"enqueueMessage": "संदेश को कतार में जोड़ें (वर्तमान कार्य पूरा होने के बाद भेजा जाएगा)",
 	"scrollToBottom": "चैट के निचले हिस्से तक स्क्रॉल करें",
 	"scrollToLatestCheckpoint": "पिछले चेकपॉइंट तक स्क्रॉल करें",
-	"about": "आपकी मल्टी-एजेंट AI टीम — <br/>कोडिंग, DevOps, सुरक्षा और आर्किटेक्चर के लिए 302 विशेष मोड।",
+	"about": "लोकल-फ़र्स्ट, ब्रिंग-योर-ओन-मॉडल एजेंटिक IDE एक्सटेंशन — <br/>अपनी लागत जानें, अपने कैश पर भरोसा करें, अपना ज्ञान बनाए रखें।",
 	"support": {
 		"reportIssue": "बग रिपोर्ट करें या फ़ीचर मांगें",
 		"discussions": "चर्चाओं में शामिल हों",
 		"starUs": "GitHub पर हमें स्टार दें",
-		"reviewUs": "हमें <marketplaceLink>VS Code Marketplace</marketplaceLink> और <openVsxLink>Open VSX</openVsxLink> पर रेट करें"
+		"reviewUsOpenVsx": "Open VSX पर हमें रेट करें",
+		"reviewUsMarketplace": "VS Code Marketplace पर हमें रेट करें"
 	},
 	"onboarding": "इस कार्यक्षेत्र में आपकी कार्य सूची खाली है।",
 	"selectMode": "इंटरैक्शन मोड चुनें",
@@ -335,8 +336,8 @@
 		"timerPrefix": "ऑटो-अनुमोदन सक्षम है। {{seconds}}s में चयन किया जा रहा है…"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} रिलीज़ हो गया",
-		"support": "कृपया <githubLink>GitHub</githubLink> और <openVsxLink>Open VSX Registry</openVsxLink> पर हमें स्टार देकर Roo+ का समर्थन करें।",
+		"title": "Roo+ {{version}} रिलीज़ हो गया",
+		"support": "कृपया <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> और <openVsxLink>Open VSX Registry</openVsxLink> पर Roo+ का समर्थन करें।",
 		"release": {
 			"heading": "नया क्या है:",
 			"highlight1": "🎉 पहला मील का पत्थर पूरा हुआ — एक स्थिर रिलीज़, 300+ मोड और आगे के रास्ते के लिए एक स्पष्ट रोडमैप। हम आगे क्या होने वाला है उसके लिए बहुत उत्साहित हैं।",

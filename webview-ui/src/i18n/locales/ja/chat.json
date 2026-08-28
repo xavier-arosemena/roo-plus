@@ -98,12 +98,13 @@
 	"enqueueMessage": "メッセージをキューに追加（現在のタスク完了後に送信されます）",
 	"scrollToBottom": "チャットの最下部にスクロール",
 	"scrollToLatestCheckpoint": "前のチェックポイントまでスクロール",
-	"about": "あなたのマルチエージェントAIチーム — <br/>コーディング、DevOps、セキュリティ、アーキテクチャのための302の専門モード。",
+	"about": "ローカルファースト、bring-your-own-model のエージェンティック IDE 拡張機能 — <br/>コストを把握し、キャッシュを信頼し、ナレッジを守りましょう。",
 	"support": {
 		"reportIssue": "バグを報告するか機能をリクエスト",
 		"discussions": "ディスカッションに参加",
 		"starUs": "GitHub でスターを付ける",
-		"reviewUs": "<marketplaceLink>VS Code Marketplace</marketplaceLink>と<openVsxLink>Open VSX</openVsxLink>でレビューする"
+		"reviewUsOpenVsx": "Open VSX でレビューする",
+		"reviewUsMarketplace": "VS Code Marketplace でレビューする"
 	},
 	"onboarding": "このワークスペースのタスクリストは空です。",
 	"selectMode": "対話モードを選択",
@@ -335,8 +336,8 @@
 		"timerPrefix": "自動承認が有効です。{{seconds}}秒後に選択中…"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} リリース",
-		"support": "<githubLink>GitHub</githubLink>と<openVsxLink>Open VSX Registry</openVsxLink>でスターを付けて Roo+ を応援してください。",
+		"title": "Roo+ {{version}} リリース",
+		"support": "<githubLink>GitHub</githubLink>、<marketplaceLink>Visual Studio</marketplaceLink>、<openVsxLink>Open VSX Registry</openVsxLink>で Roo+ を応援してください。",
 		"release": {
 			"heading": "新機能:",
 			"highlight1": "🎉 マイルストーン 1 が完了しました。安定版リリース、300 以上のモード、そして今後の明確なロードマップ。私たちは次に何が来るのか、これ以上ないほどワクワクしています。",

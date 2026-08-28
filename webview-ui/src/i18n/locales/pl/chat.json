@@ -98,12 +98,13 @@
 	"enqueueMessage": "Dodaj wiadomość do kolejki (zostanie wysłana po zakończeniu bieżącego zadania)",
 	"scrollToBottom": "Przewiń do dołu czatu",
 	"scrollToLatestCheckpoint": "Przewiń do poprzedniego punktu kontrolnego",
-	"about": "Twój wieloagentowy zespół AI — <br/>302 specjalistycznych trybów do kodowania, DevOps, bezpieczeństwa i architektury.",
+	"about": "Lokalne, bring-your-own-model agentowe rozszerzenie IDE — <br/>Poznaj swoje koszty, ufaj cache'owi, zachowaj swoją wiedzę.",
 	"support": {
 		"reportIssue": "Zgłoś błąd lub zaproponuj funkcję",
 		"discussions": "Dołącz do dyskusji",
 		"starUs": "Daj nam gwiazdkę na GitHub",
-		"reviewUs": "Oceń nas w <marketplaceLink>VS Code Marketplace</marketplaceLink> i na <openVsxLink>Open VSX</openVsxLink>"
+		"reviewUsOpenVsx": "Oceń nas na Open VSX",
+		"reviewUsMarketplace": "Oceń nas w VS Code Marketplace"
 	},
 	"onboarding": "Twoja lista zadań w tym obszarze roboczym jest pusta.",
 	"selectMode": "Wybierz tryb interakcji",
@@ -335,8 +336,8 @@
 		"timerPrefix": "Automatyczne zatwierdzanie włączone. Zaznaczanie za {{seconds}}s…"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} wydany",
-		"support": "Wesprzyj Roo+, dając nam gwiazdkę na <githubLink>GitHub</githubLink> i w <openVsxLink>Open VSX Registry</openVsxLink>.",
+		"title": "Roo+ {{version}} wydany",
+		"support": "Wesprzyj Roo+ na <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> i w <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Co nowego:",
 			"highlight1": "🎉 Kamień milowy numer jeden za nami — stabilna wersja, ponad 300 trybów i jasna mapa drogowa na przyszłość. Nie możemy być bardziej podekscytowani tym, co przed nami.",

@@ -1,6 +1,6 @@
 {
 	"extension.displayName": "Roo+",
-	"extension.description": "Multi-agent AI development assistant with 301 specialized modes (90 pre-loaded) — an entire AI team for coding, DevOps, security, architecture, and more",
+	"extension.description": "The local-first, bring-your-own-model agentic IDE extension that makes your AI spend legible and your knowledge portable — no cloud, no lock-in, no silent regressions — powered by a curated 302-mode catalog.",
 	"command.newTask.title": "Neue Aufgabe",
 	"command.explainCode.title": "Code Erklären",
 	"command.fixCode.title": "Code Reparieren",

@@ -98,12 +98,13 @@
 	"enqueueMessage": "Mesajı kuyruğa ekle (mevcut görev tamamlandıktan sonra gönderilecek)",
 	"scrollToBottom": "Sohbetin altına kaydır",
 	"scrollToLatestCheckpoint": "Önceki checkpoint'e kaydır",
-	"about": "Çok ajanlı yapay zeka ekibiniz — <br/>kodlama, DevOps, güvenlik ve mimari için 302 özel mod.",
+	"about": "Yerel öncelikli, kendi modelini getir ajan tabanlı IDE uzantısı — <br/>Maliyetini bil, önbelleğine güven, bilgini koru.",
 	"support": {
 		"reportIssue": "Hata bildir veya özellik iste",
 		"discussions": "Tartışmalara katıl",
 		"starUs": "GitHub'da bize yıldız ver",
-		"reviewUs": "Bizi <marketplaceLink>VS Code Marketplace</marketplaceLink> ve <openVsxLink>Open VSX</openVsxLink>'te değerlendir"
+		"reviewUsOpenVsx": "Bizi Open VSX'te değerlendir",
+		"reviewUsMarketplace": "Bizi VS Code Marketplace'te değerlendir"
 	},
 	"onboarding": "Bu çalışma alanındaki görev listeniz boş.",
 	"selectMode": "Etkileşim modunu seçin",
@@ -336,8 +337,8 @@
 		"timerPrefix": "Otomatik onay etkinleştirildi. {{seconds}}s içinde seçim yapılıyor…"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} yayınlandı",
-		"support": "Lütfen <githubLink>GitHub</githubLink>'da ve <openVsxLink>Open VSX Registry</openVsxLink>'de bize yıldız vererek Roo+'u destekle.",
+		"title": "Roo+ {{version}} yayınlandı",
+		"support": "Lütfen Roo+'u <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> ve <openVsxLink>Open VSX Registry</openVsxLink>'de destekle.",
 		"release": {
 			"heading": "Yenilikler:",
 			"highlight1": "🎉 Birinci kilometre taşı tamamlandı — kararlı bir sürüm, 300'den fazla mod ve ilerideki yol için net bir yol haritası. Sırada ne olduğu için daha heyecanlı olamazdık.",

@@ -98,12 +98,13 @@
 	"enqueueMessage": "Добавить сообщение в очередь (будет отправлено после завершения текущей задачи)",
 	"scrollToBottom": "Прокрутить чат вниз",
 	"scrollToLatestCheckpoint": "Прокрутить к предыдущему чекпоинту",
-	"about": "Ваша мультиагентная ИИ-команда — <br/>302 специализированных режима для кодинга, DevOps, безопасности и архитектуры.",
+	"about": "Локальное, bring-your-own-model агентное расширение IDE — <br/>Знай свои расходы, доверяй своему кэшу, сохраняй свои знания.",
 	"support": {
 		"reportIssue": "Сообщить об ошибке или запросить функцию",
 		"discussions": "Присоединиться к обсуждениям",
 		"starUs": "Поставьте нам звезду на GitHub",
-		"reviewUs": "Оцените нас в <marketplaceLink>VS Code Marketplace</marketplaceLink> и на <openVsxLink>Open VSX</openVsxLink>"
+		"reviewUsOpenVsx": "Оцените нас на Open VSX",
+		"reviewUsMarketplace": "Оцените нас в VS Code Marketplace"
 	},
 	"onboarding": "Ваш список задач в этом рабочем пространстве пуст.",
 	"selectMode": "Выберите режим взаимодействия",
@@ -310,7 +311,7 @@
 	},
 	"announcement": {
 		"title": "Выпущен Roo+ {{version}}",
-		"support": "Поддержите Roo+, поставив нам звезду на <githubLink>GitHub</githubLink> и в <openVsxLink>Open VSX Registry</openVsxLink>.",
+		"support": "Поддержите Roo+ на <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> и в <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Что нового:",
 			"highlight1": "🎉 Веха номер один позади — стабильный релиз, более 300 режимов и понятная дорожная карта на будущее. Мы не можем быть более взволнованы тем, что нас ждёт.",

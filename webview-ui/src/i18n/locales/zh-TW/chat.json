@@ -125,12 +125,13 @@
 	},
 	"scrollToBottom": "捲動至對話底部",
 	"scrollToLatestCheckpoint": "捲動至上一個檢查點",
-	"about": "您的多智能體 AI 團隊 — <br/>涵蓋編碼、DevOps、安全和架構的 302 個專業模式。",
+	"about": "本地優先、自帶模型的智能體 IDE 擴充功能 — <br/>了解你的成本，信任你的快取，守護你的知識。",
 	"support": {
 		"reportIssue": "回報錯誤或請求功能",
 		"discussions": "加入討論",
 		"starUs": "在 GitHub 上為我們按星",
-		"reviewUs": "在 <marketplaceLink>VS Code Marketplace</marketplaceLink> 和 <openVsxLink>Open VSX</openVsxLink> 上為我們評分"
+		"reviewUsOpenVsx": "在 Open VSX 上為我們評分",
+		"reviewUsMarketplace": "在 VS Code Marketplace 上為我們評分"
 	},
 	"onboarding": "想要做什麼呢？",
 	"selectMode": "選擇互動模式",
@@ -357,8 +358,8 @@
 		"triggerLabelAll": "BRRR"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} 已發布",
-		"support": "請在 <githubLink>GitHub</githubLink> 和 <openVsxLink>Open VSX Registry</openVsxLink> 上為 Roo+ 加星支持我們。",
+		"title": "Roo+ {{version}} 已發布",
+		"support": "請在 <githubLink>GitHub</githubLink>、<marketplaceLink>Visual Studio</marketplaceLink> 和 <openVsxLink>Open VSX Registry</openVsxLink> 上支持 Roo+。",
 		"release": {
 			"heading": "新增功能：",
 			"highlight1": "🎉 里程碑一圓滿收官——穩定版發布、300+ 模式，以及一條清晰的前進路線圖。我們對接下來的一切充滿期待。",

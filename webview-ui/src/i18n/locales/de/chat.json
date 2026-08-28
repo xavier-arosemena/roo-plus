@@ -98,12 +98,13 @@
 	"enqueueMessage": "Nachricht zur Warteschlange hinzufügen (wird nach Abschluss der aktuellen Aufgabe gesendet)",
 	"scrollToBottom": "Zum Chat-Ende scrollen",
 	"scrollToLatestCheckpoint": "Zum vorherigen Checkpoint scrollen",
-	"about": "Dein Multi-Agenten-KI-Team — <br/>302 spezialisierte Modi für Coding, DevOps, Sicherheit und Architektur.",
+	"about": "Die lokale, bring-your-own-model Agentic-IDE-Erweiterung — <br/>Kenne deine Kosten, vertraue deinem Cache, behalte dein Wissen.",
 	"support": {
 		"reportIssue": "Fehler melden oder Feature anfragen",
 		"discussions": "An den Diskussionen teilnehmen",
 		"starUs": "Gib uns einen Stern auf GitHub",
-		"reviewUs": "Bewerte uns im <marketplaceLink>VS Code Marketplace</marketplaceLink> und auf <openVsxLink>Open VSX</openVsxLink>"
+		"reviewUsOpenVsx": "Bewerte uns auf Open VSX",
+		"reviewUsMarketplace": "Bewerte uns im VS Code Marketplace"
 	},
 	"onboarding": "Deine Aufgabenliste in diesem Arbeitsbereich ist leer.",
 	"selectMode": "Interaktionsmodus auswählen",
@@ -335,8 +336,8 @@
 		"timerPrefix": "Automatische Genehmigung aktiviert. Wähle in {{seconds}}s…"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} veröffentlicht",
-		"support": "Bitte unterstütze Roo+, indem du uns auf <githubLink>GitHub</githubLink> und im <openVsxLink>Open VSX Registry</openVsxLink> einen Stern gibst.",
+		"title": "Roo+ {{version}} veröffentlicht",
+		"support": "Bitte unterstütze Roo+ auf <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> und im <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Was ist neu:",
 			"highlight1": "🎉 Meilenstein eins ist geschafft — eine stabile Version, 300+ Modi und ein klarer Fahrplan für das, was vor uns liegt. Wir könnten nicht gespannter auf das sein, was als Nächstes kommt.",

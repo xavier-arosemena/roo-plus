@@ -98,12 +98,13 @@
 	"enqueueMessage": "Adicionar mensagem à fila (será enviada após a conclusão da tarefa atual)",
 	"scrollToBottom": "Rolar para o final do chat",
 	"scrollToLatestCheckpoint": "Rolar para o checkpoint anterior",
-	"about": "Sua equipe de IA multiagente — <br/>302 modos especializados para codificação, DevOps, segurança e arquitetura.",
+	"about": "A extensão de IDE agêntico local-first, com seu próprio modelo — <br/>Conheça seus custos, confie no seu cache, mantenha seu conhecimento.",
 	"support": {
 		"reportIssue": "Relate um bug ou solicite um recurso",
 		"discussions": "Participe das discussões",
 		"starUs": "Dê uma estrela para nós no GitHub",
-		"reviewUs": "Avalie-nos no <marketplaceLink>VS Code Marketplace</marketplaceLink> e no <openVsxLink>Open VSX</openVsxLink>"
+		"reviewUsOpenVsx": "Avalie-nos no Open VSX",
+		"reviewUsMarketplace": "Avalie-nos no VS Code Marketplace"
 	},
 	"onboarding": "Sua lista de tarefas neste espaço de trabalho está vazia.",
 	"selectMode": "Selecionar modo de interação",
@@ -335,8 +336,8 @@
 		"timerPrefix": "Aprovação automática ativada. Selecionando em {{seconds}}s…"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} lançado",
-		"support": "Apoie o Roo+ nos dando uma estrela no <githubLink>GitHub</githubLink> e no <openVsxLink>Open VSX Registry</openVsxLink>.",
+		"title": "Roo+ {{version}} lançado",
+		"support": "Apoie o Roo+ no <githubLink>GitHub</githubLink>, no <marketplaceLink>Visual Studio</marketplaceLink> e no <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novidades:",
 			"highlight1": "🎉 O marco um está fechado: uma versão estável, mais de 300 modos e um roteiro claro para o caminho à frente. Não poderíamos estar mais empolgados com o que vem por aí.",

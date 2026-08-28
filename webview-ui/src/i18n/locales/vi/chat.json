@@ -98,12 +98,13 @@
 	"enqueueMessage": "Thêm tin nhắn vào hàng đợi (sẽ gửi sau khi nhiệm vụ hiện tại hoàn tất)",
 	"scrollToBottom": "Cuộn xuống cuối cuộc trò chuyện",
 	"scrollToLatestCheckpoint": "Cuộn đến checkpoint trước đó",
-	"about": "Đội ngũ AI đa tác nhân của bạn — <br/>302 chế độ chuyên biệt cho lập trình, DevOps, bảo mật và kiến trúc.",
+	"about": "Tiện ích mở rộng IDE tác nhân local-first, tự mang mô hình của bạn — <br/>Biết chi phí của bạn, tin tưởng bộ nhớ cache của bạn, giữ kiến thức của bạn.",
 	"support": {
 		"reportIssue": "Báo lỗi hoặc yêu cầu tính năng",
 		"discussions": "Tham gia thảo luận",
 		"starUs": "Cho chúng tôi một sao trên GitHub",
-		"reviewUs": "Đánh giá chúng tôi trên <marketplaceLink>VS Code Marketplace</marketplaceLink> và <openVsxLink>Open VSX</openVsxLink>"
+		"reviewUsOpenVsx": "Đánh giá chúng tôi trên Open VSX",
+		"reviewUsMarketplace": "Đánh giá chúng tôi trên VS Code Marketplace"
 	},
 	"onboarding": "Danh sách nhiệm vụ của bạn trong không gian làm việc này đang trống.",
 	"selectMode": "Chọn chế độ tương tác",
@@ -336,8 +337,8 @@
 		"timerPrefix": "Phê duyệt tự động được bật. Chọn trong {{seconds}}s…"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} đã phát hành",
-		"support": "Hãy ủng hộ Roo+ bằng cách tặng sao cho chúng tôi trên <githubLink>GitHub</githubLink> và <openVsxLink>Open VSX Registry</openVsxLink>.",
+		"title": "Roo+ {{version}} đã phát hành",
+		"support": "Hãy ủng hộ Roo+ trên <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> và <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Có gì mới:",
 			"highlight1": "🎉 Cột mốc một đã hoàn thành — một bản phát hành ổn định, hơn 300 chế độ và lộ trình rõ ràng cho chặng đường phía trước. Chúng tôi vô cùng hào hứng với những gì sắp tới.",

@@ -98,12 +98,13 @@
 	"enqueueMessage": "Bericht aan de wachtrij toevoegen (wordt verzonden nadat de huidige taak is voltooid)",
 	"scrollToBottom": "Scroll naar onderaan de chat",
 	"scrollToLatestCheckpoint": "Scroll naar het vorige checkpoint",
-	"about": "Jouw multi-agent AI-team — <br/>302 gespecialiseerde modi voor coding, DevOps, security en architectuur.",
+	"about": "De lokale, bring-your-own-model agentische IDE-extensie — <br/>Ken je kosten, vertrouw je cache, behoud je kennis.",
 	"support": {
 		"reportIssue": "Meld een bug of vraag een functie aan",
 		"discussions": "Doe mee met de discussies",
 		"starUs": "Geef ons een ster op GitHub",
-		"reviewUs": "Beoordeel ons op <marketplaceLink>VS Code Marketplace</marketplaceLink> en op <openVsxLink>Open VSX</openVsxLink>"
+		"reviewUsOpenVsx": "Beoordeel ons op Open VSX",
+		"reviewUsMarketplace": "Beoordeel ons op VS Code Marketplace"
 	},
 	"onboarding": "Je takenlijst in deze werkruimte is leeg.",
 	"selectMode": "Selecteer modus voor interactie",
@@ -308,8 +309,8 @@
 		"triggerLabelAll": "BRRR"
 	},
 	"announcement": {
-		"title": "Roo+ Code {{version}} uitgebracht",
-		"support": "Steun Roo+ door ons een ster te geven op <githubLink>GitHub</githubLink> en op de <openVsxLink>Open VSX Registry</openVsxLink>.",
+		"title": "Roo+ {{version}} uitgebracht",
+		"support": "Steun Roo+ op <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> en op de <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Wat is nieuw:",
 			"highlight1": "🎉 Mijlpaal één zit erop: een stabiele release, 300+ modi en een duidelijke roadmap voor de weg vooruit. We kunnen niet enthousiaster zijn over wat er komt.",
