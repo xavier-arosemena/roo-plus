@@ -12,7 +12,7 @@
 </div>
 
 <div align="center">
-  <img src="./assets/banner.png" alt="Roo+ — 302 Modes — 90 Pre-Loaded" />
+  <img src="./assets/banner.png" alt="Roo+ — The local-first, bring-your-own-model agentic IDE extension that makes your AI spend legible and your knowledge portable" />
 </div>
 <br/>
 
@@ -29,40 +29,55 @@
   <a href="https://github.com/xavier-arosemena/roo-plus/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/License-Apache_2.0-green.svg" alt="License">
   </a>
+  <a href="https://audareestfacere.com">
+    <img src="https://img.shields.io/badge/SME_Systems-AudareEstFacere.com-404040?style=flat&labelColor=11111B&logo=internetexplorer&logoColor=white" alt="SME Systems">
+  </a>
 </p>
 
 <br/>
 
-<h1 align="center">🚀 Roo+</h1>
-<h3 align="center">Your AI Development Team — 302 Modes — 90 Pre-Loaded</h3>
-
-<br/>
+<h1 align="center">🦾 Roo+ (roo-plus)</h1>
+<h3 align="center">The local-first, bring-your-own-model agentic IDE extension that makes your AI spend legible and your knowledge portable — <br/>
+no cloud, no lock-in, no silent regressions — powered by a curated 302-mode catalog.</h3>
 
 <p align="center">
-  Roo+ is a <strong>fork of <a href="https://github.com/Zoo-Code-Org/Zoo-Code">Zoo Code</a></strong> (originally forked from <a href="https://github.com/RooVeterinaryInc/roo-cline">Roo Code</a> / <a href="https://github.com/cline/cline">Cline</a>) — a powerful AI-powered development assistant that brings a whole team of AI agents right into your editor.
+  Roo+ is a <strong>fork of <a href="https://github.com/Zoo-Code-Org/Zoo-Code">Zoo Code</a></strong> (originally forked from <a href="https://github.com/RooVeterinaryInc/roo-cline">Roo Code</a> / <a href="https://github.com/cline/cline">Cline</a>).
 </p>
-
-<br/>
 
 ## ✨ What is Roo+?
 
-Roo+ extends the incredible foundation of Zoo Code with **90 custom modes** pre-loaded (from a canonical catalog of 302 modes), **enhanced features**, and a personalized configuration tailored for modern development workflows.
+Roo+ is an agentic IDE extension that ships with **90 specialized modes** pre-loaded from a curated catalog of **302 modes**, plus the features and tailored configuration that modern development workflows demand. Everything runs on **your own models** — so your **AI spend stays legible**, your **knowledge stays portable**, and nothing happens silently behind your back.
 
-| Feature                          | Description                                                                                                                                    |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎯 **Custom Modes Library**      | **90 specialized modes** pre-loaded for every task                                                                                             |
-| 🎨 **Redesigned Welcome Screen** | Community links (report issue, discussions, star on GitHub, review on Open VSX) directly in the welcome panel (v3.77.4)                        |
-| 🤖 **AI Agent Team**             | Multiple AI agents working together in your editor                                                                                             |
-| 🔌 **MCP Support**               | Full Model Context Protocol integration                                                                                                        |
-| 🌍 **Multi-Provider**            | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                                                |
-| 📦 **Bulk Mode Install**         | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0)                     |
-| 🏷️ **Mode Subtitles**            | All 90 pre-loaded modes display descriptive subtitles in the mode selector UI (v3.73.0)                                                        |
-| 🛠️ **Terminal Integration**      | Smart terminal with shell integration                                                                                                          |
-| 📁 **Tree-Sitter Code Index**    | Intelligent code understanding for 30+ languages with reliable Semble search, diagnostics, and release-governed binaries (v3.77.0, v3.77.1)    |
-| 🧮 **Accurate Context Window**   | Trusted, real context-window metrics with no fabricated token counts in the task header (v3.77.0)                                              |
-| 🔒 **Atomic File Writing**       | Safe, crash-proof file operations                                                                                                              |
-| 🛡️ **Typed Message Protocol**    | All 232 webview↔extension message types schema-registered and runtime-validated at the boundary; fail-closed with zero `any` escapes (v3.78.0) |
-| 🌐 **Localization**              | Available in 18+ languages                                                                                                                     |
+| Feature                        | Description                                                                                                                                    |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎯 **Custom Modes Library**    | **90 specialized modes** pre-loaded for every task                                                                                             |
+| 🤖 **AI Agent Team**           | Multiple AI agents working together in your editor                                                                                             |
+| 🔌 **MCP Support**             | Full Model Context Protocol integration                                                                                                        |
+| 🌍 **Multi-Provider**          | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                                                |
+| 📦 **Bulk Mode Install**       | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0)                     |
+| 🛠️ **Terminal Integration**    | Smart terminal with shell integration                                                                                                          |
+| 📁 **Tree-Sitter Code Index**  | Intelligent code understanding for 30+ languages with reliable Semble search, diagnostics, and release-governed binaries (v3.77.0, v3.77.1)    |
+| 🧮 **Accurate Context Window** | Trusted, real context-window metrics with no fabricated token counts in the task header (v3.77.0)                                              |
+| 🔒 **Atomic File Writing**     | Safe, crash-proof file operations                                                                                                              |
+| 🛡️ **Typed Message Protocol**  | All 232 webview↔extension message types schema-registered and runtime-validated at the boundary; fail-closed with zero `any` escapes (v3.78.0) |
+| 🌐 **Localization**            | Available in 18+ languages                                                                                                                     |
+
+<br/>
+
+---
+
+## 🧭 The Roo+ Promise
+
+Roo+ is built on one promise: **your AI spend is legible, your knowledge is portable, and nothing happens behind your back.**
+
+| Principle                       | What it means for you                                                                                           |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 💸 **Legible AI spend**         | Know what every task costs — up front and as it runs. Honest numbers, never hidden, never surprising.           |
+| 🧳 **Portable knowledge**       | Your files stay yours. Standard-compatible (`AGENTS.md` / `CLAUDE.md`), with no lock-in to any cloud or vendor. |
+| 🛡️ **No silent regressions**    | A trust ladder from _visible → supervised → autonomous_ — no silent "auto-approve everything".                  |
+| 🗂️ **Curated 302-mode catalog** | 90 modes pre-loaded, 302 in the catalog — expert help for almost every job.                                     |
+
+> 📌 The [Roadmap](ROADMAP.md) is built around the same three priorities: **cost control, a calmer approval experience, and knowledge that survives across sessions**.
 
 <br/>
 
@@ -72,72 +87,17 @@ Roo+ extends the incredible foundation of Zoo Code with **90 custom modes** pre-
 
 Roo+ ships with **90 specialized AI modes** pre-configured and ready to use. Switch between them instantly to get expert-level assistance for any task.
 
-> **💡 Tip:** Open the mode selector (bottom of the VS Code window) to browse and switch between all available agents.
+### 📋 Specialized Modes
 
-### 🏢 For Organizations
+| Tier                             | Modes                                                                                                |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 🏗️ **Core Engineering**          | Fullstack Developer Master, Backend Developer Pro, Frontend Developer Elite, Microservices Architect |
+| 🧠 **AI & Data**                 | AI Engineer Expert, LLM Architect Elite, SQL Database Expert                                         |
+| 🛡️ **Security & Quality**        | Cybersecurity Expert, Penetration Tester Pro, Code Skeptic                                           |
+| 🎯 **Orchestration & Reasoning** | Agent Organizer Elite, Problem Solving Maestro                                                       |
 
-| Category                  | Agents                                                              | Description                                                     |
-| ------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
-| 📱 **Product Management** | Product Manager, Product Analytics Scientist                        | Roadmap planning, feature prioritization, data-driven decisions |
-| 📊 **Business Analysis**  | Business Analyst, Data Analyst, Data Engineer                       | Requirements gathering, process improvement, data insights      |
-| 📈 **Marketing**          | Marketing Strategist, Content Marketer, Growth Experimentation Lead | Campaign strategy, content creation, A/B testing                |
-| 💼 **Sales**              | Sales Engineer                                                      | Technical pre-sales, solution architecture, proof of concepts   |
-| 👥 **Customer Success**   | Customer Success Manager                                            | Customer retention, growth, advocacy                            |
-| 📋 **Project Management** | Project Manager, Scrum Master                                       | Agile facilitation, sprint planning, team coordination          |
-| ✍️ **Content & UX**       | Technical Writer, UX Researcher, Content Marketer                   | Documentation, user research, content strategy                  |
-| 📊 **Business Tools**     | Excel Power User, PowerPoint Presenter                              | Spreadsheet analysis, presentation design                       |
-
-### ⚖️ Legal & Compliance
-
-| Category                              | Agents                                                                                                                                                                                           | Description                                                                                     |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| 🇪🇺 **GDPR / EU / Multi-Jurisdiction** | Compliance Specialist                                                                                                                                                                            | Analyzes **GDPR, HIPAA, SOX**, and other regulatory frameworks with cross-jurisdiction coverage |
-| 🇺🇸 **US Law**                         | Corporate Law, Criminal Law, Employment Law, Intellectual Property, Litigation Support, Compliance Specialist                                                                                    | Comprehensive US legal coverage                                                                 |
-| 🇨🇦 **Canada Law**                     | Corporate Law (Canada), Criminal Law (Canada), Employment Law (Canada), Intellectual Property (Canada), Litigation Support (Canada), Compliance Auditor (Canada), Compliance Specialist (Canada) | Comprehensive Canadian legal coverage                                                           |
-| 🔐 **Compliance Automation**          | Compliance Automation Engineer, OSS License Auditor, Policy-as-Code Auditor                                                                                                                      | Automated compliance enforcement                                                                |
-
-### 🧠 SOTA 2026 Personas
-
-Advanced reasoning personas implementing cutting-edge cognitive patterns:
-
-| Tier                          | Personas                                                                  |
-| ----------------------------- | ------------------------------------------------------------------------- |
-| 🏛️ **Foundational Reasoning** | Core Reasoning Architect, Formula Cascade Oracle, Fractal Elaborator      |
-| ⚡ **Engineering Excellence** | High-Performance Engineer, SOTA Stack Master, UI/UX Vibe Master           |
-| 🛡️ **Quality & Integrity**    | Anti-Fiction Sentinel, DevOps Observability Sentinel                      |
-| 🧩 **Problem-Solving**        | Problem Solving Maestro, Cognitive Multi-Thinker, Agentic Swarm Conductor |
-
-### 🛠️ Developer Toolbox
-
-| Category                       | Agents                                                                                                                                                                                      | Description                  |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| 💻 **Core Development**        | Full-Stack, Backend, Frontend, API Designer, Architect, Microservices, Electron, Deep Research Protocol                                                                                     | Foundation development roles |
-| 💬 **Language Specialists**    | Python, TypeScript, Rust, Go, Java, C#, Kotlin, Swift, Angular, Vue, React, Next.js, C++, .NET, Flutter, Rails, Spring Boot, SQL                                                            | 18 language-specific experts |
-| 🏗️ **Infrastructure & DevOps** | AWS, Azure, GCP, Kubernetes, Docker, Terraform, SRE, Platform Engineer, Network Engineer, Security Engineer, Deployment Engineer, DevOps Architect, Observability Architect, Chaos Engineer | Cloud-native infrastructure  |
-| 🔐 **Security & Quality**      | Cybersecurity Expert, Penetration Tester, Security Auditor, Cloud Security Architect, Zero Trust Strategist, Secrets Auditor, Code Reviewer, Debugger, QA Expert, Tester (TDD)              | Security-first development   |
-| 🧠 **AI & ML**                 | Machine Learning Engineer, AI System Architect, Data Scientist, MLOps Engineer, LLM Architect, NLP Specialist, Prompt Engineer, RAG Evaluator, Computer Vision Expert                       | AI/ML development            |
-
-### 🔄 Meta-Orchestration
-
-| Agent                   | Description                                    |
-| ----------------------- | ---------------------------------------------- |
-| Workflow Orchestrator   | Coordinate complex multi-step workflows        |
-| Multi-Agent Coordinator | Manage inter-agent communication               |
-| Task Distributor        | Intelligent work allocation and load balancing |
-| Search Specialist       | Advanced information retrieval                 |
-| Policy-as-Code Auditor  | Enforce policy gates on infrastructure         |
-
-### 🎯 Specialized Domains
-
-| Domain        | Agent                          |
-| ------------- | ------------------------------ |
-| 💰 Fintech    | Fintech Engineer               |
-| ⛓️ Blockchain | Blockchain Developer           |
-| 🎮 Gaming     | Game Developer                 |
-| 📡 IoT        | IoT Engineer                   |
-| 🔍 SEO        | SEO Strategist                 |
-| 💳 Payments   | Payment Integration Specialist |
-| 🎨 AI Art     | AI Art Director                |
+> **💡 Tip:** Open the mode selector (bottom of the VS Code window) to browse and switch between all available agents.</br>
+> ℹ️ Browse the complete list (✅ pre-loaded vs ⬜ importable) in the [Agent Catalog](custom-modes/AGENT_CATALOG.md).
 
 ### How to Use Custom Modes
 
@@ -217,7 +177,7 @@ Copy the mode YAML content from its file in [`custom-modes/custom_modes.d/`](cus
 
 ## 🚀 Quick Start
 
-### Install from VS Codium Marketplace
+### Install from VS Code/Codium Marketplace
 
 1. Open **VS Code** or **VS Codium**
 2. Go to **Extensions** (`Ctrl+Shift+X` / `Cmd+Shift+X`)
@@ -325,6 +285,20 @@ pnpm run sync:custom-modes
 
 ---
 
+## 🗺️ Roadmap
+
+Roo+ is stable and shipped. From here we're building, in order, the capabilities developers keep asking for — **cost control, a calmer approval experience, and knowledge that survives across sessions**:
+
+- 🟢 **Now** — cost-aware coding (spending visibility, simple budgets, honest numbers) and smarter mode discovery & onboarding
+- 🔵 **Next** — a safer "trust middle" with non-blocking approvals, and GitHub-first workflow integrations
+- 🟣 **Later** — more efficiency, smarter workflows, and team collaboration
+
+See the full **[Roadmap](ROADMAP.md)** for details and the principles behind each item.
+
+<br/>
+
+---
+
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!
@@ -348,6 +322,8 @@ This project is licensed under the **Apache 2.0 License** — see the [LICENSE](
 
 <p align="center">
   <sub>Built with ❤️ by <a href="https://github.com/xavier-arosemena">Xavier Arosemena</a> (<a href="https://github.com/Audare-est-Facere">Audare est Facere</a>)</sub>
+  <br/>
+  <sub><a href="https://audareestfacere.com">Find the right solution for your SME</a></sub>
   <br/>
   <sub>Roo+ is not affiliated with Zoo Code, Roo Code, or Cline.</sub>
 </p>
