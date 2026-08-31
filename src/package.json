@@ -512,7 +512,7 @@
 		"p-limit": "^7.3.1",
 		"p-wait-for": "^5.0.2",
 		"partial-json": "^0.1.7",
-		"pdf-parse": "^1.1.1",
+		"pdf-parse": "^2.4.5",
 		"pretty-bytes": "^7.0.0",
 		"proper-lockfile": "^4.1.2",
 		"ps-tree": "^1.2.0",
