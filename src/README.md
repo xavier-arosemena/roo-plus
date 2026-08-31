@@ -36,17 +36,13 @@
 
 <br/>
 
-<h1 align="center">🦾 Roo+</h1>
+<h1 align="center">🦾 Roo+ (roo-plus)</h1>
 <h3 align="center">The local-first, bring-your-own-model agentic IDE extension that makes your AI spend legible and your knowledge portable — <br/>
 no cloud, no lock-in, no silent regressions — powered by a curated 302-mode catalog.</h3>
 
-<br/>
-
 <p align="center">
-  Roo+ is a <strong>fork of <a href="https://github.com/Zoo-Code-Org/Zoo-Code">Zoo Code</a></strong> (originally forked from <a href="https://github.com/RooVeterinaryInc/roo-cline">Roo Code</a> / <a href="https://github.com/cline/cline">Cline</a>) — a powerful AI-powered development assistant that brings a whole team of AI agents right into your editor.
+  Roo+ is a <strong>fork of <a href="https://github.com/Zoo-Code-Org/Zoo-Code">Zoo Code</a></strong> (originally forked from <a href="https://github.com/RooVeterinaryInc/roo-cline">Roo Code</a> / <a href="https://github.com/cline/cline">Cline</a>).
 </p>
-
-<br/>
 
 ## ✨ What is Roo+?
 
@@ -326,6 +322,8 @@ This project is licensed under the **Apache 2.0 License** — see the [LICENSE](
 
 <p align="center">
   <sub>Built with ❤️ by <a href="https://github.com/xavier-arosemena">Xavier Arosemena</a> (<a href="https://github.com/Audare-est-Facere">Audare est Facere</a>)</sub>
+  <br/>
+  <sub><a href="https://audareestfacere.com">Find the right solution for your SME</a></sub>
   <br/>
   <sub>Roo+ is not affiliated with Zoo Code, Roo Code, or Cline.</sub>
 </p>
