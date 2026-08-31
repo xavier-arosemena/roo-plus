@@ -67,8 +67,15 @@ jobs:
                   package_version=$(node -p "require('./src/package.json').version")
 
                   node -e 'const version = process.argv[1]; if (!/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) { throw new Error("Invalid SemVer version: " + version) }' "$package_version"
-                  grep -q "## \\[$package_version\\]\\|## $package_version" CHANGELOG.md
-                  echo "::notice::[CI:RELEASE-VALIDATION:METADATA] release metadata OK for version $package_version"
+
+                  # Under the iterate-then-stabilize policy the changelog keeps ONE
+                  # section per minor (`## [<major>.<minor>.0]`) while the stable
+                  # version may be a later patch on that minor (e.g. 3.87.3), so
+                  # resolve the release notes to the LINE BASE before grepping —
+                  # mirrors the resolution in marketplace-publish.yml.
+                  line_version=$(node -e "const p=require('./src/package.json').version.split('.'); process.stdout.write(p[0]+'.'+p[1]+'.0')")
+                  grep -q "## \\[$line_version\\]\\|## $line_version" CHANGELOG.md
+                  echo "::notice::[CI:RELEASE-VALIDATION:METADATA] release metadata OK for version $package_version (line base $line_version)"
                   echo "::endgroup::"
 
             - name: Verify announcement data matches the current version (release-readiness gate)

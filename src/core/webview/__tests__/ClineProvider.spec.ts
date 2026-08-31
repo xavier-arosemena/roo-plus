@@ -26,6 +26,7 @@ import { defaultModeSlug } from "../../../shared/modes"
 import { experimentDefault } from "../../../shared/experiments"
 import { Package } from "../../../shared/package"
 import * as announcementsModule from "../../../shared/announcements"
+import { resolveLineVersion } from "../../../shared/announcements"
 import { setTtsEnabled } from "../../../utils/tts"
 import { ContextProxy } from "../../config/ContextProxy"
 import { Task, TaskOptions } from "../../task/Task"
@@ -1334,10 +1335,15 @@ describe("ClineProvider", () => {
 			vi.restoreAllMocks()
 		})
 
-		test("latestAnnouncementId is derived from Package.version", () => {
-			expect(provider.latestAnnouncementId).toBe(`v${Package.version}`)
+		test("latestAnnouncementId is derived from Package.version (resolved to its line base)", () => {
+			// Under the line-keyed policy any patch on a minor resolves to the line
+			// base (e.g. 3.87.3 → v3.87.0), so assert against the resolved line
+			// base rather than the raw patch — the id must never be a stale
+			// hardcoded literal.
+			const lineBase = resolveLineVersion(Package.version) ?? Package.version
+			expect(provider.latestAnnouncementId).toBe(`v${lineBase}`)
 			// The hardcoded literal is gone: it must not reference a stale version.
-			expect(provider.latestAnnouncementId).toContain(Package.version)
+			expect(provider.latestAnnouncementId).toContain(Package.version.split(".").slice(0, 2).join("."))
 		})
 
 		test("latestAnnouncementId resolves to the line base, not the raw patch version", () => {
