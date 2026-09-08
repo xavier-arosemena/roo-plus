@@ -7,8 +7,7 @@ import NodeCache from "node-cache"
 import { z } from "zod"
 
 import type { ProviderName, ModelRecord } from "@roo-code/types"
-import { modelInfoSchema, providerIdentifiers, TelemetryEventName } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
+import { modelInfoSchema, providerIdentifiers } from "@roo-code/types"
 
 import { safeWriteJson } from "../../../utils/safeWriteJson"
 
@@ -60,7 +59,6 @@ function captureModelCacheEmptyResponseOnce(
 	}
 
 	reportedEmptyModelResponse.add(cacheKey)
-	TelemetryService.instance.captureEvent(TelemetryEventName.MODEL_CACHE_EMPTY_RESPONSE, { provider, ...properties })
 }
 
 // Providers whose model list is determined by the server URL, not just by the provider name.

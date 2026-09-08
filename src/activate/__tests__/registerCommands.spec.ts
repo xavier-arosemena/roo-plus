@@ -47,14 +47,6 @@ vi.mock("../../shared/package", () => ({
 	},
 }))
 
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureTitleButtonClicked: vi.fn(),
-		},
-	},
-}))
-
 vi.mock("../../utils/focusPanel", () => ({
 	focusPanel: vi.fn().mockResolvedValue(undefined),
 }))

@@ -5,6 +5,7 @@ import * as vscode from "vscode"
 
 import { Task } from "../../task/Task"
 import { formatResponse } from "../../prompts/responses"
+import { t } from "../../../i18n"
 import { ToolUse, AskApproval, HandleError, PushToolResult } from "../../../shared/tools"
 import { unescapeHtmlEntities } from "../../../utils/text-normalization"
 import { Terminal } from "../../../integrations/terminal/Terminal"
@@ -21,9 +22,18 @@ vitest.mock("fs/promises", () => ({
 	},
 }))
 
+const vscodeTrustState = vi.hoisted(() => ({
+	isTrusted: undefined as boolean | undefined,
+	requestResult: false as boolean,
+}))
+
 vitest.mock("vscode", () => ({
 	workspace: {
 		getConfiguration: vitest.fn(),
+		get isTrusted() {
+			return vscodeTrustState.isTrusted
+		},
+		requestWorkspaceTrust: vitest.fn(() => Promise.resolve(vscodeTrustState.requestResult)),
 	},
 }))
 
@@ -69,6 +79,8 @@ describe("executeCommandTool", () => {
 	beforeEach(() => {
 		// Reset mocks
 		vitest.clearAllMocks()
+		vscodeTrustState.isTrusted = undefined
+		vscodeTrustState.requestResult = false
 		vitest.useRealTimers()
 
 		// Spy on executeCommandInTerminal and mock its return value
@@ -287,7 +299,11 @@ describe("executeCommandTool", () => {
 				pushToolResult: mockPushToolResult as unknown as PushToolResult,
 			})
 
-			expect(mockEnsureDcgInstalled).toHaveBeenCalledWith("/test/storage")
+			// The installer is handed a download consent gate (Marketplace #305 D3/3A).
+			expect(mockEnsureDcgInstalled).toHaveBeenCalledWith(
+				"/test/storage",
+				expect.objectContaining({ onBeforeDownload: expect.any(Function) }),
+			)
 			expect(mockRunDcg).toHaveBeenCalledWith("/test/storage/dcg", "echo test", "/test/workspace")
 		})
 
@@ -633,6 +649,28 @@ describe("executeCommandTool", () => {
 
 			expect(mockPushToolResult).toHaveBeenCalled()
 			expect(mockPushToolResult.mock.calls[0][0]).toContain("still running")
+		})
+	})
+
+	describe("workspace trust gate", () => {
+		it("refuses to execute a command in an untrusted workspace without trust", async () => {
+			vi.mocked(formatResponse.toolError).mockImplementation((message) => message ?? "")
+			vscodeTrustState.isTrusted = false
+			vscodeTrustState.requestResult = false
+			mockToolUse.params.command = "echo test"
+			mockToolUse.nativeArgs = { command: "echo test" }
+
+			await executeCommandTool.handle(mockCline as unknown as Task, mockToolUse, {
+				askApproval: mockAskApproval as unknown as AskApproval,
+				handleError: mockHandleError as unknown as HandleError,
+				pushToolResult: mockPushToolResult as unknown as PushToolResult,
+			})
+
+			// The workspace-trust gate (D2) blocks the command before approval or
+			// execution: no approval prompt, no terminal command, only a clear error.
+			expect(mockAskApproval).not.toHaveBeenCalled()
+			expect(mockPushToolResult).toHaveBeenCalledWith(t("common:workspaceTrust.required"))
+			expect(executeCommandModule.executeCommandInTerminal).not.toHaveBeenCalled()
 		})
 	})
 })

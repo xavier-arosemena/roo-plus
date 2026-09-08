@@ -19,6 +19,18 @@
 		"delete_config_profile": "Bạn có chắc chắn muốn xóa hồ sơ cấu hình này không?",
 		"delete_custom_mode_with_rules": "Bạn có chắc chắn muốn xóa chế độ {scope} này không?\n\nThao tác này cũng sẽ xóa thư mục quy tắc liên quan tại:\n{rulesFolderPath}"
 	},
+	"workspaceTrust": {
+		"message": "Roo+ cần tin cậy không gian làm việc này trước khi hoạt động. Việc tin cậy cho phép Roo+ chạy lệnh shell, đọc và ghi tệp (kể cả ngoài không gian làm việc này) và tải các thành phần trợ giúp khi sử dụng lần đầu.",
+		"required": "Hành động này yêu cầu một không gian làm việc đáng tin cậy. Hãy tin cậy không gian làm việc rồi thử lại."
+	},
+	"binaryConsent": {
+		"prompt": "Roo+ muốn tải xuống và chạy một thành phần trợ giúp của bên thứ ba:\n\nThành phần: {{name}}\nPhiên bản: {{version}}\nNguồn: {{source}}\nSHA-256: {{sha256}}\nKích thước gần đúng: {{size}}\nMục đích: {{purpose}}\n\nThành phần này được phát triển và duy trì bên ngoài mã nguồn của chính Roo+. Nó chỉ được tải xuống sau khi bạn phê duyệt và tổng kiểm tra được xác minh trước khi chạy.",
+		"allowOnce": "Cho phép một lần",
+		"alwaysAllow": "Luôn cho phép",
+		"deny": "Từ chối",
+		"semblePurpose": "tìm kiếm và lập chỉ mục mã trong không gian làm việc của bạn",
+		"dcgPurpose": "kiểm tra an toàn trước các lệnh phá hoại (tùy chọn)"
+	},
 	"errors": {
 		"invalid_data_uri": "Định dạng URI dữ liệu không hợp lệ",
 		"error_copying_image": "Lỗi khi sao chép hình ảnh: {{errorMessage}}",

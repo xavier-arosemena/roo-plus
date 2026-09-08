@@ -13,6 +13,17 @@
 		"vscode": "^1.100.0",
 		"node": "^22.22.2"
 	},
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": false,
+			"description": "Roo+ cannot operate in untrusted workspaces: it executes shell commands, writes files, reads and writes outside the workspace, and may download and run helper components. Trust the workspace to enable Roo+.",
+			"restrictedConfigurations": [
+				"roo-plus.allowedCommands",
+				"roo-plus.deniedCommands",
+				"roo-plus.commandTimeoutAllowlist"
+			]
+		}
+	},
 	"author": {
 		"name": "Xavier Arosemena"
 	},
@@ -478,7 +489,6 @@
 		"@qdrant/js-client-rest": "^1.14.0",
 		"@roo-code/core": "workspace:^",
 		"@roo-code/ipc": "workspace:^",
-		"@roo-code/telemetry": "workspace:^",
 		"@roo-code/types": "workspace:^",
 		"ai-sdk-provider-poe": "2.0.18",
 		"async-mutex": "^0.5.0",

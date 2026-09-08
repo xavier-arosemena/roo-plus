@@ -26,8 +26,6 @@ import {
 	MAX_PENDING_BATCHES,
 } from "../constants"
 import { isPathInIgnoredDirectory } from "../../glob/ignore-utils"
-import { TelemetryService } from "@roo-code/telemetry"
-import { TelemetryEventName } from "@roo-code/types"
 import { sanitizeErrorMessage } from "../shared/validation-helpers"
 import { Package } from "../../../shared/package"
 
@@ -252,11 +250,6 @@ export class DirectoryScanner implements IDirectoryScanner {
 						throw error
 					}
 					console.error(`Error processing file ${filePath} in workspace ${scanWorkspace}:`, error)
-					TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-						error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-						stack: error instanceof Error ? sanitizeErrorMessage(error.stack || "") : undefined,
-						location: "scanDirectory:processFile",
-					})
 					if (onError) {
 						onError(
 							error instanceof Error
@@ -349,13 +342,6 @@ export class DirectoryScanner implements IDirectoryScanner {
 							error,
 						)
 
-						TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-							error: sanitizeErrorMessage(errorMessage),
-							stack: error instanceof Error ? sanitizeErrorMessage(error.stack || "") : undefined,
-							location: "scanDirectory:deleteRemovedFiles",
-							errorStatus: errorStatus,
-						})
-
 						if (onError) {
 							// Report error to error handler
 							onError(
@@ -424,17 +410,6 @@ export class DirectoryScanner implements IDirectoryScanner {
 							deleteError,
 						)
 
-						TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-							error: sanitizeErrorMessage(errorMessage),
-							stack:
-								deleteError instanceof Error
-									? sanitizeErrorMessage(deleteError.stack || "")
-									: undefined,
-							location: "processBatch:deletePointsByMultipleFilePaths",
-							fileCount: uniqueFilePaths.length,
-							errorStatus: errorStatus,
-						})
-
 						// Re-throw with workspace context
 						throw new Error(
 							`Failed to delete points for ${uniqueFilePaths.length} files. Workspace: ${scanWorkspace}. ${errorMessage}`,
@@ -482,13 +457,6 @@ export class DirectoryScanner implements IDirectoryScanner {
 					`[DirectoryScanner] Error processing batch (attempt ${attempts}) in workspace ${scanWorkspace}:`,
 					error,
 				)
-				TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-					error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-					stack: error instanceof Error ? sanitizeErrorMessage(error.stack || "") : undefined,
-					location: "processBatch:retry",
-					attemptNumber: attempts,
-					batchSize: batchBlocks.length,
-				})
 
 				if (attempts < MAX_BATCH_RETRIES) {
 					const delay = INITIAL_RETRY_DELAY_MS * Math.pow(2, attempts - 1)

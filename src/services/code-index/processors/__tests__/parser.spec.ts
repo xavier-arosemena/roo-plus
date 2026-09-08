@@ -8,15 +8,6 @@ import { Node } from "web-tree-sitter"
 
 import { clearAllMocks } from "../../../../test-utils/reset"
 
-// Mock TelemetryService
-vi.mock("../../../../../packages/telemetry/src/TelemetryService", () => ({
-	TelemetryService: {
-		instance: {
-			captureEvent: vi.fn(),
-		},
-	},
-}))
-
 // Override Jest-based fs/promises mock with vitest-compatible version
 vi.mock("fs/promises", () => ({
 	default: {

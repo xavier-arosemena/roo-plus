@@ -2,8 +2,6 @@ import { OpenAICompatibleEmbedder } from "./openai-compatible"
 import { IEmbedder, EmbeddingResponse, EmbedderInfo } from "../interfaces/embedder"
 import { MAX_ITEM_TOKENS } from "../constants"
 import { t } from "../../../i18n"
-import { TelemetryEventName } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 /**
  * Mistral embedder implementation that wraps the OpenAI Compatible embedder
@@ -52,11 +50,6 @@ export class MistralEmbedder implements IEmbedder {
 			const modelToUse = model || this.modelId
 			return await this.openAICompatibleEmbedder.createEmbeddings(texts, modelToUse)
 		} catch (error) {
-			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-				error: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-				location: "MistralEmbedder:createEmbeddings",
-			})
 			throw error
 		}
 	}
@@ -71,11 +64,6 @@ export class MistralEmbedder implements IEmbedder {
 			// The error messages will be specific to Mistral since we're using Mistral's base URL
 			return await this.openAICompatibleEmbedder.validateConfiguration()
 		} catch (error) {
-			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-				error: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-				location: "MistralEmbedder:validateConfiguration",
-			})
 			throw error
 		}
 	}

@@ -11,9 +11,8 @@ import {
 	isSembleSupportedPlatform,
 	SEMBLE_VERSION,
 } from "./semble-downloader"
+import { requestSembleDownloadApproval } from "../../binary-acquisition/semble"
 import { ISembleProvider, SembleConfig, SembleContentType, SembleSearchResult, SEMBLE_DEFAULTS } from "./types"
-import { TelemetryService } from "@roo-code/telemetry"
-import { TelemetryEventName } from "@roo-code/types"
 import { t } from "../../../i18n"
 
 /**
@@ -124,7 +123,13 @@ export class SembleProvider implements ISembleProvider {
 		try {
 			this.stateManager.setSystemState("Indexing", t("embeddings:semble.downloadingBinary"))
 			const storageDir = this.context.globalStorageUri.fsPath
-			const binaryPath = await downloadSemble(storageDir, this.config.binaryPath)
+			// The consent gate is invoked by the downloader only when an actual
+			// download is required (never for a manual binaryPathOverride or an
+			// already-installed binary). It enforces workspace trust and an
+			// explicit first-use approval (Marketplace notice #305, D3/3A).
+			const binaryPath = await downloadSemble(storageDir, this.config.binaryPath, {
+				onBeforeDownload: () => requestSembleDownloadApproval(this.context),
+			})
 			if (!binaryPath) {
 				throw new Error("Download returned no path")
 			}
@@ -296,12 +301,6 @@ export class SembleProvider implements ISembleProvider {
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			console.error("[SembleProvider] Search failed:", errorMessage)
-
-			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-				error: errorMessage,
-				stack: error instanceof Error ? error.stack : undefined,
-				location: "SembleProvider.searchIndex",
-			})
 
 			// A genuine search failure must not be masked as an empty result — the
 			// agent tool would otherwise report "no relevant snippets" and the UI

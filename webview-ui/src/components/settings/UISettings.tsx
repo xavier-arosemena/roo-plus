@@ -1,7 +1,6 @@
 import { HTMLAttributes, useMemo } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
-import { telemetryClient } from "@/utils/TelemetryClient"
 import {
 	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES,
 	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED,
@@ -49,37 +48,19 @@ export const UISettings = ({
 
 	const handleReasoningBlockCollapsedChange = (value: boolean) => {
 		setCachedStateField("reasoningBlockCollapsed", value)
-
-		// Track telemetry event
-		telemetryClient.capture("ui_settings_collapse_thinking_changed", {
-			enabled: value,
-		})
 	}
 
 	const handleEnterBehaviorChange = (requireCtrlEnter: boolean) => {
 		const newBehavior = requireCtrlEnter ? "newline" : "send"
 		setCachedStateField("enterBehavior", newBehavior)
-
-		// Track telemetry event
-		telemetryClient.capture("ui_settings_enter_behavior_changed", {
-			behavior: newBehavior,
-		})
 	}
 
 	const handleChatFontSizeChange = (value: number) => {
 		setCachedStateField("chatFontSize", value)
-
-		// Track telemetry event
-		telemetryClient.capture("ui_settings_chat_font_size_changed", {
-			value,
-		})
 	}
 
 	const handleChatFontSizeReset = () => {
 		setCachedStateField("chatFontSize", undefined)
-
-		// Track telemetry event
-		telemetryClient.capture("ui_settings_chat_font_size_reset")
 	}
 
 	return (

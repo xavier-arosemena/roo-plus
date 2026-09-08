@@ -73,7 +73,6 @@ describe("attemptCompletionTool", () => {
 			taskId: "task_1",
 			apiConfiguration: { apiProvider: "test" } as any,
 			api: { getModel: vi.fn().mockReturnValue({ id: "test-model", info: {} }) } as any,
-			flushTelemetryInstallment: vi.fn(),
 		}
 	})
 
@@ -575,10 +574,9 @@ describe("attemptCompletionTool", () => {
 				})
 				expect(mockTask.ask).toHaveBeenCalledWith("completion_result", "", false)
 				expect(mockPushToolResult).not.toHaveBeenCalledWith("")
-				// Flush once per validated attempt_completion call, before delegation is
-				// attempted, independent of whether delegation succeeds.
-				expect(mockTask.flushTelemetryInstallment).toHaveBeenCalledTimes(1)
-				expect(mockTask.flushTelemetryInstallment).toHaveBeenCalledWith("attempt_completion")
+				// Force a final token usage update for the standalone completion (telemetry
+				// was removed with the PostHog client, Marketplace #305).
+				expect(mockTask.emitFinalTokenUsageUpdate).toHaveBeenCalledTimes(1)
 			})
 
 			it("does not resume the parent when the parent is no longer awaiting this child", async () => {
@@ -626,8 +624,6 @@ describe("attemptCompletionTool", () => {
 				expect(mockProvider.reopenParentFromDelegation).not.toHaveBeenCalled()
 				expect(mockProvider.log).toHaveBeenCalledWith(expect.stringContaining("Skipping delegation"))
 				expect(mockTask.ask).toHaveBeenCalledWith("completion_result", "", false)
-				expect(mockTask.flushTelemetryInstallment).toHaveBeenCalledTimes(1)
-				expect(mockTask.flushTelemetryInstallment).toHaveBeenCalledWith("attempt_completion")
 			})
 
 			it("delegates an interrupted subtask completion when the parent is still delegated and awaiting that child", async () => {
@@ -726,8 +722,6 @@ describe("attemptCompletionTool", () => {
 				expect(mockProvider.reopenParentFromDelegation).not.toHaveBeenCalled()
 				expect(mockProvider.log).toHaveBeenCalledWith(expect.stringContaining("Skipping delegation"))
 				expect(mockTask.ask).toHaveBeenCalledWith("completion_result", "", false)
-				expect(mockTask.flushTelemetryInstallment).toHaveBeenCalledTimes(1)
-				expect(mockTask.flushTelemetryInstallment).toHaveBeenCalledWith("attempt_completion")
 			})
 
 			it("emits TaskCompleted only when completion is accepted", async () => {
@@ -752,8 +746,6 @@ describe("attemptCompletionTool", () => {
 				await attemptCompletionTool.handle(mockTask as Task, block, callbacks)
 
 				expect(mockHandleError).not.toHaveBeenCalled()
-				expect(mockTask.flushTelemetryInstallment).toHaveBeenCalledTimes(1)
-				expect(mockTask.flushTelemetryInstallment).toHaveBeenCalledWith("attempt_completion")
 				expect(mockTask.emit).toHaveBeenCalledWith(
 					RooCodeEventName.TaskCompleted,
 					"task_1",
@@ -788,10 +780,6 @@ describe("attemptCompletionTool", () => {
 				await attemptCompletionTool.handle(mockTask as Task, block, callbacks)
 
 				expect(mockHandleError).not.toHaveBeenCalled()
-				// Telemetry is reported on every model-initiated attempt_completion call,
-				// regardless of whether the user accepts, declines, or gives feedback.
-				expect(mockTask.flushTelemetryInstallment).toHaveBeenCalledTimes(1)
-				expect(mockTask.flushTelemetryInstallment).toHaveBeenCalledWith("attempt_completion")
 				// The public RooCodeEventName.TaskCompleted API event still only fires once
 				// the user actually accepts the result.
 				expect(mockTask.emit).not.toHaveBeenCalledWith(
@@ -806,7 +794,7 @@ describe("attemptCompletionTool", () => {
 	})
 })
 
-describe("attemptCompletionTool telemetry invariants", () => {
+describe("attemptCompletionTool completion invariants", () => {
 	function makeTask(overrides: Partial<Task> = {}): Partial<Task> {
 		return {
 			consecutiveMistakeCount: 0,
@@ -820,12 +808,11 @@ describe("attemptCompletionTool telemetry invariants", () => {
 			toolUsage: {},
 			messageCounts: { user: 0, assistant: 0 },
 			taskId: "task_1",
-			flushTelemetryInstallment: vi.fn(),
 			...overrides,
 		}
 	}
 
-	it("does not emit a duplicate telemetry installment when replaying an already-completed subtask from history", async () => {
+	it("does not force a duplicate final token-usage update when replaying an already-completed subtask from history", async () => {
 		const block: AttemptCompletionToolUse = {
 			type: "tool_use",
 			name: "attempt_completion",
@@ -858,7 +845,7 @@ describe("attemptCompletionTool telemetry invariants", () => {
 			toolDescription: vi.fn(),
 		} as AttemptCompletionCallbacks)
 
-		expect(task.flushTelemetryInstallment).not.toHaveBeenCalled()
+		expect(task.emitFinalTokenUsageUpdate).not.toHaveBeenCalled()
 	})
 
 	it("does not emit the public TaskCompleted event when replaying an already-completed subtask from history", async () => {
@@ -901,7 +888,7 @@ describe("attemptCompletionTool telemetry invariants", () => {
 		)
 	})
 
-	it("emits the public TaskCompleted API event only when completion is accepted, but reports telemetry either way", async () => {
+	it("emits the public TaskCompleted API event only when completion is accepted", async () => {
 		const block: AttemptCompletionToolUse = {
 			type: "tool_use",
 			name: "attempt_completion",
@@ -922,8 +909,6 @@ describe("attemptCompletionTool telemetry invariants", () => {
 			toolDescription: vi.fn(),
 		} as AttemptCompletionCallbacks)
 
-		expect(task.flushTelemetryInstallment).toHaveBeenCalledTimes(1)
-		expect(task.flushTelemetryInstallment).toHaveBeenCalledWith("attempt_completion")
 		expect(task.emit).toHaveBeenCalledWith(
 			RooCodeEventName.TaskCompleted,
 			"task_1",
@@ -932,7 +917,7 @@ describe("attemptCompletionTool telemetry invariants", () => {
 		)
 	})
 
-	it("still reports telemetry for a model-initiated completion even when the user provides follow-up feedback instead of accepting", async () => {
+	it("does not emit the public TaskCompleted event when the user provides follow-up feedback instead of accepting", async () => {
 		const block: AttemptCompletionToolUse = {
 			type: "tool_use",
 			name: "attempt_completion",
@@ -953,8 +938,6 @@ describe("attemptCompletionTool telemetry invariants", () => {
 			toolDescription: vi.fn(),
 		} as AttemptCompletionCallbacks)
 
-		expect(task.flushTelemetryInstallment).toHaveBeenCalledTimes(1)
-		expect(task.flushTelemetryInstallment).toHaveBeenCalledWith("attempt_completion")
 		expect(task.emit).not.toHaveBeenCalledWith(
 			RooCodeEventName.TaskCompleted,
 			expect.anything(),

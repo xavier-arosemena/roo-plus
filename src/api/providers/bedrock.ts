@@ -36,7 +36,6 @@ import {
 	SERVICE_TIER_KEY,
 	ApiProviderError,
 } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { ApiStream } from "../transform/stream"
 import { BaseProvider } from "./base-provider"
@@ -774,7 +773,6 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 			// Capture error in telemetry before processing
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			const apiError = new ApiProviderError(errorMessage, this.providerName, modelConfig.id, "createMessage")
-			TelemetryService.instance.captureException(apiError)
 
 			// Check if this is a throttling error that should trigger retry logic
 			const errorType = this.getErrorType(error)
@@ -888,7 +886,6 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 			const model = this.getModel()
 			const telemetryErrorMessage = error instanceof Error ? error.message : String(error)
 			const apiError = new ApiProviderError(telemetryErrorMessage, this.providerName, model.id, "completePrompt")
-			TelemetryService.instance.captureException(apiError)
 
 			// Use the extracted error handling method for all errors
 			const errorResult = this.handleBedrockError(error, false) // false for non-streaming context

@@ -15,7 +15,6 @@ import * as os from "os"
 import * as path from "path"
 
 import type { ClineMessage, GlobalState, HistoryItem, ProviderSettings } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { Task } from "../Task"
 import { ClineProvider } from "../../webview/ClineProvider"
@@ -155,10 +154,6 @@ describe("Task resume/eviction race (Work #1 (no message) regression)", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-
-		if (!TelemetryService.hasInstance()) {
-			TelemetryService.createInstance([])
-		}
 
 		mockApiConfig = {
 			apiProvider: "anthropic",

@@ -12,7 +12,6 @@ import {
 	DEEP_SEEK_DEFAULT_TEMPERATURE,
 	providerIdentifiers,
 } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { NativeToolCallParser } from "../../core/assistant-message/NativeToolCallParser"
 
@@ -202,8 +201,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 			{ status: error?.code, error },
 		)
 
-		TelemetryService.instance.captureException(apiError)
-
 		throw new Error(`OpenRouter API Error ${error?.code}: ${rawErrorMessage}`)
 	}
 
@@ -364,7 +361,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 					},
 				)
 
-				TelemetryService.instance.captureException(apiError)
 				throw handleOpenAIError(error, this.providerName)
 			} else {
 				// Fallback for non-OpenRouter errors
@@ -375,7 +371,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 					modelId,
 					"createMessage",
 				)
-				TelemetryService.instance.captureException(apiError)
 				throw handleOpenAIError(error, this.providerName)
 			}
 		}
@@ -634,7 +629,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 					},
 				)
 
-				TelemetryService.instance.captureException(apiError)
 				throw handleOpenAIError(error, this.providerName)
 			} else {
 				// Fallback for non-OpenRouter errors
@@ -645,7 +639,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 					modelId,
 					"completePrompt",
 				)
-				TelemetryService.instance.captureException(apiError)
 				throw handleOpenAIError(error, this.providerName)
 			}
 		}

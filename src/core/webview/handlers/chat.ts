@@ -664,7 +664,6 @@ export async function handleChatMessages(
 					})
 
 					if (enhanceResult.success && enhanceResult.enhancedText) {
-						MessageEnhancer.captureTelemetry(currentCline?.taskId, includeTaskHistoryInEnhance)
 						await provider.postMessageToWebview({
 							type: "enhancedPrompt",
 							text: enhanceResult.enhancedText,

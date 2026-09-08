@@ -77,7 +77,12 @@ export enum TelemetryEventName {
 }
 
 /**
- * TelemetryProperties
+ * Runtime/environment property schemas.
+ *
+ * These describe the local extension environment (app, editor, workspace git
+ * state). They are shared with the MDM/cloud (organization compliance)
+ * integration in `cloud.ts`; the Roo+ extension itself collects no telemetry
+ * and has no analytics client.
  */
 
 export const staticAppPropertiesSchema = z.object({
@@ -257,22 +262,7 @@ export interface TelemetryPropertiesProvider {
 }
 
 /**
- * TelemetryClient
- */
-
-export interface TelemetryClient {
-	subscription?: TelemetryEventSubscription
-
-	setProvider(provider: TelemetryPropertiesProvider): void
-	capture(options: TelemetryEvent): Promise<void>
-	captureException(error: Error, additionalProperties?: Record<string, unknown>): Promise<void>
-	updateTelemetryState(isOptedIn: boolean): void
-	isTelemetryEnabled(): boolean
-	shutdown(): Promise<void>
-}
-
-/**
- * Expected API error codes that should not be reported to telemetry.
+ * Expected API error codes that should not be reported.
  * These are normal/expected errors that users can't do much about.
  */
 export const EXPECTED_API_ERROR_CODES = new Set([
@@ -413,7 +403,7 @@ export function getErrorMessage(error: unknown): string | undefined {
 }
 
 /**
- * Helper to check if an API error should be reported to telemetry.
+ * Helper to check if an API error should be reported.
  * Filters out expected errors like rate limits by checking both error codes and messages.
  * @param errorCode - The HTTP error code (if available)
  * @param errorMessage - The error message (if available)
@@ -438,7 +428,7 @@ export function shouldReportApiErrorToTelemetry(errorCode?: number, errorMessage
 }
 
 /**
- * Generic API provider error class for structured error tracking via PostHog.
+ * Generic API provider error class for structured error tracking.
  * Can be reused by any API provider.
  */
 export class ApiProviderError extends Error {
@@ -456,7 +446,7 @@ export class ApiProviderError extends Error {
 
 /**
  * Type guard to check if an error is an ApiProviderError.
- * Used by telemetry to automatically extract structured properties.
+ * Used to automatically extract structured properties.
  */
 export function isApiProviderError(error: unknown): error is ApiProviderError {
 	return (
@@ -469,7 +459,7 @@ export function isApiProviderError(error: unknown): error is ApiProviderError {
 }
 
 /**
- * Extracts properties from an ApiProviderError for telemetry.
+ * Extracts properties from an ApiProviderError.
  * Returns the structured properties that can be merged with additionalProperties.
  */
 export function extractApiProviderErrorProperties(error: ApiProviderError): Record<string, unknown> {
@@ -489,7 +479,6 @@ export type ConsecutiveMistakeReason = "no_tools_used" | "tool_repetition" | "un
 /**
  * Error class for "Roo is having trouble" consecutive mistake scenarios.
  * Triggered when the task reaches the configured consecutive mistake limit.
- * Used for structured exception tracking via PostHog.
  */
 export class ConsecutiveMistakeError extends Error {
 	constructor(
@@ -508,7 +497,7 @@ export class ConsecutiveMistakeError extends Error {
 
 /**
  * Type guard to check if an error is a ConsecutiveMistakeError.
- * Used by telemetry to automatically extract structured properties.
+ * Used to automatically extract structured properties.
  */
 export function isConsecutiveMistakeError(error: unknown): error is ConsecutiveMistakeError {
 	return (
@@ -521,7 +510,7 @@ export function isConsecutiveMistakeError(error: unknown): error is ConsecutiveM
 }
 
 /**
- * Extracts properties from a ConsecutiveMistakeError for telemetry.
+ * Extracts properties from a ConsecutiveMistakeError.
  * Returns the structured properties that can be merged with additionalProperties.
  */
 export function extractConsecutiveMistakeErrorProperties(error: ConsecutiveMistakeError): Record<string, unknown> {

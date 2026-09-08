@@ -172,12 +172,6 @@ export const requestVsCodeLmModelsMessageSchema = z.object({
 	type: z.literal("requestVsCodeLmModels"),
 })
 
-/** Set the telemetry setting (`text`, cast to `TelemetrySetting` in the handler). */
-export const telemetrySettingMessageSchema = z.object({
-	type: z.literal("telemetrySetting"),
-	text: z.string().optional(),
-})
-
 /**
  * Update a custom-mode prompt (`promptMode` key + `customPrompt` component).
  * `customPrompt` reuses the exported `promptComponentSchema` (the same
@@ -227,7 +221,6 @@ export const settingsExtraMessageSchema = z.discriminatedUnion("type", [
 	requestRooModelsMessageSchema,
 	requestRouterModelsMessageSchema,
 	requestVsCodeLmModelsMessageSchema,
-	telemetrySettingMessageSchema,
 	updatePromptMessageSchema,
 	updateVSCodeSettingMessageSchema,
 ])

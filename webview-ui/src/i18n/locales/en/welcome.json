@@ -10,9 +10,5 @@
 		"goBack": "Back",
 		"finish": "Finish"
 	},
-	"telemetry": {
-		"helpImprove": "Help Improve Roo+",
-		"helpImproveMessage": "Roo+ collects error and usage data to help us fix bugs and improve the extension. This telemetry does not collect code, prompts or personal information. You can turn this off in <settingsLink>settings</settingsLink>."
-	},
 	"importSettings": "Import Settings"
 }

@@ -289,7 +289,6 @@ jobs:
                   files: >-
                       src/coverage/lcov.info,
                       packages/cloud/coverage/lcov.info,
-                      packages/telemetry/coverage/lcov.info,
                       apps/cli/coverage/lcov.info
                   disable_search: true
                   flags: ${{ matrix.codecov-flag }}
@@ -330,7 +329,6 @@ jobs:
                       src/coverage/lcov.info
                       webview-ui/coverage/lcov.info
                       packages/cloud/coverage/lcov.info
-                      packages/telemetry/coverage/lcov.info
                       apps/cli/coverage/lcov.info
                       packages/core/coverage/unit/lcov.info
                       packages/core/coverage/integration/lcov.info

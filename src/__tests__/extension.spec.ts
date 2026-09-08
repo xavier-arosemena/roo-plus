@@ -50,24 +50,6 @@ vi.mock("fs", () => ({
 	existsSync: vi.fn().mockReturnValue(false),
 }))
 
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		createInstance: vi.fn().mockReturnValue({
-			register: vi.fn(),
-			setProvider: vi.fn(),
-			shutdown: vi.fn(),
-		}),
-		get instance() {
-			return {
-				register: vi.fn(),
-				setProvider: vi.fn(),
-				shutdown: vi.fn(),
-			}
-		},
-	},
-	PostHogTelemetryClient: vi.fn(),
-}))
-
 vi.mock("../utils/outputChannelLogger", () => ({
 	createOutputChannelLogger: vi.fn().mockReturnValue(vi.fn()),
 	createDualLogger: vi.fn().mockReturnValue(vi.fn()),

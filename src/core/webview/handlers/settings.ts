@@ -7,7 +7,6 @@ import {
 	type Language,
 	type ModelRecord,
 	type RooCodeSettings,
-	type TelemetrySetting,
 	type WebviewMessage,
 	type WebviewMessageType,
 	allowedCommandsMessageSchema,
@@ -27,13 +26,11 @@ import {
 	requestOllamaModelsMessageSchema,
 	requestOpenAiModelsMessageSchema,
 	requestRouterModelsMessageSchema,
-	telemetrySettingMessageSchema,
 	updateCustomModeMessageSchema,
 	updatePromptMessageSchema,
 	updateSettingsMessageSchema,
 	updateVSCodeSettingMessageSchema,
 } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { changeLanguage, t } from "../../../i18n"
 import { Package } from "../../../shared/package"
@@ -50,6 +47,7 @@ import { getOpenAiModels } from "../../../api/providers/openai"
 import { getVsCodeLmModels } from "../../../api/providers/vscode-lm"
 import { getRouterRemovalMessage } from "../../config/routerRemoval"
 import { ensureDcgInstalled } from "../../../services/destructive-command-guard"
+import { requestDcgDownloadApproval } from "../../../services/binary-acquisition/dcg"
 import { getModels, flushModels } from "../../../api/providers/fetchers/modelCache"
 import { getLMStudioModels } from "../../../api/providers/fetchers/lmstudio"
 import { getWorkspacePath } from "../../../utils/path"
@@ -84,7 +82,6 @@ export const settingsMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
 	"requestRooModels",
 	"requestRouterModels",
 	"requestVsCodeLmModels",
-	"telemetrySetting",
 	"updateCustomMode",
 	"updatePrompt",
 	"updateSettings",
@@ -146,7 +143,13 @@ export async function handleSettingsMessages(
 				// guard as active when it is not actually available.
 				if (m.updatedSettings.destructiveCommandGuardEnabled === true) {
 					try {
-						const binaryPath = await ensureDcgInstalled(provider.context.globalStorageUri.fsPath)
+						// First-time acquisition of the DCG binary requires explicit
+						// user consent (Marketplace notice #305, D3/3A). The gate
+						// fires only when a download is actually needed — if the
+						// user declines, installation fails and the setting reverts.
+						const binaryPath = await ensureDcgInstalled(provider.context.globalStorageUri.fsPath, {
+							onBeforeDownload: () => requestDcgDownloadApproval(provider.context),
+						})
 						if (!binaryPath) {
 							m.updatedSettings.destructiveCommandGuardEnabled = false
 							vscode.window.showErrorMessage(t("common:errors.destructiveCommandGuard.unavailable"))
@@ -833,21 +836,6 @@ export async function handleSettingsMessages(
 					hasOpenedModeSelector: currentState.hasOpenedModeSelector ?? false,
 				}
 				await provider.postMessageToWebview({ type: "state", state: stateWithPrompts })
-
-				if (TelemetryService.hasInstance()) {
-					// Determine which setting was changed by comparing objects
-					const oldPrompt = existingPrompts[result.data.promptMode] || {}
-					const newPrompt = result.data.customPrompt
-					const changedSettings = Object.keys(newPrompt).filter(
-						(key) =>
-							JSON.stringify((oldPrompt as Record<string, unknown>)[key]) !==
-							JSON.stringify((newPrompt as Record<string, unknown>)[key]),
-					)
-
-					if (changedSettings.length > 0) {
-						TelemetryService.instance.captureModeSettingChanged(changedSettings[0])
-					}
-				}
 			}
 			break
 		}
@@ -894,7 +882,6 @@ export async function handleSettingsMessages(
 			try {
 				// Check if this is a new mode or an update to an existing mode
 				const existingModes = await provider.customModesManager.getCustomModes()
-				const isNewMode = !existingModes.some((mode) => mode.slug === m.modeConfig.slug)
 
 				await provider.customModesManager.updateCustomMode(m.modeConfig.slug, m.modeConfig)
 				// Update state after saving the mode
@@ -902,28 +889,6 @@ export async function handleSettingsMessages(
 				await updateGlobalState(provider, "customModes", customModes)
 				await updateGlobalState(provider, "mode", m.modeConfig.slug)
 				await provider.postStateToWebview()
-
-				// Track telemetry for custom mode creation or update
-				if (TelemetryService.hasInstance()) {
-					if (isNewMode) {
-						// This is a new custom mode
-						TelemetryService.instance.captureCustomModeCreated(m.modeConfig.slug, m.modeConfig.name)
-					} else {
-						// Determine which setting was changed by comparing objects
-						const existingMode = existingModes.find((mode) => mode.slug === m.modeConfig.slug)
-						const changedSettings = existingMode
-							? Object.keys(m.modeConfig).filter(
-									(key) =>
-										JSON.stringify((existingMode as Record<string, unknown>)[key]) !==
-										JSON.stringify((m.modeConfig as Record<string, unknown>)[key]),
-								)
-							: []
-
-						if (changedSettings.length > 0) {
-							TelemetryService.instance.captureModeSettingChanged(changedSettings[0])
-						}
-					}
-				}
 			} catch (error) {
 				// Error already shown to user by updateCustomMode
 				// Just prevent unhandled rejection and skip state updates
@@ -1219,43 +1184,6 @@ export async function handleSettingsMessages(
 					hasContent: hasContent,
 				})
 			}
-			break
-		}
-		case "telemetrySetting": {
-			// `text` is validated as a string at the boundary; the `as
-			// TelemetrySetting` cast is retained for the enum literal union.
-			const result = telemetrySettingMessageSchema.safeParse(message)
-
-			if (!result.success) {
-				provider.log(
-					`[webviewMessageHandler] Rejected malformed telemetrySetting message: ${result.error.message}`,
-				)
-				break
-			}
-
-			const telemetrySetting = result.data.text as TelemetrySetting
-			const previousSetting = getGlobalState(provider, "telemetrySetting") || "unset"
-			const isOptedIn = telemetrySetting !== "disabled"
-			const wasPreviouslyOptedIn = previousSetting !== "disabled"
-
-			// If turning telemetry OFF, fire event BEFORE disabling
-			if (wasPreviouslyOptedIn && !isOptedIn && TelemetryService.hasInstance()) {
-				TelemetryService.instance.captureTelemetrySettingsChanged(previousSetting, telemetrySetting)
-			}
-
-			// Update the telemetry state
-			await updateGlobalState(provider, "telemetrySetting", telemetrySetting)
-
-			if (TelemetryService.hasInstance()) {
-				TelemetryService.instance.updateTelemetryState(isOptedIn)
-			}
-
-			// If turning telemetry ON, fire event AFTER enabling
-			if (!wasPreviouslyOptedIn && isOptedIn && TelemetryService.hasInstance()) {
-				TelemetryService.instance.captureTelemetrySettingsChanged(previousSetting, telemetrySetting)
-			}
-
-			await provider.postStateToWebview()
 			break
 		}
 		case "debugSetting": {

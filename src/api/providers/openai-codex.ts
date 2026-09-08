@@ -15,7 +15,6 @@ import {
 	type ReasoningEffortExtended,
 	ApiProviderError,
 } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { Package } from "../../shared/package"
 import type { ApiHandlerOptions } from "../../shared/api"
@@ -282,9 +281,6 @@ export class OpenAiCodexHandler extends BaseProvider implements SingleCompletion
 					: baseRequestBody
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error)
-			TelemetryService.instance.captureException(
-				new ApiProviderError(message, this.providerName, model.id, "createMessage"),
-			)
 			throw error
 		}
 
@@ -687,7 +683,6 @@ export class OpenAiCodexHandler extends BaseProvider implements SingleCompletion
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			const apiError = new ApiProviderError(errorMessage, this.providerName, model.id, "createMessage")
-			TelemetryService.instance.captureException(apiError)
 
 			if (error instanceof Error) {
 				if (error.message.includes("Codex API")) {
@@ -964,7 +959,6 @@ export class OpenAiCodexHandler extends BaseProvider implements SingleCompletion
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			const apiError = new ApiProviderError(errorMessage, this.providerName, model.id, "createMessage")
-			TelemetryService.instance.captureException(apiError)
 
 			if (error instanceof Error) {
 				throw new Error(t("common:errors.openAiCodex.streamProcessingError", { message: error.message }))
@@ -1373,7 +1367,6 @@ export class OpenAiCodexHandler extends BaseProvider implements SingleCompletion
 			const errorModel = this.getModel()
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			const apiError = new ApiProviderError(errorMessage, this.providerName, errorModel.id, "completePrompt")
-			TelemetryService.instance.captureException(apiError)
 
 			if (error instanceof Error) {
 				throw new Error(t("common:errors.openAiCodex.completionError", { message: error.message }))

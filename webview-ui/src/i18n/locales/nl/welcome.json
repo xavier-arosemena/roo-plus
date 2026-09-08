@@ -10,9 +10,5 @@
 		"goBack": "Terug",
 		"finish": "Klaar"
 	},
-	"telemetry": {
-		"helpImprove": "Help Roo+ te verbeteren",
-		"helpImproveMessage": "Roo+ verzamelt fout- en gebruiksgegevens om ons te helpen bugs op te lossen en de extensie te verbeteren. Deze telemetrie verzamelt geen code, prompts of persoonlijke informatie. Je kunt dit in <settingsLink>instellingen</settingsLink> uitschakelen."
-	},
 	"importSettings": "Instellingen importeren"
 }

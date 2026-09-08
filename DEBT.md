@@ -240,6 +240,36 @@ decision and coverage reporting.
 
 ---
 
+## 🛡️ Security & Marketplace (#305) — Open Follow-ups (2026-09)
+
+> **Background**: Marketplace notice #305 required (1) a privacy-hygiene improvement, (2) workspace-trust + explicit approval for sensitive operations, and (3) publishable matching source. Resolved in the post-3.87.3 cycle: PostHog telemetry **removed entirely** (opt-in/opt-out UI deleted — decision D1/1B), `capabilities.untrustedWorkspaces.supported=false` + runtime trust gates + binary-acquisition consent added (D2/D3-3A, `src/services/binary-acquisition/*`, `src/utils/workspaceTrust.ts`), and reproducible secret-free packaging with provenance docs ([`docs/SEMBLE-RELEASE-GOVERNANCE.md`](docs/SEMBLE-RELEASE-GOVERNANCE.md), [`docs/DCG-RELEASE-GOVERNANCE.md`](docs/DCG-RELEASE-GOVERNANCE.md), [`SECURITY.md`](SECURITY.md)). Full plan + status: [`plans/marketplace-305-remediation-plan.md`](plans/marketplace-305-remediation-plan.md) (local, gitignored). Open items below are NOT yet closed.
+
+### 22. Marketplace Portal Action + Notice #305 Reply (external — cannot close from repo)
+
+**Location**: VS Code Marketplace portal, publisher `xavier-arosemena`, extension `roo-plus` (also Open VSX).
+**Issue**: The listing must show a Privacy Policy URL → [`PRIVACY.md`](PRIVACY.md) and an accurate data-collection disclosure (no telemetry; user-configured AI providers; consent-gated Semble/DCG downloads) before closing notice #305. This cannot be set from the repo.
+**Suggested Fix**: In the portal set/confirm the privacy URL + disclosure, publish the post-#305 release, then reply to notice #305 with the fix summary and source pointer.
+
+### 23. Periodic Marketplace-Security Re-scan (no CI gate yet)
+
+**Location**: packaged VSIX; `@trailofbits/vsix-audit`.
+**Issue**: The #305 scan was a one-off; the YARA-X module was unavailable on this host (degraded coverage). No automated re-scan runs on each release.
+**Suggested Fix**: Add a release-validation CI step that installs `@trailofbits/vsix-audit` (and YARA-X where available) and runs it against the built VSIX; triage findings to this register.
+
+### 24. Binary-Acquisition Consent Metadata Sync Guard
+
+**Locations**: [`docs/SEMBLE-RELEASE-GOVERNANCE.md`](docs/SEMBLE-RELEASE-GOVERNANCE.md), [`docs/DCG-RELEASE-GOVERNANCE.md`](docs/DCG-RELEASE-GOVERNANCE.md), [`src/services/binary-acquisition/semble.ts`](src/services/binary-acquisition/semble.ts), [`src/services/binary-acquisition/dcg.ts`](src/services/binary-acquisition/dcg.ts), [`src/services/code-index/semble/semble-downloader.ts`](src/services/code-index/semble/semble-downloader.ts), [`src/services/destructive-command-guard/constants.ts`](src/services/destructive-command-guard/constants.ts).
+**Issue**: The first-use consent dialogs display version/source/SHA-256 from `binary-acquisition/*` metadata. Bumping `SEMBLE_VERSION`/`SEMBLE_SHA256` (or `DCG_VERSION`/archive hashes) without updating consent metadata + governance docs would let dialogs/docs drift from the artifact actually downloaded.
+**Suggested Fix**: Extend the existing version↔checksum coupling gate (`scripts/verify-semble-release-coupling.mjs`) to also assert the consent metadata matches `SEMBLE_VERSION`/`SEMBLE_SHA256`; add an analogous DCG check.
+
+### 25. Optional: Re-introduce Product Analytics Under Full Roo+ Control (decision recorded)
+
+**Location**: entire codebase (was `packages/telemetry`).
+**Issue**: PostHog telemetry was removed entirely (Marketplace #305, D1/1B). If Roo+ later wants product analytics it must be opt-in-only, avoid `machineId`-keyed identities, be disclosed in [`PRIVACY.md`](PRIVACY.md) + Marketplace metadata, and use the same explicit-consent gating.
+**Suggested Fix**: Treat as a separate deliberate project decision; if adopted, implement opt-in analytics against a Roo+-owned backend and update `PRIVACY.md`.
+
+---
+
 ## ✅ Recently Resolved Debt
 
 | Debt                                                                                                          | Resolution                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Version    |

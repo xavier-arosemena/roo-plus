@@ -2,7 +2,6 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import OpenAI from "openai"
 
 import { type XAIModelId, xaiDefaultModelId, xaiModels, ApiProviderError } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import type { ApiHandlerOptions } from "../../shared/api"
 
@@ -134,9 +133,6 @@ export class XAIHandler extends BaseProvider implements SingleCompletionHandler 
 				stream: true,
 			} as any)) as unknown as AsyncIterable<any>
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : String(error)
-			const apiError = new ApiProviderError(errorMessage, this.providerName, model.id, "createMessage")
-			TelemetryService.instance.captureException(apiError)
 			throw handleOpenAIError(error, this.providerName)
 		}
 
@@ -157,9 +153,6 @@ export class XAIHandler extends BaseProvider implements SingleCompletionHandler 
 			// output_text is a convenience field on the Responses API response
 			return response.output_text || ""
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : String(error)
-			const apiError = new ApiProviderError(errorMessage, this.providerName, model.id, "completePrompt")
-			TelemetryService.instance.captureException(apiError)
 			throw handleOpenAIError(error, this.providerName)
 		}
 	}

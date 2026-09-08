@@ -19,6 +19,18 @@
 		"delete_config_profile": "Bu yapılandırma profilini silmek istediğinizden emin misiniz?",
 		"delete_custom_mode_with_rules": "Bu {scope} modunu silmek istediğinizden emin misiniz?\n\nBu işlem, ilişkili kurallar klasörünü de şu konumdan silecektir:\n{rulesFolderPath}"
 	},
+	"workspaceTrust": {
+		"message": "Roo+'un harekete geçebilmesi için bu çalışma alanına güvenmesi gerekir. Güvendiğinizde Roo+ kabuk komutlarını çalıştırabilir, dosyaları (bu çalışma alanının dışı dahil) okuyup yazabilir ve ilk kullanımda yardımcı bileşenleri indirebilir.",
+		"required": "Bu işlem güvenilir bir çalışma alanı gerektirir. Çalışma alanına güvenin ve tekrar deneyin."
+	},
+	"binaryConsent": {
+		"prompt": "Roo+ üçüncü taraf bir yardımcı bileşeni indirmek ve çalıştırmak istiyor:\n\nBileşen: {{name}}\nSürüm: {{version}}\nKaynak: {{source}}\nSHA-256: {{sha256}}\nYaklaşık boyut: {{size}}\nAmaç: {{purpose}}\n\nBu bileşen Roo+'un kendi kaynak kodunun dışında geliştirilir ve sürdürülür. Yalnızca onayınızdan sonra indirilir ve çalıştırılmadan önce sağlama toplamı doğrulanır.",
+		"allowOnce": "Bir kez izin ver",
+		"alwaysAllow": "Her zaman izin ver",
+		"deny": "Reddet",
+		"semblePurpose": "çalışma alanınızdaki kod arama ve dizinleme",
+		"dcgPurpose": "yıkıcı komutlardan önce güvenlik kontrolleri (isteğe bağlı)"
+	},
 	"errors": {
 		"invalid_data_uri": "Geçersiz veri URI formatı",
 		"error_copying_image": "Resim kopyalanırken hata oluştu: {{errorMessage}}",

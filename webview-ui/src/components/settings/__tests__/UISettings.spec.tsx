@@ -1,11 +1,6 @@
 import { render, fireEvent, waitFor } from "@testing-library/react"
 import { describe, it, expect, vi } from "vitest"
 import { UISettings } from "../UISettings"
-import { telemetryClient } from "@/utils/TelemetryClient"
-
-vi.mock("@/utils/TelemetryClient", () => ({
-	telemetryClient: { capture: vi.fn() },
-}))
 
 describe("UISettings", () => {
 	const defaultProps = {
@@ -71,7 +66,6 @@ describe("UISettings", () => {
 			fireEvent.keyDown(slider, { key: "ArrowRight" })
 
 			expect(setCachedStateField).toHaveBeenCalledWith("chatFontSize", 15)
-			expect(telemetryClient.capture).toHaveBeenCalledWith("ui_settings_chat_font_size_changed", { value: 15 })
 		})
 
 		it("disables reset when unset and clears the value on reset", () => {
@@ -89,7 +83,6 @@ describe("UISettings", () => {
 
 			fireEvent.click(resetSet)
 			expect(setCachedStateField).toHaveBeenCalledWith("chatFontSize", undefined)
-			expect(telemetryClient.capture).toHaveBeenCalledWith("ui_settings_chat_font_size_reset")
 		})
 	})
 

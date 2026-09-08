@@ -5,15 +5,6 @@ import { ApiHandlerOptions } from "../../../shared/api"
 import { asyncStreamFrom, collectStream } from "../../../test-utils/stream"
 import { clearAllMocks } from "../../../test-utils/reset"
 
-// Mock TelemetryService
-vitest.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureException: vitest.fn(),
-		},
-	},
-}))
-
 const mockCreate = vitest.fn()
 
 vitest.mock("@anthropic-ai/sdk", () => {

@@ -2,7 +2,6 @@ import * as vscode from "vscode"
 import delay from "delay"
 
 import type { CommandId } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { Package } from "../shared/package"
 import { getCommand } from "../utils/commands"
@@ -103,8 +102,6 @@ const getCommandsMap = ({
 			return
 		}
 
-		TelemetryService.instance.captureTitleButtonClicked("plus")
-
 		await visibleProvider.evictCurrentTask()
 		await visibleProvider.refreshWorkspace()
 		await visibleProvider.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
@@ -112,11 +109,7 @@ const getCommandsMap = ({
 		// This ensures the focus happens after the view has switched
 		await visibleProvider.postMessageToWebview({ type: "action", action: "focusInput" })
 	},
-	popoutButtonClicked: () => {
-		TelemetryService.instance.captureTitleButtonClicked("popout")
-
-		return openClineInNewTab({ context, outputChannel })
-	},
+	popoutButtonClicked: () => openClineInNewTab({ context, outputChannel }),
 	openInNewTab: () => openClineInNewTab({ context, outputChannel }),
 	settingsButtonClicked: () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
@@ -124,8 +117,6 @@ const getCommandsMap = ({
 		if (!visibleProvider) {
 			return
 		}
-
-		TelemetryService.instance.captureTitleButtonClicked("settings")
 
 		void visibleProvider
 			.postMessageToWebview({ type: "action", action: "settingsButtonClicked" })
@@ -141,8 +132,6 @@ const getCommandsMap = ({
 		if (!visibleProvider) {
 			return
 		}
-
-		TelemetryService.instance.captureTitleButtonClicked("history")
 
 		void visibleProvider
 			.postMessageToWebview({ type: "action", action: "historyButtonClicked" })

@@ -1069,11 +1069,6 @@
 			"count": 1
 		}
 	},
-	"core/webview/__tests__/telemetrySettingsTracking.spec.ts": {
-		"@typescript-eslint/no-explicit-any": {
-			"count": 4
-		}
-	},
 	"core/webview/__tests__/webviewMessageHandler.checkpoint.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 5

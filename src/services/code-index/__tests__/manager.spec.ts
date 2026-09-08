@@ -140,15 +140,6 @@ vi.mock("../semble", () => {
 	}
 })
 
-// Mock TelemetryService
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureEvent: vi.fn(),
-		},
-	},
-}))
-
 vi.mock("../service-factory")
 const MockedCodeIndexServiceFactory = CodeIndexServiceFactory as MockedClass<typeof CodeIndexServiceFactory>
 

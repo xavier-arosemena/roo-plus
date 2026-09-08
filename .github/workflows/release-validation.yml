@@ -94,8 +94,6 @@ jobs:
                   echo "::endgroup::"
 
             - name: Bundle extension and verify README sync
-              env:
-                  POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
               run: |
                   echo "::group::[CI:RELEASE-VALIDATION:BUNDLE] Bundling extension + verifying README sync"
                   pnpm --filter ./src bundle --production
@@ -104,8 +102,6 @@ jobs:
                   echo "::endgroup::"
 
             - name: Package extension
-              env:
-                  POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
               run: |
                   echo "::group::[CI:RELEASE-VALIDATION:PACKAGE] Packaging VSIX"
                   package_version=$(node -p "require('./src/package.json').version")

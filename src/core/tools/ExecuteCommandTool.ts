@@ -5,7 +5,6 @@ import * as vscode from "vscode"
 import delay from "delay"
 
 import { CommandExecutionStatus, DEFAULT_TERMINAL_OUTPUT_PREVIEW_SIZE, PersistedCommandOutput } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { Task } from "../task/Task"
 
@@ -26,6 +25,8 @@ import { OutputInterceptor } from "../../integrations/terminal/OutputInterceptor
 import { Package } from "../../shared/package"
 import { t } from "../../i18n"
 import { getTaskDirectoryPath } from "../../utils/storage"
+import { ensureWorkspaceTrusted } from "../../utils/workspaceTrust"
+import { requestDcgDownloadApproval } from "../../services/binary-acquisition/dcg"
 import { BaseTool, ToolCallbacks } from "./BaseTool"
 
 export { ShellIntegrationError } from "../../integrations/terminal/types"
@@ -90,6 +91,15 @@ export class ExecuteCommandTool extends BaseTool<"execute_command"> {
 				return
 			}
 
+			// Workspace-trust gate (Marketplace notice #305, D2): never run a
+			// terminal command in an untrusted workspace. If untrusted, a clear
+			// message is shown and trust is requested; only a trusted workspace
+			// proceeds.
+			if (!(await ensureWorkspaceTrusted())) {
+				pushToolResult(formatResponse.toolError(t("common:workspaceTrust.required")))
+				return
+			}
+
 			const canonicalCommand = unescapeHtmlEntities(command)
 
 			const ignoredFileAttemptedToAccess = task.rooIgnoreController?.validateCommand(canonicalCommand)
@@ -127,7 +137,12 @@ export class ExecuteCommandTool extends BaseTool<"execute_command"> {
 				const { ensureDcgInstalled, runDcg } = await import("../../services/destructive-command-guard")
 				// Resolve through the managed installer on use so an extension update
 				// automatically installs the newly pinned and verified DCG version.
-				const binaryPath = await ensureDcgInstalled(provider.context.globalStorageUri.fsPath)
+				// The download gate enforces workspace trust + an explicit first-use
+				// consent; it only fires when a download is actually required, and a
+				// denial fails closed (the command is not run unguarded).
+				const binaryPath = await ensureDcgInstalled(provider.context.globalStorageUri.fsPath, {
+					onBeforeDownload: () => requestDcgDownloadApproval(provider.context),
+				})
 				if (!binaryPath) {
 					throw new Error(t("common:errors.destructiveCommandGuard.unavailable"))
 				}
@@ -444,7 +459,6 @@ export async function executeCommandInTerminal(
 
 	if (terminalProvider === "vscode") {
 		callbacks.onNoShellIntegration = async (details: ShellIntegrationErrorDetails) => {
-			TelemetryService.instance.captureShellIntegrationError(task.taskId)
 			shellIntegrationError = new ShellIntegrationError(details.message, details.commandSubmitted)
 		}
 	}

@@ -1,13 +1,5 @@
 // npx vitest run api/providers/__tests__/openai-codex.spec.ts
 
-vitest.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureException: vitest.fn(),
-		},
-	},
-}))
-
 import { Anthropic } from "@anthropic-ai/sdk"
 import { OPEN_AI_CODEX_SERVICE_TIER_KEY, OpenAiCodexServiceTier, SERVICE_TIER_KEY } from "@roo-code/types"
 import { OpenAiCodexHandler, transformLunaResponsesLiteBody } from "../openai-codex"

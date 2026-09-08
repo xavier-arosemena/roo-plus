@@ -37,7 +37,6 @@ import {
 	type ClineApiReqCancelReason,
 	type ClineApiReqInfo,
 	RooCodeEventName,
-	TelemetryEventName,
 	TaskStatus,
 	TodoItem,
 	getApiProtocol,
@@ -51,12 +50,10 @@ import {
 	DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 	MAX_CHECKPOINT_TIMEOUT_SECONDS,
 	MIN_CHECKPOINT_TIMEOUT_SECONDS,
-	ConsecutiveMistakeError,
 	MAX_MCP_TOOLS_THRESHOLD,
 	countEnabledMcpTools,
 	providerIdentifiers,
 } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 // api
 import { ApiHandler, ApiHandlerCreateMessageMetadata, buildApiHandler } from "../../api"
@@ -68,6 +65,7 @@ import { findLastIndex } from "../../shared/array"
 import { combineApiRequests } from "../../shared/combineApiRequests"
 import { combineCommandSequences } from "../../shared/combineCommandSequences"
 import { t } from "../../i18n"
+import { isWorkspaceTrusted, ensureWorkspaceTrusted } from "../../utils/workspaceTrust"
 import { getApiMetrics, hasTokenUsageChanged, hasToolUsageChanged } from "../../shared/getApiMetrics"
 import { ClineAskResponse } from "../../shared/WebviewMessage"
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
@@ -140,6 +138,13 @@ const MAX_EXPONENTIAL_BACKOFF_SECONDS = 600 // 10 minutes
 const DEFAULT_USAGE_COLLECTION_TIMEOUT_MS = 5000 // 5 seconds
 const FORCED_CONTEXT_REDUCTION_PERCENT = 75 // Keep 75% of context (remove 25%) on context window errors
 const MAX_CONTEXT_WINDOW_RETRIES = 3 // Maximum retries for context window errors
+
+/**
+ * Ask types whose auto-approval would let a workspace-scoped setting grant a
+ * sensitive operation without an explicit prompt. In an untrusted workspace
+ * these must never auto-approve (Marketplace notice #305, D2/B4).
+ */
+const WORKSPACE_TRUST_SENSITIVE_ASKS = new Set<ClineAsk>(["command", "tool", "use_mcp_server"])
 
 export interface TaskOptions extends CreateTaskOptions {
 	provider: ClineProvider
@@ -547,14 +552,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			this._taskApiConfigName = historyItem.apiConfigName
 			this.taskModeReady = Promise.resolve()
 			this.taskApiConfigReady = Promise.resolve()
-			TelemetryService.instance.captureTaskRestarted(this.taskId)
 		} else {
 			// For new tasks, don't set the mode/apiConfigName yet - wait for async initialization.
 			this._taskMode = undefined
 			this._taskApiConfigName = undefined
 			this.taskModeReady = this.initializeTaskMode(provider)
 			this.taskApiConfigReady = this.initializeTaskApiConfigName(provider)
-			TelemetryService.instance.captureTaskCreated(this.taskId)
 		}
 
 		this.assistantMessageParser = undefined
@@ -1146,6 +1149,18 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		const provider = this.providerRef.deref()
 		const state = provider ? await provider.getState() : undefined
 		const approval = await checkAutoApproval({ state, ask: type, text, isProtected })
+
+		// Workspace-trust hardening (D2/B4): never let a workspace-scoped
+		// setting auto-approve a sensitive operation in an untrusted workspace.
+		// When untrusted we request trust first; if the user declines, the ask
+		// is denied so the operation cannot run without an explicit decision.
+		if (approval.decision === "approve" && !isWorkspaceTrusted() && WORKSPACE_TRUST_SENSITIVE_ASKS.has(type)) {
+			const trusted = await ensureWorkspaceTrusted()
+			if (!trusted) {
+				return { response: "noButtonClicked" }
+			}
+		}
+
 		const isAutoAnswered = approval.decision === "approve" || approval.decision === "deny"
 		const autoApprovalDecision = isAutoAnswered ? approval.decision : undefined
 
@@ -2495,22 +2510,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			}
 
 			if (this.consecutiveMistakeLimit > 0 && this.consecutiveMistakeCount >= this.consecutiveMistakeLimit) {
-				// Track consecutive mistake errors in telemetry via event and PostHog exception tracking.
 				// The reason is "no_tools_used" because this limit is reached via initiateTaskLoop
 				// which increments consecutiveMistakeCount when the model doesn't use any tools.
-				TelemetryService.instance.captureConsecutiveMistakeError(this.taskId)
-				TelemetryService.instance.captureException(
-					new ConsecutiveMistakeError(
-						`Task reached consecutive mistake limit (${this.consecutiveMistakeLimit})`,
-						this.taskId,
-						this.consecutiveMistakeCount,
-						this.consecutiveMistakeLimit,
-						"no_tools_used",
-						this.apiConfiguration.apiProvider,
-						getModelId(this.apiConfiguration),
-					),
-				)
-
 				const { response, text, images } = await this.ask(
 					"mistake_limit_reached",
 					t("common:errors.mistake_limit_guidance"),
@@ -3070,7 +3071,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						let bgCacheReadTokens = currentTokens.cacheRead
 						let bgTotalCost = currentTokens.total
 
-						// Helper function to capture telemetry and update messages
+						// Helper function to record usage data and update messages
 						const captureUsageData = async (
 							tokens: {
 								input: number
@@ -3104,40 +3105,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								if (apiReqMessage) {
 									await this.updateClineMessage(apiReqMessage)
 								}
-
-								// Capture telemetry with provider-aware cost calculation
-								const modelId = getModelId(this.apiConfiguration)
-								const apiProvider = this.apiConfiguration.apiProvider
-								const apiProtocol = getApiProtocol(
-									apiProvider && !isRetiredProvider(apiProvider) ? apiProvider : undefined,
-									modelId,
-								)
-
-								// Use the appropriate cost function based on the API protocol
-								const costResult =
-									apiProtocol === "anthropic"
-										? calculateApiCostAnthropic(
-												streamModelInfo,
-												tokens.input,
-												tokens.output,
-												tokens.cacheWrite,
-												tokens.cacheRead,
-											)
-										: calculateApiCostOpenAI(
-												streamModelInfo,
-												tokens.input,
-												tokens.output,
-												tokens.cacheWrite,
-												tokens.cacheRead,
-											)
-
-								TelemetryService.instance.captureLlmCompletion(this.taskId, {
-									inputTokens: costResult.totalInputTokens,
-									outputTokens: costResult.totalOutputTokens,
-									cacheWriteTokens: tokens.cacheWrite,
-									cacheReadTokens: tokens.cacheRead,
-									cost: tokens.total ?? costResult.totalCost,
-								})
 							}
 						}
 
@@ -4735,15 +4702,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 
 		// Advance the baseline before emitting so a synchronous throw from an
-		// EventEmitter listener or TelemetryService client cannot leave the baseline
-		// behind the running totals, which would cause the same delta to re-appear
-		// on the next flush. The delta values are already captured in locals above.
+		// EventEmitter listener cannot leave the baseline behind the running totals,
+		// which would cause the same delta to re-appear on the next flush. The delta
+		// values are already captured in locals above.
 		this.telemetryToolUsageBaseline = JSON.parse(JSON.stringify(this.toolUsage))
 		this.telemetryMessageCountsBaseline = { ...this.messageCounts }
 		this.lastTelemetryFlushAt = Date.now()
 
 		this.emitFinalTokenUsageUpdate()
-		TelemetryService.instance.captureTaskCompleted(this.taskId, toolUsageDelta, messageCountDelta, reason)
 	}
 
 	startIdleTelemetryCheck(): void {

@@ -10,7 +10,6 @@ import {
 	providerSettingsEntrySchema,
 	providerSettingsSchema,
 } from "./provider-settings.js"
-import { telemetrySettingsSchema } from "./telemetry.js"
 import { toolNamesSchema } from "./tool.js"
 import { type Keys } from "./type-fu.js"
 import { languagesSchema } from "./vscode.js"
@@ -223,8 +222,6 @@ export const globalSettingsSchema = z.object({
 	codebaseIndexConfig: codebaseIndexConfigSchema.optional(),
 
 	language: languagesSchema.optional(),
-
-	telemetrySetting: telemetrySettingsSchema.optional(),
 
 	mcpEnabled: z.boolean().optional(),
 

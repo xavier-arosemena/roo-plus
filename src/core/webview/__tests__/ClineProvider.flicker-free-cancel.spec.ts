@@ -96,16 +96,6 @@ vi.mock("../../../utils/path", () => ({
 	getWorkspacePath: vi.fn().mockReturnValue("/test/workspace"),
 }))
 
-// Mock TelemetryService
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			setProvider: vi.fn(),
-			captureTaskCreated: vi.fn(),
-		},
-	},
-}))
-
 vi.mock("../../../shared/embeddingModels", () => ({
 	EMBEDDING_MODEL_PROFILES: [],
 }))

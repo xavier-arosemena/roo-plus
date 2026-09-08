@@ -2,8 +2,6 @@ import { memo, ReactNode, useEffect, useState, useRef } from "react"
 import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
-import { telemetryClient } from "@src/utils/TelemetryClient"
-import { TelemetryEventName } from "@roo-code/types"
 
 interface DismissibleUpsellProps {
 	/** Required unique identifier for this upsell */
@@ -81,11 +79,6 @@ const DismissibleUpsell = memo(
 		}, [upsellId])
 
 		const handleDismiss = () => {
-			// Track telemetry for dismissal
-			telemetryClient.capture(TelemetryEventName.UPSELL_DISMISSED, {
-				upsellId: upsellId,
-			})
-
 			// First notify the extension to persist the dismissal
 			// This ensures the message is sent even if the component unmounts quickly
 			vscode.postMessage({
@@ -143,13 +136,6 @@ const DismissibleUpsell = memo(
 			<div
 				className={containerClasses}
 				onClick={() => {
-					// Track telemetry for click
-					if (onClick) {
-						telemetryClient.capture(TelemetryEventName.UPSELL_CLICKED, {
-							upsellId: upsellId,
-						})
-					}
-
 					// Call the onClick handler if provided
 					onClick?.()
 					// Also dismiss if dismissOnClick is true

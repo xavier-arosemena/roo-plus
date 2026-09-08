@@ -5,14 +5,12 @@ import { getModelsFromCache } from "../fetchers/modelCache"
 
 import { clearAllMocks } from "../../../test-utils/reset"
 
-const { mockStreamText, mockGenerateText, mockCreatePoe, mockGetModelsFromCache, mockCaptureException } =
-	vitest.hoisted(() => ({
-		mockStreamText: vitest.fn(),
-		mockGenerateText: vitest.fn(),
-		mockCreatePoe: vitest.fn(),
-		mockCaptureException: vitest.fn(),
-		mockGetModelsFromCache: vitest.fn(),
-	}))
+const { mockStreamText, mockGenerateText, mockCreatePoe, mockGetModelsFromCache } = vitest.hoisted(() => ({
+	mockStreamText: vitest.fn(),
+	mockGenerateText: vitest.fn(),
+	mockCreatePoe: vitest.fn(),
+	mockGetModelsFromCache: vitest.fn(),
+}))
 
 const cachedModels = {
 	"anthropic/claude-sonnet-4": {
@@ -42,14 +40,6 @@ const cachedModels = {
 		outputPrice: 40,
 	},
 }
-
-vitest.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureException: (...args: unknown[]) => mockCaptureException(...args),
-		},
-	},
-}))
 
 vitest.mock("ai-sdk-provider-poe", () => ({
 	createPoe: (...args: unknown[]) => mockCreatePoe(...args),
@@ -204,13 +194,6 @@ describe("PoeHandler", () => {
 			await expect(
 				handler.createMessage("system", [{ role: "user" as const, content: "hello" }]).next(),
 			).rejects.toThrow("Poe completion error: request failed")
-			expect(mockCaptureException).toHaveBeenCalledWith(
-				expect.objectContaining({
-					provider: providerIdentifiers.poe,
-					modelId: "openai/gpt-4o",
-					operation: "createMessage",
-				}),
-			)
 		})
 
 		it("reports asynchronous stream failures with the canonical provider identifier", async () => {
@@ -229,13 +212,6 @@ describe("PoeHandler", () => {
 			await expect(
 				handler.createMessage("system", [{ role: "user" as const, content: "hello" }]).next(),
 			).rejects.toThrow("Poe streaming error: stream failed")
-			expect(mockCaptureException).toHaveBeenCalledWith(
-				expect.objectContaining({
-					provider: providerIdentifiers.poe,
-					modelId: "openai/gpt-4o",
-					operation: "createMessage",
-				}),
-			)
 		})
 	})
 
@@ -389,13 +365,6 @@ describe("PoeHandler", () => {
 
 			await expect(handler.completePrompt("complete this")).rejects.toThrow(
 				"Poe completion error: generation failed",
-			)
-			expect(mockCaptureException).toHaveBeenCalledWith(
-				expect.objectContaining({
-					provider: providerIdentifiers.poe,
-					modelId: "openai/gpt-4o",
-					operation: "completePrompt",
-				}),
 			)
 		})
 	})

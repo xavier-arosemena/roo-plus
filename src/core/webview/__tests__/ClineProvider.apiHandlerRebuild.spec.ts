@@ -2,7 +2,6 @@
 
 import * as vscode from "vscode"
 
-import { TelemetryService } from "@roo-code/telemetry"
 import { getModelId, RooCodeEventName } from "@roo-code/types"
 
 import { ContextProxy } from "../../config/ContextProxy"
@@ -137,10 +136,6 @@ describe("ClineProvider - API Handler Rebuild Guard", () => {
 
 	beforeEach(async () => {
 		vi.clearAllMocks()
-
-		if (!TelemetryService.hasInstance()) {
-			TelemetryService.createInstance([])
-		}
 
 		const globalState: Record<string, any> = {
 			mode: "code",

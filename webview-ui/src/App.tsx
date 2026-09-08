@@ -2,13 +2,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useEvent } from "react-use"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
-import { type ExtensionMessage, TelemetryEventName, parseExtensionMessage } from "@roo-code/types"
+import { type ExtensionMessage, parseExtensionMessage } from "@roo-code/types"
 
 import TranslationProvider from "./i18n/TranslationContext"
 import { MarketplaceViewStateManager } from "./components/marketplace/MarketplaceViewStateManager"
 
 import { vscode } from "./utils/vscode"
-import { telemetryClient } from "./utils/TelemetryClient"
 import { initializeSourceMaps, exposeSourceMapsForDebugging } from "./utils/sourceMapInitializer"
 import { ExtensionStateContextProvider, useExtensionState } from "./context/ExtensionStateContext"
 import ChatView, { ChatViewRef } from "./components/chat/ChatView"
@@ -51,17 +50,8 @@ const tabsByMessageAction: Partial<Record<NonNullable<ExtensionMessage["action"]
 }
 
 const App = () => {
-	const {
-		didHydrateState,
-		showWelcome,
-		settingsImportedAt,
-		shouldShowAnnouncement,
-		telemetrySetting,
-		telemetryKey,
-		machineId,
-		renderContext,
-		mdmCompliant,
-	} = useExtensionState()
+	const { didHydrateState, showWelcome, settingsImportedAt, shouldShowAnnouncement, renderContext, mdmCompliant } =
+		useExtensionState()
 
 	// Create a persistent state manager
 	const marketplaceStateManager = useMemo(() => new MarketplaceViewStateManager(), [])
@@ -212,12 +202,6 @@ const App = () => {
 		}
 	}
 
-	useEffect(() => {
-		if (didHydrateState) {
-			telemetryClient.updateTelemetryState(telemetrySetting, telemetryKey, machineId)
-		}
-	}, [telemetrySetting, telemetryKey, machineId, didHydrateState])
-
 	// Tell the extension that we are ready to receive messages.
 	useEffect(() => vscode.postMessage({ type: "webviewDidLaunch" }), [])
 
@@ -244,13 +228,6 @@ const App = () => {
 			}
 		}, [renderContext]),
 	)
-	// Track marketplace tab views
-	useEffect(() => {
-		if (tab === "marketplace") {
-			telemetryClient.capture(TelemetryEventName.MARKETPLACE_TAB_VIEWED)
-		}
-	}, [tab])
-
 	if (!didHydrateState) {
 		return null
 	}

@@ -19,6 +19,18 @@
 		"delete_config_profile": "Apakah kamu yakin ingin menghapus profil konfigurasi ini?",
 		"delete_custom_mode_with_rules": "Anda yakin ingin menghapus mode {scope} ini?\n\nIni juga akan menghapus folder aturan terkait di:\n{rulesFolderPath}"
 	},
+	"workspaceTrust": {
+		"message": "Roo+ perlu mempercayai ruang kerja ini sebelum dapat bertindak. Dengan mempercayainya, Roo+ dapat menjalankan perintah shell, membaca dan menulis file (termasuk di luar ruang kerja ini), dan mengunduh komponen bantu pada penggunaan pertama.",
+		"required": "Tindakan ini memerlukan ruang kerja tepercaya. Percayai ruang kerja lalu coba lagi."
+	},
+	"binaryConsent": {
+		"prompt": "Roo+ ingin mengunduh dan menjalankan komponen bantu pihak ketiga:\n\nKomponen: {{name}}\nVersi: {{version}}\nSumber: {{source}}\nSHA-256: {{sha256}}\nUkuran kira-kira: {{size}}\nTujuan: {{purpose}}\n\nKomponen ini dikembangkan dan dikelola di luar kode sumber Roo+ itu sendiri. Komponen hanya diunduh setelah Anda menyetujui, dan checksum-nya diverifikasi sebelum dijalankan.",
+		"allowOnce": "Izinkan sekali",
+		"alwaysAllow": "Selalu izinkan",
+		"deny": "Tolak",
+		"semblePurpose": "pencarian dan pengindeksan kode di ruang kerja Anda",
+		"dcgPurpose": "pemeriksaan keamanan sebelum perintah destruktif (opsional)"
+	},
 	"errors": {
 		"invalid_data_uri": "Format data URI tidak valid",
 		"error_copying_image": "Error menyalin gambar: {{errorMessage}}",

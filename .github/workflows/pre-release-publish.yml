@@ -238,7 +238,6 @@ jobs:
       - name: Package pre-release VSIX
         if: steps.release-check.outputs.skip != 'true'
         env:
-          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
           PKG_RELEASE_CHANNEL: prerelease
         run: |
           echo "::group::[CI:PRERELEASE:PACKAGE] Packaging pre-release VSIX"

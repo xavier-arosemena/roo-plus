@@ -141,8 +141,6 @@ jobs:
           echo "::endgroup::"
 
       - name: Package extension
-        env:
-          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: |
           echo "::group::[CI:MARKETPLACE:PACKAGE] Packaging VSIX"
           package_version=$(node -p "require('./src/package.json').version")

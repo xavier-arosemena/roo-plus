@@ -1,14 +1,6 @@
 import { CodeParser } from "../parser"
 import { scannerExtensions, shouldUseFallbackChunking } from "../../shared/supported-extensions"
 
-vi.mock("../../../../../packages/telemetry/src/TelemetryService", () => ({
-	TelemetryService: {
-		instance: {
-			captureEvent: vi.fn(),
-		},
-	},
-}))
-
 describe("CodeParser - plain text support", () => {
 	it("supports .txt files through fallback chunking", async () => {
 		expect(scannerExtensions).toContain(".txt")

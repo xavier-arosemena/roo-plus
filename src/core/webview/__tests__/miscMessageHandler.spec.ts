@@ -74,13 +74,6 @@ vi.mock("@roo-code/core", () => ({
 	},
 }))
 
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		hasInstance: vi.fn(() => false),
-		instance: { captureTabShown: vi.fn() },
-	},
-}))
-
 vi.mock("fs/promises", () => ({
 	readFile: vi.fn(),
 	writeFile: vi.fn(),

@@ -19,6 +19,18 @@
 		"delete_config_profile": "Möchtest du dieses Konfigurationsprofil wirklich löschen?",
 		"delete_custom_mode_with_rules": "Bist du sicher, dass du diesen {scope}-Modus löschen möchtest?\n\nDadurch wird auch der zugehörige Regelordner unter folgender Adresse gelöscht:\n{rulesFolderPath}"
 	},
+	"workspaceTrust": {
+		"message": "Roo+ muss diesem Arbeitsbereich vertrauen, bevor es aktiv werden kann. Mit dem Vertrauen kann Roo+ Shell-Befehle ausführen, Dateien lesen und schreiben (auch außerhalb dieses Arbeitsbereichs) und beim ersten Gebrauch Hilfskomponenten herunterladen.",
+		"required": "Diese Aktion erfordert einen vertrauenswürdigen Arbeitsbereich. Vertraue dem Arbeitsbereich und versuche es erneut."
+	},
+	"binaryConsent": {
+		"prompt": "Roo+ möchte eine Hilfskomponente eines Drittanbieters herunterladen und ausführen:\n\nKomponente: {{name}}\nVersion: {{version}}\nQuelle: {{source}}\nSHA-256: {{sha256}}\nUngefähre Größe: {{size}}\nZweck: {{purpose}}\n\nDiese Komponente wird außerhalb des eigenen Quellcodes von Roo+ entwickelt und gepflegt. Sie wird erst nach deiner Freigabe heruntergeladen, und ihre Prüfsumme wird vor der Ausführung verifiziert.",
+		"allowOnce": "Einmal erlauben",
+		"alwaysAllow": "Immer erlauben",
+		"deny": "Ablehnen",
+		"semblePurpose": "Codesuche und -indizierung in deinem Arbeitsbereich",
+		"dcgPurpose": "Sicherheitsprüfungen vor destruktiven Befehlen (optional)"
+	},
 	"errors": {
 		"invalid_data_uri": "Ungültiges Daten-URI-Format",
 		"error_copying_image": "Fehler beim Kopieren des Bildes: {{errorMessage}}",

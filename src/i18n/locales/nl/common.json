@@ -19,6 +19,18 @@
 		"delete_config_profile": "Weet je zeker dat je dit configuratieprofiel wilt verwijderen?",
 		"delete_custom_mode_with_rules": "Weet je zeker dat je deze {scope}-modus wilt verwijderen?\n\nDit verwijdert ook de bijbehorende regelsmap op:\n{rulesFolderPath}"
 	},
+	"workspaceTrust": {
+		"message": "Roo+ moet deze werkruimte vertrouwen voordat het actie kan ondernemen. Door te vertrouwen kan Roo+ shell-opdrachten uitvoeren, bestanden lezen en schrijven (ook buiten deze werkruimte) en bij het eerste gebruik hulpcomponenten downloaden.",
+		"required": "Deze actie vereist een vertrouwde werkruimte. Vertrouw de werkruimte en probeer het opnieuw."
+	},
+	"binaryConsent": {
+		"prompt": "Roo+ wil een hulpcomponent van derden downloaden en uitvoeren:\n\nComponent: {{name}}\nVersie: {{version}}\nBron: {{source}}\nSHA-256: {{sha256}}\nGeschatte grootte: {{size}}\nDoel: {{purpose}}\n\nDeze component wordt ontwikkeld en onderhouden buiten Roo+'s eigen broncode. Hij wordt alleen gedownload nadat je dit goedkeurt, en de controlesom wordt vóór uitvoering geverifieerd.",
+		"allowOnce": "Eenmaal toestaan",
+		"alwaysAllow": "Altijd toestaan",
+		"deny": "Weigeren",
+		"semblePurpose": "code zoeken en indexeren in je werkruimte",
+		"dcgPurpose": "veiligheidscontroles vóór destructieve opdrachten (optioneel)"
+	},
 	"errors": {
 		"invalid_data_uri": "Ongeldig data-URI-formaat",
 		"error_copying_image": "Fout bij kopiëren van afbeelding: {{errorMessage}}",

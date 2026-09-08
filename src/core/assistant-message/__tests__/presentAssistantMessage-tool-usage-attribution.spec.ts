@@ -17,7 +17,6 @@ vi.mock("../../../shared/modes", async (importOriginal) => {
 })
 // isValidToolName is left as the real implementation (only validateToolUse is
 // mocked): it has its own independent mcp_ prefix carve-out, and a hand-rolled
-// mock allowlist here would mask a regression in toTelemetryToolName's
 // ordering relative to isValidToolName.
 vi.mock("../../tools/validateToolUse", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("../../tools/validateToolUse")>()
@@ -33,18 +32,6 @@ vi.mock("@roo-code/core", () => ({
 		get: vi.fn(),
 	},
 }))
-
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureToolUsage: vi.fn(),
-			captureConsecutiveMistakeError: vi.fn(),
-			captureEvent: vi.fn(),
-		},
-	},
-}))
-
-import { TelemetryService } from "@roo-code/telemetry"
 
 interface MockTask {
 	taskId: string
@@ -147,8 +134,6 @@ describe("presentAssistantMessage - tool usage attribution", () => {
 
 		expect(mockTask.recordToolUsage).toHaveBeenCalledTimes(1)
 		expect(mockTask.recordToolUsage).toHaveBeenCalledWith("read_file")
-		expect(TelemetryService.instance.captureToolUsage).toHaveBeenCalledTimes(1)
-		expect(TelemetryService.instance.captureToolUsage).toHaveBeenCalledWith(mockTask.taskId, "read_file")
 	})
 
 	it("records a valid dynamic mcp_ tool name as use_mcp_tool", async () => {
@@ -166,7 +151,6 @@ describe("presentAssistantMessage - tool usage attribution", () => {
 		await presentAssistantMessage(mockTask as unknown as Task)
 
 		expect(mockTask.recordToolUsage).toHaveBeenCalledWith("use_mcp_tool")
-		expect(TelemetryService.instance.captureToolUsage).toHaveBeenCalledWith(mockTask.taskId, "use_mcp_tool")
 	})
 
 	it("records a malformed mcp_ tool name as use_mcp_tool, not the raw name", async () => {
@@ -271,8 +255,6 @@ describe("presentAssistantMessage - tool usage attribution", () => {
 
 			expect(mockTask.recordToolUsage).toHaveBeenCalledTimes(1)
 			expect(mockTask.recordToolUsage).toHaveBeenCalledWith("use_mcp_tool")
-			expect(TelemetryService.instance.captureToolUsage).toHaveBeenCalledTimes(1)
-			expect(TelemetryService.instance.captureToolUsage).toHaveBeenCalledWith(mockTask.taskId, "use_mcp_tool")
 		})
 
 		it("records no attempt when the MCP server is not on the mode's allow-list", async () => {
@@ -313,7 +295,6 @@ describe("presentAssistantMessage - tool usage attribution", () => {
 			// The server is disallowed, so the call never reaches onValidated:
 			// no success attempt is recorded for a call that was never permitted to execute.
 			expect(mockTask.recordToolUsage).not.toHaveBeenCalled()
-			expect(TelemetryService.instance.captureToolUsage).not.toHaveBeenCalled()
 		})
 	})
 })

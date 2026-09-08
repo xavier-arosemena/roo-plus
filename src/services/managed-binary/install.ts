@@ -15,6 +15,13 @@ export interface ManagedBinaryInstallOptions {
 	verifyArchive: (archivePath: string) => Promise<void>
 	extractArchive: (archivePath: string, stagingDir: string) => Promise<void>
 	validateBinary?: (stagedBinaryPath: string) => Promise<void>
+	/**
+	 * Optional consent gate invoked immediately before an actual download
+	 * starts (only when an install is required — never when an up-to-date
+	 * binary is already present). Return `false` to abort the install; no
+	 * network request is made in that case.
+	 */
+	onBeforeDownload?: () => Promise<boolean>
 	errorPrefix: string
 }
 
@@ -97,6 +104,12 @@ async function installManagedBinary(options: ManagedBinaryInstallOptions): Promi
 	await fs.mkdir(paths.stagingDir, { recursive: true })
 
 	try {
+		if (options.onBeforeDownload) {
+			const approved = await options.onBeforeDownload()
+			if (!approved) {
+				throw new Error("download cancelled by user")
+			}
+		}
 		await options.download(paths.archivePath)
 		await options.verifyArchive(paths.archivePath)
 		await options.extractArchive(paths.archivePath, paths.stagingDir)

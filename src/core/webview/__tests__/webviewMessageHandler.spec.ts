@@ -1325,7 +1325,11 @@ describe("webviewMessageHandler - destructiveCommandGuardEnabled", () => {
 			updatedSettings: { destructiveCommandGuardEnabled: true },
 		})
 
-		expect(ensureDcgInstalled).toHaveBeenCalledWith("/mock/global/storage")
+		// The installer is given a download consent gate (Marketplace #305 D3/3A).
+		expect(ensureDcgInstalled).toHaveBeenCalledWith(
+			"/mock/global/storage",
+			expect.objectContaining({ onBeforeDownload: expect.any(Function) }),
+		)
 		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("destructiveCommandGuardEnabled", true)
 		expect(vscode.window.showErrorMessage).not.toHaveBeenCalled()
 	})
@@ -2563,7 +2567,6 @@ describe("webviewMessageHandler - chat domain (S1 sub-task 11)", () => {
 		const enhanceSpy = vi
 			.spyOn(MessageEnhancer, "enhanceMessage")
 			.mockResolvedValue({ success: true, enhancedText: "Enhanced!" })
-		const telemetrySpy = vi.spyOn(MessageEnhancer, "captureTelemetry").mockImplementation(() => {})
 
 		try {
 			await webviewMessageHandler(mockClineProvider, { type: "enhancePrompt", text: "Write a test" })
@@ -2575,7 +2578,6 @@ describe("webviewMessageHandler - chat domain (S1 sub-task 11)", () => {
 			})
 		} finally {
 			enhanceSpy.mockRestore()
-			telemetrySpy.mockRestore()
 		}
 	})
 })

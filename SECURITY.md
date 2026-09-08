@@ -99,6 +99,75 @@ The repository runs an automated security toolchain on every change:
 - **Automated alert triage** — high/critical alerts are surfaced as tracked
   issues for manual remediation
 
+## Reproducibility & Binary Provenance
+
+The published VSIX is a **clean build of this repository with no build-time
+secrets and no analytics/telemetry endpoints**. `POSTHOG_API_KEY` (and any
+other endpoint key) is **not** injected by any build or packaging step; the
+webview and `dist/` bundles contain no PostHog client, no `machineId`, and no
+analytics `ingest`/`collect`/`track` endpoint.
+
+### Verify the published VSIX matches this repo
+
+From a clean checkout at the tagged release commit:
+
+```bash
+# 1. Deterministic install (frozen lockfile) then a clean build + package.
+pnpm install --frozen-lockfile
+pnpm clean
+cd src && pnpm exec vsce package --no-dependencies --out ../bin
+# Equivalent one-shot script: `pnpm vsix` (root) — runs the same chain.
+```
+
+`vsce package` runs `vscode:prepublish`, which rebuilds the shared types, the
+webview (`webview-ui` → `src/webview-ui/build`), and the extension bundle
+(`src/esbuild.mjs --production`). The expected artifact for the current line
+is `bin/roo-plus-3.87.3.vsix` — ~**34.19 MB / 1,934 files** (measured
+2026-09-04; local SHA-256 `a31a4cda36c3ae8cdf81d9fd758f50450edc396fa4892909d03e6e14611dc501`).
+
+> **Byte-for-byte reproducibility caveat:** the bundle ships source maps whose
+> content may embed build-machine absolute paths and timestamps, so two builds
+> on different machines may not be byte-identical. Verify by (a) rebuilding
+> from the same pinned `custom-modes` submodule + release commit, and
+> (b) re-running the content checks below — not by comparing raw bytes alone.
+
+Then confirm the artifact has no hidden collector:
+
+```bash
+unzip -q bin/roo-plus-3.87.3.vsix -d /tmp/vsix-inspect
+grep -rliE 'posthog|POSTHOG_API_KEY|machineId|captureEvent|phc_' \
+  /tmp/vsix-inspect/extension --exclude='*.map'   # expect: no output
+# No analytics endpoint should appear in shipped JS:
+grep -rhoE 'https://[a-zA-Z0-9._/-]*(ingest|collect|track|analytics|telemetry)[a-zA-Z0-9._/?=&-]*' \
+  /tmp/vsix-inspect/extension/dist /tmp/vsix-inspect/extension/webview-ui --include='*.js'  # expect: no output
+```
+
+The packaged `extension/package.json` must declare
+`capabilities.untrustedWorkspaces.supported: false` and no telemetry fields.
+Source maps, locale files, icons and WAsMs are intentionally included; `.env`,
+`node_modules/`, `coverage/`, tests, and TypeScript sources are excluded via
+[`src/.vscodeignore`](src/.vscodeignore).
+
+### Runtime-acquired binaries are NOT part of the published source
+
+Roo+ downloads and runs two **externally-authored** helper binaries at first
+use after an explicit, workspace-trusted consent prompt. They are not bundled
+in the VSIX and are not Roo+ source — full authorship/provenance:
+
+- **Semble** (code search) — upstream [`MinishLab/semble`](https://github.com/MinishLab/semble)
+  (MIT, Thomas van Dongen); Roo+-controlled packaging repo
+  [`Audare-est-Facere/sembleexec`](https://github.com/Audare-est-Facere/sembleexec),
+  pinned `v0.5.2`, checksums + consent metadata — see
+  [`docs/SEMBLE-RELEASE-GOVERNANCE.md`](docs/SEMBLE-RELEASE-GOVERNANCE.md).
+- **DCG** (destructive command guard) — upstream
+  [`Dicklesworthstone/destructive_command_guard`](https://github.com/Dicklesworthstone/destructive_command_guard)
+  ("MIT License with OpenAI/Anthropic Rider", Jeffrey Emanuel), pinned
+  `v0.7.7` — see [`docs/DCG-RELEASE-GOVERNANCE.md`](docs/DCG-RELEASE-GOVERNANCE.md).
+
+Both are SHA-256 verified after download and only ever run in a trusted
+workspace after explicit user approval (see
+[`src/services/binary-acquisition/`](src/services/binary-acquisition)).
+
 ## Questions
 
 For general security questions that are **not** vulnerability reports, open a

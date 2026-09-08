@@ -1,13 +1,3 @@
-// Mock TelemetryService - must come before other imports
-const mockCaptureException = vi.hoisted(() => vi.fn())
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureException: mockCaptureException,
-		},
-	},
-}))
-
 // Mock BedrockRuntimeClient and commands
 const mockSend = vi.fn()
 
@@ -41,7 +31,6 @@ describe("AwsBedrockHandler Error Handling", () => {
 
 	beforeEach(() => {
 		clearAllMocks()
-		mockCaptureException.mockClear()
 		handler = new AwsBedrockHandler({
 			apiModelId: "anthropic.claude-3-5-sonnet-20241022-v2:0",
 			awsAccessKey: "test-access-key",

@@ -19,6 +19,18 @@
 		"delete_config_profile": "이 구성 프로필을 삭제하시겠습니까?",
 		"delete_custom_mode_with_rules": "이 {scope} 모드를 삭제하시겠습니까?\n\n이렇게 하면 연결된 규칙 폴더도 다음 위치에서 삭제됩니다:\n{rulesFolderPath}"
 	},
+	"workspaceTrust": {
+		"message": "Roo+는 작업을 시작하기 전에 이 작업 영역을 신뢰해야 합니다. 신뢰하면 Roo+가 셸 명령 실행, 파일 읽기·쓰기(이 작업 영역 밖 포함), 첫 사용 시 도우미 구성 요소 다운로드를 수행할 수 있습니다.",
+		"required": "이 작업에는 신뢰할 수 있는 작업 영역이 필요합니다. 작업 영역을 신뢰한 후 다시 시도하세요."
+	},
+	"binaryConsent": {
+		"prompt": "Roo+가 타사 도우미 구성 요소를 다운로드하여 실행하려고 합니다:\n\n구성 요소: {{name}}\n버전: {{version}}\n출처: {{source}}\nSHA-256: {{sha256}}\n대략적 크기: {{size}}\n용도: {{purpose}}\n\n이 구성 요소는 Roo+ 자체 소스 코드 외부에서 개발·유지관리됩니다. 승인 후에만 다운로드되며, 실행 전에 체크섬이 검증됩니다.",
+		"allowOnce": "한 번만 허용",
+		"alwaysAllow": "항상 허용",
+		"deny": "거부",
+		"semblePurpose": "작업 영역의 코드 검색 및 인덱싱",
+		"dcgPurpose": "파괴적인 명령 전 안전 검사(선택 사항)"
+	},
 	"errors": {
 		"invalid_data_uri": "잘못된 데이터 URI 형식",
 		"error_copying_image": "이미지 복사 중 오류 발생: {{errorMessage}}",
