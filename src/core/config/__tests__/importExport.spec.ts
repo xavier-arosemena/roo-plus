@@ -1190,7 +1190,6 @@ describe("importExport", () => {
 						customInstructions: "Keep this setting",
 						autoApprovalEnabled: true,
 						requestDelaySeconds: "slow",
-						telemetrySetting: "maybe",
 					},
 				})
 
@@ -1211,10 +1210,7 @@ describe("importExport", () => {
 
 				expect(result.success).toBe(true)
 				expect((result as { warnings?: string[] }).warnings).toEqual(
-					expect.arrayContaining([
-						expect.stringContaining("globalSettings.requestDelaySeconds"),
-						expect.stringContaining("globalSettings.telemetrySetting"),
-					]),
+					expect.arrayContaining([expect.stringContaining("globalSettings.requestDelaySeconds")]),
 				)
 
 				const importedGlobalSettings = mockContextProxy.setValues.mock.calls[0][0]

@@ -283,44 +283,39 @@ export class OpenRouterEmbedder implements IEmbedder {
 	 */
 	async validateConfiguration(): Promise<{ valid: boolean; error?: string }> {
 		return withValidationErrorHandling(async () => {
-			try {
-				// Test with a minimal embedding request
-				const testTexts = ["test"]
-				const modelToUse = this.defaultModelId
+			// Test with a minimal embedding request
+			const testTexts = ["test"]
+			const modelToUse = this.defaultModelId
 
-				// Build the request parameters
-				const requestParams: any = {
-					input: testTexts,
-					model: modelToUse,
-					encoding_format: "base64",
-				}
-
-				// Add provider routing if a specific provider is set
-				if (this.specificProvider) {
-					requestParams.provider = {
-						order: [this.specificProvider],
-						only: [this.specificProvider],
-						allow_fallbacks: false,
-					}
-				}
-
-				const response = (await this.embeddingsClient.embeddings.create(
-					requestParams,
-				)) as OpenRouterEmbeddingResponse
-
-				// Check if we got a valid response
-				if (!response?.data || response.data.length === 0) {
-					return {
-						valid: false,
-						error: "embeddings:validation.invalidResponse",
-					}
-				}
-
-				return { valid: true }
-			} catch (error) {
-				// Capture telemetry for validation errors
-				throw error
+			// Build the request parameters
+			const requestParams: any = {
+				input: testTexts,
+				model: modelToUse,
+				encoding_format: "base64",
 			}
+
+			// Add provider routing if a specific provider is set
+			if (this.specificProvider) {
+				requestParams.provider = {
+					order: [this.specificProvider],
+					only: [this.specificProvider],
+					allow_fallbacks: false,
+				}
+			}
+
+			const response = (await this.embeddingsClient.embeddings.create(
+				requestParams,
+			)) as OpenRouterEmbeddingResponse
+
+			// Check if we got a valid response
+			if (!response?.data || response.data.length === 0) {
+				return {
+					valid: false,
+					error: "embeddings:validation.invalidResponse",
+				}
+			}
+
+			return { valid: true }
 		}, "openrouter")
 	}
 

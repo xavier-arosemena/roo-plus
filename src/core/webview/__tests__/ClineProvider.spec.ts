@@ -706,6 +706,16 @@ describe("ClineProvider", () => {
 			expect(scriptSrc).toContain("http://localhost:5173")
 			expect(scriptSrc).toContain("http://0.0.0.0:5173")
 			expect(scriptSrc).toContain("'nonce-")
+
+			// The bare https://* wildcard must not appear in connect-src either;
+			// only the webview source, the configured router domain, and the local
+			// Vite origins may be contacted (security regression from #305).
+			const connectSrcMatch = html.match(/connect-src[^";]*/)
+			expect(connectSrcMatch).not.toBeNull()
+			const connectSrc = connectSrcMatch![0]
+			expect(connectSrc).not.toMatch(/https:\/\/\*(?!\.)/)
+			expect(connectSrc).toContain("http://localhost:5173")
+			expect(connectSrc).toContain("http://0.0.0.0:5173")
 		})
 
 		test("falls back to production HTML when /@vite/client is unreachable", async () => {

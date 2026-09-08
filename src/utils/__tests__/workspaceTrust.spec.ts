@@ -60,7 +60,16 @@ describe("workspaceTrust", () => {
 			expect(isWorkspaceTrusted()).toBe(true)
 		})
 
-		it("treats an undefined trust state as trusted (no explicit untrusted workspace)", () => {
+		// REVIEWED CONTRACT (DEBT.md #27): an unresolved (`undefined`) trust state
+		// — no workspace open, trust not yet resolved, or a host with no trust API
+		// (CLI vscode-shim, unit tests) — is treated as trusted BY DESIGN. Only a
+		// resolved `false` denotes an untrusted workspace; for this extension
+		// (`capabilities.untrustedWorkspaces.supported: false`) `undefined` can
+		// never mean "restricted but running". Hardening this would regress the
+		// headless CLI and this test host, which run without a trust API. This is
+		// a reviewed decision, not an accident — do not "fix" it without first
+		// updating the manifest/shims per DEBT.md #27.
+		it("treats an undefined trust state as trusted (reviewed contract, no explicit untrusted workspace)", () => {
 			trustState.isTrusted = undefined
 			expect(isWorkspaceTrusted()).toBe(true)
 		})
@@ -104,6 +113,17 @@ describe("workspaceTrust", () => {
 	describe("ensureWorkspaceTrusted", () => {
 		it("proceeds immediately when the workspace is already trusted", async () => {
 			trustState.isTrusted = true
+			await expect(ensureWorkspaceTrusted()).resolves.toBe(true)
+			expect(requestFn).not.toHaveBeenCalled()
+		})
+
+		// REVIEWED CONTRACT (DEBT.md #27): the unresolved (`undefined`) trust state
+		// must let the gate proceed without a trust dialog, mirroring
+		// `isWorkspaceTrusted()`. This pins the end-to-end contract so a future
+		// fail-closed change cannot silently land without updating the manifest/
+		// shims (which would break the headless CLI and this test host).
+		it("proceeds without requesting trust when the trust state is unresolved (undefined)", async () => {
+			trustState.isTrusted = undefined
 			await expect(ensureWorkspaceTrusted()).resolves.toBe(true)
 			expect(requestFn).not.toHaveBeenCalled()
 		})

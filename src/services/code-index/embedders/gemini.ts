@@ -67,13 +67,9 @@ export class GeminiEmbedder implements IEmbedder {
 	 * @returns Promise resolving to embedding response
 	 */
 	async createEmbeddings(texts: string[], model?: string): Promise<EmbeddingResponse> {
-		try {
-			// Use the provided model or fall back to the instance's model
-			const modelToUse = model || this.modelId
-			return await this.openAICompatibleEmbedder.createEmbeddings(texts, modelToUse)
-		} catch (error) {
-			throw error
-		}
+		// Use the provided model or fall back to the instance's model
+		const modelToUse = model || this.modelId
+		return await this.openAICompatibleEmbedder.createEmbeddings(texts, modelToUse)
 	}
 
 	/**
@@ -81,13 +77,9 @@ export class GeminiEmbedder implements IEmbedder {
 	 * @returns Promise resolving to validation result with success status and optional error message
 	 */
 	async validateConfiguration(): Promise<{ valid: boolean; error?: string }> {
-		try {
-			// Delegate validation to the OpenAI-compatible embedder
-			// The error messages will be specific to Gemini since we're using Gemini's base URL
-			return await this.openAICompatibleEmbedder.validateConfiguration()
-		} catch (error) {
-			throw error
-		}
+		// Delegate validation to the OpenAI-compatible embedder
+		// The error messages will be specific to Gemini since we're using Gemini's base URL
+		return await this.openAICompatibleEmbedder.validateConfiguration()
 	}
 
 	/**

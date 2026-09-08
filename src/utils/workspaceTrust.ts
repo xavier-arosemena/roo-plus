@@ -5,13 +5,25 @@ import { t } from "../i18n"
 /**
  * i18n key used to explain why Roo+ needs a trusted workspace.
  *
- * The manifest declares `capabilities.untrustedWorkspaces.supported: false`
- * (see src/package.json), which makes VS Code disable this extension in
- * Restricted Mode entirely. The helpers in this module are the in-code
- * defense-in-depth layer for the narrow case where the extension host is
- * active while `vscode.workspace.isTrusted` reports an untrusted workspace
- * (for example a trusted-but-untrusted-folder edge or a development launch),
- * so a workspace can never grant the agent approvals on its own.
+ * Trust model & contract (Marketplace notice #305, D2; decision recorded in
+ * DEBT.md #27):
+ *
+ * - The manifest declares `capabilities.untrustedWorkspaces.supported: false`
+ *   (see src/package.json). VS Code therefore never activates this extension
+ *   in a Restricted (untrusted) workspace — the editor enforces the boundary,
+ *   so any window that runs this code has already been granted trust.
+ * - `vscode.workspace.isTrusted` only ever reads two RESOLVED values in a
+ *   window where this extension can run: `true` (trusted workspace) or
+ *   `false` (a resolved-but-untrusted edge, e.g. a trusted-but-untrusted-
+ *   folder transition or a development launch). These helpers are the in-code
+ *   defense-in-depth layer for that resolved-`false` case, so a workspace can
+ *   never grant the agent approvals on its own.
+ * - `undefined` (trust not yet resolved, no workspace open, or a host with no
+ *   workspace-trust surface — the CLI vscode-shim or unit tests) is treated as
+ *   TRUSTED by reviewed contract: it never represents a restricted-but-active
+ *   workspace (that state is either resolved `false` or the extension is not
+ *   activated), and failing it closed would break the headless CLI and test
+ *   hosts that legitimately run this code without a trust API.
  */
 export const WORKSPACE_TRUST_MESSAGE_KEY = "common:workspaceTrust.message"
 
@@ -35,12 +47,26 @@ function getWorkspaceTrustApi(): WorkspaceTrustApi {
 /**
  * Returns whether the current workspace is trusted.
  *
- * VS Code only resolves `vscode.workspace.isTrusted` once it has decided on
- * workspace trust. When the value is `undefined` (no workspace open, or an
- * environment that never resolved trust — e.g. unit tests) we treat the
- * workspace as trusted so the runtime gate is a no-op; the manifest's
- * `supported: false` declaration remains the authoritative protection for
- * truly Restricted workspaces, where this extension is never activated.
+ * CONTRACT (reviewed — see DEBT.md #27): only a RESOLVED `false`
+ * (`vscode.workspace.isTrusted === false`) is treated as untrusted. A resolved
+ * `true` is trusted, and an `undefined` value — trust not yet resolved, no
+ * workspace open, or a host with no workspace-trust surface (the CLI
+ * vscode-shim, unit tests) — is treated as trusted by design.
+ *
+ * Why `undefined` → true is deliberate, not an accident:
+ * - The manifest's `supported: false` declaration makes VS Code refuse to
+ *   activate this extension in Restricted Mode, so `undefined` can never mean
+ *   "a restricted workspace is running this code". A restricted-but-active
+ *   window is impossible; a resolved untrusted workspace reports `false`,
+ *   which this gate already blocks.
+ * - In every real window where this extension runs, trust has been resolved
+ *   to `true` before any gated operation (activation follows the trust grant),
+ *   and an empty window (no workspace open) is trusted by default
+ *   (`security.workspace.trust.emptyWindow` defaults to `true`).
+ * - Failing `undefined` closed would break the headless CLI (whose vscode-shim
+ *   exposes no `isTrusted`) and the unit-test host, which legitimately run
+ *   these gates without a workspace-trust API. It would therefore regress
+ *   legitimate flows while adding no protection in a real VS Code window.
  */
 export function isWorkspaceTrusted(): boolean {
 	return getWorkspaceTrustApi().isTrusted !== false

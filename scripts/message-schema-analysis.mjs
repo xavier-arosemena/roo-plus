@@ -116,7 +116,6 @@ export const MESSAGE_SCHEMA_BASELINE = [
 	"requestRooModels",
 	"requestRouterModels",
 	"requestVsCodeLmModels",
-	"telemetrySetting",
 	"updatePrompt",
 	"updateVSCodeSetting",
 	// Task domain (S1 sub-task 10)

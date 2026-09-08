@@ -184,26 +184,21 @@ export class OpenAiEmbedder extends OpenAiNativeHandler implements IEmbedder {
 	 */
 	async validateConfiguration(): Promise<{ valid: boolean; error?: string }> {
 		return withValidationErrorHandling(async () => {
-			try {
-				// Test with a minimal embedding request
-				const response = await this.embeddingsClient.embeddings.create({
-					input: ["test"],
-					model: this.defaultModelId,
-				})
+			// Test with a minimal embedding request
+			const response = await this.embeddingsClient.embeddings.create({
+				input: ["test"],
+				model: this.defaultModelId,
+			})
 
-				// Check if we got a valid response
-				if (!response.data || response.data.length === 0) {
-					return {
-						valid: false,
-						error: t("embeddings:openai.invalidResponseFormat"),
-					}
+			// Check if we got a valid response
+			if (!response.data || response.data.length === 0) {
+				return {
+					valid: false,
+					error: t("embeddings:openai.invalidResponseFormat"),
 				}
-
-				return { valid: true }
-			} catch (error) {
-				// Capture telemetry for validation errors
-				throw error
 			}
+
+			return { valid: true }
 		}, "openai")
 	}
 

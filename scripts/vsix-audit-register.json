@@ -1,0 +1,623 @@
+{
+	"schemaVersion": 1,
+	"id": "roo-plus-vsix-audit-register",
+	"description": "Triage register for @trailofbits/vsix-audit findings on the roo-plus VSIX. Every entry is a finding that a maintainer has characterized as by-design (content coincidence, bundled OSS, data/prose/source-map/grammar/WASM bytes, or declared capability). When run on demand (it is NOT wired into any publish pipeline), scripts/vsix-audit.mjs fails closed on any finding NOT listed here, on any severity/count escalation above the recorded baseline, and on degraded coverage (YARA-X unavailable) in a publish context. See SECURITY.md 'Optional on-demand VSIX audit' + DEBT #23.",
+	"auditTool": "@trailofbits/vsix-audit",
+	"toolVersion": "0.3.0",
+	"scan": {
+		"artifact": "roo-plus-3.87.3.vsix",
+		"sha256": "d60a9adbeb3c107b6db3cea494c9a02cee45439766343f96d64392b5e424e514",
+		"scannedAt": "2026-09-08",
+		"coverageDegraded": false,
+		"yaraXVersion": "1.20.0",
+		"note": "Full-coverage baseline (YARA-X present) of the 3.87.3 artifact. Not re-scanned by any pipeline; regenerate this file when a maintainer runs a deliberate on-demand pass and triages new or changed findings."
+	},
+	"policy": {
+		"unregisteredFindings": "fail",
+		"severityEscalation": "fail",
+		"countEscalation": "fail",
+		"degradedCoverageInPublish": "fail"
+	},
+	"entries": [
+		{
+			"rule": "ACTIVATION_STARTUP",
+			"file": "package.json",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "manifest activationEvents include 'onStartupFinished'/'onLanguage' (deliberate for an agent extension registering providers/commands); declared, not hidden"
+		},
+		{
+			"rule": "AST_EVAL_DYNAMIC",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 3,
+			"verdict": "by-design",
+			"reason": "bundled third-party OSS dynamic eval: underscore/lodash template compiler (new Function w/ template source), pdf.js PostScript evaluator, tree-sitter loader (eval of compiled wasm symbol); no decode-to-C2 chain"
+		},
+		{
+			"rule": "AST_FUNCTION_CONSTRUCTOR",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 25,
+			"verdict": "by-design",
+			"reason": "bundled OSS libs legitimately use new Function(...) for template compilation/parser generators/string-eval (underscore templates, pdf.js, acorn/JSON parsers); verified contexts map to OSS libs"
+		},
+		{
+			"rule": "BIDI_OVERRIDE",
+			"file": "webview-ui/build/assets/index.js",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "single index.js occurrence is a KaTeX regex character-range set containing literal U+202A for LaTeX tokenization, not an RTL override in control flow"
+		},
+		{
+			"rule": "CRYPTO_WALLET_DETECTED",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 46,
+			"verdict": "by-design",
+			"reason": "wallet-address regex matched base64 runs in the BPE tokenizer vocab table + base64 WASM payloads (strings like 'Ly8v'/'X19f' are '///'/'___' base64); all knownMalicious:false; extension has no wallet handling"
+		},
+		{
+			"rule": "CRYPTO_WALLET_DETECTED",
+			"file": "dist/workers/countTokens.js",
+			"severity": "high",
+			"count": 46,
+			"verdict": "by-design",
+			"reason": "wallet-address regex matched base64 runs in the BPE tokenizer vocab table + base64 WASM payloads (strings like 'Ly8v'/'X19f' are '///'/'___' base64); all knownMalicious:false; extension has no wallet handling"
+		},
+		{
+			"rule": "CRYPTO_WALLET_DETECTED",
+			"file": "webview-ui/build/assets/wasm-BnjxR4X6.js",
+			"severity": "high",
+			"count": 18,
+			"verdict": "by-design",
+			"reason": "wallet-address regex matched base64 runs in the BPE tokenizer vocab table + base64 WASM payloads (strings like 'Ly8v'/'X19f' are '///'/'___' base64); all knownMalicious:false; extension has no wallet handling"
+		},
+		{
+			"rule": "INVISIBLE_CODE_EXECUTION",
+			"file": "webview-ui/build/assets/index.js",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "emoji variation selectors (U+FE0F) in localized welcome strings adjacent to template literals in the webview bundle; no hidden code execution"
+		},
+		{
+			"rule": "STARTUP_EXECUTION_CHAIN",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "declared onStartupFinished + child-process launch = product's core function (agent executes shell commands), gated by untrustedWorkspaces.supported=false + consent; by-design capability, tracked for transparency"
+		},
+		{
+			"rule": "YARA_C2_JS_Free_Hosting_Jan25",
+			"file": "webview-ui/build/assets/common-lisp-Cv5bFMCO.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "match in a bundled TextMate grammar asset (common-lisp) whose grammar text cites a URL matching a free-hosting pattern; grammar data, not C2"
+		},
+		{
+			"rule": "YARA_C2_JS_Free_Hosting_Jan25",
+			"file": "webview-ui/build/assets/common-lisp-Cv5bFMCO.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "match in a bundled TextMate grammar asset (common-lisp) whose grammar text cites a URL matching a free-hosting pattern; grammar data, not C2"
+		},
+		{
+			"rule": "YARA_C2_JS_Slack_Webhook_Jan25",
+			"file": "assets/marketplace/modes.yml",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "match is YAML custom-mode catalog prose (words 'slack'/'webhook' in mode definitions), not a webhook URL"
+		},
+		{
+			"rule": "YARA_C2_JS_Slack_Webhook_Jan25",
+			"file": "dist/assets/marketplace/modes.yml",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "match is YAML custom-mode catalog prose (words 'slack'/'webhook' in mode definitions), not a webhook URL"
+		},
+		{
+			"rule": "YARA_C2_JS_Telegram_Bot_Jan25",
+			"file": "webview-ui/build/assets/index.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "co-occurrence of generic strings (sendMessage/bot/telegram) in bundled webview (its own typed protocol uses sendMessage; docs mention integrations); no api.telegram.org+exec chain"
+		},
+		{
+			"rule": "YARA_MAL_JS_GlassWorm_Unicode_Stealth_Jan25",
+			"file": "assets/marketplace/modes.yml",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "YAML custom-mode catalog has >50 emoji variation selectors + prose 'eval(' -> rule fires on a non-executable YAML data file"
+		},
+		{
+			"rule": "YARA_MAL_JS_GlassWorm_Unicode_Stealth_Jan25",
+			"file": "dist/assets/marketplace/modes.yml",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "YAML custom-mode catalog has >50 emoji variation selectors + prose 'eval(' -> rule fires on a non-executable YAML data file"
+		},
+		{
+			"rule": "YARA_STEALER_JS_Credential_File_Exfil_Jan25",
+			"file": "changelog.md",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "changelog.md prose mentions credentials/tokens; index.js co-occurrence of .npmrc/.ssh (labels/docs) + readFile/fetch tokens in webview; no credential exfiltration chain"
+		},
+		{
+			"rule": "YARA_STEALER_JS_Credential_File_Exfil_Jan25",
+			"file": "webview-ui/build/assets/index.js",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "changelog.md prose mentions credentials/tokens; index.js co-occurrence of .npmrc/.ssh (labels/docs) + readFile/fetch tokens in webview; no credential exfiltration chain"
+		},
+		{
+			"rule": "YARA_STEALER_JS_Telegram_Exfil_Jan25",
+			"file": "webview-ui/build/assets/index.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "generic-string co-occurrence (sendMessage/readFile/telegram) inside bundled webview; no real Telegram exfil chain"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "assets/marketplace/modes.yml",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/architectureDiagram-T3A2C74G-Dr7FhKso.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/architectureDiagram-T3A2C74G-Dr7FhKso.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/blockDiagram-VBNYF7ZC-mwWOU6VS.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/blockDiagram-VBNYF7ZC-mwWOU6VS.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/c4Diagram-5PPSVZJV-CeQLmXwf.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/c4Diagram-5PPSVZJV-CeQLmXwf.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/chunk-5RXB4S5H-DxSDzmr8.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/chunk-5RXB4S5H-DxSDzmr8.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/chunk-GF5L2VYU-wxHv3cyj.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/chunk-GF5L2VYU-wxHv3cyj.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/chunk-I66GZJ75-8kJJbz3D.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/chunk-JQJVKLGR-5WATElsQ.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/chunk-JQJVKLGR-5WATElsQ.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/chunk-NSK5VX7P-C737wdC7.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/cytoscape.esm-CfNgD-ik.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/cytoscape.esm-CfNgD-ik.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/erDiagram-JOGREHBK-BtrB0bsC.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/erDiagram-JOGREHBK-BtrB0bsC.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/ganttDiagram-PKOTCBZU-DudShQRL.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/ganttDiagram-PKOTCBZU-DudShQRL.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/index.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/ishikawaDiagram-WSZJBQD7-DbvPHVML.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/journeyDiagram-NVQOT4AX-4DZqcRNn.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/journeyDiagram-NVQOT4AX-4DZqcRNn.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/kanban-definition-27J2QSJJ-B6sDJu3p.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/kanban-definition-27J2QSJJ-B6sDJu3p.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mindmap-definition-FAOFIHXS-2BGb5BTt.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mindmap-definition-FAOFIHXS-2BGb5BTt.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/quadrantDiagram-CIZ2JOQS-lwS-rbEI.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/quadrantDiagram-CIZ2JOQS-lwS-rbEI.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/requirementDiagram-LRYGKXZP-UJ4e6pYZ.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/requirementDiagram-LRYGKXZP-UJ4e6pYZ.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/sankeyDiagram-W5VNT64P-DCNr3Mz5.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/sankeyDiagram-W5VNT64P-DCNr3Mz5.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/sequenceDiagram-SI44F4Z6-CLCrK-Kz.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/sequenceDiagram-SI44F4Z6-CLCrK-Kz.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/src-DgGH3qgX.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/timeline-definition-Z64GVDOM-Dfy88bGk.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/timeline-definition-Z64GVDOM-Dfy88bGk.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/vennDiagram-T6HMQDX7-DOwxa6Sb.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/vennDiagram-T6HMQDX7-DOwxa6Sb.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/xychartDiagram-ELKLHX3M-ywk4sIxS.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/xychartDiagram-ELKLHX3M-ywk4sIxS.js.map",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Hex_Escape_Chain_Jan25",
+			"file": "webview-ui/build/assets/index.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "minified escaped strings in the UI bundle (KaTeX/locale escape sequences); SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Indirect_Eval_Jan25",
+			"file": "assets/marketplace/modes.yml",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'indirect eval' heuristic fires on bundled webview libs and YAML mode-catalog prose mentioning eval/evaluation; SUSP heuristic"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Indirect_Eval_Jan25",
+			"file": "assets/marketplace/pre-installed-modes.yml",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'indirect eval' heuristic fires on bundled webview libs and YAML mode-catalog prose mentioning eval/evaluation; SUSP heuristic"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Indirect_Eval_Jan25",
+			"file": "dist/assets/marketplace/modes.yml",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'indirect eval' heuristic fires on bundled webview libs and YAML mode-catalog prose mentioning eval/evaluation; SUSP heuristic"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Indirect_Eval_Jan25",
+			"file": "dist/assets/marketplace/pre-installed-modes.yml",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'indirect eval' heuristic fires on bundled webview libs and YAML mode-catalog prose mentioning eval/evaluation; SUSP heuristic"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Indirect_Eval_Jan25",
+			"file": "webview-ui/build/assets/index.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'indirect eval' heuristic fires on bundled webview libs and YAML mode-catalog prose mentioning eval/evaluation; SUSP heuristic"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Process_Binding_Jan25",
+			"file": "webview-ui/build/assets/graphlib-B8gBHxth.js.map",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "match is inside a .js.map source map embedding OSS graphlib sourcesContent mentioning process.binding('util') (Node<10 shim text); shipped as source map, not executed code"
+		},
+		{
+			"rule": "YARA_SUSP_JS_WebAssembly_Remote_Jan25",
+			"file": "webview-ui/build/assets/index.js",
+			"severity": "low",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "webview loads bundled local WASM (tree-sitter/esbuild wasm assets + base64 wasm loader); no remote fetch; SUSP low"
+		},
+		{
+			"rule": "YARA_SUSP_JS_WebAssembly_Remote_Jan25",
+			"file": "webview-ui/build/assets/wasm-BnjxR4X6.js",
+			"severity": "low",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "webview loads bundled local WASM (tree-sitter/esbuild wasm assets + base64 wasm loader); no remote fetch; SUSP low"
+		},
+		{
+			"rule": "YARA_SUSP_JS_WebAssembly_Remote_Jan25",
+			"file": "webview-ui/build/assets/wasm-BnjxR4X6.js.map",
+			"severity": "low",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "webview loads bundled local WASM (tree-sitter/esbuild wasm assets + base64 wasm loader); no remote fetch; SUSP low"
+		},
+		{
+			"rule": "YARA_SUSP_PS_Bypass_Policy_Jan25",
+			"file": "assets/marketplace/modes.yml",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "YAML mode-catalog prose describing PowerShell '-ExecutionPolicy Bypass' in a security-mode definition (documentation), not an executed PS payload"
+		},
+		{
+			"rule": "YARA_SUSP_PS_Bypass_Policy_Jan25",
+			"file": "dist/assets/marketplace/modes.yml",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "YAML mode-catalog prose describing PowerShell '-ExecutionPolicy Bypass' in a security-mode definition (documentation), not an executed PS payload"
+		}
+	]
+}
