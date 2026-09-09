@@ -43,6 +43,32 @@
 | —   | VSIX packaging: bundle extension-host JS / trim `.vscodeignore` (1740 files)                                                                                                                                                                                                         | release governance |
 | —   | Post-release watch: confirm the `mainThreadStorage` warning disappears after one session, `state` message size < ~200 KB, and zero gray-out events; consider an IPC-payload-size metric (e.g. count of state messages > 256 KB) and a canary auto-reload on webview unresponsiveness | observability      |
 
+## 4a. Interim mitigation (run now, on the LOCAL machine, until the fixed build is installed)
+
+The `mainThreadStorage` blob is persisted in the local VS Codium profile's
+`state.vscdb` (confirmed: no `state.vscdb` exists under `~/.vscodium-server`
+on the remote host, while the warning is emitted by the local renderer's
+mainThreadStorage). Purge it while VS Codium is fully quit:
+
+```bash
+# 1. Quit ALL VSCodium windows first (otherwise in-memory state is re-flushed on exit)
+DB="$HOME/.config/VSCodium/User/globalStorage/state.vscdb"
+cp "$DB" "$DB.bak.$(date +%s)"   # backup
+
+# 2. Inspect what is big (should show the Roo+ taskHistory row)
+sqlite3 "$DB" "SELECT key, length(value) FROM ItemTable WHERE key LIKE '%taskHistory%' OR key LIKE '%roo-plus%' ORDER BY length(value) DESC LIMIT 10;"
+
+# 3. Remove only the Roo+ taskHistory mirror rows
+sqlite3 "$DB" "DELETE FROM ItemTable WHERE key LIKE '%taskHistory%';"
+sqlite3 "$DB" "VACUUM;"
+```
+
+(No `sqlite3` binary? Node 22 has it built-in:
+`node -e 'const{DatabaseSync}=require("node:sqlite");const db=new DatabaseSync(process.env.HOME+"/.config/VSCodium/User/globalStorage/state.vscdb");db.prepare("DELETE FROM ItemTable WHERE key LIKE ?").all("%taskHistory%");'`)
+
+- **Safe:** per-task files on the server (`~/.vscodium-server/data/User/globalStorage/xavier-arosemena.roo-plus/tasks`, 287 tasks / 5.1 GB) are the source of truth and are untouched.
+- **Temporary on v3.87.3:** the installed release re-writes the Memento mirror ~5 s after any task-history change. After purging, install the fixed VSIX (branch `fix/console-warnings-webview-hang`) for the permanent cure — it clears the key on startup and never rewrites it.
+
 ## 5. Detection gaps closed / to add
 
 - Closed: large-state warning now has an owner + fix + regression tests (payload cap + legacy-key clearing).
