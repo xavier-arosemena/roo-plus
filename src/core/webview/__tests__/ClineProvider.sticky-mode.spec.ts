@@ -58,6 +58,18 @@ vi.mock("vscode", () => ({
 // Create a counter for unique task IDs.
 let taskIdCounter = 0
 
+/**
+ * Seeds the file-backed TaskHistoryStore with history items. Replaces the old
+ * pattern of mocking `getGlobalState("taskHistory")`: the globalState mirror was
+ * removed (it duplicated the file store and grew to ~3.5 MB), so the store is
+ * now the only source of truth for history reads (e.g. handleModeSwitch).
+ */
+async function seedTaskHistoryStore(provider: ClineProvider, items: HistoryItem[]): Promise<void> {
+	for (const item of items) {
+		await provider.taskHistoryStore.upsert(item)
+	}
+}
+
 vi.mock("../../task/Task", () => ({
 	Task: vi.fn().mockImplementation(function (options) {
 		return {
@@ -292,8 +304,8 @@ describe("ClineProvider - Sticky Mode", () => {
 			// Get the actual taskId from the mock
 			const taskId = (mockTask as any).taskId || "test-task-id"
 
-			// Mock getGlobalState to return task history
-			vi.spyOn(provider as any, "getGlobalState").mockReturnValue([
+			// Seed the file-backed store (the globalState mirror was removed).
+			await seedTaskHistoryStore(provider, [
 				{
 					id: taskId,
 					ts: Date.now(),
@@ -345,8 +357,8 @@ describe("ClineProvider - Sticky Mode", () => {
 			// Add task to provider stack
 			await provider.addClineToStack(mockTask as any)
 
-			// Mock getGlobalState to return task history
-			vi.spyOn(provider as any, "getGlobalState").mockReturnValue([
+			// Seed the file-backed store (the globalState mirror was removed).
+			await seedTaskHistoryStore(provider, [
 				{
 					id: mockTask.taskId,
 					ts: Date.now(),
@@ -385,8 +397,8 @@ describe("ClineProvider - Sticky Mode", () => {
 			// Get the actual taskId from the mock
 			const taskId = (mockTask as any).taskId || "test-task-id"
 
-			// Mock getGlobalState to return task history
-			vi.spyOn(provider as any, "getGlobalState").mockReturnValue([
+			// Seed the file-backed store (the globalState mirror was removed).
+			await seedTaskHistoryStore(provider, [
 				{
 					id: taskId,
 					ts: Date.now(),
@@ -508,8 +520,8 @@ describe("ClineProvider - Sticky Mode", () => {
 			// Get the actual taskId from the mock
 			const taskId = (mockTask as any).taskId || "test-task-id"
 
-			// Mock getGlobalState to return task history with our task
-			vi.spyOn(provider as any, "getGlobalState").mockReturnValue([
+			// Seed the file-backed store (the globalState mirror was removed).
+			await seedTaskHistoryStore(provider, [
 				{
 					id: taskId,
 					ts: Date.now(),
@@ -566,26 +578,8 @@ describe("ClineProvider - Sticky Mode", () => {
 				[parentTaskId]: "architect", // Parent starts with architect mode
 			}
 
-			// Mock getGlobalState to return task history
-			const getGlobalStateMock = vi.spyOn(provider as any, "getGlobalState")
-			getGlobalStateMock.mockImplementation((key) => {
-				if (key === "taskHistory") {
-					return Object.entries(taskModes).map(([id, mode]) => ({
-						id,
-						ts: Date.now(),
-						task: `Task ${id}`,
-						number: 1,
-						tokensIn: 0,
-						tokensOut: 0,
-						cacheWrites: 0,
-						cacheReads: 0,
-						totalCost: 0,
-						mode,
-					}))
-				}
-				// Return empty array for other keys
-				return []
-			})
+			// The file-backed store is the single source of truth. Parent and subtask
+			// history items are seeded into the store below as they are created.
 
 			// Mock updateTaskHistory to track mode changes
 			const updateTaskHistoryMock = vi.spyOn(provider, "updateTaskHistory")
@@ -611,6 +605,18 @@ describe("ClineProvider - Sticky Mode", () => {
 
 			// Initialize subtask with parent's mode
 			taskModes[subtaskId] = "architect"
+			await seedTaskHistoryStore(provider, [
+				{
+					id: subtaskId,
+					ts: Date.now(),
+					task: `Task ${subtaskId}`,
+					number: 1,
+					tokensIn: 0,
+					tokensOut: 0,
+					totalCost: 0,
+					mode: "architect",
+				},
+			])
 
 			// Mock getCurrentTask to return the parent task initially
 			const getCurrentTaskMock = vi.spyOn(provider, "getCurrentTask")
@@ -795,8 +801,8 @@ describe("ClineProvider - Sticky Mode", () => {
 			// Add task to provider stack
 			await provider.addClineToStack(mockTask as any)
 
-			// Mock getGlobalState to return task history
-			vi.spyOn(provider as any, "getGlobalState").mockReturnValue([
+			// Seed the file-backed store (the globalState mirror was removed).
+			await seedTaskHistoryStore(provider, [
 				{
 					id: mockTask.taskId,
 					ts: Date.now(),
@@ -862,8 +868,8 @@ describe("ClineProvider - Sticky Mode", () => {
 			// Add task to provider stack
 			await provider.addClineToStack(mockTask as any)
 
-			// Mock getGlobalState
-			vi.spyOn(provider as any, "getGlobalState").mockReturnValue([
+			// Seed the file-backed store (the globalState mirror was removed).
+			await seedTaskHistoryStore(provider, [
 				{
 					id: mockTask.taskId,
 					ts: Date.now(),
@@ -951,8 +957,8 @@ describe("ClineProvider - Sticky Mode", () => {
 			// Add task to provider stack
 			await provider.addClineToStack(mockTask as any)
 
-			// Mock getGlobalState to return task history
-			vi.spyOn(provider as any, "getGlobalState").mockReturnValue([
+			// Seed the file-backed store (the globalState mirror was removed).
+			await seedTaskHistoryStore(provider, [
 				{
 					id: mockTask.taskId,
 					ts: Date.now(),
@@ -1009,8 +1015,8 @@ describe("ClineProvider - Sticky Mode", () => {
 			// Add task to provider stack
 			await provider.addClineToStack(mockTask as any)
 
-			// Mock getGlobalState
-			vi.spyOn(provider as any, "getGlobalState").mockReturnValue([
+			// Seed the file-backed store (the globalState mirror was removed).
+			await seedTaskHistoryStore(provider, [
 				{
 					id: mockTask.taskId,
 					ts: Date.now(),
@@ -1078,8 +1084,8 @@ describe("ClineProvider - Sticky Mode", () => {
 			await provider.addClineToStack(task2 as any)
 			await provider.addClineToStack(task3 as any)
 
-			// Mock getGlobalState to return all tasks
-			vi.spyOn(provider as any, "getGlobalState").mockReturnValue([
+			// Seed the file-backed store (the globalState mirror was removed).
+			await seedTaskHistoryStore(provider, [
 				{
 					id: task1.taskId,
 					ts: Date.now(),

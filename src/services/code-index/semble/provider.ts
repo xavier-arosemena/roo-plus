@@ -16,6 +16,22 @@ import { ISembleProvider, SembleConfig, SembleContentType, SembleSearchResult, S
 import { t } from "../../../i18n"
 
 /**
+ * Verbose per-search diagnostics are gated behind the `SEMBLE_DEBUG` env var
+ * (set to "1" or "true"), mirroring the `SEMBLE_RESOLVE_LATEST` opt-in
+ * convention used in semble-downloader. Post-launch monitoring found the
+ * extension-host developer console being spammed on EVERY codebase search;
+ * these lines remain reachable for diagnosis but are silent by default.
+ * Genuine console.warn/console.error (init warnings, search failures) are
+ * unaffected.
+ */
+const SEMBLE_DEBUG_ENV = "SEMBLE_DEBUG"
+
+function isSembleVerboseLoggingEnabled(): boolean {
+	const raw = process.env[SEMBLE_DEBUG_ENV]
+	return raw === "1" || raw?.toLowerCase() === "true"
+}
+
+/**
  * Orchestrates code search via the semble CLI.
  *
  * Semble indexes on-the-fly with each search call — there is no separate
@@ -232,7 +248,9 @@ export class SembleProvider implements ISembleProvider {
 			// Semble creates a separate cache directory per path (SHA-256 of the
 			// resolved absolute path), so passing subdirectories would create
 			// redundant indexes and waste disk space.
-			console.log(`[SembleProvider] Searching in ${this.workspacePath}`)
+			if (isSembleVerboseLoggingEnabled()) {
+				console.log(`[SembleProvider] Searching in ${this.workspacePath}`)
+			}
 
 			// Reference-aligned (Zoo-Code SembleProvider): request exactly the
 			// configured topK. NO min-score filter and NO max-results slice are
@@ -266,7 +284,7 @@ export class SembleProvider implements ISembleProvider {
 			// CLI score distribution once per provider instance (first search with
 			// results) so a scale mismatch is visible to a log scan / VSIX test.
 			// Skipped when the CLI returned nothing (nothing to diagnose).
-			if (!this._loggedRawScoreDistribution && results.length > 0) {
+			if (isSembleVerboseLoggingEnabled() && !this._loggedRawScoreDistribution && results.length > 0) {
 				this._loggedRawScoreDistribution = true
 				console.log(
 					`[SembleProvider] Raw score distribution (first search, before filtering): ${this._describeScoreDistribution(results)}`,
@@ -284,9 +302,11 @@ export class SembleProvider implements ISembleProvider {
 					const filePath = (r.payload?.filePath ?? "").replace(/\\/g, "/")
 					return filePath.startsWith(normalizedPrefix + "/") || filePath === normalizedPrefix
 				})
-				console.log(
-					`[SembleProvider] Filtered to "${directoryPrefix}": ${converted.length} of ${results.length} results`,
-				)
+				if (isSembleVerboseLoggingEnabled()) {
+					console.log(
+						`[SembleProvider] Filtered to "${directoryPrefix}": ${converted.length} of ${results.length} results`,
+					)
+				}
 			}
 
 			// NOTE: searchMinScore/searchMaxResults are intentionally NOT applied
@@ -294,9 +314,11 @@ export class SembleProvider implements ISembleProvider {
 			// qdrant-client.ts); the reference Zoo-Code SembleProvider applies no
 			// score filter and no result cap to Semble results.
 
-			console.log(
-				`[SembleProvider] Search returned ${converted.length} results (raw: ${results.length}). Sample path: ${converted[0]?.payload?.filePath ?? "none"}`,
-			)
+			if (isSembleVerboseLoggingEnabled()) {
+				console.log(
+					`[SembleProvider] Search returned ${converted.length} results (raw: ${results.length}). Sample path: ${converted[0]?.payload?.filePath ?? "none"}`,
+				)
+			}
 			return converted
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)

@@ -1051,30 +1051,77 @@ describe("SembleProvider", () => {
 			})
 		})
 
-		it("should log the raw score distribution once per provider instance on the first search", async () => {
-			const logSpy = vi.spyOn(console, "log").mockImplementation(() => {})
-			const customProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
+		it("does not emit per-search verbose console.log by default (SEMBLE_DEBUG unset)", async () => {
+			const originalEnv = process.env.SEMBLE_DEBUG
+			delete process.env.SEMBLE_DEBUG
+			try {
+				const logSpy = vi.spyOn(console, "log").mockImplementation(() => {})
+				const customProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
 
-			mockCli.checkInstalled.mockResolvedValue({ installed: true })
-			await customProvider.initialize()
+				mockCli.checkInstalled.mockResolvedValue({ installed: true })
+				await customProvider.initialize()
 
-			mockCli.search.mockResolvedValue([
-				{ content: "a", file_path: "a.ts", start_line: 1, end_line: 2, score: 0.9 },
-				{ content: "b", file_path: "b.ts", start_line: 1, end_line: 2, score: 0.5 },
-			])
+				mockCli.search.mockResolvedValue([
+					{ content: "a", file_path: "src/a.ts", start_line: 1, end_line: 2, score: 0.9 },
+				])
 
-			await customProvider.searchIndex("first query")
-			await customProvider.searchIndex("second query")
+				await customProvider.searchIndex("first query")
+				await customProvider.searchIndex("scoped query", "src")
 
-			const distributionLogs = logSpy.mock.calls.filter(
-				(call) => typeof call[0] === "string" && call[0].includes("Raw score distribution"),
-			)
-			// Logged exactly once (first search only), not per-query.
-			expect(distributionLogs).toHaveLength(1)
-			expect(distributionLogs[0][0]).toContain("count=2")
-			expect(distributionLogs[0][0]).toContain("min=0.5")
-			expect(distributionLogs[0][0]).toContain("max=0.9")
-			logSpy.mockRestore()
+				const verboseLogs = logSpy.mock.calls.filter(
+					(call) =>
+						typeof call[0] === "string" &&
+						(call[0].includes("[SembleProvider] Searching in") ||
+							call[0].includes("[SembleProvider] Filtered to") ||
+							call[0].includes("[SembleProvider] Search returned") ||
+							call[0].includes("Raw score distribution")),
+				)
+				// The per-search diagnostic lines are silent unless SEMBLE_DEBUG is set.
+				expect(verboseLogs).toHaveLength(0)
+				logSpy.mockRestore()
+			} finally {
+				if (originalEnv === undefined) {
+					delete process.env.SEMBLE_DEBUG
+				} else {
+					process.env.SEMBLE_DEBUG = originalEnv
+				}
+			}
+		})
+
+		it("logs the raw score distribution once per provider instance when SEMBLE_DEBUG is set", async () => {
+			const originalEnv = process.env.SEMBLE_DEBUG
+			process.env.SEMBLE_DEBUG = "1"
+			try {
+				const logSpy = vi.spyOn(console, "log").mockImplementation(() => {})
+				const customProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
+
+				mockCli.checkInstalled.mockResolvedValue({ installed: true })
+				await customProvider.initialize()
+
+				mockCli.search.mockResolvedValue([
+					{ content: "a", file_path: "a.ts", start_line: 1, end_line: 2, score: 0.9 },
+					{ content: "b", file_path: "b.ts", start_line: 1, end_line: 2, score: 0.5 },
+				])
+
+				await customProvider.searchIndex("first query")
+				await customProvider.searchIndex("second query")
+
+				const distributionLogs = logSpy.mock.calls.filter(
+					(call) => typeof call[0] === "string" && call[0].includes("Raw score distribution"),
+				)
+				// Logged exactly once (first search only), not per-query.
+				expect(distributionLogs).toHaveLength(1)
+				expect(distributionLogs[0][0]).toContain("count=2")
+				expect(distributionLogs[0][0]).toContain("min=0.5")
+				expect(distributionLogs[0][0]).toContain("max=0.9")
+				logSpy.mockRestore()
+			} finally {
+				if (originalEnv === undefined) {
+					delete process.env.SEMBLE_DEBUG
+				} else {
+					process.env.SEMBLE_DEBUG = originalEnv
+				}
+			}
 		})
 	})
 })

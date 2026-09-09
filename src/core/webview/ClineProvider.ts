@@ -78,7 +78,7 @@ import { MdmService } from "../../services/mdm/MdmService"
 import { SkillsManager } from "../../services/skills/SkillsManager"
 import { MarketplaceService } from "../services/MarketplaceService"
 import { ProviderProfileService } from "../services/ProviderProfileService"
-import { TaskHistoryService } from "../services/TaskHistoryService"
+import { TaskHistoryService, boundTaskHistoryForWebview } from "../services/TaskHistoryService"
 import { TaskOrchestrator } from "../services/TaskOrchestrator"
 
 import { fileExistsAtPath } from "../../utils/fs"
@@ -205,8 +205,6 @@ export class ClineProvider
 	public readonly taskHistoryStore: TaskHistoryStore
 	private taskHistoryStoreInitialized = false
 	private readonly taskHistoryService: TaskHistoryService
-	private globalStateWriteThroughTimer: ReturnType<typeof setTimeout> | null = null
-	private static readonly GLOBAL_STATE_WRITE_THROUGH_DEBOUNCE_MS = 5000 // 5 seconds
 	public static readonly PENDING_OPERATION_TIMEOUT_MS = 30000 // 30 seconds
 	private providerProfileMutationQueue = Promise.resolve()
 	private historyTaskCreationQueue = Promise.resolve()
@@ -398,20 +396,17 @@ export class ClineProvider
 		this.mdmService = mdmService
 		void this.updateGlobalState("codebaseIndexModels", EMBEDDING_MODEL_PROFILES)
 
-		// Initialize the per-task file-based history store.
-		// The globalState write-through is debounced separately (not on every mutation)
-		// since per-task files are authoritative and globalState is only for downgrade compat.
-		this.taskHistoryStore = new TaskHistoryStore(this.contextProxy.globalStorageUri.fsPath, {
-			onWrite: async () => {
-				this.taskHistoryService.scheduleGlobalStateWriteThrough()
-			},
-		})
+		// Initialize the per-task file-based history store (the single source of
+		// truth for task history). NOTE: We no longer mirror the full array into
+		// VS Code globalState under the "taskHistory" key — that ~3.5 MB blob
+		// tripped the "[mainThreadStorage] large extension state" warning on
+		// existing installs and was redundant with the file store. The legacy
+		// key is cleared after migration in initializeTaskHistoryStore().
+		this.taskHistoryStore = new TaskHistoryStore(this.contextProxy.globalStorageUri.fsPath)
 		this.taskHistoryService = new TaskHistoryService({
 			taskHistoryStore: this.taskHistoryStore,
 			isViewLaunched: () => this.isViewLaunched,
 			postMessageToWebview: (message) => this.postMessageToWebview(message),
-			log: (message) => this.log(message),
-			writeGlobalTaskHistory: (items) => this.updateGlobalState("taskHistory", items),
 			recentTasksCache: {
 				get: () => this.recentTasksCache,
 				set: (cache) => {
@@ -440,7 +435,6 @@ export class ClineProvider
 			updateTaskApiHandlerIfNeeded: (providerSettings, options) =>
 				this.updateTaskApiHandlerIfNeeded(providerSettings, options),
 			getTaskHistoryItem: (taskId) => this.taskHistoryStore.get(taskId),
-			getGlobalTaskHistory: () => this.getGlobalState("taskHistory") ?? [],
 			log: (message) => this.log(message),
 			onProviderProfileChanged: (event) => this.emit(RooCodeEventName.ProviderProfileChanged, event),
 		})
@@ -599,6 +593,14 @@ export class ClineProvider
 				await this.context.globalState.update(migrationKey, true)
 				this.log("[initializeTaskHistoryStore] Migration complete")
 			}
+
+			// Drop the legacy full-history globalState blob now that per-task files are
+			// the source of truth. Clearing (even for installs that migrated earlier)
+			// immediately removes the ~3.5 MB Memento entry that triggered VS Code's
+			// "[mainThreadStorage] large extension state" warning. Only reached after a
+			// successful file migration — on failure the legacy key stays as a downgrade
+			// fallback.
+			await this.context.globalState.update("taskHistory", undefined)
 
 			this.taskHistoryStoreInitialized = true
 		} catch (error) {
@@ -804,7 +806,6 @@ export class ClineProvider
 		await this.marketplaceManager?.cleanup()
 		this.customModesManager?.dispose()
 		this.taskHistoryStore.dispose()
-		this.taskHistoryService.flushGlobalStateWriteThrough()
 		this.log("Disposed all disposables")
 		ClineProvider.activeInstances.delete(this)
 
@@ -1585,10 +1586,10 @@ export class ClineProvider
 			task.emit(RooCodeEventName.TaskModeSwitched, task.taskId, newMode)
 
 			try {
-				// Update the task history with the new mode first.
-				const taskHistoryItem =
-					this.taskHistoryStore.get(task.taskId) ??
-					(this.getGlobalState("taskHistory") ?? []).find((item) => item.id === task.taskId)
+				// Update the task history with the new mode first. The file-backed store
+				// is the source of truth; the legacy globalState mirror was removed
+				// (see initializeTaskHistoryStore).
+				const taskHistoryItem = this.taskHistoryStore.get(task.taskId)
 
 				if (taskHistoryItem) {
 					await this.updateTaskHistory({ ...taskHistoryItem, mode: newMode })
@@ -1826,9 +1827,8 @@ export class ClineProvider
 			// been persisted into taskHistory (it will be captured on the next save).
 			task.setTaskApiConfigName(apiConfigName)
 
-			const taskHistoryItem =
-				this.taskHistoryStore.get(task.taskId) ??
-				(this.getGlobalState("taskHistory") ?? []).find((item) => item.id === task.taskId)
+			// File-backed store is the source of truth (no globalState mirror anymore).
+			const taskHistoryItem = this.taskHistoryStore.get(task.taskId)
 
 			if (taskHistoryItem) {
 				await this.updateTaskHistory({ ...taskHistoryItem, apiConfigName })
@@ -2012,8 +2012,8 @@ export class ClineProvider
 		uiMessagesFilePath: string
 		apiConversationHistory: Anthropic.MessageParam[]
 	}> {
-		const historyItem =
-			this.taskHistoryStore.get(id) ?? (this.getGlobalState("taskHistory") ?? []).find((item) => item.id === id)
+		// File-backed store is the source of truth (no globalState mirror anymore).
+		const historyItem = this.taskHistoryStore.get(id)
 
 		if (!historyItem) {
 			throw new Error("Task not found")
@@ -2433,9 +2433,10 @@ export class ClineProvider
 			clineMessages: currentTask?.clineMessages || [],
 			currentTaskTodos: currentTask?.todoList || [],
 			messageQueue: currentTask?.messageQueueService?.messages,
-			taskHistory: includeTaskHistory
-				? this.taskHistoryStore.getAll().filter((item: HistoryItem) => item.ts && item.task)
-				: [],
+			// Bound to the most recent tasks only — sending the full store (~3.5 MB) to
+			// the webview on every state message saturated the renderer over remote-SSH
+			// IPC. The file store remains the full source of truth for deeper access.
+			taskHistory: includeTaskHistory ? boundTaskHistoryForWebview(this.taskHistoryStore.getAll()) : [],
 			soundEnabled: soundEnabled ?? false,
 			ttsEnabled: ttsEnabled ?? false,
 			ttsSpeed: ttsSpeed ?? 1.0,
@@ -2611,7 +2612,9 @@ export class ClineProvider
 			allowedMaxCost: stateValues.allowedMaxCost,
 			autoCondenseContext: stateValues.autoCondenseContext ?? true,
 			autoCondenseContextPercent: stateValues.autoCondenseContextPercent ?? 100,
-			taskHistory: includeTaskHistory ? this.taskHistoryStore.getAll() : [],
+			// Bound to recent tasks, matching getStateToPostToWebview (see
+			// boundTaskHistoryForWebview for the 3.5 MB-payload context).
+			taskHistory: includeTaskHistory ? boundTaskHistoryForWebview(this.taskHistoryStore.getAll()) : [],
 			allowedCommands: stateValues.allowedCommands,
 			deniedCommands: stateValues.deniedCommands,
 			soundEnabled: stateValues.soundEnabled ?? false,

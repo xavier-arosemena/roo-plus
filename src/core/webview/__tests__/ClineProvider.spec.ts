@@ -4888,13 +4888,19 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 
 	describe("getTaskWithId", () => {
 		it("returns empty apiConversationHistory when file is missing", async () => {
-			const historyItem = { id: "missing-api-file-task", task: "test task", ts: Date.now() }
-			vi.mocked(mockContext.globalState.get).mockImplementation((key: string) => {
-				if (key === "taskHistory") {
-					return [historyItem]
-				}
-				return undefined
-			})
+			const historyItem = {
+				id: "missing-api-file-task",
+				number: 1,
+				ts: Date.now(),
+				task: "test task",
+				tokensIn: 0,
+				tokensOut: 0,
+				totalCost: 0,
+			}
+
+			// getTaskWithId reads history from the file-backed store's cache (source of
+			// truth); the removed globalState mirror no longer exists to fall back to.
+			vi.spyOn(provider.taskHistoryStore, "get").mockReturnValue(historyItem)
 
 			const deleteTaskSpy = vi.spyOn(provider, "deleteTaskFromState")
 
@@ -4906,13 +4912,19 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 		})
 
 		it("returns empty apiConversationHistory when file contains invalid JSON", async () => {
-			const historyItem = { id: "corrupt-api-task", task: "test task", ts: Date.now() }
-			vi.mocked(mockContext.globalState.get).mockImplementation((key: string) => {
-				if (key === "taskHistory") {
-					return [historyItem]
-				}
-				return undefined
-			})
+			const historyItem = {
+				id: "corrupt-api-task",
+				number: 1,
+				ts: Date.now(),
+				task: "test task",
+				tokensIn: 0,
+				tokensOut: 0,
+				totalCost: 0,
+			}
+
+			// getTaskWithId reads history from the file-backed store's cache (source of
+			// truth); the removed globalState mirror no longer exists to fall back to.
+			vi.spyOn(provider.taskHistoryStore, "get").mockReturnValue(historyItem)
 
 			// Make fileExistsAtPath return true so the read path is exercised
 			const fsUtils = await import("../../../utils/fs")
