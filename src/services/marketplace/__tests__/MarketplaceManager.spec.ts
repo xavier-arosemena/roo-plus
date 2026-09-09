@@ -4,16 +4,6 @@ import type { MarketplaceItem } from "@roo-code/types"
 
 import { MarketplaceManager } from "../MarketplaceManager"
 
-// Mock TelemetryService
-vi.mock("../../../../packages/telemetry/src/TelemetryService", () => ({
-	TelemetryService: {
-		instance: {
-			captureMarketplaceItemInstalled: vi.fn(),
-			captureMarketplaceItemRemoved: vi.fn(),
-		},
-	},
-}))
-
 // Mock vscode first
 vi.mock("vscode", () => ({
 	workspace: {

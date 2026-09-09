@@ -4,6 +4,22 @@
 
 ---
 
+## [3.88.0] — 2026-09-09
+
+### Minor — Privacy, Trust & Reproducible Source
+
+Starting the 3.88 pre-release line — a hardening cycle responding to VS Code Marketplace notice #305. Roo+ is now fully telemetry-free and reproducible from committed source, and sensitive operations are gated by explicit workspace trust and consent.
+
+### 🔒 Security & Privacy
+
+- **Fully private by design** — PostHog telemetry removed entirely (client, `TelemetryService`, all capture call sites, webview `TelemetryClient`/`Banner`/`About`, and `telemetrySetting`/`machineId`/`telemetryKey` state and schemas); `packages/telemetry` and `POSTHOG_API_KEY` build-time injection are dropped so builds are reproducible with no secrets.
+- **Trusted-workspace gating** — `capabilities.untrustedWorkspaces.supported=false` with `restrictedConfigurations` for command settings; runtime `isTrusted`/`requestWorkspaceTrust` gates at task start, terminal execution, and auto-approval.
+- **Consent-gated binary downloads** — first-use Semble and DCG acquisition requires fail-closed consent (Allow once / Always allow / Deny) persisted only on explicit choice and never in an untrusted workspace, with version-scoped approval.
+- **Reproducible, secret-free builds** — every VSIX is verified byte-for-byte from committed source; Semble and DCG release-governance records disclose external authorship, pinned versions, and checksums.
+- **Source-matching & audit tooling** — `vsix-audit.mjs` + by-design register retained as an optional on-demand scan (not a publish gate); SECURITY.md records the post-fix reproducible-VSIX measurement.
+
+---
+
 ## [3.87.0] — 2026-08-27
 
 ### Minor — Milestone Two: Local-First & Agentic

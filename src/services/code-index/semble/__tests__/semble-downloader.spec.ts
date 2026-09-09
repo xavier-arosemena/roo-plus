@@ -1984,4 +1984,45 @@ describe("semble-downloader", () => {
 			await expect(validateInstallPath("/other-storage")).rejects.toThrow("Storage directory is not writable")
 		})
 	})
+
+	describe("downloadSemble - consent gate (Marketplace #305 D3/3A)", () => {
+		const isCurrentPlatformSupported = isSembleSupportedPlatform()
+
+		beforeEach(() => {
+			// Reset mocks that earlier tests may have left in a failing state.
+			;(fs.writeFile as any).mockResolvedValue(undefined)
+			;(fs.mkdir as any).mockResolvedValue(undefined)
+			;(fs.unlink as any).mockResolvedValue(undefined)
+			;(fs.rm as any).mockResolvedValue(undefined)
+			;(fs.stat as any).mockResolvedValue({ isFile: () => true })
+		})
+
+		it("invokes the consent gate before downloading and aborts (fail closed) when declined", async () => {
+			if (!isCurrentPlatformSupported)
+				return // No installed version and no cached binary => a download is required.
+			;(fs.access as any).mockRejectedValue(new Error("ENOENT"))
+			;(fs.readFile as any).mockRejectedValue(new Error("ENOENT"))
+			const httpsGetSpy = vi.mocked(https.get)
+			httpsGetSpy.mockClear()
+			const gate = vi.fn().mockResolvedValue(false)
+
+			await expect(downloadSemble("/storage", undefined, { onBeforeDownload: gate })).rejects.toThrow(
+				"Semble download cancelled: user did not approve the download",
+			)
+			expect(gate).toHaveBeenCalledTimes(1)
+			// No network request is made after a denial.
+			expect(httpsGetSpy).not.toHaveBeenCalled()
+		})
+
+		it("does not invoke the consent gate for a manual binary path override", async () => {
+			if (!isCurrentPlatformSupported) return
+			;(fs.access as any).mockResolvedValue(undefined)
+			const gate = vi.fn().mockResolvedValue(true)
+
+			await expect(downloadSemble("/storage", "/custom/path/semble", { onBeforeDownload: gate })).resolves.toBe(
+				"/custom/path/semble",
+			)
+			expect(gate).not.toHaveBeenCalled()
+		})
+	})
 })

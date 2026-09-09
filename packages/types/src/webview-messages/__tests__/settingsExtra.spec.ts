@@ -20,7 +20,6 @@ import {
 	requestRooModelsMessageSchema,
 	requestRouterModelsMessageSchema,
 	requestVsCodeLmModelsMessageSchema,
-	telemetrySettingMessageSchema,
 	updatePromptMessageSchema,
 	updateVSCodeSettingMessageSchema,
 	settingsExtraMessageSchema,
@@ -47,7 +46,6 @@ describe("settings-extra message schemas", () => {
 		["hasOpenedModeSelector", hasOpenedModeSelectorMessageSchema, { type: "hasOpenedModeSelector", bool: true }],
 		["importMode", importModeMessageSchema, { type: "importMode", source: "global" }],
 		["mode", modeMessageSchema, { type: "mode", text: "code" }],
-		["telemetrySetting", telemetrySettingMessageSchema, { type: "telemetrySetting", text: "enabled" }],
 		[
 			"updatePrompt",
 			updatePromptMessageSchema,
@@ -164,12 +162,10 @@ describe("settings-extra malformed payloads", () => {
 		{ type: "customInstructions", text: 42 },
 		{ type: "flushRouterModels", text: {} },
 		{ type: "mode", text: ["not-a-string"] },
-		{ type: "telemetrySetting", text: null },
 	])("rejects non-string text %j", (raw) => {
 		expect(customInstructionsMessageSchema.safeParse(raw).success).toBe(false)
 		expect(flushRouterModelsMessageSchema.safeParse(raw).success).toBe(false)
 		expect(modeMessageSchema.safeParse(raw).success).toBe(false)
-		expect(telemetrySettingMessageSchema.safeParse(raw).success).toBe(false)
 	})
 
 	it("rejects non-string setting/slug", () => {

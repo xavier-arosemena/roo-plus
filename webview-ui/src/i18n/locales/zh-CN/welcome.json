@@ -10,9 +10,5 @@
 		"goBack": "返回",
 		"finish": "完成"
 	},
-	"telemetry": {
-		"helpImprove": "帮助改进 Roo+",
-		"helpImproveMessage": "Roo+ 收集错误和使用数据以帮助我们修复 Bug 并改进扩展。此遥测不收集代码、提示或个人信息。你可以在<settingsLink>设置</settingsLink>中将其关闭。"
-	},
 	"importSettings": "导入设置"
 }

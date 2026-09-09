@@ -20,7 +20,6 @@ import {
 	parseExtensionMessage,
 	providerIdentifiers,
 } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { defaultModeSlug } from "../../../shared/modes"
 import { experimentDefault } from "../../../shared/experiments"
@@ -428,10 +427,6 @@ describe("ClineProvider", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 
-		if (!TelemetryService.hasInstance()) {
-			TelemetryService.createInstance([])
-		}
-
 		const globalState: Record<string, string | undefined> = {
 			mode: "architect",
 			currentApiConfigName: "current-config",
@@ -659,11 +654,6 @@ describe("ClineProvider", () => {
 
 		expect(mockWebviewView.webview.html).toContain("<!DOCTYPE html>")
 
-		// Verify Content Security Policy contains the necessary PostHog domains
-		expect(mockWebviewView.webview.html).toContain(
-			"connect-src vscode-webview://test-csp-source https://openrouter.ai https://api.requesty.ai https://us.i.posthog.com",
-		)
-
 		// Extract the script-src directive section and verify required security elements
 		const html = mockWebviewView.webview.html
 		const scriptSrcMatch = html.match(/script-src[^;]*;/)
@@ -705,8 +695,7 @@ describe("ClineProvider", () => {
 			const html = mockWebviewView.webview.html
 			// HMR HTML loads the Vite entry script from the local dev server.
 			expect(html).toContain("http://localhost:5173/src/index.tsx")
-			// The bare https://* wildcard is gone from every HMR CSP directive
-			// (https://*.posthog.com is intentionally allowed for telemetry).
+			// The bare https://* wildcard is gone from every HMR CSP directive.
 			expect(html).not.toMatch(/https:\/\/\*(?!\.)/)
 
 			const scriptSrcMatch = html.match(/script-src[^;]*;/)
@@ -716,8 +705,17 @@ describe("ClineProvider", () => {
 			expect(scriptSrc).toContain("'unsafe-eval'") // dev-only, required by Vite HMR
 			expect(scriptSrc).toContain("http://localhost:5173")
 			expect(scriptSrc).toContain("http://0.0.0.0:5173")
-			expect(scriptSrc).toContain("https://*.posthog.com")
 			expect(scriptSrc).toContain("'nonce-")
+
+			// The bare https://* wildcard must not appear in connect-src either;
+			// only the webview source, the configured router domain, and the local
+			// Vite origins may be contacted (security regression from #305).
+			const connectSrcMatch = html.match(/connect-src[^";]*/)
+			expect(connectSrcMatch).not.toBeNull()
+			const connectSrc = connectSrcMatch![0]
+			expect(connectSrc).not.toMatch(/https:\/\/\*(?!\.)/)
+			expect(connectSrc).toContain("http://localhost:5173")
+			expect(connectSrc).toContain("http://0.0.0.0:5173")
 		})
 
 		test("falls back to production HTML when /@vite/client is unreachable", async () => {
@@ -786,7 +784,6 @@ describe("ClineProvider", () => {
 			experiments: experimentDefault,
 			maxOpenTabsContext: 20,
 			maxWorkspaceFiles: 200,
-			telemetrySetting: "unset",
 			showRooIgnoredFiles: false,
 			enableSubfolderRules: false,
 			renderContext: "sidebar",
@@ -1362,7 +1359,6 @@ describe("ClineProvider", () => {
 
 		test("shouldShowAnnouncement is false when the persisted id matches the current version", async () => {
 			await provider.resolveWebviewView(mockWebviewView)
-			await provider.contextProxy.setValue("telemetrySetting", "enabled")
 			await provider.contextProxy.setValue("lastShownAnnouncementId", provider.latestAnnouncementId)
 
 			const state = await provider.getStateToPostToWebview()
@@ -1372,7 +1368,6 @@ describe("ClineProvider", () => {
 
 		test("shouldShowAnnouncement is true when the version changed and announcement data exists", async () => {
 			await provider.resolveWebviewView(mockWebviewView)
-			await provider.contextProxy.setValue("telemetrySetting", "enabled")
 			await provider.contextProxy.setValue("lastShownAnnouncementId", "v3.80.0")
 
 			const state = await provider.getStateToPostToWebview()
@@ -1380,21 +1375,10 @@ describe("ClineProvider", () => {
 			expect(state.shouldShowAnnouncement).toBe(true)
 		})
 
-		test("shouldShowAnnouncement stays false when telemetry is unset even after a version change", async () => {
-			await provider.resolveWebviewView(mockWebviewView)
-			await provider.contextProxy.setValue("telemetrySetting", "unset")
-			await provider.contextProxy.setValue("lastShownAnnouncementId", "v3.80.0")
-
-			const state = await provider.getStateToPostToWebview()
-
-			expect(state.shouldShowAnnouncement).toBe(false)
-		})
-
 		test("shouldShowAnnouncement stays false when the version has no announcement content (noise mitigation)", async () => {
 			vi.spyOn(announcementsModule, "hasAnnouncementForVersion").mockReturnValue(false)
 
 			await provider.resolveWebviewView(mockWebviewView)
-			await provider.contextProxy.setValue("telemetrySetting", "enabled")
 			await provider.contextProxy.setValue("lastShownAnnouncementId", "v3.80.0")
 
 			const state = await provider.getStateToPostToWebview()
@@ -3408,82 +3392,6 @@ describe("Project MCP Settings", () => {
 	})
 })
 
-describe("getTelemetryProperties", () => {
-	let defaultTaskOptions: TaskOptions
-	let provider: ClineProvider
-	let mockContext: vscode.ExtensionContext
-	let mockOutputChannel: vscode.OutputChannel
-	let mockCline: any
-
-	beforeEach(() => {
-		// Reset mocks
-		vi.clearAllMocks()
-
-		// Initialize TelemetryService if not already initialized
-		if (!TelemetryService.hasInstance()) {
-			TelemetryService.createInstance([])
-		}
-
-		// Setup basic mocks
-		mockContext = {
-			globalState: {
-				get: vi.fn().mockImplementation((key: string) => {
-					if (key === "mode") return "code"
-					if (key === "apiProvider") return "anthropic"
-					return undefined
-				}),
-				update: vi.fn(),
-				keys: vi.fn().mockReturnValue([]),
-			},
-			workspaceState: {
-				get: vi.fn().mockReturnValue(undefined),
-				update: vi.fn().mockResolvedValue(undefined),
-				keys: vi.fn().mockReturnValue([]),
-			},
-			secrets: { get: vi.fn(), store: vi.fn(), delete: vi.fn() },
-			extensionUri: { fsPath: "/test/path" } as vscode.Uri,
-			globalStorageUri: { fsPath: "/test/path" },
-			extension: { packageJSON: { version: "1.0.0" } },
-		} as unknown as vscode.ExtensionContext
-
-		mockOutputChannel = { appendLine: vi.fn() } as unknown as vscode.OutputChannel
-		provider = new ClineProvider(mockContext, mockOutputChannel, "sidebar", new ContextProxy(mockContext))
-
-		defaultTaskOptions = {
-			provider,
-			apiConfiguration: {
-				apiProvider: "openrouter",
-			},
-		}
-
-		// Setup Task instance with mocked getModel method
-		mockCline = new Task(defaultTaskOptions)
-		mockCline.api = {
-			getModel: vi.fn().mockReturnValue({
-				id: "claude-sonnet-4-20250514",
-				info: { contextWindow: 200000 },
-			}),
-		}
-	})
-
-	test("includes basic properties in telemetry", async () => {
-		const properties = await provider.getTelemetryProperties()
-
-		expect(properties).toHaveProperty("vscodeVersion")
-		expect(properties).toHaveProperty("platform")
-		expect(properties).toHaveProperty("appVersion", "1.0.0")
-	})
-
-	test("includes model ID from current Cline instance if available", async () => {
-		// Add mock Cline to stack
-		await provider.addClineToStack(mockCline)
-
-		const properties = await provider.getTelemetryProperties()
-
-		expect(properties).toHaveProperty("modelId", "claude-sonnet-4-20250514")
-	})
-})
-
 describe("ClineProvider - Router Models", () => {
 	let provider: ClineProvider
 	let mockContext: vscode.ExtensionContext
@@ -3559,10 +3467,6 @@ describe("ClineProvider - Router Models", () => {
 			onDidChangeVisibility: vi.fn().mockImplementation(() => {
 				return { dispose: vi.fn() }
 			}),
-		}
-
-		if (!TelemetryService.hasInstance()) {
-			TelemetryService.createInstance([])
 		}
 
 		provider = new ClineProvider(mockContext, mockOutputChannel, "sidebar", new ContextProxy(mockContext))
@@ -3834,10 +3738,6 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-
-		if (!TelemetryService.hasInstance()) {
-			TelemetryService.createInstance([])
-		}
 
 		const globalState: Record<string, string | undefined> = {
 			mode: "code",

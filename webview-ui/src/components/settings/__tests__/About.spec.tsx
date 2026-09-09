@@ -60,10 +60,8 @@ vi.mock("@roo/package", () => ({
 }))
 
 describe("About", () => {
-	const defaultProps = {
-		telemetrySetting: "enabled" as const,
-		setTelemetrySetting: vi.fn(),
-	}
+	// telemetrySetting/setTelemetrySetting were removed with telemetry (Marketplace #305, WS-A).
+	const defaultProps = {}
 
 	const renderAbout = () =>
 		render(

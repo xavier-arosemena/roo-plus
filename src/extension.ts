@@ -15,7 +15,6 @@ if (fs.existsSync(envPath)) {
 	}
 }
 
-import { TelemetryService, PostHogTelemetryClient } from "@roo-code/telemetry"
 import { customToolRegistry } from "@roo-code/core"
 
 import "./utils/path" // Necessary to have access to String.prototype.toPosix.
@@ -127,15 +126,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Migrate old settings to new
 	await migrateSettings(context, outputChannel)
 
-	// Initialize telemetry service.
-	const telemetryService = TelemetryService.createInstance()
-
-	try {
-		telemetryService.register(new PostHogTelemetryClient())
-	} catch (error) {
-		console.warn("Failed to register PostHogTelemetryClient:", error)
-	}
-
 	// Initialize MDM service
 	const mdmService = await MdmService.createInstance((...args) => outputChannel.appendLine(args.join(" ")))
 
@@ -184,9 +174,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 
 	const provider = new ClineProvider(context, outputChannel, "sidebar", contextProxy, mdmService)
-
-	// Finish initializing the provider.
-	TelemetryService.instance.setProvider(provider)
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(ClineProvider.sideBarId, provider, {
@@ -262,7 +249,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		const watchPaths = [
 			{ path: context.extensionPath, pattern: "**/*.ts" },
 			{ path: path.join(context.extensionPath, "../packages/types"), pattern: "**/*.ts" },
-			{ path: path.join(context.extensionPath, "../packages/telemetry"), pattern: "**/*.ts" },
 		]
 
 		console.log(
@@ -319,14 +305,6 @@ export async function deactivate() {
 	outputChannel.appendLine(`${Package.name} extension deactivated`)
 
 	await McpServerManager.cleanup(extensionContext)
-
-	try {
-		await TelemetryService.instance.shutdown()
-	} catch (error) {
-		outputChannel.appendLine(
-			`Failed to shut down telemetry service: ${error instanceof Error ? error.message : String(error)}`,
-		)
-	}
 
 	Terminal.setTerminalProfile(undefined)
 	TerminalRegistry.cleanup()

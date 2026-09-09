@@ -30,7 +30,6 @@ export const makeExtensionState = (overrides: Partial<ExtensionState> = {}): Par
 	allowedCommands: [],
 	deniedCommands: [],
 	alwaysAllowExecute: false,
-	telemetrySetting: "enabled",
 	...overrides,
 })
 

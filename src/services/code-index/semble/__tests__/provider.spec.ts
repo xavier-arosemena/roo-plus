@@ -34,15 +34,6 @@ vi.mock("../semble-downloader", () => ({
 	SEMBLE_VERSION: "v0.5.2",
 }))
 
-// Mock TelemetryService
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureEvent: vi.fn(),
-		},
-	},
-}))
-
 // Mock vscode
 vi.mock("vscode", () => ({
 	ExtensionContext: vi.fn(),
@@ -75,8 +66,6 @@ vi.mock("../../../../i18n", () => ({
 	},
 }))
 
-import { TelemetryService } from "@roo-code/telemetry"
-import { TelemetryEventName } from "@roo-code/types"
 import { getInstalledSembleVersion, isSembleSupportedPlatform, downloadSemble } from "../semble-downloader"
 
 describe("SembleProvider", () => {
@@ -155,7 +144,11 @@ describe("SembleProvider", () => {
 
 			await provider.initialize()
 
-			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined)
+			expect(downloadSemble).toHaveBeenCalledWith(
+				"/mock/storage",
+				undefined,
+				expect.objectContaining({ onBeforeDownload: expect.any(Function) }),
+			)
 			expect(provider.state).toBe("Indexed")
 			// The ready message appends an explicit cold-start hint (R3/R4) so a
 			// slow first search (embedding-model download) is not misreported.
@@ -174,7 +167,11 @@ describe("SembleProvider", () => {
 
 			await customProvider.initialize()
 
-			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", "/custom/path/semble")
+			expect(downloadSemble).toHaveBeenCalledWith(
+				"/mock/storage",
+				"/custom/path/semble",
+				expect.objectContaining({ onBeforeDownload: expect.any(Function) }),
+			)
 			expect(customProvider.state).toBe("Indexed")
 		})
 
@@ -184,7 +181,11 @@ describe("SembleProvider", () => {
 			await provider.initialize()
 
 			// The second argument should be undefined when no binaryPath is provided
-			expect(downloadSemble).toHaveBeenCalledWith("/mock/storage", undefined)
+			expect(downloadSemble).toHaveBeenCalledWith(
+				"/mock/storage",
+				undefined,
+				expect.objectContaining({ onBeforeDownload: expect.any(Function) }),
+			)
 			expect(provider.state).toBe("Indexed")
 		})
 
@@ -535,23 +536,15 @@ describe("SembleProvider", () => {
 			// R2: a single transient search failure must NOT flip the shared state
 			// to a permanent Error — the index stays "Indexed" so subsequent
 			// searches keep working. The error is surfaced to the caller (and the
-			// agent tool) by throwing, and telemetry still records it.
+			// agent tool) by throwing.
 			expect(freshProvider.state).toBe("Indexed")
 			expect(mockStateManager.setSystemState).not.toHaveBeenCalledWith(
 				"Error",
 				"Semble search failed: Search failed",
 			)
-			expect(TelemetryService.instance.captureEvent).toHaveBeenCalledWith(
-				TelemetryEventName.CODE_INDEX_ERROR,
-				expect.objectContaining({
-					location: "SembleProvider.searchIndex",
-				}),
-			)
 		})
 
 		it("should surface the original value for non-Error rejections and keep Indexed state", async () => {
-			// A non-Error rejection exercises the `error instanceof Error` false
-			// branch of the telemetry payload (stack: undefined).
 			const freshProvider = new SembleProvider("/workspace", mockContext, mockStateManager)
 			await freshProvider.initialize()
 
@@ -563,14 +556,6 @@ describe("SembleProvider", () => {
 			expect(mockStateManager.setSystemState).not.toHaveBeenCalledWith(
 				"Error",
 				"Semble search failed: string error",
-			)
-			expect(TelemetryService.instance.captureEvent).toHaveBeenCalledWith(
-				TelemetryEventName.CODE_INDEX_ERROR,
-				expect.objectContaining({
-					error: "string error",
-					stack: undefined,
-					location: "SembleProvider.searchIndex",
-				}),
 			)
 		})
 
@@ -611,9 +596,8 @@ describe("SembleProvider", () => {
 			const results = await provider.searchIndex("test")
 
 			expect(results).toEqual([])
-			// Not an error: state remains Indexed and no error telemetry is captured.
+			// Not an error: state remains Indexed.
 			expect(provider.state).toBe("Indexed")
-			expect(TelemetryService.instance.captureEvent).not.toHaveBeenCalled()
 		})
 	})
 

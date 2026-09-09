@@ -10,9 +10,5 @@
 		"goBack": "戻る",
 		"finish": "完了"
 	},
-	"telemetry": {
-		"helpImprove": "Roo+の改善にご協力ください",
-		"helpImproveMessage": "Roo+は、バグを修正し、拡張機能を改善するために、エラーおよび使用データを収集します。このテレメトリはコード、プロンプト、または個人情報を収集しません。これは<settingsLink>設定</settingsLink>で無効にできます。"
-	},
 	"importSettings": "設定のインポート"
 }

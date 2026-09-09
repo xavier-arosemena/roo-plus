@@ -17,7 +17,6 @@ import {
 	switchTabMessageSchema,
 } from "@roo-code/types"
 import { customToolRegistry } from "@roo-code/core"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { checkExistKey } from "../../../shared/checkExistApiConfig"
 import { getTheme } from "../../../integrations/theme/getTheme"
@@ -156,13 +155,6 @@ export async function handleMiscMessages(
 						`Error list api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					),
 				)
-
-			// Enable telemetry by default (when unset) or when explicitly enabled
-			await provider.getStateToPostToWebview().then((state) => {
-				const { telemetrySetting } = state
-				const isOptedIn = telemetrySetting !== "disabled"
-				TelemetryService.instance.updateTelemetryState(isOptedIn)
-			})
 
 			provider.isViewLaunched = true
 			break
@@ -477,11 +469,6 @@ export async function handleMiscMessages(
 			}
 
 			if (result.data.tab) {
-				// Capture tab shown event for all switchTab messages (which are user-initiated).
-				if (TelemetryService.hasInstance()) {
-					TelemetryService.instance.captureTabShown(result.data.tab)
-				}
-
 				await provider.postMessageToWebview({
 					type: "action",
 					action: "switchTab",

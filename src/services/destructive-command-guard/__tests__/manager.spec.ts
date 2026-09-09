@@ -241,6 +241,31 @@ describe("Destructive Command Guard manager", () => {
 		}
 	})
 
+	it("does not invoke the consent gate when the binary is already installed", async () => {
+		const binaryPath = getDcgBinaryPath(tempDir)
+		expect(binaryPath).toBeDefined()
+		await mkdir(path.dirname(binaryPath!), { recursive: true })
+		await writeFile(binaryPath!, "existing binary")
+		await writeFile(path.join(path.dirname(binaryPath!), ".dcg-version"), DCG_VERSION)
+
+		const gate = vi.fn().mockRejectedValue(new Error("consent gate must not run"))
+		await expect(ensureDcgInstalled(tempDir, { onBeforeDownload: gate })).resolves.toBe(binaryPath)
+		expect(gate).not.toHaveBeenCalled()
+		expect(mockGet).not.toHaveBeenCalled()
+	})
+
+	it("does not download when the consent gate denies the acquisition (fail closed)", async () => {
+		const info = getDcgArchiveInfo()
+		if (!info) return
+
+		const gate = vi.fn().mockResolvedValue(false)
+		await expect(ensureDcgInstalled(tempDir, { onBeforeDownload: gate })).rejects.toThrow(
+			"Failed to download DCG: download cancelled by user",
+		)
+		expect(gate).toHaveBeenCalledTimes(1)
+		expect(mockGet).not.toHaveBeenCalled()
+	})
+
 	it("warns when the current platform is unsupported", async () => {
 		const platformKey = `${process.platform}-${process.arch}`
 		const info = DCG_ARCHIVES[platformKey]

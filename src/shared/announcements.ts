@@ -18,12 +18,14 @@ export interface ReleaseAnnouncement {
 }
 
 export const Announcements: Record<string, ReleaseAnnouncement> = {
-	"3.87.0": {
-		version: "3.87.0",
+	"3.88.0": {
+		version: "3.88.0",
 		highlights: [
-			"🎉 Milestone one is a wrap — a stable release, 300+ modes, and a clear roadmap for the road ahead. We couldn't be more excited about what's next.",
-			"🚀 Milestone two begins now — guided by your feedback, we're doubling down on building a local-first, agentic IDE extension that makes your AI spend legible and your knowledge portable.",
-			"❤️ To our 7.6k active users — thank you for choosing Roo+ and sharing this milestone with us. We're honored to have you on board — and we can't wait for the journey ahead.",
+			"Fully private by design",
+			"Trusted-workspace gating",
+			"Consent-gated binary downloads",
+			"Reproducible, secret-free builds",
+			"Source-matching & audit tooling",
 		],
 	},
 }

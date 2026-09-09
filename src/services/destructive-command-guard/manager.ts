@@ -79,7 +79,16 @@ export async function extractSingleBinary(
 	await extractTarXzArchive(archivePath, stagingDir)
 }
 
-function installDcg(storageDir: string): Promise<string | undefined> {
+/**
+ * Gate forwarded to the managed-binary installer. It is invoked only when an
+ * actual DCG download is required (never when an up-to-date binary is already
+ * present), giving the acquisition consent flow a single interception point.
+ */
+export type DcgDownloadGate = {
+	onBeforeDownload?: () => Promise<boolean>
+}
+
+function installDcg(storageDir: string, gate?: DcgDownloadGate): Promise<string | undefined> {
 	const info = getDcgArchiveInfo()
 	if (!info) {
 		console.warn(`[DCG] Unsupported platform: ${process.platform}-${process.arch}`)
@@ -97,9 +106,15 @@ function installDcg(storageDir: string): Promise<string | undefined> {
 		download: (archivePath) => downloadFile(`${DCG_DOWNLOAD_BASE_URL}/${info.archive}`, archivePath),
 		verifyArchive: (archivePath) => verifyChecksum(archivePath, info.sha256),
 		extractArchive: (archivePath, stagingDir) => extractSingleBinary(archivePath, stagingDir, info),
+		onBeforeDownload: gate?.onBeforeDownload,
 	})
 }
 
-export function ensureDcgInstalled(storageDir: string): Promise<string | undefined> {
-	return installDcg(storageDir)
+/**
+ * Ensures the DCG binary is installed for `storageDir`, downloading it when
+ * missing. Pass {@link DcgDownloadGate} to require explicit user consent
+ * before the first download (Marketplace notice #305, D3/3A).
+ */
+export function ensureDcgInstalled(storageDir: string, gate?: DcgDownloadGate): Promise<string | undefined> {
+	return installDcg(storageDir, gate)
 }

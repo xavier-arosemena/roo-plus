@@ -19,6 +19,18 @@
 		"delete_config_profile": "¿Estás seguro de que deseas eliminar este perfil de configuración?",
 		"delete_custom_mode_with_rules": "¿Estás seguro de que quieres eliminar este modo {scope}?\n\nEsto también eliminará la carpeta de reglas asociada en:\n{rulesFolderPath}"
 	},
+	"workspaceTrust": {
+		"message": "Roo+ necesita confiar en este espacio de trabajo antes de actuar. Al confiar, Roo+ puede ejecutar comandos de shell, leer y escribir archivos (incluso fuera de este espacio de trabajo) y descargar componentes auxiliares en el primer uso.",
+		"required": "Esta acción requiere un espacio de trabajo de confianza. Confía en el espacio de trabajo e inténtalo de nuevo."
+	},
+	"binaryConsent": {
+		"prompt": "Roo+ quiere descargar y ejecutar un componente auxiliar de terceros:\n\nComponente: {{name}}\nVersión: {{version}}\nFuente: {{source}}\nSHA-256: {{sha256}}\nTamaño aprox.: {{size}}\nPropósito: {{purpose}}\n\nEste componente se desarrolla y mantiene fuera del código fuente propio de Roo+. Solo se descarga después de que lo apruebes, y su suma de verificación se comprueba antes de ejecutarse.",
+		"allowOnce": "Permitir una vez",
+		"alwaysAllow": "Permitir siempre",
+		"deny": "Denegar",
+		"semblePurpose": "búsqueda e indexación de código en tu espacio de trabajo",
+		"dcgPurpose": "comprobaciones de seguridad previas para comandos destructivos (opcional)"
+	},
 	"errors": {
 		"invalid_data_uri": "Formato de URI de datos no válido",
 		"error_copying_image": "Error copiando la imagen: {{errorMessage}}",

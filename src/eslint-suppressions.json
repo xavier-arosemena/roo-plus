@@ -151,7 +151,7 @@
 	},
 	"api/providers/__tests__/gemini.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 33
+			"count": 30
 		}
 	},
 	"api/providers/__tests__/kenari.spec.ts": {
@@ -216,7 +216,7 @@
 	},
 	"api/providers/__tests__/openai-native.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 74
+			"count": 70
 		}
 	},
 	"api/providers/__tests__/openai-timeout.spec.ts": {
@@ -1031,7 +1031,7 @@
 	},
 	"core/webview/__tests__/ClineProvider.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
-			"count": 180
+			"count": 179
 		}
 	},
 	"core/webview/__tests__/ClineProvider.sticky-mode.spec.ts": {
@@ -1067,11 +1067,6 @@
 	"core/webview/__tests__/skillsMessageHandler.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 1
-		}
-	},
-	"core/webview/__tests__/telemetrySettingsTracking.spec.ts": {
-		"@typescript-eslint/no-explicit-any": {
-			"count": 4
 		}
 	},
 	"core/webview/__tests__/webviewMessageHandler.checkpoint.spec.ts": {

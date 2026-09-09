@@ -92,9 +92,9 @@ overrides:
     # body-parser (LOW) — src>@modelcontextprotocol/sdk>express>body-parser stuck at 2.2.2
     "express>body-parser": "^2.3.0"
 
-    # dompurify (LOW) — two paths: webview-ui>mermaid>dompurify AND webview-ui>posthog-js>dompurify
+    # dompurify (LOW) — webview-ui>mermaid>dompurify
+    # (posthog-js was removed with telemetry, Marketplace #305 WS-A — its override is gone)
     "mermaid>dompurify": "^3.4.12"
-    "posthog-js>dompurify": "^3.4.12"
 
     # ── MEDIUM severity fixes ──
 

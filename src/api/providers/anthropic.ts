@@ -11,7 +11,6 @@ import {
 	ANTHROPIC_DEFAULT_MAX_TOKENS,
 	ApiProviderError,
 } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import type { ApiHandlerOptions } from "../../shared/api"
 
@@ -135,106 +134,82 @@ export class AnthropicHandler extends BaseProvider implements SingleCompletionHa
 				const lastUserMsgIndex = userMsgIndices[userMsgIndices.length - 1] ?? -1
 				const secondLastMsgUserIndex = userMsgIndices[userMsgIndices.length - 2] ?? -1
 
-				try {
-					const requestParams = {
-						model: modelId,
-						max_tokens: maxTokens ?? ANTHROPIC_DEFAULT_MAX_TOKENS,
-						temperature,
-						thinking,
-						// Setting cache breakpoint for system prompt so new tasks can reuse it.
-						system: [{ text: systemPrompt, type: "text", cache_control: cacheControl }],
-						messages: sanitizedMessages.map((message, index) => {
-							if (index === lastUserMsgIndex || index === secondLastMsgUserIndex) {
-								return {
-									...message,
-									content:
-										typeof message.content === "string"
-											? [{ type: "text", text: message.content, cache_control: cacheControl }]
-											: message.content.map((content, contentIndex) =>
-													contentIndex === message.content.length - 1
-														? { ...content, cache_control: cacheControl }
-														: content,
-												),
-								}
+				const requestParams = {
+					model: modelId,
+					max_tokens: maxTokens ?? ANTHROPIC_DEFAULT_MAX_TOKENS,
+					temperature,
+					thinking,
+					// Setting cache breakpoint for system prompt so new tasks can reuse it.
+					system: [{ text: systemPrompt, type: "text", cache_control: cacheControl }],
+					messages: sanitizedMessages.map((message, index) => {
+						if (index === lastUserMsgIndex || index === secondLastMsgUserIndex) {
+							return {
+								...message,
+								content:
+									typeof message.content === "string"
+										? [{ type: "text", text: message.content, cache_control: cacheControl }]
+										: message.content.map((content, contentIndex) =>
+												contentIndex === message.content.length - 1
+													? { ...content, cache_control: cacheControl }
+													: content,
+											),
 							}
-							return message
-						}),
-						stream: true,
-						...nativeToolParams,
-					}
-					stream = await this.client.messages.create(
-						requestParams as Anthropic.Messages.MessageCreateParamsStreaming,
-						(() => {
-							// prompt caching: https://x.com/alexalbert__/status/1823751995901272068
-							// https://github.com/anthropics/anthropic-sdk-typescript?tab=readme-ov-file#default-headers
-							// https://github.com/anthropics/anthropic-sdk-typescript/commit/c920b77fc67bd839bfeb6716ceab9d7c9bbe7393
-
-							// Then check for models that support prompt caching
-							switch (modelId) {
-								case "claude-sonnet-5":
-								case "claude-sonnet-4-6":
-								case "claude-sonnet-4-5":
-								case "claude-sonnet-4-20250514":
-								case "claude-opus-4-6":
-								case "claude-opus-4-7":
-								case "claude-opus-4-8":
-								case "claude-opus-5":
-								case "claude-fable-5":
-								case "claude-opus-4-5-20251101":
-								case "claude-opus-4-1-20250805":
-								case "claude-opus-4-20250514":
-								case "claude-3-7-sonnet-20250219":
-								case "claude-3-5-sonnet-20241022":
-								case "claude-3-5-haiku-20241022":
-								case "claude-3-opus-20240229":
-								case "claude-haiku-4-5-20251001":
-								case "claude-3-haiku-20240307":
-									betas.push("prompt-caching-2024-07-31")
-									return { headers: { "anthropic-beta": betas.join(",") } }
-								default:
-									return undefined
-							}
-						})(),
-					)
-				} catch (error) {
-					TelemetryService.instance.captureException(
-						new ApiProviderError(
-							error instanceof Error ? error.message : String(error),
-							this.providerName,
-							modelId,
-							"createMessage",
-						),
-					)
-					throw error
+						}
+						return message
+					}),
+					stream: true,
+					...nativeToolParams,
 				}
+				stream = await this.client.messages.create(
+					requestParams as Anthropic.Messages.MessageCreateParamsStreaming,
+					(() => {
+						// prompt caching: https://x.com/alexalbert__/status/1823751995901272068
+						// https://github.com/anthropics/anthropic-sdk-typescript?tab=readme-ov-file#default-headers
+						// https://github.com/anthropics/anthropic-sdk-typescript/commit/c920b77fc67bd839bfeb6716ceab9d7c9bbe7393
+
+						// Then check for models that support prompt caching
+						switch (modelId) {
+							case "claude-sonnet-5":
+							case "claude-sonnet-4-6":
+							case "claude-sonnet-4-5":
+							case "claude-sonnet-4-20250514":
+							case "claude-opus-4-6":
+							case "claude-opus-4-7":
+							case "claude-opus-4-8":
+							case "claude-opus-5":
+							case "claude-fable-5":
+							case "claude-opus-4-5-20251101":
+							case "claude-opus-4-1-20250805":
+							case "claude-opus-4-20250514":
+							case "claude-3-7-sonnet-20250219":
+							case "claude-3-5-sonnet-20241022":
+							case "claude-3-5-haiku-20241022":
+							case "claude-3-opus-20240229":
+							case "claude-haiku-4-5-20251001":
+							case "claude-3-haiku-20240307":
+								betas.push("prompt-caching-2024-07-31")
+								return { headers: { "anthropic-beta": betas.join(",") } }
+							default:
+								return undefined
+						}
+					})(),
+				)
 				break
 			}
 			default: {
-				try {
-					const requestParams = {
-						model: modelId,
-						max_tokens: maxTokens ?? ANTHROPIC_DEFAULT_MAX_TOKENS,
-						temperature,
-						thinking,
-						system: [{ text: systemPrompt, type: "text" }],
-						messages: sanitizedMessages,
-						stream: true,
-						...nativeToolParams,
-					}
-					stream = (await this.client.messages.create(
-						requestParams as Anthropic.Messages.MessageCreateParamsStreaming,
-					)) as any
-				} catch (error) {
-					TelemetryService.instance.captureException(
-						new ApiProviderError(
-							error instanceof Error ? error.message : String(error),
-							this.providerName,
-							modelId,
-							"createMessage",
-						),
-					)
-					throw error
+				const requestParams = {
+					model: modelId,
+					max_tokens: maxTokens ?? ANTHROPIC_DEFAULT_MAX_TOKENS,
+					temperature,
+					thinking,
+					system: [{ text: systemPrompt, type: "text" }],
+					messages: sanitizedMessages,
+					stream: true,
+					...nativeToolParams,
 				}
+				stream = (await this.client.messages.create(
+					requestParams as Anthropic.Messages.MessageCreateParamsStreaming,
+				)) as any
 				break
 			}
 		}
@@ -434,27 +409,14 @@ export class AnthropicHandler extends BaseProvider implements SingleCompletionHa
 	async completePrompt(prompt: string, options?: CompletePromptOptions) {
 		const { id: model, temperature } = this.getModel()
 
-		let message
-		try {
-			message = await this.client.messages.create({
-				model,
-				max_tokens: ANTHROPIC_DEFAULT_MAX_TOKENS,
-				thinking: undefined,
-				temperature,
-				messages: [{ role: "user", content: prompt }],
-				stream: false,
-			})
-		} catch (error) {
-			TelemetryService.instance.captureException(
-				new ApiProviderError(
-					error instanceof Error ? error.message : String(error),
-					this.providerName,
-					model,
-					"completePrompt",
-				),
-			)
-			throw error
-		}
+		const message = await this.client.messages.create({
+			model,
+			max_tokens: ANTHROPIC_DEFAULT_MAX_TOKENS,
+			thinking: undefined,
+			temperature,
+			messages: [{ role: "user", content: prompt }],
+			stream: false,
+		})
 
 		const content = message.content.find(({ type }) => type === "text")
 		return content?.type === "text" ? content.text : ""

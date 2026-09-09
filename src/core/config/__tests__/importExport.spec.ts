@@ -6,7 +6,6 @@ import * as path from "path"
 import * as vscode from "vscode"
 
 import type { ProviderName } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { clearAllMocks } from "../../../test-utils/reset"
 import { makeExtensionContext } from "../../../test-utils/vscode"
@@ -105,10 +104,6 @@ describe("importExport", () => {
 
 	beforeEach(() => {
 		clearAllMocks()
-
-		if (!TelemetryService.hasInstance()) {
-			TelemetryService.createInstance([])
-		}
 
 		mockProviderSettingsManager = {
 			export: vi.fn(),
@@ -1195,7 +1190,6 @@ describe("importExport", () => {
 						customInstructions: "Keep this setting",
 						autoApprovalEnabled: true,
 						requestDelaySeconds: "slow",
-						telemetrySetting: "maybe",
 					},
 				})
 
@@ -1216,10 +1210,7 @@ describe("importExport", () => {
 
 				expect(result.success).toBe(true)
 				expect((result as { warnings?: string[] }).warnings).toEqual(
-					expect.arrayContaining([
-						expect.stringContaining("globalSettings.requestDelaySeconds"),
-						expect.stringContaining("globalSettings.telemetrySetting"),
-					]),
+					expect.arrayContaining([expect.stringContaining("globalSettings.requestDelaySeconds")]),
 				)
 
 				const importedGlobalSettings = mockContextProxy.setValues.mock.calls[0][0]

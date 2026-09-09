@@ -1005,10 +1005,6 @@
 		"simplifiedExplanation": "Je kunt later gedetailleerde modelinstellingen aanpassen."
 	},
 	"footer": {
-		"telemetry": {
-			"label": "Anonieme fout- en gebruiksrapportage toestaan",
-			"description": "Help Roo+ te verbeteren door anonieme gebruiksgegevens en foutmeldingen te versturen. Deze telemetrie verzamelt geen code, prompts of persoonlijke informatie. Zie ons <privacyLink>privacybeleid</privacyLink> voor meer details."
-		},
 		"settings": {
 			"import": "Importeren",
 			"export": "Exporteren",

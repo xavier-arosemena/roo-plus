@@ -29,12 +29,6 @@ vi.mock("@/components/ui/hooks/useRooPortal", () => ({
 	useRooPortal: () => document.body,
 }))
 
-vi.mock("@/utils/TelemetryClient", () => ({
-	telemetryClient: {
-		capture: vi.fn(),
-	},
-}))
-
 // Create a variable to control what getAllModes returns.
 let mockModes: ModeConfig[] = []
 

@@ -23,6 +23,18 @@
 		"delete_config_profile": "Estàs segur que vols eliminar aquest perfil de configuració?",
 		"delete_custom_mode_with_rules": "Esteu segur que voleu suprimir aquest mode {scope}?\n\nAixò també suprimirà la carpeta de regles associada a:\n{rulesFolderPath}"
 	},
+	"workspaceTrust": {
+		"message": "Roo+ ha de confiar en aquest espai de treball abans d'actuar. Confiar permet a Roo+ executar ordres de shell, llegir i escriure fitxers (també fora d'aquest espai de treball) i baixar components auxiliars en el primer ús.",
+		"required": "Aquesta acció requereix un espai de treball de confiança. Confia en l'espai de treball i torna-ho a provar."
+	},
+	"binaryConsent": {
+		"prompt": "Roo+ vol baixar i executar un component auxiliar de tercers:\n\nComponent: {{name}}\nVersió: {{version}}\nFont: {{source}}\nSHA-256: {{sha256}}\nMida aprox.: {{size}}\nPropòsit: {{purpose}}\n\nAquest component es desenvolupa i es manté fora del codi font propi de Roo+. Només es baixa després que ho aprovis, i la seva suma de verificació es comprova abans d'executar-se.",
+		"allowOnce": "Permetre una vegada",
+		"alwaysAllow": "Permetre sempre",
+		"deny": "Denegar",
+		"semblePurpose": "cerca i indexació de codi al teu espai de treball",
+		"dcgPurpose": "comprovacions de seguretat abans d'ordres destructives (opcional)"
+	},
 	"errors": {
 		"invalid_data_uri": "Format d'URI de dades no vàlid",
 		"error_copying_image": "Error copiant la imatge: {{errorMessage}}",

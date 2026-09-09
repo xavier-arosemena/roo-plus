@@ -551,7 +551,21 @@ async function cleanupStaleArchives(
  *   If provided and the file exists, the download is skipped entirely.
  * @returns The full path to the semble executable, or undefined if the platform is unsupported.
  */
-export async function downloadSemble(storageDir: string, binaryPathOverride?: string): Promise<string | undefined> {
+/**
+ * Optional consent gate invoked right before an actual network download begins
+ * (only when the binary must be downloaded — never for an up-to-date cached
+ * install or a manual binary path override). Return `false` to abort without
+ * downloading (Marketplace notice #305, D3/3A).
+ */
+export type SembleDownloadGate = {
+	onBeforeDownload?: () => Promise<boolean>
+}
+
+export async function downloadSemble(
+	storageDir: string,
+	binaryPathOverride?: string,
+	gate?: SembleDownloadGate,
+): Promise<string | undefined> {
 	// 1. Check binary path override — no network calls needed.
 	//    Require a regular FILE: a directory passes fs.access but cannot be
 	//    spawned (EACCES), so also require fs.stat().isFile() === true.
@@ -653,7 +667,18 @@ export async function downloadSemble(storageDir: string, binaryPathOverride?: st
 		base.replace(`/download/${SEMBLE_VERSION}`, `/download/${resolvedVersion}`),
 	)
 
-	// 8. Try each source in order
+	// 8. Consent gate — invoked only when an actual download is required. This
+	//    runs after all cached/override fast paths, so an already-installed
+	//    binary or a manual binaryPathOverride never triggers a prompt. If the
+	//    user declines, abort before any network request (fail closed).
+	if (gate?.onBeforeDownload) {
+		const approved = await gate.onBeforeDownload()
+		if (!approved) {
+			throw new Error("Semble download cancelled: user did not approve the download")
+		}
+	}
+
+	// 9. Try each source in order
 	const errors: string[] = []
 	for (const [index, sourceUrl] of dynamicFallbackUrls.entries()) {
 		try {

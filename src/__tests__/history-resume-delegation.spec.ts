@@ -18,22 +18,13 @@ vi.mock("vscode", () => {
 		})),
 		workspaceFolders: [],
 	}
-	const env = { machineId: "test-machine", uriScheme: "vscode", appName: "VSCode", language: "en", sessionId: "sess" }
+	const env = { uriScheme: "vscode", appName: "VSCode", language: "en", sessionId: "sess" }
 	const Uri = { file: (p: string) => ({ fsPath: p, toString: () => p }) }
 	const commands = { executeCommand: vi.fn() }
 	const ExtensionMode = { Development: 2 }
 	const version = "1.0.0-test"
 	return { window, workspace, env, Uri, commands, ExtensionMode, version }
 })
-
-// Mock TelemetryService (needed by attemptCompletionTool's emitPublicTaskCompleted)
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureTaskCompleted: vi.fn(),
-		},
-	},
-}))
 
 // Mock persistence BEFORE importing provider
 vi.mock("../core/task-persistence/taskMessages", () => ({

@@ -19,6 +19,18 @@
 		"delete_config_profile": "您确定要删除此配置文件吗？",
 		"delete_custom_mode_with_rules": "您确定要删除此 {scope} 模式吗？\n\n这也将删除位于以下位置的关联规则文件夹：\n{rulesFolderPath}"
 	},
+	"workspaceTrust": {
+		"message": "Roo+ 在操作前需要信任此工作区。信任后，Roo+ 可以运行 shell 命令、读写文件（包括此工作区之外的文件），并在首次使用时下载辅助组件。",
+		"required": "此操作需要受信任的工作区。请信任该工作区后重试。"
+	},
+	"binaryConsent": {
+		"prompt": "Roo+ 想下载并运行一个第三方辅助组件：\n\n组件：{{name}}\n版本：{{version}}\n来源：{{source}}\nSHA-256：{{sha256}}\n大约大小：{{size}}\n用途：{{purpose}}\n\n此组件在 Roo+ 自身源代码之外开发和维护。只有在你批准后才会下载，并且会在运行前校验校验和。",
+		"allowOnce": "仅允许一次",
+		"alwaysAllow": "始终允许",
+		"deny": "拒绝",
+		"semblePurpose": "在工作区中进行代码搜索与索引",
+		"dcgPurpose": "破坏性命令执行前的安全检查（可选启用）"
+	},
 	"errors": {
 		"invalid_mcp_config": "项目MCP配置格式无效",
 		"invalid_mcp_settings_format": "MCP设置JSON格式无效。请确保您的设置遵循正确的JSON格式。",

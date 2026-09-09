@@ -5,7 +5,6 @@ import * as vscode from "vscode"
 import * as yaml from "yaml"
 
 import type { MarketplaceItem, MarketplaceItemType } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { GlobalFileNames } from "../../shared/globalFileNames"
 import { ensureSettingsDirectoryExists } from "../../utils/globalContext"
@@ -127,14 +126,6 @@ export class MarketplaceManager {
 				}
 			}
 
-			TelemetryService.instance.captureMarketplaceItemInstalled(
-				item.id,
-				item.type,
-				item.name,
-				target,
-				telemetryProperties,
-			)
-
 			// Open the config file that was modified, optionally at the specific line
 			const document = await vscode.workspace.openTextDocument(result.filePath)
 			const options: vscode.TextDocumentShowOptions = {}
@@ -183,7 +174,6 @@ export class MarketplaceManager {
 				results.push({ slug: item.id, success: true })
 
 				// Capture telemetry for each successful installation
-				TelemetryService.instance.captureMarketplaceItemInstalled(item.id, item.type, item.name, target, {})
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error)
 				results.push({ slug: item.id, success: false, error: errorMessage })
@@ -222,7 +212,6 @@ export class MarketplaceManager {
 			vscode.window.showInformationMessage(t("marketplace:installation.removeSuccess", { itemName: item.name }))
 
 			// Capture telemetry for successful removal
-			TelemetryService.instance.captureMarketplaceItemRemoved(item.id, item.type, item.name, target)
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			vscode.window.showErrorMessage(

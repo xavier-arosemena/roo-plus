@@ -19,6 +19,18 @@
 		"delete_config_profile": "您確定要刪除此設定檔案嗎？",
 		"delete_custom_mode_with_rules": "您確定要刪除此 {scope} 模式嗎？\n\n這也將刪除位於以下位置的關聯規則資料夾：\n{rulesFolderPath}"
 	},
+	"workspaceTrust": {
+		"message": "Roo+ 在執行操作前需要信任此工作區。信任後，Roo+ 可以執行 shell 命令、讀寫檔案（包括此工作區之外的檔案），並在首次使用時下載輔助元件。",
+		"required": "此操作需要受信任的工作區。請信任該工作區後重試。"
+	},
+	"binaryConsent": {
+		"prompt": "Roo+ 想下載並執行一個第三方輔助元件：\n\n元件：{{name}}\n版本：{{version}}\n來源：{{source}}\nSHA-256：{{sha256}}\n大約大小：{{size}}\n用途：{{purpose}}\n\n此元件在 Roo+ 自身原始碼之外開發和維護。只有在你核准後才會下載，並且會在執行前驗證總和檢查碼。",
+		"allowOnce": "僅允許一次",
+		"alwaysAllow": "始終允許",
+		"deny": "拒絕",
+		"semblePurpose": "在工作區中進行程式碼搜尋與索引",
+		"dcgPurpose": "破壞性命令執行前的安全檢查（可選啟用）"
+	},
 	"errors": {
 		"invalid_data_uri": "資料 URI 格式無效",
 		"error_copying_image": "複製圖片時發生錯誤：{{errorMessage}}",

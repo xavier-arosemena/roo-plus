@@ -2,7 +2,6 @@ import pWaitFor from "p-wait-for"
 import * as vscode from "vscode"
 
 import type { ClineApiReqInfo } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
 
 import { Task } from "../task/Task"
 
@@ -220,8 +219,6 @@ export async function checkpointSave(task: Task, force = false, suppressMessage 
 		return
 	}
 
-	TelemetryService.instance.captureCheckpointCreated(task.taskId)
-
 	// Start the checkpoint process in the background.
 	return service
 		.saveCheckpoint(`Task: ${task.taskId}, Time: ${Date.now()}`, { allowEmpty: force, suppressMessage })
@@ -258,7 +255,6 @@ export async function checkpointRestore(
 
 	try {
 		await service.restoreCheckpoint(commitHash)
-		TelemetryService.instance.captureCheckpointRestored(task.taskId)
 		await provider?.postMessageToWebview({ type: "currentCheckpointUpdated", text: commitHash })
 
 		if (mode === "restore") {
@@ -324,8 +320,6 @@ export async function checkpointDiff(task: Task, { ts, previousCommitHash, commi
 	if (!service) {
 		return
 	}
-
-	TelemetryService.instance.captureCheckpointDiffed(task.taskId)
 
 	let fromHash: string | undefined
 	let toHash: string | undefined

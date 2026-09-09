@@ -10,14 +10,6 @@ vitest.mock("vscode", () => ({
 	},
 }))
 
-vitest.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureException: vitest.fn(),
-		},
-	},
-}))
-
 // Capture the constructor args passed to GoogleGenAI so we can assert on the
 // credentials handed to GoogleAuth via googleAuthOptions.
 const googleGenAICtor = vitest.fn()

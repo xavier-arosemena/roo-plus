@@ -1,3 +1,5 @@
+import * as vscode from "vscode"
+
 import { Task } from "../Task"
 
 // When the backend auto-resolves an interactive ask, isAnswered:true is stamped
@@ -139,5 +141,54 @@ describe("Task.ask auto-approval stamping", () => {
 		const addCall = (task as any).addToClineMessages.mock.calls[0][0]
 		expect(addCall.isAnswered).toBeFalsy()
 		expect(postMessageToWebview).not.toHaveBeenCalledWith({ type: "clearApprovalButtons" })
+	})
+
+	type WorkspaceTrustSurface = {
+		isTrusted?: boolean
+		requestWorkspaceTrust?: (options?: { modal?: boolean; message?: string }) => Thenable<boolean>
+	}
+
+	describe("Task.ask workspace-trust gating of auto-approval (Marketplace #305 D2/B4)", () => {
+		function setWorkspaceTrust(isTrusted: boolean | undefined, withApi: boolean) {
+			const ws = vscode.workspace as unknown as WorkspaceTrustSurface
+			Object.defineProperty(ws, "isTrusted", { value: isTrusted, configurable: true })
+			if (withApi) {
+				ws.requestWorkspaceTrust = vi.fn(() => Promise.resolve(false))
+			} else {
+				delete ws.requestWorkspaceTrust
+			}
+		}
+
+		const autoApprovingProvider: ProviderStub = {
+			postMessageToWebview: vi.fn().mockResolvedValue(undefined),
+			getState: async () => ({
+				autoApprovalEnabled: true,
+				alwaysAllowExecute: true,
+				allowedCommands: ["echo"],
+				deniedCommands: [],
+			}),
+		}
+
+		it("denies a sensitive auto-approved ask in an untrusted workspace", async () => {
+			setWorkspaceTrust(false, false)
+			const task = buildTask(autoApprovingProvider)
+			await attachQueue(task)
+
+			const result = await task.ask("command", "echo hi", false)
+
+			// Workspace-scoped auto-approval must never grant a sensitive op in an
+			// untrusted workspace — the ask is denied instead.
+			expect(result.response).toBe("noButtonClicked")
+		})
+
+		it("still auto-approves a sensitive ask when the workspace is trusted", async () => {
+			setWorkspaceTrust(true, true)
+			const task = buildTask(autoApprovingProvider)
+			await attachQueue(task)
+
+			const result = await task.ask("command", "echo hi", false)
+
+			expect(result.response).toBe("yesButtonClicked")
+		})
 	})
 })

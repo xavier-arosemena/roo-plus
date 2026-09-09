@@ -15,14 +15,6 @@ vi.mock("../../tools/validateToolUse", () => ({
 		),
 	),
 }))
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			captureToolUsage: vi.fn(),
-			captureConsecutiveMistakeError: vi.fn(),
-		},
-	},
-}))
 
 describe("presentAssistantMessage - Image Handling in Native Tool Calling", () => {
 	let mockTask: any
