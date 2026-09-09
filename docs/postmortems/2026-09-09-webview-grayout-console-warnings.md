@@ -48,11 +48,23 @@
 The `mainThreadStorage` blob is persisted in the local VS Codium profile's
 `state.vscdb` (confirmed: no `state.vscdb` exists under `~/.vscodium-server`
 on the remote host, while the warning is emitted by the local renderer's
-mainThreadStorage). Purge it while VS Codium is fully quit:
+mainThreadStorage). Purge it while VS Codium is fully quit.
+
+Run these in a **system terminal on the local machine** (GNOME Terminal,
+Konsole, xterm — NOT the VS Code integrated terminal, which dies when
+VS Codium quits). The working directory does not matter (absolute paths);
+`cd ~` first is just tidy. Run the steps **one at a time**, verifying the
+step-2 output before running the step-3 DELETE.
 
 ```bash
-# 1. Quit ALL VSCodium windows first (otherwise in-memory state is re-flushed on exit)
+# 0. Quit ALL VSCodium windows, then verify nothing is left running:
+ps aux | grep -i codium | grep -v grep   # should print nothing
+
+cd ~
 DB="$HOME/.config/VSCodium/User/globalStorage/state.vscdb"
+ls -lh "$DB"   # if missing, locate it:  find ~/.config -maxdepth 5 -name 'state.vscdb'
+
+# 1. Backup first (safe to restore by copying back while VS Codium is closed)
 cp "$DB" "$DB.bak.$(date +%s)"   # backup
 
 # 2. Inspect what is big (should show the Roo+ taskHistory row)
