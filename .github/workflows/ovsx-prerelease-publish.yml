@@ -1,0 +1,221 @@
+name: Publish Pre-release to Open VSX (out-of-band)
+
+# TEMPORARY out-of-band workflow for the 3.88.0 pre-release line only.
+#
+# Why this exists: `pre-release-publish.yml` validates the VS Code Marketplace
+# PAT (vsce verify-pat) BEFORE packaging, so a VS Code Marketplace API outage
+# (observed: "Request was blocked due to exceeding usage of resource
+# 'Concurrency' in namespace 'VSID'" + "/_apis/securityroles" timeouts,
+# 2026-09-09..10) blocks publishing to Open VSX as well. The maintainer is
+# pursuing VS Code Marketplace support separately; this workflow publishes the
+# SAME artifact to Open VSX in the meantime, with every other safety gate
+# intact (announcement verify, OVSX duplicate/monotonicity guard, VSIX content
+# + pre-release-marker checks, marketplace-prerelease environment).
+#
+# It replicates `pre-release-publish.yml` minus every VS Code Marketplace step.
+# Delete this file (and the branch it lives on) once the normal workflow works.
+
+on:
+  workflow_dispatch: # Manual trigger from the release/v3.88.0-prerelease ref.
+
+permissions:
+  contents: read
+
+concurrency:
+  group: marketplace-prerelease
+  cancel-in-progress: false
+
+jobs:
+  publish-ovsx-prerelease:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: marketplace-prerelease
+    env:
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          # The VSIX embeds modes regenerated from the custom-modes submodule at
+          # build time, so CI MUST check it out at the recorded pin.
+          submodules: recursive
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          install-args: "--frozen-lockfile"
+
+      - name: Prepare extension publish
+        # vsce-pat is intentionally NOT passed: no VS Code Marketplace work runs
+        # here. The composite action only warns when a token is empty.
+        uses: ./.github/actions/prepare-extension
+        with:
+          log-prefix: OVSX-PRERELEASE
+          environment: marketplace-prerelease
+          require-master-ref: "false"
+          validate-tokens: "true"
+          ovsx-pat: ${{ secrets.OVSX_PAT }}
+
+      - name: Fail fast when no Open VSX token is configured
+        if: env.OVSX_PAT == ''
+        run: |
+          echo "::error::[OVSX-PRERELEASE:TOKEN-GUARD] OVSX_PAT is not configured in the marketplace-prerelease environment — nothing can be published."
+          exit 1
+
+      - name: Verify announcement data for the committed version
+        run: |
+          echo "::group::[OVSX-PRERELEASE:ANNOUNCEMENT] Verifying announcement data for the committed version"
+          node scripts/verify-announcement-version.mjs
+          echo "::endgroup::"
+
+      - name: Guard committed version is unique and monotonic on its minor line
+        # Same fail-closed Open VSX guard as pre-release-publish.yml (query API,
+        # reject duplicates / non-monotonic patches on the <major>.<minor> line).
+        run: |
+          echo "::group::[OVSX-PRERELEASE:GUARD] Verifying the committed version is unique and monotonic"
+          node --input-type=module <<'EOF'
+          import fs from "node:fs"
+          import https from "node:https"
+          const pkg = JSON.parse(fs.readFileSync("src/package.json", "utf8"))
+          const version = pkg.version
+          const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(version)
+          if (!m) {
+            console.log(`::error::[OVSX-PRERELEASE:GUARD] committed version "${version}" is not a plain major.minor.patch`)
+            process.exit(1)
+          }
+          const major = Number(m[1])
+          const minor = Number(m[2])
+          const patch = Number(m[3])
+
+          function fetchOpenVsxVersions() {
+            return new Promise((resolve, reject) => {
+              const req = https.get(
+                "https://open-vsx.org/api/xavier-arosemena/roo-plus",
+                { timeout: 15000 },
+                (res) => {
+                  if (res.statusCode !== 200) {
+                    res.resume()
+                    reject(new Error(`Open VSX API returned HTTP ${res.statusCode}`))
+                    return
+                  }
+                  let body = ""
+                  res.setEncoding("utf8")
+                  res.on("data", (chunk) => { body += chunk })
+                  res.on("end", () => {
+                    try {
+                      const data = JSON.parse(body)
+                      resolve(Object.keys(data.allVersions || {}))
+                    } catch (err) {
+                      reject(err)
+                    }
+                  })
+                }
+              )
+              req.on("timeout", () => { req.destroy(new Error("Open VSX API request timed out")) })
+              req.on("error", reject)
+            })
+          }
+
+          let published
+          try {
+            published = await fetchOpenVsxVersions()
+          } catch (err) {
+            console.log(`::error::[OVSX-PRERELEASE:GUARD] could not query Open VSX (${err.message}); aborting to avoid a silent skip or a non-monotonic publish`)
+            process.exit(1)
+          }
+
+          if (published.includes(version)) {
+            console.log(`::error::[OVSX-PRERELEASE:GUARD] ${version} is ALREADY published to Open VSX`)
+            process.exit(1)
+          }
+
+          const lineRe = new RegExp("^" + major + "\\." + minor + "\\.(\\d+)$")
+          let maxPatch = -1
+          for (const v of published) {
+            const pm = v.match(lineRe)
+            if (pm) maxPatch = Math.max(maxPatch, Number(pm[1]))
+          }
+          console.log(`[OVSX-PRERELEASE:GUARD] max published patch on ${major}.${minor}.x: ${maxPatch < 0 ? "none" : maxPatch}`)
+          if (patch <= maxPatch) {
+            console.log(`::error::[OVSX-PRERELEASE:GUARD] committed ${version} is not greater than the max published ${major}.${minor}.${Math.max(maxPatch, 0)} on the ${major}.${minor} line`)
+            process.exit(1)
+          }
+          console.log(`::notice::[OVSX-PRERELEASE:GUARD] ${version} is unique and monotonic on the ${major}.${minor} line — proceeding`)
+          EOF
+          echo "::endgroup::"
+
+      - name: Build workspace packages
+        env:
+          PKG_RELEASE_CHANNEL: prerelease
+        run: |
+          echo "::group::[OVSX-PRERELEASE:BUILD] Building workspace packages"
+          pnpm --filter @roo-code/build build
+          pnpm --filter @roo-code/vscode-webview build
+          echo "::endgroup::"
+
+      - name: Package pre-release VSIX
+        env:
+          PKG_RELEASE_CHANNEL: prerelease
+        run: |
+          echo "::group::[OVSX-PRERELEASE:PACKAGE] Packaging pre-release VSIX"
+          # Ephemeral Open VSX pre-release marker (identical to the regular
+          # pre-release workflow): stamp Microsoft.VisualStudio.Code.PreRelease
+          # into extension/package.json AROUND packaging only; the version is
+          # never changed and the backup is restored via the EXIT trap.
+          cp src/package.json /tmp/roo-plus-src-package.json.bak
+          trap 'mv /tmp/roo-plus-src-package.json.bak src/package.json' EXIT
+          node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync('src/package.json','utf8')); p['Microsoft.VisualStudio.Code.PreRelease']=true; fs.writeFileSync('src/package.json', JSON.stringify(p,null,'\t')+'\n')"
+          mkdir -p bin
+          pnpm --filter ./src exec vsce package --pre-release --no-dependencies --out ../bin
+          echo "::endgroup::"
+
+      - name: Verify VSIX contents
+        run: |
+          echo "::group::[OVSX-PRERELEASE:VERIFY-VSIX] Verifying VSIX contents"
+          package_version=$(jq -r .version src/package.json)
+          vsix_path="bin/roo-plus-${package_version}.vsix"
+          test -f "$vsix_path"
+          unzip -l "$vsix_path" > /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/package.json" /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/dist/extension.js" /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/webview-ui/build/assets/index.js" /tmp/roo-plus-vsix-contents.txt
+          grep -q "extension/webview-ui/audio/celebration.wav" /tmp/roo-plus-vsix-contents.txt
+          echo "::endgroup::"
+
+      - name: Validate packaged manifest identity
+        run: |
+          echo "::group::[OVSX-PRERELEASE:MANIFEST] Validating packaged manifest identity"
+          package_version=$(jq -r .version src/package.json)
+          vsix_path="bin/roo-plus-${package_version}.vsix"
+
+          artifact_name=$(unzip -p "$vsix_path" extension/package.json | jq -r '.name')
+          artifact_publisher=$(unzip -p "$vsix_path" extension/package.json | jq -r '.publisher')
+          artifact_prerelease=$(unzip -p "$vsix_path" extension/package.json | jq -r '."Microsoft.VisualStudio.Code.PreRelease" // empty')
+
+          test "$artifact_name" = "roo-plus"
+          test "$artifact_publisher" = "xavier-arosemena"
+          # Open VSX reads this marker from extension/package.json to flag the
+          # version as a pre-release (bug #243). Hard-assert it before publishing.
+          test "$artifact_prerelease" = "true"
+          echo "::endgroup::"
+
+      - name: Publish pre-release to Open VSX Registry
+        run: |
+          echo "::group::[OVSX-PRERELEASE:PUBLISH] Publishing pre-release to Open VSX Registry"
+          package_version=$(jq -r .version src/package.json)
+          set -o pipefail
+          publish_output=$(pnpm exec ovsx publish "bin/roo-plus-${package_version}.vsix" --skip-duplicate 2>&1 | tee /dev/stderr)
+          if echo "$publish_output" | grep -q "is already published"; then
+            echo "::notice::[OVSX-PRERELEASE:PUBLISH] xavier-arosemena.roo-plus ${package_version} was already published to Open VSX; skipped."
+          else
+            echo "::notice::[OVSX-PRERELEASE:PUBLISH] Published xavier-arosemena.roo-plus ${package_version} as an Open VSX pre-release"
+          fi
+          echo "::endgroup::"
+
+      - name: Upload pre-release VSIX artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: roo-plus-ovsx-prerelease-${{ github.sha }}
+          path: bin/roo-plus-*.vsix
+          retention-days: 7
