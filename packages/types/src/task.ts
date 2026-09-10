@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { RooCodeEventName } from "./events.js"
+import { RooCodeEventName, type WebviewPayloadSizeEvent } from "./events.js"
 import type { RooCodeSettings } from "./global-settings.js"
 import type { ClineMessage, QueuedMessage, TokenUsage } from "./message.js"
 import type { ToolUsage, ToolName } from "./tool.js"
@@ -77,6 +77,10 @@ export type TaskProviderEvents = {
 
 	[RooCodeEventName.ModeChanged]: [mode: string]
 	[RooCodeEventName.ProviderProfileChanged]: [config: { name: string; provider?: string }]
+
+	// Webview Observability — strictly numeric, session-local payload.
+	// local-only; routing this event to any remote sink requires a privacy review.
+	[RooCodeEventName.WebviewPayloadSize]: [payload: WebviewPayloadSizeEvent]
 }
 
 /**

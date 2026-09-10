@@ -107,6 +107,7 @@ import { getNonce } from "./getNonce"
 import { getUri } from "./getUri"
 import { REQUESTY_BASE_URL } from "../../shared/utils/requesty"
 import { PendingEditOperationStore, type PendingEditOperationInput } from "./PendingEditOperationStore"
+import { WebviewPayloadMetrics } from "./webviewPayloadMetrics"
 
 /**
  * https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -200,6 +201,28 @@ export class ClineProvider
 		{ leading: true, trailing: true, maxWait: 1000 },
 	)
 	private readonly rateLimitClock: RateLimitClock = createRateLimitClock()
+
+	/**
+	 * Session-only SLI for host→webview `type: "state"` payload sizes
+	 * (postmortem 2026-09-09 §5 / issue #64 part A).
+	 *
+	 * local-only; routing the emitted event to any remote sink requires a
+	 * privacy review. Metrics live in session memory only — nothing here is
+	 * persisted to globalState/Memento, and logs carry byte-size integers and
+	 * static field names exclusively.
+	 */
+	private readonly payloadMetrics: WebviewPayloadMetrics = new WebviewPayloadMetrics({
+		now: () => Date.now(),
+		log: (message) => this.log(message),
+		showWarning: (message) => void vscode.window.showWarningMessage(message),
+		emitEvent: (payload) => this.emit(RooCodeEventName.WebviewPayloadSize, payload),
+		schedule: (callback, delayMs) => {
+			const timer = setTimeout(callback, delayMs)
+			// Never hold the event loop open for a metrics flush.
+			timer.unref?.()
+			return () => clearTimeout(timer)
+		},
+	})
 
 	private recentTasksCache?: string[]
 	public readonly taskHistoryStore: TaskHistoryStore
@@ -760,6 +783,7 @@ export class ClineProvider
 
 		this._disposed = true
 		this._postStateToWebviewThrottled.cancel()
+		this.payloadMetrics?.dispose()
 		this.log("Disposing ClineProvider...")
 
 		// Reject any tasks still waiting for a scheduler permit so they don't
@@ -1319,6 +1343,14 @@ export class ClineProvider
 	public async postMessageToWebview(message: ExtensionMessage) {
 		if (this._disposed) {
 			return
+		}
+
+		// Payload-size SLI (issue #64 part A). Local-only and privacy-bounded:
+		// WebviewPayloadMetrics records byte counts and static field names
+		// only, never message content. Optional chaining keeps plain fake
+		// provider objects (used in some tests via .call()) working unchanged.
+		if (message.type === "state") {
+			this.payloadMetrics?.recordStateMessage(message)
 		}
 
 		try {

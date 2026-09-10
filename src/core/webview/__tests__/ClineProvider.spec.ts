@@ -17,8 +17,11 @@ import {
 	DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 	DEFAULT_DIFF_FUZZY_THRESHOLD,
 	DEFAULT_WRITE_DELAY_MS,
+	RooCodeEventName,
+	type WebviewPayloadSizeEvent,
 	parseExtensionMessage,
 	providerIdentifiers,
+	webviewPayloadSizeEventSchema,
 } from "@roo-code/types"
 
 import { defaultModeSlug } from "../../../shared/modes"
@@ -809,6 +812,53 @@ describe("ClineProvider", () => {
 		await provider.postMessageToWebview(message)
 
 		expect(mockPostMessage).toHaveBeenCalledWith(message)
+	})
+
+	test("postMessageToWebview records the payload-size SLI for oversized state messages", async () => {
+		await provider.resolveWebviewView(mockWebviewView)
+		mockPostMessage.mockClear()
+		const logSpy = vi.spyOn(provider, "log").mockImplementation(() => {})
+
+		// The WARN log line must be accompanied by the typed local event.
+		const payloads: WebviewPayloadSizeEvent[] = []
+		provider.on(RooCodeEventName.WebviewPayloadSize, (payload) => {
+			payloads.push(payload)
+		})
+
+		// ~300 KB clineMessages field crosses the 256 KB WARN threshold.
+		const largeState = {
+			version: "1.0.0",
+			clineMessages: [{ ts: 1, type: "say", say: "text", text: "x".repeat(300 * 1024) }],
+		} as unknown as ExtensionState
+		await provider.postMessageToWebview({ type: "state", state: largeState })
+
+		expect(payloads).toHaveLength(1)
+		expect(payloads[0].severity).toBe(1)
+		expect(webviewPayloadSizeEventSchema.parse(payloads[0])).toBeTruthy()
+
+		const warnLines = logSpy.mock.calls.map(([m]) => m).filter((m) => m.includes("[webview-metrics] WARN"))
+		expect(warnLines).toHaveLength(1)
+		expect(warnLines[0]).toContain('"state"')
+		expect(warnLines[0]).toContain("clineMessages=")
+		// Privacy: byte sizes + static field names only, never message content.
+		expect(warnLines[0]).not.toMatch(/x{10,}/)
+		expect(mockPostMessage).toHaveBeenCalledTimes(1)
+	})
+
+	test("postMessageToWebview does not record metrics after dispose", async () => {
+		await provider.resolveWebviewView(mockWebviewView)
+		await provider.dispose()
+		mockPostMessage.mockClear()
+		const logSpy = vi.spyOn(provider, "log").mockImplementation(() => {})
+
+		const largeState = {
+			version: "1.0.0",
+			clineMessages: [{ ts: 1, type: "say", say: "text", text: "x".repeat(300 * 1024) }],
+		} as unknown as ExtensionState
+		await expect(provider.postMessageToWebview({ type: "state", state: largeState })).resolves.toBeUndefined()
+
+		expect(mockPostMessage).not.toHaveBeenCalled()
+		expect(logSpy.mock.calls.map(([m]) => m).some((m) => m.includes("[webview-metrics]"))).toBe(false)
 	})
 
 	test("postMessageToWebview does not throw when webview is disposed", async () => {
