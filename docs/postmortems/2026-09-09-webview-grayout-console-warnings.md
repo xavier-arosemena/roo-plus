@@ -122,8 +122,8 @@ EOF
 
 - Closed: large-state warning now has an owner + fix + regression tests (payload cap + legacy-key clearing).
 - Closed 2026-09-10: sourcemap preload 404 noise (item 4) — canonical `.map` only, opt-in debug flag, 5 regression tests.
-- Gap: no monitor for **webview message payload size** (recommended above) — the freeze was silent until the renderer died.
-- Gap: no runbook entry for "gray webview" — this document doubles as the first draft; recovery until the fix ships: reload window (`Developer: Reload Window`).
+- Closed 2026-09-10: webview **message payload-size SLI** (issue #64 part A) — `src/core/webview/webviewPayloadMetrics.ts` aggregates host→webview `state` payloads per ~60 s window in session memory: periodic `state_msgs=N p50=XKB p99=YKB max=ZKB` summary, WARN > 256 KB with top-3 field-size breakdown, ERROR + one-time popup > 1 MB. Local-only: no egress, no persistence (see runbook Privacy note).
+- Closed 2026-09-10: runbook entry for "gray webview" — see [docs/runbooks/gray-webview.md](../runbooks/gray-webview.md) (symptoms, triage order, mitigations incl. §4a purge, escalation matrix, post-fix verification).
 
 ## 6. Watch log (post-release)
 
