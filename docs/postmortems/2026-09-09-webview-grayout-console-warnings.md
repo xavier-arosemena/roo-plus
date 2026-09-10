@@ -67,16 +67,52 @@ ls -lh "$DB"   # if missing, locate it:  find ~/.config -maxdepth 5 -name 'state
 # 1. Backup first (safe to restore by copying back while VS Codium is closed)
 cp "$DB" "$DB.bak.$(date +%s)"   # backup
 
-# 2. Inspect what is big (should show the Roo+ taskHistory row)
-sqlite3 "$DB" "SELECT key, length(value) FROM ItemTable WHERE key LIKE '%taskHistory%' OR key LIKE '%roo-plus%' ORDER BY length(value) DESC LIMIT 10;"
-
-# 3. Remove only the Roo+ taskHistory mirror rows
-sqlite3 "$DB" "DELETE FROM ItemTable WHERE key LIKE '%taskHistory%';"
-sqlite3 "$DB" "VACUUM;"
+# 2. Inspect. IMPORTANT: VS Code stores an extension's entire globalState as a
+#    SINGLE row in ItemTable keyed by the extension id (`xavier-arosemena.roo-plus`).
+#    `taskHistory` is a nested FIELD inside that JSON blob — NOT a row of its own.
+#    (Do not DELETE rows by LIKE '%taskHistory%' — it matches nothing; and wiping
+#    the whole ext-id row would erase unrelated settings such as mode/profiles.)
+python3 - <<'EOF'
+import sqlite3, os, json
+p = os.path.expanduser("~/.config/VSCodium/User/globalStorage/state.vscdb")
+db = sqlite3.connect(p)
+print("large rows:", db.execute("SELECT key, length(value) FROM ItemTable ORDER BY length(value) DESC LIMIT 5").fetchall())
+row = db.execute("SELECT value FROM ItemTable WHERE key='xavier-arosemena.roo-plus'").fetchone()
+if row:
+    v = json.loads(row[0])
+    maps = [("top", v)] + ([("nested", v["value"])] if isinstance(v.get("value"), dict) else [])
+    for name, m in maps:
+        sized = sorted(((len(json.dumps(x)), k) for k, x in m.items()), reverse=True)[:8]
+        print(f"-- {name} map, biggest fields:")
+        for size, k in sized:
+            print(f"  {size:>10}  {k}")
+EOF
 ```
 
-(No `sqlite3` binary? Node 22 has it built-in:
-`node -e 'const{DatabaseSync}=require("node:sqlite");const db=new DatabaseSync(process.env.HOME+"/.config/VSCodium/User/globalStorage/state.vscdb");db.prepare("DELETE FROM ItemTable WHERE key LIKE ?").all("%taskHistory%");'`)
+```bash
+# 3. Surgical strip: remove ONLY the nested taskHistory field(s), keep everything else
+python3 - <<'EOF'
+import sqlite3, os, json
+p = os.path.expanduser("~/.config/VSCodium/User/globalStorage/state.vscdb")
+db = sqlite3.connect(p)
+row = db.execute("SELECT value FROM ItemTable WHERE key='xavier-arosemena.roo-plus'").fetchone()
+if not row:
+    print("ext-id row not found; nothing to do"); raise SystemExit
+v = json.loads(row[0])
+maps = [v] + ([v["value"]] if isinstance(v.get("value"), dict) else [])
+removed = 0
+for m in maps:
+    for k in [k for k in list(m) if "taskHistory" in k and k != "taskHistoryMigratedToFiles"]:
+        del m[k]; removed += 1
+print("removed fields:", removed)
+if removed:
+    db.execute("UPDATE ItemTable SET value=? WHERE key='xavier-arosemena.roo-plus'", (json.dumps(v),))
+    db.commit(); db.execute("VACUUM"); db.close()
+    print("purged + compacted")
+EOF
+```
+
+(`sudo apt install sqlite3` also works for the CLI, but the python3 snippets above need **no install** and perform the nested-field surgery the CLI can't do safely. A local Node CLI is NOT required — the earlier node one-liner assumed Node was installed.)
 
 - **Safe:** per-task files on the server (`~/.vscodium-server/data/User/globalStorage/xavier-arosemena.roo-plus/tasks`, 287 tasks / 5.1 GB) are the source of truth and are untouched.
 - **Temporary on v3.87.3:** the installed release re-writes the Memento mirror ~5 s after any task-history change. After purging, install the fixed VSIX (branch `fix/console-warnings-webview-hang`) for the permanent cure — it clears the key on startup and never rewrites it.
