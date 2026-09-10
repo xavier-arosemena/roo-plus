@@ -16,7 +16,10 @@ name: Publish Pre-release to Open VSX (out-of-band)
 # Delete this file (and the branch it lives on) once the normal workflow works.
 
 on:
-  workflow_dispatch: # Manual trigger from the release/v3.88.0-prerelease ref.
+  # workflow_dispatch requires the file to exist on the default branch, so this
+  # temporary workflow is triggered by pushing to the release branch instead.
+  push:
+    branches: [release/v3.88.0-prerelease]
 
 permissions:
   contents: read
