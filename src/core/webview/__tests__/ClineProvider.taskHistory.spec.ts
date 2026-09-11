@@ -6,6 +6,7 @@ import { RooCodeEventName } from "@roo-code/types"
 
 import { ContextProxy } from "../../config/ContextProxy"
 import { ClineProvider } from "../ClineProvider"
+import { MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW } from "../../services/TaskHistoryService"
 
 // Mock setup
 vi.mock("p-wait-for", () => ({
@@ -658,6 +659,42 @@ describe("ClineProvider Task History Synchronization", () => {
 			expect(state.taskHistory.some((item: HistoryItem) => item.workspace === "/path/to/workspace1")).toBe(true)
 			expect(state.taskHistory.some((item: HistoryItem) => item.workspace === "/path/to/workspace2")).toBe(true)
 			expect(state.taskHistory.some((item: HistoryItem) => item.workspace === "/different/workspace")).toBe(true)
+		})
+	})
+
+	describe("webview task history payload bounding & legacy cleanup", () => {
+		it("bounds getStateToPostToWebview taskHistory to the most recent MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW entries", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+
+			const now = Date.now()
+			const total = MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW + 10
+			const items: HistoryItem[] = Array.from({ length: total }, (_, i) =>
+				createHistoryItem({ id: `cap-task-${i}`, ts: now - i, task: `Cap task ${i}`, number: i + 1 }),
+			)
+			for (const item of items) {
+				await provider.updateTaskHistory(item, { broadcast: false })
+			}
+
+			const state = await provider.getStateToPostToWebview()
+
+			expect(state.taskHistory).toHaveLength(MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW)
+			// Newest entries (lowest ts offset) are retained.
+			expect(state.taskHistory[0].id).toBe("cap-task-0")
+			// Entries beyond the cap are dropped from the webview payload only.
+			expect(
+				state.taskHistory.some(
+					(item: HistoryItem) => item.id === `cap-task-${MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW + 9}`,
+				),
+			).toBe(false)
+			// The file-backed store is NOT truncated.
+			expect(provider.taskHistoryStore.getAll()).toHaveLength(total)
+		})
+
+		it("clears the legacy taskHistory globalState key after file migration", () => {
+			// The provider constructed in beforeEach runs initializeTaskHistoryStore,
+			// which migrates (no-op here) and clears the ~3.5 MB legacy Memento key.
+			expect(mockContext.globalState.update).toHaveBeenCalledWith("taskHistory", undefined)
+			expect(mockContext.globalState.update).toHaveBeenCalledWith("taskHistoryMigratedToFiles", true)
 		})
 	})
 

@@ -8,7 +8,15 @@
 
 ### Minor — Privacy, Trust & Reproducible Source
 
-Starting the 3.88 pre-release line — a hardening cycle responding to VS Code Marketplace notice #305. Roo+ is now fully telemetry-free and reproducible from committed source, and sensitive operations are gated by explicit workspace trust and consent.
+Starting the 3.88 pre-release line — a hardening cycle responding to VS Code Marketplace notice #305. Roo+ is now fully telemetry-free and reproducible from committed source, and sensitive operations are gated by explicit workspace trust and consent. The line iterates with v3.88.1, which fixes the webview reliability issues tracked in #64.
+
+### 📣 What's New
+
+- 🕵️ Zero telemetry by design — PostHog removed entirely; Roo+ reports nothing, and builds are reproducible with no secrets
+- 🔐 Trust-gated operations — sensitive commands require workspace trust; first-use binary downloads require your explicit consent
+- 🧊 No more gray, frozen webview — state updates no longer ship your full task history to the webview, so it stays responsive over remote links (v3.88.1)
+- 📉 Large-state warning gone — the multi-MB task-history mirror is no longer written into VS Code global state (v3.88.1)
+- 🧹 Quieter developer consoles — Semble search logs moved to the output channel, and production source-map 404 noise stopped (v3.88.1)
 
 ### 🔒 Security & Privacy
 
@@ -17,6 +25,12 @@ Starting the 3.88 pre-release line — a hardening cycle responding to VS Code M
 - **Consent-gated binary downloads** — first-use Semble and DCG acquisition requires fail-closed consent (Allow once / Always allow / Deny) persisted only on explicit choice and never in an untrusted workspace, with version-scoped approval.
 - **Reproducible, secret-free builds** — every VSIX is verified byte-for-byte from committed source; Semble and DCG release-governance records disclose external authorship, pinned versions, and checksums.
 - **Source-matching & audit tooling** — `vsix-audit.mjs` + by-design register retained as an optional on-demand scan (not a publish gate); SECURITY.md records the post-fix reproducible-VSIX measurement.
+
+### 🩺 Webview Reliability — v3.88.1 (#64)
+
+- **Bounded task-history payloads** — the full `taskHistory` mirror is no longer shipped inside every `state`/`taskHistoryUpdated` message, and it is no longer written through to the `taskHistory` Memento key; the webview receives a capped recent-tasks list while per-task files remain the source of truth. This fixes the pale-gray frozen webview over remote links and the "large extension state" DevTools warning (#64).
+- **Payload-size SLI** — host→webview state messages are now measured with size thresholds, so a payload regression surfaces in logs before users feel it (#64).
+- **Quieter consoles** — Semble search logging moved behind the extension output channel, and production source-map URL guessing (guaranteed 404 noise) is gated behind a debug flag (#64).
 
 ---
 

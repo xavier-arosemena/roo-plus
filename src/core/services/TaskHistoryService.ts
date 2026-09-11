@@ -12,10 +12,41 @@ export interface TaskHistoryStoreLike {
 }
 
 /**
- * Debounce window (ms) for the debounced globalState write-through of task
- * history. Mirrors the former `ClineProvider.GLOBAL_STATE_WRITE_THROUGH_DEBOUNCE_MS`.
+ * Maximum number of task-history entries shipped to the webview in a single
+ * `state` / `taskHistoryUpdated` message.
+ *
+ * Post-launch monitoring found the extension sending the FULL task-history
+ * array (≈3.5 MB on a long-lived install) to the webview on every state
+ * message. Over remote-SSH IPC that payload saturated the webview renderer
+ * (the recurring "pale gray / unresponsive" symptom). The UI History panel
+ * only needs recent tasks, and the per-task file store remains the full
+ * source of truth for deeper access — so we bound what crosses the wire.
+ *
+ * 100 matches the cap already used for the recent-tasks cache
+ * ({@link TaskHistoryService.getRecentTasks}) and the prompt-history fallback.
  */
-export const DEFAULT_GLOBAL_STATE_WRITE_THROUGH_DEBOUNCE_MS = 5000 // 5 seconds
+export const MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW = 100
+
+/**
+ * Returns at most {@link MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW} history entries
+ * that have both a timestamp (`ts`) and a task description (`task`), sorted
+ * newest-first.
+ *
+ * Shared by {@link TaskHistoryService.broadcastTaskHistoryUpdate} and
+ * `ClineProvider#getStateToPostToWebview` / `ClineProvider#getState` so every
+ * webview-visible snapshot is bounded to the same recent window. The store
+ * itself is never truncated — this only bounds what is serialized to the
+ * webview.
+ */
+export function boundTaskHistoryForWebview(
+	items: readonly HistoryItem[],
+	max: number = MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW,
+): HistoryItem[] {
+	return items
+		.filter((item: HistoryItem) => item.ts && item.task)
+		.sort((a: HistoryItem, b: HistoryItem) => b.ts - a.ts)
+		.slice(0, max)
+}
 
 /**
  * Accessor port for the recent-tasks cache.
@@ -43,27 +74,22 @@ export interface TaskHistoryServiceDeps {
 	isViewLaunched: () => boolean
 	/** Port that posts a message to the webview. */
 	postMessageToWebview: (message: ExtensionMessage) => Promise<void>
-	/** Log sink. */
-	log: (message: string) => void
-	/** Debounced write-through target for the globalState mirror of task history. */
-	writeGlobalTaskHistory: (items: HistoryItem[]) => Promise<void>
 	/** Accessor for the provider-owned recent-tasks cache. */
 	recentTasksCache: RecentTasksCachePort
-	/** Debounce window (ms) for the globalState write-through. Defaults to 5s. */
-	writeThroughDebounceMs?: number
 }
 
 /**
- * Owns task-history mutation, webview broadcast, and the debounced globalState
- * write-through previously embedded in `ClineProvider`.
+ * Owns task-history mutation and webview broadcast for task history.
  *
- * Extracted from the `ClineProvider` god-object (S3a). Public behavior is
- * identical to the original implementation; `ClineProvider` delegates to this
- * service.
+ * Extracted from the `ClineProvider` god-object (S3a). Per-task files in
+ * `TaskHistoryStore` are the single source of truth; the service mutates the
+ * store and pushes *bounded* snapshots to the webview. It no longer maintains
+ * the former debounced globalState "taskHistory" mirror — that ~3.5 MB blob
+ * tripped VS Code's "[mainThreadStorage] large extension state" warning and
+ * was redundant with the file store.
  */
 export class TaskHistoryService {
 	private readonly deps: TaskHistoryServiceDeps
-	private globalStateWriteThroughTimer: ReturnType<typeof setTimeout> | null = null
 
 	constructor(deps: TaskHistoryServiceDeps) {
 		this.deps = deps
@@ -94,44 +120,6 @@ export class TaskHistoryService {
 	}
 
 	/**
-	 * Schedule a debounced write-through of task history to globalState.
-	 * Only used for backward compatibility during the transition period.
-	 * Per-task files are authoritative; globalState is the downgrade fallback.
-	 */
-	scheduleGlobalStateWriteThrough(): void {
-		if (this.globalStateWriteThroughTimer) {
-			clearTimeout(this.globalStateWriteThroughTimer)
-		}
-
-		this.globalStateWriteThroughTimer = setTimeout(async () => {
-			this.globalStateWriteThroughTimer = null
-			try {
-				const items = this.deps.taskHistoryStore.getAll()
-				await this.deps.writeGlobalTaskHistory(items)
-			} catch (err) {
-				this.deps.log(
-					`[scheduleGlobalStateWriteThrough] Failed: ${err instanceof Error ? err.message : String(err)}`,
-				)
-			}
-		}, this.deps.writeThroughDebounceMs ?? DEFAULT_GLOBAL_STATE_WRITE_THROUGH_DEBOUNCE_MS)
-	}
-
-	/**
-	 * Flush any pending debounced globalState write-through immediately.
-	 */
-	flushGlobalStateWriteThrough(): void {
-		if (this.globalStateWriteThroughTimer) {
-			clearTimeout(this.globalStateWriteThroughTimer)
-			this.globalStateWriteThroughTimer = null
-		}
-
-		const items = this.deps.taskHistoryStore.getAll()
-		this.deps.writeGlobalTaskHistory(items).catch((err) => {
-			this.deps.log(`[flushGlobalStateWriteThrough] Failed: ${err instanceof Error ? err.message : String(err)}`)
-		})
-	}
-
-	/**
 	 * Broadcasts a task history update to the webview.
 	 * This sends a lightweight message with just the task history, rather than the full state.
 	 * @param history The task history to broadcast (if not provided, reads from the store)
@@ -143,14 +131,14 @@ export class TaskHistoryService {
 
 		const taskHistory = history ?? this.deps.taskHistoryStore.getAll()
 
-		// Sort and filter the history the same way as getStateToPostToWebview
-		const sortedHistory = taskHistory
-			.filter((item: HistoryItem) => item.ts && item.task)
-			.sort((a: HistoryItem, b: HistoryItem) => b.ts - a.ts)
+		// Bound what we ship to the webview the same way as getStateToPostToWebview —
+		// the full store can be ~3.5 MB, which saturates the renderer over remote-SSH
+		// IPC. The UI History panel only needs the most recent tasks.
+		const boundedHistory = boundTaskHistoryForWebview(taskHistory)
 
 		await this.deps.postMessageToWebview({
 			type: "taskHistoryUpdated",
-			taskHistory: sortedHistory,
+			taskHistory: boundedHistory,
 		})
 	}
 

@@ -39,8 +39,6 @@ export interface ProviderProfileServiceDeps {
 	updateTaskApiHandlerIfNeeded: (providerSettings: ProviderSettings, options?: { forceRebuild?: boolean }) => void
 	/** Port that reads a single history item from the per-task store. */
 	getTaskHistoryItem: (taskId: string) => HistoryItem | undefined
-	/** Port that reads the globalState mirror of task history (downgrade fallback). */
-	getGlobalTaskHistory: () => HistoryItem[]
 	/** Log sink. */
 	log: (message: string) => void
 	/** Port that emits the `ProviderProfileChanged` event. */
@@ -208,9 +206,12 @@ export class ProviderProfileService {
 			// been persisted into taskHistory (it will be captured on the next save).
 			task.setTaskApiConfigName(apiConfigName)
 
-			const taskHistoryItem =
-				this.deps.getTaskHistoryItem(task.taskId) ??
-				this.deps.getGlobalTaskHistory().find((item) => item.id === task.taskId)
+			// The per-task file store is the single source of truth; the legacy
+			// globalState "taskHistory" mirror was removed (it grew to ~3.5 MB and
+			// tripped VS Code's large-extension-state warning). If the item is not in
+			// the store yet, skip persistence — setTaskApiConfigName above already
+			// captured the profile on the in-memory task.
+			const taskHistoryItem = this.deps.getTaskHistoryItem(task.taskId)
 
 			if (taskHistoryItem) {
 				await this.deps.updateTaskHistory({ ...taskHistoryItem, apiConfigName })

@@ -32,23 +32,24 @@ overrides:
     "@vscode/vsce>minimatch": "^10.0.3"
 
     # fast-uri (4 HIGH advisories: GHSA-q3j6-qgpj-74h6, GHSA-v39h-62p7-jpjc, …)
-    fast-uri: "^3.1.5"
+    # >=3.1.6 required (ajv>fast-uri resolved 3.1.5 under ^3.1.5)
+    fast-uri: "^3.1.6"
 
     # ip-address (1 HIGH + 2 MEDIUM: GHSA-mwp4-54f8-5fhr, …) — transitive via
     # @modelcontextprotocol/sdk>express-rate-limit>ip-address
     ip-address: "^10.3.1"
 
     # js-yaml — path-specific for different major versions (patched for
-    # CVE-2026-59870: 3.x >=3.15.1, 4.x >=4.3.1)
-    "@changesets/parse>js-yaml": "^4.3.1"
-    "read-yaml-file>js-yaml": "^3.15.1"
-    "gray-matter>js-yaml": "^3.15.1"
-    "rc-config-loader>js-yaml": "^3.15.1"
-    "@eslint/eslintrc>js-yaml": "^4.3.1"
-    "knip>js-yaml": "^4.3.1"
-    "mocha>js-yaml": "^4.3.1"
-    "@vscode/vsce>js-yaml": "^4.3.1"
-    "@textlint/linter-formatter>js-yaml": "^4.3.1"
+    # CVE-2026-59870: 3.x >=3.15.2, 4.x >=4.3.2)
+    "@changesets/parse>js-yaml": "^4.3.2"
+    "read-yaml-file>js-yaml": "^3.15.2"
+    "gray-matter>js-yaml": "^3.15.2"
+    "rc-config-loader>js-yaml": "^3.15.2"
+    "@eslint/eslintrc>js-yaml": "^4.3.2"
+    "knip>js-yaml": "^4.3.2"
+    "mocha>js-yaml": "^4.3.2"
+    "@vscode/vsce>js-yaml": "^4.3.2"
+    "@textlint/linter-formatter>js-yaml": "^4.3.2"
 
     # nanoid (HIGH: GHSA-2v37-7h3g-55p8 — custom generators can loop
     # indefinitely when size is zero) — patched >=3.3.18; reached via
@@ -73,8 +74,15 @@ overrides:
     # path-to-regexp
     path-to-regexp: "^8.4.0"
 
-    # serialize-javascript
-    serialize-javascript: "^7.0.5"
+    # serialize-javascript (HIGH: GHSA-5c6j-r48x-rmvq — RCE via RegExp.flags /
+    # Date.toISOString; patched >=7.0.3; mocha resolves 6.x so force the 7 line)
+    "mocha>serialize-javascript": "^7.0.5"
+
+    # @xmldom/xmldom (HIGH: GHSA-…, patched >=0.8.15) — transitive via src>mammoth
+    "@xmldom/xmldom": ">=0.8.15"
+
+    # smol-toml (HIGH: GHSA-7w5x-hrqm-74c2, patched >=1.7.1) — transitive via knip
+    smol-toml: ">=1.7.1"
 
     # postcss (new CVE, patched >=8.5.18)
     postcss: ">=8.5.18"
