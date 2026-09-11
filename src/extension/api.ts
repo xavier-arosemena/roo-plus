@@ -438,6 +438,15 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 			this.emit(RooCodeEventName.TaskCreated, task.taskId)
 		})
 
+		// Webview payload SLI (issue #64 part A). Forward the provider event to
+		// the local programmatic consumers (extension-host listeners and the
+		// local CLI IPC event stream). The payload is strictly numeric/static
+		// field names; there is no remote egress.
+		// local-only; routing this event to any remote sink requires a privacy review.
+		provider.on(RooCodeEventName.WebviewPayloadSize, (payload) => {
+			this.emit(RooCodeEventName.WebviewPayloadSize, payload)
+		})
+
 		// Delegation events are emitted by the provider, not by individual task instances.
 		provider.on(RooCodeEventName.TaskDelegated, (parentTaskId, childTaskId) => {
 			;(this.emit as any)(RooCodeEventName.TaskDelegated, parentTaskId, childTaskId)

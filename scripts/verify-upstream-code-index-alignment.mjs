@@ -23,6 +23,15 @@
  *   - fork-config: compared after stripping the fork's `sembleBinaryPath`
  *                fields from interfaces/config.ts (required by the
  *                intentionally-hardened config-manager.ts, which is NOT gated).
+ *   - fork-telemetry: compared after stripping every trace of the fork's
+ *                v3.88.0 telemetry purge (telemetry imports, captureEvent
+ *                statements, and the emptied try/rethrow shells they left) from
+ *                BOTH sides. Upstream still ships the telemetry call sites the
+ *                fork deleted on purpose (Marketplace notice #305), so exact
+ *                byte-identity is impossible by design — while any non-telemetry
+ *                add/change/remove still fails the comparison.
+ *   - modes    : an entry may list several of the above (e.g. branding +
+ *                fork-telemetry); they compose in order.
  *
  * Upstream resolution:
  *   - A local `upstream/main` ref is used as-is (offline-safe).
@@ -64,8 +73,14 @@ const FETCH_TIMEOUT_MS = 120_000
 /**
  * The core files that must stay aligned with upstream/main. Entries:
  *   - path: repo-relative path
- *   - mode: "branding" (branding-only diffs allowed) or "fork-config"
- *     (the known `sembleBinaryPath` fork addition allowed); default = exact.
+ *   - mode: one of "branding" (branding-only diffs allowed), "fork-config"
+ *     (the known `sembleBinaryPath` fork addition allowed), or "fork-telemetry"
+ *     (the documented v3.88.0 telemetry purge: upstream still contains
+ *     TelemetryService.captureEvent calls that Roo+ intentionally deleted as
+ *     part of the privacy/security work responding to Marketplace notice #305;
+ *     see docs/adr/adr-release-versioning-policy.md); default = exact.
+ *   - modes: an array when several allow-lists apply to one file (e.g.
+ *     branding + telemetry in bedrock.ts). Exactly one of mode/modes.
  *
  * Intentionally NOT gated (fork-specific hardening): manager.ts,
  * config-manager.ts, state-manager.ts, interfaces/manager.ts, semble/*,
@@ -75,15 +90,15 @@ const FETCH_TIMEOUT_MS = 120_000
  * without affecting the cherry-pickability of the core.
  */
 export const CORE_FILES = [
-	{ path: "src/services/code-index/orchestrator.ts" },
-	{ path: "src/services/code-index/search-service.ts" },
-	{ path: "src/services/code-index/service-factory.ts" },
-	{ path: "src/services/code-index/cache-manager.ts" },
+	{ path: "src/services/code-index/orchestrator.ts", mode: "fork-telemetry" },
+	{ path: "src/services/code-index/search-service.ts", mode: "fork-telemetry" },
+	{ path: "src/services/code-index/service-factory.ts", mode: "fork-telemetry" },
+	{ path: "src/services/code-index/cache-manager.ts", mode: "fork-telemetry" },
 	// processors/* (parser, scanner, file-watcher, index)
 	{ path: "src/services/code-index/processors/index.ts" },
-	{ path: "src/services/code-index/processors/parser.ts" },
-	{ path: "src/services/code-index/processors/scanner.ts" },
-	{ path: "src/services/code-index/processors/file-watcher.ts" },
+	{ path: "src/services/code-index/processors/parser.ts", mode: "fork-telemetry" },
+	{ path: "src/services/code-index/processors/scanner.ts", mode: "fork-telemetry" },
+	{ path: "src/services/code-index/processors/file-watcher.ts", mode: "fork-telemetry" },
 	// shared/*
 	{ path: "src/services/code-index/shared/get-relative-path.ts" },
 	{ path: "src/services/code-index/shared/supported-extensions.ts" },
@@ -99,15 +114,16 @@ export const CORE_FILES = [
 	{ path: "src/services/code-index/interfaces/vector-store.ts" },
 	// constants/*
 	{ path: "src/services/code-index/constants/index.ts" },
-	// embedders/* — bedrock.ts / openrouter.ts carry branding-only diffs.
-	{ path: "src/services/code-index/embedders/bedrock.ts", mode: "branding" },
-	{ path: "src/services/code-index/embedders/gemini.ts" },
-	{ path: "src/services/code-index/embedders/mistral.ts" },
-	{ path: "src/services/code-index/embedders/ollama.ts" },
-	{ path: "src/services/code-index/embedders/openai-compatible.ts" },
-	{ path: "src/services/code-index/embedders/openai.ts" },
-	{ path: "src/services/code-index/embedders/openrouter.ts", mode: "branding" },
-	{ path: "src/services/code-index/embedders/vercel-ai-gateway.ts" },
+	// embedders/* — bedrock.ts / openrouter.ts carry branding diffs on top of
+	// the telemetry purge; the rest diverge from upstream only by telemetry.
+	{ path: "src/services/code-index/embedders/bedrock.ts", modes: ["branding", "fork-telemetry"] },
+	{ path: "src/services/code-index/embedders/gemini.ts", mode: "fork-telemetry" },
+	{ path: "src/services/code-index/embedders/mistral.ts", mode: "fork-telemetry" },
+	{ path: "src/services/code-index/embedders/ollama.ts", mode: "fork-telemetry" },
+	{ path: "src/services/code-index/embedders/openai-compatible.ts", mode: "fork-telemetry" },
+	{ path: "src/services/code-index/embedders/openai.ts", mode: "fork-telemetry" },
+	{ path: "src/services/code-index/embedders/openrouter.ts", modes: ["branding", "fork-telemetry"] },
+	{ path: "src/services/code-index/embedders/vercel-ai-gateway.ts", mode: "fork-telemetry" },
 	// vector-store (branding-only diff in the User-Agent header)
 	{ path: "src/services/code-index/vector-store/qdrant-client.ts", mode: "branding" },
 	// currently identical; must stay identical
@@ -154,13 +170,185 @@ export function stripSembleBinaryPath(content) {
 }
 
 /**
- * Returns the normalization function for a CORE_FILES entry (identity by
- * default). Pure — exported for the spec.
+ * Removes every trace of the fork's v3.88.0 telemetry purge (Marketplace notice
+ * #305 / adr-release-versioning-policy) from a source file so it can be compared
+ * to upstream — which STILL ships telemetry call sites that Roo+ deliberately
+ * deleted. Applied identically to BOTH sides, so it can never hide drift that is
+ * not telemetry: any added/modified/removed non-telemetry line still fails the
+ * byte comparison afterwards. Handles exactly three shapes observed in the core:
+ *   1. `import { TelemetryService } from "@roo-code/telemetry"` and the fork-side
+ *      `TelemetryEventName` name imported from @roo-code/types
+ *   2. whole `TelemetryService.instance.captureEvent(...)` statements (multi-line,
+ *      paren-balanced) and comments that exist only to describe them
+ *   3. `try { ... } catch (err) { throw err }` wrappers whose catch body became
+ *      empty once the telemetry call was removed (the fork deleted the wrapper
+ *      too, which also dedents the try body — see collapseSignificantLines)
+ * Pure — exported for the spec.
  */
+export function stripForkTelemetry(content) {
+	const lines = content.split("\n")
+	const kept = []
+	for (let i = 0; i < lines.length; i++) {
+		const t = lines[i].trim()
+		if (TELEMETRY_IMPORT_RE.test(t)) {
+			continue
+		}
+		if (t.includes("TelemetryService.instance.captureEvent(")) {
+			let depth = 0
+			let j = i
+			let closed = false
+			for (; j < lines.length; j++) {
+				depth += parenDelta(lines[j])
+				if (depth <= 0) {
+					closed = true
+					break
+				}
+			}
+			// Unbalanced (unexpected shape): keep the line so it surfaces as drift.
+			if (closed) {
+				i = j
+				continue
+			}
+		}
+		if (/^(\/\/|\/\*|\*)/.test(t) && TELEMETRY_REF_RE.test(t)) {
+			continue
+		}
+		kept.push(lines[i])
+	}
+	// Unwrap emptied try/rethrow shells to a fixpoint (handles nesting).
+	let current = kept
+	for (let round = 0; round < 20; round++) {
+		const next = unwrapEmptyRethrowTryBlocks(current)
+		if (next.length === current.length) {
+			break
+		}
+		current = next
+	}
+	return collapseSignificantLines(current.join("\n"))
+}
+
+/** Matches a whole import line whose braces include a telemetry symbol. */
+const TELEMETRY_IMPORT_RE = /^import\s*(?:type\s*)?\{[^}]*\bTelemetry(?:Service|EventName)\b[^}]*\}\s*from\s*["']@roo-code\/(?:telemetry|types)["'];?$/
+/** Matches any identifier/comment reference to the telemetry subsystem. */
+const TELEMETRY_REF_RE = /\bTelemetry(?:Service|EventName)\b|captureEvent\(|\btelemetry\b/i
+
+function parenDelta(line) {
+	let d = 0
+	for (const ch of line) {
+		if (ch === "(") d++
+		else if (ch === ")") d--
+	}
+	return d
+}
+
+function braceDelta(line) {
+	let d = 0
+	for (const ch of line) {
+		if (ch === "{") d++
+		else if (ch === "}") d--
+	}
+	return d
+}
+
+/**
+ * Drops `try { BODY } catch (X) { throw X }` wrappers, keeping BODY. Only the
+ * exact emptied-rethrow shape is unwrapped; anything else is left untouched so a
+ * genuine logic change around a try block still counts as drift.
+ */
+function unwrapEmptyRethrowTryBlocks(lines) {
+	const out = []
+	for (let i = 0; i < lines.length; i++) {
+		if (lines[i].trim() !== "try {") {
+			out.push(lines[i])
+			continue
+		}
+		// Walk the try body to the depth-1 catch header.
+		let depth = 1
+		let j = i + 1
+		const body = []
+		let catchBinding = null
+		for (; j < lines.length; j++) {
+			const lt = lines[j].trim()
+			const catchMatch = lt.match(/^\} catch \(([^)]*)\) \{$/)
+			if (depth === 1 && catchMatch) {
+				catchBinding = catchMatch[1].trim()
+				break
+			}
+			depth += braceDelta(lt)
+			body.push(lines[j])
+			if (depth < 1) {
+				break
+			}
+		}
+		if (catchBinding === null) {
+			out.push(lines[i])
+			continue
+		}
+		// Walk the catch body to its closing brace.
+		let cdepth = 1
+		let k = j + 1
+		const catchBody = []
+		let closed = false
+		for (; k < lines.length; k++) {
+			const lt = lines[k].trim()
+			if (cdepth === 1 && lt === "}") {
+				closed = true
+				break
+			}
+			cdepth += braceDelta(lt)
+			catchBody.push(lines[k])
+			if (cdepth < 1) {
+				break
+			}
+		}
+		const meaningful = catchBody.map((l) => l.trim()).filter((l) => l.length > 0)
+		const isRethrowShell =
+			meaningful.length === 1 && meaningful[0].replace(/;+$/, "") === `throw ${catchBinding}`
+		if (closed && isRethrowShell) {
+			out.push(...body)
+			i = k
+			continue
+		}
+		out.push(lines[i])
+	}
+	return out
+}
+
+/**
+ * Trims every line and drops blank lines, so a dedented try-body (left behind by
+ * wrapper removal) compares equal on both sides. Symmetric: applied to fork AND
+ * upstream text identically. Whitespace/format-only divergence is intentionally
+ * NOT policed by this gate (prettier already owns formatting).
+ */
+function collapseSignificantLines(content) {
+	return content
+		.split("\n")
+		.map((line) => line.trim())
+		.filter((line) => line.length > 0)
+		.join("\n")
+}
+
+/**
+ * Returns the normalization function for a CORE_FILES entry (identity by
+ * default). `entry.modes` (array) composes several allow-lists in order;
+ * `entry.mode` (string) selects one. Pure — exported for the spec.
+ */
+const NORMALIZERS = {
+	branding: normalizeBranding,
+	"fork-config": stripSembleBinaryPath,
+	"fork-telemetry": stripForkTelemetry,
+}
+
 export function getNormalizer(entry) {
-	if (entry.mode === "branding") return normalizeBranding
-	if (entry.mode === "fork-config") return stripSembleBinaryPath
-	return (text) => text
+	const modes = entry.modes ?? (entry.mode ? [entry.mode] : [])
+	const fns = modes.map((m) => NORMALIZERS[m]).filter(Boolean)
+	if (fns.length === 0) {
+		return (text) => text
+	}
+	if (fns.length === 1) {
+		return fns[0]
+	}
+	return (text) => fns.reduce((acc, fn) => fn(acc), text)
 }
 
 /**
@@ -303,8 +491,9 @@ verify-upstream-code-index-alignment.mjs
 Verifies the Qdrant code-index core stays aligned with upstream Zoo-Code so
 future upstream improvements cherry-pick cleanly. Fails when a core file
 differs from upstream/main beyond the allow-listed branding (bedrock.ts,
-openrouter.ts, qdrant-client.ts) / fork-specific (interfaces/config.ts
-sembleBinaryPath) exceptions. See plans/architecture-review-code-index-semble.md
+openrouter.ts, qdrant-client.ts), fork-config (interfaces/config.ts
+sembleBinaryPath), or fork-telemetry (the documented v3.88.0 telemetry purge)
+exceptions. See plans/architecture-review-code-index-semble.md
 (§3.1, §5 item 2a, §6 item 6).
 
 Usage:

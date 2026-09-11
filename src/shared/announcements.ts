@@ -21,11 +21,11 @@ export const Announcements: Record<string, ReleaseAnnouncement> = {
 	"3.88.0": {
 		version: "3.88.0",
 		highlights: [
-			"Fully private by design",
-			"Trusted-workspace gating",
-			"Consent-gated binary downloads",
-			"Reproducible, secret-free builds",
-			"Source-matching & audit tooling",
+			"🕵️ Zero telemetry by design — PostHog removed entirely; Roo+ reports nothing, and builds are reproducible with no secrets",
+			"🔐 Trust-gated operations — sensitive commands require workspace trust; first-use binary downloads require your explicit consent",
+			"🧊 No more gray, frozen webview — state updates no longer ship your full task history to the webview, so it stays responsive over remote links (v3.88.1)",
+			"📉 Large-state warning gone — the multi-MB task-history mirror is no longer written into VS Code global state (v3.88.1)",
+			"🧹 Quieter developer consoles — Semble search logs moved to the output channel, and production source-map 404 noise stopped (v3.88.1)",
 		],
 	},
 }

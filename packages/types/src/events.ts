@@ -50,7 +50,45 @@ export enum RooCodeEventName {
 	CommandsResponse = "commandsResponse",
 	ModesResponse = "modesResponse",
 	ModelsResponse = "modelsResponse",
+
+	// Webview Observability (local-only; routing this event to any remote sink
+	// requires a privacy review.)
+	WebviewPayloadSize = "webviewPayloadSize",
 }
+
+/**
+ * WebviewPayloadSize event payload.
+ *
+ * local-only; routing this event to any remote sink requires a privacy review.
+ *
+ * STRICTLY NUMERIC by design: byte counts and window statistics only. The
+ * `name` of each field size is a closed enum of *static* ExtensionState schema
+ * field names — never free-form strings, never derived from message content,
+ * task text, prompts, file paths, identifiers, or provider config values. The
+ * producer (`src/core/webview/webviewPayloadMetrics.ts`) keeps these metrics in
+ * session memory only; nothing is persisted to globalState/Memento.
+ */
+export const webviewPayloadFieldSizeSchema = z.object({
+	name: z.enum(["clineMessages", "taskHistory", "messageQueue", "marketplaceItems"]),
+	bytes: z.number().int().nonnegative(),
+})
+
+export const webviewPayloadSizeEventSchema = z.object({
+	/** 1 = WARN (payload > 256 KB), 2 = ERROR (payload > 1 MB). */
+	severity: z.union([z.literal(1), z.literal(2)]),
+	/** Size of the offending `state` message in bytes. */
+	messageBytes: z.number().int().nonnegative(),
+	/** Number of `state` messages observed in the current sampling window. */
+	windowMessages: z.number().int().nonnegative(),
+	p50Bytes: z.number().int().nonnegative(),
+	p99Bytes: z.number().int().nonnegative(),
+	maxBytes: z.number().int().nonnegative(),
+	/** Top-3 known-bloat fields of the offending message (size only). */
+	fieldSizes: z.array(webviewPayloadFieldSizeSchema).max(3),
+})
+
+export type WebviewPayloadFieldSize = z.infer<typeof webviewPayloadFieldSizeSchema>
+export type WebviewPayloadSizeEvent = z.infer<typeof webviewPayloadSizeEventSchema>
 
 /**
  * RooCodeEvents
@@ -124,6 +162,11 @@ export const rooCodeEventsSchema = z.object({
 	]),
 	[RooCodeEventName.ModesResponse]: z.tuple([z.array(z.object({ slug: z.string(), name: z.string() }))]),
 	[RooCodeEventName.ModelsResponse]: z.tuple([z.record(z.string(), modelInfoSchema)]),
+
+	// Webview Observability — strictly numeric payload (see
+	// webviewPayloadSizeEventSchema). local-only; routing this event to any
+	// remote sink requires a privacy review.
+	[RooCodeEventName.WebviewPayloadSize]: z.tuple([webviewPayloadSizeEventSchema]),
 })
 
 export type RooCodeEvents = z.infer<typeof rooCodeEventsSchema>
@@ -267,6 +310,13 @@ export const taskEventSchema = z.discriminatedUnion("eventName", [
 	z.object({
 		eventName: z.literal(RooCodeEventName.ModelsResponse),
 		payload: rooCodeEventsSchema.shape[RooCodeEventName.ModelsResponse],
+		taskId: z.number().optional(),
+	}),
+
+	// Webview Observability
+	z.object({
+		eventName: z.literal(RooCodeEventName.WebviewPayloadSize),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.WebviewPayloadSize],
 		taskId: z.number().optional(),
 	}),
 ])

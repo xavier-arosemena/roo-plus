@@ -4,6 +4,8 @@ import { type HistoryItem, parseExtensionMessage } from "@roo-code/types"
 
 import {
 	TaskHistoryService,
+	boundTaskHistoryForWebview,
+	MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW,
 	type RecentTasksCachePort,
 	type TaskHistoryServiceDeps,
 	type TaskHistoryStoreLike,
@@ -34,8 +36,6 @@ interface TestHarness {
 	service: TaskHistoryService
 	store: StoreLike
 	postMessageToWebview: ReturnType<typeof vi.fn>
-	log: ReturnType<typeof vi.fn>
-	writeGlobalTaskHistory: ReturnType<typeof vi.fn>
 	isViewLaunched: ReturnType<typeof vi.fn>
 	cache: { current: string[] | undefined }
 	createService: (overrides?: Partial<TaskHistoryServiceDeps>) => TaskHistoryService
@@ -44,8 +44,6 @@ interface TestHarness {
 const makeHarness = (): TestHarness => {
 	const store = makeStore()
 	const postMessageToWebview = vi.fn().mockResolvedValue(undefined)
-	const log = vi.fn()
-	const writeGlobalTaskHistory = vi.fn().mockResolvedValue(undefined)
 	const isViewLaunched = vi.fn(() => true)
 	const cache: { current: string[] | undefined } = { current: undefined }
 	const recentTasksCache: RecentTasksCachePort = {
@@ -59,8 +57,6 @@ const makeHarness = (): TestHarness => {
 		taskHistoryStore: store,
 		isViewLaunched,
 		postMessageToWebview,
-		log,
-		writeGlobalTaskHistory,
 		recentTasksCache,
 	}
 
@@ -68,8 +64,6 @@ const makeHarness = (): TestHarness => {
 		service: new TaskHistoryService(baseDeps),
 		store,
 		postMessageToWebview,
-		log,
-		writeGlobalTaskHistory,
 		isViewLaunched,
 		cache,
 		createService: (overrides = {}) => new TaskHistoryService({ ...baseDeps, ...overrides }),
@@ -292,54 +286,74 @@ describe("TaskHistoryService.broadcastTaskHistoryUpdate", () => {
 	})
 })
 
-describe("TaskHistoryService globalState write-through", () => {
-	beforeEach(() => {
-		vi.useFakeTimers()
-	})
-
-	afterEach(() => {
-		vi.useRealTimers()
-	})
-
-	it("debounces scheduleGlobalStateWriteThrough writes to the target", async () => {
+describe("TaskHistoryService broadcast bounding", () => {
+	it("caps taskHistoryUpdated broadcasts to the newest MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW items", async () => {
 		const h = makeHarness()
-		const item = makeHistoryItem({ id: "write-1", task: "Write task" })
-		h.store.getAll.mockReturnValue([item])
+		const now = Date.now()
+		const items: HistoryItem[] = Array.from({ length: MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW + 50 }, (_, i) =>
+			makeHistoryItem({ id: `task-${i}`, ts: now - i, task: `Task ${i}`, number: i + 1 }),
+		)
+		h.store.getAll.mockReturnValue(items)
 
-		h.service.scheduleGlobalStateWriteThrough()
-		h.service.scheduleGlobalStateWriteThrough() // second call resets the debounce timer
+		await h.service.broadcastTaskHistoryUpdate()
 
-		expect(h.writeGlobalTaskHistory).not.toHaveBeenCalled()
-
-		await vi.advanceTimersByTimeAsync(5000)
-		expect(h.writeGlobalTaskHistory).toHaveBeenCalledTimes(1)
-		expect(h.writeGlobalTaskHistory).toHaveBeenCalledWith([item])
+		const sent = h.postMessageToWebview.mock.calls[0][0].taskHistory as HistoryItem[]
+		expect(sent).toHaveLength(MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW)
+		// Newest item (task-0 has the latest ts) is kept; the oldest is dropped.
+		expect(sent[0].id).toBe("task-0")
+		expect(sent.some((item) => item.id === `task-${MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW + 49}`)).toBe(false)
 	})
 
-	it("flushGlobalStateWriteThrough writes immediately and clears the pending timer", async () => {
+	it("does not truncate the store when broadcasting (store remains the full source of truth)", async () => {
 		const h = makeHarness()
-		const item = makeHistoryItem({ id: "flush-1", task: "Flush task" })
-		h.store.getAll.mockReturnValue([item])
+		const now = Date.now()
+		const items: HistoryItem[] = Array.from({ length: MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW + 20 }, (_, i) =>
+			makeHistoryItem({ id: `store-task-${i}`, ts: now - i, task: `Store task ${i}`, number: i + 1 }),
+		)
+		h.store.getAll.mockReturnValue(items)
 
-		h.service.scheduleGlobalStateWriteThrough()
-		h.service.flushGlobalStateWriteThrough()
+		await h.service.broadcastTaskHistoryUpdate()
 
-		expect(h.writeGlobalTaskHistory).toHaveBeenCalledTimes(1)
-		expect(h.writeGlobalTaskHistory).toHaveBeenCalledWith([item])
+		// The service only bounds what it posts; it never mutates/truncates the store.
+		expect(h.store.upsert).not.toHaveBeenCalled()
+		expect(h.store.getAll).toHaveBeenCalledTimes(1)
+	})
+})
 
-		// Advancing time must not trigger a second (stale) write.
-		await vi.advanceTimersByTimeAsync(5000)
-		expect(h.writeGlobalTaskHistory).toHaveBeenCalledTimes(1)
+describe("boundTaskHistoryForWebview", () => {
+	it("filters out items without a ts or task and sorts newest first", () => {
+		const now = Date.now()
+		const items: HistoryItem[] = [
+			makeHistoryItem({ id: "old", ts: now - 1000, task: "Old task" }),
+			makeHistoryItem({ id: "new", ts: now, task: "New task", number: 2 }),
+			makeHistoryItem({ id: "no-ts", ts: 0, task: "No ts", number: 3 }),
+			makeHistoryItem({ id: "no-task", ts: now, task: "", number: 4 }),
+		]
+
+		const result = boundTaskHistoryForWebview(items)
+
+		expect(result.map((item) => item.id)).toEqual(["new", "old"])
 	})
 
-	it("logs when the write-through target rejects", async () => {
-		const h = makeHarness()
-		h.writeGlobalTaskHistory.mockRejectedValue(new Error("globalState write failed"))
+	it("caps to the newest N items using the provided max", () => {
+		const now = Date.now()
+		const items: HistoryItem[] = Array.from({ length: 150 }, (_, i) =>
+			makeHistoryItem({ id: `task-${i}`, ts: now - i, task: `Task ${i}`, number: i + 1 }),
+		)
 
-		h.service.flushGlobalStateWriteThrough()
-		await vi.runOnlyPendingTimersAsync()
-		await Promise.resolve()
+		const result = boundTaskHistoryForWebview(items, 100)
 
-		expect(h.log).toHaveBeenCalledWith(expect.stringContaining("[flushGlobalStateWriteThrough] Failed"))
+		expect(result).toHaveLength(100)
+		expect(result[0].id).toBe("task-0")
+		expect(result[99].id).toBe("task-99")
+	})
+
+	it("defaults to MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW", () => {
+		const now = Date.now()
+		const items: HistoryItem[] = Array.from({ length: MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW * 2 }, (_, i) =>
+			makeHistoryItem({ id: `task-${i}`, ts: now - i, task: `Task ${i}`, number: i + 1 }),
+		)
+
+		expect(boundTaskHistoryForWebview(items)).toHaveLength(MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW)
 	})
 })

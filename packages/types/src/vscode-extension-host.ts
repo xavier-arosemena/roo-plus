@@ -226,7 +226,9 @@ export interface ExtensionMessage {
 		childrenCost: number
 	}
 	historyItem?: HistoryItem
-	taskHistory?: HistoryItem[] // For taskHistoryUpdated: full sorted task history
+	// For taskHistoryUpdated: recent sorted task history (bounded to the newest
+	// MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW entries to avoid multi-MB webview payloads).
+	taskHistory?: HistoryItem[]
 	/** For taskHistoryItemUpdated: single updated/added history item */
 	taskHistoryItem?: HistoryItem
 	// Worktree response properties

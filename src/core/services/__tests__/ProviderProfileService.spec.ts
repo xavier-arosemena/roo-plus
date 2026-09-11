@@ -66,7 +66,6 @@ interface TestHarness {
 		getCurrentTask: ReturnType<typeof vi.fn>
 		updateTaskApiHandlerIfNeeded: ReturnType<typeof vi.fn>
 		getTaskHistoryItem: ReturnType<typeof vi.fn>
-		getGlobalTaskHistory: ReturnType<typeof vi.fn>
 		log: ReturnType<typeof vi.fn>
 		onProviderProfileChanged: ReturnType<typeof vi.fn>
 	}
@@ -103,7 +102,6 @@ const makeHarness = (): TestHarness => {
 		getCurrentTask: vi.fn(() => undefined),
 		updateTaskApiHandlerIfNeeded: vi.fn(),
 		getTaskHistoryItem: vi.fn(() => undefined),
-		getGlobalTaskHistory: vi.fn(() => []),
 		log: vi.fn(),
 		onProviderProfileChanged: vi.fn(),
 	}
@@ -117,7 +115,6 @@ const makeHarness = (): TestHarness => {
 		getCurrentTask: ports.getCurrentTask,
 		updateTaskApiHandlerIfNeeded: ports.updateTaskApiHandlerIfNeeded,
 		getTaskHistoryItem: ports.getTaskHistoryItem,
-		getGlobalTaskHistory: ports.getGlobalTaskHistory,
 		log: ports.log,
 		onProviderProfileChanged: ports.onProviderProfileChanged,
 	}
@@ -324,19 +321,19 @@ describe("ProviderProfileService.activateProviderProfile", () => {
 		expect(h.ports.onProviderProfileChanged).not.toHaveBeenCalled()
 	})
 
-	it("persists sticky profile from the globalState fallback when the store has no item", async () => {
+	it("skips task-history persistence when the file store has no item (no globalState mirror fallback)", async () => {
 		const h = makeHarness()
 		const task = makeTask("task-9")
 		h.ports.getCurrentTask.mockReturnValue(task)
 		h.ports.getTaskHistoryItem.mockReturnValue(undefined)
-		h.ports.getGlobalTaskHistory.mockReturnValue([makeHistoryItem({ id: "task-9", task: "Legacy task" })])
 
 		await h.service.activateProviderProfile({ name: "new-profile" })
 
+		// The in-memory profile is still set so sticky behavior works. The per-task
+		// file store is the only history source (the ~3.5 MB globalState mirror was
+		// removed), so with no item there is nothing to persist yet.
 		expect(task.setTaskApiConfigName).toHaveBeenCalledWith("new-profile")
-		expect(h.ports.updateTaskHistory).toHaveBeenCalledWith(
-			expect.objectContaining({ id: "task-9", apiConfigName: "new-profile" }),
-		)
+		expect(h.ports.updateTaskHistory).not.toHaveBeenCalled()
 	})
 
 	it("logs and continues when sticky persistence throws", async () => {
