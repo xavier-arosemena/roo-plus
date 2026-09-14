@@ -38,6 +38,7 @@ export const miscMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
 	"dismissUpsell",
 	"focusPanelRequest",
 	"getDismissedUpsells",
+	"getModesFullConfig",
 	"importRooHistory",
 	"insertTextIntoTextarea",
 	"openExternal",
@@ -82,9 +83,12 @@ export async function handleMiscMessages(
 ): Promise<void> {
 	switch (message.type) {
 		case "webviewDidLaunch":
-			// Load custom modes first
-			const customModes = await provider.customModesManager.getCustomModes()
-			await updateGlobalState(provider, "customModes", customModes)
+			// Load custom modes first (this also primes the file-backed cache). The
+			// list is intentionally NOT mirrored into the global Memento anymore —
+			// the ~760 KB catalog mirror is the residual large-state warning on
+			// fixed builds (issue #64 follow-up, postmortem §5a; the key is cleared
+			// once on startup in ClineProvider#clearLegacyCustomModesMirror).
+			await provider.customModesManager.getCustomModes()
 
 			await provider.postStateToWebview()
 			void provider.workspaceTracker
@@ -485,6 +489,25 @@ export async function handleMiscMessages(
 			} catch (error) {
 				provider.log(`Error fetching modes: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`)
 				await provider.postMessageToWebview({ type: "modes", modes: [] })
+			}
+			break
+		}
+		case "getModesFullConfig": {
+			// Lazy fetch for ModesView editing flows (issue #64 follow-up, §5a):
+			// `state` pushes ship a bounded customModes projection, so the webview
+			// asks for the full file-backed catalog (bodies included) on demand.
+			try {
+				const modeConfigs = await provider.customModesManager.getCustomModes()
+				await provider.postMessageToWebview({ type: "modesFullConfig", modeConfigs })
+			} catch (error) {
+				provider.log(
+					`Error fetching full mode configs: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+				)
+				await provider.postMessageToWebview({
+					type: "modesFullConfig",
+					modeConfigs: [],
+					error: error instanceof Error ? error.message : String(error),
+				})
 			}
 			break
 		}

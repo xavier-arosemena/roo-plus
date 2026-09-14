@@ -25,7 +25,7 @@ import {
 import { findLastIndex } from "@roo/array"
 
 import { checkExistKey } from "@roo/checkExistApiConfig"
-import { Mode, defaultModeSlug, defaultPrompts } from "@roo/modes"
+import { Mode, defaultModeSlug, defaultPrompts, mergeCustomModesState } from "@roo/modes"
 import { CustomSupportPrompts } from "@roo/support-prompt"
 import { experimentDefault } from "@roo/experiments"
 
@@ -159,7 +159,16 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Partial
 
 	const customModePrompts = { ...prevCustomModePrompts, ...(newCustomModePrompts ?? {}) }
 	const experiments = { ...prevExperiments, ...(newExperiments ?? {}) }
+
+	// customModes arrive as a BOUNDED projection on host `state` pushes (the
+	// ~760 KB mode bodies were stripped for issue #64 follow-up, postmortem
+	// §5a). A push must not silently re-strip bodies the webview already
+	// lazy-fetched for the ModesView editing flows, so bounded entries are
+	// merged with the previously-known customInstructions instead of replacing.
 	const rest = { ...prevRest, ...newRest }
+	if (newRest.customModes !== undefined) {
+		rest.customModes = mergeCustomModesState(prevRest.customModes, newRest.customModes) ?? newRest.customModes
+	}
 
 	// Protect clineMessages from stale state pushes using sequence numbering.
 	// Multiple async event sources (cloud auth, settings, task streaming) can trigger
@@ -454,6 +463,17 @@ export const ExtensionStateContextProvider: React.FC<{
 					}
 					if (message.marketplaceInstalledMetadata !== undefined) {
 						setMarketplaceInstalledMetadata(message.marketplaceInstalledMetadata)
+					}
+					break
+				}
+				case "modesFullConfig": {
+					// Lazy-fetch response for the ModesView editing flows (issue
+					// #64 follow-up, §5a): applies the FULL file-backed catalog
+					// (unbounded entries) over the bounded `state` projection.
+					// An error response (empty catalog + error) leaves the current
+					// state untouched so the view keeps its bounded data.
+					if (message.modeConfigs?.length && !message.error) {
+						setState((prevState) => mergeExtensionState(prevState, { customModes: message.modeConfigs }))
 					}
 					break
 				}

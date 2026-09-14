@@ -16,6 +16,7 @@ import {
 	getAllModesWithPrompts,
 	getFullModeDetails,
 	getModeDisplayDescription,
+	mergeCustomModesState,
 	modes,
 	getModeSelection,
 } from "../modes"
@@ -65,11 +66,14 @@ describe("getModeDisplayDescription", () => {
 })
 
 describe("getAllModesWithPrompts", () => {
-	const contextWithState = (customModes: ModeConfig[], customModePrompts: Record<string, { description?: string }>) =>
+	// The catalog is now passed IN from the file-backed source of truth; the
+	// context only supplies customModePrompts. The removed `customModes`
+	// globalState mirror must never be consulted again (issue #64 §5a) — the
+	// mock below intentionally has no "customModes" branch.
+	const contextWithState = (customModePrompts: Record<string, { description?: string }>) =>
 		({
 			globalState: {
 				get: vi.fn(async (key: string) => {
-					if (key === "customModes") return customModes
 					if (key === "customModePrompts") return customModePrompts
 					return undefined
 				}),
@@ -91,7 +95,7 @@ describe("getAllModesWithPrompts", () => {
 			},
 		}
 
-		const result = await getAllModesWithPrompts(contextWithState(customModes, customModePrompts))
+		const result = await getAllModesWithPrompts(contextWithState(customModePrompts), customModes)
 
 		const custom = result.find((m) => m.slug === "custom")!
 		// description is not overridable via customModePrompts — use the derived
@@ -116,9 +120,74 @@ describe("getAllModesWithPrompts", () => {
 			},
 		}
 
-		const result = await getAllModesWithPrompts(contextWithState(customModes, customModePrompts))
+		const result = await getAllModesWithPrompts(contextWithState(customModePrompts), customModes)
 
 		expect(result.find((m) => m.slug === "custom")?.description).toBe("Own description")
+	})
+
+	it("does not read the removed customModes globalState mirror and falls back to built-ins", async () => {
+		const get = vi.fn(async (key: string) => {
+			if (key === "customModes") {
+				// A stale legacy mirror value must be IGNORED, not merged in.
+				return [{ slug: "ghost", name: "Ghost", roleDefinition: "x", groups: [] }]
+			}
+			return undefined
+		})
+		const context = { globalState: { get } } as unknown as vscode.ExtensionContext
+
+		const result = await getAllModesWithPrompts(context)
+
+		expect(get).not.toHaveBeenCalledWith("customModes")
+		expect(result.find((m) => m.slug === "ghost")).toBeUndefined()
+		// Built-in modes are still returned.
+		expect(result.length).toBeGreaterThan(0)
+	})
+})
+
+describe("mergeCustomModesState", () => {
+	const full: ModeConfig = {
+		slug: "code",
+		name: "Code",
+		roleDefinition: "role",
+		customInstructions: "big body",
+		groups: ["read"],
+		source: "global",
+	}
+	const bounded: ModeConfig = {
+		slug: "code",
+		name: "Code",
+		roleDefinition: "role",
+		groups: ["read"],
+		source: "global",
+		bounded: true,
+	}
+
+	it("re-attaches a known customInstructions when a bounded push arrives", () => {
+		const merged = mergeCustomModesState([full], [bounded])!
+		expect(merged[0].customInstructions).toBe("big body")
+		// The merged entry is treated as complete again.
+		expect(merged[0].bounded).toBe(false)
+	})
+
+	it("keeps a fresh unbounded push verbatim (host edit visibility)", () => {
+		const updated: ModeConfig = { ...full, customInstructions: "edited body" }
+		const merged = mergeCustomModesState([full], [updated])!
+		expect(merged[0].customInstructions).toBe("edited body")
+	})
+
+	it("drops deleted modes instead of resurrecting them from the previous list", () => {
+		const merged = mergeCustomModesState([full], [])!
+		expect(merged).toHaveLength(0)
+	})
+
+	it("passes bounded entries through unchanged when no previous body is known", () => {
+		const merged = mergeCustomModesState([], [bounded])!
+		expect(merged[0].bounded).toBe(true)
+		expect(merged[0].customInstructions).toBeUndefined()
+	})
+
+	it("returns undefined when the push does not carry customModes", () => {
+		expect(mergeCustomModesState([full], undefined)).toBeUndefined()
 	})
 })
 

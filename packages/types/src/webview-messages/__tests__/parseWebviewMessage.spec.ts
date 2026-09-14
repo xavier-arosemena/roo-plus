@@ -285,6 +285,7 @@ describe("parseWebviewMessage", () => {
 			"focusPanelRequest",
 			"switchTab",
 			"requestModes",
+			"getModesFullConfig",
 			"insertTextIntoTextarea",
 			"dismissUpsell",
 			"getDismissedUpsells",
@@ -297,7 +298,7 @@ describe("parseWebviewMessage", () => {
 		for (const type of expected) {
 			expect(webviewMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(webviewMessageSchemas)).toHaveLength(154)
+		expect(Object.keys(webviewMessageSchemas)).toHaveLength(155)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

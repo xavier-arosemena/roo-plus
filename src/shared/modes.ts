@@ -103,6 +103,42 @@ export function findModeBySlug(slug: string, modes: readonly ModeConfig[] | unde
 }
 
 /**
+ * Merge an incoming `state`-push customModes list into the webview's existing
+ * list (issue #64 follow-up, postmortem §5a).
+ *
+ * Host state pushes carry a BOUNDED projection whose entries are flagged
+ * `bounded: true` with `customInstructions` omitted (the ~691 KB body of the
+ * shipped 90-mode catalog). The webview lazily fetches full configs via the
+ * `getModesFullConfig` message for the ModesView editing flows, but a
+ * streaming `state` push arriving afterwards must not silently re-strip those
+ * bodies. So: when an incoming entry is bounded and the previous list already
+ * holds a customInstructions value for that slug, re-attach it. Everything
+ * else (adds, renames, deletions, non-bounded pushes) is taken from the
+ * incoming list verbatim.
+ */
+export function mergeCustomModesState(
+	previous: readonly ModeConfig[] | undefined,
+	incoming: readonly ModeConfig[] | undefined,
+): ModeConfig[] | undefined {
+	if (!incoming) {
+		return undefined as unknown as ModeConfig[] | undefined
+	}
+	if (!previous?.length) {
+		return [...incoming]
+	}
+
+	return incoming.map((mode) => {
+		if (!mode.bounded || mode.customInstructions !== undefined) {
+			return mode
+		}
+		const prev = previous.find((p) => p.slug === mode.slug)
+		return prev?.customInstructions !== undefined
+			? { ...mode, customInstructions: prev.customInstructions, bounded: false }
+			: mode
+	})
+}
+
+/**
  * Get the mode selection based on the provided mode slug, prompt component, and custom modes.
  * If a custom mode is found, it takes precedence over the built-in modes.
  * If no custom mode is found, the built-in mode is used with partial merging from promptComponent.
@@ -170,9 +206,17 @@ export function getModeDisplayDescription(
 	return candidate.split("\n")[0]
 }
 
-// Helper function to get all modes with their prompt overrides from extension state
-export async function getAllModesWithPrompts(context: vscode.ExtensionContext): Promise<ModeConfig[]> {
-	const customModes = (await context.globalState.get<ModeConfig[]>("customModes")) || []
+// Helper function to get all modes with their prompt overrides.
+//
+// The custom-modes catalog is passed IN by callers from the file-backed
+// source of truth (CustomModesManager.getCustomModes). It previously read the
+// `customModes` globalState MIRROR, which was removed for issue #64 §5a (the
+// ~760 KB catalog must not ride in the Memento). An empty/omitted list yields
+// built-in modes only, exactly like the old empty-mirror behavior.
+export async function getAllModesWithPrompts(
+	context: vscode.ExtensionContext,
+	customModes?: ModeConfig[],
+): Promise<ModeConfig[]> {
 	const customModePrompts = (await context.globalState.get<CustomModePrompts>("customModePrompts")) || {}
 
 	const allModes = getAllModes(customModes)

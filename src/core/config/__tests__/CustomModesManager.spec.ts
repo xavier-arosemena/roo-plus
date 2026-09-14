@@ -540,20 +540,87 @@ describe("CustomModesManager", () => {
 				}),
 			)
 
-			// Should update global state with merged modes where .roomodes takes precedence
-			expect(mockContext.globalState.update).toHaveBeenCalledWith(
-				"customModes",
-				expect.arrayContaining([
-					expect.objectContaining({
-						slug: "mode1",
-						name: "Roomodes Mode 1", // .roomodes version should take precedence
-						source: "project",
-					}),
-				]),
-			)
+			// Should NOT mirror the merged catalog into the global Memento
+			// anymore (issue #64 follow-up, postmortem §5a) — the file store is
+			// the source of truth and the mirror kept the large-state blob alive.
+			expect(mockContext.globalState.update).not.toHaveBeenCalledWith("customModes", expect.anything())
+
+			// .roomodes precedence is still observable through the merged read
+			const merged = await manager.getCustomModes()
+			expect(merged.find((m) => m.slug === "mode1")).toMatchObject({
+				name: "Roomodes Mode 1",
+				source: "project",
+			})
 
 			// Should trigger onUpdate
 			expect(mockOnUpdate).toHaveBeenCalled()
+		})
+
+		it("persists an update whose incoming config lacks customInstructions without wiping the stored body", async () => {
+			// Regression guard for the bounded webview projection (§5a): a
+			// ModesView edit can arrive as a state entry with the bulky
+			// `customInstructions` omitted; it must not destroy the on-disk body.
+			const existingMode: ModeConfig = {
+				slug: "mode-ci",
+				name: "CI Mode",
+				roleDefinition: "Role",
+				groups: ["read"],
+				customInstructions: "precious body",
+				source: "global",
+			}
+
+			let settingsContent: { customModes: ModeConfig[] } = { customModes: [existingMode] }
+			;(fs.readFile as Mock).mockImplementation(async (p: string) => {
+				if (p === mockSettingsPath) {
+					return yaml.stringify(settingsContent)
+				}
+				throw new Error("File not found")
+			})
+			;(fs.writeFile as Mock).mockImplementation(async (p: string, content: string) => {
+				if (p === mockSettingsPath) {
+					settingsContent = yaml.parse(content)
+				}
+				return Promise.resolve()
+			})
+
+			await manager.updateCustomMode("mode-ci", {
+				slug: "mode-ci",
+				name: "Renamed CI Mode",
+				roleDefinition: "Role",
+				groups: ["read"],
+				source: "global",
+			} as ModeConfig)
+
+			const persisted = settingsContent.customModes.find((m) => m.slug === "mode-ci")
+			expect(persisted?.name).toBe("Renamed CI Mode")
+			expect(persisted?.customInstructions).toBe("precious body")
+		})
+
+		it("strips the transport-only `bounded` marker before persisting", async () => {
+			let settingsContent: { customModes: ModeConfig[] } = { customModes: [] }
+			;(fs.readFile as Mock).mockImplementation(async (p: string) => {
+				if (p === mockSettingsPath) {
+					return yaml.stringify(settingsContent)
+				}
+				throw new Error("File not found")
+			})
+			;(fs.writeFile as Mock).mockImplementation(async (p: string, content: string) => {
+				if (p === mockSettingsPath) {
+					settingsContent = yaml.parse(content)
+				}
+				return Promise.resolve()
+			})
+
+			await manager.updateCustomMode("bounded-mode", {
+				slug: "bounded-mode",
+				name: "Bounded",
+				roleDefinition: "Role",
+				groups: ["read"],
+				source: "global",
+				bounded: true,
+			} as ModeConfig)
+
+			expect(settingsContent.customModes[0]).not.toHaveProperty("bounded")
 		})
 
 		it("creates .roomodes file when adding project-specific mode", async () => {
@@ -653,22 +720,10 @@ describe("CustomModesManager", () => {
 			expect(settingsContent.customModes.map((m: ModeConfig) => m.name)).toContain("Mode 1")
 			expect(settingsContent.customModes.map((m: ModeConfig) => m.name)).toContain("Mode 2")
 
-			// Verify global state was updated
-			expect(mockContext.globalState.update).toHaveBeenCalledWith(
-				"customModes",
-				expect.arrayContaining([
-					expect.objectContaining({
-						slug: "mode1",
-						name: "Mode 1",
-						source: "global",
-					}),
-					expect.objectContaining({
-						slug: "mode2",
-						name: "Mode 2",
-						source: "global",
-					}),
-				]),
-			)
+			// The merged catalog must NOT be mirrored into the global Memento
+			// (issue #64 follow-up, postmortem §5a) — the file store above is
+			// the only persistence for the settings-file modes.
+			expect(mockContext.globalState.update).not.toHaveBeenCalledWith("customModes", expect.anything())
 
 			// Should trigger onUpdate
 			expect(mockOnUpdate).toHaveBeenCalled()
@@ -743,7 +798,9 @@ describe("CustomModesManager", () => {
 
 				// Verify file was processed
 				expect(fs.readFile).toHaveBeenCalledWith(configPath, "utf-8")
-				expect(mockContext.globalState.update).toHaveBeenCalled()
+				// The watcher refresh no longer mirrors the catalog into Memento
+				// (issue #64 follow-up, postmortem §5a).
+				expect(mockContext.globalState.update).not.toHaveBeenCalledWith("customModes", expect.anything())
 				expect(mockOnUpdate).toHaveBeenCalled()
 
 				// Clean up
@@ -962,21 +1019,15 @@ describe("CustomModesManager", () => {
 				return Promise.resolve()
 			})
 
-			// Mock the global state update to actually update the settingsContent
-			;(mockContext.globalState.update as Mock).mockImplementation((key: string, value: ModeConfig[]) => {
-				if (key === "customModes") {
-					settingsContent.customModes = value
-				}
-				return Promise.resolve()
-			})
-
 			await manager.deleteCustomMode("mode-to-delete")
 
 			// Verify mode was removed from settings file
 			expect(settingsContent.customModes).toHaveLength(0)
 
-			// Verify global state was updated
-			expect(mockContext.globalState.update).toHaveBeenCalledWith("customModes", [])
+			// Verify the globalState MIRROR was NOT re-populated by the delete
+			// (issue #64 follow-up, postmortem §5a — the file store is the only
+			// source of truth; the legacy key is cleared on startup instead).
+			expect(mockContext.globalState.update).not.toHaveBeenCalledWith("customModes", expect.anything())
 
 			// Should trigger onUpdate
 			expect(mockOnUpdate).toHaveBeenCalled()

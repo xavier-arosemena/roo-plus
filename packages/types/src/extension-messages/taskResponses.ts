@@ -4,6 +4,7 @@ import { organizationAllowListSchema } from "../cloud.js"
 import { gitCommitSchema } from "../git.js"
 import { historyItemSchema } from "../history.js"
 import { mcpServerSchema } from "../mcp.js"
+import { modeConfigSchema } from "../mode.js"
 import { providerSettingsEntrySchema } from "../provider-settings.js"
 
 /**
@@ -282,6 +283,25 @@ export const modesMessageSchema = z.object({
 })
 
 /**
+ * Full custom-modes catalog response (`modesFullConfig`) — lazy fetch for the
+ * ModesView editing flows.
+ *
+ * The producer (`src/core/webview/handlers/misc.ts`, `getModesFullConfig`
+ * handler) posts `{ type, modeConfigs }` with the FULL mode bodies read from
+ * the file-backed settings source. It exists because `state` pushes no longer
+ * ship bulky per-mode fields (issue #64 follow-up, postmortem §5a: the 90-mode
+ * catalog serialized ~762 KB into EVERY host→webview `state` message); the
+ * webview fetches bodies on demand when the user opens the Modes settings view.
+ * `error` is included so a failed fetch can be surfaced instead of silently
+ * leaving the view with metadata-only configs.
+ */
+export const modesFullConfigMessageSchema = z.object({
+	type: z.literal("modesFullConfig"),
+	modeConfigs: z.array(modeConfigSchema.passthrough()).optional(),
+	error: z.string().optional(),
+})
+
+/**
  * Task aggregated-costs response (`taskWithAggregatedCosts`).
  *
  * The producer (`src/core/webview/handlers/task.ts`, `getTaskWithAggregatedCosts`
@@ -359,6 +379,7 @@ export const taskResponsesMessageSchema = z.discriminatedUnion("type", [
 	dismissedUpsellsMessageSchema,
 	customToolsResultMessageSchema,
 	modesMessageSchema,
+	modesFullConfigMessageSchema,
 	taskWithAggregatedCostsMessageSchema,
 	openAiCodexRateLimitsMessageSchema,
 	interactionRequiredMessageSchema,

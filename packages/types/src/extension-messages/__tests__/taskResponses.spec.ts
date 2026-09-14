@@ -13,6 +13,7 @@ import {
 	listApiConfigMessageSchema,
 	mcpServersMessageSchema,
 	modesMessageSchema,
+	modesFullConfigMessageSchema,
 	openAiCodexRateLimitsMessageSchema,
 	organizationSwitchResultMessageSchema,
 	parseExtensionMessage,
@@ -26,6 +27,7 @@ const validCommit = { hash: "abc123", shortHash: "abc123", subject: "fix typo", 
 const validCommand = { name: "test", source: "project" as const, description: "Run tests" }
 const validServer = { name: "filesystem", config: "{}", status: "connected" as const }
 const validProviderEntry = { id: "prof-1", name: "Default" }
+const validModeConfig = { slug: "code", name: "Code", roleDefinition: "role", groups: [] }
 const validHistoryItem = {
 	id: "task-1",
 	number: 1,
@@ -107,6 +109,20 @@ describe("task/chat/history domain (Phase 2, Domain 3) schemas", () => {
 				{ type: "customToolsResult", tools: [], error: "Failed to load" },
 			],
 			["modes", modesMessageSchema, { type: "modes", modes: [{ slug: "code", name: "Code" }] }],
+			[
+				"modesFullConfig (full bodies)",
+				modesFullConfigMessageSchema,
+				{
+					type: "modesFullConfig",
+					modeConfigs: [{ ...validModeConfig, customInstructions: "body", bounded: false }],
+				},
+			],
+			[
+				"modesFullConfig (error form)",
+				modesFullConfigMessageSchema,
+				{ type: "modesFullConfig", modeConfigs: [], error: "boom" },
+			],
+			["modesFullConfig (empty payload)", modesFullConfigMessageSchema, { type: "modesFullConfig" }],
 			[
 				"taskWithAggregatedCosts (success)",
 				taskWithAggregatedCostsMessageSchema,
@@ -262,6 +278,7 @@ describe("task/chat/history domain (Phase 2, Domain 3) schemas", () => {
 			"dismissedUpsells",
 			"customToolsResult",
 			"modes",
+			"modesFullConfig",
 			"taskWithAggregatedCosts",
 			"openAiCodexRateLimits",
 			"interactionRequired",

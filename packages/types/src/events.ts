@@ -69,7 +69,7 @@ export enum RooCodeEventName {
  * session memory only; nothing is persisted to globalState/Memento.
  */
 export const webviewPayloadFieldSizeSchema = z.object({
-	name: z.enum(["clineMessages", "taskHistory", "messageQueue", "marketplaceItems"]),
+	name: z.enum(["clineMessages", "taskHistory", "customModes", "messageQueue", "marketplaceItems"]),
 	bytes: z.number().int().nonnegative(),
 })
 

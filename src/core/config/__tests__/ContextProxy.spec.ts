@@ -2,7 +2,7 @@
 
 import * as vscode from "vscode"
 
-import { GLOBAL_STATE_KEYS, SECRET_STATE_KEYS, GLOBAL_SECRET_KEYS } from "@roo-code/types"
+import { GLOBAL_STATE_KEYS, SECRET_STATE_KEYS, GLOBAL_SECRET_KEYS, type ModeConfig } from "@roo-code/types"
 
 import { clearAllMocks } from "../../../test-utils/reset"
 import { makeExtensionContext, makeUri } from "../../../test-utils/vscode"
@@ -304,6 +304,56 @@ describe("ContextProxy", () => {
 			// Should have stored values in appropriate caches
 			expect(proxy.getSecret("openAiApiKey")).toBe("test-api-key")
 			expect(proxy.getGlobalState("apiModelId")).toBe("gpt-4")
+		})
+	})
+
+	describe("export", () => {
+		it("ships the injected file-backed catalog and filters to global sources only", async () => {
+			// The `customModes` globalState MIRROR is gone (issue #64 follow-up,
+			// postmortem §5a) — callers pass the catalog explicitly so settings
+			// export behavior stays identical (the catalog must still export).
+			const catalog: ModeConfig[] = [
+				{
+					slug: "global-mode",
+					name: "Global",
+					roleDefinition: "role",
+					groups: ["read"],
+					source: "global",
+					customInstructions: "body",
+				},
+				{
+					slug: "project-mode",
+					name: "Project",
+					roleDefinition: "role",
+					groups: ["read"],
+					source: "project",
+				},
+			]
+
+			const exported = await proxy.export(catalog)
+
+			expect(exported?.customModes).toEqual([expect.objectContaining({ slug: "global-mode" })])
+			expect(exported?.customModes?.[0].customInstructions).toBe("body")
+		})
+
+		it("ships no customModes when no catalog is injected", async () => {
+			// The global Memento no longer carries "customModes" (cleared on
+			// startup), so an export without the file-backed override simply
+			// omits the key instead of shipping the old mirror contents.
+			const exported = await proxy.export()
+
+			expect(exported).toBeDefined()
+			expect(exported?.customModes).toBeUndefined()
+		})
+
+		it("setValue('customModes', undefined) clears both cache and Memento", async () => {
+			// The startup legacy-mirror clear routes through setValue so the
+			// in-memory snapshot is dropped together with the persisted blob.
+			proxy.getGlobalState("customModes")
+			await proxy.setValue("customModes", undefined)
+
+			expect(mockGlobalState.update).toHaveBeenCalledWith("customModes", undefined)
+			expect(proxy.getGlobalState("customModes")).toBeUndefined()
 		})
 	})
 

@@ -5,7 +5,7 @@ import * as path from "path"
 
 import * as vscode from "vscode"
 
-import type { ProviderName } from "@roo-code/types"
+import type { ModeConfig, ProviderName } from "@roo-code/types"
 
 import { clearAllMocks } from "../../../test-utils/reset"
 import { makeExtensionContext } from "../../../test-utils/vscode"
@@ -364,6 +364,35 @@ describe("importExport", () => {
 				expect(result.providerProfiles?.apiConfigs["default"]).toBeDefined()
 				expect(result.providerProfiles?.apiConfigs["default"].apiProvider).toBe("anthropic")
 			}
+		})
+
+		it("does not re-write the customModes Memento mirror through setValues (issue #64 §5a)", async () => {
+			;(vscode.window.showOpenDialog as Mock).mockResolvedValue([{ fsPath: "/mock/path/settings.json" }])
+
+			const customModes = [{ slug: "mode1", name: "Mode One", roleDefinition: "Role", groups: [] }]
+			;(fs.readFile as Mock).mockResolvedValue(
+				JSON.stringify({
+					providerProfiles: { currentApiConfigName: "test", apiConfigs: {} },
+					globalSettings: { mode: "code", customModes },
+				}),
+			)
+			mockProviderSettingsManager.export.mockResolvedValue({ currentApiConfigName: "test", apiConfigs: {} })
+			mockProviderSettingsManager.listConfig.mockResolvedValue([])
+
+			const result = await importSettings({
+				providerSettingsManager: mockProviderSettingsManager,
+				contextProxy: mockContextProxy,
+				customModesManager: mockCustomModesManager,
+			})
+
+			expect(result.success).toBe(true)
+			// Modes are persisted via the file-backed manager...
+			expect(mockCustomModesManager.updateCustomMode).toHaveBeenCalledWith("mode1", customModes[0])
+			// ...but must NOT be flowed back into global state (that is the
+			// removed mirror; writing it would re-inflate the large-state blob).
+			const setValuesPayload = (mockContextProxy.setValues as Mock).mock.calls[0]?.[0] ?? {}
+			expect("customModes" in setValuesPayload).toBe(true)
+			expect(setValuesPayload.customModes).toBeUndefined()
 		})
 
 		it("should call updateCustomMode for each custom mode in config", async () => {
@@ -1385,6 +1414,46 @@ describe("importExport", () => {
 				providerProfiles: mockProviderProfiles,
 				globalSettings: mockGlobalSettings,
 			})
+		})
+
+		it("re-injects the file-backed catalog into the export (catalog must still export, §5a)", async () => {
+			;(vscode.window.showSaveDialog as Mock).mockResolvedValue({
+				fsPath: "/mock/path/zoo-code-settings.json",
+			})
+			mockProviderSettingsManager.export.mockResolvedValue({
+				currentApiConfigName: "test",
+				apiConfigs: { test: { apiProvider: "openai" as ProviderName, id: "test-id" } },
+			})
+			mockContextProxy.export.mockImplementation(async (modes?: ModeConfig[]) => ({
+				mode: "code",
+				// Mimic ContextProxy.export: the override is what gets serialized.
+				customModes: modes,
+			}))
+			const catalog: ModeConfig[] = [
+				{ slug: "mode1", name: "Mode One", roleDefinition: "Role", groups: [], source: "global" },
+				{ slug: "mode2", name: "Mode Two", roleDefinition: "Role", groups: [], source: "project" },
+			]
+			const manager = {
+				updateCustomMode: vi.fn(),
+				getCustomModes: vi.fn().mockResolvedValue(catalog),
+			} as unknown as ReturnType<typeof vi.mocked<CustomModesManager>>
+
+			await exportSettings({
+				providerSettingsManager: mockProviderSettingsManager,
+				contextProxy: mockContextProxy,
+				customModesManager: manager,
+			})
+
+			expect(manager.getCustomModes).toHaveBeenCalled()
+			// The export ships the full file-backed catalog (project filtering is
+			// ContextProxy.export's job and verified in ContextProxy.spec).
+			expect(mockContextProxy.export).toHaveBeenCalledWith(catalog)
+			expect(safeWriteJson).toHaveBeenCalledWith(
+				"/mock/path/zoo-code-settings.json",
+				expect.objectContaining({
+					globalSettings: expect.objectContaining({ customModes: catalog }),
+				}),
+			)
 		})
 
 		it("should include globalSettings when allowedMaxRequests is null", async () => {
