@@ -67,6 +67,11 @@ jobs:
           environment: marketplace-prerelease
           require-master-ref: "true"
           validate-tokens: "true"
+          # A broken/expired VS Code Marketplace PAT (or the outstanding publisher
+          # issue Microsoft-side) must NOT abort the pre-release BEFORE the Open
+          # VSX publish. The VS publish step still runs (continue-on-error) and any
+          # failure is re-surfaced after the Open VSX publish is attempted.
+          fail-on-invalid-vsce-pat: "false"
           vsce-pat: ${{ secrets.VSCE_PAT }}
           ovsx-pat: ${{ secrets.OVSX_PAT }}
 

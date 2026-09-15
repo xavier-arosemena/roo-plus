@@ -33,6 +33,15 @@ inputs:
         description: "Open VSX access token for the xavier-arosemena publisher"
         required: false
         default: ""
+    fail-on-invalid-vsce-pat:
+        description: >
+            Set to 'false' to downgrade a failed VS Code Marketplace PAT validation
+            to a warning instead of failing the run. Used by the pre-release flow so
+            an outstanding VS Marketplace/publisher issue cannot block the Open VSX
+            publish; the VS publish step still runs and any failure is re-surfaced
+            after the Open VSX publish has been attempted.
+        required: false
+        default: "true"
 
 runs:
     using: "composite"
@@ -82,9 +91,17 @@ runs:
           shell: bash
           env:
               VSCE_PAT: ${{ inputs.vsce-pat }}
+              FAIL_ON_INVALID: ${{ inputs.fail-on-invalid-vsce-pat }}
           run: |
               echo "::group::[${{ inputs.log-prefix }}:VSCE-PAT] Validating VS Code Marketplace PAT"
               if ! npx @vscode/vsce verify-pat xavier-arosemena > /tmp/vsce-pat.log 2>&1; then
+                  if [ "$FAIL_ON_INVALID" != "true" ]; then
+                      echo "::warning::[${{ inputs.log-prefix }}:VSCE-PAT] VSCE_PAT is invalid, expired, or lacks 'Manage' permission for publisher 'xavier-arosemena' — continuing because fail-on-invalid-vsce-pat=false."
+                      echo "::warning::[${{ inputs.log-prefix }}:VSCE-PAT] The VS Code Marketplace publish will fail and be re-surfaced after the Open VSX publish is attempted."
+                      cat /tmp/vsce-pat.log
+                      echo "::endgroup::"
+                      exit 0
+                  fi
                   echo "::error::[${{ inputs.log-prefix }}:VSCE-PAT] VSCE_PAT is invalid, expired, or lacks 'Manage' permission for publisher 'xavier-arosemena'."
                   echo "::error::[${{ inputs.log-prefix }}:VSCE-PAT] Regenerate a PAT at https://marketplace.visualstudio.com/manage/publishers/xavier-arosemena (Marketplace -> Manage)."
                   echo "::error::[${{ inputs.log-prefix }}:VSCE-PAT] Update the VSCE_PAT secret in the ${{ inputs.environment }} environment, then re-run."
