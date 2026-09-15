@@ -6,6 +6,7 @@ import {
 	type WebviewMessage,
 	type WebviewMessageType,
 	dismissUpsellMessageSchema,
+	getOlderClineMessagesMessageSchema,
 	insertTextIntoTextareaMessageSchema,
 	openExternalMessageSchema,
 	openFileMessageSchema,
@@ -31,6 +32,7 @@ import { getCommand } from "../../../utils/commands"
 import { t } from "../../../i18n"
 import type { ClineProvider } from "../ClineProvider"
 import type { MarketplaceManager } from "../../../services/marketplace"
+import { selectOlderClineMessages } from "../clineMessagesForWebview"
 import { getCurrentCwd, getGlobalState, updateGlobalState } from "./shared"
 
 export const miscMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
@@ -39,6 +41,7 @@ export const miscMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
 	"focusPanelRequest",
 	"getDismissedUpsells",
 	"getModesFullConfig",
+	"getOlderClineMessages",
 	"importRooHistory",
 	"insertTextIntoTextarea",
 	"openExternal",
@@ -509,6 +512,39 @@ export async function handleMiscMessages(
 					error: error instanceof Error ? error.message : String(error),
 				})
 			}
+			break
+		}
+		case "getOlderClineMessages": {
+			// Lazy fetch for the chat "load earlier messages" flow (2026-09-15
+			// incident): `state` pushes now ship a tail-anchored, byte-bounded
+			// clineMessages window, so the view asks for the page immediately
+			// older than its oldest loaded message. The live task transcript is
+			// the source (rehydrated from `globalStorage/tasks/…` on resume), so
+			// paging never re-serializes more than one bounded page.
+			const result = getOlderClineMessagesMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed getOlderClineMessages message: ${result.error.message}`,
+				)
+				break
+			}
+
+			const task = provider.getCurrentTask()
+			// A request without a bound is meaningless (it would re-send the
+			// window the webview already has); answer with an empty, non-paging
+			// page rather than duplicating the live tail.
+			const { messages: page, hasMore } =
+				result.data.beforeTs === undefined
+					? { messages: [], hasMore: false }
+					: selectOlderClineMessages(task?.clineMessages, result.data.beforeTs)
+
+			await provider.postMessageToWebview({
+				type: "olderClineMessages",
+				olderClineMessages: page,
+				olderClineMessagesHasMore: hasMore,
+				olderClineMessagesTaskId: task?.taskId,
+			})
 			break
 		}
 		case "insertTextIntoTextarea": {

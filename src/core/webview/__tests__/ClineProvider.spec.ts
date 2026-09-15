@@ -35,6 +35,7 @@ import { Task, TaskOptions } from "../../task/Task"
 import { safeWriteJson } from "../../../utils/safeWriteJson"
 
 import { ClineProvider } from "../ClineProvider"
+import { STATE_WARN_BYTES } from "../webviewPayloadMetrics"
 import { webviewMessageHandler } from "../webviewMessageHandler"
 import { Terminal } from "../../../integrations/terminal/Terminal"
 import { MessageManager } from "../../message-manager"
@@ -1048,6 +1049,138 @@ describe("ClineProvider", () => {
 			expect(response?.modeConfigs).toHaveLength(3)
 			expect(response?.modeConfigs?.[0].customInstructions).toBe("x".repeat(4096))
 			expect(response?.error).toBeUndefined()
+		})
+	})
+
+	describe("clineMessages webview payload bounding (2026-09-15 incident)", () => {
+		// Mirrors the reported failure: reopening a long task from history
+		// rehydrated a ~962 KB transcript, and every `state` push shipped all of
+		// it (1045 KB payload → `[webview-metrics] ERROR`).
+		const MESSAGE_COUNT = 900
+		const BYTES_PER_MESSAGE = 1200
+
+		const makeLongTranscript = (count = MESSAGE_COUNT, bytesPerMessage = BYTES_PER_MESSAGE) =>
+			Array.from({ length: count }, (_, i) => ({
+				ts: i + 1,
+				type: "say" as const,
+				say: "text" as const,
+				text: "x".repeat(bytesPerMessage),
+			}))
+
+		const stubCurrentTask = (clineMessages: ReturnType<typeof makeLongTranscript>) => {
+			vi.spyOn(provider, "getCurrentTask").mockReturnValue({
+				taskId: "long-task",
+				clineMessages,
+			} as unknown as Task)
+		}
+
+		// Keep the other known-bloat field out of the measurement so the assertion
+		// isolates `clineMessages` (the shipped customModes projection is bounded
+		// separately and covered by the describe block above).
+		const stubSmallCatalog = () => {
+			provider["customModesManager"].getCustomModes = vi.fn().mockResolvedValue([
+				{
+					slug: "code",
+					name: "Code",
+					roleDefinition: "Role",
+					groups: ["read"] as const,
+					source: "global" as const,
+				},
+			])
+		}
+
+		const statePayload = (state: unknown) => ({
+			type: "state",
+			state,
+		})
+
+		test("getStateToPostToWebview keeps the state payload under the WARN threshold", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			stubSmallCatalog()
+			const messages = makeLongTranscript()
+			stubCurrentTask(messages)
+
+			const state = await provider.getStateToPostToWebview()
+			const payloadBytes = Buffer.byteLength(JSON.stringify(statePayload(state)), "utf8")
+
+			// The regression: this payload was > 1 MB before the bound.
+			expect(payloadBytes).toBeLessThan(STATE_WARN_BYTES)
+			expect(state.clineMessagesBounded).toBe(true)
+			expect(state.clineMessagesTotal).toBe(messages.length)
+			expect(state.clineMessages.length).toBeLessThan(messages.length)
+		})
+
+		test("the bound is tail-anchored and keeps the transcript head anchor", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			const messages = makeLongTranscript()
+			stubCurrentTask(messages)
+
+			const state = await provider.getStateToPostToWebview()
+
+			// Newest messages retained → the active turn is always present.
+			expect(state.clineMessages.at(-1)?.ts).toBe(messages.length)
+			// Head retained → ChatView's `messages.at(0)` task anchor survives.
+			expect(state.clineMessages[0].ts).toBe(1)
+		})
+
+		test("a short task still ships its whole transcript unbounded", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			const messages = makeLongTranscript(3, 10)
+			stubCurrentTask(messages)
+
+			const state = await provider.getStateToPostToWebview()
+
+			expect(state.clineMessagesBounded).toBe(false)
+			expect(state.clineMessages).toHaveLength(3)
+		})
+
+		test("streaming pushes carry the bounded window too", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			stubCurrentTask(makeLongTranscript())
+			const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
+
+			await provider.postStateToWebviewWithoutTaskHistory()
+
+			const state = postMessageSpy.mock.calls[0]?.[0].state
+			expect(state?.clineMessagesBounded).toBe(true)
+			expect((state?.clineMessages ?? []).length).toBeLessThan(MESSAGE_COUNT)
+		})
+
+		test("postStateToWebviewWithoutClineMessages omits the transcript and its window metadata", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			stubCurrentTask(makeLongTranscript())
+			const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
+
+			await provider.postStateToWebviewWithoutClineMessages()
+
+			const state = postMessageSpy.mock.calls[0]?.[0].state
+			expect(state).not.toHaveProperty("clineMessages")
+			expect(state).not.toHaveProperty("clineMessagesBounded")
+			expect(state).not.toHaveProperty("clineMessagesTotal")
+		})
+
+		test("getOlderClineMessages pages lazily from the live transcript", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			const messages = makeLongTranscript()
+			stubCurrentTask(messages)
+			const messageHandler = mockWebviewView.webview.onDidReceiveMessage.mock.calls[0][0]
+			const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
+
+			const state = await provider.getStateToPostToWebview()
+			// Paging continues upward from the oldest loaded tail row (the window's
+			// first element is the head anchor).
+			const oldestLoadedTailTs = state.clineMessages[1].ts
+			await messageHandler({ type: "getOlderClineMessages", beforeTs: oldestLoadedTailTs })
+
+			const response = postMessageSpy.mock.calls.map((c) => c[0]).find((m) => m.type === "olderClineMessages")
+			expect(response).toBeDefined()
+			expect(response?.olderClineMessagesTaskId).toBe("long-task")
+			expect(response?.olderClineMessagesHasMore).toBe(true)
+			expect(response?.olderClineMessages?.length).toBeGreaterThan(0)
+			expect(response?.olderClineMessages?.at(-1)?.ts).toBe(oldestLoadedTailTs - 1)
+			// A page must never itself trip the payload SLI.
+			const pageBytes = Buffer.byteLength(JSON.stringify(response?.olderClineMessages ?? []), "utf8")
+			expect(pageBytes).toBeLessThan(STATE_WARN_BYTES)
 		})
 	})
 

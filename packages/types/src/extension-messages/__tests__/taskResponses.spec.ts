@@ -14,6 +14,7 @@ import {
 	mcpServersMessageSchema,
 	modesMessageSchema,
 	modesFullConfigMessageSchema,
+	olderClineMessagesMessageSchema,
 	openAiCodexRateLimitsMessageSchema,
 	organizationSwitchResultMessageSchema,
 	parseExtensionMessage,
@@ -123,6 +124,25 @@ describe("task/chat/history domain (Phase 2, Domain 3) schemas", () => {
 				{ type: "modesFullConfig", modeConfigs: [], error: "boom" },
 			],
 			["modesFullConfig (empty payload)", modesFullConfigMessageSchema, { type: "modesFullConfig" }],
+			[
+				"olderClineMessages (page)",
+				olderClineMessagesMessageSchema,
+				{
+					type: "olderClineMessages",
+					olderClineMessages: [
+						{ ts: 481, type: "say", say: "text", text: "older" },
+						{ ts: 482, type: "ask", ask: "tool", text: '{"tool":"readFile"}' },
+					],
+					olderClineMessagesHasMore: true,
+					olderClineMessagesTaskId: "task-1",
+				},
+			],
+			[
+				"olderClineMessages (error form)",
+				olderClineMessagesMessageSchema,
+				{ type: "olderClineMessages", olderClineMessages: [], error: "boom" },
+			],
+			["olderClineMessages (empty payload)", olderClineMessagesMessageSchema, { type: "olderClineMessages" }],
 			[
 				"taskWithAggregatedCosts (success)",
 				taskWithAggregatedCostsMessageSchema,

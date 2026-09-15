@@ -98,6 +98,7 @@
 	"enqueueMessage": "Dodaj wiadomość do kolejki (zostanie wysłana po zakończeniu bieżącego zadania)",
 	"scrollToBottom": "Przewiń do dołu czatu",
 	"scrollToLatestCheckpoint": "Przewiń do poprzedniego punktu kontrolnego",
+	"loadEarlierMessages": "Wczytaj wcześniejsze wiadomości",
 	"about": "Lokalne, bring-your-own-model agentowe rozszerzenie IDE — <br/>Poznaj swoje koszty, ufaj cache'owi, zachowaj swoją wiedzę.",
 	"support": {
 		"reportIssue": "Zgłoś błąd lub zaproponuj funkcję",

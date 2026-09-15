@@ -98,6 +98,7 @@
 	"enqueueMessage": "将消息加入队列（当前任务完成后发送）",
 	"scrollToBottom": "滚动到聊天底部",
 	"scrollToLatestCheckpoint": "滚动到上一个检查点",
+	"loadEarlierMessages": "加载更早的消息",
 	"about": "本地优先、自带模型的智能体 IDE 扩展 — <br/>了解你的成本，信任你的缓存，守护你的知识。",
 	"support": {
 		"reportIssue": "报告错误或请求功能",

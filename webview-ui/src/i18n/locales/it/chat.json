@@ -98,6 +98,7 @@
 	"enqueueMessage": "Aggiungi il messaggio alla coda (sarà inviato dopo che l'attività corrente sarà terminata)",
 	"scrollToBottom": "Scorri fino alla fine della chat",
 	"scrollToLatestCheckpoint": "Scorri al checkpoint precedente",
+	"loadEarlierMessages": "Carica messaggi precedenti",
 	"about": "L'estensione IDE agentica local-first, porta il tuo modello — <br/>Conosci i tuoi costi, fidati della tua cache, conserva le tue conoscenze.",
 	"support": {
 		"reportIssue": "Segnala un bug o richiedi una funzionalità",

@@ -131,6 +131,21 @@ export const getModesFullConfigMessageSchema = z.object({
 	type: z.literal("getModesFullConfig"),
 })
 
+/**
+ * Request the page of chat messages immediately older than `beforeTs`.
+ *
+ * Lazy-fetch companion to the tail-anchored `state.clineMessages` window
+ * (2026-09-15 `state` payload incident): `state` pushes now ship only the newest
+ * messages (bounded by count and bytes) plus the transcript's first message, so
+ * the chat view asks for the omitted middle on up-scroll. The response is the
+ * outbound `olderClineMessages` message. `beforeTs` is the requester's oldest
+ * loaded message timestamp and is EXCLUSIVE.
+ */
+export const getOlderClineMessagesMessageSchema = z.object({
+	type: z.literal("getOlderClineMessages"),
+	beforeTs: z.number().optional(),
+})
+
 /** Insert text into the chat textarea. `text` stays optional to match the handler guard. */
 export const insertTextIntoTextareaMessageSchema = z.object({
 	type: z.literal("insertTextIntoTextarea"),
@@ -172,6 +187,7 @@ export const miscMessageSchema = z.discriminatedUnion("type", [
 	switchTabMessageSchema,
 	requestModesMessageSchema,
 	getModesFullConfigMessageSchema,
+	getOlderClineMessagesMessageSchema,
 	insertTextIntoTextareaMessageSchema,
 	dismissUpsellMessageSchema,
 	getDismissedUpsellsMessageSchema,

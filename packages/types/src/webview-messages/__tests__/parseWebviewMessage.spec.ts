@@ -55,6 +55,30 @@ describe("parseWebviewMessage", () => {
 		})
 	})
 
+	describe("registered getOlderClineMessages", () => {
+		it("accepts a bounded page request (lazy fetch for the bounded transcript window)", () => {
+			const result = parseWebviewMessage({ type: "getOlderClineMessages", beforeTs: 491 })
+			expect(result.ok).toBe(true)
+			if (result.ok) {
+				expect(result.message.type).toBe("getOlderClineMessages")
+				expect(result.message.beforeTs).toBe(491)
+			}
+		})
+
+		it("accepts an omitted bound (the handler answers with a non-paging page)", () => {
+			const result = parseWebviewMessage({ type: "getOlderClineMessages" })
+			expect(result.ok).toBe(true)
+		})
+
+		it("rejects a non-numeric bound", () => {
+			const result = parseWebviewMessage({ type: "getOlderClineMessages", beforeTs: "491" })
+			expect(result.ok).toBe(false)
+			if (!result.ok) {
+				expect(result.error).toContain("getOlderClineMessages")
+			}
+		})
+	})
+
 	describe("registered checkpointDiff", () => {
 		const valid = {
 			type: "checkpointDiff",
@@ -286,6 +310,9 @@ describe("parseWebviewMessage", () => {
 			"switchTab",
 			"requestModes",
 			"getModesFullConfig",
+			// Lazy-fetch request for the bounded `state.clineMessages` window
+			// (2026-09-15 `state` payload incident).
+			"getOlderClineMessages",
 			"insertTextIntoTextarea",
 			"dismissUpsell",
 			"getDismissedUpsells",
@@ -298,7 +325,7 @@ describe("parseWebviewMessage", () => {
 		for (const type of expected) {
 			expect(webviewMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(webviewMessageSchemas)).toHaveLength(155)
+		expect(Object.keys(webviewMessageSchemas)).toHaveLength(156)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

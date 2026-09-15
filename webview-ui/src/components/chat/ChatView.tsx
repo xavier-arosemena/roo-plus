@@ -91,6 +91,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const {
 		clineMessages: messages,
+		clineMessagesBounded,
+		clineMessagesTotal,
 		currentTaskId,
 		currentTaskItem,
 		currentTaskTodos,
@@ -127,6 +129,24 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	useEffect(() => {
 		messagesRef.current = messages
+	}, [messages])
+
+	// Bounded transcript (2026-09-15 `state` payload incident): the host ships a
+	// tail-anchored window of the newest messages plus the transcript's first
+	// message, so long conversations stay reachable without re-serializing the
+	// whole transcript on every push. Offer "load earlier messages" until the
+	// loaded transcript covers the task's full message count.
+	const hasOlderMessages =
+		clineMessagesBounded === true && typeof clineMessagesTotal === "number" && messages.length < clineMessagesTotal
+
+	const handleLoadEarlierMessages = useCallback(() => {
+		// `messages[0]` is the transcript head anchor, so paging continues upward
+		// from `messages[1]` — the oldest loaded tail/page row (exclusive bound).
+		const beforeTs = messages[1]?.ts
+		if (beforeTs === undefined) {
+			return
+		}
+		vscode.postMessage({ type: "getOlderClineMessages", beforeTs })
 	}, [messages])
 
 	// Leaving this less safe version here since if the first message is not a
@@ -1728,6 +1748,19 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					{checkpointWarning && (
 						<div className="px-3">
 							<CheckpointWarning warning={checkpointWarning} />
+						</div>
+					)}
+
+					{hasOlderMessages && (
+						<div className="px-3 pt-1">
+							<Button
+								variant="secondary"
+								className="w-full"
+								onClick={handleLoadEarlierMessages}
+								aria-label={t("chat:loadEarlierMessages")}>
+								<span className="codicon codicon-history mr-1"></span>
+								{t("chat:loadEarlierMessages")}
+							</Button>
 						</div>
 					)}
 				</>

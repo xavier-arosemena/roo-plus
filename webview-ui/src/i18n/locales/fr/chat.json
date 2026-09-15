@@ -98,6 +98,7 @@
 	"enqueueMessage": "Ajouter le message à la file d'attente (sera envoyé après la fin de la tâche en cours)",
 	"scrollToBottom": "Défiler jusqu'au bas du chat",
 	"scrollToLatestCheckpoint": "Défiler jusqu'au checkpoint précédent",
+	"loadEarlierMessages": "Charger les messages précédents",
 	"about": "L'extension d'IDE agentique local-first, avec votre propre modèle — <br/>Connaissez vos coûts, faites confiance à votre cache, gardez vos connaissances.",
 	"support": {
 		"reportIssue": "Signaler un bug ou demander une fonctionnalité",

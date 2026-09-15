@@ -250,6 +250,9 @@ describe("parseExtensionMessage", () => {
 			"customToolsResult",
 			"modes",
 			"modesFullConfig",
+			// Lazy-fetch page for the bounded `state.clineMessages` window
+			// (2026-09-15 `state` payload incident).
+			"olderClineMessages",
 			"taskWithAggregatedCosts",
 			"openAiCodexRateLimits",
 			"interactionRequired",
@@ -292,7 +295,7 @@ describe("parseExtensionMessage", () => {
 		for (const type of expected) {
 			expect(extensionMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(extensionMessageSchemas)).toHaveLength(78)
+		expect(Object.keys(extensionMessageSchemas)).toHaveLength(79)
 	})
 
 	it("builds a discriminated union over the registered types", () => {
