@@ -293,8 +293,15 @@ jobs:
           echo "::notice::[CI:PRERELEASE:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher (pre-release marker: $artifact_prerelease)"
           echo "::endgroup::"
 
+      # continue-on-error so a VS Code Marketplace outage (or the outstanding
+      # publisher-account issues) can never SKIP the Open VSX publish below —
+      # Open VSX is the registry that historically succeeds for this extension.
+      # A dedicated step after the Open VSX publish re-surfaces a VS failure so
+      # the run still turns red instead of silently shipping to one registry.
       - name: Publish pre-release to VS Code Marketplace
+        id: publish-vsce
         if: steps.release-check.outputs.skip != 'true' && env.VSCE_PAT != ''
+        continue-on-error: true
         run: |
           echo "::group::[CI:PRERELEASE:PUBLISH:VSCE] Publishing pre-release to VS Code Marketplace"
           package_version=$(jq -r .version src/package.json)
@@ -342,6 +349,16 @@ jobs:
           name: roo-plus-prerelease-${{ github.sha }}
           path: bin/roo-plus-*.vsix
           retention-days: 7
+
+      # Re-surface a VS Code Marketplace failure AFTER Open VSX has published.
+      # The VS publish above is continue-on-error so it can never block Open
+      # VSX, but a release that reached only ONE registry must not look green —
+      # this keeps the run red and lets the failure notification below fire.
+      - name: Fail the run if the VS Code Marketplace publish failed
+        if: steps.publish-vsce.outcome == 'failure'
+        run: |
+          echo "::error::[CI:PRERELEASE:PUBLISH:VSCE] VS Code Marketplace publish failed; the Open VSX publish was still attempted — see the 'Publish pre-release to VS Code Marketplace' step above."
+          exit 1
 
       # Failure notification. Runs only when a previous step failed AND a Slack
       # webhook is configured; continue-on-error so a notification problem can

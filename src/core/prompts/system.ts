@@ -85,7 +85,7 @@ async function generatePrompt(
 	const effectiveProtocol = "native"
 
 	const [modesSection, skillsSection] = await Promise.all([
-		getModesSection(context),
+		getModesSection(context, customModeConfigs),
 		getSkillsSection(skillsManager, mode as string),
 	])
 

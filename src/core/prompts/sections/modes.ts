@@ -5,12 +5,15 @@ import type { ModeConfig } from "@roo-code/types"
 import { getAllModesWithPrompts } from "../../../shared/modes"
 import { ensureSettingsDirectoryExists } from "../../../utils/globalContext"
 
-export async function getModesSection(context: vscode.ExtensionContext): Promise<string> {
+export async function getModesSection(context: vscode.ExtensionContext, customModes?: ModeConfig[]): Promise<string> {
 	// Make sure path gets created
 	await ensureSettingsDirectoryExists(context)
 
-	// Get all modes with their overrides from extension state
-	const allModes = await getAllModesWithPrompts(context)
+	// Get all modes with their overrides. The custom-modes catalog comes from
+	// the caller (file-backed CustomModesManager source of truth) — it no
+	// longer reads the removed `customModes` globalState mirror (issue #64
+	// §5a). An omitted/empty list yields built-in modes only.
+	const allModes = await getAllModesWithPrompts(context, customModes)
 
 	const modesContent = `====
 

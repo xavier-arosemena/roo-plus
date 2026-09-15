@@ -249,6 +249,7 @@ describe("parseExtensionMessage", () => {
 			"dismissedUpsells",
 			"customToolsResult",
 			"modes",
+			"modesFullConfig",
 			"taskWithAggregatedCosts",
 			"openAiCodexRateLimits",
 			"interactionRequired",
@@ -291,7 +292,7 @@ describe("parseExtensionMessage", () => {
 		for (const type of expected) {
 			expect(extensionMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(extensionMessageSchemas)).toHaveLength(77)
+		expect(Object.keys(extensionMessageSchemas)).toHaveLength(78)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

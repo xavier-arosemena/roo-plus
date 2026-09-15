@@ -242,6 +242,19 @@ const ModesView = () => {
 		}
 	}, [mode])
 
+	// Lazy-fetch the full mode catalog when the bounded `state` projection
+	// arrived with stripped bodies (issue #64 follow-up, postmortem §5a):
+	// `state.customModes` omits bulky per-mode fields on streaming pushes, so
+	// the editing flows below (role definition / custom instructions textareas,
+	// rename, delete, export) need the real bodies before they can render or
+	// persist edits. The response arrives as a `modesFullConfig` message and is
+	// applied by ExtensionStateContext; unbounded entries stop the refetch.
+	useEffect(() => {
+		if (customModes?.some((m) => m.bounded)) {
+			vscode.postMessage({ type: "getModesFullConfig" })
+		}
+	}, [customModes])
+
 	// Handler for popover open state change
 	const onOpenChange = useCallback((open: boolean) => {
 		setOpen(open)

@@ -30,6 +30,14 @@ export type ImportOptions = {
 type ExportOptions = {
 	providerSettingsManager: ProviderSettingsManager
 	contextProxy: ContextProxy
+	/**
+	 * Optional file-backed modes source. The `customModes` globalState MIRROR
+	 * was removed (issue #64 follow-up, postmortem §5a), so without this the
+	 * export would ship no modes at all. When provided, the FULL global
+	 * catalog is read from CustomModesManager and injected into the export —
+	 * behavior parity with pre-mirror-removal exports.
+	 */
+	customModesManager?: CustomModesManager
 }
 type ImportWithProviderOptions = ImportOptions & {
 	provider: {
@@ -226,7 +234,12 @@ export async function importSettingsFromPath(
 		// They will be imported automatically with the config - no special handling needed
 
 		await providerSettingsManager.import(providerProfiles)
-		await contextProxy.setValues(sanitizedGlobalSettings)
+		// Imported modes are persisted to the file store via updateCustomMode
+		// above. Do NOT flow them back through setValues: the `customModes`
+		// globalState MIRROR was removed (issue #64 follow-up, postmortem §5a)
+		// and writing it here would re-inflate the large-state blob. The
+		// explicit undefined also clears any legacy mirror value.
+		await contextProxy.setValues({ ...sanitizedGlobalSettings, customModes: undefined })
 
 		// Set the current provider.
 		const currentProviderName = providerProfiles.currentApiConfigName
@@ -307,7 +320,7 @@ export const importSettingsFromFile = async (
 	})
 }
 
-export const exportSettings = async ({ providerSettingsManager, contextProxy }: ExportOptions) => {
+export const exportSettings = async ({ providerSettingsManager, contextProxy, customModesManager }: ExportOptions) => {
 	const defaultUri = await resolveDefaultSaveUri(contextProxy, "lastSettingsExportPath", "zoo-code-settings.json", {
 		useWorkspace: false,
 		fallbackDir: path.join(os.homedir(), "Downloads"),
@@ -326,7 +339,10 @@ export const exportSettings = async ({ providerSettingsManager, contextProxy }: 
 
 	try {
 		const providerProfiles = await providerSettingsManager.export()
-		const globalSettings = await contextProxy.export()
+		// Re-point the catalog source from the removed Memento mirror to the
+		// file-backed manager so the catalog must still export (§5a stragglers).
+		const customModes = customModesManager ? await customModesManager.getCustomModes() : undefined
+		const globalSettings = await contextProxy.export(customModes)
 
 		// It's okay if there are no global settings, but if there are no
 		// provider profile configured then don't export. If we wanted to

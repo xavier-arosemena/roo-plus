@@ -60,10 +60,23 @@ export interface WebviewPayloadMetricsDeps {
 	schedule: (callback: () => void, delayMs: number) => () => void
 }
 
-/** Static, schema-defined ExtensionState fields probed for size (bytes only). */
+/**
+ * Static, schema-defined ExtensionState fields probed for size (bytes only).
+ *
+ * 2026-09-11 follow-up (v3.88.1 post-deploy watch): an ERROR fired at 1410 KB
+ * while the breakdown only attributed `taskHistory=649KB` — the residual ~760 KB
+ * was the full `customModes` catalog (90 bundled modes, ~762 KB JSON) riding
+ * un-probed on every `state` message. `customModes`, `messageQueue` and
+ * `marketplaceItems` are therefore probed now so WARN/ERROR attribution closes
+ * the gap between the total and the named fields. `undefined`/null fields cost
+ * nothing (see {@link jsonSizeBytes}).
+ */
 const KNOWN_BLOAT_FIELDS = [
 	{ name: "clineMessages", read: (m: ExtensionMessage) => m.state?.clineMessages },
 	{ name: "taskHistory", read: (m: ExtensionMessage) => m.state?.taskHistory },
+	{ name: "customModes", read: (m: ExtensionMessage) => m.state?.customModes },
+	{ name: "messageQueue", read: (m: ExtensionMessage) => m.state?.messageQueue },
+	{ name: "marketplaceItems", read: (m: ExtensionMessage) => m.state?.marketplaceItems },
 ] as const
 
 function jsonSizeBytes(value: unknown): number {

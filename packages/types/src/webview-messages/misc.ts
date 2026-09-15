@@ -118,6 +118,19 @@ export const requestModesMessageSchema = z.object({
 	type: z.literal("requestModes"),
 })
 
+/**
+ * Request the FULL custom-modes catalog including bulky per-mode bodies
+ * (empty payload).
+ *
+ * Lazy-fetch companion to the bounded `state` pushes (issue #64 follow-up,
+ * postmortem §5a): `state.customModes` now carries only a metadata projection,
+ * so the ModesView editing flows ask for full configs on demand. The response
+ * is the outbound `modesFullConfig` message.
+ */
+export const getModesFullConfigMessageSchema = z.object({
+	type: z.literal("getModesFullConfig"),
+})
+
 /** Insert text into the chat textarea. `text` stays optional to match the handler guard. */
 export const insertTextIntoTextareaMessageSchema = z.object({
 	type: z.literal("insertTextIntoTextarea"),
@@ -158,6 +171,7 @@ export const miscMessageSchema = z.discriminatedUnion("type", [
 	focusPanelRequestMessageSchema,
 	switchTabMessageSchema,
 	requestModesMessageSchema,
+	getModesFullConfigMessageSchema,
 	insertTextIntoTextareaMessageSchema,
 	dismissUpsellMessageSchema,
 	getDismissedUpsellsMessageSchema,

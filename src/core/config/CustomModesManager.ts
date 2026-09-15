@@ -20,6 +20,39 @@ const ROOMODES_FILENAME = ".roomodes"
 const PRE_INSTALLED_MODES_KEY = "preInstalledModesSeeded"
 const BUNDLED_MODES_RELATIVE_PATH = path.join("assets", "marketplace", GlobalFileNames.preInstalledModes)
 
+/**
+ * Bounded projection of the custom-modes catalog for host→webview `state`
+ * pushes (issue #64 follow-up, postmortem §5a).
+ *
+ * The shipped 90-mode catalog serializes to ~759 KB of JSON, and
+ * `customInstructions` alone accounts for ~691 KB (~91%) of it — measured
+ * against `src/assets/marketplace/pre-installed-modes.yml` on 2026-09-14.
+ * Shipping that body on EVERY state message (the Task.addToClineMessages hot
+ * path) inflated payloads past the 1 MB ERROR threshold, exactly the failure
+ * mode fixed for `taskHistory` in 3.88.1. The streaming pushes therefore send
+ * the per-mode metadata the webview actually renders (slug/name/description/
+ * whenToUse/roleDefinition/groups/source — ≈66 KB for the shipped catalog)
+ * with the bulky `customInstructions` body omitted, plus the FULL config of
+ * the currently-active mode. `bounded: true` marks a stripped entry so the
+ * webview knows to lazy-fetch bodies via `getModesFullConfig`.
+ *
+ * The file-backed settings file + .roomodes remain the single source of truth
+ * (mirrors the `boundTaskHistoryForWebview` pattern from commit 3feae426a).
+ */
+export function boundCustomModesForWebview(
+	modes: ModeConfig[],
+	activeModeSlug?: string,
+	keepFullSlug?: string,
+): ModeConfig[] {
+	return modes.map((mode) => {
+		if (mode.slug === activeModeSlug || mode.slug === keepFullSlug || mode.customInstructions === undefined) {
+			return mode
+		}
+		const { customInstructions: _omit, ...rest } = mode
+		return { ...rest, bounded: true }
+	})
+}
+
 // Type definitions for import/export functionality
 interface RuleFile {
 	relativePath: string
@@ -54,14 +87,51 @@ export class CustomModesManager {
 	private writeQueue: Array<() => Promise<void>> = []
 	private cachedModes: ModeConfig[] | null = null
 	private cachedAt: number = 0
+	/**
+	 * Slug of the most recently updated mode. The webview projection keeps
+	 * that mode's full body so an edit round-trip (updateCustomMode → state
+	 * push) never shows the webview merging back the PRE-edit customInstructions
+	 * from its previous bounded state.
+	 */
+	private lastUpdatedSlug?: string
 
 	constructor(
 		private readonly context: vscode.ExtensionContext,
 		private readonly onUpdate: () => Promise<void>,
 	) {
+		// Track the live instance so host-only helpers that only have an
+		// ExtensionContext (e.g. getAllModesWithPrompts via the system-prompt
+		// MODES section) can read the file-backed catalog through the manager
+		// instead of the removed Memento mirror (issue #64 follow-up, §5a).
+		CustomModesManager.sharedInstance = this
 		this.watchCustomModesFiles().catch((error) => {
 			console.error("[CustomModesManager] Failed to setup file watchers:", error)
 		})
+	}
+
+	private static sharedInstance: CustomModesManager | undefined
+
+	/**
+	 * Reads the file-backed custom-modes catalog for the given context. Uses
+	 * the live manager instance (with its 10 s cache) when available;
+	 * otherwise constructs a throwaway manager (watchers disposed after the
+	 * read) so the catalog stays reachable before/without a provider.
+	 */
+	public static async getCustomModesForContext(context: vscode.ExtensionContext): Promise<ModeConfig[]> {
+		const shared = CustomModesManager.sharedInstance
+		if (shared && shared.context === context) {
+			return shared.getCustomModes()
+		}
+
+		const manager = new CustomModesManager(context, async () => {})
+		try {
+			return await manager.getCustomModes()
+		} finally {
+			manager.dispose()
+			if (CustomModesManager.sharedInstance === manager) {
+				CustomModesManager.sharedInstance = undefined
+			}
+		}
 	}
 
 	private async queueWrite(operation: () => Promise<void>): Promise<void> {
@@ -294,6 +364,11 @@ export class CustomModesManager {
 		return merged.map((mode) => this.ensureModeDescription(mode))
 	}
 
+	/** Slug of the most recently updated mode (see `lastUpdatedSlug` field). */
+	public getLastUpdatedSlug(): string | undefined {
+		return this.lastUpdatedSlug
+	}
+
 	public async getCustomModesFilePath(): Promise<string> {
 		const settingsDir = await ensureSettingsDirectoryExists(this.context)
 		const filePath = path.join(settingsDir, GlobalFileNames.customModes)
@@ -354,9 +429,14 @@ export class CustomModesManager {
 				const roomodesPath = await this.getWorkspaceRoomodes()
 				const roomodesModes = roomodesPath ? await this.loadModesFromFile(roomodesPath) : []
 
-				// Merge modes from both sources (.roomodes takes precedence)
-				const mergedModes = await this.mergeCustomModes(roomodesModes, result.data.customModes)
-				await this.context.globalState.update("customModes", mergedModes)
+				// Merge modes from both sources (.roomodes takes precedence).
+				// NOTE: the merged list is intentionally NOT mirrored into the
+				// global Memento anymore (issue #64 follow-up, postmortem §5a) —
+				// the file-backed settings file + .roomodes are the source of
+				// truth; the ~760 KB mirror is what kept the `mainThreadStorage`
+				// large-state warning alive on fixed builds. The legacy key is
+				// cleared once on startup (ClineProvider#clearLegacyCustomModesMirror).
+				await this.mergeCustomModes(roomodesModes, result.data.customModes)
 				this.clearCache()
 				await this.onUpdate()
 			} catch (error) {
@@ -380,9 +460,9 @@ export class CustomModesManager {
 				try {
 					const settingsModes = await this.loadModesFromFile(settingsPath)
 					const roomodesModes = await this.loadModesFromFile(roomodesPath)
-					// .roomodes takes precedence
-					const mergedModes = await this.mergeCustomModes(roomodesModes, settingsModes)
-					await this.context.globalState.update("customModes", mergedModes)
+					// .roomodes takes precedence (mirror intentionally not updated —
+					// see handleSettingsChange above)
+					await this.mergeCustomModes(roomodesModes, settingsModes)
 					this.clearCache()
 					await this.onUpdate()
 				} catch (error) {
@@ -396,8 +476,7 @@ export class CustomModesManager {
 				roomodesWatcher.onDidDelete(async () => {
 					// When .roomodes is deleted, refresh with only settings modes
 					try {
-						const settingsModes = await this.loadModesFromFile(settingsPath)
-						await this.context.globalState.update("customModes", settingsModes)
+						await this.loadModesFromFile(settingsPath)
 						this.clearCache()
 						await this.onUpdate()
 					} catch (error) {
@@ -556,7 +635,11 @@ export class CustomModesManager {
 			// would otherwise reach the webview with a blank description.
 			.map((mode) => this.ensureModeDescription(mode))
 
-		await this.context.globalState.update("customModes", mergedModes)
+		// No Memento mirror write here anymore (issue #64 follow-up, §5a): this
+		// method runs on EVERY state read, so the previous `globalState.update(
+		// "customModes", mergedModes)` re-persisted the ~760 KB catalog into the
+		// global Memento on every read/write and kept the large-state warning
+		// alive. The file store is the source of truth.
 
 		this.cachedModes = mergedModes
 		this.cachedAt = now
@@ -566,8 +649,15 @@ export class CustomModesManager {
 
 	public async updateCustomMode(slug: string, config: ModeConfig): Promise<void> {
 		try {
+			// Remember the slug so the next webview projection can keep this
+			// mode's (just-edited) full body — see `lastUpdatedSlug`.
+			this.lastUpdatedSlug = slug
+			// Drop the transport-only `bounded` marker (see
+			// boundCustomModesForWebview) so it never leaks into the file store:
+			// the webview edits modes received via bounded `state` pushes.
+			const { bounded: _bounded, ...cleanConfig } = config
 			// Validate the mode configuration before saving
-			const validationResult = modeConfigSchema.safeParse(config)
+			const validationResult = modeConfigSchema.safeParse(cleanConfig)
 			if (!validationResult.success) {
 				const errorMessages = validationResult.error.errors
 					.map((err) => `${err.path.join(".")}: ${err.message}`)
@@ -578,7 +668,7 @@ export class CustomModesManager {
 				throw new Error(errorMessage)
 			}
 
-			const isProjectMode = config.source === "project"
+			const isProjectMode = cleanConfig.source === "project"
 			let targetPath: string
 
 			if (isProjectMode) {
@@ -604,13 +694,24 @@ export class CustomModesManager {
 			await this.queueWrite(async () => {
 				// Ensure source is set correctly based on target file.
 				const modeWithSource = {
-					...config,
+					...cleanConfig,
 					source: isProjectMode ? ("project" as const) : ("global" as const),
 				}
 
 				await this.updateModesInFile(targetPath, (modes) => {
+					const previous = modes.find((m) => m.slug === slug)
+					// Defensive merge for the bounded webview projection (issue #64
+					// follow-up, postmortem §5a): `state` pushes omit
+					// `customInstructions` for non-active modes, so an incoming edit
+					// that omits the field (undefined) must NOT silently wipe the
+					// body that is already on disk. Explicit clears send "" from the
+					// ModesView textarea and pass through unchanged.
+					const merged =
+						modeWithSource.customInstructions === undefined && previous?.customInstructions !== undefined
+							? { ...modeWithSource, customInstructions: previous.customInstructions }
+							: modeWithSource
 					const updatedModes = modes.filter((m) => m.slug !== slug)
-					updatedModes.push(modeWithSource)
+					updatedModes.push(merged)
 					return updatedModes
 				})
 
@@ -662,9 +763,9 @@ export class CustomModesManager {
 
 		const settingsModes = await this.loadModesFromFile(settingsPath)
 		const roomodesModes = roomodesPath ? await this.loadModesFromFile(roomodesPath) : []
-		const mergedModes = await this.mergeCustomModes(roomodesModes, settingsModes)
+		await this.mergeCustomModes(roomodesModes, settingsModes)
 
-		await this.context.globalState.update("customModes", mergedModes)
+		// Mirror intentionally not updated (see getCustomModes above).
 
 		this.clearCache()
 
@@ -768,7 +869,7 @@ export class CustomModesManager {
 		try {
 			const filePath = await this.getCustomModesFilePath()
 			await fs.writeFile(filePath, yaml.stringify({ customModes: [] }, { lineWidth: 0 }))
-			await this.context.globalState.update("customModes", [])
+			// Mirror intentionally not updated (see getCustomModes above).
 			this.clearCache()
 			await this.onUpdate()
 		} catch (error) {

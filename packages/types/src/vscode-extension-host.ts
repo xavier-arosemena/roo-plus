@@ -92,6 +92,7 @@ export interface ExtensionMessage {
 		| "interactionRequired"
 		| "customToolsResult"
 		| "modes"
+		| "modesFullConfig"
 		| "taskWithAggregatedCosts"
 		| "openAiCodexRateLimits"
 		// Worktree response types
@@ -210,6 +211,12 @@ export interface ExtensionMessage {
 	skills?: SkillMetadata[] // For skills response
 	rules?: RuleMetadata[] // For rules response
 	modes?: { slug: string; name: string }[] // For modes response
+	/**
+	 * For `modesFullConfig` (lazy-fetch response for the ModesView editing
+	 * flows): the FULL custom-mode catalog with bodies. Sent on demand ONLY —
+	 * never on `state` pushes (see boundCustomModesForWebview, issue #64 §5a).
+	 */
+	modeConfigs?: ModeConfig[] // For modesFullConfig response
 	rooHistoryImportProgress?: {
 		status: "starting" | "copying" | "finished" | "failed"
 		copiedFileCount: number
@@ -583,6 +590,7 @@ export interface WebviewMessage {
 		| "requestOpenAiCodexRateLimits"
 		| "refreshCustomTools"
 		| "requestModes"
+		| "getModesFullConfig"
 		| "debugSetting"
 		// Worktree messages
 		| "listWorktrees"

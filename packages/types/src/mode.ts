@@ -114,6 +114,15 @@ export const modeConfigSchema = z.object({
 			"Optional list of MCP server names to include. When omitted, all servers are available. When set, only the listed servers are injected.",
 		)
 		.optional(),
+	/**
+	 * Transport-only marker set by `boundCustomModesForWebview` on host→webview
+	 * `state` projections (issue #64 follow-up, postmortem §5a): the entry
+	 * carries the bounded per-mode metadata the UI renders, with the bulky
+	 * `customInstructions` body omitted (fetched on demand via
+	 * `getModesFullConfig`). File-backed configs never carry this flag, and
+	 * `updateCustomMode` strips it before persisting.
+	 */
+	bounded: z.boolean().optional(),
 })
 
 export type ModeConfig = z.infer<typeof modeConfigSchema>

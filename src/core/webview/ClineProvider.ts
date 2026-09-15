@@ -79,6 +79,7 @@ import { SkillsManager } from "../../services/skills/SkillsManager"
 import { MarketplaceService } from "../services/MarketplaceService"
 import { ProviderProfileService } from "../services/ProviderProfileService"
 import { TaskHistoryService, boundTaskHistoryForWebview } from "../services/TaskHistoryService"
+import { boundCustomModesForWebview } from "../config/CustomModesManager"
 import { TaskOrchestrator } from "../services/TaskOrchestrator"
 
 import { fileExistsAtPath } from "../../utils/fs"
@@ -440,6 +441,9 @@ export class ClineProvider
 		this.initializeTaskHistoryStore().catch((error) => {
 			this.log(`Failed to initialize TaskHistoryStore: ${error}`)
 		})
+		this.clearLegacyCustomModesMirror().catch((error) => {
+			this.log(`Failed to clear legacy customModes mirror: ${error}`)
+		})
 
 		// Start configuration loading (which might trigger indexing) in the background.
 		// Don't await, allowing activation to continue immediately.
@@ -629,6 +633,24 @@ export class ClineProvider
 		} catch (error) {
 			this.log(`[initializeTaskHistoryStore] Error: ${error instanceof Error ? error.message : String(error)}`)
 		}
+	}
+
+	/**
+	 * Drop the legacy `customModes` globalState mirror on every startup, exactly
+	 * the way {@link initializeTaskHistoryStore} clears `"taskHistory"`.
+	 *
+	 * The settings file + .roomodes are the real source of truth for the mode
+	 * catalog; the Memento mirror re-persisted the ~760 KB shipped catalog on
+	 * every read/write and is the residual 755→1067 KB `mainThreadStorage`
+	 * large-state warning on the fixed 3.88.x builds (issue #64 follow-up,
+	 * postmortem §5a). CustomModesManager no longer writes the key; clearing
+	 * it here removes it for installs that mirrored it earlier.
+	 */
+	private async clearLegacyCustomModesMirror(): Promise<void> {
+		// Clear through the ContextProxy so BOTH the in-memory cache and the
+		// Memento entry are dropped — a stale cached catalog would otherwise
+		// keep flowing into getValues()/export().
+		await this.contextProxy.setValue("customModes", undefined)
 	}
 
 	/**
@@ -2350,6 +2372,19 @@ export class ClineProvider
 		}
 	}
 
+	/**
+	 * Builds the `state` IPC payload.
+	 *
+	 * customModes are shipped BOUNDED on every push (issue #64 follow-up,
+	 * postmortem §5a): the shipped 90-mode catalog alone serialized ~762 KB
+	 * into every host→webview `state` message, pushing the webviewDidLaunch
+	 * payload past the 1 MB ERROR threshold. The bounded projection keeps the
+	 * metadata the webview renders (≈66 KB for the shipped catalog) plus the
+	 * full config of the currently-active mode; ModesView editing flows
+	 * lazy-fetch the omitted bodies via the `getModesFullConfig` message
+	 * (response `modesFullConfig`). The file-backed settings file + .roomodes
+	 * remain the source of truth.
+	 */
 	async getStateToPostToWebview({ includeTaskHistory = true }: GetStateOptions = {}): Promise<ExtensionState> {
 		// Ensure the store is initialized before reading task history
 		await this.taskHistoryStore.initialized
@@ -2502,7 +2537,19 @@ export class ClineProvider
 			customSupportPrompts: customSupportPrompts ?? {},
 			enhancementApiConfigId,
 			autoApprovalEnabled: autoApprovalEnabled ?? false,
-			customModes,
+			// Bounded projection instead of the full ~762 KB catalog — see the
+			// getStateToPostToWebview doc comment above (issue #64 §5a). The
+			// most-recently-updated mode keeps its full body so an edit
+			// round-trip never re-ships stale instructions to the webview.
+			customModes: boundCustomModesForWebview(
+				customModes,
+				mode,
+				// Optional call keeps partial test doubles (and any future
+				// manager implementations) working.
+				typeof this.customModesManager.getLastUpdatedSlug === "function"
+					? this.customModesManager.getLastUpdatedSlug()
+					: undefined,
+			),
 			experiments: experiments ?? experimentDefault,
 			mcpServers: this.mcpHub?.getAllServers() ?? [],
 			maxOpenTabsContext: maxOpenTabsContext ?? 20,

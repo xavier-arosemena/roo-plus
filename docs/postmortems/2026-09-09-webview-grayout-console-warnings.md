@@ -125,7 +125,31 @@ EOF
 - Closed 2026-09-10: webview **message payload-size SLI** (issue #64 part A) — `src/core/webview/webviewPayloadMetrics.ts` aggregates host→webview `state` payloads per ~60 s window in session memory: periodic `state_msgs=N p50=XKB p99=YKB max=ZKB` summary, WARN > 256 KB with top-3 field-size breakdown, ERROR + one-time popup > 1 MB. Local-only: no egress, no persistence (see runbook Privacy note).
 - Closed 2026-09-10: runbook entry for "gray webview" — see [docs/runbooks/gray-webview.md](../runbooks/gray-webview.md) (symptoms, triage order, mitigations incl. §4a purge, escalation matrix, post-fix verification).
 
+## 5a. Detection gap found in the watch: `customModes` was un-probed (2026-09-11)
+
+The payload-size SLI (issue #64 part A) shipped with a probe list containing only
+`clineMessages` and `taskHistory` — **not** the `ExtensionState.customModes` mode
+catalog. On v3.88.1 the ERROR line fired at **1410 KB** while `top[...]`
+attributed only `taskHistory=649KB`, leaving ~761 KB unexplained.
+
+Measured against this repo's shipped catalog (`src/assets/marketplace/
+pre-installed-modes.yml`, 90 modes): its JSON serializes to **762 KB**, and
+`taskHistory=649KB + customModes=762KB + wrapper ≈ 1410KB` — exact. So the
+largest single contributor to a "fixed" build's `state` message is the full
+custom-modes catalog, and the same array re-persisted into the global Memento by
+`CustomModesManager` (`globalState.update("customModes", …)`) explains the
+residual `mainThreadStorage` warning on 3.88.1 (**755→1067 KB**, vs 3539 KB on
+3.88.0 — the taskHistory purge worked; customModes is the new floor).
+
+Root fix is **not** attribution-only: the catalog is derived, file-backed data
+(like `taskHistory` was) and should not ride on every state push, nor be
+mirrored into Memento. That fix is delegated to code mode; this commit only
+closes the detection gap (probe `customModes`/`messageQueue`/`marketplaceItems`
+so WARN/ERROR attribution matches the total).
+
 ## 6. Watch log (post-release)
+
+- **2026-09-11 — v3.88.1 watch result: original fix confirmed, new regression surfaced.** Field evidence: the `[webview-metrics]` SLI fired (only fixed builds have it), the legacy 3539 KB `mainThreadStorage` blob is gone (now 755→1067 KB — the taskHistory mirror is cleared and stays cleared, no re-fill), and `top[...]` shows `taskHistory=649KB` (bounded at the 100-item cap) `clineMessages=0KB`. Remaining issue: the ~762 KB `customModes` catalog inflates every `state` push to 1410 KB (crosses the 1 MB ERROR threshold; user popup shown) and is re-persisted to Memento by `CustomModesManager` — see §5a. Payload slimming + storage-mirror removal delegated to code mode; re-run §5 checklist on the next pre-release.
 
 - **2026-09-10 — published `3.88.0` Open VSX pre-release does NOT contain the branch fixes.** Inspected the installed server copy (`~/.vscodium-server/extensions/xavier-arosemena.roo-plus-3.88.0-universal/dist/extension.js`): zero occurrences of `boundTaskHistoryForWebview` / `SEMBLE_DEBUG`, while `writeGlobalTaskHistory` is still present (Memento mirror live) and the shipped webview bundle still contains the guessed `map.json`/`sourcemap` preload URLs. **The gray-out + large-state risk is still live on 3.88.0.** Permanent cure requires building a VSIX off this branch and shipping it as the next patch on the line (`3.88.1` via `pnpm bump:pre-release`, then `pnpm generate:announcements` + `pnpm verify:announcement-version`).
 - Housekeeping done 2026-09-10: removed orphaned `/root/.vscodium-server/extensions/xavier-arosemena.roo-plus-3.53.0` (148 MB, unregistered + flagged obsolete). `xavier-arosemena.roo-plus-3.87.3-universal` is likewise obsolete/unregistered but was retained as the last-known-good rollback; purge once the fixed build is verified.

@@ -942,6 +942,115 @@ describe("ClineProvider", () => {
 		expect(postMessageSpy.mock.calls[0]?.[0].state).not.toHaveProperty("taskHistory")
 	})
 
+	describe("customModes webview payload bounding (issue #64 follow-up, §5a)", () => {
+		// Mirrors the shipped 90-mode catalog shape (postmortem §5a: the full
+		// JSON measured 762 KB; customInstructions dominated ~692 KB of it).
+		// 40 modes × 4 KB bodies ≈ 160 KB — well over the 64 KB per-field cap
+		// these pushes must respect.
+		const makeBulkyCatalog = (count = 40) =>
+			Array.from({ length: count }, (_, i) => ({
+				slug: `mode-${i}`,
+				name: `Mode ${i}`,
+				roleDefinition: `Role ${i}`,
+				customInstructions: "x".repeat(4096),
+				groups: ["read"] as const,
+				source: "global" as const,
+			}))
+
+		const stubCatalog = (modes: ReturnType<typeof makeBulkyCatalog>) => {
+			// Partial manager double over the provider's private manager
+			// (bracket notation per repo convention); its other methods stay
+			// available.
+			provider["customModesManager"].getCustomModes = vi.fn().mockResolvedValue(modes)
+		}
+
+		test.each([
+			["postStateToWebviewWithoutTaskHistory", (p: ClineProvider) => p.postStateToWebviewWithoutTaskHistory()],
+			[
+				"postStateToWebviewWithoutClineMessages",
+				(p: ClineProvider) => p.postStateToWebviewWithoutClineMessages(),
+			],
+		])("%s ships no >64KB customModes bodies", async (_name, postState) => {
+			stubCatalog(makeBulkyCatalog())
+			const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
+
+			await postState(provider)
+
+			const state = postMessageSpy.mock.calls[0]?.[0].state
+			expect(state).toBeDefined()
+			const modesJson = JSON.stringify(state!.customModes ?? [])
+			expect(modesJson.length).toBeLessThan(64 * 1024)
+			// Metadata (name/roleDefinition) is preserved for the mode selector and
+			// bounded entries are flagged so ModesView can lazy-fetch the bodies.
+			const boundedModes = state!.customModes ?? []
+			expect(boundedModes).toHaveLength(40)
+			expect(boundedModes.every((m) => m.customInstructions === undefined)).toBe(true)
+			expect(boundedModes.every((m) => m.bounded === true)).toBe(true)
+		})
+
+		test("the currently-active mode keeps its full config on streaming pushes", async () => {
+			stubCatalog([
+				...makeBulkyCatalog(5),
+				{
+					slug: "code",
+					name: "Code",
+					roleDefinition: "Active role",
+					customInstructions: "y".repeat(4096),
+					groups: ["read"] as const,
+					source: "global" as const,
+				},
+			])
+			const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
+
+			await provider.postStateToWebviewWithoutTaskHistory()
+
+			const state = postMessageSpy.mock.calls[0]?.[0].state
+			const active = (state!.customModes ?? []).find((m) => m.slug === "code")
+			expect(active?.customInstructions).toBe("y".repeat(4096))
+			expect(active?.bounded).toBeUndefined()
+		})
+
+		test("the webviewDidLaunch full state push is also bounded (<256KB WARN threshold)", async () => {
+			stubCatalog(makeBulkyCatalog())
+			const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
+
+			await provider.postStateToWebview()
+
+			const state = postMessageSpy.mock.calls[0]?.[0].state
+			const modesJson = JSON.stringify(state!.customModes ?? [])
+			// The launch push now sits under the webviewPayloadMetrics WARN
+			// threshold (256 KB) for normal catalogs — it no longer serializes
+			// the full catalog on EVERY message. ModesView editing flows lazy-
+			// fetch bodies via getModesFullConfig instead.
+			expect(modesJson.length).toBeLessThan(256 * 1024)
+		})
+
+		test("startup clears the legacy customModes Memento mirror", async () => {
+			// The provider constructor fires clearLegacyCustomModesMirror(); let
+			// its microtask chain settle before asserting (issue #64 §5a — same
+			// treatment as the taskHistory key).
+			await new Promise((resolve) => setTimeout(resolve, 0))
+
+			expect(mockContext.globalState.update).toHaveBeenCalledWith("customModes", undefined)
+		})
+
+		test("getModesFullConfig posts the unbounded file-backed catalog", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			const messageHandler = mockWebviewView.webview.onDidReceiveMessage.mock.calls[0][0]
+			const catalog = makeBulkyCatalog(3)
+			stubCatalog(catalog)
+			const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
+
+			await messageHandler({ type: "getModesFullConfig" })
+
+			const response = postMessageSpy.mock.calls.map((c) => c[0]).find((m) => m.type === "modesFullConfig")
+			expect(response).toBeDefined()
+			expect(response?.modeConfigs).toHaveLength(3)
+			expect(response?.modeConfigs?.[0].customInstructions).toBe("x".repeat(4096))
+			expect(response?.error).toBeUndefined()
+		})
+	})
+
 	test("getStateToPostToWebview computes task history once after its base state resolves", async () => {
 		const historyItem = {
 			id: "history-task",
@@ -2587,13 +2696,14 @@ describe("ClineProvider", () => {
 				}),
 			)
 
-			// Verify state was updated
-			expect(mockContext.globalState.update).toHaveBeenCalledWith("customModes", [
-				{ groups: ["read"], name: "Test Mode", roleDefinition: "Updated role definition", slug: "test-mode" },
-			])
+			// The `customModes` globalState MIRROR is no longer written by the
+			// updateCustomMode handler (issue #64 follow-up, postmortem §5a): the
+			// file-backed store is the source of truth and the mirror re-inflated
+			// the large-state blob.
+			expect(mockContext.globalState.update).not.toHaveBeenCalledWith("customModes", expect.anything())
 
-			// Verify state was posted to webview
-			// Verify state was posted to webview with correct format
+			// The webview still receives the (unbounded, because this mode carries
+			// no bulky customInstructions) catalog via the state push.
 			expect(mockPostMessage).toHaveBeenCalledWith(
 				expect.objectContaining({
 					type: "state",

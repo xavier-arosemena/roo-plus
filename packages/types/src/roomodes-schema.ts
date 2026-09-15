@@ -27,8 +27,10 @@ const ruleFileSchema = z.object({
 })
 
 // Build an extended ModeConfig schema that includes rulesFiles and uses the
-// extended groups (with deprecated entries).
-const exportedModeConfigSchema = modeConfigSchema.omit({ groups: true }).extend({
+// extended groups (with deprecated entries). `bounded` is a transport-only
+// marker used on host→webview state projections (issue #64 §5a) and is NOT a
+// persistence field — .roomodes is strict, so it must not appear here.
+const exportedModeConfigSchema = modeConfigSchema.omit({ groups: true, bounded: true }).extend({
 	groups: z.array(groupEntrySchema),
 	rulesFiles: z.array(ruleFileSchema).optional(),
 })

@@ -286,6 +286,10 @@ export async function handleSettingsMessages(
 			await exportSettings({
 				providerSettingsManager: provider.providerSettingsManager,
 				contextProxy: provider.contextProxy,
+				// The Memento "customModes" mirror is gone (issue #64 follow-up,
+				// §5a) — pass the file-backed manager so the export keeps shipping
+				// the full global-catalog bodies.
+				customModesManager: provider.customModesManager,
 			})
 
 			break
@@ -880,13 +884,11 @@ export async function handleSettingsMessages(
 
 			const m = result.data
 			try {
-				// Check if this is a new mode or an update to an existing mode
-				const existingModes = await provider.customModesManager.getCustomModes()
-
 				await provider.customModesManager.updateCustomMode(m.modeConfig.slug, m.modeConfig)
-				// Update state after saving the mode
-				const customModes = await provider.customModesManager.getCustomModes()
-				await updateGlobalState(provider, "customModes", customModes)
+				// No "customModes" Memento mirror write here anymore (issue #64
+				// follow-up, postmortem §5a): the settings file / .roomodes are the
+				// source of truth and the webview receives the (bounded) catalog via
+				// the state push below.
 				await updateGlobalState(provider, "mode", m.modeConfig.slug)
 				await provider.postStateToWebview()
 			} catch (error) {
@@ -1115,9 +1117,8 @@ export async function handleSettingsMessages(
 					)
 
 					if (result.success) {
-						// Update state after importing
-						const customModes = await provider.customModesManager.getCustomModes()
-						await updateGlobalState(provider, "customModes", customModes)
+						// Update state after importing (no "customModes" Memento mirror
+						// write — see the updateCustomMode handler above).
 						await provider.postStateToWebview()
 
 						// Send success message to webview, include the imported slug so UI can switch

@@ -12,6 +12,7 @@ import {
 	type SecretState,
 	type GlobalState,
 	type RooCodeSettings,
+	type ModeConfig,
 	providerSettingsSchema,
 	globalSettingsSchema,
 	isSecretStateKey,
@@ -555,9 +556,21 @@ export class ContextProxy {
 	 * Import / Export
 	 */
 
-	public async export(): Promise<GlobalSettings | undefined> {
+	/**
+	 * @param customModesOverride The FULL file-backed custom-modes catalog.
+	 * The `customModes` globalState MIRROR is removed (issue #64 follow-up,
+	 * postmortem §5a) and cleared on startup, so `getValues()` can no longer
+	 * supply the exportable catalog; callers that want the modes exported
+	 * (importExport.ts#exportSettings) read them from CustomModesManager and
+	 * pass them here. The catalog must still export (behavior parity).
+	 */
+	public async export(customModesOverride?: ModeConfig[]): Promise<GlobalSettings | undefined> {
 		try {
-			const globalSettings = globalSettingsExportSchema.parse(this.getValues())
+			const values = this.getValues()
+			if (customModesOverride !== undefined) {
+				values.customModes = customModesOverride
+			}
+			const globalSettings = globalSettingsExportSchema.parse(values)
 
 			// Exports should only contain global settings, so this skips project custom modes (those exist in the .roomode folder)
 			globalSettings.customModes = globalSettings.customModes?.filter((mode) => mode.source === "global")

@@ -148,6 +148,46 @@ describe("WebviewPayloadMetrics", () => {
 		expect(() => webviewPayloadSizeEventSchema.parse(errorEvents[0])).not.toThrow()
 	})
 
+	test("regression 2026-09-11: customModes is attributed in the WARN/ERROR breakdown", () => {
+		// v3.88.1 post-deploy watch: an ERROR reported 1410KB while the
+		// breakdown only attributed `taskHistory=649KB` — the residual ~762KB
+		// was the full `customModes` mode catalog riding un-probed on every
+		// `state` message. customModes must now appear in top[...] and, for an
+		// even larger catalog, be able to single-handedly cross the WARN
+		// threshold (previously invisible: unprobed fields estimated as 0).
+		const h = createHarness()
+		const catalog = Array.from({ length: 90 }, (_, i) => ({ slug: `m${i}`, roleDefinition: "r".repeat(8 * KB) }))
+		const history = Array.from({ length: 100 }, (_, i) => ({ id: String(i), ts: i, task: "t".repeat(6 * KB) }))
+
+		h.metrics.recordStateMessage({
+			type: "state",
+			state: { version: "3.88.1", customModes: catalog, taskHistory: history },
+		} as unknown as ExtensionMessage)
+
+		const errorLines = h.logLines.filter((l) => l.includes("ERROR"))
+		expect(errorLines).toHaveLength(1)
+		expect(errorLines[0]).toContain("customModes=")
+		expect(errorLines[0]).toContain("taskHistory=")
+
+		const [event] = h.events.filter((e) => e.severity === 2)
+		expect(() => webviewPayloadSizeEventSchema.parse(event)).not.toThrow()
+		expect(event.fieldSizes.map((f) => f.name)).toContain("customModes")
+		// The attributed top fields now close the gap to the reported total
+		// (the exact complaint from the incident report).
+		const attributedKb = event.fieldSizes.reduce((s, f) => s + Math.round(f.bytes / KB), 0)
+		const totalKb = Math.round(event.messageBytes / KB)
+		expect(totalKb - attributedKb).toBeLessThan(100)
+
+		// A big catalog with small history still alerts (old probe would have
+		// estimated it as healthy ~2KB and stayed silent).
+		const h2 = createHarness()
+		h2.metrics.recordStateMessage({
+			type: "state",
+			state: { version: "3.88.1", customModes: catalog, clineMessages: [], taskHistory: [] },
+		} as unknown as ExtensionMessage)
+		expect(h2.logLines.some((l) => l.includes("WARN") && l.includes("customModes="))).toBe(true)
+	})
+
 	test("window flush emits the periodic summary line and re-arms WARN for the next window", () => {
 		const h = createHarness(1_000_000)
 
@@ -276,7 +316,9 @@ describe("WebviewPayloadMetrics", () => {
 			expect(serialized).not.toMatch(/x{10,}/)
 			// Only allow-listed static field names may appear.
 			for (const field of event.fieldSizes) {
-				expect(["clineMessages", "taskHistory", "messageQueue", "marketplaceItems"]).toContain(field.name)
+				expect(["clineMessages", "taskHistory", "customModes", "messageQueue", "marketplaceItems"]).toContain(
+					field.name,
+				)
 				expect(typeof field.bytes).toBe("number")
 			}
 		}

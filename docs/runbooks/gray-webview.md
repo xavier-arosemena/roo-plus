@@ -20,7 +20,7 @@ Work through these in order; stop at the first hit.
 1. **Large-state warning (devtools).**
    Help → Toggle Developer Tools → Console. Look for:
    `WARN [mainThreadStorage] large extension state detected (extensionId: xavier-arosemena.roo-plus, global: true): <N> kb`
-   A multi-MB value here = the legacy `taskHistory` Memento mirror is live (pre-fix build). Continue to §3 mitigation.
+   A multi-MB value (> ~1.5 MB) here = the legacy `taskHistory` Memento mirror is live (pre-3.88.1 build). Continue to §3 mitigation. Note: on fixed builds a residual ~750–1100 KB reading is expected while the `customModes` mirror remains in Memento (issue #64 follow-up, postmortem §5a) — that is the _payload/storage_ follow-up's signature, not a taskHistory regression.
 
 2. **Payload-size WARN lines (Roo+ output channel).**
    Output panel → channel **Roo+**. Look for:
