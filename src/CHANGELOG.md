@@ -8,7 +8,7 @@
 
 ### Minor — Privacy, Trust & Reproducible Source
 
-Starting the 3.88 pre-release line — a hardening cycle responding to VS Code Marketplace notice #305. Roo+ is now fully telemetry-free and reproducible from committed source, and sensitive operations are gated by explicit workspace trust and consent. The line iterates with v3.88.1 and v3.88.2, which fix the webview reliability issues tracked in #64 and #328.
+Starting the 3.88 pre-release line — a hardening cycle responding to VS Code Marketplace notice #305. Roo+ is now fully telemetry-free and reproducible from committed source, and sensitive operations are gated by explicit workspace trust and consent. The line iterates with v3.88.1, v3.88.2 and v3.88.3, which fix the webview reliability issues tracked in #64, #328 and #331.
 
 ### 📣 What's New
 
@@ -26,10 +26,12 @@ Starting the 3.88 pre-release line — a hardening cycle responding to VS Code M
 - **Reproducible, secret-free builds** — every VSIX is verified byte-for-byte from committed source; Semble and DCG release-governance records disclose external authorship, pinned versions, and checksums.
 - **Source-matching & audit tooling** — `vsix-audit.mjs` + by-design register retained as an optional on-demand scan (not a publish gate); SECURITY.md records the post-fix reproducible-VSIX measurement.
 
-### 🩺 Webview Reliability — v3.88.1 / v3.88.2 (#64, #328)
+### 🩺 Webview Reliability — v3.88.1 / v3.88.2 / v3.88.3 (#64, #328, #331)
 
 - **Bounded task-history payloads** — the full `taskHistory` mirror is no longer shipped inside every `state`/`taskHistoryUpdated` message, and it is no longer written through to the `taskHistory` Memento key; the webview receives a capped recent-tasks list while per-task files remain the source of truth. This fixes the pale-gray frozen webview over remote links and the "large extension state" DevTools warning (#64).
 - **Bounded customModes payloads** — the ~740 KB, 90-mode custom-modes catalog is no longer shipped inside every host→webview `state` push; the webview receives a bounded projection (custom instructions stripped, active and last-edited modes kept full) and lazy-fetches mode bodies on edit, while the legacy `customModes` global-state mirror is cleared on startup like `taskHistory` (#328).
+- **Bounded chat-message payloads** — the last unbounded host→webview field (`clineMessages`) now ships a tail-anchored, byte-bounded projection (~690 KB → ~141 KB per push) with a lazy "load earlier messages" path, so reopening a long task no longer rehydrates its whole transcript over remote-SSH IPC (#331).
+- **Payload-SLI probe guard + host-health instrumentation** — the payload SLI now decides WARN/ERROR from an O(n) byte proxy and only stringifies on the alert path (~98.7% less hot-path monitoring CPU; alerts still classified on exact bytes, so no false popup), and a log-only extension-host health probe (`ROO_HOST_HEALTH_DEBUG`, off by default; no persistence, no egress) plus `scripts/host-health-capture.sh` and a runbook capture template attribute "Extension host (Remote) is unresponsive" (#331).
 - **Payload-size SLI** — host→webview state messages are now measured with size thresholds, so a payload regression surfaces in logs before users feel it (#64).
 - **Quieter consoles** — Semble search logging moved behind the extension output channel, and production source-map URL guessing (guaranteed 404 noise) is gated behind a debug flag (#64).
 
