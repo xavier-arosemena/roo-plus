@@ -4,6 +4,7 @@ import { organizationAllowListSchema } from "../cloud.js"
 import { gitCommitSchema } from "../git.js"
 import { historyItemSchema } from "../history.js"
 import { mcpServerSchema } from "../mcp.js"
+import { clineMessageSchema } from "../message.js"
 import { modeConfigSchema } from "../mode.js"
 import { providerSettingsEntrySchema } from "../provider-settings.js"
 
@@ -302,6 +303,33 @@ export const modesFullConfigMessageSchema = z.object({
 })
 
 /**
+ * Older-transcript page response (`olderClineMessages`) — lazy fetch for the
+ * chat view's "load earlier messages" affordance.
+ *
+ * The producer (`src/core/webview/handlers/misc.ts`, `getOlderClineMessages`
+ * handler) posts `{ type, olderClineMessages, olderClineMessagesHasMore,
+ * olderClineMessagesTaskId }` with the page of messages immediately older than
+ * the requester's bound, selected from the live task transcript. It exists
+ * because `state` pushes now ship a tail-anchored, byte-bounded `clineMessages`
+ * window (2026-09-15 `state` payload incident: the full transcript serialized
+ * ~962 KB into EVERY push on a long task, tripping the 1 MB ERROR threshold);
+ * the webview fetches the omitted middle on demand. `error` is included so a
+ * failed read is surfaced instead of silently leaving the transcript truncated.
+ *
+ * Messages are validated against `clineMessageSchema.passthrough()` (same
+ * treatment as the `messageUpdated` payload): the real shape is checked while
+ * unknown fields are retained, because the webview splices them into the
+ * rendered transcript and dropping unknown fields would silently corrupt it.
+ */
+export const olderClineMessagesMessageSchema = z.object({
+	type: z.literal("olderClineMessages"),
+	olderClineMessages: z.array(clineMessageSchema.passthrough()).optional(),
+	olderClineMessagesHasMore: z.boolean().optional(),
+	olderClineMessagesTaskId: z.string().optional(),
+	error: z.string().optional(),
+})
+
+/**
  * Task aggregated-costs response (`taskWithAggregatedCosts`).
  *
  * The producer (`src/core/webview/handlers/task.ts`, `getTaskWithAggregatedCosts`
@@ -380,6 +408,7 @@ export const taskResponsesMessageSchema = z.discriminatedUnion("type", [
 	customToolsResultMessageSchema,
 	modesMessageSchema,
 	modesFullConfigMessageSchema,
+	olderClineMessagesMessageSchema,
 	taskWithAggregatedCostsMessageSchema,
 	openAiCodexRateLimitsMessageSchema,
 	interactionRequiredMessageSchema,

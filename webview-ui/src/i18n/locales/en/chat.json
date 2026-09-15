@@ -125,6 +125,7 @@
 	},
 	"scrollToBottom": "Scroll to bottom of chat",
 	"scrollToLatestCheckpoint": "Scroll to previous checkpoint",
+	"loadEarlierMessages": "Load earlier messages",
 	"about": "The local-first, bring-your-own-model agentic IDE extension — <br/>Know your cost, trust your cache, keep your knowledge.",
 	"support": {
 		"reportIssue": "Report a bug or request a feature",

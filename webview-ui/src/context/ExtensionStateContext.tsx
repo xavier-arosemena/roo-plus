@@ -31,6 +31,7 @@ import { experimentDefault } from "@roo/experiments"
 
 import { vscode } from "@src/utils/vscode"
 import { convertTextMateToHljs } from "@src/utils/textMateToHljs"
+import { mergeClineMessagesState, mergeOlderClineMessagesPage } from "@src/utils/mergeClineMessagesState"
 
 export interface ExtensionStateContextType extends ExtensionState {
 	historyPreviewCollapsed?: boolean // Add the new state property
@@ -170,6 +171,25 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Partial
 		rest.customModes = mergeCustomModesState(prevRest.customModes, newRest.customModes) ?? newRest.customModes
 	}
 
+	// clineMessages arrive as a TAIL-ANCHORED, byte-bounded window
+	// (`clineMessagesBounded`, 2026-09-15 `state` payload incident): the newest
+	// messages plus the transcript's first message. Merging (rather than
+	// replacing) keeps rows the webview already rendered that have since fallen
+	// out of the window, so a growing conversation never loses its top, and it
+	// re-attaches pages loaded via the "load earlier messages" flow. A
+	// non-bounded push is a complete transcript and replaces as before.
+	if (newRest.clineMessages !== undefined) {
+		// A different task id means the transcript identity changed: never carry
+		// another task's messages across (same-task pushes, including re-opening
+		// from history, keep merging).
+		const sameTask = newState.currentTaskId !== undefined && newState.currentTaskId === prevState.currentTaskId
+		rest.clineMessages = mergeClineMessagesState(
+			sameTask ? prevRest.clineMessages : [],
+			newRest.clineMessages,
+			newRest.clineMessagesBounded,
+		)
+	}
+
 	// Protect clineMessages from stale state pushes using sequence numbering.
 	// Multiple async event sources (cloud auth, settings, task streaming) can trigger
 	// concurrent state pushes. If a stale push arrives after a newer one, its clineMessages
@@ -182,6 +202,11 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Partial
 		newState.clineMessages !== undefined
 	) {
 		rest.clineMessages = prevState.clineMessages
+		// The window metadata describes the rejected snapshot's messages, so it
+		// is restored with them (otherwise a stale `bounded`/`total` pair would
+		// be interpreted against the retained transcript).
+		rest.clineMessagesBounded = prevState.clineMessagesBounded
+		rest.clineMessagesTotal = prevState.clineMessagesTotal
 		rest.clineMessagesSeq = prevState.clineMessagesSeq
 	}
 
@@ -475,6 +500,28 @@ export const ExtensionStateContextProvider: React.FC<{
 					if (message.modeConfigs?.length && !message.error) {
 						setState((prevState) => mergeExtensionState(prevState, { customModes: message.modeConfigs }))
 					}
+					break
+				}
+				case "olderClineMessages": {
+					// Lazy-fetch response for the chat "load earlier messages"
+					// flow (2026-09-15 `state` payload incident): inserts the page
+					// of messages immediately older than the bound the view asked
+					// for, keeping the transcript ordered and duplicate-free.
+					// Pages for a task the webview has since left are dropped.
+					const page = message.olderClineMessages
+					const pageTaskId = message.olderClineMessagesTaskId
+					if (!page?.length || message.error) {
+						break
+					}
+					setState((prevState) => {
+						if (pageTaskId !== undefined && pageTaskId !== prevState.currentTaskId) {
+							return prevState
+						}
+						return {
+							...prevState,
+							clineMessages: mergeOlderClineMessagesPage(prevState.clineMessages, page),
+						}
+					})
 					break
 				}
 				case "taskHistoryUpdated": {

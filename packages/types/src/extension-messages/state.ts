@@ -42,6 +42,9 @@ export const extensionStateSubsetSchema = z
 		debug: z.boolean().optional(),
 		// Complex payloads — permissive during the transitional period.
 		clineMessages: z.unknown().optional(),
+		// Tail-anchored `clineMessages` window metadata (2026-09-15 payload incident).
+		clineMessagesBounded: z.boolean().optional(),
+		clineMessagesTotal: z.number().optional(),
 		taskHistory: z.unknown().optional(),
 		currentTaskItem: z.unknown().optional(),
 		currentTaskTodos: z.unknown().optional(),

@@ -1630,4 +1630,66 @@ describe("ChatView - Context Condensing Indicator Tests", () => {
 			}
 		})
 	})
+
+	describe("bounded clineMessages window (2026-09-15 state payload incident)", () => {
+		beforeEach(() => {
+			vscodePostMessageMock.cleanup()
+		})
+
+		// Host window shape: the transcript head anchor plus the newest messages.
+		const boundedState = (total: number) =>
+			makeExtensionState({
+				currentTaskId: "long-task",
+				clineMessagesBounded: true,
+				clineMessagesTotal: total,
+				clineMessages: [
+					{ type: "say" as const, say: "task" as const, ts: 1, text: "Long task" },
+					...Array.from({ length: 10 }, (_, i) => ({
+						type: "say" as const,
+						say: "text" as const,
+						ts: 491 + i,
+						text: `message ${491 + i}`,
+					})),
+				],
+			})
+
+		it("offers 'load earlier messages' and requests the page above the oldest loaded row", async () => {
+			renderWithExtensionState(<ChatView {...defaultProps} />, { state: boundedState(500) })
+
+			const button = await screen.findByRole("button", { name: "chat:loadEarlierMessages" })
+			fireEvent.click(button)
+
+			// Paging continues upward from the oldest loaded tail row (the window's
+			// first element is the transcript head anchor, so it is skipped).
+			expect(vscodePostMessageMock.postMessage).toHaveBeenCalledWith({
+				type: "getOlderClineMessages",
+				beforeTs: 491,
+			})
+		})
+
+		it("hides the affordance once the whole transcript is loaded", async () => {
+			renderWithExtensionState(<ChatView {...defaultProps} />, { state: boundedState(11) })
+
+			await waitFor(() => expect(screen.getByTestId("task-header")).toBeInTheDocument())
+			expect(screen.queryByRole("button", { name: "chat:loadEarlierMessages" })).not.toBeInTheDocument()
+			expect(vscodePostMessageMock.postMessage).not.toHaveBeenCalledWith(
+				expect.objectContaining({ type: "getOlderClineMessages" }),
+			)
+		})
+
+		it("does not offer the affordance for an unbounded transcript", async () => {
+			renderWithExtensionState(<ChatView {...defaultProps} />, {
+				state: makeExtensionState({
+					currentTaskId: "short-task",
+					clineMessages: [
+						{ type: "say" as const, say: "task" as const, ts: 1, text: "Short task" },
+						{ type: "say" as const, say: "text" as const, ts: 2, text: "message 2" },
+					],
+				}),
+			})
+
+			await waitFor(() => expect(screen.getByTestId("task-header")).toBeInTheDocument())
+			expect(screen.queryByRole("button", { name: "chat:loadEarlierMessages" })).not.toBeInTheDocument()
+		})
+	})
 })

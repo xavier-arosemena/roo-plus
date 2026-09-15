@@ -93,6 +93,7 @@ export interface ExtensionMessage {
 		| "customToolsResult"
 		| "modes"
 		| "modesFullConfig"
+		| "olderClineMessages"
 		| "taskWithAggregatedCosts"
 		| "openAiCodexRateLimits"
 		// Worktree response types
@@ -217,6 +218,21 @@ export interface ExtensionMessage {
 	 * never on `state` pushes (see boundCustomModesForWebview, issue #64 §5a).
 	 */
 	modeConfigs?: ModeConfig[] // For modesFullConfig response
+	/**
+	 * For `olderClineMessages` (lazy-fetch response for the chat "load earlier
+	 * messages" flow): the page of transcript messages immediately older than
+	 * the requester's oldest loaded message.
+	 *
+	 * `state` pushes now ship a tail-anchored, byte-bounded `clineMessages`
+	 * window (see `boundClineMessagesForWebview`, 2026-09-15 incident), so the
+	 * chat view requests the omitted middle on demand. `error` is included so a
+	 * failed read is surfaced instead of silently leaving the view truncated.
+	 */
+	olderClineMessages?: ClineMessage[] // For olderClineMessages response
+	/** For `olderClineMessages`: whether even older messages remain on disk. */
+	olderClineMessagesHasMore?: boolean // For olderClineMessages response
+	/** For `olderClineMessages`: the task the page belongs to (stale-page guard). */
+	olderClineMessagesTaskId?: string // For olderClineMessages response
 	rooHistoryImportProgress?: {
 		status: "starting" | "copying" | "finished" | "failed"
 		copiedFileCount: number
@@ -363,6 +379,19 @@ export type ExtensionState = Pick<
 	lockApiConfigAcrossModes?: boolean
 	version: string
 	clineMessages: ClineMessage[]
+	/**
+	 * `true` when {@link clineMessages} is a TAIL-ANCHORED window rather than the
+	 * whole transcript (2026-09-15 `state` payload incident).
+	 *
+	 * The bound exists because serializing the full transcript on every push
+	 * produced > 1 MB `state` messages on long tasks. When set, the webview must
+	 * (a) keep the messages it has already rendered instead of replacing them and
+	 * (b) offer the "load earlier messages" affordance, which lazy-fetches the
+	 * omitted middle via `getOlderClineMessages` → `olderClineMessages`.
+	 */
+	clineMessagesBounded?: boolean
+	/** Number of messages in the task's full transcript (for the load-earlier affordance). */
+	clineMessagesTotal?: number
 	currentTaskId?: string
 	currentTaskItem?: HistoryItem
 	currentTaskTodos?: TodoItem[] // Initial todos for the current task
@@ -591,6 +620,7 @@ export interface WebviewMessage {
 		| "refreshCustomTools"
 		| "requestModes"
 		| "getModesFullConfig"
+		| "getOlderClineMessages"
 		| "debugSetting"
 		// Worktree messages
 		| "listWorktrees"
@@ -633,6 +663,11 @@ export interface WebviewMessage {
 	askResponse?: ClineAskResponse
 	apiConfiguration?: ProviderSettings
 	images?: string[]
+	/**
+	 * For `getOlderClineMessages`: exclusive upper bound (a `ClineMessage.ts`)
+	 * for the page of older transcript messages to return.
+	 */
+	beforeTs?: number
 	bool?: boolean
 	value?: number
 	stepIndex?: number

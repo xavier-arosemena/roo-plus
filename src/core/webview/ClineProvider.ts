@@ -2,6 +2,7 @@ import os from "os"
 import * as path from "path"
 import fs from "fs/promises"
 import EventEmitter from "events"
+import { monitorEventLoopDelay } from "perf_hooks"
 
 import { Anthropic } from "@anthropic-ai/sdk"
 import delay from "delay"
@@ -80,6 +81,7 @@ import { MarketplaceService } from "../services/MarketplaceService"
 import { ProviderProfileService } from "../services/ProviderProfileService"
 import { TaskHistoryService, boundTaskHistoryForWebview } from "../services/TaskHistoryService"
 import { boundCustomModesForWebview } from "../config/CustomModesManager"
+import { projectClineMessagesForWebview } from "./clineMessagesForWebview"
 import { TaskOrchestrator } from "../services/TaskOrchestrator"
 
 import { fileExistsAtPath } from "../../utils/fs"
@@ -109,6 +111,7 @@ import { getUri } from "./getUri"
 import { REQUESTY_BASE_URL } from "../../shared/utils/requesty"
 import { PendingEditOperationStore, type PendingEditOperationInput } from "./PendingEditOperationStore"
 import { WebviewPayloadMetrics } from "./webviewPayloadMetrics"
+import { ExtensionHostHealthMetrics, isHostHealthDebugEnabled } from "./extensionHostHealthMetrics"
 
 /**
  * https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -220,6 +223,31 @@ export class ClineProvider
 		schedule: (callback, delayMs) => {
 			const timer = setTimeout(callback, delayMs)
 			// Never hold the event loop open for a metrics flush.
+			timer.unref?.()
+			return () => clearTimeout(timer)
+		},
+	})
+
+	/**
+	 * Session-only extension-host health SLI (`[host-health]`, diagnosis
+	 * 2026-09-15 §4/§8.2).
+	 *
+	 * Log lines only — deliberately NO typed event, no remote sink, no
+	 * persistence — and gated behind the `ROO_HOST_HEALTH_DEBUG` env var, so an
+	 * unset flag leaves the object completely inert (no histogram, no timers, no
+	 * allocation, no output). See the module header for the full privacy
+	 * contract.
+	 */
+	private readonly hostHealthMetrics: ExtensionHostHealthMetrics = new ExtensionHostHealthMetrics({
+		enabled: isHostHealthDebugEnabled(),
+		now: () => Date.now(),
+		log: (message) => this.log(message),
+		cpuUsage: () => process.cpuUsage(),
+		memoryUsage: () => process.memoryUsage(),
+		createEventLoopHistogram: () => monitorEventLoopDelay({ resolution: 10 }),
+		schedule: (callback, delayMs) => {
+			const timer = setTimeout(callback, delayMs)
+			// Never hold the event loop open for a health flush or heartbeat.
 			timer.unref?.()
 			return () => clearTimeout(timer)
 		},
@@ -806,6 +834,7 @@ export class ClineProvider
 		this._disposed = true
 		this._postStateToWebviewThrottled.cancel()
 		this.payloadMetrics?.dispose()
+		this.hostHealthMetrics?.dispose()
 		this.log("Disposing ClineProvider...")
 
 		// Reject any tasks still waiting for a scheduler permit so they don't
@@ -1372,7 +1401,19 @@ export class ClineProvider
 		// only, never message content. Optional chaining keeps plain fake
 		// provider objects (used in some tests via .call()) working unchanged.
 		if (message.type === "state") {
-			this.payloadMetrics?.recordStateMessage(message)
+			// Extension-host health SLI (diagnosis 2026-09-15 §4.3): time the
+			// serialize step, the attribution bridge between payload work and
+			// host lag. The `hrtime` pair is taken ONLY while the gate is on, so
+			// a disabled instance adds no allocation or timing at all.
+			if (this.hostHealthMetrics?.enabled) {
+				const serializeStart = process.hrtime.bigint()
+				this.payloadMetrics?.recordStateMessage(message)
+				this.hostHealthMetrics.recordStateSerialize(
+					Number(process.hrtime.bigint() - serializeStart) / 1_000_000,
+				)
+			} else {
+				this.payloadMetrics?.recordStateMessage(message)
+			}
 		}
 
 		try {
@@ -2301,10 +2342,19 @@ export class ClineProvider
 	 *   getStateToPostToWebview) overwrites newer messages the task has streamed in the meantime.
 	 * - This method ensures cloud/mode events only push the state fields they actually affect
 	 *   (cloud auth, org settings, profiles, etc.) without interfering with task message streaming.
+	 * - The `clineMessagesBounded` / `clineMessagesTotal` window metadata is omitted with the
+	 *   messages it describes, so the webview never re-interprets a retained transcript against
+	 *   a window it did not receive.
 	 */
 	async postStateToWebviewWithoutClineMessages(): Promise<void> {
 		const state = await this.getStateToPostToWebview({ includeTaskHistory: false })
-		const { clineMessages: _omitMessages, taskHistory: _omitHistory, ...rest } = state
+		const {
+			clineMessages: _omitMessages,
+			clineMessagesBounded: _omitBounded,
+			clineMessagesTotal: _omitTotal,
+			taskHistory: _omitHistory,
+			...rest
+		} = state
 		await this.postMessageToWebview({ type: "state", state: rest })
 	}
 
@@ -2384,6 +2434,18 @@ export class ClineProvider
 	 * lazy-fetch the omitted bodies via the `getModesFullConfig` message
 	 * (response `modesFullConfig`). The file-backed settings file + .roomodes
 	 * remain the source of truth.
+	 *
+	 * clineMessages are shipped BOUNDED too (2026-09-15 incident, the third and
+	 * final instance of this payload class after taskHistory in 3.88.1 and
+	 * customModes in 3.88.2): the task's FULL transcript was serialized on every
+	 * push, so reopening a long task from history produced a 1045 KB `state`
+	 * message (962 KB of it clineMessages) → `[webview-metrics] ERROR`. The
+	 * tail-anchored projection ships the newest messages plus the transcript's
+	 * first message (the chat header anchor) under the payload WARN threshold;
+	 * the webview keeps what it already rendered and lazy-fetches the omitted
+	 * middle via the `getOlderClineMessages` message (response
+	 * `olderClineMessages`). The task's persisted transcript under
+	 * `globalStorage/tasks/…` remains the source of truth.
 	 */
 	async getStateToPostToWebview({ includeTaskHistory = true }: GetStateOptions = {}): Promise<ExtensionState> {
 		// Ensure the store is initialized before reading task history
@@ -2476,6 +2538,13 @@ export class ClineProvider
 		const cwd = this.cwd
 		const currentTask = this.getCurrentTask()
 
+		// Tail-anchored, byte-bounded transcript window. `bounded` tells the
+		// webview the window is partial so it merges instead of replacing and can
+		// offer the lazy "load earlier messages" path; `total` lets it know when
+		// the transcript head has been reached. See
+		// `clineMessagesForWebview.ts` for the 2026-09-15 incident context.
+		const boundedClineMessages = projectClineMessagesForWebview(currentTask?.clineMessages)
+
 		return {
 			version: this.context.extension?.packageJSON?.version ?? "",
 			apiConfiguration,
@@ -2497,7 +2566,9 @@ export class ClineProvider
 			uriScheme: vscode.env.uriScheme,
 			currentTaskId: currentTask?.taskId,
 			currentTaskItem: currentTask?.taskId ? this.taskHistoryStore.get(currentTask.taskId) : undefined,
-			clineMessages: currentTask?.clineMessages || [],
+			clineMessages: boundedClineMessages.messages,
+			clineMessagesBounded: boundedClineMessages.bounded,
+			clineMessagesTotal: boundedClineMessages.total,
 			currentTaskTodos: currentTask?.todoList || [],
 			messageQueue: currentTask?.messageQueueService?.messages,
 			// Bound to the most recent tasks only — sending the full store (~3.5 MB) to

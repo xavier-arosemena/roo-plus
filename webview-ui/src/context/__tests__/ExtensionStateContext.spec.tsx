@@ -639,4 +639,168 @@ describe("mergeExtensionState", () => {
 			expect(result.clineMessagesSeq).toBe(1)
 		})
 	})
+
+	const ClineMessagesProbe = () => {
+		const { clineMessages, clineMessagesBounded, clineMessagesTotal } = useExtensionState()
+
+		return (
+			<div>
+				<div data-testid="cline-ts">{JSON.stringify(clineMessages.map((m) => m.ts))}</div>
+				<div data-testid="cline-bounded">{JSON.stringify(clineMessagesBounded ?? null)}</div>
+				<div data-testid="cline-total">{JSON.stringify(clineMessagesTotal ?? null)}</div>
+			</div>
+		)
+	}
+
+	describe("bounded clineMessages window (2026-09-15 state payload incident)", () => {
+		const dispatch = (data: Record<string, unknown>) =>
+			act(() => {
+				window.dispatchEvent(new MessageEvent("message", { data }))
+			})
+
+		const say = (ts: number): ClineMessage => ({ ts, type: "say", say: "text", text: `m${ts}` })
+		const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => say(from + i))
+		const ts = () => JSON.parse(screen.getByTestId("cline-ts").textContent!)
+
+		const renderProbe = () =>
+			render(
+				<ExtensionStateContextProvider>
+					<ClineMessagesProbe />
+				</ExtensionStateContextProvider>,
+			)
+
+		it("keeps the tail window, the head anchor, and messages already rendered", () => {
+			renderProbe()
+
+			dispatch({
+				type: "state",
+				state: {
+					currentTaskId: "t1",
+					clineMessagesBounded: true,
+					clineMessagesTotal: 500,
+					clineMessages: [say(1), ...range(491, 500)],
+				},
+			})
+
+			expect(ts()).toEqual([1, ...range(491, 500).map((m) => m.ts)])
+			expect(JSON.parse(screen.getByTestId("cline-bounded").textContent!)).toBe(true)
+			expect(JSON.parse(screen.getByTestId("cline-total").textContent!)).toBe(500)
+
+			// The next streaming push ships a window that no longer contains 491:
+			// it must be preserved rather than dropped from the rendered transcript.
+			dispatch({
+				type: "state",
+				state: {
+					currentTaskId: "t1",
+					clineMessagesBounded: true,
+					clineMessagesTotal: 501,
+					clineMessages: [say(1), ...range(492, 501)],
+				},
+			})
+
+			expect(ts()).toEqual([1, 491, ...range(492, 501).map((m) => m.ts)])
+		})
+
+		it("drops the previous task's transcript when the task changes", () => {
+			renderProbe()
+
+			dispatch({
+				type: "state",
+				state: {
+					currentTaskId: "t1",
+					clineMessagesBounded: true,
+					clineMessagesTotal: 500,
+					clineMessages: [say(1), ...range(491, 500)],
+				},
+			})
+			dispatch({
+				type: "state",
+				state: {
+					currentTaskId: "t2",
+					clineMessagesBounded: true,
+					clineMessagesTotal: 30,
+					clineMessages: [say(1001), ...range(1021, 1030)],
+				},
+			})
+
+			expect(ts()).toEqual([1001, ...range(1021, 1030).map((m) => m.ts)])
+		})
+
+		it("still replaces the transcript for an unbounded push on the same task", () => {
+			renderProbe()
+
+			dispatch({
+				type: "state",
+				state: {
+					currentTaskId: "t1",
+					clineMessagesBounded: true,
+					clineMessagesTotal: 500,
+					clineMessages: [say(1), ...range(491, 500)],
+				},
+			})
+			dispatch({ type: "state", state: { currentTaskId: "t1", clineMessages: [say(7)] } })
+
+			expect(ts()).toEqual([7])
+		})
+
+		it("applies a lazily fetched older page in order and without duplicates", () => {
+			renderProbe()
+
+			dispatch({
+				type: "state",
+				state: {
+					currentTaskId: "t1",
+					clineMessagesBounded: true,
+					clineMessagesTotal: 500,
+					clineMessages: [say(1), ...range(491, 500)],
+				},
+			})
+			dispatch({
+				type: "olderClineMessages",
+				olderClineMessagesTaskId: "t1",
+				olderClineMessagesHasMore: true,
+				olderClineMessages: range(481, 491), // 491 overlaps the window
+			})
+
+			expect(ts()).toEqual([1, ...range(481, 500).map((m) => m.ts)])
+		})
+
+		it("ignores a page belonging to a task the webview has left", () => {
+			renderProbe()
+
+			dispatch({
+				type: "state",
+				state: {
+					currentTaskId: "t1",
+					clineMessagesBounded: true,
+					clineMessagesTotal: 500,
+					clineMessages: [say(1), ...range(491, 500)],
+				},
+			})
+			dispatch({
+				type: "olderClineMessages",
+				olderClineMessagesTaskId: "other-task",
+				olderClineMessages: [say(2)],
+			})
+
+			expect(ts()).toEqual([1, ...range(491, 500).map((m) => m.ts)])
+		})
+
+		it("leaves the transcript untouched for an empty/error page", () => {
+			renderProbe()
+
+			dispatch({
+				type: "state",
+				state: {
+					currentTaskId: "t1",
+					clineMessagesBounded: true,
+					clineMessagesTotal: 500,
+					clineMessages: [say(1), ...range(491, 500)],
+				},
+			})
+			dispatch({ type: "olderClineMessages", olderClineMessagesTaskId: "t1", error: "boom" })
+
+			expect(ts()).toEqual([1, ...range(491, 500).map((m) => m.ts)])
+		})
+	})
 })
