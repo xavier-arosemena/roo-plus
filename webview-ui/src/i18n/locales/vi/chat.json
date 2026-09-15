@@ -98,6 +98,7 @@
 	"enqueueMessage": "Thêm tin nhắn vào hàng đợi (sẽ gửi sau khi nhiệm vụ hiện tại hoàn tất)",
 	"scrollToBottom": "Cuộn xuống cuối cuộc trò chuyện",
 	"scrollToLatestCheckpoint": "Cuộn đến checkpoint trước đó",
+	"loadEarlierMessages": "Tải tin nhắn trước đó",
 	"about": "Tiện ích mở rộng IDE tác nhân local-first, tự mang mô hình của bạn — <br/>Biết chi phí của bạn, tin tưởng bộ nhớ cache của bạn, giữ kiến thức của bạn.",
 	"support": {
 		"reportIssue": "Báo lỗi hoặc yêu cầu tính năng",

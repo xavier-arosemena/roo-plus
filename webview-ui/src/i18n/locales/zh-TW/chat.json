@@ -125,6 +125,7 @@
 	},
 	"scrollToBottom": "捲動至對話底部",
 	"scrollToLatestCheckpoint": "捲動至上一個檢查點",
+	"loadEarlierMessages": "載入更早的訊息",
 	"about": "本地優先、自帶模型的智能體 IDE 擴充功能 — <br/>了解你的成本，信任你的快取，守護你的知識。",
 	"support": {
 		"reportIssue": "回報錯誤或請求功能",

@@ -128,6 +128,7 @@
 	"enqueueMessage": "Tambahkan pesan ke antrean (akan dikirim setelah tugas saat ini selesai)",
 	"scrollToBottom": "Gulir ke bawah chat",
 	"scrollToLatestCheckpoint": "Gulir ke checkpoint sebelumnya",
+	"loadEarlierMessages": "Muat pesan sebelumnya",
 	"about": "Ekstensi IDE agentik local-first, bawa modelmu sendiri — <br/>Ketahui biayamu, percayai cache-mu, simpan pengetahuammu.",
 	"support": {
 		"reportIssue": "Laporkan bug atau minta fitur",

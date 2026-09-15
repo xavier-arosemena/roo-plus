@@ -98,6 +98,7 @@
 	"enqueueMessage": "Agregar mensaje a la cola (se enviará después de que termine la tarea actual)",
 	"scrollToBottom": "Desplazarse al final del chat",
 	"scrollToLatestCheckpoint": "Desplazarse al checkpoint anterior",
+	"loadEarlierMessages": "Cargar mensajes anteriores",
 	"about": "La extensión de IDE agéntico local-first, con tu propio modelo — <br/>Conoce tus costos, confía en tu caché, conserva tu conocimiento.",
 	"support": {
 		"reportIssue": "Informa de un error o solicita una función",
