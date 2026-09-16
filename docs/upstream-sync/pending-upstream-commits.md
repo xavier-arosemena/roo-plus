@@ -87,9 +87,9 @@ Gates: message-schema gate (settings round-trips), full Vitest for `src/core`,
 | SHA         | Date       | Subject                                                                                  | Class           | Pri | Δ   | Status |
 | ----------- | ---------- | ---------------------------------------------------------------------------------------- | --------------- | --- | --- | ------ |
 | `c747c024b` | 2026-08-22 | feat: Add Read+Write allowlists (#1274)                                                  | `C-REIMPLEMENT` | P0  | 28  | ☐      |
-| `c6eb8fb57` | 2026-09-12 | feat(file-safety): file version token for the guarded-write path (#1383)                 | `A-CLEAN`       | P0  | 0   | ☐      |
-| `e12a42e7a` | 2026-09-05 | feat(api): add throwIfAborted helper and completePrompt options regression tests (#1288) | `A-CLEAN`       | P1  | 0   | ☐      |
-| `a5f4192bf` | 2026-09-01 | feat(api): abort signal support for bedrock (#1292)                                      | `A-CLEAN`       | P1  | 2   | ☐      |
+| `c6eb8fb57` | 2026-09-12 | feat(file-safety): file version token for the guarded-write path (#1383)                 | `A-CLEAN`       | P0  | 0   | ◐ f4287ff4f |
+| `e12a42e7a` | 2026-09-05 | feat(api): add throwIfAborted helper and completePrompt options regression tests (#1288) | `A-CLEAN`       | P1  | 0   | ◐ 1f38eb5b1 |
+| `a5f4192bf` | 2026-09-01 | feat(api): abort signal support for bedrock (#1292)                                      | `A-CLEAN`       | P1  | 2   | ◐ 3c44a7d5a |
 | `e5248e59e` | 2026-09-10 | [Fix] MCP OAuth registration fails for unsupported grants (#1532)                        | `B-CAREFUL`     | P1  | 2   | ☐      |
 
 **Notes.** `c6eb8fb57` / `e12a42e7a` are the highest-value low-risk picks in the
