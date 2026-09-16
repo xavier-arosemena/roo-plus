@@ -18,7 +18,7 @@
  * Both are asserted explicitly below.
  */
 
-import { execFileSync } from "node:child_process"
+import { spawnSync } from "node:child_process"
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
@@ -865,19 +865,47 @@ describe("--json output purity", () => {
 		assert.deepEqual(JSON.parse(captured), { mode: "verify", ok: true })
 	})
 
-	// Regression: a logger call that fires before the payload (e.g. the
-	// shallow-checkout warning) used to be written to stdout and made
-	// `--verify --json` unparseable for consumers.
-	it("--verify --json prints pure JSON on stdout with no log leakage", () => {
-		const stdout = execFileSync(process.execPath, ["scripts/upstream-sync-triage.mjs", "--verify", "--json"], {
+	/**
+	 * Runs the real CLI and returns its stdout plus exit status. `spawnSync` — not
+	 * `execFileSync` — because the CLI exits 1 whenever it cannot fully verify
+	 * (e.g. a depth-1 CI checkout with no `upstream` remote); a non-zero status
+	 * must not throw and mask the stdout-purity contract under test.
+	 */
+	function runVerifyJson() {
+		const result = spawnSync(process.execPath, ["scripts/upstream-sync-triage.mjs", "--verify", "--json"], {
 			cwd: ROOT,
 			encoding: "utf8",
 			timeout: 120_000,
 		})
+		assert.equal(result.error, undefined, `failed to spawn the triage CLI: ${result.error}`)
+		return result
+	}
+
+	// Regression: a logger call that fires before the payload (e.g. the
+	// shallow-checkout warning) used to be written to stdout and made
+	// `--verify --json` unparseable for consumers. stdout must be EXACTLY one
+	// JSON document on BOTH the success path and the loud-failure path — CI
+	// checks out at depth 1 with no `upstream` remote and hits the failure path.
+	it("--verify --json prints pure JSON on stdout with no log leakage", () => {
+		const { stdout } = runVerifyJson()
 		const parsed = JSON.parse(stdout)
 		assert.equal(parsed.mode, "verify")
 		assert.equal(typeof parsed.ok, "boolean")
-		// The real register in this repo must verify fully (not skip).
+	})
+
+	// Full-register verification is only observable where the history needed to
+	// resolve the rows is present. Where it is absent the CLI must fail loudly
+	// with an actionable message instead of silently reporting a wrong count
+	// (22 instead of 102) — never a crash, never log leakage. Discriminate on the
+	// presence of `checks`, not the `shallow` flag: that flag reflects the
+	// presence of `.git/shallow`, which is set even in a deepened checkout.
+	it("verifies the real register fully when the required history is present", () => {
+		const parsed = JSON.parse(runVerifyJson().stdout)
+		if (!Array.isArray(parsed.checks)) {
+			assert.equal(parsed.ok, false)
+			assert.match(String(parsed.error), /deepen/i)
+			return
+		}
 		assert.equal(parsed.skipped, false)
 		assert.deepEqual(parsed.counts, {
 			rows: 102,
@@ -891,13 +919,13 @@ describe("--json output purity", () => {
 		assert.ok(parsed.checks.every((check) => check.ok))
 	})
 
-	it("--verify --json reports a failing check with the row named", () => {
-		const stdout = execFileSync(process.execPath, ["scripts/upstream-sync-triage.mjs", "--verify", "--json"], {
-			cwd: ROOT,
-			encoding: "utf8",
-			timeout: 120_000,
-		})
-		const parsed = JSON.parse(stdout)
+	it("--verify --json reports the row-sha-format check", () => {
+		const parsed = JSON.parse(runVerifyJson().stdout)
+		if (!Array.isArray(parsed.checks)) {
+			// No history to resolve rows against; the loud-failure path is asserted above.
+			assert.equal(parsed.ok, false)
+			return
+		}
 		const format = parsed.checks.find((check) => check.id === "row-sha-format")
 		assert.equal(format.ok, true)
 		assert.deepEqual(format.failures, [])
