@@ -131,10 +131,14 @@ TASK 1 — Deepen and re-baseline:  git fetch --deepen=400 upstream main
 
 TASK 2 — Isolate the NEW commits only:  git log --reverse --format='%h|%ad|%an|%s' --date=short <OLD>..upstream/main
 
-TASK 3 — Compute evidence per new commit (README §2 loop): Δ (files changed by both sides),
-  file count, hot-file hits, whether it touches a CORE_FILES path in
-  scripts/verify-upstream-code-index-alignment.mjs, and whether it touches telemetry,
-  version/CHANGELOG, lockfiles, or .github/.coderabbit.
+TASK 3 — Compute evidence per new commit. The implemented tool does this and PROPOSES a class +
+  priority per NEW commit (it never reclassifies existing rows):
+    node scripts/upstream-sync-triage.mjs --refresh          # dry run, prints a ready-to-paste diff
+    node scripts/upstream-sync-triage.mjs --refresh --write   # apply: appends a SYNC-n section + header
+  Review every proposal by hand before picking; the Summary tables and the changelog line stay manual.
+  Manual equivalent (README §2 loop): Δ (files changed by both sides), file count, hot-file hits,
+  whether it touches a CORE_FILES path in scripts/verify-upstream-code-index-alignment.mjs, and
+  whether it touches telemetry, version/CHANGELOG, lockfiles, or .github/.coderabbit.
 
 TASK 4 — Classify with README §3's rules and assign each to an existing SYNC-n batch (theme match)
   or a new one. Never renumber existing batches. Set class + priority + Δ + status (☐).
@@ -142,9 +146,13 @@ TASK 4 — Classify with README §3's rules and assign each to an existing SYNC-
 TASK 5 — Update the register header: new upstream tip and pending count. Append a dated row to its
   changelog section (how many new commits, how classified, what was promoted to P0/P1).
 
-TASK 6 — Verification is mandatory: run the register check (scripts/upstream-sync-triage.mjs --verify
-  once implemented; otherwise README §8's row-scoped command). Report rows = pending commits,
-  0 duplicates, 0 missing, 0 unexpected.
+TASK 6 — Verification is mandatory. Run the implemented register check:
+    node scripts/upstream-sync-triage.mjs --verify            # or: pnpm verify:upstream-sync
+  It reports six independent checks and exits 1 on any defect. Report rows = pending commits,
+  0 duplicates, 0 missing, 0 unexpected. A 10-character row SHA must be reported BY NAME.
+  MANUAL FALLBACK (only if the script is unavailable) — row-scoped, NOT a naive hex grep (README §8):
+    grep -oE '^\| `[0-9a-f]{9}` \|' docs/upstream-sync/pending-upstream-commits.md | sort | uniq -c
+    git rev-list master..upstream/main | cut -c1-9 | sort   # diff against the row SHAs above
 
 DO NOT reclassify or delete existing rows without saying so explicitly and why.
 ```
@@ -174,5 +182,5 @@ DO NOT reclassify or delete existing rows without saying so explicitly and why.
 | Conflict in [`webviewMessageHandler.ts`](../../src/core/webview/webviewMessageHandler.ts:1) that mixes 4000 lines of unrelated logic | Wrong class: it is structural                        | Re-classify to `C-REIMPLEMENT`, close the pick, re-implement into [`handlers/`](../../src/core/webview/handlers/chat.ts:1) |
 | Code-index gate fails on one file after a clean pick                                                                                 | File is in `CORE_FILES` and must stay byte-identical | Re-align that file (or extend the allow-list deliberately, with a reason)                                                  |
 | Gate fails in a file the batch never touched                                                                                         | Pre-existing drift                                   | Report it; do not fix silently                                                                                             |
-| Register looks complete but a commit is missing                                                                                      | 10-char SHA row                                      | Re-check with the row-scoped regex (README §8)                                                                             |
+| Register looks complete but a commit is missing                                                                                      | 10-char SHA row                                      | Run `node scripts/upstream-sync-triage.mjs --verify` — it names the row (manual fallback: the row-scoped regex, README §8) |
 | Endless conflict churn on a whole-history merge                                                                                      | Escape hatch used as default                         | Abandon; return to batches                                                                                                 |

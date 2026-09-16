@@ -229,30 +229,71 @@ produced the regression-repair commits (`e86706d85`, `189f7b640`, `096bbfea4`)
 that this strategy exists to avoid. If a merge is attempted, budget for that
 repair phase explicitly.
 
-## 8. Automation (planned)
+## 8. Automation — [`scripts/upstream-sync-triage.mjs`](../../scripts/upstream-sync-triage.mjs:1)
 
-The register is currently maintained by the §2/§6 shell procedures. The intended
-tool is **`scripts/upstream-sync-triage.mjs`** (not yet implemented — creating it
-requires Code mode):
+The register is maintained by
+[`scripts/upstream-sync-triage.mjs`](../../scripts/upstream-sync-triage.mjs:1):
+ESM, zero new runtime dependencies, and the same conventions as the sibling gates
+(a `TAG`-prefixed log via [`scripts/lib/logger.mjs`](../../scripts/lib/logger.mjs:1),
+`--help`, explicit exit codes).
 
-- `--refresh` — recompute the baseline, diff against the register's recorded tip,
-  classify new commits with §3's rules, and print a ready-to-paste register diff.
-- `--verify` — assert the register is complete: every commit in
-  `merge-base..upstream/main` appears exactly once as a **table row**, counts
-  match the summary, and every `☑` row has a fork SHA reachable from `master`.
+```bash
+node scripts/upstream-sync-triage.mjs --verify          # register integrity (default mode)
+node scripts/upstream-sync-triage.mjs --refresh         # dry run: propose triage for NEW commits
+node scripts/upstream-sync-triage.mjs --refresh --write # apply the proposal + header rewrite
+node scripts/upstream-sync-triage.mjs --refresh --json  # machine-readable output
+node scripts/upstream-sync-triage.mjs --verify --strict # fail (do not skip) if upstream is unreachable
+```
 
-    **Checker pitfall (learned the hard way).** Match row cells only
-    (`^| \`[0-9a-f]{9}\` |`). Do **not** grep for "any backticked hex token":
-    SHAs legitimately repeat in Notes, in the recommended execution order, and as
-    the baseline upstream/fork tips, so a naive grep reports ~29 false duplicates.
-    Row SHAs must be the canonical **9-character** prefix — a 10-character row SHA
-    is a real defect, because it silently fails 9-char prefix matching and makes the
-    commit look absent from the register.
+Shortcuts: `pnpm verify:upstream-sync` and `pnpm refresh:upstream-sync`; the spec
+suite (`scripts/upstream-sync-triage.spec.mjs`) runs as part of `pnpm test:scripts`.
 
-- `--json` — emit the classification for scripted consumption.
+Exit codes: `0` verified / refreshed / skipped · `1` a check failed, the merge base
+is unusable (shallow clone), or upstream was unavailable with `--strict`.
 
-Until it exists, §6 is the procedure of record. Do **not** cite the script as an
-available command in the meantime.
+- `--verify` (default) — assert the register against the repo, reporting **six
+  independent checks**: (1) `row-sha-format` every row SHA is the canonical
+  9-character prefix; (2) `row-sha-resolves` every row SHA resolves to a commit;
+  (3) `coverage` every commit in `merge-base..upstream/main` has exactly one row
+  and no row points outside that range; (4) `duplicates` no row SHA repeats;
+  (5) `synced-fork-sha` every `☑` row carries a fork SHA reachable from `master`
+  (runbook R9); (6) `header-counts` the header's pending count, baseline tip and
+  merge base agree with git. It also prints a **per-batch progress roll-up**
+  (resolved vs pending per `SYNC-n`).
+- `--refresh` — fetch/deepen upstream, diff `upstream/main` against the baseline
+  tip recorded in the register header, compute evidence per new commit (Δ, file
+  count, hot-file hits, `CORE_FILES` hits, and telemetry / version / CHANGELOG /
+  lockfile / `.github` / `.coderabbit` signals), **propose** a class + priority
+  using §3's rules, and print a ready-to-paste register diff. **Dry run by
+  default; only `--refresh --write` touches the register.**
+- `--strict` — exit 1 (instead of skipping with the default exit 0) when
+  `upstream/main` cannot be resolved because there is no local ref and the fetch
+  failed. An infra/network problem must not block CI, but it must not be hidden
+  either.
+- `--json` — emit the machine-readable report (both modes) for scripted consumption.
+
+> **Classification is never automated for existing rows.** `--refresh` proposes
+> classes for **new** commits only and flags mismatches for a human. `--write`
+> only _appends_ a new `SYNC-n` section (numbering continues forward; existing
+> batches are never renumbered) and rewrites the header's tip + pending count. It
+> never reclassifies, reorders or deletes a row. The Summary tables and the §9
+> changelog line stay manual (§6 steps 5–6).
+
+> **Checker pitfall (learned the hard way).** Match row cells only
+> (`^| \`[0-9a-f]{9}\` |`). Do **not** grep for "any backticked hex token":
+> SHAs legitimately repeat in Notes, in the recommended execution order, and as
+> the baseline upstream/fork tips, so a naive grep reports ~29 false duplicates.
+> Row SHAs must be the canonical **9-character** prefix — a 10-character row SHA
+> is a real defect, because it silently fails 9-char prefix matching and makes the
+> commit look absent from the register.
+
+**Shallow clones.** Both modes require a real merge base. Without one
+`git merge-base` returns nothing and the count reads 22 instead of 102, so the
+tool fails with the exact remediation:
+`git fetch --deepen=400 upstream main`.
+
+§6 remains the procedure of record when the script is unavailable; the script
+automates §6 steps 1–4 and the §8 verification itself.
 
 ## 9. Register changelog
 

@@ -108,7 +108,12 @@ machine-refreshable pending register.
 
 4. **The register is the single source of truth** for what remains. It records the
    baseline merge base, per-commit class/priority/batch/status, and is
-   regenerated — not hand-edited from scratch — when upstream advances.
+   regenerated — not hand-edited from scratch — when upstream advances. Refresh and
+   verification are automated by
+   [`scripts/upstream-sync-triage.mjs`](../../scripts/upstream-sync-triage.mjs:1)
+   (`--refresh`, `--verify`), which now exists; **classification remains a human
+   decision** — the tool proposes classes for new commits only and never
+   reclassifies or deletes an existing row.
 
 5. **Merge remains an escape hatch, not the default.** A whole-history merge is
    permitted only for `E-SKIP`-heavy ranges or as a deliberate catch-up once the

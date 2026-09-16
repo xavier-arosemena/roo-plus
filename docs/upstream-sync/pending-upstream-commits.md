@@ -19,7 +19,7 @@ Operating manual + refresh procedure: [`README.md`](README.md).
 | Pending upstream commits                 | **102**                                                                                                                                                                                                      |
 | Fork-only commits                        | 180                                                                                                                                                                                                          |
 | Conflict surface (files changed by both) | 272                                                                                                                                                                                                          |
-| Refresh procedure                        | [`README.md` §6](README.md) — the shell procedure of record. `scripts/upstream-sync-triage.mjs` is **planned, not yet implemented**; do not cite it as an available command.                                 |
+| Refresh procedure                        | Automated by [`scripts/upstream-sync-triage.mjs`](../../scripts/upstream-sync-triage.mjs:1) — `--refresh` (dry run), `--refresh --write` to apply, `--verify` to check. See [`README.md` §6](README.md).     |
 | Evidence snapshots                       | [`raw-upstream-commits.txt`](raw-upstream-commits.txt) and [`triage-raw.tsv`](triage-raw.tsv) — generated 2026-09-16 against the baseline above; regenerate via [`README.md` §2](README.md), never hand-edit |
 
 > **Shallow-clone warning.** This checkout is shallow (`.git/shallow`). Before
