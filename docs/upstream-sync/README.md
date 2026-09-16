@@ -59,17 +59,33 @@ done
 Classification uses **git-derived evidence**, then judgement. Reproduce the
 evidence before disagreeing with a class in the register.
 
-| Signal                  | How to measure                                                                                                                          | Effect                                                                            |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| **Δ (overlap)**         | `comm -12` of the commit's files vs `/tmp/both.txt`                                                                                     | `Δ 0` → `A-CLEAN`; `1–3` → `B-CAREFUL`; larger → inspect                          |
-| **Structural hit**      | commit touches `src/core/webview/webviewMessageHandler.ts`, `src/core/webview/ClineProvider.ts`, or areas the fork restructured         | → `C-REIMPLEMENT` (fork's handler is a 131-line router; upstream's is 4206 lines) |
-| **Telemetry hit**       | `git log -S captureEvent` / telemetry paths                                                                                             | → `C-REIMPLEMENT` or `X-REJECT` (fork has 0 telemetry refs)                       |
-| **Scope of concern**    | commit touches `src/package.json` version, `CHANGELOG*`, `locales/*/README.md`, `Announcement.tsx`                                      | → `D-LOCAL` (fork owns versioning/announcements)                                  |
-| **Lockfile-only**       | files ⊆ `pnpm-lock.yaml` / dependency manifests                                                                                         | → `D-LOCAL` (regenerate via `renovate.json`, don't import)                        |
-| **Upstream automation** | files ⊆ `.github/**`, `.coderabbit*`, `CONTRIBUTING.md` with no runtime code                                                            | → `E-SKIP`                                                                        |
-| **Gated core file**     | path appears in `CORE_FILES` in [`verify-upstream-code-index-alignment.mjs`](../../scripts/verify-upstream-code-index-alignment.mjs:92) | Clean-pick signal — but the gate must pass afterwards                             |
-| **Intent prefix**       | `fix`/`security`/`perf` → `P0`/`P1`; `feat` → `P2`; `chore`/`lint`/`test`/`ci` → `P3`                                                   | Sets priority (before value override)                                             |
-| **Value override**      | data loss, security, crash, stall                                                                                                       | Raises to `P0` even if `chore`/`fix` prefix                                       |
+| Signal                           | How to measure                                                                                                                          | Effect                                                                                                                           |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Δ (overlap — fork-side only)** | `comm -12` of the commit's files vs `/tmp/both.txt`                                                                                     | `Δ 0` → `A-CLEAN` **only if the commit has no unsynced upstream predecessor** (see below); `1–3` → `B-CAREFUL`; larger → inspect |
+| **Structural hit**               | commit touches `src/core/webview/webviewMessageHandler.ts`, `src/core/webview/ClineProvider.ts`, or areas the fork restructured         | → `C-REIMPLEMENT` (fork's handler is a 131-line router; upstream's is 4206 lines)                                                |
+| **Telemetry hit**                | `git log -S captureEvent` / telemetry paths                                                                                             | → `C-REIMPLEMENT` or `X-REJECT` (fork has 0 telemetry refs)                                                                      |
+| **Scope of concern**             | commit touches `src/package.json` version, `CHANGELOG*`, `locales/*/README.md`, `Announcement.tsx`                                      | → `D-LOCAL` (fork owns versioning/announcements)                                                                                 |
+| **Lockfile-only**                | files ⊆ `pnpm-lock.yaml` / dependency manifests                                                                                         | → `D-LOCAL` (regenerate via `renovate.json`, don't import)                                                                       |
+| **Upstream automation**          | files ⊆ `.github/**`, `.coderabbit*`, `CONTRIBUTING.md` with no runtime code                                                            | → `E-SKIP`                                                                                                                       |
+| **Gated core file**              | path appears in `CORE_FILES` in [`verify-upstream-code-index-alignment.mjs`](../../scripts/verify-upstream-code-index-alignment.mjs:92) | Clean-pick signal — but the gate must pass afterwards                                                                            |
+| **Intent prefix**                | `fix`/`security`/`perf` → `P0`/`P1`; `feat` → `P2`; `chore`/`lint`/`test`/`ci` → `P3`                                                   | Sets priority (before value override)                                                                                            |
+| **Value override**               | data loss, security, crash, stall                                                                                                       | Raises to `P0` even if `chore`/`fix` prefix                                                                                      |
+
+**Before trusting `Δ 0`: the empty-fork-side test (added 2026-09-16).** `Δ` measures
+overlap with files the fork changed, so it is **blind to upstream precedence**. A commit can have
+`Δ = 0` and still not be pickable, because its upstream _predecessor_ has not been synced: the
+fork side then equals the merge base, and the incoming diff is a delta on a model/feature entry
+the fork does not have. Test for it before picking:
+
+```bash
+git show <sha> -- <file>          # upstream's pre-image for the conflicted hunk
+git show <merge-base>:<file>      # compare with the fork's content (fork never touched it?)
+git merge-base --is-ancestor <candidate-predecessor> <sha>   # is it a git descendant?
+```
+
+If the conflict is against an **empty fork side** while upstream's pre-image differs, the row is
+dependency-blocked: move it to a prerequisite batch (the `SYNC-13` pattern) and land the
+predecessor first. Six of the first twelve rows labelled `A-CLEAN` failed exactly this way.
 
 **Priority rubric.** `P0` = security or data-loss/durability. `P1` = correctness
 in a core flow the user feels (task lifecycle, approvals, provider responses).

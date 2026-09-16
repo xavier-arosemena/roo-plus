@@ -175,6 +175,19 @@ machine-refreshable pending register.
 - The register duplicates information derivable from git; it is a _decision_
   record, deliberately not auto-derivable from `git log` alone.
 
+## Amendment — 2026-09-16: `Δ` is fork-side only
+
+The first real batch exposed a gap in the classifier above. `Δ` (a commit's overlap with files
+the fork changed) is blind to **upstream precedence**: six rows classed `A-CLEAN` on `Δ = 0`
+turned out to be deltas on upstream commits the fork had not synced — `500152b78` is a git
+descendant of `5e8fcc846` — so they conflicted against an _empty_ fork side. Those rows moved to
+a prerequisite batch (`SYNC-13`) that lands the predecessor first, and the empty-fork-side test
+is now part of the classifier and the runbook's stop conditions.
+
+Consequence for the taxonomy: `A-CLEAN` requires **both** `Δ = 0` **and** the absence of an
+unsynced upstream predecessor. Follow-up work: teach `scripts/upstream-sync-triage.mjs` to detect
+prerequisites automatically rather than leaving it to a manual check.
+
 ## See Also
 
 - Register: [`docs/upstream-sync/pending-upstream-commits.md`](../upstream-sync/pending-upstream-commits.md)

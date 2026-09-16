@@ -36,6 +36,13 @@ Stop and report when any of these is true:
 | The picked change would re-introduce telemetry, cloud, or branding regressions                                                                                | Contradicts a recorded fork decision (`X-REJECT`/`D-LOCAL`).                                                                     |
 | Two upstream commits conflict _with each other_ (e.g. a re-land superseded by a later fix)                                                                    | Requires a human decision on which to keep.                                                                                      |
 
+**Stop condition — unsynced upstream prerequisite (added 2026-09-16).** If a pick conflicts with
+an **empty fork side** — the fork's content equals the merge base, and the incoming diff
+introduces a model/feature entry the fork lacks — the commit depends on an upstream commit the
+fork has not synced. `Δ` cannot detect this (it is fork-side only). Do **not** force the pick and
+do **not** choose a side: move the row to a prerequisite batch (`SYNC-13`), land the predecessor,
+then re-attempt. Six of the first twelve `A-CLEAN` rows failed this way.
+
 **Report format when stopping:** commit SHA + subject · class from the register · the concrete blocker · the options you see · your recommendation. Do not proceed on a guess.
 
 ## 3. When to run
@@ -75,6 +82,10 @@ TASK 2 — Branch for the batch.
 
 TASK 3 — For each row in the batch with class A-CLEAN or B-CAREFUL:
   a) Inspect intent before picking:  git show <sha>
+  a2) Prerequisite check (Δ cannot see this): if `git show <sha> -- <file>` shows the incoming diff
+      is a delta on content the fork lacks (fork side == merge base, upstream pre-image differs),
+      the commit has an unsynced upstream predecessor. Move the row to the prerequisite batch and
+      land that first — confirm with: git merge-base --is-ancestor <predecessor> <sha>
   b) Pick with provenance:           git cherry-pick -x <sha>
   c) On conflict: read BOTH intents (git show <sha>; git log --oneline <merge-base>..master -- <file>),
      then resolve so upstream's fix is re-expressed in the fork's structure. Never pick a side blindly.
@@ -176,11 +187,12 @@ DO NOT reclassify or delete existing rows without saying so explicitly and why.
 
 ## 8. Known failure modes
 
-| Symptom                                                                                                                              | Cause                                                | Action                                                                                                                     |
-| ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `merge-base` prints nothing / "22 behind"                                                                                            | Shallow clone                                        | R1 — deepen first                                                                                                          |
-| Conflict in [`webviewMessageHandler.ts`](../../src/core/webview/webviewMessageHandler.ts:1) that mixes 4000 lines of unrelated logic | Wrong class: it is structural                        | Re-classify to `C-REIMPLEMENT`, close the pick, re-implement into [`handlers/`](../../src/core/webview/handlers/chat.ts:1) |
-| Code-index gate fails on one file after a clean pick                                                                                 | File is in `CORE_FILES` and must stay byte-identical | Re-align that file (or extend the allow-list deliberately, with a reason)                                                  |
-| Gate fails in a file the batch never touched                                                                                         | Pre-existing drift                                   | Report it; do not fix silently                                                                                             |
-| Register looks complete but a commit is missing                                                                                      | 10-char SHA row                                      | Run `node scripts/upstream-sync-triage.mjs --verify` — it names the row (manual fallback: the row-scoped regex, README §8) |
-| Endless conflict churn on a whole-history merge                                                                                      | Escape hatch used as default                         | Abandon; return to batches                                                                                                 |
+| Symptom                                                                                                                              | Cause                                                 | Action                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `merge-base` prints nothing / "22 behind"                                                                                            | Shallow clone                                         | R1 — deepen first                                                                                                          |
+| Conflict in [`webviewMessageHandler.ts`](../../src/core/webview/webviewMessageHandler.ts:1) that mixes 4000 lines of unrelated logic | Wrong class: it is structural                         | Re-classify to `C-REIMPLEMENT`, close the pick, re-implement into [`handlers/`](../../src/core/webview/handlers/chat.ts:1) |
+| Code-index gate fails on one file after a clean pick                                                                                 | File is in `CORE_FILES` and must stay byte-identical  | Re-align that file (or extend the allow-list deliberately, with a reason)                                                  |
+| Gate fails in a file the batch never touched                                                                                         | Pre-existing drift                                    | Report it; do not fix silently                                                                                             |
+| Register looks complete but a commit is missing                                                                                      | 10-char SHA row                                       | Run `node scripts/upstream-sync-triage.mjs --verify` — it names the row (manual fallback: the row-scoped regex, README §8) |
+| Endless conflict churn on a whole-history merge                                                                                      | Escape hatch used as default                          | Abandon; return to batches                                                                                                 |
+| Pick conflicts against an **empty fork side** (`Δ 0` but not pickable)                                                               | Unsynced upstream predecessor — `Δ` is fork-side only | Move the row to the prerequisite batch (`SYNC-13`); land the predecessor, then re-attempt                                  |
