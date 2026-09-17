@@ -19,6 +19,8 @@
  */
 
 import { spawnSync } from "node:child_process"
+import * as fs from "node:fs"
+import * as path from "node:path"
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
@@ -50,6 +52,7 @@ import {
 	HOT_FILES,
 	IN_PROGRESS_MARKER,
 	ORIGIN_FORK_REF,
+	REGISTER_PATH,
 	ROOT,
 	ROW_SHA_LENGTH,
 } from "./upstream-sync-triage.mjs"
@@ -1087,13 +1090,21 @@ describe("--json output purity", () => {
 			return
 		}
 		assert.equal(parsed.skipped, false)
+		// `synced` describes the REGISTER, not the tool: the same CLI reports 0
+		// while every row is still ☐/◐ and 6 once the first batch is flipped to ☑
+		// (PR #348). Derive it from the register on disk — parsed in-process, then
+		// cross-checked against the spawned CLI's report — so a legitimate flip
+		// cannot fail this integration test the way a pinned snapshot would.
+		const { rows } = parseRegister(fs.readFileSync(path.join(ROOT, REGISTER_PATH), "utf8"))
+		const expectedSynced = rows.filter((row) => row.synced).length
+		assert.ok(expectedSynced > 0, "the real register should carry ☑ rows once a batch has landed")
 		assert.deepEqual(parsed.counts, {
 			rows: 102,
 			pendingCommits: 102,
 			duplicates: 0,
 			missing: 0,
 			unexpected: 0,
-			synced: 0,
+			synced: expectedSynced,
 		})
 		assert.equal(parsed.checks.length, 7)
 		assert.ok(parsed.checks.every((check) => check.ok))
