@@ -254,38 +254,50 @@ ESM, zero new runtime dependencies, and the same conventions as the sibling gate
 `--help`, explicit exit codes).
 
 ```bash
-node scripts/upstream-sync-triage.mjs --verify          # register integrity (default mode)
-node scripts/upstream-sync-triage.mjs --refresh         # dry run: propose triage for NEW commits
-node scripts/upstream-sync-triage.mjs --refresh --write # apply the proposal + header rewrite
-node scripts/upstream-sync-triage.mjs --refresh --json  # machine-readable output
-node scripts/upstream-sync-triage.mjs --verify --strict # fail (do not skip) if upstream is unreachable
+node scripts/upstream-sync-triage.mjs --verify           # register integrity (default mode)
+node scripts/upstream-sync-triage.mjs --refresh          # dry run: propose triage for NEW commits
+node scripts/upstream-sync-triage.mjs --refresh --write  # apply the proposal + header rewrite
+node scripts/upstream-sync-triage.mjs --refresh --json   # machine-readable output
+node scripts/upstream-sync-triage.mjs --verify --strict  # fail on stale ◐ rows and on unreachable upstream
+node scripts/upstream-sync-triage.mjs --verify --fork-ref origin/master  # override the fork ref
 ```
 
 Shortcuts: `pnpm verify:upstream-sync` and `pnpm refresh:upstream-sync`; the spec
 suite (`scripts/upstream-sync-triage.spec.mjs`) runs as part of `pnpm test:scripts`.
 
-Exit codes: `0` verified / refreshed / skipped · `1` a check failed, the merge base
-is unusable (shallow clone), or upstream was unavailable with `--strict`.
+Exit codes: `0` verified / refreshed / skipped (a stale `◐` warning alone does NOT
+fail) · `1` a check failed, the merge base is unusable (shallow clone), upstream
+was unavailable with `--strict`, or stale `◐` rows were found with `--strict`.
 
-- `--verify` (default) — assert the register against the repo, reporting **six
+- `--verify` (default) — assert the register against the repo, reporting **seven
   independent checks**: (1) `row-sha-format` every row SHA is the canonical
   9-character prefix; (2) `row-sha-resolves` every row SHA resolves to a commit;
   (3) `coverage` every commit in `merge-base..upstream/main` has exactly one row
   and no row points outside that range; (4) `duplicates` no row SHA repeats;
-  (5) `synced-fork-sha` every `☑` row carries a fork SHA reachable from `master`
-  (runbook R9); (6) `header-counts` the header's pending count, baseline tip and
-  merge base agree with git. It also prints a **per-batch progress roll-up**
-  (resolved vs pending per `SYNC-n`).
+  (5) `synced-fork-sha` every `☑` row carries a fork SHA reachable from the fork
+  ref (runbook R9); (6) `stale-in-progress` every `◐` row that records a fork SHA
+  must **not** already be reachable from the fork ref — a `◐` row whose fork SHA
+  has landed is _stale_ and must be flipped to `☑` (a `◐` row with no fork SHA is
+  not checked; see §6 of the runbook). This is a **warning by default** and a
+  failure only under `--strict`; (7) `header-counts` the header's pending count,
+  baseline tip and merge base agree with git. It also prints a **per-batch
+  progress roll-up** (resolved vs pending per `SYNC-n`).
 - `--refresh` — fetch/deepen upstream, diff `upstream/main` against the baseline
   tip recorded in the register header, compute evidence per new commit (Δ, file
   count, hot-file hits, `CORE_FILES` hits, and telemetry / version / CHANGELOG /
   lockfile / `.github` / `.coderabbit` signals), **propose** a class + priority
   using §3's rules, and print a ready-to-paste register diff. **Dry run by
   default; only `--refresh --write` touches the register.**
-- `--strict` — exit 1 (instead of skipping with the default exit 0) when
+- `--strict` — exit 1 (instead of the default exit 0) in two cases: (a)
   `upstream/main` cannot be resolved because there is no local ref and the fetch
-  failed. An infra/network problem must not block CI, but it must not be hidden
-  either.
+  failed, and (b) a `◐` row is stale (`stale-in-progress`). An infra/network
+  problem and a stale register must not turn mainline red on their own, but
+  neither may be hidden either.
+- `--fork-ref <ref>` — override the fork ref used by the `synced-fork-sha` and
+  `stale-in-progress` reachability checks. Both checks resolve it through the
+  **same** helper, so they cannot diverge: `--fork-ref`, else `origin/master` when
+  it resolves and local `master` is an ancestor of it (a stale local ref), else
+  local `master`. The resolved ref is printed and reflected in the check messages.
 - `--json` — emit the machine-readable report (both modes) for scripted consumption.
 
 > **Classification is never automated for existing rows.** `--refresh` proposes

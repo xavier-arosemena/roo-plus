@@ -26,11 +26,13 @@ import {
 	applyRefreshWrite,
 	buildBatchRollup,
 	buildRefreshPlan,
+	chooseForkRef,
 	computeCommitEvidence,
 	crossCheckRows,
 	decideRunMode,
 	emitJson,
 	extractForkSha,
+	extractMarkerSha,
 	formatRegisterRow,
 	intentPrefix,
 	isQuickWin,
@@ -43,7 +45,11 @@ import {
 	renderRegisterDiff,
 	splitRowCells,
 	validateRegister,
+	verifyExitCode,
+	FORK_REF,
 	HOT_FILES,
+	IN_PROGRESS_MARKER,
+	ORIGIN_FORK_REF,
 	ROOT,
 	ROW_SHA_LENGTH,
 } from "./upstream-sync-triage.mjs"
@@ -120,7 +126,7 @@ function makeProbe({ commits = [], reachable = [], upstreamTip = TIP, mergeBase 
 	const reachableSet = new Set(reachable)
 	return {
 		commitType: (sha) => (commitSet.has(sha) ? "commit" : null),
-		isReachableFromMaster: (sha) => reachableSet.has(sha),
+		isReachableFromForkRef: (sha) => reachableSet.has(sha),
 		upstreamTip: () => upstreamTip,
 		mergeBase: () => mergeBase,
 	}
@@ -198,6 +204,8 @@ describe("row-scoped register parsing", () => {
 			status: "☐",
 			synced: false,
 			forkSha: null,
+			inProgress: false,
+			inProgressSha: null,
 			sectionId: "SYNC-1",
 		})
 	})
@@ -275,11 +283,19 @@ describe("validateRegister — well-formed register", () => {
 		})
 	})
 
-	it("exposes the six checks independently", () => {
+	it("exposes the seven checks independently", () => {
 		const report = validateRegister({ markdown: healthyRegister(), pendingShas: HEALTHY_PENDING, probe: HEALTHY_PROBE })
 		assert.deepEqual(
 			report.checks.map((check) => check.id),
-			["row-sha-format", "row-sha-resolves", "coverage", "duplicates", "synced-fork-sha", "header-counts"],
+			[
+				"row-sha-format",
+				"row-sha-resolves",
+				"coverage",
+				"duplicates",
+				"synced-fork-sha",
+				"stale-in-progress",
+				"header-counts",
+			],
 		)
 	})
 })
@@ -454,6 +470,170 @@ describe("validateRegister — ☑ rows must carry a fork SHA reachable from mas
 		})
 		assert.equal(report.ok, true)
 		assert.equal(report.counts.synced, 1)
+	})
+})
+
+describe("validateRegister — stale-in-progress (◐ rows already merged)", () => {
+	const stalenessRegister = (status) =>
+		buildRegister({
+			rows: [makeRow(PREFIX_A, "fix: a", { status }), makeRow(PREFIX_B, "fix: b"), makeRow(PREFIX_C, "fix: c")],
+			pendingCount: 3,
+		})
+	const probeWithReachable = (reachable) => makeProbe({ commits: [PREFIX_A, PREFIX_B, PREFIX_C], reachable })
+
+	it("warns (but does not fail) when a ◐ row's fork SHA is reachable from the fork ref", () => {
+		const report = validateRegister({
+			markdown: stalenessRegister("◐ deadbee11"),
+			pendingShas: HEALTHY_PENDING,
+			probe: probeWithReachable(["deadbee11"]),
+		})
+		// Structurally consistent: correct row count, no duplicates — so the hard
+		// verdict stays green...
+		assert.equal(report.ok, true)
+		assert.equal(report.hasWarnings, true)
+		// ...but the stale row is surfaced, naming BOTH the row and the SHA.
+		const stale = checkById(report, "stale-in-progress")
+		assert.equal(stale.ok, true)
+		assert.equal(stale.severity, "warning")
+		assert.equal(stale.warnings.length, 1)
+		assert.match(stale.warnings[0], new RegExp(PREFIX_A))
+		assert.match(stale.warnings[0], /deadbee11/)
+		assert.match(stale.warnings[0], /flip it to ☑/)
+		assert.match(stale.warnings[0], /line \d+/)
+		assert.equal(report.staleInProgress.length, 1)
+		assert.equal(report.staleInProgress[0].forkSha, "deadbee11")
+	})
+
+	it("does NOT warn when a ◐ row's fork SHA is not reachable from the fork ref", () => {
+		const report = validateRegister({
+			markdown: stalenessRegister("◐ deadbee11"),
+			pendingShas: HEALTHY_PENDING,
+			probe: probeWithReachable([]),
+		})
+		assert.equal(report.ok, true)
+		assert.equal(report.hasWarnings, false)
+		assert.deepEqual(checkById(report, "stale-in-progress").warnings, [])
+		assert.deepEqual(report.staleInProgress, [])
+	})
+
+	it("does NOT warn for a bare ◐ with no SHA (the operator may be mid-pick)", () => {
+		const report = validateRegister({
+			markdown: stalenessRegister("◐"),
+			pendingShas: HEALTHY_PENDING,
+			probe: probeWithReachable(["deadbee11"]),
+		})
+		assert.equal(report.ok, true)
+		assert.deepEqual(report.staleInProgress, [])
+		assert.deepEqual(checkById(report, "stale-in-progress").warnings, [])
+	})
+
+	it("ignores ☐ and ✖ rows entirely", () => {
+		for (const status of ["☐", "✖"]) {
+			const report = validateRegister({
+				markdown: stalenessRegister(status),
+				pendingShas: HEALTHY_PENDING,
+				probe: probeWithReachable(["deadbee11"]),
+			})
+			assert.deepEqual(report.staleInProgress, [], `status ${status} must not be treated as in-progress`)
+		}
+	})
+
+	it("parses the ◐ fork SHA from the same status cell", () => {
+		assert.equal(extractMarkerSha("◐ f4287ff4f", IN_PROGRESS_MARKER), "f4287ff4f")
+		assert.equal(extractMarkerSha("◐ `f4287ff4f`", IN_PROGRESS_MARKER), "f4287ff4f")
+		assert.equal(extractMarkerSha("◐", IN_PROGRESS_MARKER), null)
+		assert.equal(extractMarkerSha("☑ abc1234", IN_PROGRESS_MARKER), null)
+	})
+
+	it("keeps the existing ☑ behaviour unchanged", () => {
+		const report = validateRegister({
+			markdown: stalenessRegister("☑ `deadbeef1`"),
+			pendingShas: HEALTHY_PENDING,
+			probe: probeWithReachable(["deadbeef1"]),
+		})
+		assert.deepEqual(report.staleInProgress, [])
+		assert.equal(checkById(report, "synced-fork-sha").ok, true)
+		assert.equal(report.counts.synced, 1)
+	})
+})
+
+describe("verifyExitCode — stale-in-progress warns by default, fails under --strict", () => {
+	it("exits 0 for a structurally-clean register with stale rows when --strict is absent", () => {
+		assert.equal(verifyExitCode({ ok: true, staleCount: 6, strict: false }), 0)
+	})
+
+	it("promotes the same warning to exit 1 under --strict", () => {
+		assert.equal(verifyExitCode({ ok: true, staleCount: 6, strict: true }), 1)
+	})
+
+	it("exits 0 with no stale rows even under --strict", () => {
+		assert.equal(verifyExitCode({ ok: true, staleCount: 0, strict: true }), 0)
+	})
+
+	it("exits 1 for a structural failure regardless of --strict", () => {
+		assert.equal(verifyExitCode({ ok: false, staleCount: 0, strict: false }), 1)
+		assert.equal(verifyExitCode({ ok: false, staleCount: 6, strict: false }), 1)
+	})
+})
+
+describe("chooseForkRef — shared fork-ref resolution (regression: stale local master)", () => {
+	it("prefers origin/master when local master is a stale ancestor of it", () => {
+		const ref = chooseForkRef({
+			override: null,
+			originResolves: true,
+			localMasterResolves: true,
+			localMasterIsAncestorOfOrigin: true,
+		})
+		assert.equal(ref, ORIGIN_FORK_REF)
+		assert.equal(ref, "origin/master")
+	})
+
+	it("falls back to local master when master is ahead or diverged (not an ancestor)", () => {
+		assert.equal(
+			chooseForkRef({ override: null, originResolves: true, localMasterResolves: true, localMasterIsAncestorOfOrigin: false }),
+			FORK_REF,
+		)
+		assert.equal(FORK_REF, "master")
+	})
+
+	it("falls back to local master when origin/master does not resolve", () => {
+		assert.equal(
+			chooseForkRef({ override: null, originResolves: false, localMasterResolves: true, localMasterIsAncestorOfOrigin: false }),
+			FORK_REF,
+		)
+	})
+
+	it("honours the --fork-ref override above both defaults", () => {
+		assert.equal(
+			chooseForkRef({
+				override: "release/v3.88.3-stable",
+				originResolves: true,
+				localMasterResolves: true,
+				localMasterIsAncestorOfOrigin: true,
+			}),
+			"release/v3.88.3-stable",
+		)
+	})
+
+	it("threads the resolved ref into BOTH the ☑ and ◐ check titles/messages", () => {
+		const markdown = buildRegister({
+			rows: [
+				makeRow(PREFIX_A, "fix: a", { status: "☑ `deadbeef1`" }),
+				makeRow(PREFIX_B, "fix: b", { status: "◐ deadbee11" }),
+				makeRow(PREFIX_C, "fix: c"),
+			],
+			pendingCount: 3,
+		})
+		const report = validateRegister({
+			markdown,
+			pendingShas: HEALTHY_PENDING,
+			probe: makeProbe({ commits: [PREFIX_A, PREFIX_B, PREFIX_C], reachable: ["deadbee11"] }),
+			forkRef: "origin/master",
+		})
+		assert.match(checkById(report, "synced-fork-sha").title, /origin\/master/)
+		assert.match(checkById(report, "synced-fork-sha").failures[0], /not reachable from origin\/master/)
+		assert.match(checkById(report, "stale-in-progress").title, /origin\/master/)
+		assert.match(checkById(report, "stale-in-progress").warnings[0], /already reachable from origin\/master/)
 	})
 })
 
@@ -915,7 +1095,7 @@ describe("--json output purity", () => {
 			unexpected: 0,
 			synced: 0,
 		})
-		assert.equal(parsed.checks.length, 6)
+		assert.equal(parsed.checks.length, 7)
 		assert.ok(parsed.checks.every((check) => check.ok))
 	})
 
@@ -944,8 +1124,20 @@ describe("parseArgs", () => {
 			strict: true,
 			write: true,
 			help: false,
+			forkRef: null,
 			unknown: [],
 		})
+	})
+
+	it("parses --fork-ref in both --fork-ref <ref> and --fork-ref=<ref> forms", () => {
+		assert.equal(parseArgs(["--verify", "--fork-ref", "origin/master"]).forkRef, "origin/master")
+		assert.equal(parseArgs(["--fork-ref=upstream/main"]).forkRef, "upstream/main")
+		assert.equal(parseArgs(["--verify"]).forkRef, null)
+	})
+
+	it("records a dangling --fork-ref as an unknown flag", () => {
+		assert.deepEqual(parseArgs(["--fork-ref"]).unknown, ["--fork-ref"])
+		assert.deepEqual(parseArgs(["--fork-ref", "--strict"]).unknown, ["--fork-ref"])
 	})
 
 	it("records unknown flags so typos fail loudly", () => {
