@@ -92,9 +92,9 @@ Gates: message-schema gate (settings round-trips), full Vitest for `src/core`,
 | SHA         | Date       | Subject                                                                                  | Class           | Pri | Δ   | Status      |
 | ----------- | ---------- | ---------------------------------------------------------------------------------------- | --------------- | --- | --- | ----------- |
 | `c747c024b` | 2026-08-22 | feat: Add Read+Write allowlists (#1274)                                                  | `C-REIMPLEMENT` | P0  | 28  | ☐           |
-| `c6eb8fb57` | 2026-09-12 | feat(file-safety): file version token for the guarded-write path (#1383)                 | `A-CLEAN`       | P0  | 0   | ◐ f4287ff4f |
-| `e12a42e7a` | 2026-09-05 | feat(api): add throwIfAborted helper and completePrompt options regression tests (#1288) | `A-CLEAN`       | P1  | 0   | ◐ 1f38eb5b1 |
-| `a5f4192bf` | 2026-09-01 | feat(api): abort signal support for bedrock (#1292)                                      | `A-CLEAN`       | P1  | 2   | ◐ 3c44a7d5a |
+| `c6eb8fb57` | 2026-09-12 | feat(file-safety): file version token for the guarded-write path (#1383)                 | `A-CLEAN`       | P0  | 0   | ☑ f4287ff4f |
+| `e12a42e7a` | 2026-09-05 | feat(api): add throwIfAborted helper and completePrompt options regression tests (#1288) | `A-CLEAN`       | P1  | 0   | ☑ 1f38eb5b1 |
+| `a5f4192bf` | 2026-09-01 | feat(api): abort signal support for bedrock (#1292)                                      | `A-CLEAN`       | P1  | 2   | ☑ 3c44a7d5a |
 | `e5248e59e` | 2026-09-10 | [Fix] MCP OAuth registration fails for unsupported grants (#1532)                        | `B-CAREFUL`     | P1  | 2   | ☐           |
 
 **Notes.** `c6eb8fb57` / `e12a42e7a` are the highest-value low-risk picks in the
@@ -172,15 +172,15 @@ Theme: the bulk of the `A-CLEAN` quick-wins live here.
 
 | SHA         | Date       | Subject                                                                        | Class           | Pri | Δ   | Status      |
 | ----------- | ---------- | ------------------------------------------------------------------------------ | --------------- | --- | --- | ----------- |
-| `7e85e2793` | 2026-08-22 | [Fix] NanoGPT Muse Spark fails during tool use (#1310)                         | `A-CLEAN`       | P1  | 0   | ◐ 2868dec51 |
+| `7e85e2793` | 2026-08-22 | [Fix] NanoGPT Muse Spark fails during tool use (#1310)                         | `A-CLEAN`       | P1  | 0   | ☑ 2868dec51 |
 | `4e8fa09f2` | 2026-09-03 | fix: yield reasoning chunks before content chunks in providers (#1462)         | `A-CLEAN`       | P1  | 4   | ☐           |
 | `bd399fa77` | 2026-08-22 | fix(openai-codex): complete prompts over the streaming transport (#1243)       | `B-CAREFUL`     | P1  | 4   | ☐           |
 | `b0fdbc7a7` | 2026-08-28 | [Fix] Vertex Gemini 3.7 fails after tools return empty output (#1250)          | `B-CAREFUL`     | P1  | 2   | ☐           |
 | `4c7474d42` | 2026-09-06 | [Fix] Reasoning models stop thinking after model selection (#1349)             | `B-CAREFUL`     | P1  | 1   | ☐           |
 | `a3e31e14b` | 2026-09-07 | [Fix] Provider settings contact unselected model services (#1425)              | `B-CAREFUL`     | P1  | 10  | ☐           |
 | `d5f779575` | 2026-09-12 | fix(openai-compatible): consistently apply configured reasoning effort (#1604) | `B-CAREFUL`     | P1  | 5   | ☐           |
-| `db52d7fc7` | 2026-08-22 | feat(models): add Gemini 3.5 Flash Lite and 3.1 Flash Lite (#1334)             | `A-CLEAN`       | P2  | 0   | ◐ 388a75a6d |
-| `5e8fcc846` | 2026-09-02 | [Feat] Add deepseek-v4-flash-vision-exp to Deepseek AI (#1438)                 | `A-CLEAN`       | P2  | 0   | ◐ 567b94bd9 |
+| `db52d7fc7` | 2026-08-22 | feat(models): add Gemini 3.5 Flash Lite and 3.1 Flash Lite (#1334)             | `A-CLEAN`       | P2  | 0   | ☑ 388a75a6d |
+| `5e8fcc846` | 2026-09-02 | [Feat] Add deepseek-v4-flash-vision-exp to Deepseek AI (#1438)                 | `A-CLEAN`       | P2  | 0   | ☑ 567b94bd9 |
 | `c4574ffef` | 2026-09-05 | feat(providers): add DeepSeek V4 Flash Vision Exp (#1488)                      | `A-CLEAN`       | P2  | 2   | ☐           |
 | `22cc416ba` | 2026-09-03 | refactor(api): make Gemini CLI handler routing explicit (#1442)                | `B-CAREFUL`     | P2  | 1   | ☐           |
 | `ec77e3f1e` | 2026-08-28 | feat(providers): add GLM-5.3-Flash support (#1430)                             | `B-CAREFUL`     | P2  | 1   | ☐           |
@@ -189,7 +189,7 @@ Theme: the bulk of the `A-CLEAN` quick-wins live here.
 | `6ad8a6e58` | 2026-08-22 | fix(zoo-gateway): stop inventing UI cost from default model prices (#1339)     | `B-CAREFUL`     | P2  | 5   | ☐           |
 | `d033a14c2` | 2026-09-03 | [Feat] Add custom request fields for OpenAI-compatible providers (#1350)       | `C-REIMPLEMENT` | P2  | 27  | ☐           |
 
-**Notes.** `7e85e2793`, `db52d7fc7` and `5e8fcc846` are synced (◐) on `sync/sync-1-5-quick-wins`.
+**Notes.** `7e85e2793`, `db52d7fc7` and `5e8fcc846` are synced (☑) on `master` — merged via PR #345 (merge `6c4e9df5c`).
 Six rows that were classed `A-CLEAN` on `Δ` alone turned out to depend on unsynced upstream
 predecessors — they were moved to **SYNC-13**. `Δ` measures fork-side overlap only; see the
 `Δ` caveat in the legend above and [`README.md`](README.md) §3.
@@ -383,7 +383,7 @@ cherry-pick these until the named prerequisite is on the target branch.
 **Prerequisite chains (verified 2026-09-16)**
 
 - `500152b78` (#1618) is a **git descendant** of `5e8fcc846` (#1438) and `c4574ffef` (#1488), which
-  introduce `deepseek-v4-flash-vision-exp`. `5e8fcc846` is now ◐ `567b94bd9`, so **re-attempt
+  introduce `deepseek-v4-flash-vision-exp`. `5e8fcc846` is now ☑ `567b94bd9`, so **re-attempt
   `500152b78` first** — it should land as the alias/pricing rewrite on top. Observed conflicts:
   `packages/types/src/providers/deepseek.ts` (58–76), `src/api/providers/deepseek.ts` (31–40),
   `packages/types/src/__tests__/deepseek-v4-pro.test.ts` (44–59),
@@ -399,9 +399,9 @@ cherry-pick these until the named prerequisite is on the target branch.
 
 ## Recommended execution order
 
-1. **SYNC-1 `A-CLEAN` trio** — ✅ synced (◐) on `sync/sync-1-5-quick-wins`: `c6eb8fb57` → `f4287ff4f`,
+1. **SYNC-1 `A-CLEAN` trio** — ✅ synced (☑) on `master` — merged via PR #345 (merge `6c4e9df5c`): `c6eb8fb57` → `f4287ff4f`,
    `e12a42e7a` → `1f38eb5b1`, `a5f4192bf` → `3c44a7d5a`.
-2. **SYNC-5 clean subset** — ✅ synced (◐): `7e85e2793` → `2868dec51`, `db52d7fc7` → `388a75a6d`,
+2. **SYNC-5 clean subset** — ✅ synced (☑) on `master` — merged via PR #345 (merge `6c4e9df5c`): `7e85e2793` → `2868dec51`, `db52d7fc7` → `388a75a6d`,
    `5e8fcc846` → `567b94bd9`. Six further rows proved dependency-blocked and moved to **SYNC-13**.
 3. **SYNC-13** — re-attempt `500152b78` first (its prerequisite `5e8fcc846` is now synced), then the
    opencode-go chain (`a80b3b3ab` → `7bb14e44e` / `cc9c0afe9`), then `1165aebc8` and `745656a50`.
