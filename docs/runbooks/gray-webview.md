@@ -170,19 +170,34 @@ then `--type=extensionHost` (override with `$ROO_EH_PATTERN_FALLBACK`), and only
 - **During** the event (second remote terminal), take the §5.3 instant snapshot:
   `bash scripts/host-health-capture.sh --snapshot --pid "$EHPID"`.
 - Stop only **after** the `is responsive` line, so the whole event window is captured.
-- If the remote server restarts the extension host mid-capture the recorded PID goes stale (the
-  sampler artifact shows a `target_gone`/pidstat error, and `meta.txt` records the PID actually
-  captured, so this is detectable). Re-run the harness — it re-resolves the PID — rather than
-  correlating a stale window.
+- If the remote server restarts the extension host mid-capture, the harness now **detects it
+  itself** instead of leaving a stale window running. An identity-checked watchdog polls the target
+  every 2 s and compares `/proc/<pid>/stat` field 22 (`starttime`, recorded at arm time as
+  `target_starttime=` in `meta.txt`), so both an exited PID and a **recycled** PID (where `kill -0`
+  would still succeed) are caught. On loss it prints `TARGET_GONE ts=… pid=… reason=exit|pid_reused`
+  (plus `TARGET_REPLACED new_pid=…` when a replacement host resolves), appends the same lines to
+  `<stamp>[-label].target-gone.log`, stops every sampler and exits **4** — the window is explicitly
+  **closed**, so nothing can be correlated across the restart by accident. Exit `4` is a normal end
+  of a stale window, not a crash. Re-arming then needs no re-run _because_ of the exit: just start
+  the next labelled capture (`bash scripts/host-health-capture.sh --out-dir /tmp/roo-perf --label
+watch-<next>-s<n>`), which is only necessary when `--follow` was off. With `--follow` the harness
+  re-resolves the host and continues automatically, writing a **fresh** `-t2`/`-t3` artifact set per
+  target (never a second PID inside one `.pidstat`/`.proc-cpu` file) — those sets remain separate
+  windows and must not be correlated across the restart.
 - `--self-test` validates the harness anywhere (no extension host, no `sysstat` needed); `--help`
-  lists every option (`--duration`, `--label`, `--proc`, `--snapshot-every`, …).
+  lists every option (`--duration`, `--label`, `--proc`, `--snapshot-every`, `--follow`, …) and the
+  exit codes (`4` = target disappeared mid-capture).
 
-| Artifact (timestamped, in `--out-dir`)     | Content                                                                                   |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| `<stamp>[-label].meta.txt`                 | target PID + how it was resolved, `CLK_TCK`, host, `nproc`, sampler mode                  |
-| `<stamp>[-label].pidstat` (or `.proc-cpu`) | per-second `%usr`/`%system`/`%CPU`, RSS, `kB_rd/s`/`kB_wr/s`/`iodelay`                    |
-| `<stamp>[-label].psi.log`                  | `/proc/pressure/{cpu,io,memory}` every 5 s — the H3 discriminator                         |
-| `<stamp>[-label].snapshot.log`             | instant snapshot: `top -b -n1`, `loadavg`/`nproc`, `free -m`, `/proc/<pid>/status`, steal |
+| Artifact (timestamped, in `--out-dir`)     | Content                                                                                                              |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `<stamp>[-label].meta.txt`                 | target PID + how it was resolved, arm-time `target_starttime` (PID identity), `CLK_TCK`, host, `nproc`, sampler mode |
+| `<stamp>[-label].pidstat` (or `.proc-cpu`) | per-second `%usr`/`%system`/`%CPU`, RSS, `kB_rd/s`/`kB_wr/s`/`iodelay`                                               |
+| `<stamp>[-label].psi.log`                  | `/proc/pressure/{cpu,io,memory}` every 5 s — the H3 discriminator                                                    |
+| `<stamp>[-label].snapshot.log`             | instant snapshot: `top -b -n1`, `loadavg`/`nproc`, `free -m`, `/proc/<pid>/status`, steal                            |
+| `<stamp>[-label].target-gone.log`          | target-loss annotation (`TARGET_GONE`/`TARGET_REPLACED`) when the host restarted mid-capture                         |
+
+With `--follow`, each re-armed target writes its own `<stamp><label>-tN.*` set: one file never
+holds two PIDs, and the sets must not be correlated across the restart.
 
 ### 5.4 Correlation procedure (one ~60 s window, three sources)
 
