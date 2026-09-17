@@ -411,6 +411,104 @@ Add to the escalation matrix ([runbook §4](../runbooks/gray-webview.md:94)):
 - If §5.2 capture shows `/proc/pressure/cpu some avg10` > 10 % during the event ⇒ environmental (H3), regardless of payload size.
 - If `state_serialize_ms` is small while the host is flagged unresponsive ⇒ the payload path is exonerated and the probe guard, while still worthwhile, is not the fix.
 
+## 11. Watch result — Pass B (2026-09-16)
+
+Post-deploy monitoring pass on the **3.88.3** build (same build as Pass A; capture
+`2026-09-16T10:04:19Z → ≥14:31:20Z`; extension host restarted at ~`14:21:41Z`). **No
+`unresponsive` event occurred**, so there was nothing to classify — but the pass produced two
+repeatable findings. Filled form:
+[`host-health-2026-09-16-passB.md`](../runbooks/perf/host-health-2026-09-16-passB.md).
+
+### Finding 1 — the `taskHistory` residual WARN mis-attributes (G1, repeating)
+
+The observed window carried one `[webview-metrics] WARN "state" payload 634KB > 256KB
+top[taskHistory=560KB customModes=71KB clineMessages=0KB]` (`state_msgs=2 p50=335KB
+p99=634KB max=634KB`). `clineMessages=0KB` confirms the P0 bound is live (no transcript
+re-ship); `customModes=71KB` is the bounded catalog. The dominant field is the **count-bounded
+(cap 100) but byte-unbounded** `taskHistory` projection — the **known residual** (3.88.1: 649 KB;
+Pass A: 562 KB; now 560 KB), **not** a regression of the landed fixes.
+
+It has now occurred three times, so it is a **repeating detection gap**:
+[runbook §2](../runbooks/gray-webview.md:36) classifies "`taskHistory` large again" as "one of
+the bounded projections regressed", which is wrong for this cap-100 / byte-unbounded case.
+
+- **Exact next action:** reconcile §2 (and the §6 "< 200 KB / zero WARN" target) with the known
+  residual — either state that the cap-100 `taskHistory` window rides every push by design, or
+  **byte-bound `taskHistory`** the way `clineMessages` now is.
+- **Owner:** docs (runbook §2/§6 wording); code mode / observability (byte-bound). Do **not**
+  change thresholds in a watch pass.
+
+### Finding 2 — capture goes stale on extension-host restart (G2, repeating — **resolved 2026-09-17**)
+
+The (a)-side harness `pidstat` sampler stopped at `14:21:41Z` when the captured extension host
+(PID `1208955`) exited and a new host (PID `1290741`) was spawned, while the harness's PSI loop
+kept running under the same parent (bounded by `--duration 86400`). This is the **orphan note
+recorded in Pass A**, now instantiated by a real host restart: the new host has **no** per-process
+capture, so only the (b) `[host-health]` half + host PSI cover its window. Because no
+`unresponsive` event fired, nothing was mis-classified — but the next event on this host would land
+with the (a) half missing. The 2026-09-17 replay made it worse: `pidstat` stopped at `22:45Z` while
+`psi.log` grew to 6.9 MB by `11:37Z` (live EH `1485457`), i.e. the window silently degraded to
+PSI-only for ~13 h.
+
+- **Exact next action:** have [`host-health-capture.sh`](../../scripts/host-health-capture.sh:1)
+  detect target-PID exit (or re-resolve it) and annotate/stop its samplers accordingly; operators
+  re-arm with `--label watch-3883-s3`.
+- **Owner:** observability / tooling.
+- **RESOLVED 2026-09-17 (harness only, no extension code).** The harness now runs an
+  identity-checked liveness watchdog (default on): it polls the target every 2 s and compares
+  `/proc/<pid>/stat` field 22 (`starttime`, captured at arm time and recorded as
+  `target_starttime=` in `meta.txt`) against the armed value. Comparing `starttime` is what makes
+  the check sound — existence alone (`kill -0`) survives **PID reuse**, where the kernel hands the
+  number to an unrelated process and `pidstat` would silently measure the wrong one. On exit **or**
+  identity change the window is closed instead of left running: the harness prints
+  `TARGET_GONE ts=… pid=… reason=exit|pid_reused` (plus `TARGET_REPLACED new_pid=…` when a
+  replacement host resolves), appends the same lines to `<stamp>[-label].target-gone.log`, stops
+  every sampler through the existing `cleanup()` path — the orphaned PSI loop is gone, asserted
+  live — prints the artifact list and exits **4** (documented as "target disappeared"). `--follow`
+  (opt-in, default off) re-resolves the host and continues in a **fresh** `-t2`/`-t3` artifact set
+  per target, so two PIDs are never mixed inside one `.pidstat`/`.proc-cpu` file.
+  Verified with `bash scripts/host-health-capture.sh --self-test` → **58 passed, 0 failed** (was
+  `28/28`), including the fixture-backed starttime/reuse unit cases, a live decoy-kill end-to-end
+  assertion (`TARGET_GONE`, samplers stopped, exit `4` within the poll interval, no surviving PSI
+  loop) and the `--follow` artifact-isolation check. Operator docs updated in
+  [runbook §5.3](../runbooks/gray-webview.md:173). Scope: local-only shell tooling — no network
+  calls, no telemetry, no `.changeset`, no version bump, no change to what is recorded (only _when_
+  the harness stops).
+- **Runtime caveat (2026-09-17):** the fix is in the _working tree_; a capture **armed before** it
+  (the live `watch-3883-s4` window, armed `11:38:19Z`) still carries the old behaviour and left a
+  stale window when its target exited at `12:08:51Z`. Only a **re-armed** capture has the watchdog —
+  stop the stale loop and re-arm (see the 2026-09-17 replay below).
+
+### 2026-09-17 — dual-server replay (Pass B follow-up)
+
+Two remote-SSH windows on **different** hosts were driven simultaneously (A `ArchonServer`, 2 vCPU;
+B `204.168.197.3`, 4 vCPU); both extension hosts (re)started `~12:08–12:12Z`. **Neither console
+logged an `unresponsive` line** ⇒ nothing to classify (healthy), but the replay refined both gaps.
+
+- **Payload (bytes only):** A `WARN 699KB … top[taskHistory=625KB customModes=71KB
+clineMessages=0KB]` then `707KB` (after `[createTaskWithHistoryItem] … instantiated`); B `WARN
+1006KB … top[taskHistory=951KB customModes=56KB clineMessages=0KB]`. `clineMessages=0KB` on both
+  ⇒ P0 holds. Dominant = the known `taskHistory` residual, **not** a regression.
+- **G1 escalation:** B's total `1006 KB` is **~18 KB under the 1 MB ERROR threshold** — the
+  long-quiet WARN residual is now a _near-ERROR_ on a history-heavy host. **Byte-binding
+  `taskHistory` (or the §8-row-3 WARN-level fallback) moves from "should" to "next".**
+- **New gap (multi-server):** B emitted **no `[host-health]`** lines (flag not set on B's host), so
+  its window is covered by `[webview-metrics]` only — the (b) half needed to attribute a future B
+  event is missing. **Next action:** enable `ROO_HOST_HEALTH_DEBUG=1` on **every** watched remote
+  host (runbook §5.2), not just A. **Owner:** observability.
+- **G2 at runtime:** the live `s4` window predated the watchdog and went stale at `12:08:51Z`
+  (see the runtime caveat above). **Next action:** stop the stale loop, re-arm with the fixed
+  harness. **Owner:** observability / tooling.
+- **Host pressure (A, `archon-core-01`):** PSI `cpu some avg10` peaks `18.40` (`11:48`), **`23.71`**
+  (`12:00:06`), `15.77` (`12:09:06–16`) — the last coincides with the restart + dual relaunch;
+  `full avg10 = 0` throughout ⇒ partial, **`unresponsive` never fired ⇒ not attributable**.
+  Dual-server simultaneity is the item-5 _topology_ but **H3 requires the host to be flagged** — it
+  was not.
+
+**Verdict line:** `2026-09-17 ~12:09Z dual-server — healthy (no unresponsive either host); WARN =
+known taskHistory residual (A 625KB; B 951KB → 1006KB, ~18KB under ERROR); capture stale on EH
+restart 12:08:51Z (running instance predates the G2 fix).`
+
 ## Privacy note
 
 All figures in this document are byte counts, millisecond/percentage measurements, and static `ExtensionState`/metric field names. No message content, task text, prompts, file paths, task IDs, or provider config values are reproduced. The proposed `[host-health]` telemetry is session-memory only, local output channel only, with no network egress and no Memento persistence — routing it to a remote sink requires a privacy review.

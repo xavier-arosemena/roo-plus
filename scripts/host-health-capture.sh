@@ -40,10 +40,43 @@
 #     analysis. See the runbook "Capture protocol" section for the hygiene note.
 #   - The harness never reads or copies workspace file *contents*.
 #
+# ---------------------------------------------------------------------------
+# TARGET LOSS / WATCHDOG (default on) - this is the gap-G2 fix
+# ---------------------------------------------------------------------------
+#   An armed window is only valid while the *same* process is being measured. An
+#   extension-host restart produces a new host with a new PID, and the kernel may
+#   even recycle the old PID - so `kill -0` alone is unsound: after a restart it
+#   can succeed against an unrelated process and pidstat would silently measure
+#   the wrong one. Both failure modes were hit for real (incident §11 Finding 2:
+#   the Pass B host 1208955 exited at 14:21:41Z, the harness PSI loop kept
+#   running under the same parent and the replacement host 1290741 went
+#   uncaptured; the 2026-09-17 replay left a window PSI-only for ~13 h).
+#
+#   The harness therefore polls the target and compares /proc/<pid>/stat field 22
+#   (`starttime`) with the value captured at arm time and recorded in meta.txt
+#   (`target_starttime=`). starttime is the PID's *identity*: while it is
+#   unchanged, the process is provably still the one that was armed. On exit, or
+#   on any starttime change, the window is CLOSED rather than left running:
+#     - a machine-greppable `TARGET_GONE ts=… pid=… reason=exit|pid_reused`
+#       marker is printed and appended to `<stamp>[-label].target-gone.log`
+#       (plus `TARGET_REPLACED new_pid=…` when a replacement host is resolvable);
+#     - the samplers are torn down through cleanup() (nothing may outlive the
+#       parent - the orphaned PSI loop is the exact bug being fixed) and the
+#       artifact list is printed;
+#     - the harness exits 4 (see "Exit codes" below).
+#   It never silently continues, because correlating across a restart is the
+#   invalid stale-window correlation the runbook forbids.
+#
+#   `--follow` opts into automatic re-arming: the replacement host is captured in
+#   a *fresh* artifact set whose name carries a `-tN` suffix (t2, t3, …). Two
+#   different PIDs are never mixed inside one .pidstat/.proc-cpu file.
+#   Env: ROO_PERF_WATCH_INTERVAL_S overrides the watchdog poll interval (2 s).
+#
 # Usage: bash scripts/host-health-capture.sh --help
 #
 # Exit codes: 0 ok - 1 usage/config error - 2 target not found (capture) -
-#             3 self-test failure - 130 interrupted
+#             3 self-test failure - 4 target disappeared (window closed) -
+#             130 interrupted
 
 # Guard: this script uses bash features (`[[`, arrays, `$(<file)`).
 if [ -z "${BASH_VERSION:-}" ]; then
@@ -66,6 +99,13 @@ DEFAULT_PSI_INTERVAL_S=5
 # pidstat needs a finite sample count; this is ~24 h, effectively unbounded,
 # because cleanup (SIGINT/EXIT trap) terminates it long before then.
 PIDSTAT_UNBOUNDED_COUNT=86400
+# Watchdog poll interval. "Every few seconds" bounds a stale window to a couple
+# of seconds while staying negligible next to the 1 s pidstat sampling.
+# Overridable for tests with ROO_PERF_WATCH_INTERVAL_S.
+DEFAULT_WATCH_INTERVAL_S=2
+# Documented exit code: the armed target disappeared mid-capture (see TARGET
+# LOSS above). Distinct from 2 (never found) and 130 (operator interrupt).
+EXIT_TARGET_GONE=4
 
 # ---------------------------------------------------------------------------
 # CLI state
@@ -82,6 +122,8 @@ QUIET=0
 PSI_INTERVAL_S="$DEFAULT_PSI_INTERVAL_S"
 SNAPSHOT_EVERY_S=0
 PRINT_ARTIFACTS=0
+FOLLOW=0 # opt-in: re-resolve + re-arm on target loss (default off)
+WATCH_INTERVAL_S="${ROO_PERF_WATCH_INTERVAL_S:-$DEFAULT_WATCH_INTERVAL_S}"
 
 # ---------------------------------------------------------------------------
 # Runtime state
@@ -97,6 +139,20 @@ SAMPLER_MODE=""
 PREFIX=""
 TCK=""
 PAGE_SIZE_KB=4
+# Identity of the armed target: starttime ticks captured at arm time (see the
+# TARGET LOSS header section). Empty when /proc/<pid>/stat could not be read.
+ARMED_STARTTIME=""
+# Watchdog outcome: "" = duration timer fired / healthy stop, else exit|pid_reused.
+WATCH_REASON=""
+# Replacement-host lookup results (record-only unless --follow re-arms).
+REPLACEMENT_PID=""
+REPLACEMENT_SOURCE=""
+# Duration timer (kept out of TRACKED_PIDS so a --follow re-arm restarts only the
+# samplers while the overall --duration budget keeps running).
+TIMER_PID=""
+# Run-level artifact base: <stamp><label>, with a -tN suffix per --follow target.
+RUN_STAMP=""
+RUN_LABEL=""
 
 # ---------------------------------------------------------------------------
 # Small helpers
@@ -165,6 +221,61 @@ read_proc_stat_file() {
 			print f[12], f[13], f[22]
 		}
 	' "$1"
+}
+
+# Pure helper: PID start time (field 22, `starttime`, in clock ticks since boot)
+# out of a /proc/<pid>/stat file. Same last-`)` anchoring as read_proc_stat_file,
+# but kept separate because that helper's 3-field output (utime/stime/rss) is part
+# of the already-tested contract. Takes an explicit path so --self-test can point
+# it at a fixture.
+read_proc_starttime_file() {
+	awk '
+		{
+			last = 0
+			for (i = 1; i <= length($0); i++) { if (substr($0, i, 1) == ")") last = i }
+			if (last == 0) { exit 1 }
+			rest = substr($0, last + 2)
+			n = split(rest, f, " ")
+			# starttime is field 22 of the full line -> f[20] of the tail
+			# (field 2 `comm` and field 3 `state` are stripped by the anchor).
+			if (n < 20) { exit 1 }
+			if (f[20] !~ /^[0-9]+$/) { exit 1 }
+			print f[20]
+		}
+	' "$1"
+}
+
+# Current starttime for a PID; prints nothing when the process is gone or
+# /proc/<pid>/stat is unreadable, so callers treat "no output" as gone.
+read_proc_starttime() {
+	local pid="$1"
+	read_proc_starttime_file "/proc/$pid/stat" 2>/dev/null || true
+}
+
+# Pure classifier (reads no /proc, so --self-test can drive it directly, including
+# the fixture-backed PID-reuse case). expected is the starttime captured at arm
+# time; current is "" when the PID has vanished. A *changed* starttime is reported
+# as `pid_reused` - never as alive - because that is exactly the case `kill -0`
+# cannot see, and the case that would attribute an unrelated process's workload to
+# the extension host.
+classify_target_identity() { # expected_starttime current_starttime
+	local expected="$1" current="$2"
+	if [[ -z "$current" ]]; then
+		printf 'exit'
+	elif [[ -n "$expected" && "$current" != "$expected" ]]; then
+		printf 'pid_reused'
+	else
+		printf 'alive'
+	fi
+}
+
+# alive | exit | pid_reused for the armed target. The single /proc/<pid>/stat read
+# covers BOTH required checks: a missing/unreadable file means the PID is gone,
+# and field 22 identifies the process that currently owns the number.
+target_identity() { # pid expected_starttime
+	local pid="$1" expected="$2" current=""
+	current="$(read_proc_starttime "$pid")"
+	classify_target_identity "$expected" "$current"
 }
 
 # ---------------------------------------------------------------------------
@@ -380,33 +491,101 @@ _kill_tree() {
 	kill -TERM "$pid" 2>/dev/null || true
 }
 
+# Kill + reap every tracked sampler PID. Shared by cleanup() (the exit path,
+# including the watchdog path) and by the --follow re-arm, which must close the
+# previous target's artifact set without ending the run.
+stop_tracked_pids() {
+	local pid i
+	((${#TRACKED_PIDS[@]} > 0)) || return 0
+	for pid in "${TRACKED_PIDS[@]}"; do
+		[[ -n "$pid" ]] || continue
+		kill -0 "$pid" 2>/dev/null || continue
+		_kill_tree "$pid"
+	done
+	# Reap, then force-kill anything that ignored SIGTERM. The in-flight
+	# `sleep` inside a sampler subshell is the classic orphan here.
+	for pid in "${TRACKED_PIDS[@]}"; do
+		[[ -n "$pid" ]] || continue
+		i=0
+		while kill -0 "$pid" 2>/dev/null && (( i < 20 )); do
+			sleep 0.1
+			i=$((i + 1))
+		done
+		kill -0 "$pid" 2>/dev/null && kill -KILL "$pid" 2>/dev/null || true
+		wait "$pid" 2>/dev/null || true
+	done
+	TRACKED_PIDS=()
+	return 0
+}
+
+stop_duration_timer() {
+	[[ -n "$TIMER_PID" ]] || return 0
+	kill -TERM "$TIMER_PID" 2>/dev/null || true
+	wait "$TIMER_PID" 2>/dev/null || true
+	TIMER_PID=""
+	return 0
+}
+
+# Per-target teardown for the --follow re-arm: the samplers of the target that
+# just disappeared are fully stopped BEFORE a new target's samplers start, so a
+# .pidstat/.proc-cpu file can never hold two different PIDs.
+stop_samplers() {
+	stop_tracked_pids
+	return 0
+}
+
 cleanup() {
 	(( CLEANED == 1 )) && return 0
 	CLEANED=1
-	local pid i
-	if ((${#TRACKED_PIDS[@]} > 0)); then
-		for pid in "${TRACKED_PIDS[@]}"; do
-			[[ -n "$pid" ]] || continue
-			kill -0 "$pid" 2>/dev/null || continue
-			_kill_tree "$pid"
-		done
-		# Reap, then force-kill anything that ignored SIGTERM. The in-flight
-		# `sleep` inside a sampler subshell is the classic orphan here.
-		for pid in "${TRACKED_PIDS[@]}"; do
-			[[ -n "$pid" ]] || continue
-			i=0
-			while kill -0 "$pid" 2>/dev/null && (( i < 20 )); do
-				sleep 0.1
-				i=$((i + 1))
-			done
-			kill -0 "$pid" 2>/dev/null && kill -KILL "$pid" 2>/dev/null || true
-			wait "$pid" 2>/dev/null || true
-		done
-	fi
+	stop_tracked_pids
+	stop_duration_timer
 	if (( PRINT_ARTIFACTS == 1 )); then
 		print_artifacts
 	fi
 	return 0
+}
+
+# Close the current window with the machine-greppable target-loss annotation. The
+# marker goes to stdout (always - deliberately NOT gated by -q, because it records
+# an abnormal end of the capture window, not chatter) AND into
+# <prefix>.target-gone.log, so the event survives both the terminal and the
+# artifact set. This never re-binds a sampler - the caller decides (see --follow).
+annotate_target_gone() { # reason [replacement_pid]
+	local reason="$1" repl="${2:-}" ts lines=() f="$PREFIX.target-gone.log"
+	ts="$(date -Is)"
+	lines+=("$(printf 'TARGET_GONE ts=%s pid=%s reason=%s' "$ts" "$TARGET_PID" "$reason")")
+	if [[ -n "$repl" ]]; then
+		lines+=("$(printf 'TARGET_REPLACED ts=%s old_pid=%s new_pid=%s' "$ts" "$TARGET_PID" "$repl")")
+	fi
+	lines+=("$(printf 'WINDOW_CLOSED ts=%s note=%s' "$(date -Is)" "identity lost - do not correlate this window with a later host")")
+	printf '%s\n' "${lines[@]}" >>"$f"
+	printf '%s\n' "${lines[@]}"
+	ARTIFACTS+=("$f")
+	return 0
+}
+
+# Poll the armed target until it exits or its PID is reused, or until the
+# --duration timer fires. This runs in the FOREGROUND of the parent shell on
+# purpose: it replaces the bare `wait` that blocked on *all* children while the
+# pidstat sampler had already exited and the PSI loop kept running forever (the
+# orphan in incident §11 Finding 2). When this loop returns, the next thing the
+# parent does is tear every sampler down, so nothing can outlive it.
+# Sets WATCH_REASON to "" (healthy stop, i.e. the duration timer fired) or to the
+# loss reason (`exit` | `pid_reused`).
+watchdog_loop() { # pid expected_starttime [timer_pid] interval_s
+	local pid="$1" expected="$2" timer="${3:-}" interval="$4" reason
+	while :; do
+		reason="$(target_identity "$pid" "$expected")"
+		if [[ "$reason" != "alive" ]]; then
+			WATCH_REASON="$reason"
+			return 0
+		fi
+		if [[ -n "$timer" ]] && ! kill -0 "$timer" 2>/dev/null; then
+			WATCH_REASON=""
+			return 0
+		fi
+		sleep "$interval"
+	done
 }
 
 list_artifacts() {
@@ -469,13 +648,23 @@ detect_capabilities() {
 prepare_out_dir() {
 	mkdir -p "$OUT_DIR" || die "cannot create output dir: $OUT_DIR"
 	[[ -w "$OUT_DIR" ]] || die "output dir is not writable: $OUT_DIR"
-	local stamp label
-	stamp="$(date +%Y%m%d-%H%M%S)"
-	label=""
+	RUN_STAMP="$(date +%Y%m%d-%H%M%S)"
+	RUN_LABEL=""
 	if [[ -n "$LABEL" ]]; then
-		label="-$(printf '%s' "$LABEL" | tr -c 'A-Za-z0-9._-' '-' | sed 's/-\+$//')"
+		RUN_LABEL="-$(printf '%s' "$LABEL" | tr -c 'A-Za-z0-9._-' '-' | sed 's/-\+$//')"
 	fi
-	PREFIX="$OUT_DIR/$stamp$label"
+	set_attempt_prefix 1
+}
+
+# One arm = one artifact set. A --follow re-arm gets a fresh set with a -tN suffix
+# (<stamp><label>-t2.*), so the closed target's .pidstat/.proc-cpu files are never
+# reopened and can never contain a second PID.
+set_attempt_prefix() { # attempt_number
+	local n="$1" suffix=""
+	if (( n > 1 )); then
+		suffix="-t$n"
+	fi
+	PREFIX="$OUT_DIR/$RUN_STAMP$RUN_LABEL$suffix"
 }
 
 resolve_target() {
@@ -491,9 +680,36 @@ resolve_target() {
 	return 1
 }
 
+# Look up a replacement extension host, for the target-loss annotation and for the
+# --follow re-arm. Reports through shell state - never `$( ... )`, whose subshell
+# would discard the assignment (same convention as resolve_eh_pid): sets
+# REPLACEMENT_PID ("" when none is found, or when the lookup still resolves to the
+# target we just lost) plus REPLACEMENT_SOURCE. EH_PID/PID_SOURCE are restored, so
+# an already-written meta.txt keeps describing the real arm.
+resolve_replacement_pid() {
+	local saved_pid="$EH_PID" saved_src="$PID_SOURCE"
+	REPLACEMENT_PID=""
+	REPLACEMENT_SOURCE=""
+	if resolve_eh_pid >/dev/null 2>&1; then
+		if [[ -n "$EH_PID" && "$EH_PID" != "$TARGET_PID" ]]; then
+			REPLACEMENT_PID="$EH_PID"
+			REPLACEMENT_SOURCE="$PID_SOURCE"
+		fi
+	fi
+	EH_PID="$saved_pid"
+	PID_SOURCE="$saved_src"
+	return 0
+}
+
 write_meta() {
-	local meta="$1" cmd
+	local meta="$1" cmd starttime
 	cmd="$(cat "/proc/$TARGET_PID/cmdline" 2>/dev/null | tr '\0' ' ' || true)"
+	# Arm-time identity: /proc/<pid>/stat field 22 (`starttime`). Captured here so
+	# the armed window is self-documenting and so the watchdog has the value it
+	# compares against (see the TARGET LOSS header section). Also side-effects
+	# ARMED_STARTTIME, which is what makes meta.txt and the watchdog agree.
+	starttime="$(read_proc_starttime "$TARGET_PID")"
+	ARMED_STARTTIME="$starttime"
 	{
 		printf 'harness=%s\n' "$SCRIPT_NAME"
 		printf 'harness_version=%s\n' "$SCRIPT_VERSION"
@@ -505,12 +721,15 @@ write_meta() {
 		printf 'target_pid=%s\n' "$TARGET_PID"
 		printf 'target_pid_source=%s\n' "$PID_SOURCE"
 		printf 'target_cmd=%s\n' "$cmd"
+		printf 'target_starttime=%s\n' "${starttime:-unknown}"
 		printf 'clk_tck=%s\n' "$TCK"
 		printf 'page_size_kb=%s\n' "$PAGE_SIZE_KB"
 		printf 'sampler_mode=%s\n' "$SAMPLER_MODE"
 		printf 'pidstat_available=%s\n' "$PIDSTAT_AVAILABLE"
 		printf 'psi_available=%s\n' "$PSI_AVAILABLE"
 		printf 'duration_s=%s\n' "$DURATION_S"
+		printf 'follow=%s\n' "$FOLLOW"
+		printf 'watchdog_interval_s=%s\n' "$WATCH_INTERVAL_S"
 		printf 'no_egress=true\n'
 	} >"$meta"
 	ARTIFACTS+=("$meta")
@@ -567,7 +786,7 @@ snapshot_sampler() {
 }
 
 run_capture() {
-	local meta
+	local meta attempt=1
 	detect_capabilities
 	prepare_out_dir
 
@@ -591,32 +810,76 @@ run_capture() {
 		SAMPLER_MODE="pidstat"
 	fi
 
-	meta="$PREFIX.meta.txt"
-	write_meta "$meta"
-
 	trap 'on_signal INT' INT
 	trap 'on_signal TERM' TERM
 	trap 'cleanup' EXIT
 
 	PRINT_ARTIFACTS=1
-	log "target pid=$TARGET_PID (via $PID_SOURCE); sampler=$SAMPLER_MODE; clk_tck=$TCK"
-	if (( DURATION_S > 0 )); then
-		log "capturing for ${DURATION_S}s (Ctrl-C stops early)"
-	else
-		log "capturing until SIGINT/SIGTERM (Ctrl-C). Reproduce load / reopen a long task now."
-	fi
-	log "when the UI freezes, run: bash scripts/host-health-capture.sh --snapshot --pid $TARGET_PID --out-dir $OUT_DIR"
 
-	start_samplers
-
+	# --duration bounds the whole run, not each target, so a --follow re-arm cannot
+	# silently extend the watch window. The timer is kept out of TRACKED_PIDS so
+	# stop_samplers() - which runs on every target loss - leaves it alone.
 	if (( DURATION_S > 0 )); then
 		sleep "$DURATION_S" &
-		local timer="$!"
-		wait "$timer" 2>/dev/null || true
-		log "duration reached - stopping samplers"
-	else
-		wait || true
+		TIMER_PID="$!"
 	fi
+
+	while :; do
+		# One target per iteration: its own meta.txt (own target_pid + arm-time
+		# starttime) and its own samplers. write_meta sets ARMED_STARTTIME for us.
+		set_attempt_prefix "$attempt"
+		meta="$PREFIX.meta.txt"
+		write_meta "$meta"
+
+		log "target pid=$TARGET_PID (via $PID_SOURCE); sampler=$SAMPLER_MODE; clk_tck=$TCK; target #$attempt"
+		if [[ -n "$ARMED_STARTTIME" ]]; then
+			log "identity armed on starttime=$ARMED_STARTTIME (/proc/$TARGET_PID/stat field 22); a change means this PID was reused"
+		else
+			log "warning: cannot read /proc/$TARGET_PID/stat starttime - PID reuse cannot be detected for this window"
+		fi
+		log "watchdog: identity-checked liveness every ${WATCH_INTERVAL_S}s; on loss: annotate + stop + exit $EXIT_TARGET_GONE"
+		if (( attempt == 1 )); then
+			if (( DURATION_S > 0 )); then
+				log "capturing for ${DURATION_S}s (Ctrl-C stops early)"
+			else
+				log "capturing until SIGINT/SIGTERM (Ctrl-C). Reproduce load / reopen a long task now."
+			fi
+			log "when the UI freezes, run: bash scripts/host-health-capture.sh --snapshot --pid $TARGET_PID --out-dir $OUT_DIR"
+		fi
+
+		start_samplers
+
+		WATCH_REASON=""
+		watchdog_loop "$TARGET_PID" "$ARMED_STARTTIME" "$TIMER_PID" "$WATCH_INTERVAL_S"
+
+		if [[ -z "$WATCH_REASON" ]]; then
+			log "duration reached - stopping samplers"
+			cleanup
+			return 0
+		fi
+
+		# The armed target is gone (exit) or the PID now belongs to another process
+		# (pid_reused): close the window, never keep sampling through it. Resolve a
+		# replacement first so the annotation can record it.
+		resolve_replacement_pid
+		annotate_target_gone "$WATCH_REASON" "$REPLACEMENT_PID"
+		stop_samplers
+
+		if (( FOLLOW == 1 )) && [[ -n "$REPLACEMENT_PID" ]]; then
+			TARGET_PID="$REPLACEMENT_PID"
+			PID_SOURCE="$REPLACEMENT_SOURCE"
+			attempt=$((attempt + 1))
+			log "follow: re-armed against replacement pid $TARGET_PID as target #$attempt (artifact set ${RUN_STAMP}${RUN_LABEL}-t$attempt.*)"
+			continue
+		fi
+
+		if (( FOLLOW == 1 )); then
+			printf '%s\n' "note: --follow is set, but no replacement extension host could be resolved; stopping." >&2
+		fi
+		log "stopping samplers - the recorded window is CLOSED (reason=$WATCH_REASON)"
+		cleanup
+		exit "$EXIT_TARGET_GONE"
+	done
 }
 
 run_snapshot() {
@@ -643,7 +906,7 @@ run_snapshot() {
 # --dry-run: validate configuration and print the plan, run nothing
 # ---------------------------------------------------------------------------
 dry_run() {
-	local resolved status
+	local resolved status identity
 	detect_capabilities
 	if [[ -n "$TARGET_PID" ]]; then
 		resolved="$TARGET_PID"
@@ -655,10 +918,16 @@ dry_run() {
 		resolved="<none>"
 		status="(NOT FOUND - pass --pid <PID>)"
 	fi
+	identity="(no target)"
+	if [[ "$resolved" =~ ^[0-9]+$ ]]; then
+		identity="$(read_proc_starttime "$resolved")"
+		[[ -n "$identity" ]] || identity="unavailable (starttime read failed)"
+	fi
 	printf 'dry-run: no samplers started, no artifacts written\n'
 	printf '  out_dir        : %s\n' "$OUT_DIR"
 	printf '  eh_pattern     : %s\n' "$EH_PATTERN"
 	printf '  target_pid     : %s %s\n' "$resolved" "$status"
+	printf '  target_identity: starttime=%s\n' "$identity"
 	printf '  sampler_mode   : %s\n' "$( ((FORCE_PROC == 1 || PIDSTAT_AVAILABLE == 0)) && printf proc || printf pidstat )"
 	printf '  clk_tck        : %s\n' "$TCK"
 	printf '  page_size_kb   : %s\n' "$PAGE_SIZE_KB"
@@ -667,6 +936,8 @@ dry_run() {
 	printf '  snapshot_every : %s s\n' "$SNAPSHOT_EVERY_S"
 	printf '  duration_s     : %s (0 = until Ctrl-C)\n' "$DURATION_S"
 	printf '  mode           : %s\n' "$MODE"
+	printf '  watchdog       : identity-checked (starttime) every %ss; loss => TARGET_GONE + stop + exit %s\n' "$WATCH_INTERVAL_S" "$EXIT_TARGET_GONE"
+	printf '  follow         : %s\n' "$( ((FOLLOW == 1)) && printf '1 (auto re-resolve, fresh -tN artifact set per target)' || printf '0 (stop on target loss)')"
 	printf '  no_egress      : true (no network calls are made)\n'
 	return 0
 }
@@ -695,8 +966,26 @@ ss_assert_eq() { # label expected actual
 	fi
 }
 
+# Print the first existing path among the (glob-expanded) candidates; prints
+# nothing and still succeeds when none exist, so callers can safely use it inside
+# `$( ... )` under errexit.
+ss_first_match() {
+	local f
+	for f in "$@"; do
+		if [[ -e "$f" ]]; then
+			printf '%s' "$f"
+			return 0
+		fi
+	done
+	return 0
+}
+
 self_test() {
 	local script_path="${BASH_SOURCE[0]}" tmp decoy decoy_pid decoy_fallback chain_pid chain_src saved_primary out rc got
+	local e2e_dir e2e_decoy child child_rc waited ann psi_file psi_before psi_after
+	local follow_dir follow_marker fa fb follow_child meta_t1 meta_t2 t1_base t2_base t1_pid t2_pid
+	local sampler_t1 sampler_t2 s1 s2 g1 g2 help_out dry_out dry_follow absent
+	local started_ms end_ms elapsed_ms
 	detect_capabilities
 	printf '%s\n' "self-test: $SCRIPT_NAME $SCRIPT_VERSION"
 	printf 'self-test: host=%s clk_tck_resolved=%s\n' "$(uname -s -r 2>/dev/null || printf unknown)" "$(resolve_clk_tck)"
@@ -762,6 +1051,46 @@ self_test() {
 		ss_fail "read_proc_stat_file accepted a missing file"
 	else
 		ss_ok "read_proc_stat_file rejects a missing file"
+	fi
+	# 4b. Target identity: starttime is field 22 -> the previously-built fixtures
+	#     carry known values ($tmp/stat: 100, $tmp/stat2: 0), which pins the field
+	#     offset. A changed starttime MUST classify as pid_reused, never as alive:
+	#     that is the whole reason existence (`kill -0`) is not enough.
+	ss_assert_eq "read_proc_starttime_file parses starttime=100 from the paren fixture (field 22)" "100" "$(read_proc_starttime_file "$tmp/stat")"
+	ss_assert_eq "read_proc_starttime_file parses starttime=0 from the minimal fixture" "0" "$(read_proc_starttime_file "$tmp/stat2")"
+	if read_proc_starttime_file "$tmp/badstat" >/dev/null 2>&1; then
+		ss_fail "read_proc_starttime_file accepted a malformed /proc stat line"
+	else
+		ss_ok "read_proc_starttime_file rejects a malformed /proc stat line"
+	fi
+	if read_proc_starttime_file "$tmp/does-not-exist" >/dev/null 2>&1; then
+		ss_fail "read_proc_starttime_file accepted a missing file"
+	else
+		ss_ok "read_proc_starttime_file rejects a missing file"
+	fi
+	printf '%s\n' "1 (sh) S 1 1 1 0 -1 0" >"$tmp/shortstat"
+	if read_proc_starttime_file "$tmp/shortstat" >/dev/null 2>&1; then
+		ss_fail "read_proc_starttime_file accepted a truncated stat line (no field 22)"
+	else
+		ss_ok "read_proc_starttime_file rejects a truncated stat line (no field 22)"
+	fi
+	ss_assert_eq "identity: unchanged starttime is alive" "alive" "$(classify_target_identity 100 100)"
+	ss_assert_eq "identity: CHANGED starttime is pid_reused (not alive, unlike kill -0)" "pid_reused" "$(classify_target_identity 100 101)"
+	ss_assert_eq "identity: emptied starttime (PID gone) is exit" "exit" "$(classify_target_identity 100 "")"
+	# The same decision, end to end through the /proc-reading wrapper: this shell is
+	# alive with its own starttime, and this shell + 1 tick is a reuse.
+	got="$(read_proc_starttime "$$")"
+	if [[ -n "$got" && "$(target_identity "$$" "$got")" == "alive" ]]; then
+		ss_ok "target_identity reports this live shell as alive for its own starttime ($got)"
+	else
+		ss_fail "target_identity did not report this live shell as alive (starttime read '$got')"
+	fi
+	ss_assert_eq "target_identity reports a live PID with a stale starttime as pid_reused" "pid_reused" "$(target_identity "$$" "$((got + 1))")"
+	absent="$(cat /proc/sys/kernel/pid_max 2>/dev/null || printf '')"
+	if [[ "$absent" =~ ^[0-9]+$ ]]; then
+		ss_assert_eq "target_identity reports an absent PID as exit" "exit" "$(target_identity "$((absent + 1))" "12345")"
+	else
+		ss_fail "could not read /proc/sys/kernel/pid_max for the absent-PID assertion"
 	fi
 	ss_assert_eq "cpu_pct honours clk_tck=100" "300.0" "$(cpu_pct 300 0 0 0 1000 100)"
 	ss_assert_eq "cpu_pct honours clk_tck=1000" "30.0" "$(cpu_pct 300 0 0 0 1000 1000)"
@@ -888,6 +1217,230 @@ self_test() {
 	# 12. Syntax check of the /proc fallback arithmetic with page size applied.
 	ss_assert_eq "page_size_kb default sanity" "ok" "$(if ((PAGE_SIZE_KB > 0)); then printf ok; else printf bad; fi)"
 
+	# 13. LIVE end-to-end watchdog: arm the harness against a decoy, kill the decoy,
+	#     and assert it annotates (TARGET_GONE ... reason=exit), stops every sampler
+	#     and exits 4 within the poll interval. Bounded and non-racy: it first waits
+	#     for meta.txt (proof the harness armed while the target was alive), then
+	#     polls for the child's exit with a generous cap instead of assuming a
+	#     fixed wall-clock delay.
+	e2e_dir="$tmp/e2e"
+	mkdir -p "$e2e_dir"
+	bash -c 'exec -a "node extensionHostProcess.js" sleep 30' &
+	e2e_decoy=$!
+	sleep 0.2
+	ROO_PERF_WATCH_INTERVAL_S=1 bash "$script_path" --pid "$e2e_decoy" \
+		--out-dir "$e2e_dir" --label e2e --psi-interval 1 >"$e2e_dir/stdout.log" 2>&1 &
+	child=$!
+	meta_t1=""
+	waited=0
+	while (( waited < 80 )) && [[ -z "$meta_t1" ]]; do
+		meta_t1="$(ss_first_match "$e2e_dir"/*.meta.txt)"
+		if [[ -z "$meta_t1" ]]; then
+			sleep 0.1
+			waited=$((waited + 1))
+		fi
+	done
+	if [[ -n "$meta_t1" ]]; then
+		ss_ok "live watchdog: harness armed against the decoy (${meta_t1##*/})"
+	else
+		ss_fail "live watchdog: harness never wrote meta.txt (never armed)"
+	fi
+	if [[ -n "$meta_t1" ]] && grep -q '^target_starttime=[0-9]' "$meta_t1"; then
+		ss_ok "live watchdog: meta.txt records the arm-time identity ($(sed -n 's/^target_starttime=//p' "$meta_t1"))"
+	else
+		ss_fail "live watchdog: meta.txt does not record target_starttime"
+	fi
+	# Kill the target and reap it, then wait (bounded) for the watchdog to react.
+	kill -TERM "$e2e_decoy" 2>/dev/null || true
+	wait "$e2e_decoy" 2>/dev/null || true
+	started_ms="$(date +%s%3N)"
+	waited=0
+	while (( waited < 80 )) && kill -0 "$child" 2>/dev/null; do
+		sleep 0.1
+		waited=$((waited + 1))
+	done
+	end_ms="$(date +%s%3N)"
+	elapsed_ms=$((end_ms - started_ms))
+	if kill -0 "$child" 2>/dev/null; then
+		ss_fail "live watchdog: harness still running ${elapsed_ms}ms after the target died (orphan)"
+		kill -KILL "$child" 2>/dev/null || true
+		wait "$child" 2>/dev/null || true
+		child_rc=""
+	else
+		child_rc=0
+		wait "$child" 2>/dev/null || child_rc=$?
+	fi
+	ss_assert_eq "live watchdog: exits 4 when the armed target disappears" "4" "$child_rc"
+	if (( elapsed_ms <= 15000 )); then
+		ss_ok "live watchdog: noticed the loss and stopped within the bound (${elapsed_ms}ms <= 15000ms cap)"
+	else
+		ss_fail "live watchdog: took ${elapsed_ms}ms to stop (> 15000ms cap)"
+	fi
+	e2e_base="${meta_t1%.meta.txt}"
+	ann="$(ss_first_match "$e2e_base.target-gone.log")"
+	if [[ -n "$ann" ]] && grep -q 'TARGET_GONE' "$ann"; then
+		ss_ok "live watchdog: wrote the greppable marker to an artifact (${ann##*/})"
+	else
+		ss_fail "live watchdog: no TARGET_GONE marker in a target-gone artifact"
+	fi
+	if [[ -n "$ann" ]] && grep -q 'reason=exit' "$ann"; then
+		ss_ok "live watchdog: marker records reason=exit for a killed target"
+	else
+		ss_fail "live watchdog: marker did not record reason=exit"
+	fi
+	if grep -q 'TARGET_GONE' "$e2e_dir/stdout.log" 2>/dev/null; then
+		ss_ok "live watchdog: TARGET_GONE is also printed on stdout (greppable in the terminal)"
+	else
+		ss_fail "live watchdog: TARGET_GONE was not printed on stdout"
+	fi
+	# The exact orphan of incident §11 Finding 2: the PSI loop must be dead. With
+	# --psi-interval 1 a surviving loop would grow the file within ~1 s.
+	psi_file="$(ss_first_match "$e2e_base.psi.log")"
+	if [[ -n "$psi_file" ]]; then
+		psi_before="$(<"$psi_file")"
+		sleep 1.3
+		psi_after="$(<"$psi_file")"
+		if [[ "$psi_before" == "$psi_after" ]]; then
+			ss_ok "live watchdog: no orphaned sampler (psi.log stopped growing after exit)"
+		else
+			ss_fail "live watchdog: psi.log kept growing after the harness exited (orphan not fixed)"
+		fi
+	else
+		ss_ok "live watchdog: /proc/pressure unavailable - orphan PSI check skipped"
+	fi
+
+	# 14. LIVE --follow: on target loss the replacement host must be captured in a
+	#     SECOND, separately named artifact set (-t2), and the closed target's files
+	#     must receive nothing further - one file never holds two PIDs. A unique
+	#     --pattern keeps the re-resolve deterministic.
+	follow_dir="$tmp/follow"
+	mkdir -p "$follow_dir"
+	follow_marker="roo-selftest-eh-$$"
+	bash -c "exec -a \"node extensionHostProcess.js $follow_marker\" sleep 30" &
+	fa=$!
+	bash -c "exec -a \"node extensionHostProcess.js $follow_marker\" sleep 30" &
+	fb=$!
+	sleep 0.2
+	ROO_PERF_WATCH_INTERVAL_S=1 bash "$script_path" --pid "$fa" --follow \
+		--pattern "$follow_marker" --out-dir "$follow_dir" --label follow --psi-interval 1 \
+		>"$follow_dir/stdout.log" 2>&1 &
+	follow_child=$!
+	meta_t1=""
+	waited=0
+	while (( waited < 80 )) && [[ -z "$meta_t1" ]]; do
+		meta_t1="$(ss_first_match "$follow_dir"/*.meta.txt)"
+		if [[ -z "$meta_t1" ]]; then
+			sleep 0.1
+			waited=$((waited + 1))
+		fi
+	done
+	if [[ -n "$meta_t1" ]]; then
+		ss_ok "--follow: first target armed (${meta_t1##*/})"
+	else
+		ss_fail "--follow: first target never armed"
+	fi
+	# Kill target 1 and reap it immediately, so the re-resolve cannot see a zombie.
+	kill -TERM "$fa" 2>/dev/null || true
+	wait "$fa" 2>/dev/null || true
+	meta_t2=""
+	waited=0
+	while (( waited < 120 )) && [[ -z "$meta_t2" ]]; do
+		meta_t2="$(ss_first_match "$follow_dir"/*-t2.meta.txt)"
+		if [[ -z "$meta_t2" ]]; then
+			sleep 0.1
+			waited=$((waited + 1))
+		fi
+	done
+	if [[ -n "$meta_t2" ]]; then
+		ss_ok "--follow: replacement captured in a second, separately named artifact set (${meta_t2##*/})"
+	else
+		ss_fail "--follow: no -t2 artifact set was created for the replacement target"
+	fi
+	t1_pid=""
+	t2_pid=""
+	if [[ -n "$meta_t1" ]]; then
+		t1_pid="$(sed -n 's/^target_pid=//p' "$meta_t1")"
+	fi
+	if [[ -n "$meta_t2" ]]; then
+		t2_pid="$(sed -n 's/^target_pid=//p' "$meta_t2")"
+	fi
+	ss_assert_eq "--follow: set 1 records the killed target" "$fa" "$t1_pid"
+	ss_assert_eq "--follow: set 2 records the replacement target" "$fb" "$t2_pid"
+	ss_assert_eq "--follow: the two sets cover two different PIDs" "different" \
+		"$(if [[ -n "$t1_pid" && "$t1_pid" != "$t2_pid" ]]; then printf different; else printf same; fi)"
+	# The closed target's sampler artifact must be frozen while the replacement's
+	# own artifact keeps growing: that is the no-mixed-PID contract, asserted on the
+	# files themselves rather than on log wording.
+	t1_base="${meta_t1%.meta.txt}"
+	t2_base="${meta_t2%.meta.txt}"
+	sampler_t1="$(ss_first_match "$t1_base.pidstat" "$t1_base.proc-cpu")"
+	sampler_t2="$(ss_first_match "$t2_base.pidstat" "$t2_base.proc-cpu")"
+	if [[ -n "$sampler_t1" ]]; then
+		s1="$(<"$sampler_t1")"
+		sleep 1.2
+		s2="$(<"$sampler_t1")"
+		if [[ "$s1" == "$s2" ]]; then
+			ss_ok "--follow: closed target's sampler artifact receives no new samples (${sampler_t1##*/})"
+		else
+			ss_fail "--follow: closed target's sampler artifact kept growing (two PIDs in one file)"
+		fi
+	else
+		ss_fail "--follow: no sampler artifact for the first target"
+	fi
+	if [[ -n "$sampler_t2" ]]; then
+		g1="$(<"$sampler_t2")"
+		sleep 1.5
+		g2="$(<"$sampler_t2")"
+		if [[ "$g1" != "$g2" ]]; then
+			ss_ok "--follow: replacement target's sampler artifact is growing (${sampler_t2##*/})"
+		else
+			ss_fail "--follow: replacement target's sampler artifact did not grow"
+		fi
+	else
+		ss_fail "--follow: no sampler artifact for the replacement target"
+	fi
+	kill -TERM "$fb" 2>/dev/null || true
+	kill -TERM "$follow_child" 2>/dev/null || true
+	waited=0
+	while (( waited < 80 )) && kill -0 "$follow_child" 2>/dev/null; do
+		sleep 0.1
+		waited=$((waited + 1))
+	done
+	if kill -0 "$follow_child" 2>/dev/null; then
+		kill -KILL "$follow_child" 2>/dev/null || true
+	fi
+	wait "$follow_child" 2>/dev/null || true
+	wait "$fb" 2>/dev/null || true
+
+	# 15. CLI/documentation surface: --follow, the documented exit code, and the
+	#     unchanged --dry-run plan (which starts no samplers).
+	help_out="$tmp/help.txt"
+	bash "$script_path" --help >"$help_out" 2>&1 || true
+	if grep -q -- '--follow' "$help_out"; then
+		ss_ok "--help documents --follow"
+	else
+		ss_fail "--help does not document --follow"
+	fi
+	if grep -q 'target disappeared' "$help_out"; then
+		ss_ok "--help documents exit code 4 (target disappeared)"
+	else
+		ss_fail "--help does not document exit code 4"
+	fi
+	dry_out="$tmp/dry.txt"
+	bash "$script_path" --dry-run >"$dry_out" 2>&1 || true
+	if grep -q 'dry-run: no samplers started' "$dry_out" && grep -q 'watchdog' "$dry_out"; then
+		ss_ok "--dry-run still prints the plan (now including the watchdog line)"
+	else
+		ss_fail "--dry-run output is missing the plan or the watchdog line"
+	fi
+	dry_follow="$tmp/dry-follow.txt"
+	bash "$script_path" --dry-run --follow >"$dry_follow" 2>&1 || true
+	if grep -q 'follow *: 1' "$dry_follow"; then
+		ss_ok "--dry-run reports --follow as enabled"
+	else
+		ss_fail "--dry-run did not report --follow"
+	fi
+
 	kill -TERM "$decoy" 2>/dev/null || true
 	kill -TERM "$decoy_fallback" 2>/dev/null || true
 	wait "$decoy" 2>/dev/null || true
@@ -921,7 +1474,8 @@ MODES
   (default)            Resolve the extension-host PID and run the background
                        samplers until Ctrl-C (or --duration). Run it in a
                        background terminal on the REMOTE host for the whole
-                       session - no reproduction needed.
+                       session - no reproduction needed. An identity-checked
+                       watchdog (below) ends the run if the host restarts.
   --snapshot           §5.3 instant snapshot, written once, then exit. This is
                        the command to run the moment the UI freezes or the
                        `INFO ... unresponsive` line appears.
@@ -946,6 +1500,14 @@ OPTIONS
                        $ROO_PERF_OUT_DIR). Timestamped files are written here.
   --label <TEXT>       Tag artifact filenames, e.g. --label before-fix.
   --duration <SEC>     Stop after SEC seconds (0 = until Ctrl-C; default 0).
+                       The budget covers the whole run, not each target.
+  --follow             On target loss, re-resolve the extension host and keep
+                       capturing it in a FRESH artifact set named with a -tN
+                       suffix (<stamp><label>-t2.pidstat, ...). Default OFF: a
+                       silent re-bind is itself a correlation hazard, because a
+                       window that spans a restart must never be correlated
+                       across one. Two different PIDs are never mixed in one
+                       .pidstat/.proc-cpu file.
   --psi-interval <SEC> PSI sampling interval (default 5).
   --snapshot-every <SEC>
                        Also append an instant snapshot every SEC seconds
@@ -966,13 +1528,34 @@ SAMPLERS (§5.2)
             (the single best H3 environmental discriminator, §6.4)
 
 ARTIFACTS (all local, all timestamped, all under --out-dir)
-  <stamp>[-label].meta.txt          target PID, resolution method, CLK_TCK, host
+  <stamp>[-label].meta.txt          target PID, how it was resolved, arm-time
+                                    target_starttime (PID identity), CLK_TCK, host
   <stamp>[-label].pidstat           pidstat output   (or ...proc-cpu when falling back)
   <stamp>[-label].proc-cpu          /proc delta output
   <stamp>[-label].psi.log           /proc/pressure samples
   <stamp>[-label].snapshots.log     periodic snapshots (only with --snapshot-every)
   <stamp>[-label].snapshot.log      one-shot --snapshot output
+  <stamp>[-label].target-gone.log   target-loss annotation (only when the target
+                                    exits / its PID is reused mid-capture)
+With --follow each re-armed target gets its own set: <stamp><label>-tN.*
 The harness prints the exact list on exit under "ARTIFACTS".
+
+TARGET LOSS (watchdog, default on)
+  The samplers are only meaningful while they measure the SAME process. The
+  harness polls the target and compares /proc/<pid>/stat field 22 (`starttime`)
+  with the value recorded at arm time in meta.txt (`target_starttime=`), because
+  existence alone is unsound: after a restart the kernel can hand the old PID to
+  an unrelated process and `kill -0` would still succeed. starttime is the PID's
+  identity, so an unchanged value proves the process is the one that was armed.
+
+  On exit or PID reuse the window is CLOSED rather than left running:
+    TARGET_GONE ts=... pid=... reason=exit|pid_reused
+    TARGET_REPLACED ts=... old_pid=... new_pid=...      (when resolvable)
+  These lines are printed and appended to <stamp>[-label].target-gone.log, the
+  samplers are stopped, the artifact list is printed, and the harness exits 4.
+  Nothing is left running (the orphaned PSI loop of incident §11 Finding 2 is
+  exactly the bug this fixes), and the stale window is never silently extended.
+  Poll interval: ROO_PERF_WATCH_INTERVAL_S (default 2 s).
 
 AVAILABILITY SPLIT (important)
   (a) The host-side capture above needs NO extension code and works today on an
@@ -990,12 +1573,25 @@ PRIVACY / SAFETY
   machine and delete them after analysis. No workspace file contents are read
   into artifacts.
 
+EXIT CODES
+  0    normal stop (Ctrl-C after the `is responsive` line, or --duration reached)
+  1    usage / configuration error
+  2    target not found (nothing matched --pattern, or --pid is not running)
+  3    --self-test failure
+  4    target disappeared mid-capture (window closed; see TARGET LOSS above)
+  130  interrupted by SIGINT/SIGTERM (traps; samplers stopped, artifacts flushed)
+
 EXAMPLES
   # Always-on capture for the session (remote host, background terminal):
   bash scripts/host-health-capture.sh --out-dir /tmp/roo-perf
 
   # A bounded 60 s baseline:
   bash scripts/host-health-capture.sh --duration 60 --label baseline
+
+  # Keep watching across an extension-host restart (new -t2/-t3 artifact sets;
+  # only where a window spanning a restart is explicitly NOT going to be
+  # correlated across it):
+  bash scripts/host-health-capture.sh --follow --label watch-3883-s3
 
   # Instant snapshot the moment the freeze/unresponsive line appears:
   bash scripts/host-health-capture.sh --snapshot --pid "$EHPID"
@@ -1031,6 +1627,7 @@ parse_args() {
 			--snapshot) MODE="snapshot" ;;
 			--self-test) MODE="self-test" ;;
 			--dry-run) DRY_RUN=1 ;;
+			--follow) FOLLOW=1 ;;
 			--proc) FORCE_PROC=1 ;;
 			-q | --quiet) QUIET=1 ;;
 			-V | --version) printf '%s %s\n' "$SCRIPT_NAME" "$SCRIPT_VERSION"; exit 0 ;;
@@ -1052,6 +1649,9 @@ parse_args() {
 	fi
 	if ! [[ "$SNAPSHOT_EVERY_S" =~ ^[0-9]+$ ]]; then
 		die "--snapshot-every must be a non-negative integer (got: $SNAPSHOT_EVERY_S)"
+	fi
+	if ! [[ "$WATCH_INTERVAL_S" =~ ^[0-9]+$ ]] || (( WATCH_INTERVAL_S < 1 )); then
+		die "ROO_PERF_WATCH_INTERVAL_S must be a positive integer (got: $WATCH_INTERVAL_S)"
 	fi
 }
 
