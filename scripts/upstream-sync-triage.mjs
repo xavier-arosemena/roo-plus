@@ -11,17 +11,22 @@
  * Two modes:
  *
  *   --verify   (default) Assert the register's integrity against the repo.
- *              Reports six independent checks:
- *                1. row-sha-format   every row SHA is the canonical 9-char prefix
- *                2. row-sha-resolves every row SHA resolves in the repo
- *                3. coverage         every commit in merge-base..upstream/main
- *                                    has exactly one row, and no row points
- *                                    outside that range
- *                4. duplicates       no row SHA appears twice
- *                5. synced-fork-sha  every `☑` row carries a fork SHA reachable
- *                                    from master (runbook R9)
- *                6. header-counts    the header's pending count / baseline tip
- *                                    / merge base match reality
+ *              Reports seven independent checks:
+ *                1. row-sha-format     every row SHA is the canonical 9-char prefix
+ *                2. row-sha-resolves   every row SHA resolves in the repo
+ *                3. coverage           every commit in merge-base..upstream/main
+ *                                      has exactly one row, and no row points
+ *                                      outside that range
+ *                4. duplicates         no row SHA appears twice
+ *                5. synced-fork-sha    every `☑` row carries a fork SHA reachable
+ *                                      from the fork ref (runbook R9)
+ *                6. stale-in-progress  every `◐` row that records a fork SHA is
+ *                                      NOT already reachable from the fork ref;
+ *                                      a landed `◐` row is stale and must be
+ *                                      flipped to `☑`. WARNING by default;
+ *                                      `--strict` promotes it to a failure.
+ *                7. header-counts      the header's pending count / baseline tip
+ *                                      / merge base match reality
  *              Also prints a per-batch progress roll-up (resolved vs pending).
  *
  *   --refresh  Fetch/deepen upstream, diff `upstream/main` against the baseline
@@ -44,19 +49,28 @@
  *   - All git access goes through `execFileSync` with argument arrays. The host
  *     default shell is dash and does not support process substitution (`<(…)`),
  *     so shell strings are never used.
+ *   - The fork ref is resolved once per run and shared by BOTH the `☑` and `◐`
+ *     reachability checks so they can never diverge: `--fork-ref <ref>` wins,
+ *     else `origin/master` when it resolves and local `master` is an ancestor of
+ *     it (a stale local ref), else `master`.
+ *   - `stale-in-progress` is a WARNING by default (exit 0): a stale `◐` is an
+ *     operator-hygiene problem, not a structural defect, and failing mainline
+ *     until a human flips the rows would be worse. `--strict` promotes it.
  *   - Upstream unreachable (no local ref + fetch failed) SKIPS with exit 0 so an
  *     infra/network problem never blocks CI; `--strict` turns that into exit 1.
  *
  * Usage (repo root):
- *   node scripts/upstream-sync-triage.mjs [--verify] [--json] [--strict]
+ *   node scripts/upstream-sync-triage.mjs [--verify] [--json] [--strict] [--fork-ref <ref>]
  *   node scripts/upstream-sync-triage.mjs --refresh          # dry run
  *   node scripts/upstream-sync-triage.mjs --refresh --write  # update register
  *   node scripts/upstream-sync-triage.mjs --help
  *
  * Exit codes:
  *   0  register verified, or refreshed, or (default) skipped — upstream unavailable
+ *      (a stale `◐` row is a warning, so it also exits 0 by default)
  *   1  a register check failed, or the merge base is unusable (shallow clone)
- *      and --strict was given, or upstream was unavailable and --strict was given
+ *      and --strict was given, or upstream was unavailable and --strict was given,
+ *      or stale `◐` rows were found and --strict was given
  *
  * Env:
  *   UPSTREAM_URL  git URL for upstream (default https://github.com/Zoo-Code-Org/Zoo-Code.git)
@@ -83,7 +97,14 @@ export const REGISTER_PATH = "docs/upstream-sync/pending-upstream-commits.md"
 export const README_PATH = "docs/upstream-sync/README.md"
 /** Upstream ref compared against; `master` is the fork ref. */
 export const UPSTREAM_REF = "upstream/main"
+/**
+ * Default fork ref for the reachability checks. Resolution is delegated to
+ * `chooseForkRef()`: local `master` is frequently stale relative to
+ * `origin/master`, and a bare `master` then misses a genuinely-landed fork SHA.
+ */
 export const FORK_REF = "master"
+/** Remote-tracking fork ref preferred when local `master` is an ancestor of it. */
+export const ORIGIN_FORK_REF = "origin/master"
 /** The command a shallow-clone user must run before triage is meaningful. */
 export const DEPTHEN_COMMAND = "git fetch --deepen=400 upstream main"
 /** Upstream remote, added on demand on CI checkouts that only have origin. */
@@ -107,6 +128,12 @@ export const ROW_SHA_RE = /^\|\s*`([0-9a-fA-F]{4,40})`\s*\|/
 
 /** Transient / resolved markers used in the register's Status column. */
 export const SYNCED_MARKER = "☑"
+/**
+ * In-progress marker. A `◐` row records the fork SHA of an in-flight pick in the
+ * same Status cell (e.g. `| … | ◐ f4287ff4f |`); once that SHA is reachable from
+ * the fork ref the row is stale and must be flipped to `☑`.
+ */
+export const IN_PROGRESS_MARKER = "◐"
 
 /**
  * The most-diverged paths between the fork and upstream, used for the
@@ -238,14 +265,24 @@ export function splitRowCells(line) {
 }
 
 /**
+ * Extracts the fork SHA recorded next to an arbitrary status `marker`. Accepts
+ * both `` <marker> `abc1234` `` and `<marker> abc1234`. Returns null when absent.
+ * Pure — exported for the spec.
+ */
+export function extractMarkerSha(statusCell, marker) {
+	if (typeof statusCell !== "string") return null
+	const escaped = marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+	const match = new RegExp(escaped + "\\s*`?([0-9a-fA-F]{4,40})`?").exec(statusCell)
+	return match ? match[1] : null
+}
+
+/**
  * Extracts the fork SHA recorded next to a `☑` marker in a Status cell.
  * Accepts both `` ☑ `abc1234` `` and `☑ abc1234`. Returns null when absent.
  * Pure — exported for the spec.
  */
 export function extractForkSha(statusCell) {
-	if (typeof statusCell !== "string") return null
-	const match = /☑\s*`?([0-9a-fA-F]{4,40})`?/.exec(statusCell)
-	return match ? match[1] : null
+	return extractMarkerSha(statusCell, SYNCED_MARKER)
 }
 
 /**
@@ -300,6 +337,8 @@ export function parseRegister(markdown) {
 			status: statusCell,
 			synced: statusCell.includes(SYNCED_MARKER),
 			forkSha: extractForkSha(statusCell),
+			inProgress: statusCell.includes(IN_PROGRESS_MARKER),
+			inProgressSha: extractMarkerSha(statusCell, IN_PROGRESS_MARKER),
 			sectionId: sections.length > 0 ? sections[sections.length - 1].id : null,
 		}
 		rows.push(row)
@@ -349,8 +388,8 @@ export function crossCheckRows(rows, pendingShas) {
 // Register validation (pure, via an injected probe)
 // ---------------------------------------------------------------------------
 
-function makeCheck(id, title) {
-	return { id, title, ok: true, failures: [] }
+function makeCheck(id, title, options = {}) {
+	return { id, title, ok: true, failures: [], warnings: [], severity: options.severity ?? "error" }
 }
 
 function fail(check, message) {
@@ -359,18 +398,32 @@ function fail(check, message) {
 }
 
 /**
- * Runs the six independent register checks against an injected `probe` so the
+ * Records a NON-fatal finding. A check with warnings keeps `ok: true` — the
+ * register is still structurally consistent — so the CLI can decide whether the
+ * finding is fatal. That is how `stale-in-progress` stays a warning by default
+ * and only fails under `--strict`.
+ */
+function warn(check, message) {
+	check.warnings.push(message)
+}
+
+/**
+ * Runs the seven independent register checks against an injected `probe` so the
  * whole thing is unit-testable without touching git.
  *
  * `probe` supplies the repo facts:
- *   commitType(sha)            → "commit" | "tree" | "blob" | null  (git cat-file -t)
- *   isReachableFromMaster(sha) → boolean                            (git merge-base --is-ancestor)
- *   upstreamTip()              → full SHA of upstream/main
- *   mergeBase()                → full SHA of merge-base upstream/main master
+ *   commitType(sha)             → "commit" | "tree" | "blob" | null  (git cat-file -t)
+ *   isReachableFromForkRef(sha) → boolean                            (git merge-base --is-ancestor)
+ *   upstreamTip()               → full SHA of upstream/main
+ *   mergeBase()                 → full SHA of merge-base upstream/main <forkRef>
+ *
+ * `forkRef` is the resolved fork ref shared by the `☑` (`synced-fork-sha`) and
+ * `◐` (`stale-in-progress`) checks; it is threaded into their titles and
+ * messages so an operator sees exactly what was compared.
  *
  * Pure — exported for the spec.
  */
-export function validateRegister({ markdown, pendingShas, probe }) {
+export function validateRegister({ markdown, pendingShas, probe, forkRef = FORK_REF }) {
 	const { rows, sections, baseline } = parseRegister(markdown)
 	const cross = crossCheckRows(rows, pendingShas)
 
@@ -421,23 +474,57 @@ export function validateRegister({ markdown, pendingShas, probe }) {
 		fail(duplicateCheck, `\`${duplicate.sha}\` appears ${duplicate.count}× (lines ${lines.join(", ")})`)
 	}
 
-	// 5 — every ☑ row carries a fork SHA reachable from master (runbook R9).
-	const syncedCheck = makeCheck("synced-fork-sha", `every ${SYNCED_MARKER} row has a fork SHA reachable from ${FORK_REF}`)
+	// 5 — every ☑ row carries a fork SHA reachable from the resolved fork ref (runbook R9).
+	const syncedCheck = makeCheck("synced-fork-sha", `every ${SYNCED_MARKER} row has a fork SHA reachable from ${forkRef}`)
 	for (const row of rows) {
 		if (!row.synced) continue
 		if (!row.forkSha) {
 			fail(syncedCheck, `line ${row.line}: \`${row.sha}\` is marked ${SYNCED_MARKER} but records no fork SHA (runbook R9)`)
 			continue
 		}
-		if (!probe.isReachableFromMaster(row.forkSha)) {
+		if (!probe.isReachableFromForkRef(row.forkSha)) {
 			fail(
 				syncedCheck,
-				`line ${row.line}: \`${row.sha}\` claims fork SHA \`${row.forkSha}\`, which is not reachable from ${FORK_REF}`,
+				`line ${row.line}: \`${row.sha}\` claims fork SHA \`${row.forkSha}\`, which is not reachable from ${forkRef}`,
 			)
 		}
 	}
 
-	// 6 — the header counts match reality.
+	// 6 — no ◐ (in-progress) row is already merged (stale-in-progress).
+	//
+	// Blind spot this closes (issue #342): the register showed six rows at
+	// `◐ <fork-sha>` long after the first sync batch had merged to the fork ref,
+	// yet `synced-fork-sha` inspected only `☑` rows and reported all-green. A `◐`
+	// row whose recorded fork SHA is reachable from the fork ref is stale — the
+	// register under-reports reality and the operator must flip it to `☑`.
+	//
+	// Severity is deliberate. A stale `◐` is an operator-hygiene problem, not a
+	// structural defect: the register still has the correct row count and no
+	// duplicates, so the batch itself is safe. A hard failure would turn mainline
+	// red until a human flips the rows, so this is a WARNING (exit 0) by default
+	// and only fails under `--strict`, matching the shallow-clone / unreachable
+	// convention. Only `◐` rows that RECORD a fork SHA are checkable — a bare
+	// `◐` may simply be mid-pick, so it is not warned about.
+	const staleCheck = makeCheck(
+		"stale-in-progress",
+		`no ${IN_PROGRESS_MARKER} row's recorded fork SHA is already reachable from ${forkRef}`,
+		{ severity: "warning" },
+	)
+	const staleRows = []
+	for (const row of rows) {
+		if (!row.inProgress || !row.inProgressSha) continue
+		if (probe.isReachableFromForkRef(row.inProgressSha)) {
+			warn(
+				staleCheck,
+				`line ${row.line}: \`${row.sha}\` is marked ${IN_PROGRESS_MARKER} with fork SHA ` +
+					`\`${row.inProgressSha}\`, which is already reachable from ${forkRef} — the row is stale; ` +
+					`flip it to ${SYNCED_MARKER}`,
+			)
+			staleRows.push({ line: row.line, sha: row.sha, forkSha: row.inProgressSha, subject: row.subject })
+		}
+	}
+
+	// 7 — the header counts match reality.
 	const headerCheck = makeCheck("header-counts", "the register header matches reality")
 	const actualTip = probe.upstreamTip()
 	const actualMergeBase = probe.mergeBase()
@@ -462,10 +549,16 @@ export function validateRegister({ markdown, pendingShas, probe }) {
 		)
 	}
 
-	const checks = [formatCheck, resolveCheck, coverageCheck, duplicateCheck, syncedCheck, headerCheck]
+	const checks = [formatCheck, resolveCheck, coverageCheck, duplicateCheck, syncedCheck, staleCheck, headerCheck]
 	return {
-		ok: checks.every((check) => check.ok),
+		// `ok` reflects STRUCTURAL defects only. Warning-severity findings
+		// (`stale-in-progress`) are surfaced separately so the CLI keeps the
+		// default exit code green while still printing them prominently.
+		ok: checks.every((check) => check.severity !== "error" || check.ok),
 		checks,
+		warnings: checks.flatMap((check) => check.warnings),
+		hasWarnings: checks.some((check) => check.warnings.length > 0),
+		staleInProgress: staleRows,
 		rows,
 		sections,
 		baseline,
@@ -805,12 +898,50 @@ export function decideRunMode({ localRef, fetchSucceeded, strict }) {
 }
 
 /**
+	* Resolves the fork ref used by the reachability checks.
+	*
+	* A bare local `master` is frequently stale relative to `origin/master`; in this
+	* checkout local `master` once sat 71 commits behind, so a correct `☑` flip
+	* failed the reachability check and the `◐` drift went unseen. Resolution order:
+	*
+	*   1. the `--fork-ref <ref>` override, when given;
+	*   2. `origin/master`, when it resolves AND local `master` is an ancestor of it
+	*      (local `master` is stale rather than ahead or diverged);
+	*   3. local `master` otherwise.
+	*
+	* BOTH the `☑` (`synced-fork-sha`) and `◐` (`stale-in-progress`) checks consume
+	* this single result, so they can never diverge.
+	* Pure — exported for the spec.
+	*/
+export function chooseForkRef({ override, originResolves, localMasterResolves, localMasterIsAncestorOfOrigin }) {
+	if (override) return override
+	if (originResolves && localMasterResolves && localMasterIsAncestorOfOrigin) return ORIGIN_FORK_REF
+	return FORK_REF
+}
+
+/**
+	* The exit code for `--verify`. A structurally-clean register with stale `◐`
+	* rows exits 0 by default — the rows are an operator-hygiene warning, not a
+	* defect — and 1 under `--strict`. Isolating the policy here keeps the
+	* warn-vs-fail decision unit-testable and used in exactly one place.
+	* Pure — exported for the spec.
+	*/
+export function verifyExitCode({ ok, staleCount, strict }) {
+	if (!ok) return 1
+	if (strict && staleCount > 0) return 1
+	return 0
+}
+
+/**
  * Parses CLI arguments. Unknown flags are reported so typos fail loudly instead
- * of silently defaulting to --verify. Pure — exported for the spec.
+ * of silently defaulting to --verify. `--fork-ref <ref>` (or `--fork-ref=<ref>`)
+ * sets the fork-ref override used by the reachability checks.
+ * Pure — exported for the spec.
  */
 export function parseArgs(argv) {
-	const opts = { mode: null, json: false, strict: false, write: false, help: false, unknown: [] }
-	for (const arg of argv) {
+	const opts = { mode: null, json: false, strict: false, write: false, help: false, forkRef: null, unknown: [] }
+	for (let i = 0; i < argv.length; i++) {
+		const arg = argv[i]
 		switch (arg) {
 			case "--verify":
 				opts.mode = "verify"
@@ -827,12 +958,23 @@ export function parseArgs(argv) {
 			case "--write":
 				opts.write = true
 				break
+			case "--fork-ref": {
+				const value = argv[i + 1]
+				if (value === undefined || value.startsWith("-")) {
+					opts.unknown.push(arg)
+				} else {
+					opts.forkRef = value
+					i++
+				}
+				break
+			}
 			case "--help":
 			case "-h":
 				opts.help = true
 				break
 			default:
-				opts.unknown.push(arg)
+				if (arg.startsWith("--fork-ref=")) opts.forkRef = arg.slice("--fork-ref=".length) || null
+				else opts.unknown.push(arg)
 		}
 	}
 	if (opts.mode === null) opts.mode = "verify"
@@ -878,6 +1020,26 @@ function resolveUpstreamRef() {
 	return null
 }
 
+/**
+ * Resolves the fork ref for this run (see `chooseForkRef`) and returns it with a
+ * human-readable reason for the log, so the operator can see WHICH ref both the
+ * `☑` and `◐` reachability checks compared against.
+ */
+function resolveForkRef(override) {
+	const originResolves = refExists(ORIGIN_FORK_REF)
+	const localMasterResolves = refExists(FORK_REF)
+	const localMasterIsAncestorOfOrigin =
+		originResolves && localMasterResolves
+			? gitQuiet(["merge-base", "--is-ancestor", FORK_REF, ORIGIN_FORK_REF]) !== null
+			: false
+	const ref = chooseForkRef({ override, originResolves, localMasterResolves, localMasterIsAncestorOfOrigin })
+	let reason
+	if (override) reason = "--fork-ref override"
+	else if (ref === ORIGIN_FORK_REF) reason = `local ${FORK_REF} is an ancestor of ${ORIGIN_FORK_REF} (stale local ref)`
+	else reason = `local ${FORK_REF}`
+	return { ref, reason }
+}
+
 /** Deepens/fetches upstream. Throws when the fetch fails (no remote / no network). */
 export function fetchUpstream() {
 	if (gitQuiet(["remote", "get-url", "upstream"]) === null) {
@@ -891,8 +1053,8 @@ function isShallowRepository() {
 	return out !== null && out.trim() === "true"
 }
 
-function mergeBaseOf() {
-	const out = gitQuiet(["merge-base", UPSTREAM_REF, FORK_REF])
+function mergeBaseOf(forkRef = FORK_REF) {
+	const out = gitQuiet(["merge-base", UPSTREAM_REF, forkRef])
 	return out ? out.trim() : ""
 }
 
@@ -915,9 +1077,9 @@ function commitPatchText(sha) {
 }
 
 /** Files changed by the fork since the merge base. */
-function forkChangedFiles(mergeBase) {
+function forkChangedFiles(mergeBase, forkRef = FORK_REF) {
 	return new Set(
-		(gitQuiet(["diff", "--name-only", mergeBase, FORK_REF]) ?? "")
+		(gitQuiet(["diff", "--name-only", mergeBase, forkRef]) ?? "")
 			.split("\n")
 			.map((line) => line.trim())
 			.filter(Boolean),
@@ -933,8 +1095,8 @@ function upstreamChangedFiles(mergeBase) {
 }
 
 /** The conflict surface: files changed by BOTH sides since the merge base. */
-function computeConflictSurface(mergeBase) {
-	const forkFiles = forkChangedFiles(mergeBase)
+function computeConflictSurface(mergeBase, forkRef = FORK_REF) {
+	const forkFiles = forkChangedFiles(mergeBase, forkRef)
 	return new Set(upstreamChangedFiles(mergeBase).filter((file) => forkFiles.has(file)))
 }
 
@@ -944,18 +1106,18 @@ function commitMeta(sha) {
 	return { date, subject, author }
 }
 
-/** Builds the repo probe consumed by validateRegister(). */
-function buildProbe() {
+/** Builds the repo probe consumed by validateRegister(), bound to `forkRef`. */
+function buildProbe(forkRef = FORK_REF) {
 	return {
 		commitType(sha) {
 			const out = gitQuiet(["cat-file", "-t", sha])
 			return out ? out.trim() : null
 		},
-		isReachableFromMaster(sha) {
-			return gitQuiet(["merge-base", "--is-ancestor", sha, FORK_REF]) !== null
+		isReachableFromForkRef(sha) {
+			return gitQuiet(["merge-base", "--is-ancestor", sha, forkRef]) !== null
 		},
 		upstreamTip: upstreamTipSha,
-		mergeBase: mergeBaseOf,
+		mergeBase: () => mergeBaseOf(forkRef),
 	}
 }
 
@@ -988,9 +1150,9 @@ function resolveUpstream({ strict, deepen }) {
  * HARD failure: `rev-list` would report the fetch window (22) instead of the
  * real backlog (102), so every downstream number would be wrong.
  */
-function requireMergeBase() {
+function requireMergeBase(forkRef = FORK_REF) {
 	const shallow = isShallowRepository()
-	const mergeBase = mergeBaseOf()
+	const mergeBase = mergeBaseOf(forkRef)
 	if (!mergeBase) {
 		return { ok: false, shallow, mergeBase }
 	}
@@ -1034,10 +1196,13 @@ async function runVerify(opts) {
 		return 0
 	}
 
-	const merge = requireMergeBase()
+	const forkRef = resolveForkRef(opts.forkRef)
+	if (!opts.json) logInfo(TAG, `fork ref ${forkRef.ref} (${forkRef.reason})`)
+
+	const merge = requireMergeBase(forkRef.ref)
 	if (!merge.ok) {
 		const message =
-			`${UPSTREAM_REF} has no merge base with ${FORK_REF}` +
+			`${UPSTREAM_REF} has no merge base with ${forkRef.ref}` +
 			`${merge.shallow ? " (this checkout is shallow)" : ""}. ` +
 			`\`git merge-base\` returns nothing, so the pending count would read 22 instead of 102. ` +
 			`Deepen first: ${DEPTHEN_COMMAND}`
@@ -1055,26 +1220,31 @@ async function runVerify(opts) {
 		.map((line) => line.trim())
 		.filter(Boolean)
 
-	const report = validateRegister({ markdown, pendingShas, probe: buildProbe() })
+	const report = validateRegister({ markdown, pendingShas, probe: buildProbe(forkRef.ref), forkRef: forkRef.ref })
+	const strictFailure = Boolean(opts.strict) && report.staleInProgress.length > 0
 
 	if (opts.json) {
 		emitJson(opts, {
 			mode: "verify",
-			ok: report.ok,
+			ok: report.ok && !strictFailure,
 			skipped: false,
 			shallow: merge.shallow,
+			forkRef: forkRef.ref,
+			forkRefReason: forkRef.reason,
 			register: REGISTER_PATH,
 			mergeBase: merge.mergeBase.slice(0, 12),
 			upstreamTip: upstreamTipSha().slice(0, 12),
 			counts: report.counts,
 			baseline: report.baseline,
 			checks: report.checks,
+			warnings: report.warnings,
+			staleInProgress: report.staleInProgress,
 			rollup: report.rollup,
 			missing: report.missing,
 			unexpected: report.unexpected,
 			duplicates: report.duplicates,
 		})
-		return report.ok ? 0 : 1
+		return verifyExitCode({ ok: report.ok, staleCount: report.staleInProgress.length, strict: Boolean(opts.strict) })
 	}
 
 	logStep(TAG, `Verifying ${REGISTER_PATH}`)
@@ -1082,11 +1252,14 @@ async function runVerify(opts) {
 	logInfo(`${TAG}:ROWS`, `parsed ${report.counts.rows} table rows with the row-scoped matcher ${String(ROW_SHA_RE)}`)
 	for (const check of report.checks) {
 		const label = `${check.id} — ${check.title}`
-		if (check.ok) {
-			logOk(`${TAG}:CHECK`, label)
-		} else {
+		if (!check.ok) {
 			logError(`${TAG}:CHECK`, label)
 			for (const failure of check.failures) logError(`${TAG}:CHECK`, `  · ${failure}`)
+		} else if (check.warnings.length > 0) {
+			logWarn(`${TAG}:CHECK`, label)
+			for (const warning of check.warnings) logWarn(`${TAG}:CHECK`, `  · ${warning}`)
+		} else {
+			logOk(`${TAG}:CHECK`, label)
 		}
 	}
 
@@ -1115,8 +1288,23 @@ async function runVerify(opts) {
 		logError(TAG, "Do NOT start a sync batch against a broken register (runbook §3 Pass C).")
 		return 1
 	}
-	logSuccess(TAG, `Register verified: ${rows} rows cover ${report.counts.pendingCommits} pending commits, 0 duplicates, 0 missing, 0 unexpected.`)
-	return 0
+	if (report.staleInProgress.length > 0) {
+		const summary = `${report.staleInProgress.length} stale ${IN_PROGRESS_MARKER} row(s) already reachable from ${forkRef.ref} — the register under-reports reality.`
+		const remedy = `Flip each to ${SYNCED_MARKER} (with its fork SHA) once the fork SHA has landed.`
+		if (strictFailure) {
+			logError(TAG, summary)
+			logError(TAG, `${remedy} --strict promotes this warning to a failure.`)
+		} else {
+			logWarn(TAG, summary)
+			logWarn(TAG, `${remedy} Warning only — pass --strict to fail on stale rows.`)
+		}
+	}
+	logSuccess(
+		TAG,
+		`Register verified: ${rows} rows cover ${report.counts.pendingCommits} pending commits, 0 duplicates, 0 missing, 0 unexpected` +
+			`${report.staleInProgress.length > 0 ? ` (${report.staleInProgress.length} stale ${IN_PROGRESS_MARKER} warning(s))` : ""}.`,
+	)
+	return verifyExitCode({ ok: report.ok, staleCount: report.staleInProgress.length, strict: Boolean(opts.strict) })
 }
 
 async function runRefresh(opts) {
@@ -1142,10 +1330,13 @@ async function runRefresh(opts) {
 		logWarn(TAG, `fetching upstream failed (${upstream.fetchError.message}) — falling back to the local ${UPSTREAM_REF} ref.`)
 	}
 
-	const merge = requireMergeBase()
+	const forkRef = resolveForkRef(opts.forkRef)
+	if (!opts.json) logInfo(TAG, `fork ref ${forkRef.ref} (${forkRef.reason})`)
+
+	const merge = requireMergeBase(forkRef.ref)
 	if (!merge.ok) {
 		const message =
-			`${UPSTREAM_REF} has no merge base with ${FORK_REF}${merge.shallow ? " (shallow clone)" : ""}. ` +
+			`${UPSTREAM_REF} has no merge base with ${forkRef.ref}${merge.shallow ? " (shallow clone)" : ""}. ` +
 			`Deepen first: ${DEPTHEN_COMMAND}`
 		if (!opts.json) logError(TAG, message)
 		return { code: 1, payload: { mode: "refresh", ok: false, shallow: merge.shallow, error: message } }
@@ -1175,7 +1366,7 @@ async function runRefresh(opts) {
 		.map((line) => line.trim())
 		.filter(Boolean)
 
-	const conflictSurface = newShas.length > 0 ? computeConflictSurface(merge.mergeBase) : new Set()
+	const conflictSurface = newShas.length > 0 ? computeConflictSurface(merge.mergeBase, forkRef.ref) : new Set()
 	const proposals = newShas.map((sha) => {
 		const meta = commitMeta(sha)
 		const evidence = computeCommitEvidence({
@@ -1204,7 +1395,7 @@ async function runRefresh(opts) {
 	})
 
 	const tipMeta = commitMeta(tipSha)
-	const pendingCount = Number((gitQuiet(["rev-list", "--count", `${FORK_REF}..${UPSTREAM_REF}`]) ?? "0").trim() || 0)
+	const pendingCount = Number((gitQuiet(["rev-list", "--count", `${forkRef.ref}..${UPSTREAM_REF}`]) ?? "0").trim() || 0)
 	const plan = buildRefreshPlan({
 		proposals,
 		baseline,
@@ -1299,17 +1490,18 @@ only PROPOSES classes for commits that are new since the register's recorded
 baseline tip.
 
 Usage:
-  node scripts/upstream-sync-triage.mjs [--verify] [--json] [--strict]
-  node scripts/upstream-sync-triage.mjs --refresh [--write] [--json] [--strict]
+  node scripts/upstream-sync-triage.mjs [--verify] [--json] [--strict] [--fork-ref <ref>]
+  node scripts/upstream-sync-triage.mjs --refresh [--write] [--json] [--strict] [--fork-ref <ref>]
   node scripts/upstream-sync-triage.mjs --help
 
 Modes:
-  --verify   (default) Assert the register against the repo, reporting six
+  --verify   (default) Assert the register against the repo, reporting seven
              independent checks: canonical 9-character row SHAs, row SHAs that
              resolve, coverage of merge-base..${UPSTREAM_REF} (missing /
              unexpected), duplicate rows, every ${SYNCED_MARKER} row carrying a fork SHA reachable
-             from ${FORK_REF}, and header counts matching reality. Prints a
-             per-batch progress roll-up.
+             from the fork ref, every ${IN_PROGRESS_MARKER} row whose recorded fork SHA is already
+             reachable from the fork ref (stale-in-progress), and header counts
+             matching reality. Prints a per-batch progress roll-up.
   --refresh  Deepen/fetch upstream, diff ${UPSTREAM_REF} against the baseline tip
              recorded in the register header, compute per-commit evidence
              (Δ, file count, hot-file hits, CORE_FILES hits, telemetry /
@@ -1322,9 +1514,19 @@ Options:
              the register. Never re-classifies or deletes existing rows.
   --json     Emit the machine-readable report on stdout instead of the log.
   --strict   Exit 1 when ${UPSTREAM_REF} cannot be resolved (no local ref and the
-             fetch failed). Without it that condition SKIPS with exit 0 so an
-             infra/network issue never blocks CI.
+             fetch failed), AND exit 1 when stale-in-progress rows are found.
+             Without it those conditions skip/warn with exit 0 so an infra
+             problem or a stale register never turns mainline red on its own.
+  --fork-ref <ref>
+             Override the fork ref used by the reachability checks. Default
+             resolution: origin/master when it resolves and local master is an
+             ancestor of it (a stale local ref), else master. Both the ${SYNCED_MARKER} and
+             ${IN_PROGRESS_MARKER} checks use the same resolved ref.
   --help     Show this help message
+
+Note on stale-in-progress: a ${IN_PROGRESS_MARKER} (in-progress) row whose recorded fork SHA
+is already reachable from the fork ref is stale and must be flipped to ${SYNCED_MARKER}.
+It is a WARNING by default (exit 0); pass --strict to fail on it.
 
 Precondition (runbook R1):
   This clone is shallow by default. Without a usable merge base the pending
@@ -1334,9 +1536,10 @@ Precondition (runbook R1):
     git merge-base ${UPSTREAM_REF} ${FORK_REF}     # must print a SHA
 
 Exit codes:
-  0  register verified / refreshed / skipped (upstream unavailable)
-  1  a register check failed, or the merge base is unusable, or upstream was
-     unavailable with --strict
+  0  register verified / refreshed / skipped (upstream unavailable); a stale
+     in-progress warning alone does NOT fail
+  1  a register check failed, the merge base is unusable, upstream was unavailable
+     with --strict, or stale in-progress rows were found with --strict
 
 Env:
   UPSTREAM_URL  git URL for upstream (default https://github.com/Zoo-Code-Org/Zoo-Code.git)
