@@ -401,6 +401,22 @@ Evidence: [`docs/incidents/2026-09-18-gray-webview.md`](docs/incidents/2026-09-1
 
 ---
 
+### Status update (2026-09-18, post-landing)
+
+- **B — RESOLVED.** Landed as **v3.88.8** (PR #357; commits `8a3b74c75`, `9e6dd6939`, `386ecf5ec`, `7d4a02f5f`, `b8e54d4c8`). `taskHistory` is now bound by **count + bytes** (32 KB / 3-row floor) and the composite `statePayloadBudget` test asserts the whole `state` payload stays under `STATE_WARN_BYTES`.
+- **E — RESOLVED.** The gate is now the pure `isHostHealthDebugEnabled(raw)` plus `isHostHealthDebugEnabledFromEnv(env)`; the spec passes 13/13 with `ROO_HOST_HEALTH_DEBUG` **set and unset** (fixed in `8a3b74c75`).
+- **C — PARTIALLY RESOLVED, residual remains.** A bounded window _can_ split a parent/child tree (a subtask's parent is older, so a newest-first budget drops it first, and `useGroupedTasks` promotes the orphan to a root row). Ancestor re-attachment now runs under the **same** byte budget, plus a new `taskHistoryPagingAnchorTs` so paging cannot skip rows. **Residual:** for ~10 KB rows the 3-row floor consumes the budget, so those installs keep the previous behaviour — a promoted root, never a lost row. Best-effort, not guaranteed closure.
+- **F — still open** (research branch, see above).
+
+### G. Privacy leak: public IP + remote hostnames committed in incident/postmortem docs
+
+**Locations**: [`docs/incidents/2026-09-15-extension-host-unresponsive-diagnosis.md`](docs/incidents/2026-09-15-extension-host-unresponsive-diagnosis.md) (L45, L484, L502), [`docs/incidents/2026-09-17-taskHistory-state-payload.md`](docs/incidents/2026-09-17-taskHistory-state-payload.md) (L8, L101), [`docs/postmortems/2026-09-09-webview-grayout-console-warnings.md`](docs/postmortems/2026-09-09-webview-grayout-console-warnings.md) (L171, L174, L177)
+**Issue**: Committed, publicly-pushed documentation carries a **public IP address (`204.168.197.3`)** and **remote hostnames** (e.g. `ArchonServer`). Redacting only the newest capture ([`2026-09-18-gray-webview.md`](docs/incidents/2026-09-18-gray-webview.md), now placeholder-clean with 110 substitutions) does **not** close the gate. (`127.0.0.1` occurrences are localhost and are fine.)
+**Impact**: The repository is public — this discloses private infrastructure detail and contradicts the project's privacy posture. Once pushed, assume the values are already disclosed.
+**Suggested Fix**: **IMMEDIATE** redaction pass across `docs/` (hostnames → `<remote-A>…`, public IP → `<remote-ip>`), then a CI grep gate so the class cannot recur (flag any `(\d{1,3}\.){3}\d{1,3}` in `docs/` other than `127.0.0.1` / `0.0.0.0`). Treat the IP as disclosed.
+
+---
+
 ## 📋 TODO/FIXME Inventory (production code, 2026-07-31)
 
 Genuine `TODO`/`FIXME` markers in non-test production code. Doc-example and tool-description matches excluded.
