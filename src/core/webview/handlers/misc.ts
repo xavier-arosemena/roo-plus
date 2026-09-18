@@ -9,6 +9,7 @@ import {
 	getOlderClineMessagesMessageSchema,
 	getOlderTaskHistoryMessageSchema,
 	insertTextIntoTextareaMessageSchema,
+	livenessPongMessageSchema,
 	openExternalMessageSchema,
 	openFileMessageSchema,
 	openKeyboardShortcutsMessageSchema,
@@ -47,6 +48,7 @@ export const miscMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
 	"getOlderTaskHistory",
 	"importRooHistory",
 	"insertTextIntoTextarea",
+	"livenessPong",
 	"openExternal",
 	"openFile",
 	"openKeyboardShortcuts",
@@ -83,6 +85,7 @@ export async function handleMiscMessages(
 		| "cwd"
 		| "getModes"
 		| "activateProviderProfile"
+		| "recordWebviewLivenessPong"
 	>,
 	_marketplaceManager: MarketplaceManager | undefined,
 	message: WebviewMessage,
@@ -581,6 +584,20 @@ export async function handleMiscMessages(
 				olderTaskHistory: page,
 				olderTaskHistoryHasMore: hasMore,
 			})
+			break
+		}
+		case "livenessPong": {
+			// Renderer-liveness probe reply (2026-09-18 gray-webview capture).
+			// The probe owns the accounting and is inert while its gate is off; this
+			// only validates the number and forwards it. Nothing is logged here.
+			const result = livenessPongMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(`[webviewMessageHandler] Rejected malformed livenessPong message: ${result.error.message}`)
+				break
+			}
+
+			provider.recordWebviewLivenessPong(result.data.livenessPongSeq)
 			break
 		}
 		case "insertTextIntoTextarea": {

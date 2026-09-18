@@ -567,6 +567,17 @@ export const ExtensionStateContextProvider: React.FC<{
 					}))
 					break
 				}
+				case "livenessPing": {
+					// Renderer-liveness probe (2026-09-18 gray-webview capture): echo the
+					// sequence number straight back so the host can time the
+					// host→renderer→host round trip. Deliberately does NOT touch state and
+					// sends numbers only — the probe is log-only and inert unless its env
+					// gate is on, in which case no ping is ever sent.
+					if (typeof message.livenessPingSeq === "number") {
+						vscode.postMessage({ type: "livenessPong", livenessPongSeq: message.livenessPingSeq })
+					}
+					break
+				}
 				case "taskHistoryItemUpdated": {
 					const item = message.taskHistoryItem
 					if (!item) {

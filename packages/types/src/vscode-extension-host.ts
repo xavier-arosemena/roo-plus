@@ -33,6 +33,8 @@ export interface ExtensionMessage {
 		| "state"
 		| "taskHistoryUpdated"
 		| "taskHistoryItemUpdated"
+		// Renderer-liveness probe (2026-09-18 gray-webview capture).
+		| "livenessPing"
 		| "selectedImages"
 		| "theme"
 		| "workspaceUpdated"
@@ -267,6 +269,11 @@ export interface ExtensionMessage {
 	taskHistory?: HistoryItem[]
 	/** For taskHistoryItemUpdated: single updated/added history item */
 	taskHistoryItem?: HistoryItem
+	/**
+	 * For `livenessPing`: monotonic sequence number the webview echoes back in
+	 * `livenessPong` (renderer-liveness probe — a number, never an identifier).
+	 */
+	livenessPingSeq?: number
 	// Worktree response properties
 	worktrees?: Array<{
 		path: string
@@ -664,6 +671,8 @@ export interface WebviewMessage {
 		| "getModesFullConfig"
 		| "getOlderClineMessages"
 		| "getOlderTaskHistory"
+		// Renderer-liveness probe reply (2026-09-18 gray-webview capture).
+		| "livenessPong"
 		| "debugSetting"
 		// Worktree messages
 		| "listWorktrees"
@@ -714,6 +723,8 @@ export interface WebviewMessage {
 	 * the page of older task-history rows to return.
 	 */
 	beforeTs?: number
+	/** For `livenessPong`: the `livenessPingSeq` being answered (a number only). */
+	livenessPongSeq?: number
 	bool?: boolean
 	value?: number
 	stepIndex?: number

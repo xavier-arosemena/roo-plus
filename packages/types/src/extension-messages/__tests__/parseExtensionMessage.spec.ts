@@ -293,12 +293,14 @@ describe("parseExtensionMessage", () => {
 			"skills",
 			"rules",
 			"rooHistoryImportProgress",
+			// Renderer-liveness probe (2026-09-18 gray-webview capture).
+			"livenessPing",
 		]
 
 		for (const type of expected) {
 			expect(extensionMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(extensionMessageSchemas)).toHaveLength(80)
+		expect(Object.keys(extensionMessageSchemas)).toHaveLength(81)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

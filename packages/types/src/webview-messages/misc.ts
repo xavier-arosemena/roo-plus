@@ -211,3 +211,16 @@ export const miscMessageSchema = z.discriminatedUnion("type", [
 ])
 
 export type MiscMessage = z.infer<typeof miscMessageSchema>
+
+/**
+ * Renderer-liveness probe, webview → host half: the webview's reply to a
+ * `livenessPing` (2026-09-18 gray-webview capture; see the host-side probe in
+ * `src/core/webview/webviewLivenessProbe.ts`).
+ *
+ * Handled by `src/core/webview/handlers/misc.ts`, which forwards the sequence
+ * number to the probe. Numbers only — no identifiers, no content, no persistence.
+ */
+export const livenessPongMessageSchema = z.object({
+	type: z.literal("livenessPong"),
+	livenessPongSeq: z.number(),
+})

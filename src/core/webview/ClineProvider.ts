@@ -112,6 +112,7 @@ import { REQUESTY_BASE_URL } from "../../shared/utils/requesty"
 import { PendingEditOperationStore, type PendingEditOperationInput } from "./PendingEditOperationStore"
 import { WebviewPayloadMetrics } from "./webviewPayloadMetrics"
 import { ExtensionHostHealthMetrics, isHostHealthDebugEnabledFromEnv } from "./extensionHostHealthMetrics"
+import { WebviewLivenessProbe, isWebviewLivenessDebugEnabledFromEnv } from "./webviewLivenessProbe"
 
 /**
  * https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -253,6 +254,37 @@ export class ClineProvider
 		},
 	})
 
+	/**
+	 * Session-only renderer-liveness probe (`[webview-liveness]`, 2026-09-18
+	 * gray-webview capture).
+	 *
+	 * `[host-health]` instruments the extension host and cannot see this failure:
+	 * the capture shows both hosts declared unresponsive while the remote host was
+	 * idle and webview assets 401'd on both servers, i.e. the stressed component is
+	 * the webview renderer/transport. This probe times a host→webview→host ping/pong
+	 * round trip so a stalled renderer becomes visible.
+	 *
+	 * Log lines only — deliberately NO typed event, no remote sink, no persistence,
+	 * no popup and no auto-reload — gated behind the `ROO_WEBVIEW_LIVENESS_DEBUG` env
+	 * var, so an unset flag leaves the probe completely inert (no timer, no ping, no
+	 * output). See the module header for the full privacy contract.
+	 */
+	private readonly webviewLivenessProbe: WebviewLivenessProbe = new WebviewLivenessProbe({
+		enabled: isWebviewLivenessDebugEnabledFromEnv(),
+		now: () => Date.now(),
+		log: (message) => this.log(message),
+		postPing: (seq) => {
+			// Numbers only; the reply is routed back by `handlers/misc.ts`.
+			void this.postMessageToWebview({ type: "livenessPing", livenessPingSeq: seq })
+		},
+		schedule: (callback, delayMs) => {
+			const timer = setTimeout(callback, delayMs)
+			// Never hold the event loop open for a liveness ping.
+			timer.unref?.()
+			return () => clearTimeout(timer)
+		},
+	})
+
 	private recentTasksCache?: string[]
 	public readonly taskHistoryStore: TaskHistoryStore
 	private taskHistoryStoreInitialized = false
@@ -260,6 +292,18 @@ export class ClineProvider
 	public static readonly PENDING_OPERATION_TIMEOUT_MS = 30000 // 30 seconds
 	private providerProfileMutationQueue = Promise.resolve()
 	private historyTaskCreationQueue = Promise.resolve()
+
+	/**
+	 * Records a `livenessPong` from the webview (renderer-liveness probe,
+	 * 2026-09-18 gray-webview capture).
+	 *
+	 * The payload is only the sequence number the probe itself sent — numbers, never
+	 * identifiers or content — and this is a no-op while the probe's env gate is off,
+	 * so `handlers/misc.ts` can forward unconditionally.
+	 */
+	recordWebviewLivenessPong(seq: number): void {
+		this.webviewLivenessProbe?.recordPong(seq)
+	}
 
 	private runDelegationTransition<T>(parentTaskId: string, fn: () => Promise<T>): Promise<T> {
 		return ClineProvider.getTaskOrchestrator(this).runDelegationTransition(parentTaskId, fn)
@@ -835,6 +879,7 @@ export class ClineProvider
 		this._postStateToWebviewThrottled.cancel()
 		this.payloadMetrics?.dispose()
 		this.hostHealthMetrics?.dispose()
+		this.webviewLivenessProbe?.dispose()
 		this.log("Disposing ClineProvider...")
 
 		// Reject any tasks still waiting for a scheduler permit so they don't
@@ -1000,6 +1045,11 @@ export class ClineProvider
 	async resolveWebviewView(webviewView: vscode.WebviewView | vscode.WebviewPanel) {
 		this.view = webviewView
 		const inTabMode = "onDidChangeViewState" in webviewView
+
+		// Renderer-liveness probe: the renderer exists from here on, so this is the
+		// single place the ping loop is armed. No-op while the env gate is off, and
+		// optional-chained for specs that call this method against a bare `this`.
+		this.webviewLivenessProbe?.start()
 
 		if (inTabMode) {
 			setPanel(webviewView, "tab")
