@@ -350,6 +350,57 @@ decision and coverage reporting.
 
 ---
 
+## 🔵 Gray-webview follow-ups (opened 2026-09-18)
+
+Evidence: [`docs/incidents/2026-09-18-gray-webview.md`](docs/incidents/2026-09-18-gray-webview.md) (raw captures),
+[`docs/incidents/2026-09-17-taskHistory-state-payload.md`](docs/incidents/2026-09-17-taskHistory-state-payload.md),
+[`docs/postmortems/2026-09-09-webview-grayout-console-warnings.md`](docs/postmortems/2026-09-09-webview-grayout-console-warnings.md).
+
+### A. Client-side webview-resource layer is a second, independent gray-out mechanism
+
+**Location**: remote webview resource CDN (`…vscode-resource.vscode-cdn.net/assets/*.js`), workbench heartbeat
+**Issue**: In the 2026-09-18 capture, webview asset loads returned **401 on BOTH remote servers** (`shellscript-*.js`, `rolldown-runtime-*.js`, `howler-*.js` — 9 occurrences), co-occurring with `[webview-metrics] ERROR` **and** with `Extension host (LocalProcess pid: N) is unresponsive.` plus `Extension host (Remote) is unresponsive.` **at the same instant**. Yet `[host-health]` shows the remote host idle (`elu_ms p50=10 p99≈13 max≤270`, `cpu_pct 4–16`, `state_serialize_ms p50=0`). A host at 10 ms event-loop lag is not CPU-starved — the shared component is the **client-side webview resource/transport layer**, not the extension host.
+**Impact**: Explains the user-visible signature that payload bounding cannot: **only Roo+ webviews gray, and they gray simultaneously across different servers**, while Markdown preview and other webviews render fine. This is the deferred "postmortem item 5" factor, now with field evidence.
+**Suggested Fix**: Investigate remote-webview resource auth/token expiry and the client renderer/GPU process (Process Explorer, per-window `ps`); add a **renderer-liveness probe** (host→webview `ping` / webview→host `pong`, RTT + missed pongs), because `[host-health]` instruments the wrong process for this symptom.
+
+### B. `taskHistory` byte-bound fix is written but not shipped
+
+**Location**: branch `fix/taskhistory-byte-bound` (`projectTaskHistoryForWebview`, 32 KB budget / 3-row floor, shared [`src/shared/payloadSize.ts`](src/shared/payloadSize.ts:1))
+**Issue**: `3.88.7` still ships the count-only bound, so `state` payloads stay ~1.04 MB (`top[taskHistory=1035–1042KB …]` → 1089–1119 KB → ERROR + popup). Uncommitted.
+**Impact**: The dominant remaining payload contributor at the ERROR threshold is unfixed in the field.
+**Target**: **IMMEDIATE — must be committed and shipped in the next pre-release.**
+**Suggested Fix**: Review, commit and land the branch, then re-run the runbook §6 post-fix checklist.
+
+### C. Byte-bounded `taskHistory` can split a parent/child task tree
+
+**Location**: [`selectOlderTaskHistory`](src/core/services/TaskHistoryService.ts:186) / History panel grouping (`useGroupedTasks`)
+**Issue**: The bounded window is byte-driven; the History panel groups rows by `parentTaskId`/`childIds`. A window boundary can cut a tree in half, rendering an orphaned child or dropping a parent. No test covers the boundary.
+**Impact**: Possible History-panel misrender once the bound ships.
+**Suggested Fix**: Add a window-boundary grouping test; extend the row floor or re-attach the orphaned parent if the case is real.
+
+### D. `messageQueue` is unbounded (latent)
+
+**Location**: `currentTask.messageQueueService.messages` → `ExtensionState.messageQueue`
+**Issue**: No count/byte cap. A single queued message with a base64 image can be large. Currently reads 0 KB, so latent.
+**Impact**: Potential future member of the payload class.
+**Suggested Fix**: Audit the realistic worst case; bound only if a payload can plausibly breach WARN.
+
+### E. `isHostHealthDebugEnabled` tests depend on the ambient environment
+
+**Location**: [`extensionHostHealthMetrics.ts`](src/core/webview/extensionHostHealthMetrics.ts:113) and its spec
+**Issue**: The spec passes an explicit `undefined`, which falls through to the default parameter and reads `process.env`. With `ROO_HOST_HEALTH_DEBUG=1` exported in the developer shell the spec **fails**; with it unset it passes. A unit test must not depend on the caller's environment.
+**Impact**: Local/CI flakes that vary with shell state.
+**Suggested Fix**: Assert against explicit `"1"`/`"true"`/`"0"`/`""` inputs and cover the env default through an injected reader, so the suite is hermetic.
+
+### F. Research: does the guarded-write file version token add write-path load?
+
+**Location**: [`src/utils/versionToken.ts`](src/utils/versionToken.ts:1) — added by `f4287ff4f feat(file-safety): file version token for the guarded-write path` (A1, #1375)
+**Issue**: The **only write-path change** in the `3.88.3 → 3.88.7` range. It runs on every guarded write; the 2026-09-18 session showed heavy write churn (104 `saveCheckpoint`, 63 `deleteChain` events) coinciding with gray-outs — **correlation only**, no measurement ties it to the symptom.
+**Impact**: If it adds per-write I/O/CPU it inflates the churn that stresses the client transport during agent activity.
+**Suggested Fix**: **Research branch** — measure the token's per-write cost and its behaviour under rapid repeated writes (same file, many writes); A/B the guarded-write path with and without the token under a synthetic high-churn workload; close as "not implicated" if the cost is negligible.
+
+---
+
 ## 📋 TODO/FIXME Inventory (production code, 2026-07-31)
 
 Genuine `TODO`/`FIXME` markers in non-test production code. Doc-example and tool-description matches excluded.
