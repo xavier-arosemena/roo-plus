@@ -80,6 +80,27 @@ describe("mergeTaskHistoryState", () => {
 
 			expect(ids(merged)).toEqual(["a", "b", "keep"])
 		})
+
+		it("preserves rows below the host's paging anchor, not below the last row present", () => {
+			// The window re-attaches an ancestor (`anc`, ts 5) that is OLDER than the
+			// byte cutoff (ts 99). Preserving by the last row present would keep rows
+			// the host withheld for the next page and drop the ones the panel still
+			// needs; the anchor is the cutoff.
+			const previous = [item("stale-above-anchor", 150), item("paged", 40)]
+			const incoming = [item("n2", 101), item("n1", 99), item("anc", 5)]
+
+			const merged = mergeTaskHistoryState(previous, incoming, true, 99)
+
+			expect(ids(merged)).toEqual(["n2", "n1", "paged", "anc"])
+		})
+
+		it("falls back to the last row present when the host omits the anchor", () => {
+			// Keeps the pre-anchor behaviour for an older host build.
+			const previous = [item("paged", 40)]
+			const incoming = [item("n2", 101), item("n1", 99)]
+
+			expect(ids(mergeTaskHistoryState(previous, incoming, true))).toEqual(["n2", "n1", "paged"])
+		})
 	})
 })
 

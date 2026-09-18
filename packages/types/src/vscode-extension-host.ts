@@ -429,6 +429,19 @@ export type ExtensionState = Pick<
 	taskHistoryBounded?: boolean
 	/** Number of shippable rows in the full task store (for the load-older affordance). */
 	taskHistoryTotal?: number
+	/**
+	 * Exclusive `ts` cursor the webview must page from (`getOlderTaskHistory`)
+	 * when {@link taskHistory} is bounded.
+	 *
+	 * The bounded window re-attaches the ANCESTOR rows needed to keep a
+	 * parent/child tree whole (DEBT entry C), and those rows are older than the
+	 * byte cutoff. The window is therefore no longer contiguous in `ts`, so
+	 * paging from the oldest row actually present would skip every row between an
+	 * ancestor and the cutoff and make them unreachable. This field carries the
+	 * `ts` of the last CONTIGUOUS row instead; `undefined` when the window is the
+	 * whole history.
+	 */
+	taskHistoryPagingAnchorTs?: number
 
 	writeDelayMs: number
 	diffFuzzyThreshold: number

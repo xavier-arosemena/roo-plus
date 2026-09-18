@@ -45,7 +45,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 		setShowAllWorkspaces,
 	} = useTaskSearch()
 	const { t } = useAppTranslation()
-	const { taskHistory, taskHistoryBounded, taskHistoryTotal } = useExtensionState()
+	const { taskHistory, taskHistoryBounded, taskHistoryTotal, taskHistoryPagingAnchorTs } = useExtensionState()
 
 	// The host ships a COUNT+BYTE-bounded `taskHistory` window (2026-09-17
 	// payload incident — the byte half of the 3.88.1 count bound). Older rows
@@ -55,7 +55,11 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 		taskHistoryBounded === true && typeof taskHistoryTotal === "number" && taskHistory.length < taskHistoryTotal
 
 	const loadOlderTasks = () => {
-		const oldestTs = taskHistory[taskHistory.length - 1]?.ts
+		// Page from the host's explicit anchor — the oldest CONTIGUOUS row — not from
+		// the last row present: the bounded window also carries re-attached ancestor
+		// rows (tree closure, DEBT entry C) that are older than the byte cutoff, and
+		// using one of those would skip every row between it and the cutoff.
+		const oldestTs = taskHistoryPagingAnchorTs ?? taskHistory[taskHistory.length - 1]?.ts
 		if (oldestTs === undefined) {
 			return
 		}

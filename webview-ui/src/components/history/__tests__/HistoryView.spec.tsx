@@ -86,6 +86,29 @@ describe("HistoryView", () => {
 			expect(vscode.postMessage).toHaveBeenCalledWith({ type: "getOlderTaskHistory", beforeTs: 1000 })
 		})
 
+		it("pages from the host's paging anchor, not the oldest row present (tree-closed window)", () => {
+			// The window ends with a re-attached ancestor row (ts 100) that is older
+			// than the byte cutoff (ts 3000). Paging from the oldest row present would
+			// skip every row between the ancestor and the cutoff and make them
+			// unreachable, so the host's anchor wins.
+			;(useExtensionState as ReturnType<typeof vi.fn>).mockReturnValue({
+				taskHistory: [
+					{ ...mockTaskHistory[1], id: "child", ts: 3000, parentTaskId: "parent" },
+					{ ...mockTaskHistory[0], id: "parent", ts: 100 },
+				],
+				taskHistoryBounded: true,
+				taskHistoryTotal: 40,
+				taskHistoryPagingAnchorTs: 3000,
+				cwd: "/test/workspace",
+			})
+
+			render(<HistoryView onDone={vi.fn()} />)
+
+			fireEvent.click(screen.getByTestId("load-older-tasks-button"))
+
+			expect(vscode.postMessage).toHaveBeenCalledWith({ type: "getOlderTaskHistory", beforeTs: 3000 })
+		})
+
 		it("hides the affordance when the whole history is already loaded", () => {
 			;(useExtensionState as ReturnType<typeof vi.fn>).mockReturnValue({
 				taskHistory: sortedHistory,

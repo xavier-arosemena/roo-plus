@@ -6,7 +6,11 @@ import { parseExtensionMessage } from "@roo-code/types"
 import { STATE_WARN_BYTES } from "../webviewPayloadMetrics"
 import { projectClineMessagesForWebview } from "../clineMessagesForWebview"
 import { boundCustomModesForWebview } from "../../config/CustomModesManager"
-import { projectTaskHistoryForWebview, selectOlderTaskHistory } from "../../services/TaskHistoryService"
+import {
+	MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW,
+	projectTaskHistoryForWebview,
+	selectOlderTaskHistory,
+} from "../../services/TaskHistoryService"
 
 /**
  * ANTI-WHACK-A-MOLE REGRESSION — the composite `state` payload budget.
@@ -119,6 +123,7 @@ describe("worst-case `state` payload budget", () => {
 			taskHistory: boundedTaskHistory.items,
 			taskHistoryBounded: boundedTaskHistory.bounded,
 			taskHistoryTotal: boundedTaskHistory.total,
+			taskHistoryPagingAnchorTs: boundedTaskHistory.pagingAnchorTs,
 			customModes: boundedCustomModes,
 			messageQueue,
 			marketplaceItems: undefined,
@@ -168,5 +173,32 @@ describe("worst-case `state` payload budget", () => {
 		const state = parsed.message.state as Record<string, unknown>
 		expect(state.taskHistoryBounded).toBe(boundedTaskHistory.bounded)
 		expect(state.taskHistoryTotal).toBe(boundedTaskHistory.total)
+		// The paging anchor must survive too: the panel pages from it (tree-closed
+		// windows carry ancestor rows older than the cutoff, DEBT entry C).
+		expect(state.taskHistoryPagingAnchorTs).toBe(boundedTaskHistory.pagingAnchorTs)
+	})
+
+	it("keeps a tree-closed window inside the composite budget", () => {
+		// Newest-first subtasks of older (larger) rows force the projection to spend
+		// byte headroom on re-attached ancestors. Those extras are charged to the SAME
+		// budget, so the composite invariant must hold for a tree-shaped store too.
+		const treeHistory = RAW_HISTORY.map((item, i) =>
+			i % 3 === 1 ? { ...item, parentTaskId: RAW_HISTORY[i - 1].id } : item,
+		)
+		const bounded = projectTaskHistoryForWebview(treeHistory)
+		const treeMessage = {
+			...stateMessage,
+			state: {
+				...stateMessage.state,
+				taskHistory: bounded.items,
+				taskHistoryBounded: bounded.bounded,
+				taskHistoryTotal: bounded.total,
+				taskHistoryPagingAnchorTs: bounded.pagingAnchorTs,
+			},
+		}
+
+		expect(bounded.items.length).toBeGreaterThanOrEqual(MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW)
+		expect(typeof bounded.pagingAnchorTs).toBe("number")
+		expect(jsonBytes(treeMessage)).toBeLessThan(STATE_WARN_BYTES)
 	})
 })

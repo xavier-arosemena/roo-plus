@@ -186,7 +186,15 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Partial
 	// reset the visible list back to the bounded head. A non-bounded push is a
 	// complete history and replaces as before.
 	if (newRest.taskHistory !== undefined) {
-		rest.taskHistory = mergeTaskHistoryState(prevRest.taskHistory, newRest.taskHistory, newRest.taskHistoryBounded)
+		// The paging anchor rides along: with tree-closed ancestor re-attachment the
+		// window's last row is NOT the paging cutoff, so preserving rows by it would
+		// keep the wrong ones (see `mergeTaskHistoryState`).
+		rest.taskHistory = mergeTaskHistoryState(
+			prevRest.taskHistory,
+			newRest.taskHistory,
+			newRest.taskHistoryBounded,
+			newRest.taskHistoryPagingAnchorTs,
+		)
 	}
 
 	if (newRest.clineMessages !== undefined) {

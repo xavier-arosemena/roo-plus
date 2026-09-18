@@ -456,6 +456,126 @@ describe("projectTaskHistoryForWebview (count + byte budget)", () => {
 	})
 })
 
+describe("projectTaskHistoryForWebview (DEBT C: the byte bound must not split a task tree)", () => {
+	const now = Date.now()
+
+	/**
+	 * The invariant the History panel depends on: `useGroupedTasks` groups on
+	 * `parentTaskId` and promotes a child whose parent is missing to a ROOT row, so
+	 * a shipped child without its shipped parent renders as a top-level task.
+	 * Returns the ids that would render as orphaned children.
+	 */
+	const orphans = (items: HistoryItem[]): string[] => {
+		const shippedIds = new Set(items.map((item) => item.id))
+		return items.filter((item) => item.parentTaskId && !shippedIds.has(item.parentTaskId)).map((item) => item.id)
+	}
+
+	/**
+	 * Newest-first store: three cheap children, then a row the count cap refuses
+	 * (`middle`, NEWER than the parent), then the parent, then an older row.
+	 * The window admits only the three children, so `parent` used to be dropped.
+	 */
+	const treeFixture = () => {
+		const children = [0, 1, 2].map((i) =>
+			makeHistoryItem({ id: `child-${i}`, ts: now - i, task: `Child ${i}`, parentTaskId: "parent" }),
+		)
+		const middle = makeHistoryItem({ id: "middle", ts: now - 5, task: "Middle" })
+		const parent = makeHistoryItem({ id: "parent", ts: now - 10, task: "Parent" })
+		const oldest = makeHistoryItem({ id: "oldest", ts: now - 20, task: "Oldest" })
+
+		return { children, middle, parent, oldest, all: [...children, middle, parent, oldest] }
+	}
+
+	it("re-attaches the parent the byte/count budget would orphan, keeping newest-first order", () => {
+		const { children, parent, all } = treeFixture()
+
+		const projection = projectTaskHistoryForWebview(all, { maxItems: 3 })
+
+		expect(projection.items.map((item) => item.id)).toEqual([...children.map((child) => child.id), parent.id])
+		expect(orphans(projection.items)).toEqual([])
+		expect(projection.total).toBe(all.length)
+		expect(projection.bounded).toBe(true)
+	})
+
+	it("re-attaches a whole chain (grandparent included), oldest last", () => {
+		const grandparent = makeHistoryItem({ id: "grandparent", ts: now - 30, task: "Grandparent" })
+		const parent = makeHistoryItem({ id: "parent", ts: now - 20, task: "Parent", parentTaskId: "grandparent" })
+		const child = makeHistoryItem({ id: "child", ts: now, task: "Child", parentTaskId: "parent" })
+
+		const projection = projectTaskHistoryForWebview([child, parent, grandparent], { maxItems: 1 })
+
+		expect(projection.items.map((item) => item.id)).toEqual(["child", "parent", "grandparent"])
+		expect(orphans(projection.items)).toEqual([])
+	})
+
+	it("does not invent a parent that is not in the store (a deleted parent stays a root row)", () => {
+		const child = makeHistoryItem({ id: "child", ts: now, task: "Child", parentTaskId: "deleted-parent" })
+
+		const projection = projectTaskHistoryForWebview([child])
+
+		expect(projection.items.map((item) => item.id)).toEqual(["child"])
+		expect(projection.bounded).toBe(false)
+		expect(projection.pagingAnchorTs).toBeUndefined()
+	})
+
+	it("pages from the contiguous cutoff, so the rows the window skipped stay reachable", () => {
+		const { all, parent, middle, oldest } = treeFixture()
+		const projection = projectTaskHistoryForWebview(all, { maxItems: 3 })
+
+		// The re-attached parent is OLDER than the cutoff, so the anchor must be the
+		// last CONTIGUOUS row (child-2) — not the last row present (the parent).
+		expect(projection.pagingAnchorTs).toBe(now - 2)
+
+		const fromAnchor = selectOlderTaskHistory(all, projection.pagingAnchorTs as number)
+		expect(fromAnchor.items.map((item) => item.id)).toEqual([middle.id, parent.id, oldest.id])
+
+		// Paging from the last row present would skip `middle` entirely, and no later
+		// page could reach it (pages only move further down in `ts`).
+		const fromLastRow = selectOlderTaskHistory(all, projection.items.at(-1)!.ts)
+		expect(fromLastRow.items.map((item) => item.id)).toEqual([oldest.id])
+	})
+
+	it("leaves a chain split rather than breaching the byte budget when the parent cannot fit", () => {
+		const parent = makeHistoryItem({ id: "parent", ts: now - 100, task: `Parent ${"p".repeat(30 * 1024)}` })
+		const child = makeHistoryItem({
+			id: "child",
+			ts: now,
+			task: `Child ${"c".repeat(4 * 1024)}`,
+			parentTaskId: "parent",
+		})
+
+		const projection = projectTaskHistoryForWebview([child, parent], { maxBytes: 4 * 1024, minRows: 1 })
+
+		expect(projection.items.map((item) => item.id)).toEqual(["child"])
+		// The anchor still points at the single contiguous row, so the parent (and
+		// its oversized payload) remains fetchable through the paging flow.
+		expect(projection.pagingAnchorTs).toBe(now)
+		expect(
+			selectOlderTaskHistory([child, parent], projection.pagingAnchorTs as number).items.map((i) => i.id),
+		).toEqual(["parent"])
+	})
+
+	it("charges re-attached ancestors to the same byte budget", () => {
+		const child = makeHistoryItem({ id: "child", ts: now, task: "Child", parentTaskId: "parent" })
+		const parent = makeHistoryItem({ id: "parent", ts: now - 1, task: `Parent ${"p".repeat(3 * 1024)}` })
+
+		const projection = projectTaskHistoryForWebview([child, parent], { maxBytes: 1024, minRows: 1 })
+
+		// The floor admits the child even though it alone exceeds the budget; the
+		// ancestor is NOT added on top of it (that is what would breach the payload
+		// budget the projection exists to enforce).
+		expect(projection.items.map((item) => item.id)).toEqual(["child"])
+		expect(orphans(projection.items)).toEqual(["child"])
+	})
+
+	it("omits the paging anchor when the window is the whole history", () => {
+		const projection = projectTaskHistoryForWebview([makeHistoryItem({ id: "only", ts: now, task: "Only" })])
+
+		expect(projection.bounded).toBe(false)
+		expect(projection.pagingAnchorTs).toBeUndefined()
+	})
+})
+
 describe("selectOlderTaskHistory", () => {
 	const now = Date.now()
 	const items = Array.from({ length: 30 }, (_, i) =>

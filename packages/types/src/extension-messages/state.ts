@@ -48,6 +48,8 @@ export const extensionStateSubsetSchema = z
 		// Count+byte-bounded `taskHistory` window metadata (2026-09-17 incident).
 		taskHistoryBounded: z.boolean().optional(),
 		taskHistoryTotal: z.number().optional(),
+		// Exclusive paging cursor for that window (tree-closed ancestor re-attachment).
+		taskHistoryPagingAnchorTs: z.number().optional(),
 		taskHistory: z.unknown().optional(),
 		currentTaskItem: z.unknown().optional(),
 		currentTaskTodos: z.unknown().optional(),

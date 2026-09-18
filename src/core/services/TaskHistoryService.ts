@@ -86,6 +86,18 @@ export const MAX_TASK_HISTORY_BYTES_SHIPPED_TO_WEBVIEW = 32 * 1024
 export const MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW = 3
 
 /**
+ * Cap on the extra ANCESTOR rows {@link projectTaskHistoryForWebview} re-attaches
+ * to close a parent/child tree that the byte budget would otherwise split (DEBT
+ * entry C).
+ *
+ * Ancestors are charged to the SAME byte budget as the window, so this cap only
+ * bounds a pathological fan-in (a deep chain of nested subtasks) — the byte
+ * budget is the real limit. 8 covers realistic nesting (a subtask a few levels
+ * deep) while keeping the closure pass cheap and its worst case known.
+ */
+export const MAX_TASK_HISTORY_ANCESTOR_ROWS_SHIPPED_TO_WEBVIEW = 8
+
+/**
  * A task-history row is shippable when it carries a timestamp (`ts`) and a task
  * description (`task`) — the two fields the webview itself filters on
  * (`useTaskSearch`, `usePromptHistory`). Rows failing this are unusable to
@@ -104,6 +116,16 @@ export interface BoundedTaskHistoryForWebview {
 	bounded: boolean
 	/** Number of shippable rows in the full store. */
 	total: number
+	/**
+	 * Exclusive paging cursor for the lazy "load older tasks" flow: the `ts` of
+	 * the last CONTIGUOUSLY admitted window row.
+	 *
+	 * Re-attached ancestors are older than that cutoff, so the window is no longer
+	 * contiguous in `ts` and `items[items.length - 1].ts` would skip every row
+	 * between an ancestor and the cutoff, making them unreachable. `undefined`
+	 * when `items` is the whole history.
+	 */
+	pagingAnchorTs?: number
 }
 
 /**
@@ -120,18 +142,39 @@ export interface BoundedTaskHistoryForWebview {
  * has (e.g. lazy-fetched older pages) instead of replacing wholesale, and can
  * offer the `getOlderTaskHistory` affordance. The store itself is never
  * truncated — this only bounds what is serialized to the webview.
+ *
+ * TREE CLOSURE (DEBT entry C). The budget is byte-driven while the History panel
+ * groups rows by `parentTaskId` (`useGroupedTasks`), so a boundary landing
+ * inside a tree rendered the child as a parentless root row — a subtask shown
+ * as a top-level task. A subtask's parent is always OLDER, i.e. exactly what a
+ * newest-first byte budget drops first, so this pass re-attaches the ancestor
+ * chain of every admitted row. Ancestors are charged to the SAME byte budget
+ * (the composite `state` invariant is untouched) and capped at
+ * {@link MAX_TASK_HISTORY_ANCESTOR_ROWS_SHIPPED_TO_WEBVIEW}, which makes closure
+ * best-effort: a chain that no longer fits is left split rather than allowed to
+ * breach the payload budget this projection exists to enforce.
+ *
+ * PAGING ANCHOR. Because re-attached ancestors are older than the cutoff, the
+ * window is no longer contiguous in `ts`. {@link BoundedTaskHistoryForWebview.pagingAnchorTs}
+ * therefore reports the `ts` of the last contiguously admitted row, and paging
+ * MUST use it: paging from an ancestor's `ts` would skip every row between that
+ * ancestor and the cutoff, leaving them unreachable from the panel.
  */
 export function projectTaskHistoryForWebview(
 	items: readonly HistoryItem[],
-	options: { maxItems?: number; maxBytes?: number; minRows?: number } = {},
+	options: { maxItems?: number; maxBytes?: number; minRows?: number; maxAncestorRows?: number } = {},
 ): BoundedTaskHistoryForWebview {
 	const maxItems = options.maxItems ?? MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW
 	const maxBytes = options.maxBytes ?? MAX_TASK_HISTORY_BYTES_SHIPPED_TO_WEBVIEW
 	const minRows = options.minRows ?? MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW
+	const maxAncestorRows = options.maxAncestorRows ?? MAX_TASK_HISTORY_ANCESTOR_ROWS_SHIPPED_TO_WEBVIEW
 
 	const shippable = items.filter(isShippableHistoryItem).sort((a, b) => b.ts - a.ts)
 	const total = shippable.length
+	const byId = new Map(shippable.map((item) => [item.id, item]))
 
+	// 1. Contiguous newest-first prefix, bounded by COUNT and BYTES exactly as
+	//    before (byte budget first, never below the row floor, newest always in).
 	const window: HistoryItem[] = []
 	let bytes = 0
 
@@ -151,7 +194,63 @@ export function projectTaskHistoryForWebview(
 		bytes += rowBytes
 	}
 
-	return { items: window, bounded: window.length < total, total }
+	// 2. Tree closure (DEBT entry C). Discover the ancestor rows the window is
+	//    missing, in window order so the result is deterministic and independent
+	//    of `Map` iteration order.
+	const shippedIds = new Set(window.map((item) => item.id))
+	const requiredAncestors: HistoryItem[] = []
+
+	for (const item of window) {
+		let parentId = item.parentTaskId
+
+		while (parentId && !shippedIds.has(parentId)) {
+			const parent = byId.get(parentId)
+
+			// Parent unknown to this projection (deleted, or not shippable, or not in
+			// the store): there is nothing to re-attach, and the child is a genuine
+			// root as far as the History panel is concerned.
+			if (!parent) {
+				break
+			}
+
+			requiredAncestors.push(parent)
+			shippedIds.add(parent.id)
+			parentId = parent.parentTaskId
+		}
+	}
+
+	// 3. Attach them while the SAME byte budget allows. A first-come-first-served
+	//    stop (no skipping) keeps the choice deterministic and bounded: a chain
+	//    that no longer fits stays split rather than breaching the payload budget
+	//    that this projection exists to enforce.
+	const ancestors: HistoryItem[] = []
+
+	for (const ancestor of requiredAncestors) {
+		if (ancestors.length >= maxAncestorRows) {
+			break
+		}
+
+		const rowBytes = estimateArrayRowBytes(ancestor)
+
+		if (bytes + rowBytes > maxBytes) {
+			break
+		}
+
+		ancestors.push(ancestor)
+		bytes += rowBytes
+	}
+
+	// An ancestor is always older than its descendant, so appending preserves the
+	// newest-first order the webview merge and grouping rely on.
+	const shipped = [...window, ...ancestors]
+	const bounded = shipped.length < total
+
+	return {
+		items: shipped,
+		bounded,
+		total,
+		pagingAnchorTs: bounded ? window[window.length - 1]?.ts : undefined,
+	}
 }
 
 /**

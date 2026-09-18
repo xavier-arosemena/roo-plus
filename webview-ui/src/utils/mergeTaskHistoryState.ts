@@ -6,7 +6,8 @@ import type { HistoryItem } from "@roo-code/types"
  * byte half of the 3.88.1 count-only bound).
  *
  * The host no longer serializes the whole task store on every push: it ships
- * the newest rows that fit a 48 KB budget (`taskHistoryBounded: true`). Two
+ * the newest rows that fit a 32 KB budget (`taskHistoryBounded: true`), plus the
+ * ancestor rows needed to keep a parent/child tree whole (DEBT entry C). Two
  * things must therefore hold in the webview:
  *
  * 1. **A new window must not erase what the panel already has.**
@@ -36,12 +37,22 @@ export function sortTaskHistoryByTsDesc(items: readonly HistoryItem[]): HistoryI
  * - `bounded !== true` (a complete, within-budget history) → take the incoming
  *   list verbatim, preserving the pre-bound behaviour of replacing the list.
  * - `bounded === true` → keep previous rows that are NOT in the incoming window
- *   and are older than its oldest row, then append the window and re-sort.
+ *   and are older than the window's paging anchor, then append the window and
+ *   re-sort.
+ *
+ * `pagingAnchorTs` is the host's explicit cutoff (see
+ * `BoundedTaskHistoryForWebview.pagingAnchorTs`). It is REQUIRED to decide what
+ * to preserve, because the window may carry re-attached ancestor rows that are
+ * older than that cutoff: falling back to the last row's `ts` would keep rows
+ * the host deliberately withheld (they belong to the next page) instead of the
+ * ones the panel actually still needs. When the host omits the anchor (older
+ * host, or an unbounded push) the previous behaviour is kept.
  */
 export function mergeTaskHistoryState(
 	previous: readonly HistoryItem[] | undefined,
 	incoming: HistoryItem[] | undefined,
 	bounded: boolean | undefined,
+	pagingAnchorTs?: number,
 ): HistoryItem[] {
 	if (incoming === undefined) {
 		return previous ? [...previous] : []
@@ -53,7 +64,8 @@ export function mergeTaskHistoryState(
 
 	const windowIds = new Set(incoming.map((item) => item.id))
 	const oldestIncomingTs = incoming.length > 0 ? incoming[incoming.length - 1].ts : Number.NEGATIVE_INFINITY
-	const preserved = previous.filter((item) => !windowIds.has(item.id) && item.ts < oldestIncomingTs)
+	const cutoffTs = typeof pagingAnchorTs === "number" ? pagingAnchorTs : oldestIncomingTs
+	const preserved = previous.filter((item) => !windowIds.has(item.id) && item.ts < cutoffTs)
 
 	return sortTaskHistoryByTsDesc([...preserved, ...incoming])
 }
