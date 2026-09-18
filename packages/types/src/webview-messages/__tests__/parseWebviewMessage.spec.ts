@@ -313,6 +313,11 @@ describe("parseWebviewMessage", () => {
 			// Lazy-fetch request for the bounded `state.clineMessages` window
 			// (2026-09-15 `state` payload incident).
 			"getOlderClineMessages",
+			// Lazy-fetch request for the count+byte-bounded `state.taskHistory`
+			// window (2026-09-17 `state` payload incident).
+			"getOlderTaskHistory",
+			// Reply of the renderer-liveness probe (2026-09-18 gray-webview capture).
+			"livenessPong",
 			"insertTextIntoTextarea",
 			"dismissUpsell",
 			"getDismissedUpsells",
@@ -325,7 +330,7 @@ describe("parseWebviewMessage", () => {
 		for (const type of expected) {
 			expect(webviewMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(webviewMessageSchemas)).toHaveLength(156)
+		expect(Object.keys(webviewMessageSchemas)).toHaveLength(158)
 	})
 
 	it("builds a discriminated union over the registered types", () => {

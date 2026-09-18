@@ -1,3 +1,8 @@
+> **[redacted]** Remote-SSH host identifiers in this record were replaced with placeholders so
+> this file is safe to serve from the public repo: host A's SSH alias and kernel hostname →
+> `<remote-A>`, and host B's public IPv4 address → `<remote-ip>`. Only the identifiers changed —
+> measurements, timings, byte counts and conclusions are unaltered.
+
 # Host-health capture — analysis result (filled-in form)
 
 - **Event:** 2026-09-16 · Roo+ **3.88.3** · post-deploy monitoring **Pass B**
@@ -25,7 +30,7 @@
 | `[host-health]` lines actually present in the Roo+ output channel?                                                            | `yes` — 6 consecutive windows                                                                                              |
 | Capture artifacts (paths)                                                                                                     | `/tmp/roo-perf/20260916-100419-watch-3883-s2.{meta.txt,pidstat,psi.log}` + `…-baseline.snapshot.log`                       |
 | Target PID / resolution method (`meta.txt`)                                                                                   | `1208955` via `pgrep -f --type=extensionHost` — **went stale at 14:21:41Z** (see gap G2)                                   |
-| `CLK_TCK`, sampler mode (`pidstat` vs `proc`), `nproc` (`meta.txt`)                                                           | `clk_tck=100` · `pidstat` · `nproc=2` (host `archon-core-01`, `Linux 6.8.0-107-generic`)                                   |
+| `CLK_TCK`, sampler mode (`pidstat` vs `proc`), `nproc` (`meta.txt`)                                                           | `clk_tck=100` · `pidstat` · `nproc=2` (host `<remote-A>`, `Linux 6.8.0-107-generic`)                                       |
 | `[webview-metrics]` lines present for the window?                                                                             | `yes` — 1 `WARN` + 1 summary                                                                                               |
 
 P2 is **present**, so the (b) columns are filled from the real `[host-health]` line (not inferred).

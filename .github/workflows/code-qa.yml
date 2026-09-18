@@ -56,6 +56,17 @@ jobs:
                   echo "::endgroup::"
             - name: Setup Node.js and pnpm
               uses: ./.github/actions/setup-node-pnpm
+            # Privacy guard for the disclosed-infrastructure leak (DEBT.md item G):
+            # the repository is PUBLIC, so a routable IPv4 literal committed under
+            # docs/ is an infrastructure disclosure. Allow-list is explicit
+            # (127.0.0.1, 0.0.0.0, RFC 5737 documentation ranges); everything else —
+            # private space included — fails. Runs on node (setup above).
+            - name: Reject public IPv4 literals in docs (privacy guard)
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:DOCS-IPV4] Scanning docs/ for non-localhost IPv4 literals"
+                  node scripts/verify-docs-no-public-ip.mjs
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:DOCS-IPV4] no non-localhost IPv4 literals found under docs/"
+                  echo "::endgroup::"
             - name: Verify custom-modes submodule pin & committed artifact sync
               run: |
                   echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:SUBMODULE] Verifying submodule pin + .roomodes sync"

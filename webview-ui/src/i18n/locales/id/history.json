@@ -5,6 +5,7 @@
 	"cache": "Cache: +{{writes}} → {{reads}}",
 	"apiCost": "Biaya API: ${{cost}}",
 	"history": "Riwayat",
+	"loadOlderTasks": "Muat tugas yang lebih lama",
 	"exitSelectionMode": "Keluar Mode Seleksi",
 	"enterSelectionMode": "Masuk Mode Seleksi",
 	"done": "Selesai",

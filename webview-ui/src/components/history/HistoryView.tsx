@@ -24,6 +24,8 @@ import { useGroupedTasks } from "./useGroupedTasks"
 import { countAllSubtasks } from "./types"
 import TaskItem from "./TaskItem"
 import TaskGroupItem from "./TaskGroupItem"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { vscode } from "@/utils/vscode"
 
 type HistoryViewProps = {
 	onDone: () => void
@@ -43,6 +45,26 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 		setShowAllWorkspaces,
 	} = useTaskSearch()
 	const { t } = useAppTranslation()
+	const { taskHistory, taskHistoryBounded, taskHistoryTotal, taskHistoryPagingAnchorTs } = useExtensionState()
+
+	// The host ships a COUNT+BYTE-bounded `taskHistory` window (2026-09-17
+	// payload incident — the byte half of the 3.88.1 count bound). Older rows
+	// stay reachable from the file-backed store via `getOlderTaskHistory`, so
+	// offer that until the loaded list covers the whole history.
+	const hasOlderTasks =
+		taskHistoryBounded === true && typeof taskHistoryTotal === "number" && taskHistory.length < taskHistoryTotal
+
+	const loadOlderTasks = () => {
+		// Page from the host's explicit anchor — the oldest CONTIGUOUS row — not from
+		// the last row present: the bounded window also carries re-attached ancestor
+		// rows (tree closure, DEBT entry C) that are older than the byte cutoff, and
+		// using one of those would skip every row between it and the cutoff.
+		const oldestTs = taskHistoryPagingAnchorTs ?? taskHistory[taskHistory.length - 1]?.ts
+		if (oldestTs === undefined) {
+			return
+		}
+		vscode.postMessage({ type: "getOlderTaskHistory", beforeTs: oldestTs })
+	}
 
 	// Use grouped tasks hook
 	const { groups, flatTasks, toggleExpand, isSearchMode } = useGroupedTasks(tasks, searchQuery)
@@ -306,6 +328,14 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							/>
 						)}
 					/>
+				)}
+				{hasOlderTasks && (
+					<div className="flex justify-center py-2">
+						<Button variant="secondary" data-testid="load-older-tasks-button" onClick={loadOlderTasks}>
+							<span className="codicon codicon-history mr-1" />
+							{t("history:loadOlderTasks")}
+						</Button>
+					</div>
 				)}
 			</TabContent>
 

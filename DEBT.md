@@ -350,6 +350,79 @@ decision and coverage reporting.
 
 ---
 
+## 🔵 Gray-webview follow-ups (opened 2026-09-18)
+
+Evidence: [`docs/incidents/2026-09-18-gray-webview.md`](docs/incidents/2026-09-18-gray-webview.md) (raw captures),
+[`docs/incidents/2026-09-17-taskHistory-state-payload.md`](docs/incidents/2026-09-17-taskHistory-state-payload.md),
+[`docs/postmortems/2026-09-09-webview-grayout-console-warnings.md`](docs/postmortems/2026-09-09-webview-grayout-console-warnings.md).
+
+### A. Client-side webview-resource layer is a second, independent gray-out mechanism
+
+**Location**: remote webview resource CDN (`…vscode-resource.vscode-cdn.net/assets/*.js`), workbench heartbeat
+**Issue**: In the 2026-09-18 capture, webview asset loads returned **401 on BOTH remote servers** (`shellscript-*.js`, `rolldown-runtime-*.js`, `howler-*.js` — 9 occurrences), co-occurring with `[webview-metrics] ERROR` **and** with `Extension host (LocalProcess pid: N) is unresponsive.` plus `Extension host (Remote) is unresponsive.` **at the same instant**. Yet `[host-health]` shows the remote host idle (`elu_ms p50=10 p99≈13 max≤270`, `cpu_pct 4–16`, `state_serialize_ms p50=0`). A host at 10 ms event-loop lag is not CPU-starved — the shared component is the **client-side webview resource/transport layer**, not the extension host.
+**Impact**: Explains the user-visible signature that payload bounding cannot: **only Roo+ webviews gray, and they gray simultaneously across different servers**, while Markdown preview and other webviews render fine. This is the deferred "postmortem item 5" factor, now with field evidence.
+**Suggested Fix**: Investigate remote-webview resource auth/token expiry and the client renderer/GPU process (Process Explorer, per-window `ps`); add a **renderer-liveness probe** (host→webview `ping` / webview→host `pong`, RTT + missed pongs), because `[host-health]` instruments the wrong process for this symptom.
+
+### B. `taskHistory` byte-bound fix is written but not shipped
+
+**Location**: branch `fix/taskhistory-byte-bound` (`projectTaskHistoryForWebview`, 32 KB budget / 3-row floor, shared [`src/shared/payloadSize.ts`](src/shared/payloadSize.ts:1))
+**Issue**: `3.88.7` still ships the count-only bound, so `state` payloads stay ~1.04 MB (`top[taskHistory=1035–1042KB …]` → 1089–1119 KB → ERROR + popup). Uncommitted.
+**Impact**: The dominant remaining payload contributor at the ERROR threshold is unfixed in the field.
+**Target**: **IMMEDIATE — must be committed and shipped in the next pre-release.**
+**Suggested Fix**: Review, commit and land the branch, then re-run the runbook §6 post-fix checklist.
+
+### C. Byte-bounded `taskHistory` can split a parent/child task tree
+
+**Location**: [`selectOlderTaskHistory`](src/core/services/TaskHistoryService.ts:186) / History panel grouping (`useGroupedTasks`)
+**Issue**: The bounded window is byte-driven; the History panel groups rows by `parentTaskId`/`childIds`. A window boundary can cut a tree in half, rendering an orphaned child or dropping a parent. No test covers the boundary.
+**Impact**: Possible History-panel misrender once the bound ships.
+**Suggested Fix**: Add a window-boundary grouping test; extend the row floor or re-attach the orphaned parent if the case is real.
+
+### D. `messageQueue` is unbounded (latent)
+
+**Location**: `currentTask.messageQueueService.messages` → `ExtensionState.messageQueue`
+**Issue**: No count/byte cap. A single queued message with a base64 image can be large. Currently reads 0 KB, so latent.
+**Impact**: Potential future member of the payload class.
+**Suggested Fix**: Audit the realistic worst case; bound only if a payload can plausibly breach WARN.
+
+### E. `isHostHealthDebugEnabled` tests depend on the ambient environment
+
+**Location**: [`extensionHostHealthMetrics.ts`](src/core/webview/extensionHostHealthMetrics.ts:113) and its spec
+**Issue**: The spec passes an explicit `undefined`, which falls through to the default parameter and reads `process.env`. With `ROO_HOST_HEALTH_DEBUG=1` exported in the developer shell the spec **fails**; with it unset it passes. A unit test must not depend on the caller's environment.
+**Impact**: Local/CI flakes that vary with shell state.
+**Suggested Fix**: Assert against explicit `"1"`/`"true"`/`"0"`/`""` inputs and cover the env default through an injected reader, so the suite is hermetic.
+
+### F. Research: does the guarded-write file version token add write-path load?
+
+**Location**: [`src/utils/versionToken.ts`](src/utils/versionToken.ts:1) — added by `f4287ff4f feat(file-safety): file version token for the guarded-write path` (A1, #1375)
+**Issue**: The **only write-path change** in the `3.88.3 → 3.88.7` range. It runs on every guarded write; the 2026-09-18 session showed heavy write churn (104 `saveCheckpoint`, 63 `deleteChain` events) coinciding with gray-outs — **correlation only**, no measurement ties it to the symptom.
+**Impact**: If it adds per-write I/O/CPU it inflates the churn that stresses the client transport during agent activity.
+**Suggested Fix**: **Research branch** — measure the token's per-write cost and its behaviour under rapid repeated writes (same file, many writes); A/B the guarded-write path with and without the token under a synthetic high-churn workload; close as "not implicated" if the cost is negligible.
+
+---
+
+### Status update (2026-09-18, post-landing)
+
+- **B — RESOLVED.** Landed as **v3.88.8** (PR #357; commits `8a3b74c75`, `9e6dd6939`, `386ecf5ec`, `7d4a02f5f`, `b8e54d4c8`). `taskHistory` is now bound by **count + bytes** (32 KB / 3-row floor) and the composite `statePayloadBudget` test asserts the whole `state` payload stays under `STATE_WARN_BYTES`.
+- **E — RESOLVED.** The gate is now the pure `isHostHealthDebugEnabled(raw)` plus `isHostHealthDebugEnabledFromEnv(env)`; the spec passes 13/13 with `ROO_HOST_HEALTH_DEBUG` **set and unset** (fixed in `8a3b74c75`).
+- **C — PARTIALLY RESOLVED, residual remains.** A bounded window _can_ split a parent/child tree (a subtask's parent is older, so a newest-first budget drops it first, and `useGroupedTasks` promotes the orphan to a root row). Ancestor re-attachment now runs under the **same** byte budget, plus a new `taskHistoryPagingAnchorTs` so paging cannot skip rows. **Residual:** for ~10 KB rows the 3-row floor consumes the budget, so those installs keep the previous behaviour — a promoted root, never a lost row. Best-effort, not guaranteed closure.
+- **F — still open** (research branch, see above).
+
+### G. Privacy leak: public IP + remote hostnames committed in incident/postmortem docs — REDACTED + GUARDED
+
+**Locations** (all already public on the `master` line unless noted): [`docs/incidents/2026-09-15-extension-host-unresponsive-diagnosis.md`](docs/incidents/2026-09-15-extension-host-unresponsive-diagnosis.md), [`docs/incidents/2026-09-17-taskHistory-state-payload.md`](docs/incidents/2026-09-17-taskHistory-state-payload.md), [`docs/postmortems/2026-09-09-webview-grayout-console-warnings.md`](docs/postmortems/2026-09-09-webview-grayout-console-warnings.md), and [`docs/runbooks/perf/host-health-2026-09-16-passB.md`](docs/runbooks/perf/host-health-2026-09-16-passB.md). The raw values were also echoed in this entry, and one further project name remained in [`2026-09-18-gray-webview.md`](docs/incidents/2026-09-18-gray-webview.md).
+**Issue**: Committed, publicly-pushed documentation carried a **public IPv4 address** (host B), two forms of a **remote hostname** (host A's SSH alias and its kernel hostname), and one **project name**. Once pushed to a public remote, forward redaction does **not** un-disclose them — the values remain in git history (commits `80b66933d`, `7589945b2`, `bdce47c02`, `b8e54d4c8`) and in any fork/cache of those pulls.
+**Impact**: Discloses private infrastructure detail and contradicts the project's "zero telemetry" privacy posture. Treat the address as disclosed regardless of this redaction.
+**Resolution (2026-09-18, branch `docs/privacy-redact-disclosed-infra`)**:
+
+- **Redacted in place** (17 substitutions; nothing deleted): host A SSH alias + kernel hostname → `<remote-A>`, host B IPv4 → `<remote-ip>`, residual project name → `<project-3>`. A `<redacted>` note was added to each affected record, matching the convention already used in [`2026-09-18-gray-webview.md`](docs/incidents/2026-09-18-gray-webview.md).
+- **Residue verified clean**: no occurrence of the IP, either hostname, or the project name remains under `docs/` or in this file; the only IPv4 literals left under `docs/` are `127.0.0.1` (localhost).
+- **CI guard added**: [`scripts/verify-docs-no-public-ip.mjs`](scripts/verify-docs-no-public-ip.mjs) (+ spec) hard-fails on any non-localhost/unspecified IPv4 literal under `docs/`, wired into the `static-analysis` job of [`code-qa.yml`](.github/workflows/code-qa.yml) and into `test:scripts`. Allow-list is explicit: `127.0.0.1`, `0.0.0.0`, and the RFC 5737 documentation ranges (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`).
+- **Rotation readiness**: a dependency report (client `~/.ssh/config`, VS Codium `remoteAuthority`/workspace state, workspace + MCP config, server-side keys/listeners/certs/firewall) accompanies the remediation. Key nuance: windows whose `remoteAuthority` is a **raw IP** must be switched to an SSH **alias** before the address changes; alias-based windows rotate transparently via `~/.ssh/config` alone.
+- **Deliberately NOT done (owner-only)**: no git-history rewrite, force-push, or credential rotation was performed. **Recommended primary mitigation: rotate the address at the provider** — forward redaction cannot un-disclose the pushed history, and history rewrite is destructive, requires a force-push, invalidates clones, and still may persist in forks/caches.
+
+---
+
 ## 📋 TODO/FIXME Inventory (production code, 2026-07-31)
 
 Genuine `TODO`/`FIXME` markers in non-test production code. Doc-example and tool-description matches excluded.

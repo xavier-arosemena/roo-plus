@@ -256,3 +256,23 @@ export const navigationMessageSchema = z.discriminatedUnion("type", [
 ])
 
 export type NavigationMessage = z.infer<typeof navigationMessageSchema>
+
+/**
+ * Renderer-liveness probe, host → webview half (2026-09-18 gray-webview capture,
+ * committed with the `[webview-liveness]` probe in
+ * `src/core/webview/webviewLivenessProbe.ts`).
+ *
+ * Instrumenting the extension host cannot see the recorded failure:
+ * `Extension host (LocalProcess pid: N) is unresponsive.` and
+ * `Extension host (Remote) is unresponsive.` fired together while the remote host
+ * was idle and webview assets returned 401 on both servers — the victim is the
+ * webview renderer / transport. So the host posts this ping, the webview answers
+ * with `livenessPong`, and the probe aggregates the round trip.
+ *
+ * Payload is a single monotonic sequence number: numbers only, nothing to leak,
+ * no new telemetry event, and the probe is inert unless its env gate is set.
+ */
+export const livenessPingMessageSchema = z.object({
+	type: z.literal("livenessPing"),
+	livenessPingSeq: z.number(),
+})

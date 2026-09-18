@@ -79,7 +79,7 @@ import { MdmService } from "../../services/mdm/MdmService"
 import { SkillsManager } from "../../services/skills/SkillsManager"
 import { MarketplaceService } from "../services/MarketplaceService"
 import { ProviderProfileService } from "../services/ProviderProfileService"
-import { TaskHistoryService, boundTaskHistoryForWebview } from "../services/TaskHistoryService"
+import { TaskHistoryService, projectTaskHistoryForWebview } from "../services/TaskHistoryService"
 import { boundCustomModesForWebview } from "../config/CustomModesManager"
 import { projectClineMessagesForWebview } from "./clineMessagesForWebview"
 import { TaskOrchestrator } from "../services/TaskOrchestrator"
@@ -111,7 +111,8 @@ import { getUri } from "./getUri"
 import { REQUESTY_BASE_URL } from "../../shared/utils/requesty"
 import { PendingEditOperationStore, type PendingEditOperationInput } from "./PendingEditOperationStore"
 import { WebviewPayloadMetrics } from "./webviewPayloadMetrics"
-import { ExtensionHostHealthMetrics, isHostHealthDebugEnabled } from "./extensionHostHealthMetrics"
+import { ExtensionHostHealthMetrics, isHostHealthDebugEnabledFromEnv } from "./extensionHostHealthMetrics"
+import { WebviewLivenessProbe, isWebviewLivenessDebugEnabledFromEnv } from "./webviewLivenessProbe"
 
 /**
  * https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -239,7 +240,7 @@ export class ClineProvider
 	 * contract.
 	 */
 	private readonly hostHealthMetrics: ExtensionHostHealthMetrics = new ExtensionHostHealthMetrics({
-		enabled: isHostHealthDebugEnabled(),
+		enabled: isHostHealthDebugEnabledFromEnv(),
 		now: () => Date.now(),
 		log: (message) => this.log(message),
 		cpuUsage: () => process.cpuUsage(),
@@ -253,6 +254,37 @@ export class ClineProvider
 		},
 	})
 
+	/**
+	 * Session-only renderer-liveness probe (`[webview-liveness]`, 2026-09-18
+	 * gray-webview capture).
+	 *
+	 * `[host-health]` instruments the extension host and cannot see this failure:
+	 * the capture shows both hosts declared unresponsive while the remote host was
+	 * idle and webview assets 401'd on both servers, i.e. the stressed component is
+	 * the webview renderer/transport. This probe times a host→webview→host ping/pong
+	 * round trip so a stalled renderer becomes visible.
+	 *
+	 * Log lines only — deliberately NO typed event, no remote sink, no persistence,
+	 * no popup and no auto-reload — gated behind the `ROO_WEBVIEW_LIVENESS_DEBUG` env
+	 * var, so an unset flag leaves the probe completely inert (no timer, no ping, no
+	 * output). See the module header for the full privacy contract.
+	 */
+	private readonly webviewLivenessProbe: WebviewLivenessProbe = new WebviewLivenessProbe({
+		enabled: isWebviewLivenessDebugEnabledFromEnv(),
+		now: () => Date.now(),
+		log: (message) => this.log(message),
+		postPing: (seq) => {
+			// Numbers only; the reply is routed back by `handlers/misc.ts`.
+			void this.postMessageToWebview({ type: "livenessPing", livenessPingSeq: seq })
+		},
+		schedule: (callback, delayMs) => {
+			const timer = setTimeout(callback, delayMs)
+			// Never hold the event loop open for a liveness ping.
+			timer.unref?.()
+			return () => clearTimeout(timer)
+		},
+	})
+
 	private recentTasksCache?: string[]
 	public readonly taskHistoryStore: TaskHistoryStore
 	private taskHistoryStoreInitialized = false
@@ -260,6 +292,18 @@ export class ClineProvider
 	public static readonly PENDING_OPERATION_TIMEOUT_MS = 30000 // 30 seconds
 	private providerProfileMutationQueue = Promise.resolve()
 	private historyTaskCreationQueue = Promise.resolve()
+
+	/**
+	 * Records a `livenessPong` from the webview (renderer-liveness probe,
+	 * 2026-09-18 gray-webview capture).
+	 *
+	 * The payload is only the sequence number the probe itself sent — numbers, never
+	 * identifiers or content — and this is a no-op while the probe's env gate is off,
+	 * so `handlers/misc.ts` can forward unconditionally.
+	 */
+	recordWebviewLivenessPong(seq: number): void {
+		this.webviewLivenessProbe?.recordPong(seq)
+	}
 
 	private runDelegationTransition<T>(parentTaskId: string, fn: () => Promise<T>): Promise<T> {
 		return ClineProvider.getTaskOrchestrator(this).runDelegationTransition(parentTaskId, fn)
@@ -835,6 +879,7 @@ export class ClineProvider
 		this._postStateToWebviewThrottled.cancel()
 		this.payloadMetrics?.dispose()
 		this.hostHealthMetrics?.dispose()
+		this.webviewLivenessProbe?.dispose()
 		this.log("Disposing ClineProvider...")
 
 		// Reject any tasks still waiting for a scheduler permit so they don't
@@ -1000,6 +1045,11 @@ export class ClineProvider
 	async resolveWebviewView(webviewView: vscode.WebviewView | vscode.WebviewPanel) {
 		this.view = webviewView
 		const inTabMode = "onDidChangeViewState" in webviewView
+
+		// Renderer-liveness probe: the renderer exists from here on, so this is the
+		// single place the ping loop is armed. No-op while the env gate is off, and
+		// optional-chained for specs that call this method against a bare `this`.
+		this.webviewLivenessProbe?.start()
 
 		if (inTabMode) {
 			setPanel(webviewView, "tab")
@@ -2545,6 +2595,15 @@ export class ClineProvider
 		// `clineMessagesForWebview.ts` for the 2026-09-15 incident context.
 		const boundedClineMessages = projectClineMessagesForWebview(currentTask?.clineMessages)
 
+		// Count+BYTE-bounded task-history window (2026-09-17 incident — the byte
+		// half of the 3.88.1 count bound). `bounded`/`total` let the webview keep
+		// rows it already has and offer the lazy `getOlderTaskHistory` path
+		// instead of silently losing older tasks. See
+		// `projectTaskHistoryForWebview` for the 32 KB budget rationale.
+		const taskHistoryWindow = includeTaskHistory
+			? projectTaskHistoryForWebview(this.taskHistoryStore.getAll())
+			: { items: [] as HistoryItem[], bounded: false, total: 0 }
+
 		return {
 			version: this.context.extension?.packageJSON?.version ?? "",
 			apiConfiguration,
@@ -2571,10 +2630,15 @@ export class ClineProvider
 			clineMessagesTotal: boundedClineMessages.total,
 			currentTaskTodos: currentTask?.todoList || [],
 			messageQueue: currentTask?.messageQueueService?.messages,
-			// Bound to the most recent tasks only — sending the full store (~3.5 MB) to
-			// the webview on every state message saturated the renderer over remote-SSH
-			// IPC. The file store remains the full source of truth for deeper access.
-			taskHistory: includeTaskHistory ? boundTaskHistoryForWebview(this.taskHistoryStore.getAll()) : [],
+			// Count+BYTE-bounded to the most recent tasks — sending the full store
+			// (~3.5 MB) to the webview on every state message saturated the renderer
+			// over remote-SSH IPC, and the count-only bound still shipped ~1 MB of
+			// full history rows. The file store remains the full source of truth for
+			// deeper access, reachable via `getOlderTaskHistory`.
+			taskHistory: taskHistoryWindow.items,
+			taskHistoryBounded: includeTaskHistory ? taskHistoryWindow.bounded : undefined,
+			taskHistoryTotal: includeTaskHistory ? taskHistoryWindow.total : undefined,
+			taskHistoryPagingAnchorTs: includeTaskHistory ? taskHistoryWindow.pagingAnchorTs : undefined,
 			soundEnabled: soundEnabled ?? false,
 			ttsEnabled: ttsEnabled ?? false,
 			ttsSpeed: ttsSpeed ?? 1.0,
@@ -2738,6 +2802,13 @@ export class ClineProvider
 
 		const taskSyncEnabled: boolean = false
 
+		// Count+BYTE-bounded task-history window, matching getStateToPostToWebview
+		// (see `projectTaskHistoryForWebview` for the 32 KB budget rationale and
+		// the 2026-09-17 payload incident).
+		const taskHistoryWindow = includeTaskHistory
+			? projectTaskHistoryForWebview(this.taskHistoryStore.getAll())
+			: { items: [] as HistoryItem[], bounded: false, total: 0 }
+
 		// Return the same structure as before.
 		return {
 			apiConfiguration: providerSettings,
@@ -2762,9 +2833,12 @@ export class ClineProvider
 			allowedMaxCost: stateValues.allowedMaxCost,
 			autoCondenseContext: stateValues.autoCondenseContext ?? true,
 			autoCondenseContextPercent: stateValues.autoCondenseContextPercent ?? 100,
-			// Bound to recent tasks, matching getStateToPostToWebview (see
-			// boundTaskHistoryForWebview for the 3.5 MB-payload context).
-			taskHistory: includeTaskHistory ? boundTaskHistoryForWebview(this.taskHistoryStore.getAll()) : [],
+			// Bound to recent tasks by COUNT and BYTES, matching
+			// getStateToPostToWebview (see `projectTaskHistoryForWebview`).
+			taskHistory: taskHistoryWindow.items,
+			taskHistoryBounded: includeTaskHistory ? taskHistoryWindow.bounded : undefined,
+			taskHistoryTotal: includeTaskHistory ? taskHistoryWindow.total : undefined,
+			taskHistoryPagingAnchorTs: includeTaskHistory ? taskHistoryWindow.pagingAnchorTs : undefined,
 			allowedCommands: stateValues.allowedCommands,
 			deniedCommands: stateValues.deniedCommands,
 			soundEnabled: stateValues.soundEnabled ?? false,

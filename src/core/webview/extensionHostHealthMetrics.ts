@@ -35,7 +35,7 @@
  *   payload at all — {@link ExtensionHostHealthMetrics.recordStateSerialize} is
  *   handed a duration only — so it cannot leak what it never sees.
  * - GATE. `ROO_HOST_HEALTH_DEBUG=1|true`, read once via `process.env`
- *   ({@link isHostHealthDebugEnabled}), mirroring the `SEMBLE_DEBUG` pattern in
+ *   ({@link isHostHealthDebugEnabledFromEnv}), mirroring the `SEMBLE_DEBUG` pattern in
  *   `src/services/code-index/semble/provider.ts`. An env var rather than a
  *   setting deliberately skips the AGENTS.md "Persisted Setting Checklist" round
  *   trip (schema + `ExtensionState` + `SettingsView.cachedState` +
@@ -102,16 +102,33 @@ export const JITTER_WARN_MAX_MS = 500
 export const JITTER_ERROR_MAX_MS = 2_000
 
 /**
- * `ROO_HOST_HEALTH_DEBUG=1|true` enables the `[host-health]` lines. Read once by
- * the caller ({@link import("./ClineProvider").ClineProvider} at construction
- * time) so the flag is sampled exactly one time per session.
+ * Pure gate predicate: `"1"` or `"true"` (case-insensitive) enables the
+ * `[host-health]` lines; every other value, `undefined` included, does not.
+ *
+ * Takes the raw value instead of reading the environment so a unit test cannot be
+ * perturbed by the developer's shell (DEBT entry E: an explicit `undefined` used
+ * to fall through to a default parameter that read `process.env`). Production
+ * reads the env through {@link isHostHealthDebugEnabledFromEnv}.
+ */
+export function isHostHealthDebugEnabled(raw: string | undefined): boolean {
+	return raw === "1" || raw?.toLowerCase() === "true"
+}
+
+/**
+ * Reads the {@link HOST_HEALTH_DEBUG_ENV} gate from an environment map and
+ * delegates to {@link isHostHealthDebugEnabled}. Called once by the caller
+ * ({@link import("./ClineProvider").ClineProvider} at construction time) so the
+ * flag is sampled exactly one time per session.
+ *
+ * `env` is a parameter (defaulting to `process.env`) so the ambient environment
+ * is touched in exactly one place and can be replaced wholesale in tests.
  *
  * Not a user-facing setting on purpose: PRIVACY.md:33 states there is no
  * telemetry setting or consent prompt, and an env var keeps this instrumentation
  * operator-initiated, off by default, and impossible to persist.
  */
-export function isHostHealthDebugEnabled(raw: string | undefined = process.env[HOST_HEALTH_DEBUG_ENV]): boolean {
-	return raw === "1" || raw?.toLowerCase() === "true"
+export function isHostHealthDebugEnabledFromEnv(env: Record<string, string | undefined> = process.env): boolean {
+	return isHostHealthDebugEnabled(env[HOST_HEALTH_DEBUG_ENV])
 }
 
 /** Node's `perf_hooks` CPU-time counters, in microseconds. */

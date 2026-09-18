@@ -5,11 +5,17 @@ import { type HistoryItem, parseExtensionMessage } from "@roo-code/types"
 import {
 	TaskHistoryService,
 	boundTaskHistoryForWebview,
+	isShippableHistoryItem,
+	projectTaskHistoryForWebview,
+	selectOlderTaskHistory,
+	MAX_TASK_HISTORY_BYTES_SHIPPED_TO_WEBVIEW,
 	MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW,
+	MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW,
 	type RecentTasksCachePort,
 	type TaskHistoryServiceDeps,
 	type TaskHistoryStoreLike,
 } from "../TaskHistoryService"
+import { estimateArrayRowBytes } from "../../../shared/payloadSize"
 
 const makeHistoryItem = (overrides: Partial<HistoryItem> & { id: string; task: string }): HistoryItem => ({
 	number: 1,
@@ -355,5 +361,258 @@ describe("boundTaskHistoryForWebview", () => {
 		)
 
 		expect(boundTaskHistoryForWebview(items)).toHaveLength(MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW)
+	})
+})
+
+describe("projectTaskHistoryForWebview (count + byte budget)", () => {
+	const now = Date.now()
+
+	const rows = (count: number, taskBytes: number): HistoryItem[] =>
+		Array.from({ length: count }, (_, i) =>
+			makeHistoryItem({
+				id: `row-${i}`,
+				ts: now - i,
+				task: `Row ${i} ${"t".repeat(taskBytes)}`,
+				number: i + 1,
+			}),
+		)
+
+	it("still ships the full count cap when the rows fit the byte budget", () => {
+		// Terse rows must NOT be silently shrunk: the count cap (100) binds first.
+		const projection = projectTaskHistoryForWebview(rows(150, 0))
+
+		expect(projection.items).toHaveLength(MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW)
+		expect(projection.total).toBe(150)
+		expect(projection.bounded).toBe(true)
+		expect(projection.items[0].id).toBe("row-0")
+		expect(projection.items.at(-1)?.id).toBe(`row-${MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW - 1}`)
+	})
+
+	it("stops at the byte budget for oversized rows while staying newest-first", () => {
+		const items = rows(40, 2 * 1024)
+
+		const projection = projectTaskHistoryForWebview(items)
+
+		expect(projection.items.length).toBeGreaterThanOrEqual(MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW)
+		expect(projection.items.length).toBeLessThan(items.length)
+		expect(projection.items.map((item) => item.id)).toEqual(
+			Array.from({ length: projection.items.length }, (_, i) => `row-${i}`),
+		)
+
+		// The window stops exactly when the NEXT row would exceed the budget —
+		// i.e. the shipped bytes never exceed the budget by more than one row.
+		const shipped = projection.items.reduce((sum, item) => sum + estimateArrayRowBytes(item), 0)
+		expect(shipped).toBeLessThanOrEqual(MAX_TASK_HISTORY_BYTES_SHIPPED_TO_WEBVIEW)
+		const nextRow = items[projection.items.length]
+		expect(shipped + estimateArrayRowBytes(nextRow)).toBeGreaterThan(MAX_TASK_HISTORY_BYTES_SHIPPED_TO_WEBVIEW)
+	})
+
+	it("never drops the newest row, even when it alone exceeds the byte budget", () => {
+		const items = [
+			makeHistoryItem({ id: "huge", ts: now, task: `Huge ${"x".repeat(20 * 1024)}` }),
+			...rows(3, 2 * 1024).slice(1),
+		]
+
+		const projection = projectTaskHistoryForWebview(items, { maxBytes: 1024, minRows: 1 })
+
+		expect(projection.items).toHaveLength(1)
+		expect(projection.items[0].id).toBe("huge")
+		expect(projection.bounded).toBe(true)
+	})
+
+	it("fills the row floor with the newest rows when they exceed the budget", () => {
+		const items = rows(20, 8 * 1024)
+
+		const projection = projectTaskHistoryForWebview(items, { maxBytes: 1 })
+
+		// With maxBytes below a single row the floor is the only thing bound.
+		expect(projection.items).toHaveLength(MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW)
+		expect(projection.items.map((item) => item.id)).toEqual(
+			Array.from({ length: MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW }, (_, i) => `row-${i}`),
+		)
+	})
+
+	it("never JSON.stringify's while sizing rows (cheap estimator only)", () => {
+		const spy = vi.spyOn(JSON, "stringify")
+		try {
+			const projection = projectTaskHistoryForWebview(rows(120, 4 * 1024))
+			expect(projection.items.length).toBeGreaterThan(0)
+			expect(spy).not.toHaveBeenCalled()
+		} finally {
+			spy.mockRestore()
+		}
+	})
+
+	it("does not mutate the store array it is given", () => {
+		const items = [
+			makeHistoryItem({ id: "old", ts: now - 100, task: "Old" }),
+			makeHistoryItem({ id: "new", ts: now, task: "New" }),
+		]
+		const snapshot = items.map((item) => item.id)
+
+		projectTaskHistoryForWebview(items)
+
+		expect(items.map((item) => item.id)).toEqual(snapshot)
+	})
+})
+
+describe("projectTaskHistoryForWebview (DEBT C: the byte bound must not split a task tree)", () => {
+	const now = Date.now()
+
+	/**
+	 * The invariant the History panel depends on: `useGroupedTasks` groups on
+	 * `parentTaskId` and promotes a child whose parent is missing to a ROOT row, so
+	 * a shipped child without its shipped parent renders as a top-level task.
+	 * Returns the ids that would render as orphaned children.
+	 */
+	const orphans = (items: HistoryItem[]): string[] => {
+		const shippedIds = new Set(items.map((item) => item.id))
+		return items.filter((item) => item.parentTaskId && !shippedIds.has(item.parentTaskId)).map((item) => item.id)
+	}
+
+	/**
+	 * Newest-first store: three cheap children, then a row the count cap refuses
+	 * (`middle`, NEWER than the parent), then the parent, then an older row.
+	 * The window admits only the three children, so `parent` used to be dropped.
+	 */
+	const treeFixture = () => {
+		const children = [0, 1, 2].map((i) =>
+			makeHistoryItem({ id: `child-${i}`, ts: now - i, task: `Child ${i}`, parentTaskId: "parent" }),
+		)
+		const middle = makeHistoryItem({ id: "middle", ts: now - 5, task: "Middle" })
+		const parent = makeHistoryItem({ id: "parent", ts: now - 10, task: "Parent" })
+		const oldest = makeHistoryItem({ id: "oldest", ts: now - 20, task: "Oldest" })
+
+		return { children, middle, parent, oldest, all: [...children, middle, parent, oldest] }
+	}
+
+	it("re-attaches the parent the byte/count budget would orphan, keeping newest-first order", () => {
+		const { children, parent, all } = treeFixture()
+
+		const projection = projectTaskHistoryForWebview(all, { maxItems: 3 })
+
+		expect(projection.items.map((item) => item.id)).toEqual([...children.map((child) => child.id), parent.id])
+		expect(orphans(projection.items)).toEqual([])
+		expect(projection.total).toBe(all.length)
+		expect(projection.bounded).toBe(true)
+	})
+
+	it("re-attaches a whole chain (grandparent included), oldest last", () => {
+		const grandparent = makeHistoryItem({ id: "grandparent", ts: now - 30, task: "Grandparent" })
+		const parent = makeHistoryItem({ id: "parent", ts: now - 20, task: "Parent", parentTaskId: "grandparent" })
+		const child = makeHistoryItem({ id: "child", ts: now, task: "Child", parentTaskId: "parent" })
+
+		const projection = projectTaskHistoryForWebview([child, parent, grandparent], { maxItems: 1 })
+
+		expect(projection.items.map((item) => item.id)).toEqual(["child", "parent", "grandparent"])
+		expect(orphans(projection.items)).toEqual([])
+	})
+
+	it("does not invent a parent that is not in the store (a deleted parent stays a root row)", () => {
+		const child = makeHistoryItem({ id: "child", ts: now, task: "Child", parentTaskId: "deleted-parent" })
+
+		const projection = projectTaskHistoryForWebview([child])
+
+		expect(projection.items.map((item) => item.id)).toEqual(["child"])
+		expect(projection.bounded).toBe(false)
+		expect(projection.pagingAnchorTs).toBeUndefined()
+	})
+
+	it("pages from the contiguous cutoff, so the rows the window skipped stay reachable", () => {
+		const { all, parent, middle, oldest } = treeFixture()
+		const projection = projectTaskHistoryForWebview(all, { maxItems: 3 })
+
+		// The re-attached parent is OLDER than the cutoff, so the anchor must be the
+		// last CONTIGUOUS row (child-2) — not the last row present (the parent).
+		expect(projection.pagingAnchorTs).toBe(now - 2)
+
+		const fromAnchor = selectOlderTaskHistory(all, projection.pagingAnchorTs as number)
+		expect(fromAnchor.items.map((item) => item.id)).toEqual([middle.id, parent.id, oldest.id])
+
+		// Paging from the last row present would skip `middle` entirely, and no later
+		// page could reach it (pages only move further down in `ts`).
+		const fromLastRow = selectOlderTaskHistory(all, projection.items.at(-1)!.ts)
+		expect(fromLastRow.items.map((item) => item.id)).toEqual([oldest.id])
+	})
+
+	it("leaves a chain split rather than breaching the byte budget when the parent cannot fit", () => {
+		const parent = makeHistoryItem({ id: "parent", ts: now - 100, task: `Parent ${"p".repeat(30 * 1024)}` })
+		const child = makeHistoryItem({
+			id: "child",
+			ts: now,
+			task: `Child ${"c".repeat(4 * 1024)}`,
+			parentTaskId: "parent",
+		})
+
+		const projection = projectTaskHistoryForWebview([child, parent], { maxBytes: 4 * 1024, minRows: 1 })
+
+		expect(projection.items.map((item) => item.id)).toEqual(["child"])
+		// The anchor still points at the single contiguous row, so the parent (and
+		// its oversized payload) remains fetchable through the paging flow.
+		expect(projection.pagingAnchorTs).toBe(now)
+		expect(
+			selectOlderTaskHistory([child, parent], projection.pagingAnchorTs as number).items.map((i) => i.id),
+		).toEqual(["parent"])
+	})
+
+	it("charges re-attached ancestors to the same byte budget", () => {
+		const child = makeHistoryItem({ id: "child", ts: now, task: "Child", parentTaskId: "parent" })
+		const parent = makeHistoryItem({ id: "parent", ts: now - 1, task: `Parent ${"p".repeat(3 * 1024)}` })
+
+		const projection = projectTaskHistoryForWebview([child, parent], { maxBytes: 1024, minRows: 1 })
+
+		// The floor admits the child even though it alone exceeds the budget; the
+		// ancestor is NOT added on top of it (that is what would breach the payload
+		// budget the projection exists to enforce).
+		expect(projection.items.map((item) => item.id)).toEqual(["child"])
+		expect(orphans(projection.items)).toEqual(["child"])
+	})
+
+	it("omits the paging anchor when the window is the whole history", () => {
+		const projection = projectTaskHistoryForWebview([makeHistoryItem({ id: "only", ts: now, task: "Only" })])
+
+		expect(projection.bounded).toBe(false)
+		expect(projection.pagingAnchorTs).toBeUndefined()
+	})
+})
+
+describe("selectOlderTaskHistory", () => {
+	const now = Date.now()
+	const items = Array.from({ length: 30 }, (_, i) =>
+		makeHistoryItem({ id: `row-${i}`, ts: now - i, task: `Row ${i}`, number: i + 1 }),
+	)
+
+	it("returns the newest rows STRICTLY older than the bound, plus hasMore", () => {
+		const page = selectOlderTaskHistory(items, now - 10, { maxItems: 5 })
+
+		expect(page.items.map((item) => item.id)).toEqual(["row-11", "row-12", "row-13", "row-14", "row-15"])
+		expect(page.hasMore).toBe(true)
+	})
+
+	it("reports hasMore=false once the history tail is reached", () => {
+		const page = selectOlderTaskHistory(items, now - 28, { maxItems: 50 })
+
+		expect(page.items.map((item) => item.id)).toEqual(["row-29"])
+		expect(page.hasMore).toBe(false)
+	})
+
+	it("excludes unusable rows from the page and its hasMore accounting", () => {
+		const withNoise = [
+			makeHistoryItem({ id: "no-task", ts: now - 1, task: "" }),
+			makeHistoryItem({ id: "good", ts: now - 2, task: "Good" }),
+		]
+
+		const page = selectOlderTaskHistory(withNoise, now)
+
+		expect(page.items.map((item) => item.id)).toEqual(["good"])
+		expect(page.hasMore).toBe(false)
+	})
+})
+
+describe("isShippableHistoryItem", () => {
+	it("requires both a timestamp and a task description", () => {
+		expect(isShippableHistoryItem(makeHistoryItem({ id: "ok", task: "Task" }))).toBe(true)
+		expect(isShippableHistoryItem(makeHistoryItem({ id: "no-ts", task: "Task", ts: 0 }))).toBe(false)
+		expect(isShippableHistoryItem(makeHistoryItem({ id: "no-task", task: "" }))).toBe(false)
 	})
 })
