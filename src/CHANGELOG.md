@@ -35,6 +35,14 @@ Starting the 3.88 pre-release line — a hardening cycle responding to VS Code M
 - **Payload-size SLI** — host→webview state messages are now measured with size thresholds, so a payload regression surfaces in logs before users feel it (#64).
 - **Quieter consoles** — Semble search logging moved behind the extension output channel, and production source-map URL guessing (guaranteed 404 noise) is gated behind a debug flag (#64).
 
+### 🩺 Webview Reliability — v3.88.4 … v3.88.8 (#331)
+
+- **Byte-bounded `taskHistory`** — the count-only cap (100 rows ≈ 1 MB on a history-heavy install) now also has a **32 KB byte budget with a 3-row floor**, and the newest row is never dropped, so the `state` payload stays clear of the 1 MB ERROR threshold and the warning popup. The History panel lazy-loads the omitted tail ("Load older tasks") instead of the host re-serializing ~1 MB on every push (#331).
+- **Bounded-window metadata** — `taskHistoryBounded`, `taskHistoryTotal` and `taskHistoryPagingAnchorTs` let the panel tell a truncated list from a short one and page from the correct cutoff, so rows skipped by the byte budget stay reachable (#331).
+- **Tree-safe window** — a byte/count boundary no longer splits a parent/child task tree: the window re-attaches the ancestor rows a subtask needs, so a subtask is never rendered as a top-level task (#331).
+- **Renderer-liveness probe (`[webview-liveness]`)** — opt-in, log-only host→webview→host ping/pong probe reporting RTT `p50`/`p99`/`max` and missed pongs once per ~60 s window, plus WARN/ERROR lines past the documented thresholds. Enabled with `ROO_WEBVIEW_LIVENESS_DEBUG=1`, off by default, local-only and never persisted. `[host-health]` instruments the extension host and cannot see a stalled webview renderer/transport, which is what the 2026-09-18 gray-webview capture shows (#331).
+- **Hermetic health-metrics tests** — the host-health gate specs no longer depend on the developer's ambient `ROO_HOST_HEALTH_DEBUG`, so they pass with the flag set or unset (DEBT E).
+
 ---
 
 ## [3.87.0] — 2026-08-27
