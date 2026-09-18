@@ -6,6 +6,7 @@ import {
 	type ExperimentId,
 	type ExtensionState,
 	type ClineMessage,
+	type HistoryItem,
 	type MarketplaceItem,
 	type MarketplaceInstalledMetadata,
 	type RouterModels,
@@ -802,5 +803,118 @@ describe("mergeExtensionState", () => {
 
 			expect(ts()).toEqual([1, ...range(491, 500).map((m) => m.ts)])
 		})
+	})
+})
+
+describe("bounded taskHistory window (2026-09-17 state payload incident)", () => {
+	const TaskHistoryProbe = () => {
+		const { taskHistory, taskHistoryBounded, taskHistoryTotal } = useExtensionState()
+
+		return (
+			<div>
+				<div data-testid="history-ids">{JSON.stringify(taskHistory.map((i) => i.id))}</div>
+				<div data-testid="history-bounded">{JSON.stringify(taskHistoryBounded ?? null)}</div>
+				<div data-testid="history-total">{JSON.stringify(taskHistoryTotal ?? null)}</div>
+			</div>
+		)
+	}
+
+	const dispatch = (data: Record<string, unknown>) =>
+		act(() => {
+			window.dispatchEvent(new MessageEvent("message", { data }))
+		})
+
+	const historyItem = (id: string, ts: number): HistoryItem => ({
+		id,
+		number: 1,
+		ts,
+		task: `task-${id}`,
+		tokensIn: 0,
+		tokensOut: 0,
+		totalCost: 0,
+	})
+	const ids = () => JSON.parse(screen.getByTestId("history-ids").textContent!)
+
+	const renderProbe = () =>
+		render(
+			<ExtensionStateContextProvider>
+				<TaskHistoryProbe />
+			</ExtensionStateContextProvider>,
+		)
+
+	it("keeps rows already loaded when a later bounded push ships a smaller window", () => {
+		renderProbe()
+
+		dispatch({
+			type: "state",
+			state: {
+				taskHistoryBounded: true,
+				taskHistoryTotal: 40,
+				taskHistory: [historyItem("n2", 100), historyItem("n1", 99)],
+			},
+		})
+
+		expect(ids()).toEqual(["n2", "n1"])
+		expect(JSON.parse(screen.getByTestId("history-bounded").textContent!)).toBe(true)
+		expect(JSON.parse(screen.getByTestId("history-total").textContent!)).toBe(40)
+
+		// A push whose window no longer contains the older row must not erase it.
+		dispatch({
+			type: "state",
+			state: {
+				taskHistoryBounded: true,
+				taskHistoryTotal: 40,
+				taskHistory: [historyItem("n3", 101), historyItem("n2", 100)],
+			},
+		})
+
+		expect(ids()).toEqual(["n3", "n2", "n1"])
+	})
+
+	it("appends a lazily fetched older page in order and without duplicates", () => {
+		renderProbe()
+
+		dispatch({
+			type: "state",
+			state: {
+				taskHistoryBounded: true,
+				taskHistoryTotal: 40,
+				taskHistory: [historyItem("n2", 100), historyItem("n1", 99)],
+			},
+		})
+		dispatch({
+			type: "olderTaskHistory",
+			olderTaskHistoryHasMore: true,
+			olderTaskHistory: [historyItem("o1", 50), historyItem("n1", 99)],
+		})
+
+		expect(ids()).toEqual(["n2", "n1", "o1"])
+	})
+
+	it("leaves the list untouched for an empty or errored page", () => {
+		renderProbe()
+
+		dispatch({
+			type: "state",
+			state: { taskHistoryBounded: true, taskHistoryTotal: 40, taskHistory: [historyItem("n1", 99)] },
+		})
+		dispatch({ type: "olderTaskHistory", error: "boom" })
+
+		expect(ids()).toEqual(["n1"])
+	})
+
+	it("still replaces the list for an unbounded (complete) history push", () => {
+		renderProbe()
+
+		dispatch({
+			type: "state",
+			state: { taskHistory: [historyItem("a", 1), historyItem("b", 2)] },
+		})
+
+		expect(ids()).toEqual(["a", "b"])
+
+		dispatch({ type: "state", state: { taskHistory: [historyItem("c", 3)] } })
+
+		expect(ids()).toEqual(["c"])
 	})
 })

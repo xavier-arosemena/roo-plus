@@ -79,7 +79,7 @@ import { MdmService } from "../../services/mdm/MdmService"
 import { SkillsManager } from "../../services/skills/SkillsManager"
 import { MarketplaceService } from "../services/MarketplaceService"
 import { ProviderProfileService } from "../services/ProviderProfileService"
-import { TaskHistoryService, boundTaskHistoryForWebview } from "../services/TaskHistoryService"
+import { TaskHistoryService, projectTaskHistoryForWebview } from "../services/TaskHistoryService"
 import { boundCustomModesForWebview } from "../config/CustomModesManager"
 import { projectClineMessagesForWebview } from "./clineMessagesForWebview"
 import { TaskOrchestrator } from "../services/TaskOrchestrator"
@@ -111,7 +111,7 @@ import { getUri } from "./getUri"
 import { REQUESTY_BASE_URL } from "../../shared/utils/requesty"
 import { PendingEditOperationStore, type PendingEditOperationInput } from "./PendingEditOperationStore"
 import { WebviewPayloadMetrics } from "./webviewPayloadMetrics"
-import { ExtensionHostHealthMetrics, isHostHealthDebugEnabled } from "./extensionHostHealthMetrics"
+import { ExtensionHostHealthMetrics, isHostHealthDebugEnabledFromEnv } from "./extensionHostHealthMetrics"
 
 /**
  * https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -239,7 +239,7 @@ export class ClineProvider
 	 * contract.
 	 */
 	private readonly hostHealthMetrics: ExtensionHostHealthMetrics = new ExtensionHostHealthMetrics({
-		enabled: isHostHealthDebugEnabled(),
+		enabled: isHostHealthDebugEnabledFromEnv(),
 		now: () => Date.now(),
 		log: (message) => this.log(message),
 		cpuUsage: () => process.cpuUsage(),
@@ -2545,6 +2545,15 @@ export class ClineProvider
 		// `clineMessagesForWebview.ts` for the 2026-09-15 incident context.
 		const boundedClineMessages = projectClineMessagesForWebview(currentTask?.clineMessages)
 
+		// Count+BYTE-bounded task-history window (2026-09-17 incident — the byte
+		// half of the 3.88.1 count bound). `bounded`/`total` let the webview keep
+		// rows it already has and offer the lazy `getOlderTaskHistory` path
+		// instead of silently losing older tasks. See
+		// `projectTaskHistoryForWebview` for the 32 KB budget rationale.
+		const taskHistoryWindow = includeTaskHistory
+			? projectTaskHistoryForWebview(this.taskHistoryStore.getAll())
+			: { items: [] as HistoryItem[], bounded: false, total: 0 }
+
 		return {
 			version: this.context.extension?.packageJSON?.version ?? "",
 			apiConfiguration,
@@ -2571,10 +2580,14 @@ export class ClineProvider
 			clineMessagesTotal: boundedClineMessages.total,
 			currentTaskTodos: currentTask?.todoList || [],
 			messageQueue: currentTask?.messageQueueService?.messages,
-			// Bound to the most recent tasks only — sending the full store (~3.5 MB) to
-			// the webview on every state message saturated the renderer over remote-SSH
-			// IPC. The file store remains the full source of truth for deeper access.
-			taskHistory: includeTaskHistory ? boundTaskHistoryForWebview(this.taskHistoryStore.getAll()) : [],
+			// Count+BYTE-bounded to the most recent tasks — sending the full store
+			// (~3.5 MB) to the webview on every state message saturated the renderer
+			// over remote-SSH IPC, and the count-only bound still shipped ~1 MB of
+			// full history rows. The file store remains the full source of truth for
+			// deeper access, reachable via `getOlderTaskHistory`.
+			taskHistory: taskHistoryWindow.items,
+			taskHistoryBounded: includeTaskHistory ? taskHistoryWindow.bounded : undefined,
+			taskHistoryTotal: includeTaskHistory ? taskHistoryWindow.total : undefined,
 			soundEnabled: soundEnabled ?? false,
 			ttsEnabled: ttsEnabled ?? false,
 			ttsSpeed: ttsSpeed ?? 1.0,
@@ -2738,6 +2751,13 @@ export class ClineProvider
 
 		const taskSyncEnabled: boolean = false
 
+		// Count+BYTE-bounded task-history window, matching getStateToPostToWebview
+		// (see `projectTaskHistoryForWebview` for the 32 KB budget rationale and
+		// the 2026-09-17 payload incident).
+		const taskHistoryWindow = includeTaskHistory
+			? projectTaskHistoryForWebview(this.taskHistoryStore.getAll())
+			: { items: [] as HistoryItem[], bounded: false, total: 0 }
+
 		// Return the same structure as before.
 		return {
 			apiConfiguration: providerSettings,
@@ -2762,9 +2782,11 @@ export class ClineProvider
 			allowedMaxCost: stateValues.allowedMaxCost,
 			autoCondenseContext: stateValues.autoCondenseContext ?? true,
 			autoCondenseContextPercent: stateValues.autoCondenseContextPercent ?? 100,
-			// Bound to recent tasks, matching getStateToPostToWebview (see
-			// boundTaskHistoryForWebview for the 3.5 MB-payload context).
-			taskHistory: includeTaskHistory ? boundTaskHistoryForWebview(this.taskHistoryStore.getAll()) : [],
+			// Bound to recent tasks by COUNT and BYTES, matching
+			// getStateToPostToWebview (see `projectTaskHistoryForWebview`).
+			taskHistory: taskHistoryWindow.items,
+			taskHistoryBounded: includeTaskHistory ? taskHistoryWindow.bounded : undefined,
+			taskHistoryTotal: includeTaskHistory ? taskHistoryWindow.total : undefined,
 			allowedCommands: stateValues.allowedCommands,
 			deniedCommands: stateValues.deniedCommands,
 			soundEnabled: stateValues.soundEnabled ?? false,

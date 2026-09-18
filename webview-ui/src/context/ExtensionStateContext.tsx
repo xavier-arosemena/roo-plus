@@ -32,6 +32,7 @@ import { experimentDefault } from "@roo/experiments"
 import { vscode } from "@src/utils/vscode"
 import { convertTextMateToHljs } from "@src/utils/textMateToHljs"
 import { mergeClineMessagesState, mergeOlderClineMessagesPage } from "@src/utils/mergeClineMessagesState"
+import { appendOlderTaskHistoryPage, mergeTaskHistoryState } from "@src/utils/mergeTaskHistoryState"
 
 export interface ExtensionStateContextType extends ExtensionState {
 	historyPreviewCollapsed?: boolean // Add the new state property
@@ -178,6 +179,16 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Partial
 	// out of the window, so a growing conversation never loses its top, and it
 	// re-attaches pages loaded via the "load earlier messages" flow. A
 	// non-bounded push is a complete transcript and replaces as before.
+	// taskHistory arrives as a COUNT+BYTE-bounded window (`taskHistoryBounded`,
+	// 2026-09-17 payload incident — the byte half of the 3.88.1 count bound).
+	// Merging (rather than replacing) keeps rows the panel already has, including
+	// pages loaded via the "load older tasks" affordance, so a push can never
+	// reset the visible list back to the bounded head. A non-bounded push is a
+	// complete history and replaces as before.
+	if (newRest.taskHistory !== undefined) {
+		rest.taskHistory = mergeTaskHistoryState(prevRest.taskHistory, newRest.taskHistory, newRest.taskHistoryBounded)
+	}
+
 	if (newRest.clineMessages !== undefined) {
 		// A different task id means the transcript identity changed: never carry
 		// another task's messages across (same-task pushes, including re-opening
@@ -532,6 +543,20 @@ export const ExtensionStateContextProvider: React.FC<{
 							taskHistory: message.taskHistory!,
 						}))
 					}
+					break
+				}
+				case "olderTaskHistory": {
+					// Lazy-fetch response for the History panel's "load older
+					// tasks" flow (2026-09-17 `state` payload incident): appends
+					// the page of rows immediately older than the bound the view
+					// asked for, keeping the list ordered and duplicate-free.
+					if (!message.olderTaskHistory?.length || message.error) {
+						break
+					}
+					setState((prevState) => ({
+						...prevState,
+						taskHistory: appendOlderTaskHistoryPage(prevState.taskHistory, message.olderTaskHistory),
+					}))
 					break
 				}
 				case "taskHistoryItemUpdated": {

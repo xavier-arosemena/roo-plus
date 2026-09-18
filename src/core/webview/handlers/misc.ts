@@ -7,6 +7,7 @@ import {
 	type WebviewMessageType,
 	dismissUpsellMessageSchema,
 	getOlderClineMessagesMessageSchema,
+	getOlderTaskHistoryMessageSchema,
 	insertTextIntoTextareaMessageSchema,
 	openExternalMessageSchema,
 	openFileMessageSchema,
@@ -33,6 +34,7 @@ import { t } from "../../../i18n"
 import type { ClineProvider } from "../ClineProvider"
 import type { MarketplaceManager } from "../../../services/marketplace"
 import { selectOlderClineMessages } from "../clineMessagesForWebview"
+import { selectOlderTaskHistory } from "../../services/TaskHistoryService"
 import { getCurrentCwd, getGlobalState, updateGlobalState } from "./shared"
 
 export const miscMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
@@ -42,6 +44,7 @@ export const miscMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
 	"getDismissedUpsells",
 	"getModesFullConfig",
 	"getOlderClineMessages",
+	"getOlderTaskHistory",
 	"importRooHistory",
 	"insertTextIntoTextarea",
 	"openExternal",
@@ -544,6 +547,39 @@ export async function handleMiscMessages(
 				olderClineMessages: page,
 				olderClineMessagesHasMore: hasMore,
 				olderClineMessagesTaskId: task?.taskId,
+			})
+			break
+		}
+		case "getOlderTaskHistory": {
+			// Lazy fetch for the History panel's "load older tasks" affordance
+			// (2026-09-17 incident — the byte half of the 3.88.1 taskHistory count
+			// bound): `state` pushes now ship a count+byte-bounded taskHistory
+			// window, so the view asks for the page immediately older than its
+			// oldest loaded row. The file-backed store is the source of truth, so
+			// paging never re-serializes more than one bounded page.
+			const result = getOlderTaskHistoryMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed getOlderTaskHistory message: ${result.error.message}`,
+				)
+				break
+			}
+
+			await provider.taskHistoryStore.initialized
+
+			// A request without a bound is meaningless (it would re-send the
+			// window the webview already has); answer with an empty, non-paging
+			// page rather than duplicating the live window.
+			const { items: page, hasMore } =
+				result.data.beforeTs === undefined
+					? { items: [], hasMore: false }
+					: selectOlderTaskHistory(provider.taskHistoryStore.getAll(), result.data.beforeTs)
+
+			await provider.postMessageToWebview({
+				type: "olderTaskHistory",
+				olderTaskHistory: page,
+				olderTaskHistoryHasMore: hasMore,
 			})
 			break
 		}

@@ -1,6 +1,7 @@
 {
 	"recentTasks": "最近のタスク",
 	"history": "履歴",
+	"loadOlderTasks": "以前のタスクを読み込む",
 	"exitSelectionMode": "選択モードを終了",
 	"enterSelectionMode": "選択モードに入る",
 	"done": "完了",

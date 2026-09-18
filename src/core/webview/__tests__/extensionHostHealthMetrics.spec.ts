@@ -13,6 +13,7 @@ import {
 	JITTER_WARN_MAX_MS,
 	ExtensionHostHealthMetrics,
 	isHostHealthDebugEnabled,
+	isHostHealthDebugEnabledFromEnv,
 	type CpuUsage,
 	type EventLoopDelayHistogram,
 	type ExtensionHostHealthMetricsDeps,
@@ -232,7 +233,18 @@ describe("ExtensionHostHealthMetrics", () => {
 		expect(isHostHealthDebugEnabled("0")).toBe(false)
 		expect(isHostHealthDebugEnabled("false")).toBe(false)
 		expect(isHostHealthDebugEnabled("")).toBe(false)
+		// Explicit `undefined` is an input, not a fall-through to the ambient env
+		// (DEBT entry E): the pure predicate has no default parameter to fall into.
 		expect(isHostHealthDebugEnabled(undefined)).toBe(false)
+	})
+
+	test("gate: the env reader is injected, so the suite never reads the ambient environment", () => {
+		expect(isHostHealthDebugEnabledFromEnv({ ROO_HOST_HEALTH_DEBUG: "1" })).toBe(true)
+		expect(isHostHealthDebugEnabledFromEnv({ ROO_HOST_HEALTH_DEBUG: "TRUE" })).toBe(true)
+		expect(isHostHealthDebugEnabledFromEnv({ ROO_HOST_HEALTH_DEBUG: "0" })).toBe(false)
+		expect(isHostHealthDebugEnabledFromEnv({ ROO_HOST_HEALTH_DEBUG: undefined })).toBe(false)
+		// An empty map is off no matter what this shell exports.
+		expect(isHostHealthDebugEnabledFromEnv({})).toBe(false)
 	})
 
 	test("exports the §8.2 thresholds and the ~60 s window shared with the payload SLI", () => {

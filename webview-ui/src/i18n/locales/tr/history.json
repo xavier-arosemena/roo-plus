@@ -1,6 +1,7 @@
 {
 	"recentTasks": "Son görevler",
 	"history": "Geçmiş",
+	"loadOlderTasks": "Daha eski görevleri yükle",
 	"exitSelectionMode": "Seçim Modundan Çık",
 	"enterSelectionMode": "Seçim Moduna Gir",
 	"done": "Tamam",

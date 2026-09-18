@@ -94,6 +94,7 @@ export interface ExtensionMessage {
 		| "modes"
 		| "modesFullConfig"
 		| "olderClineMessages"
+		| "olderTaskHistory"
 		| "taskWithAggregatedCosts"
 		| "openAiCodexRateLimits"
 		// Worktree response types
@@ -233,6 +234,18 @@ export interface ExtensionMessage {
 	olderClineMessagesHasMore?: boolean // For olderClineMessages response
 	/** For `olderClineMessages`: the task the page belongs to (stale-page guard). */
 	olderClineMessagesTaskId?: string // For olderClineMessages response
+	/**
+	 * For `olderTaskHistory`: the page of task-history rows immediately older
+	 * than the requester's bound.
+	 *
+	 * Companion to the byte-bounded `state.taskHistory` window (2026-09-17
+	 * taskHistory payload incident): the History panel lazy-fetches the omitted
+	 * tail via `getOlderTaskHistory` so older tasks stay reachable from the
+	 * file-backed store instead of riding every `state` push.
+	 */
+	olderTaskHistory?: HistoryItem[]
+	/** For `olderTaskHistory`: whether even older rows remain in the store. */
+	olderTaskHistoryHasMore?: boolean
 	rooHistoryImportProgress?: {
 		status: "starting" | "copying" | "finished" | "failed"
 		copiedFileCount: number
@@ -400,6 +413,22 @@ export type ExtensionState = Pick<
 	shouldShowAnnouncement: boolean
 
 	taskHistory: HistoryItem[]
+	/**
+	 * `true` when {@link taskHistory} is a COUNT+BYTE-bounded window rather than
+	 * the whole store (2026-09-17 taskHistory payload incident).
+	 *
+	 * `taskHistory` was first bounded by count alone (3.88.1), but a
+	 * history-heavy install serializes ~10 KB per full `HistoryItem`, so 100
+	 * rows still produced a > 1 MB `state` message and the "pale gray"
+	 * renderer symptom. When set, the webview must (a) keep the rows it already
+	 * has instead of replacing them and (b) offer a "load older tasks"
+	 * affordance, which lazy-fetches the omitted tail via
+	 * `getOlderTaskHistory` → `olderTaskHistory`. The file-backed task store
+	 * remains the source of truth.
+	 */
+	taskHistoryBounded?: boolean
+	/** Number of shippable rows in the full task store (for the load-older affordance). */
+	taskHistoryTotal?: number
 
 	writeDelayMs: number
 	diffFuzzyThreshold: number
@@ -621,6 +650,7 @@ export interface WebviewMessage {
 		| "requestModes"
 		| "getModesFullConfig"
 		| "getOlderClineMessages"
+		| "getOlderTaskHistory"
 		| "debugSetting"
 		// Worktree messages
 		| "listWorktrees"
@@ -666,6 +696,9 @@ export interface WebviewMessage {
 	/**
 	 * For `getOlderClineMessages`: exclusive upper bound (a `ClineMessage.ts`)
 	 * for the page of older transcript messages to return.
+	 *
+	 * For `getOlderTaskHistory`: exclusive upper bound (a `HistoryItem.ts`) for
+	 * the page of older task-history rows to return.
 	 */
 	beforeTs?: number
 	bool?: boolean

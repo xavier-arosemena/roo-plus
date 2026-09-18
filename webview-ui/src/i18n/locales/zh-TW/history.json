@@ -1,6 +1,7 @@
 {
 	"recentTasks": "最近工作",
 	"history": "歷史紀錄",
+	"loadOlderTasks": "載入更早的工作",
 	"exitSelectionMode": "離開選擇模式",
 	"enterSelectionMode": "進入選擇模式",
 	"done": "完成",

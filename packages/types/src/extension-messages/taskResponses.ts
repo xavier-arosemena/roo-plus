@@ -330,6 +330,32 @@ export const olderClineMessagesMessageSchema = z.object({
 })
 
 /**
+ * Older-task-history page response (`olderTaskHistory`) — lazy fetch for the
+ * History panel's "load older tasks" affordance.
+ *
+ * The producer (`src/core/webview/handlers/misc.ts`, `getOlderTaskHistory`
+ * handler) posts `{ type, olderTaskHistory, olderTaskHistoryHasMore }` with the
+ * page of rows immediately older than the requester's bound, selected from the
+ * file-backed task store. It exists because `state` pushes now ship a
+ * count+byte-bounded `taskHistory` window (2026-09-17 incident: the 3.88.1
+ * count-only bound still shipped ~10 KB rows × 100 ≈ 1 MB, tripping the 1 MB
+ * ERROR threshold); the webview fetches the omitted tail on demand. `error` is
+ * included so a failed read is surfaced instead of silently leaving the panel
+ * truncated.
+ *
+ * Rows are validated against `historyItemSchema.passthrough()` (same treatment
+ * as `taskHistoryUpdated`): the real shape is checked while unknown fields are
+ * retained, because the panel groups rows by parent/child ids and dropping
+ * unknown fields would silently corrupt the tree.
+ */
+export const olderTaskHistoryMessageSchema = z.object({
+	type: z.literal("olderTaskHistory"),
+	olderTaskHistory: z.array(historyItemSchema.passthrough()).optional(),
+	olderTaskHistoryHasMore: z.boolean().optional(),
+	error: z.string().optional(),
+})
+
+/**
  * Task aggregated-costs response (`taskWithAggregatedCosts`).
  *
  * The producer (`src/core/webview/handlers/task.ts`, `getTaskWithAggregatedCosts`
@@ -409,6 +435,7 @@ export const taskResponsesMessageSchema = z.discriminatedUnion("type", [
 	modesMessageSchema,
 	modesFullConfigMessageSchema,
 	olderClineMessagesMessageSchema,
+	olderTaskHistoryMessageSchema,
 	taskWithAggregatedCostsMessageSchema,
 	openAiCodexRateLimitsMessageSchema,
 	interactionRequiredMessageSchema,

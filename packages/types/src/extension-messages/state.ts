@@ -45,6 +45,9 @@ export const extensionStateSubsetSchema = z
 		// Tail-anchored `clineMessages` window metadata (2026-09-15 payload incident).
 		clineMessagesBounded: z.boolean().optional(),
 		clineMessagesTotal: z.number().optional(),
+		// Count+byte-bounded `taskHistory` window metadata (2026-09-17 incident).
+		taskHistoryBounded: z.boolean().optional(),
+		taskHistoryTotal: z.number().optional(),
 		taskHistory: z.unknown().optional(),
 		currentTaskItem: z.unknown().optional(),
 		currentTaskTodos: z.unknown().optional(),

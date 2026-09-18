@@ -146,6 +146,21 @@ export const getOlderClineMessagesMessageSchema = z.object({
 	beforeTs: z.number().optional(),
 })
 
+/**
+ * Request the page of task-history rows immediately older than `beforeTs`.
+ *
+ * Lazy-fetch companion to the count+byte-bounded `state.taskHistory` window
+ * (2026-09-17 taskHistory payload incident — the byte half of the 3.88.1 count
+ * bound): `state` pushes now ship only the newest rows that fit the byte
+ * budget, so the History panel asks for the omitted tail on demand. The
+ * response is the outbound `olderTaskHistory` message. `beforeTs` is the
+ * requester's oldest loaded row timestamp and is EXCLUSIVE.
+ */
+export const getOlderTaskHistoryMessageSchema = z.object({
+	type: z.literal("getOlderTaskHistory"),
+	beforeTs: z.number().optional(),
+})
+
 /** Insert text into the chat textarea. `text` stays optional to match the handler guard. */
 export const insertTextIntoTextareaMessageSchema = z.object({
 	type: z.literal("insertTextIntoTextarea"),
@@ -188,6 +203,7 @@ export const miscMessageSchema = z.discriminatedUnion("type", [
 	requestModesMessageSchema,
 	getModesFullConfigMessageSchema,
 	getOlderClineMessagesMessageSchema,
+	getOlderTaskHistoryMessageSchema,
 	insertTextIntoTextareaMessageSchema,
 	dismissUpsellMessageSchema,
 	getDismissedUpsellsMessageSchema,

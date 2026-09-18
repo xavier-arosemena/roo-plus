@@ -5,6 +5,7 @@
 	"cache": "Cache: +{{writes}} → {{reads}}",
 	"apiCost": "API-Kosten: ${{cost}}",
 	"history": "Verlauf",
+	"loadOlderTasks": "Ältere Aufgaben laden",
 	"exitSelectionMode": "Auswahlmodus beenden",
 	"enterSelectionMode": "Auswahlmodus starten",
 	"done": "Fertig",
