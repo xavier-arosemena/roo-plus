@@ -1,3 +1,8 @@
+> **[redacted]** Remote-SSH host identifiers in this record were replaced with placeholders so
+> this file is safe to serve from the public repo: host A's SSH alias and kernel hostname →
+> `<remote-A>`, and host B's public IPv4 address → `<remote-ip>`. Only the identifiers changed —
+> measurements, timings, byte counts and conclusions are unaltered.
+
 # Diagnosis & Design: "Extension host (Remote) is unresponsive"
 
 - **Date:** 2026-09-15
@@ -42,7 +47,7 @@ Microbenchmark of the exact production call chain, run on `Node v22.22.2` (the r
 2. `state` = `{ version, clineMessages, customModes (~68 KB), taskHistory (100), messageQueue, marketplaceItems }` ≈ **1.686 MB** total (matches the incident's 1645–1677 KB `state` payloads).
 3. Timed the three operations the host performs per push (see [`recordStateMessage()`](../../src/core/webview/webviewPayloadMetrics.ts:144) → [`jsonSizeBytes()`](../../src/core/webview/webviewPayloadMetrics.ts:82) → [`estimateMessageBytes()`](../../src/core/webview/webviewPayloadMetrics.ts:114) → [`postMessageToWebview()`](../../src/core/webview/ClineProvider.ts:1366)).
 
-> Caveat (stated plainly): this is a _fast dev host_, and `structuredClone` is only an **in-process proxy** for the host→renderer RPC serialization, which is strictly more expensive. Treat every figure below as a **lower bound**; the remote `ArchonServer` CPU speed is unknown and is exactly what §5 measures. Scaling: if the remote host is 3× slower at single-threaded stringify, the duty cycle in §3.4 roughly triples.
+> Caveat (stated plainly): this is a _fast dev host_, and `structuredClone` is only an **in-process proxy** for the host→renderer RPC serialization, which is strictly more expensive. Treat every figure below as a **lower bound**; the remote `<remote-A>` CPU speed is unknown and is exactly what §5 measures. Scaling: if the remote host is 3× slower at single-threaded stringify, the duty cycle in §3.4 roughly triples.
 
 ---
 
@@ -481,8 +486,8 @@ PSI-only for ~13 h.
 
 ### 2026-09-17 — dual-server replay (Pass B follow-up)
 
-Two remote-SSH windows on **different** hosts were driven simultaneously (A `ArchonServer`, 2 vCPU;
-B `204.168.197.3`, 4 vCPU); both extension hosts (re)started `~12:08–12:12Z`. **Neither console
+Two remote-SSH windows on **different** hosts were driven simultaneously (A `<remote-A>`, 2 vCPU;
+B `<remote-ip>`, 4 vCPU); both extension hosts (re)started `~12:08–12:12Z`. **Neither console
 logged an `unresponsive` line** ⇒ nothing to classify (healthy), but the replay refined both gaps.
 
 - **Payload (bytes only):** A `WARN 699KB … top[taskHistory=625KB customModes=71KB
@@ -499,7 +504,7 @@ clineMessages=0KB]` then `707KB` (after `[createTaskWithHistoryItem] … instant
 - **G2 at runtime:** the live `s4` window predated the watchdog and went stale at `12:08:51Z`
   (see the runtime caveat above). **Next action:** stop the stale loop, re-arm with the fixed
   harness. **Owner:** observability / tooling.
-- **Host pressure (A, `archon-core-01`):** PSI `cpu some avg10` peaks `18.40` (`11:48`), **`23.71`**
+- **Host pressure (A, `<remote-A>`):** PSI `cpu some avg10` peaks `18.40` (`11:48`), **`23.71`**
   (`12:00:06`), `15.77` (`12:09:06–16`) — the last coincides with the restart + dual relaunch;
   `full avg10 = 0` throughout ⇒ partial, **`unresponsive` never fired ⇒ not attributable**.
   Dual-server simultaneity is the item-5 _topology_ but **H3 requires the host to be flagged** — it

@@ -1,6 +1,6 @@
 > **[redacted]** Raw dev-console capture from a remote-SSH session, committed to a public repo.
 > Before committing, these were replaced with placeholders: remote hostnames/IPs (`<remote-A>`
-> –`<remote-D>`), private project names and paths (`<project-1>`, `<project-2>`,
+> –`<remote-D>`), private project names and paths (`<project-1>`, `<project-2>`, `<project-3>`,
 > `<workspace-path>`), and task/webview UUIDs (`<task-id>`). Nothing else changed — line
 > order, message text, sizes and timings are unaltered.
 
@@ -1223,7 +1223,7 @@ workbench.desktop.main.js:sourcemap:692 [Extension Host] [webview-metrics] state
 workbench.desktop.main.js:sourcemap:692 [Extension Host] [webview-metrics] state_msgs=9 p50=165KB p99=166KB max=166KB
 "
 
-aef-site (this one also recoverd by itself)
+<project-3> (this one also recoverd by itself)
 "
  INFO Started local extension host with pid 7323.
 workbench.desktop.main.js:sourcemap:38  INFO [AgentHost:remote] Initializing (remoteAuthority=ssh-remote+<remote-B>)

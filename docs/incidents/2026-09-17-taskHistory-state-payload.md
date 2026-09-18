@@ -1,3 +1,8 @@
+> **[redacted]** Remote-SSH host identifiers in this record were replaced with placeholders so
+> this file is safe to serve from the public repo: host A's SSH alias and kernel hostname →
+> `<remote-A>`, and host B's public IPv4 address → `<remote-ip>`. Only the identifiers changed —
+> measurements, timings, byte counts and conclusions are unaltered.
+
 # Incident Report: `state` payload > 1 MB from `taskHistory` (cap-100 but **not** byte-bounded)
 
 - **Date:** 2026-09-17
@@ -5,7 +10,7 @@
 - **Severity:** Medium (SLI `ERROR` + one-time user notification popup). **No gray-out and no `unresponsive` observed** in this event.
 - **Author:** 📈 Deployment Monitor (post-deploy observability pass)
 - **Related:** [postmortem 2026-09-09](../postmortems/2026-09-09-webview-grayout-console-warnings.md) (§5a / §6) · [runbook: gray webview §2, §4, §6](../runbooks/gray-webview.md) · [incident 2026-09-15 — `clineMessages` payload](./2026-09-15-clineMessages-state-payload.md) · [EH-unresponsive diagnosis §11](./2026-09-15-extension-host-unresponsive-diagnosis.md)
-- **Environment:** VS Codium remote-SSH, Linux x64; **two distinct remote hosts** — A `ArchonServer` (2 vCPU) and B `204.168.197.3` (4 vCPU); Roo+ **3.88.3**.
+- **Environment:** VS Codium remote-SSH, Linux x64; **two distinct remote hosts** — A `<remote-A>` (2 vCPU) and B `<remote-ip>` (4 vCPU); Roo+ **3.88.3**.
 
 ## 1. Summary (one line)
 
@@ -98,7 +103,7 @@ Contrast: `clineMessages` is bounded **both** by count **and** bytes ([`boundCli
 
 ## 9. Open question (not a payload issue)
 
-Server B's console carries `indexing …ArchonServer/root/roo-plus` lines although B's `remoteAuthority` is `204.168.197.3`. Worth confirming whether the two windows share a workspace/extension host or the dev-console paste mixed lines. **Not** a payload/SLI matter — recorded for completeness only.
+Server B's console carries `indexing …<remote-A>/root/roo-plus` lines although B's `remoteAuthority` is `<remote-ip>`. Worth confirming whether the two windows share a workspace/extension host or the dev-console paste mixed lines. **Not** a payload/SLI matter — recorded for completeness only.
 
 ## Privacy note
 
