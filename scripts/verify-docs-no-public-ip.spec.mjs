@@ -10,7 +10,9 @@
  *   - line/column reporting and that allow-listed literals are ignored,
  *   - that version strings and hash fragments are not false positives,
  *   - a real pass run against the CURRENT repo `docs/` tree (must be clean),
- *   - deterministic failure cases against a self-contained temp fixture.
+ *   - deterministic failure cases against a self-contained temp fixture,
+ *   - the repo-wide `*.md` sweep (`scanRepoMarkdown`): a leak OUTSIDE docs/ is
+ *     flagged, allow-listed values and generated/vendored trees are not.
  *
  * NOTE: flagged-address fixtures deliberately use generic, well-known routable
  * examples (Google DNS `8.8.8.8`, RFC 2544 benchmarking `198.18.0.1`) — never
@@ -29,10 +31,12 @@ import { fileURLToPath } from "node:url"
 
 import {
 	ALLOWED_RANGES,
+	EXCLUDED_DIRS,
 	IPV4_RE,
 	findOffendingIpv4,
 	isAllowedIpv4,
 	scanDirectory,
+	scanRepoMarkdown,
 } from "./verify-docs-no-public-ip.mjs"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -52,6 +56,21 @@ async function withDocsFixture(files, fn) {
 			await fs.promises.writeFile(abs, content, "utf-8")
 		}
 		await fn(docs)
+	} finally {
+		await fs.promises.rm(tmp, { recursive: true, force: true })
+	}
+}
+
+/** Runs `fn(tmpRoot)` against a fresh temp repo root, always cleaned up. */
+async function withRepoFixture(files, fn) {
+	const tmp = await fs.promises.mkdtemp(path.join(os.tmpdir(), "verify-repo-markdown-"))
+	try {
+		for (const [rel, content] of Object.entries(files)) {
+			const abs = path.join(tmp, rel)
+			await fs.promises.mkdir(path.dirname(abs), { recursive: true })
+			await fs.promises.writeFile(abs, content, "utf-8")
+		}
+		await fn(tmp)
 	} finally {
 		await fs.promises.rm(tmp, { recursive: true, force: true })
 	}
@@ -136,11 +155,81 @@ test("scanDirectory reports nothing for an allow-listed-only fixture", async () 
 })
 
 // ---------------------------------------------------------------------------
-// Real repo state — the gate must pass on the committed docs/
+// scanRepoMarkdown — the repo-wide *.md sweep (docs/ AND everywhere else)
+// ---------------------------------------------------------------------------
+
+test("EXCLUDED_DIRS prunes exactly the documented generated/vendored trees", () => {
+	assert.deepEqual([...EXCLUDED_DIRS].sort(), [
+		".git",
+		".turbo",
+		".vinxi",
+		"build",
+		"coverage",
+		"dist",
+		"node_modules",
+		"out",
+	])
+})
+
+test("scanRepoMarkdown flags a public IP in a *.md OUTSIDE docs/", async () => {
+	const line = "upstream DNS is 8.8.4.4"
+	await withRepoFixture({ "README.md": `${line}\n` }, (root) => {
+		const findings = scanRepoMarkdown(root)
+		assert.equal(findings.length, 1)
+		assert.equal(findings[0].ip, "8.8.4.4")
+		assert.equal(findings[0].line, 1)
+		assert.equal(findings[0].column, line.indexOf("8.8.4.4") + 1)
+		assert.ok(findings[0].file.endsWith("README.md"), `unexpected file: ${findings[0].file}`)
+	})
+})
+
+test("scanRepoMarkdown ignores allow-listed literals outside docs/", async () => {
+	await withRepoFixture(
+		{ "custom-modes/README.md": "127.0.0.1 / 0.0.0.0 / 192.0.2.7 / 198.51.100.8 / 203.0.113.9\n" },
+		(root) => {
+			assert.deepEqual(scanRepoMarkdown(root), [])
+		},
+	)
+})
+
+test("scanRepoMarkdown reads only *.md and prunes generated/vendored directories", async () => {
+	await withRepoFixture(
+		{
+			"src/notes.txt": "leak 198.18.0.1 in a non-Markdown file\n",
+			"docs/runbook.md": "leak 198.18.0.5 in docs Markdown\n",
+			"node_modules/dep/README.md": "leak 198.18.0.2 in vendored Markdown\n",
+			"dist/built.md": "leak 198.18.0.3 in build output\n",
+			".turbo/cache.md": "leak 198.18.0.4 in a tool cache\n",
+			"coverage/report.md": "leak 198.18.0.6 in a coverage report\n",
+			"custom-modes/readme.md": "leak 8.8.4.4 in hand-written Markdown\n",
+			"guides/guide.MD": "leak 8.8.4.5 in upper-case Markdown\n",
+		},
+		(root) => {
+			assert.deepEqual(
+				scanRepoMarkdown(root)
+					.map((f) => f.ip)
+					.sort(),
+				["198.18.0.5", "8.8.4.4", "8.8.4.5"],
+			)
+		},
+	)
+})
+
+// ---------------------------------------------------------------------------
+// Real repo state — the gate must pass on the committed docs/ and Markdown
 // ---------------------------------------------------------------------------
 
 test("the committed docs/ tree contains no non-localhost IPv4 literals", () => {
 	const findings = scanDirectory(path.join(ROOT, "docs"))
+	assert.deepEqual(
+		findings,
+		[],
+		`offending literals: ${findings.map((f) => `${f.file}:${f.line} ${f.ip}`).join(", ")}`,
+	)
+})
+
+test("the committed repo Markdown contains no non-allow-listed IPv4 literals", () => {
+	const findings = scanRepoMarkdown(ROOT)
 	assert.deepEqual(
 		findings,
 		[],
