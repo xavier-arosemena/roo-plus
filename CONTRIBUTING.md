@@ -117,7 +117,7 @@ pnpm install
 - Follow ESLint and TypeScript best practices.
 - Write clear, descriptive commits referencing issues (e.g., `Fixes #123`).
 - Provide thorough testing (`npm test`).
-- Rebase onto the latest `main` branch before submission.
+- Rebase onto the latest `master` branch before submission (see [Branch Hygiene](#branch-hygiene)).
 
 ### Submitting a Pull Request
 
@@ -157,6 +157,16 @@ PRs are also closed automatically by bot:
 - **14-day author inactivity:** After a reviewer requests changes, the PR is labelled `awaiting-author`. Author activity resets the inactivity timer. Once the changes are ready, re-request review from the reviewer; the PR will move to `awaiting-review` and is no longer eligible for automatic closure under this policy.
 
 To opt a PR out of automatic closure, apply the `do-not-close`, `pinned`, or `work-in-progress` label.
+
+### Branch Hygiene
+
+`master` is the only long-lived branch; publishing is driven from `master` by [`.github/workflows/pre-release-publish.yml`](.github/workflows/pre-release-publish.yml:1). The full policy, audit commands, and deletion criteria live in [`docs/runbooks/branch-hygiene.md`](docs/runbooks/branch-hygiene.md).
+
+- Branch from current `master` and use a short, descriptive name (`feat/…`, `fix/…`, `docs/…`, `chore/…`, `wip/…`).
+- Keep the branch short-lived: refresh it against `master` before requesting review.
+- Delete the branch locally **and** on `origin` as soon as the PR merges or closes. Merged or superseded refs must not linger.
+- Do not re-land closed work on the same branch. If a PR closes unmerged, open a fresh branch from current `master` and link the closed PR.
+- Do not park work-in-progress in `git stash`; push a `wip/*` branch if the work must persist.
 
 ### AI-Assisted Contributions
 
