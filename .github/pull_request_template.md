@@ -38,6 +38,7 @@ Detail the steps to test your changes so reviewers can verify them.
 - [ ] **Testing**: New and/or updated tests have been added to cover my changes (if applicable).
 - [ ] **Visual Snapshot** (UI changes only): If a user would notice this change at a glance (layout, theme tokens, brand elements, empty/error states), I've added or updated a `*.visual.tsx` snapshot in `webview-ui/`. See `webview-ui/AGENTS.md` → "When a UI change needs a snapshot".
 - [ ] **Documentation Impact**: I have considered if my changes require documentation updates (see "Documentation Updates" section below).
+- [ ] **Branch Hygiene**: This branch is short-lived and will be deleted after merge; I have not re-landed work from a closed PR on the same branch (see [`docs/runbooks/branch-hygiene.md`](../docs/runbooks/branch-hygiene.md)).
 - [ ] **Contribution Guidelines**: I have read and agree to the [Contributor Guidelines](/CONTRIBUTING.md).
 
 ### Screenshots / Videos
