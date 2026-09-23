@@ -1182,6 +1182,51 @@ describe("ClineProvider", () => {
 			const pageBytes = Buffer.byteLength(JSON.stringify(response?.olderClineMessages ?? []), "utf8")
 			expect(pageBytes).toBeLessThan(STATE_WARN_BYTES)
 		})
+
+		test("getOlderTaskHistory pages within the requested scope and reports the next anchor", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			;(provider as unknown as { currentWorkspacePath: string }).currentWorkspacePath = "/ws/current"
+
+			const now = Date.now()
+			const items = Array.from({ length: 5 }, (_, i) => ({
+				id: `cur-${i}`,
+				number: i + 1,
+				ts: now - i,
+				task: `Current ${i}`,
+				tokensIn: 0,
+				tokensOut: 0,
+				totalCost: 0,
+				workspace: "/ws/current",
+			})).concat(
+				Array.from({ length: 5 }, (_, i) => ({
+					id: `other-${i}`,
+					number: 100 + i,
+					ts: now - 100 - i,
+					task: `Other ${i}`,
+					tokensIn: 0,
+					tokensOut: 0,
+					totalCost: 0,
+					workspace: "/ws/other",
+				})),
+			)
+			// The real `getByWorkspace` reads through `getAll`, so stub the source.
+			vi.spyOn(provider.taskHistoryStore, "getAll").mockReturnValue(items)
+
+			const messageHandler = mockWebviewView.webview.onDidReceiveMessage.mock.calls[0][0]
+			const postMessageSpy = vi.spyOn(provider, "postMessageToWebview").mockResolvedValue(undefined)
+
+			// Scope fetch (no beforeTs) → the FIRST bounded page of "current".
+			await messageHandler({ type: "getOlderTaskHistory", scope: "current" })
+
+			const response = postMessageSpy.mock.calls.map((c) => c[0]).find((m) => m.type === "olderTaskHistory")
+			expect(response).toBeDefined()
+			expect(response?.olderTaskHistoryScope).toBe("current")
+			expect((response?.olderTaskHistory ?? []).every((item) => item.workspace === "/ws/current")).toBe(true)
+			expect(response?.olderTaskHistory).toHaveLength(5)
+			// A page must never itself trip the payload SLI.
+			const pageBytes = Buffer.byteLength(JSON.stringify(response?.olderTaskHistory ?? []), "utf8")
+			expect(pageBytes).toBeLessThan(STATE_WARN_BYTES)
+		})
 	})
 
 	test("getStateToPostToWebview computes task history once after its base state resolves", async () => {

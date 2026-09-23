@@ -12,7 +12,12 @@ vi.mock("@/utils/highlight", () => ({
 	highlightFzfMatch: vi.fn((text) => `<mark>${text}</mark>`),
 }))
 
+vi.mock("@/utils/vscode", () => ({
+	vscode: { postMessage: vi.fn() },
+}))
+
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { vscode } from "@/utils/vscode"
 
 const mockUseExtensionState = useExtensionState as ReturnType<typeof vi.fn>
 
@@ -56,34 +61,56 @@ describe("useTaskSearch", () => {
 		vi.clearAllMocks()
 		mockUseExtensionState.mockReturnValue({
 			taskHistory: mockTaskHistory,
+			taskHistoryScope: "current",
 			cwd: "/workspace/project1",
 		} as any)
 	})
 
-	it("returns all tasks by default", () => {
+	it("returns every row the host sent, in newest-first order by default", () => {
 		const { result } = renderHook(() => useTaskSearch())
 
-		expect(result.current.tasks).toHaveLength(2) // Only tasks from current workspace
+		// The host scopes the window (2026-09-23 review); the hook no longer
+		// post-filters by workspace, so all provided rows are present.
+		expect(result.current.tasks).toHaveLength(3)
 		expect(result.current.tasks[0].id).toBe("task-2") // Newest first
-		expect(result.current.tasks[1].id).toBe("task-1")
 	})
 
-	it("filters tasks by current workspace by default", () => {
+	it("does not post-filter by workspace (the host owns scope)", () => {
 		const { result } = renderHook(() => useTaskSearch())
 
-		expect(result.current.tasks).toHaveLength(2)
-		expect(result.current.tasks.every((task) => task.workspace === "/workspace/project1")).toBe(true)
+		expect(result.current.tasks).toHaveLength(3)
+		expect(result.current.tasks.some((task) => task.workspace === "/workspace/project2")).toBe(true)
 	})
 
-	it("shows all workspaces when showAllWorkspaces is true", () => {
+	it("treats showAllWorkspaces as a scope selector that fetches the active scope's first page", () => {
 		const { result } = renderHook(() => useTaskSearch())
+
+		expect(result.current.showAllWorkspaces).toBe(false)
 
 		act(() => {
 			result.current.setShowAllWorkspaces(true)
 		})
 
-		expect(result.current.tasks).toHaveLength(3)
+		expect(vscode.postMessage).toHaveBeenCalledWith({ type: "getOlderTaskHistory", scope: "all" })
+
+		act(() => {
+			result.current.setShowAllWorkspaces(false)
+		})
+
+		expect(vscode.postMessage).toHaveBeenCalledWith({ type: "getOlderTaskHistory", scope: "current" })
+	})
+
+	it("reflects the active scope from context", () => {
+		mockUseExtensionState.mockReturnValue({
+			taskHistory: mockTaskHistory,
+			taskHistoryScope: "all",
+			cwd: "/workspace/project1",
+		} as any)
+
+		const { result } = renderHook(() => useTaskSearch())
+
 		expect(result.current.showAllWorkspaces).toBe(true)
+		expect(result.current.tasks).toHaveLength(3)
 	})
 
 	it("sorts by newest by default", () => {

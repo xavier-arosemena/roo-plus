@@ -186,15 +186,49 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Partial
 	// reset the visible list back to the bounded head. A non-bounded push is a
 	// complete history and replaces as before.
 	if (newRest.taskHistory !== undefined) {
-		// The paging anchor rides along: with tree-closed ancestor re-attachment the
-		// window's last row is NOT the paging cutoff, so preserving rows by it would
-		// keep the wrong ones (see `mergeTaskHistoryState`).
-		rest.taskHistory = mergeTaskHistoryState(
-			prevRest.taskHistory,
-			newRest.taskHistory,
-			newRest.taskHistoryBounded,
-			newRest.taskHistoryPagingAnchorTs,
-		)
+		// Scope-aware merge (2026-09-23 per-workspace history review). The host's
+		// default window describes the "current" scope; if the user has switched
+		// the panel to another scope, a `current`-scoped push must NOT replace the
+		// list they are looking at (or its markers and paging cursor).
+		const incomingScope = newRest.taskHistoryScope ?? "current"
+		const activeScope = prevRest.taskHistoryScope ?? "current"
+
+		if (incomingScope === activeScope) {
+			// The paging anchor rides along: with tree-closed ancestor
+			// re-attachment the window's last row is NOT the paging cutoff, so
+			// preserving rows by it would keep the wrong ones (see
+			// `mergeTaskHistoryState`).
+			rest.taskHistory = mergeTaskHistoryState(
+				prevRest.taskHistory,
+				newRest.taskHistory,
+				newRest.taskHistoryBounded,
+				newRest.taskHistoryPagingAnchorTs,
+			)
+			// Initialise the advancing cursor / hasMore once, then preserve them:
+			// a state push must never rewind a cursor the user has paged past.
+			if (prevRest.taskHistoryNextAnchorTs === undefined) {
+				rest.taskHistoryNextAnchorTs = newRest.taskHistoryPagingAnchorTs
+			}
+			if (prevRest.taskHistoryHasMore === undefined) {
+				rest.taskHistoryHasMore = newRest.taskHistoryBounded
+			}
+			rest.taskHistoryScope = incomingScope
+		} else {
+			// A push for a scope the panel is not showing: keep the panel's list
+			// and every marker that describes it.
+			rest.taskHistory = prevRest.taskHistory
+			rest.taskHistoryBounded = prevRest.taskHistoryBounded
+			rest.taskHistoryTotal = prevRest.taskHistoryTotal
+			rest.taskHistoryPagingAnchorTs = prevRest.taskHistoryPagingAnchorTs
+			rest.taskHistoryScope = activeScope
+			rest.taskHistoryNextAnchorTs = prevRest.taskHistoryNextAnchorTs
+			rest.taskHistoryHasMore = prevRest.taskHistoryHasMore
+		}
+	} else if (newRest.taskHistoryScope === undefined && prevRest.taskHistoryScope !== undefined) {
+		// A push that carries NO history list (e.g. streaming/state pushes that omit
+		// it) must not clear the scope marker either — the marker describes the list
+		// the panel is showing, which such a push does not touch.
+		rest.taskHistoryScope = prevRest.taskHistoryScope
 	}
 
 	if (newRest.clineMessages !== undefined) {
@@ -544,27 +578,47 @@ export const ExtensionStateContextProvider: React.FC<{
 					break
 				}
 				case "taskHistoryUpdated": {
-					// Efficiently update just the task history without replacing entire state
+					// MERGE (do not replace) so a background push cannot discard rows
+					// the panel paged in (2026-09-23 per-workspace history review).
+					// The push carries the same window markers as `state`; routing it
+					// through `mergeExtensionState` keeps the scope-aware merging
+					// identical to a `state` push.
 					if (message.taskHistory !== undefined) {
-						setState((prevState) => ({
-							...prevState,
-							taskHistory: message.taskHistory!,
-						}))
+						setState((prevState) =>
+							mergeExtensionState(prevState, {
+								taskHistory: message.taskHistory,
+								taskHistoryBounded: message.taskHistoryBounded,
+								taskHistoryTotal: message.taskHistoryTotal,
+								taskHistoryPagingAnchorTs: message.taskHistoryPagingAnchorTs,
+								taskHistoryScope: message.taskHistoryScope,
+							}),
+						)
 					}
 					break
 				}
 				case "olderTaskHistory": {
 					// Lazy-fetch response for the History panel's "load older
-					// tasks" flow (2026-09-17 `state` payload incident): appends
-					// the page of rows immediately older than the bound the view
-					// asked for, keeping the list ordered and duplicate-free.
+					// tasks" flow (2026-09-17 `state` payload incident; scope-aware
+					// since the 2026-09-23 per-workspace review). A page for the
+					// ACTIVE scope is appended (ordered, duplicate-free); the first
+					// page of a DIFFERENT scope (the scope-switch / reset fetch,
+					// sent with no `beforeTs`) REPLACES the list. Either way the
+					// advancing cursor and `hasMore` come from the reply.
 					if (!message.olderTaskHistory?.length || message.error) {
 						break
 					}
-					setState((prevState) => ({
-						...prevState,
-						taskHistory: appendOlderTaskHistoryPage(prevState.taskHistory, message.olderTaskHistory),
-					}))
+					const page = message.olderTaskHistory
+					const pageScope = message.olderTaskHistoryScope ?? "current"
+					setState((prevState) => {
+						const sameScope = pageScope === (prevState.taskHistoryScope ?? "current")
+						return {
+							...prevState,
+							taskHistory: sameScope ? appendOlderTaskHistoryPage(prevState.taskHistory, page) : page,
+							taskHistoryScope: pageScope,
+							taskHistoryNextAnchorTs: message.olderTaskHistoryNextAnchorTs,
+							taskHistoryHasMore: message.olderTaskHistoryHasMore ?? false,
+						}
+					})
 					break
 				}
 				case "livenessPing": {

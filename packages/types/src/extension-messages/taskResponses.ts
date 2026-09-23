@@ -352,6 +352,15 @@ export const olderTaskHistoryMessageSchema = z.object({
 	type: z.literal("olderTaskHistory"),
 	olderTaskHistory: z.array(historyItemSchema.passthrough()).optional(),
 	olderTaskHistoryHasMore: z.boolean().optional(),
+	/**
+	 * Exclusive `ts` cursor for the next page of the SAME scope (2026-09-23
+	 * per-workspace history review): the last contiguous row of this page, so the
+	 * panel advances monotonically instead of re-requesting the frozen head
+	 * anchor. `undefined` at the scope's tail.
+	 */
+	olderTaskHistoryNextAnchorTs: z.number().optional(),
+	/** The scope this page was selected from (so the panel can reset vs append). */
+	olderTaskHistoryScope: z.enum(["current", "all"]).optional(),
 	error: z.string().optional(),
 })
 

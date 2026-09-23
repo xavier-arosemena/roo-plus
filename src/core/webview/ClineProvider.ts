@@ -79,7 +79,11 @@ import { MdmService } from "../../services/mdm/MdmService"
 import { SkillsManager } from "../../services/skills/SkillsManager"
 import { MarketplaceService } from "../services/MarketplaceService"
 import { ProviderProfileService } from "../services/ProviderProfileService"
-import { TaskHistoryService, projectTaskHistoryForWebview } from "../services/TaskHistoryService"
+import {
+	TaskHistoryService,
+	buildTaskHistoryWindow,
+	type ScopedTaskHistoryWindow,
+} from "../services/TaskHistoryService"
 import { boundCustomModesForWebview } from "../config/CustomModesManager"
 import { projectClineMessagesForWebview } from "./clineMessagesForWebview"
 import { TaskOrchestrator } from "../services/TaskOrchestrator"
@@ -509,6 +513,7 @@ export class ClineProvider
 					this.recentTasksCache = cache
 				},
 			},
+			getCwd: () => this.cwd,
 		})
 		this.initializeTaskHistoryStore().catch((error) => {
 			this.log(`Failed to initialize TaskHistoryStore: ${error}`)
@@ -2596,13 +2601,17 @@ export class ClineProvider
 		const boundedClineMessages = projectClineMessagesForWebview(currentTask?.clineMessages)
 
 		// Count+BYTE-bounded task-history window (2026-09-17 incident — the byte
-		// half of the 3.88.1 count bound). `bounded`/`total` let the webview keep
-		// rows it already has and offer the lazy `getOlderTaskHistory` path
-		// instead of silently losing older tasks. See
-		// `projectTaskHistoryForWebview` for the 32 KB budget rationale.
-		const taskHistoryWindow = includeTaskHistory
-			? projectTaskHistoryForWebview(this.taskHistoryStore.getAll())
-			: { items: [] as HistoryItem[], bounded: false, total: 0 }
+		// half of the 3.88.1 count bound), computed PER WORKSPACE SCOPE (2026-09-23
+		// per-workspace history review). Default scope is "current": the window is
+		// built over `getByWorkspace(cwd)` rather than the whole store, so the
+		// active workspace is no longer diluted by other workspaces (the 3.88.8
+		// regression) while the payload stays bounded (the gray-webview fix).
+		// `bounded`/`total` let the webview keep rows it already has and offer the
+		// lazy `getOlderTaskHistory` path. See `projectTaskHistoryForWebview` for
+		// the 32 KB budget rationale.
+		const taskHistoryWindow: ScopedTaskHistoryWindow = includeTaskHistory
+			? buildTaskHistoryWindow(this.taskHistoryStore, { scope: "current", cwd })
+			: { items: [] as HistoryItem[], bounded: false, total: 0, scope: "current" }
 
 		return {
 			version: this.context.extension?.packageJSON?.version ?? "",
@@ -2639,6 +2648,7 @@ export class ClineProvider
 			taskHistoryBounded: includeTaskHistory ? taskHistoryWindow.bounded : undefined,
 			taskHistoryTotal: includeTaskHistory ? taskHistoryWindow.total : undefined,
 			taskHistoryPagingAnchorTs: includeTaskHistory ? taskHistoryWindow.pagingAnchorTs : undefined,
+			taskHistoryScope: includeTaskHistory ? taskHistoryWindow.scope : undefined,
 			soundEnabled: soundEnabled ?? false,
 			ttsEnabled: ttsEnabled ?? false,
 			ttsSpeed: ttsSpeed ?? 1.0,
@@ -2804,10 +2814,11 @@ export class ClineProvider
 
 		// Count+BYTE-bounded task-history window, matching getStateToPostToWebview
 		// (see `projectTaskHistoryForWebview` for the 32 KB budget rationale and
-		// the 2026-09-17 payload incident).
-		const taskHistoryWindow = includeTaskHistory
-			? projectTaskHistoryForWebview(this.taskHistoryStore.getAll())
-			: { items: [] as HistoryItem[], bounded: false, total: 0 }
+		// the 2026-09-17 payload incident), scoped to the current workspace by
+		// default (2026-09-23 per-workspace history review).
+		const taskHistoryWindow: ScopedTaskHistoryWindow = includeTaskHistory
+			? buildTaskHistoryWindow(this.taskHistoryStore, { scope: "current", cwd: this.cwd })
+			: { items: [] as HistoryItem[], bounded: false, total: 0, scope: "current" }
 
 		// Return the same structure as before.
 		return {
@@ -2839,6 +2850,7 @@ export class ClineProvider
 			taskHistoryBounded: includeTaskHistory ? taskHistoryWindow.bounded : undefined,
 			taskHistoryTotal: includeTaskHistory ? taskHistoryWindow.total : undefined,
 			taskHistoryPagingAnchorTs: includeTaskHistory ? taskHistoryWindow.pagingAnchorTs : undefined,
+			taskHistoryScope: includeTaskHistory ? taskHistoryWindow.scope : undefined,
 			allowedCommands: stateValues.allowedCommands,
 			deniedCommands: stateValues.deniedCommands,
 			soundEnabled: stateValues.soundEnabled ?? false,
@@ -2945,6 +2957,16 @@ export class ClineProvider
 	 */
 	public async broadcastTaskHistoryUpdate(history?: HistoryItem[]): Promise<void> {
 		await this.taskHistoryService.broadcastTaskHistoryUpdate(history)
+	}
+
+	/**
+	 * Log-only history-paging SLI (2026-09-23 per-workspace history review):
+	 * one `[webview-metrics] history_paging` line per fetch so "Load older tasks
+	 * seemed broken" is measurable. Records scope, per-window page count, row
+	 * count, serialized bytes and `hasMore` — never content, ids or paths.
+	 */
+	public recordTaskHistoryPage(scope: "current" | "all", items: HistoryItem[], hasMore: boolean): void {
+		this.payloadMetrics?.recordTaskHistoryPage({ scope, items, hasMore })
 	}
 
 	// ContextProxy

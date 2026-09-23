@@ -76,6 +76,7 @@ describe("HistoryView", () => {
 				taskHistory: sortedHistory,
 				taskHistoryBounded: true,
 				taskHistoryTotal: 40,
+				taskHistoryScope: "current",
 				cwd: "/test/workspace",
 			})
 
@@ -83,7 +84,51 @@ describe("HistoryView", () => {
 
 			fireEvent.click(screen.getByTestId("load-older-tasks-button"))
 
-			expect(vscode.postMessage).toHaveBeenCalledWith({ type: "getOlderTaskHistory", beforeTs: 1000 })
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "getOlderTaskHistory",
+				beforeTs: 1000,
+				scope: "current",
+			})
+		})
+
+		it("pages from the advancing cursor after a page has loaded (not the frozen head anchor)", () => {
+			// After one page, the context carries the reply's nextAnchorTs (500).
+			// Reusing the host's frozen paging anchor (1000) would re-request the
+			// same page forever — the "Load older tasks does nothing" report.
+			;(useExtensionState as ReturnType<typeof vi.fn>).mockReturnValue({
+				taskHistory: sortedHistory,
+				taskHistoryBounded: true,
+				taskHistoryTotal: 40,
+				taskHistoryPagingAnchorTs: 1000,
+				taskHistoryNextAnchorTs: 500,
+				taskHistoryHasMore: true,
+				taskHistoryScope: "all",
+				cwd: "/test/workspace",
+			})
+
+			render(<HistoryView onDone={vi.fn()} />)
+
+			fireEvent.click(screen.getByTestId("load-older-tasks-button"))
+
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "getOlderTaskHistory",
+				beforeTs: 500,
+				scope: "all",
+			})
+		})
+
+		it("hides the affordance when the host's page reply says hasMore === false", () => {
+			;(useExtensionState as ReturnType<typeof vi.fn>).mockReturnValue({
+				taskHistory: sortedHistory,
+				taskHistoryBounded: true,
+				taskHistoryTotal: 40,
+				taskHistoryHasMore: false,
+				cwd: "/test/workspace",
+			})
+
+			render(<HistoryView onDone={vi.fn()} />)
+
+			expect(screen.queryByTestId("load-older-tasks-button")).not.toBeInTheDocument()
 		})
 
 		it("pages from the host's paging anchor, not the oldest row present (tree-closed window)", () => {
@@ -106,7 +151,11 @@ describe("HistoryView", () => {
 
 			fireEvent.click(screen.getByTestId("load-older-tasks-button"))
 
-			expect(vscode.postMessage).toHaveBeenCalledWith({ type: "getOlderTaskHistory", beforeTs: 3000 })
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "getOlderTaskHistory",
+				beforeTs: 3000,
+				scope: "current",
+			})
 		})
 
 		it("hides the affordance when the whole history is already loaded", () => {

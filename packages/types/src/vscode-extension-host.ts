@@ -248,6 +248,15 @@ export interface ExtensionMessage {
 	olderTaskHistory?: HistoryItem[]
 	/** For `olderTaskHistory`: whether even older rows remain in the store. */
 	olderTaskHistoryHasMore?: boolean
+	/**
+	 * For `olderTaskHistory`: the exclusive `ts` cursor for the NEXT page of the
+	 * active scope (the last contiguous row of this page), so the panel advances
+	 * monotonically instead of re-requesting the frozen head anchor.
+	 * `undefined` once the scope's tail has been reached.
+	 */
+	olderTaskHistoryNextAnchorTs?: number
+	/** For `olderTaskHistory`: the scope this page was selected from. */
+	olderTaskHistoryScope?: "current" | "all"
 	rooHistoryImportProgress?: {
 		status: "starting" | "copying" | "finished" | "failed"
 		copiedFileCount: number
@@ -267,6 +276,15 @@ export interface ExtensionMessage {
 	// For taskHistoryUpdated: recent sorted task history (bounded to the newest
 	// MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW entries to avoid multi-MB webview payloads).
 	taskHistory?: HistoryItem[]
+	/**
+	 * For `taskHistoryUpdated`: the count+byte window markers describing the
+	 * `taskHistory` list, so the webview can MERGE the push against the rows it
+	 * already has (paged-in rows must survive) instead of replacing verbatim.
+	 */
+	taskHistoryBounded?: boolean
+	taskHistoryTotal?: number
+	taskHistoryPagingAnchorTs?: number
+	taskHistoryScope?: "current" | "all"
 	/** For taskHistoryItemUpdated: single updated/added history item */
 	taskHistoryItem?: HistoryItem
 	/**
@@ -449,6 +467,36 @@ export type ExtensionState = Pick<
 	 * whole history.
 	 */
 	taskHistoryPagingAnchorTs?: number
+	/**
+	 * Workspace scope the {@link taskHistory} window describes (2026-09-23
+	 * per-workspace history review).
+	 *
+	 * `"current"` = only rows whose `workspace` matches the active workspace
+	 * folder (the History panel default); `"all"` = every workspace. The host
+	 * computes the count+byte window PER SCOPE, so the panel no longer receives a
+	 * globally-truncated window and post-filters it down to ~1 row. The webview
+	 * mirrors the active scope here; after it fetches another scope (via
+	 * `getOlderTaskHistory` with `scope`), the field reflects that scope until the
+	 * next scope switch.
+	 */
+	taskHistoryScope?: "current" | "all"
+	/**
+	 * Advancing `ts` cursor for the "load older tasks" affordance, tracked by the
+	 * webview from the last `olderTaskHistory` page response.
+	 *
+	 * Distinct from {@link taskHistoryPagingAnchorTs} (the frozen head cutoff the
+	 * host ships with each `state` window): this value advances as pages load, so
+	 * repeated clicks progress monotonically toward the oldest row instead of
+	 * re-requesting the same page. Initialised from `taskHistoryPagingAnchorTs`.
+	 */
+	taskHistoryNextAnchorTs?: number
+	/**
+	 * Whether older rows remain in the active scope. Derived from
+	 * `taskHistoryBounded` on the first window and from each page's
+	 * `olderTaskHistoryHasMore` after that, so the "load older tasks" button
+	 * hides exactly at the history tail.
+	 */
+	taskHistoryHasMore?: boolean
 
 	writeDelayMs: number
 	diffFuzzyThreshold: number
@@ -723,6 +771,13 @@ export interface WebviewMessage {
 	 * the page of older task-history rows to return.
 	 */
 	beforeTs?: number
+	/**
+	 * For `getOlderTaskHistory`: the workspace scope to page within
+	 * (`"current"` default, `"all"` for every workspace). When `beforeTs` is
+	 * omitted the reply is the FIRST bounded page of that scope (the panel's
+	 * scope-switch / reset fetch).
+	 */
+	scope?: "current" | "all"
 	/** For `livenessPong`: the `livenessPingSeq` being answered (a number only). */
 	livenessPongSeq?: number
 	bool?: boolean
