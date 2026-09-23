@@ -1,6 +1,6 @@
 {
 	"extension.displayName": "Roo+",
-	"extension.description": "The local-first, bring-your-own-model agentic IDE extension that makes your AI spend legible and your knowledge portable — no cloud, no lock-in, no silent regressions — powered by a curated 302-mode catalog.",
+	"extension.description": "Roo Plus: 로컬 우선(local-first), bring-your-own-model 방식의 에이전트 IDE 확장으로 AI 지출을 투명하게 하고 지식을 이식 가능하게 만듭니다 — 클라우드 없음, lock-in 없음, 조용한 회귀 없음 — 엄선된 302개 모드 카탈로그로 구동됩니다.",
 	"command.newTask.title": "새 작업",
 	"command.explainCode.title": "코드 설명",
 	"command.fixCode.title": "코드 수정",

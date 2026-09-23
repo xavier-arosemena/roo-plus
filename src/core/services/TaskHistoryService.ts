@@ -11,6 +11,8 @@ export interface TaskHistoryStoreLike {
 	upsert(item: HistoryItem): Promise<HistoryItem[]>
 	get(taskId: string): HistoryItem | undefined
 	getAll(): HistoryItem[]
+	/** Rows whose `workspace` equals `workspace` (per-workspace window source). */
+	getByWorkspace(workspace: string): HistoryItem[]
 }
 
 /**
@@ -294,6 +296,106 @@ export function selectOlderTaskHistory(
 }
 
 /**
+ * Workspace scope for the task-history window and its paging (2026-09-23
+ * per-workspace history review).
+ *
+ * `"current"` computes the count+byte window over the active workspace
+ * folder's rows only, so `Workspace: Current` can browse that workspace's
+ * history in full instead of receiving a globally-truncated window and
+ * post-filtering it down to ~1 row. `"all"` keeps the previous global window.
+ */
+export type TaskHistoryScope = "current" | "all"
+
+/** Options shared by the scoped window builder and the scoped page selector. */
+export interface TaskHistoryWindowOptions {
+	/** Requested scope; defaults to `"current"`. */
+	scope?: TaskHistoryScope
+	/** Active workspace folder (`ClineProvider.cwd`). Required for `"current"`. */
+	cwd?: string
+	/** Exclusive `ts` upper bound; omit for the newest page of the scope. */
+	beforeTs?: number
+	/** Projection budget overrides (tests / non-default budgets). */
+	projection?: { maxItems?: number; maxBytes?: number; minRows?: number; maxAncestorRows?: number }
+}
+
+/** A scoped task-history window plus the scope it was computed over. */
+export interface ScopedTaskHistoryWindow extends BoundedTaskHistoryForWebview {
+	scope: TaskHistoryScope
+}
+
+/**
+ * Resolves the effective scope. `"current"` needs a workspace folder; without
+ * one (no folder open) it degrades to `"all"` so the panel is never empty.
+ */
+export function resolveTaskHistoryScope(
+	scope: TaskHistoryScope | undefined,
+	cwd: string | undefined,
+): TaskHistoryScope {
+	return scope === "all" || !cwd ? "all" : "current"
+}
+
+/**
+ * Builds the count+byte-bounded task-history window for `scope`.
+ *
+ * Reuses {@link projectTaskHistoryForWebview} unchanged — the budget, row floor
+ * and tree-closure behaviour are identical — but computes it over the scope's
+ * pool: {@link TaskHistoryStoreLike.getByWorkspace}(cwd) for `"current"`,
+ * {@link TaskHistoryStoreLike.getAll}() for `"all"`. Because the bound is
+ * applied PER SCOPE, the active workspace's view is no longer diluted by other
+ * workspaces (the 3.88.8 regression) while the payload stays bounded (the
+ * gray-webview fix).
+ */
+export function buildTaskHistoryWindow(
+	store: TaskHistoryStoreLike,
+	options: TaskHistoryWindowOptions = {},
+): ScopedTaskHistoryWindow {
+	const scope = resolveTaskHistoryScope(options.scope, options.cwd)
+	const pool = scope === "current" ? store.getByWorkspace(options.cwd as string) : store.getAll()
+	const beforeTs = options.beforeTs
+	const filtered = beforeTs === undefined ? pool : pool.filter((item) => item.ts < beforeTs)
+
+	return { ...projectTaskHistoryForWebview(filtered, options.projection), scope }
+}
+
+/** A scoped page of older task-history rows for the lazy paging flow. */
+export interface ScopedTaskHistoryPage {
+	items: HistoryItem[]
+	/** `true` when even older rows remain in the scope. */
+	hasMore: boolean
+	/**
+	 * Exclusive `ts` cursor for the next page (the last CONTIGUOUS row of this
+	 * page); `undefined` at the scope's tail. Anchors on the projection's
+	 * `pagingAnchorTs`, not the last row present, so re-attached ancestors do not
+	 * cause skipped rows.
+	 */
+	nextAnchorTs?: number
+	scope: TaskHistoryScope
+}
+
+/**
+ * Scope-aware companion to {@link selectOlderTaskHistory} used by the
+ * `getOlderTaskHistory` handler.
+ *
+ * With `beforeTs` omitted it returns the FIRST bounded page of the scope — the
+ * History panel's scope-switch / reset fetch. With `beforeTs` set it returns
+ * the page immediately older, using the SAME count+byte budget so a page can
+ * never itself trip the payload SLI.
+ */
+export function selectScopedOlderTaskHistory(
+	store: TaskHistoryStoreLike,
+	options: TaskHistoryWindowOptions = {},
+): ScopedTaskHistoryPage {
+	const window = buildTaskHistoryWindow(store, options)
+
+	return {
+		items: window.items,
+		hasMore: window.bounded,
+		nextAnchorTs: window.pagingAnchorTs,
+		scope: window.scope,
+	}
+}
+
+/**
  * Accessor port for the recent-tasks cache.
  *
  * The cache is owned by the provider (a single `recentTasksCache` field on
@@ -321,6 +423,8 @@ export interface TaskHistoryServiceDeps {
 	postMessageToWebview: (message: ExtensionMessage) => Promise<void>
 	/** Accessor for the provider-owned recent-tasks cache. */
 	recentTasksCache: RecentTasksCachePort
+	/** Active workspace folder for scope resolution (`ClineProvider.cwd`). */
+	getCwd: () => string | undefined
 }
 
 /**
@@ -366,24 +470,39 @@ export class TaskHistoryService {
 
 	/**
 	 * Broadcasts a task history update to the webview.
-	 * This sends a lightweight message with just the task history, rather than the full state.
-	 * @param history The task history to broadcast (if not provided, reads from the store)
+	 *
+	 * Ships the count+byte window for the `"current"` scope together with its
+	 * window markers (`taskHistoryBounded` / `Total` / `PagingAnchorTs` /
+	 * `Scope`). The webview MERGES this push against rows it already has instead
+	 * of assigning the list verbatim (2026-09-23 per-workspace history review):
+	 * a broadcast during paging must not discard paged-in rows or re-impose a
+	 * different scope.
+	 *
+	 * When `history` is supplied by the caller it is used as the pool (an explicit
+	 * caller-provided window); otherwise the store is read through the same
+	 * scope-aware builder as `getStateToPostToWebview`.
+	 *
+	 * @param history Optional explicit history pool (if omitted, reads the store)
 	 */
 	async broadcastTaskHistoryUpdate(history?: HistoryItem[]): Promise<void> {
 		if (!this.deps.isViewLaunched()) {
 			return
 		}
 
-		const taskHistory = history ?? this.deps.taskHistoryStore.getAll()
-
-		// Bound what we ship to the webview the same way as getStateToPostToWebview —
-		// the full store can be ~3.5 MB, which saturates the renderer over remote-SSH
-		// IPC. The UI History panel only needs the most recent tasks.
-		const boundedHistory = boundTaskHistoryForWebview(taskHistory)
+		const cwd = this.deps.getCwd()
+		// Bound what we ship the same way as getStateToPostToWebview — the full
+		// store can be ~3.5 MB, which saturates the renderer over remote-SSH IPC.
+		const window = history
+			? { ...projectTaskHistoryForWebview(history), scope: resolveTaskHistoryScope("current", cwd) }
+			: buildTaskHistoryWindow(this.deps.taskHistoryStore, { scope: "current", cwd })
 
 		await this.deps.postMessageToWebview({
 			type: "taskHistoryUpdated",
-			taskHistory: boundedHistory,
+			taskHistory: window.items,
+			taskHistoryBounded: window.bounded,
+			taskHistoryTotal: window.total,
+			taskHistoryPagingAnchorTs: window.pagingAnchorTs,
+			taskHistoryScope: window.scope,
 		})
 	}
 

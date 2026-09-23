@@ -1,6 +1,6 @@
 {
 	"extension.displayName": "Roo+",
-	"extension.description": "The local-first, bring-your-own-model agentic IDE extension that makes your AI spend legible and your knowledge portable — no cloud, no lock-in, no silent regressions — powered by a curated 302-mode catalog.",
+	"extension.description": "Roo Plus：local-first、bring-your-own-model 的代理式 IDE 擴充功能，讓你的 AI 支出清楚可見、知識可攜 — 無雲端、無鎖定、無無聲回歸 — 由精選的 302 個模式目錄驅動。",
 	"command.newTask.title": "新建任務",
 	"command.explainCode.title": "解釋程式碼",
 	"command.fixCode.title": "修復程式碼",

@@ -654,11 +654,49 @@ describe("ClineProvider Task History Synchronization", () => {
 
 			const state = await provider.getStateToPostToWebview()
 
-			// All tasks from all workspaces should be included
+			// No workspace folder is open in this harness, so the scope degrades to
+			// "all" and every workspace is included (2026-09-23 review).
+			expect(state.taskHistoryScope).toBe("all")
 			expect(state.taskHistory.length).toBe(3)
 			expect(state.taskHistory.some((item: HistoryItem) => item.workspace === "/path/to/workspace1")).toBe(true)
 			expect(state.taskHistory.some((item: HistoryItem) => item.workspace === "/path/to/workspace2")).toBe(true)
 			expect(state.taskHistory.some((item: HistoryItem) => item.workspace === "/different/workspace")).toBe(true)
+		})
+	})
+
+	describe("per-workspace task-history scope (2026-09-23 review)", () => {
+		it("scopes the state window to the active workspace folder by default", async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			;(provider as unknown as { currentWorkspacePath: string }).currentWorkspacePath = "/path/to/workspace1"
+
+			const now = Date.now()
+			await provider.updateTaskHistory(
+				createHistoryItem({
+					id: "ws1-a",
+					ts: now,
+					task: "Workspace 1 task",
+					workspace: "/path/to/workspace1",
+				}),
+				{ broadcast: false },
+			)
+			await provider.updateTaskHistory(
+				createHistoryItem({
+					id: "ws2-a",
+					ts: now - 1000,
+					task: "Workspace 2 task",
+					workspace: "/path/to/workspace2",
+					number: 2,
+				}),
+				{ broadcast: false },
+			)
+
+			const state = await provider.getStateToPostToWebview()
+
+			// The 3.88.8 regression: the global window was post-filtered to ~1 row.
+			// Now the host scopes, so the active workspace's rows are all present.
+			expect(state.taskHistoryScope).toBe("current")
+			expect(state.taskHistory.map((item: HistoryItem) => item.id)).toEqual(["ws1-a"])
+			expect(state.taskHistoryTotal).toBe(1)
 		})
 	})
 

@@ -84,10 +84,20 @@ export const messageUpdatedMessageSchema = z.object({
 
 /**
  * Full sorted task history push (`taskHistoryUpdated`).
+ *
+ * Carries the same count+byte window markers as `state.taskHistory` so the
+ * webview MERGES the push against rows it already has (including pages loaded
+ * via "load older tasks") instead of assigning the list verbatim (2026-09-23
+ * per-workspace history review). `taskHistoryScope` lets the client drop a push
+ * that belongs to a different scope than the one it is displaying.
  */
 export const taskHistoryUpdatedMessageSchema = z.object({
 	type: z.literal("taskHistoryUpdated"),
 	taskHistory: z.array(historyItemSchema),
+	taskHistoryBounded: z.boolean().optional(),
+	taskHistoryTotal: z.number().optional(),
+	taskHistoryPagingAnchorTs: z.number().optional(),
+	taskHistoryScope: z.enum(["current", "all"]).optional(),
 })
 
 /**

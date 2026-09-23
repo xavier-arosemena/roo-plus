@@ -155,10 +155,16 @@ export const getOlderClineMessagesMessageSchema = z.object({
  * budget, so the History panel asks for the omitted tail on demand. The
  * response is the outbound `olderTaskHistory` message. `beforeTs` is the
  * requester's oldest loaded row timestamp and is EXCLUSIVE.
+ *
+ * `scope` (2026-09-23 per-workspace history review) selects the workspace pool
+ * to page within: `"current"` (default) for the active workspace folder,
+ * `"all"` for every workspace. With `beforeTs` omitted the reply is the FIRST
+ * bounded page of that scope, which the panel uses to reset on a scope switch.
  */
 export const getOlderTaskHistoryMessageSchema = z.object({
 	type: z.literal("getOlderTaskHistory"),
 	beforeTs: z.number().optional(),
+	scope: z.enum(["current", "all"]).optional(),
 })
 
 /** Insert text into the chat textarea. `text` stays optional to match the handler guard. */

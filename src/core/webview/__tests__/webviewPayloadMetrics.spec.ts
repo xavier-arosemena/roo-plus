@@ -304,6 +304,14 @@ describe("WebviewPayloadMetrics", () => {
 			"ERROR",
 			"state",
 			"payload",
+			"scope",
+			"current",
+			"all",
+			"history_paging",
+			"pages",
+			"rows",
+			"bytes",
+			"hasMore",
 			"top",
 			"clineMessages",
 			"taskHistory",
@@ -507,9 +515,10 @@ describe("WebviewPayloadMetrics", () => {
 		const h = createHarness()
 		h.metrics.recordStateMessage(warnMessage)
 
-		// Byte-for-byte the pre-guard line: exact total KB, exact field KB.
+		// Byte-for-byte the pre-guard line: exact total KB, exact field KB, plus the
+		// active history scope tag (2026-09-23 per-workspace review).
 		expect(h.logLines).toEqual([
-			`[webview-metrics] WARN "state" payload ${Math.round(JSON.stringify(warnMessage).length / KB)}KB > 256KB top[clineMessages=${Math.round(Buffer.byteLength(JSON.stringify(warnMessages), "utf8") / KB)}KB] runbook=docs/runbooks/gray-webview.md`,
+			`[webview-metrics] WARN "state" payload ${Math.round(JSON.stringify(warnMessage).length / KB)}KB > 256KB scope=current top[clineMessages=${Math.round(Buffer.byteLength(JSON.stringify(warnMessages), "utf8") / KB)}KB] runbook=docs/runbooks/gray-webview.md`,
 		])
 		expect(() => webviewPayloadSizeEventSchema.parse(h.events[0])).not.toThrow()
 		expect(h.events[0].messageBytes).toBe(JSON.stringify(warnMessage).length)
@@ -532,7 +541,7 @@ describe("WebviewPayloadMetrics", () => {
 		h2.metrics.recordStateMessage(errorMessage)
 
 		expect(h2.logLines).toEqual([
-			`[webview-metrics] ERROR "state" payload ${Math.round(JSON.stringify(errorMessage).length / KB)}KB > 1MB top[clineMessages=${Math.round(Buffer.byteLength(JSON.stringify(errorMessages), "utf8") / KB)}KB] runbook=docs/runbooks/gray-webview.md`,
+			`[webview-metrics] ERROR "state" payload ${Math.round(JSON.stringify(errorMessage).length / KB)}KB > 1MB scope=current top[clineMessages=${Math.round(Buffer.byteLength(JSON.stringify(errorMessages), "utf8") / KB)}KB] runbook=docs/runbooks/gray-webview.md`,
 		])
 		expect(() => webviewPayloadSizeEventSchema.parse(h2.events[0])).not.toThrow()
 
@@ -580,6 +589,54 @@ describe("WebviewPayloadMetrics", () => {
 		)
 		expect(h.events[0].messageBytes).toBe(JSON.stringify(oversizedMessage).length)
 		expect(h.warnings).toHaveLength(1)
+	})
+
+	test("tags the state WARN with the active history scope", () => {
+		const allScopeMessage = {
+			type: "state",
+			state: { version: "3.88.8", taskHistoryScope: "all", clineMessages: [] },
+		} as unknown as ExtensionMessage
+
+		// Force a WARN by using an oversized transcript with the "all" scope tag.
+		const messages = Array.from({ length: 400 }, (_, i) => ({
+			ts: i + 1,
+			type: "say",
+			say: "text",
+			text: "x".repeat(700),
+		}))
+		const h = createHarness()
+		h.metrics.recordStateMessage({
+			...allScopeMessage,
+			state: { ...allScopeMessage.state, clineMessages: messages },
+		} as ExtensionMessage)
+
+		const [warn] = h.logLines.filter((l) => l.includes("WARN"))
+		expect(warn).toContain("scope=all")
+	})
+
+	test("history-paging SLI logs one content-free line per fetch with a per-window page count", () => {
+		const h = createHarness()
+
+		h.metrics.recordTaskHistoryPage({ scope: "current", items: [{ id: "a" }, { id: "b" }], hasMore: true })
+		h.metrics.recordTaskHistoryPage({ scope: "current", items: [{ id: "c" }], hasMore: false })
+		h.metrics.recordTaskHistoryPage({ scope: "all", items: [{ id: "d" }], hasMore: true })
+
+		expect(h.logLines).toHaveLength(3)
+		// Exact, documented shape — numbers only, never content/ids/paths.
+		expect(h.logLines[0]).toMatch(
+			/^\[webview-metrics\] history_paging scope=current pages=1 rows=2 bytes=\d+ hasMore=1$/,
+		)
+		expect(h.logLines[1]).toMatch(
+			/^\[webview-metrics\] history_paging scope=current pages=2 rows=1 bytes=\d+ hasMore=0$/,
+		)
+		// A different scope has its own page counter.
+		expect(h.logLines[2]).toMatch(
+			/^\[webview-metrics\] history_paging scope=all pages=1 rows=1 bytes=\d+ hasMore=1$/,
+		)
+		// No row content or ids leak into the metric line.
+		for (const line of h.logLines) {
+			expect(line).not.toContain("id")
+		}
 	})
 })
 

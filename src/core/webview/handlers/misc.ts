@@ -35,7 +35,7 @@ import { t } from "../../../i18n"
 import type { ClineProvider } from "../ClineProvider"
 import type { MarketplaceManager } from "../../../services/marketplace"
 import { selectOlderClineMessages } from "../clineMessagesForWebview"
-import { selectOlderTaskHistory } from "../../services/TaskHistoryService"
+import { selectScopedOlderTaskHistory } from "../../services/TaskHistoryService"
 import { getCurrentCwd, getGlobalState, updateGlobalState } from "./shared"
 
 export const miscMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
@@ -86,6 +86,7 @@ export async function handleMiscMessages(
 		| "getModes"
 		| "activateProviderProfile"
 		| "recordWebviewLivenessPong"
+		| "recordTaskHistoryPage"
 	>,
 	_marketplaceManager: MarketplaceManager | undefined,
 	message: WebviewMessage,
@@ -571,18 +572,28 @@ export async function handleMiscMessages(
 
 			await provider.taskHistoryStore.initialized
 
-			// A request without a bound is meaningless (it would re-send the
-			// window the webview already has); answer with an empty, non-paging
-			// page rather than duplicating the live window.
-			const { items: page, hasMore } =
-				result.data.beforeTs === undefined
-					? { items: [], hasMore: false }
-					: selectOlderTaskHistory(provider.taskHistoryStore.getAll(), result.data.beforeTs)
+			// Scope-aware selection (2026-09-23 per-workspace history review): the
+			// page is drawn from the requested scope's pool (default "current"), so
+			// the panel pages within — not across — workspaces. The reply also
+			// carries the advancing `nextAnchorTs` so repeated clicks progress, and
+			// the scope so the client knows whether to reset or append. With
+			// `beforeTs` omitted this is the FIRST bounded page of the scope, which
+			// the panel uses to reset on a scope switch.
+			const page = selectScopedOlderTaskHistory(provider.taskHistoryStore, {
+				scope: result.data.scope,
+				cwd: provider.cwd,
+				beforeTs: result.data.beforeTs,
+			})
+
+			// Log-only paging SLI (2026-09-23 per-workspace review).
+			provider.recordTaskHistoryPage(page.scope, page.items, page.hasMore)
 
 			await provider.postMessageToWebview({
 				type: "olderTaskHistory",
-				olderTaskHistory: page,
-				olderTaskHistoryHasMore: hasMore,
+				olderTaskHistory: page.items,
+				olderTaskHistoryHasMore: page.hasMore,
+				olderTaskHistoryNextAnchorTs: page.nextAnchorTs,
+				olderTaskHistoryScope: page.scope,
 			})
 			break
 		}

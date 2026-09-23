@@ -808,13 +808,23 @@ describe("mergeExtensionState", () => {
 
 describe("bounded taskHistory window (2026-09-17 state payload incident)", () => {
 	const TaskHistoryProbe = () => {
-		const { taskHistory, taskHistoryBounded, taskHistoryTotal } = useExtensionState()
+		const {
+			taskHistory,
+			taskHistoryBounded,
+			taskHistoryTotal,
+			taskHistoryScope,
+			taskHistoryNextAnchorTs,
+			taskHistoryHasMore,
+		} = useExtensionState()
 
 		return (
 			<div>
 				<div data-testid="history-ids">{JSON.stringify(taskHistory.map((i) => i.id))}</div>
 				<div data-testid="history-bounded">{JSON.stringify(taskHistoryBounded ?? null)}</div>
 				<div data-testid="history-total">{JSON.stringify(taskHistoryTotal ?? null)}</div>
+				<div data-testid="history-scope">{JSON.stringify(taskHistoryScope ?? null)}</div>
+				<div data-testid="history-next-anchor">{JSON.stringify(taskHistoryNextAnchorTs ?? null)}</div>
+				<div data-testid="history-has-more">{JSON.stringify(taskHistoryHasMore ?? null)}</div>
 			</div>
 		)
 	}
@@ -916,5 +926,119 @@ describe("bounded taskHistory window (2026-09-17 state payload incident)", () =>
 		dispatch({ type: "state", state: { taskHistory: [historyItem("c", 3)] } })
 
 		expect(ids()).toEqual(["c"])
+	})
+
+	it("resets the list and adopts the scope on the first page of a scope switch", () => {
+		renderProbe()
+
+		dispatch({
+			type: "state",
+			state: {
+				taskHistoryScope: "current",
+				taskHistoryBounded: true,
+				taskHistoryTotal: 213,
+				taskHistory: [historyItem("c1", 100)],
+			},
+		})
+		expect(JSON.parse(screen.getByTestId("history-scope").textContent!)).toBe("current")
+
+		// Scope-switch fetch: a first page for "all" (no beforeTs) REPLACES the list.
+		dispatch({
+			type: "olderTaskHistory",
+			olderTaskHistoryScope: "all",
+			olderTaskHistoryHasMore: true,
+			olderTaskHistoryNextAnchorTs: 50,
+			olderTaskHistory: [historyItem("a1", 10), historyItem("a2", 9)],
+		})
+
+		expect(ids()).toEqual(["a1", "a2"])
+		expect(JSON.parse(screen.getByTestId("history-scope").textContent!)).toBe("all")
+		expect(JSON.parse(screen.getByTestId("history-next-anchor").textContent!)).toBe(50)
+		expect(JSON.parse(screen.getByTestId("history-has-more").textContent!)).toBe(true)
+	})
+
+	it("keeps the panel's list and scope when a state push describes another scope", () => {
+		renderProbe()
+
+		dispatch({ type: "state", state: { taskHistoryScope: "current", taskHistory: [historyItem("c1", 100)] } })
+		dispatch({
+			type: "olderTaskHistory",
+			olderTaskHistoryScope: "all",
+			olderTaskHistoryHasMore: false,
+			olderTaskHistory: [historyItem("a1", 10)],
+		})
+		expect(ids()).toEqual(["a1"])
+
+		// A current-scoped state push arrives while the panel shows "all".
+		dispatch({
+			type: "state",
+			state: {
+				taskHistoryScope: "current",
+				taskHistoryBounded: true,
+				taskHistoryTotal: 5,
+				taskHistory: [historyItem("c2", 200)],
+			},
+		})
+
+		expect(ids()).toEqual(["a1"]) // not clobbered by the other scope's push
+		expect(JSON.parse(screen.getByTestId("history-scope").textContent!)).toBe("all")
+	})
+
+	it("merges a taskHistoryUpdated push instead of replacing (does not reduce visible rows)", () => {
+		renderProbe()
+
+		dispatch({
+			type: "state",
+			state: {
+				taskHistoryScope: "current",
+				taskHistoryBounded: true,
+				taskHistoryTotal: 40,
+				taskHistoryPagingAnchorTs: 90,
+				taskHistory: [historyItem("n2", 100), historyItem("n1", 90)],
+			},
+		})
+		dispatch({
+			type: "olderTaskHistory",
+			olderTaskHistoryScope: "current",
+			olderTaskHistoryHasMore: true,
+			olderTaskHistoryNextAnchorTs: 40,
+			olderTaskHistory: [historyItem("o1", 50)],
+		})
+		expect(ids()).toEqual(["n2", "n1", "o1"])
+
+		// Background push with a fresh head window that does NOT contain o1.
+		dispatch({
+			type: "taskHistoryUpdated",
+			taskHistoryScope: "current",
+			taskHistoryBounded: true,
+			taskHistoryTotal: 40,
+			taskHistoryPagingAnchorTs: 101,
+			taskHistory: [historyItem("n3", 101), historyItem("n2", 100)],
+		})
+
+		// Rows surviving a push: paged-in rows are preserved.
+		expect(ids()).toEqual(["n3", "n2", "n1", "o1"])
+		// The advancing cursor is not rewound by the push.
+		expect(JSON.parse(screen.getByTestId("history-next-anchor").textContent!)).toBe(40)
+	})
+
+	it("keeps the active scope and list across a list-less state push", () => {
+		renderProbe()
+
+		dispatch({ type: "state", state: { taskHistoryScope: "current", taskHistory: [historyItem("c1", 100)] } })
+		dispatch({
+			type: "olderTaskHistory",
+			olderTaskHistoryScope: "all",
+			olderTaskHistoryHasMore: true,
+			olderTaskHistory: [historyItem("a1", 10)],
+		})
+		expect(JSON.parse(screen.getByTestId("history-scope").textContent!)).toBe("all")
+
+		// A streaming/state push that omits the list (and the scope marker) must not
+		// reset the panel to the host's default scope.
+		dispatch({ type: "state", state: { currentTaskId: "t1" } })
+
+		expect(ids()).toEqual(["a1"])
+		expect(JSON.parse(screen.getByTestId("history-scope").textContent!)).toBe("all")
 	})
 })

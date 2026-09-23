@@ -228,10 +228,20 @@ the cause (H2/H3/H4 branch).
 After installing the fixed build, confirm all of:
 
 - [ ] `mainThreadStorage` large-state warning **disappears after one session** (legacy key cleared on startup).
-- [ ] `state` message payloads stay **< ~200 KB**: periodic `[webview-metrics] state_msgs=N p50=…KB p99=…KB max=…KB` summary lines show `max` under the 256 KB WARN threshold during normal streaming.
-- [ ] **Zero** `[webview-metrics] WARN`/`ERROR` lines during normal use.
+- [ ] `state` message payloads stay **< ~200 KB**: periodic `[webview-metrics] state_msgs=N p50=…KB p99=…KB max=…KB` summary lines show `max` under the 256 KB WARN threshold during normal streaming. (Reality check, 2026-09-17/23: with all bounded fields at max the composite is ~237 KB — the invariant asserted by `statePayloadBudget.spec.ts` — so treat **zero `WARN`/`ERROR`** as the pass bar and the `< ~200 KB` figure as aspirational.)
+- [ ] **Zero** `[webview-metrics] WARN`/`ERROR` lines during normal use. Each such line now carries `scope=current|all` so a `taskHistory` breach can be attributed to the active scope.
 - [ ] **Zero gray-out events** during active agent tasks (especially remote-SSH sessions).
-- [ ] History panel still renders (recent list; full history remains file-backed under `globalStorage/tasks/…`).
+
+### 6a. Per-workspace history checklist (added 2026-09-23)
+
+The window and its paging are now **per workspace scope** (default `current`); verify on a workspace with many sessions:
+
+- [ ] `Workspace: Current` shows **≥ the row floor** (`MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW`, 3) immediately — not ~1.
+- [ ] Repeated **Load older tasks** clicks **progress** (row count grows monotonically) to `taskHistoryTotal`; the button hides at the scope's tail.
+- [ ] **`Current ↔ All`** resets the list to that scope's first page and updates the total (a switch must not append across scopes).
+- [ ] A **background task update** during paging does **not** reduce the visible row count (the `taskHistoryUpdated` push merges now).
+- [ ] `[webview-metrics] history_paging scope=… pages=… rows=… bytes=… hasMore=0|1` appears once per fetch, `pages` advances within the window, and `hasMore=0` at the tail (this line is what makes "Load older tasks seemed broken" measurable).
+- [ ] History panel still renders (the full history remains file-backed under `globalStorage/tasks/…`; `_index.json`/`history_item.json` are read-only).
 
 ## Privacy note
 

@@ -164,6 +164,8 @@ export class WebviewPayloadMetrics {
 	private errorEmittedThisWindow = false
 	private userNotified = false
 	private disposed = false
+	/** Per-scope page counter for the history-paging SLI (reset each window). */
+	private historyPages = new Map<"current" | "all", number>()
 
 	constructor(private readonly deps: WebviewPayloadMetricsDeps) {
 		this.windowStart = deps.now()
@@ -212,13 +214,17 @@ export class WebviewPayloadMetrics {
 		this.windowSizes.push(bytes)
 		this.armFlushTimer(now)
 
+		// Which history scope this payload carried, so a taskHistory WARN/ERROR can
+		// be attributed to `current` vs `all` (2026-09-23 per-workspace review).
+		const scope = message.state?.taskHistoryScope ?? "current"
+
 		if (bytes >= STATE_ERROR_BYTES) {
 			if (!this.errorEmittedThisWindow || !this.userNotified) {
 				const fieldSizes = exactFieldSizes ?? this.probeFields(message, true)
 				if (!this.errorEmittedThisWindow) {
 					this.errorEmittedThisWindow = true
 					this.deps.log(
-						`[webview-metrics] ERROR "state" payload ${toKb(bytes)}KB > 1MB top[${formatTopFields(fieldSizes)}] runbook=docs/runbooks/gray-webview.md`,
+						`[webview-metrics] ERROR "state" payload ${toKb(bytes)}KB > 1MB scope=${scope} top[${formatTopFields(fieldSizes)}] runbook=docs/runbooks/gray-webview.md`,
 					)
 					this.emitEvent(2, bytes, fieldSizes)
 				}
@@ -236,10 +242,32 @@ export class WebviewPayloadMetrics {
 			this.warnEmittedThisWindow = true
 			const fieldSizes = exactFieldSizes ?? this.probeFields(message, true)
 			this.deps.log(
-				`[webview-metrics] WARN "state" payload ${toKb(bytes)}KB > 256KB top[${formatTopFields(fieldSizes)}] runbook=docs/runbooks/gray-webview.md`,
+				`[webview-metrics] WARN "state" payload ${toKb(bytes)}KB > 256KB scope=${scope} top[${formatTopFields(fieldSizes)}] runbook=docs/runbooks/gray-webview.md`,
 			)
 			this.emitEvent(1, bytes, fieldSizes)
 		}
+	}
+
+	/**
+	 * Records one history-paging fetch (log-only SLI, 2026-09-23 per-workspace
+	 * history review).
+	 *
+	 * The paging path had no measurement, so "Load older tasks seemed broken"
+	 * could not be distinguished from "slow". This emits one line per fetch:
+	 * scope, a per-window page counter, row count, serialized byte size and the
+	 * hasMore flag. No content, ids or paths — same privacy bar as the rest of
+	 * this module. `pages` counts fetches within the current window.
+	 */
+	recordTaskHistoryPage(page: { scope: "current" | "all"; items: readonly unknown[]; hasMore: boolean }): void {
+		if (this.disposed) {
+			return
+		}
+
+		const pages = (this.historyPages.get(page.scope) ?? 0) + 1
+		this.historyPages.set(page.scope, pages)
+		this.deps.log(
+			`[webview-metrics] history_paging scope=${page.scope} pages=${pages} rows=${page.items.length} bytes=${jsonSizeBytes(page.items)} hasMore=${page.hasMore ? 1 : 0}`,
+		)
 	}
 
 	/**
@@ -309,6 +337,7 @@ export class WebviewPayloadMetrics {
 		this.windowStart = now
 		this.warnEmittedThisWindow = false
 		this.errorEmittedThisWindow = false
+		this.historyPages = new Map()
 	}
 }
 

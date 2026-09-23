@@ -60,8 +60,8 @@ Roo+ is an agentic IDE extension that ships with **90 specialized modes** pre-lo
 | 🧮 **Accurate Context Window** | Trusted, real context-window metrics with no fabricated token counts in the task header (v3.77.0)                                              |
 | 🔒 **Atomic File Writing**     | Safe, crash-proof file operations                                                                                                              |
 | 🛡️ **Typed Message Protocol**  | All 232 webview↔extension message types schema-registered and runtime-validated at the boundary; fail-closed with zero `any` escapes (v3.78.0) |
-| 🔐 **Privacy-first & Trust**   | Zero telemetry by design — no PostHog, no analytics; untrusted workspaces are gated and first-use binaries require explicit consent (v3.88.0)  |
-| ⚡ **Webview Reliability**     | Bounded task-history, custom-modes, and chat-message payloads plus a payload-size SLI fix the gray frozen webview (v3.88.1–v3.88.3)            |
+| 🔐 **Privacy-first & Trust**   | Zero telemetry by design — no PostHog, no analytics; untrusted workspaces are gated and first-use binaries require explicit consent (v3.88.0). See the [Privacy Policy](https://github.com/xavier-arosemena/roo-plus/blob/master/PRIVACY.md). |
+| ⚡ **Webview Reliability**     | Bounded task-history (per-workspace), custom-modes, and chat-message payloads fix the gray frozen webview (v3.88.1–v3.88.9)                    |
 | 🌐 **Localization**            | Available in 18+ languages                                                                                                                     |
 
 <br/>

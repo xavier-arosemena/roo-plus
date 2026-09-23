@@ -1,17 +1,28 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { Fzf } from "fzf"
 
 import { highlightFzfMatch } from "@/utils/highlight"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { vscode } from "@/utils/vscode"
 
 type SortOption = "newest" | "oldest" | "mostExpensive" | "mostTokens" | "mostRelevant"
 
 export const useTaskSearch = () => {
-	const { taskHistory, cwd } = useExtensionState()
+	const { taskHistory, taskHistoryScope } = useExtensionState()
 	const [searchQuery, setSearchQuery] = useState("")
 	const [sortOption, setSortOption] = useState<SortOption>("newest")
 	const [lastNonRelevantSort, setLastNonRelevantSort] = useState<SortOption | null>("newest")
-	const [showAllWorkspaces, setShowAllWorkspaces] = useState(false)
+
+	// The host now computes the task-history window PER WORKSPACE SCOPE
+	// (2026-09-23 per-workspace history review), so the panel no longer filters
+	// by workspace locally — doing so after truncation is what collapsed
+	// `Workspace: Current` to ~1 row. This selector is a SCOPE switch: changing
+	// it asks the host for that scope's first page (the reducer resets the list).
+	const showAllWorkspaces = taskHistoryScope === "all"
+
+	const setShowAllWorkspaces = useCallback((showAll: boolean) => {
+		vscode.postMessage({ type: "getOlderTaskHistory", scope: showAll ? "all" : "current" })
+	}, [])
 
 	// Keep the relevance-sort state machine in sync with the search query using
 	// the React-recommended "adjust state during render" pattern (each branch
@@ -25,12 +36,8 @@ export const useTaskSearch = () => {
 	}
 
 	const presentableTasks = useMemo(() => {
-		let tasks = taskHistory.filter((item) => item.ts && item.task)
-		if (!showAllWorkspaces) {
-			tasks = tasks.filter((item) => item.workspace === cwd)
-		}
-		return tasks
-	}, [taskHistory, showAllWorkspaces, cwd])
+		return taskHistory.filter((item) => item.ts && item.task)
+	}, [taskHistory])
 
 	const fzf = useMemo(() => {
 		return new Fzf(presentableTasks, {

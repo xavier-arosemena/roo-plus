@@ -45,25 +45,46 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 		setShowAllWorkspaces,
 	} = useTaskSearch()
 	const { t } = useAppTranslation()
-	const { taskHistory, taskHistoryBounded, taskHistoryTotal, taskHistoryPagingAnchorTs } = useExtensionState()
+	const {
+		taskHistory,
+		taskHistoryBounded,
+		taskHistoryTotal,
+		taskHistoryPagingAnchorTs,
+		taskHistoryScope,
+		taskHistoryNextAnchorTs,
+		taskHistoryHasMore,
+	} = useExtensionState()
 
-	// The host ships a COUNT+BYTE-bounded `taskHistory` window (2026-09-17
-	// payload incident — the byte half of the 3.88.1 count bound). Older rows
-	// stay reachable from the file-backed store via `getOlderTaskHistory`, so
-	// offer that until the loaded list covers the whole history.
+	// The host ships a COUNT+BYTE-bounded `taskHistory` window PER WORKSPACE
+	// SCOPE (2026-09-17 payload incident + 2026-09-23 per-workspace review).
+	// Older rows stay reachable from the file-backed store via
+	// `getOlderTaskHistory`. Once the panel has fetched a page, the host's
+	// `taskHistoryHasMore` is authoritative (it hides the affordance exactly at
+	// the active scope's tail); before that we fall back to the state window's
+	// `bounded`/`total` markers so an unsolicited first render still offers it.
 	const hasOlderTasks =
-		taskHistoryBounded === true && typeof taskHistoryTotal === "number" && taskHistory.length < taskHistoryTotal
+		taskHistoryHasMore !== undefined
+			? taskHistoryHasMore
+			: taskHistoryBounded === true &&
+				(typeof taskHistoryTotal !== "number" || taskHistory.length < taskHistoryTotal)
 
 	const loadOlderTasks = () => {
-		// Page from the host's explicit anchor — the oldest CONTIGUOUS row — not from
-		// the last row present: the bounded window also carries re-attached ancestor
-		// rows (tree closure, DEBT entry C) that are older than the byte cutoff, and
-		// using one of those would skip every row between it and the cutoff.
-		const oldestTs = taskHistoryPagingAnchorTs ?? taskHistory[taskHistory.length - 1]?.ts
+		// Page within the ACTIVE scope, from the advancing cursor, not the frozen
+		// head anchor: after the first page the cursor moved down, so reusing
+		// `taskHistoryPagingAnchorTs` would re-request the same page forever
+		// (the "broken or so slow it seemed broken" report). The anchor is the
+		// oldest CONTIGUOUS row — not the last row present — because the bounded
+		// window also carries re-attached ancestor rows (tree closure, DEBT entry
+		// C) that are older than the byte cutoff.
+		const oldestTs = taskHistoryNextAnchorTs ?? taskHistoryPagingAnchorTs ?? taskHistory[taskHistory.length - 1]?.ts
 		if (oldestTs === undefined) {
 			return
 		}
-		vscode.postMessage({ type: "getOlderTaskHistory", beforeTs: oldestTs })
+		vscode.postMessage({
+			type: "getOlderTaskHistory",
+			beforeTs: oldestTs,
+			scope: taskHistoryScope ?? "current",
+		})
 	}
 
 	// Use grouped tasks hook

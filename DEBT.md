@@ -246,9 +246,9 @@ decision and coverage reporting.
 
 ### 22. Marketplace Portal Action + Notice #305 Reply (external — cannot close from repo)
 
-**Location**: VS Code Marketplace portal, publisher `xavier-arosemena`, extension `roo-plus` (also Open VSX).
-**Issue**: The listing must show a Privacy Policy URL → [`PRIVACY.md`](PRIVACY.md) and an accurate data-collection disclosure (no telemetry; user-configured AI providers; consent-gated Semble/DCG downloads) before closing notice #305. This cannot be set from the repo.
-**Suggested Fix**: In the portal set/confirm the privacy URL + disclosure, publish the post-#305 release, then reply to notice #305 with the fix summary and source pointer.
+**Location**: VS Code Marketplace listing README + the notice #305 review thread, publisher `xavier-arosemena`, extension `roo-plus` (also Open VSX).
+**Issue**: The VS Code Marketplace has **no dedicated "Privacy Policy URL" field** — for VS Code extensions the listing's Resources links derive only from `repository`, `homepage`, `bugs`, and `license` in `package.json`, and privacy is surfaced through the listing **README**. Roo+ must show the privacy link and the data-collection disclosure (no telemetry; user-configured AI providers; consent-gated Semble/DCG downloads) before closing notice #305.
+**Suggested Fix**: Link the policy from the Marketplace-visible README (done — root + `src/README.md`), republish a patch so the README goes live, then reply to notice #305 with the direct privacy URL (`https://github.com/xavier-arosemena/roo-plus/blob/master/PRIVACY.md`) and the fix summary. No portal privacy field exists to set.
 
 ### 23. Marketplace-Security Re-scan — implemented as an automated gate, then removed by design (2026-09-08)
 

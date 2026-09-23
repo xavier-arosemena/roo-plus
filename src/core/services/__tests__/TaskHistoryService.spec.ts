@@ -5,9 +5,12 @@ import { type HistoryItem, parseExtensionMessage } from "@roo-code/types"
 import {
 	TaskHistoryService,
 	boundTaskHistoryForWebview,
+	buildTaskHistoryWindow,
 	isShippableHistoryItem,
 	projectTaskHistoryForWebview,
+	resolveTaskHistoryScope,
 	selectOlderTaskHistory,
+	selectScopedOlderTaskHistory,
 	MAX_TASK_HISTORY_BYTES_SHIPPED_TO_WEBVIEW,
 	MAX_TASK_HISTORY_SHIPPED_TO_WEBVIEW,
 	MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW,
@@ -30,13 +33,23 @@ type StoreLike = TaskHistoryStoreLike & {
 	upsert: ReturnType<typeof vi.fn>
 	get: ReturnType<typeof vi.fn>
 	getAll: ReturnType<typeof vi.fn>
+	getByWorkspace: ReturnType<typeof vi.fn>
 }
 
-const makeStore = (): StoreLike => ({
-	upsert: vi.fn(async (item: HistoryItem): Promise<HistoryItem[]> => [item]),
-	get: vi.fn(() => undefined),
-	getAll: vi.fn((): HistoryItem[] => []),
-})
+const makeStore = (): StoreLike => {
+	const store: StoreLike = {
+		upsert: vi.fn(async (item: HistoryItem): Promise<HistoryItem[]> => [item]),
+		get: vi.fn(() => undefined),
+		getAll: vi.fn((): HistoryItem[] => []),
+		getByWorkspace: vi.fn((): HistoryItem[] => []),
+	}
+	// Default per-workspace read mirrors the real store over getAll(); tests may
+	// override either mock independently.
+	store.getByWorkspace.mockImplementation((workspace: string) =>
+		store.getAll().filter((item) => item.workspace === workspace),
+	)
+	return store
+}
 
 interface TestHarness {
 	service: TaskHistoryService
@@ -64,6 +77,9 @@ const makeHarness = (): TestHarness => {
 		isViewLaunched,
 		postMessageToWebview,
 		recentTasksCache,
+		// No workspace folder by default (scope resolves to "all"), matching the
+		// historical whole-store broadcast these tests assert.
+		getCwd: () => undefined,
 	}
 
 	return {
@@ -247,10 +263,17 @@ describe("TaskHistoryService.broadcastTaskHistoryUpdate", () => {
 
 		await h.service.broadcastTaskHistoryUpdate(items)
 
-		expect(h.postMessageToWebview).toHaveBeenCalledWith({
-			type: "taskHistoryUpdated",
-			taskHistory: [expect.objectContaining({ id: "new" }), expect.objectContaining({ id: "old" })],
-		})
+		expect(h.postMessageToWebview).toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: "taskHistoryUpdated",
+				taskHistory: [expect.objectContaining({ id: "new" }), expect.objectContaining({ id: "old" })],
+				// The push now carries the same window markers as `state` so the
+				// webview merges instead of replacing (2026-09-23 review).
+				taskHistoryScope: "all",
+				taskHistoryBounded: false,
+				taskHistoryTotal: 2,
+			}),
+		)
 	})
 
 	it("filters out items without a ts or task", async () => {
@@ -614,5 +637,158 @@ describe("isShippableHistoryItem", () => {
 		expect(isShippableHistoryItem(makeHistoryItem({ id: "ok", task: "Task" }))).toBe(true)
 		expect(isShippableHistoryItem(makeHistoryItem({ id: "no-ts", task: "Task", ts: 0 }))).toBe(false)
 		expect(isShippableHistoryItem(makeHistoryItem({ id: "no-task", task: "" }))).toBe(false)
+	})
+})
+
+describe("per-workspace task-history scope (2026-09-23 review)", () => {
+	// Matches the incident's install: duke-io=213, lead-genie=241, aef-site=38.
+	const DUKE = "/srv/projects/duke-io"
+	const LEAD = "/srv/projects/lead-genie"
+	const AEF = "/srv/projects/aef-site"
+	const BASE = 10_000_000
+
+	const makeWorkspaceItems = (workspace: string, count: number, offset: number): HistoryItem[] =>
+		Array.from({ length: count }, (_, i) =>
+			makeHistoryItem({
+				id: `${workspace}#${i}`,
+				ts: BASE - offset - i,
+				task: `Task ${workspace} ${i}`,
+				workspace,
+				number: i + 1,
+			}),
+		)
+
+	const all = [
+		...makeWorkspaceItems(DUKE, 213, 0),
+		...makeWorkspaceItems(LEAD, 241, 1_000),
+		...makeWorkspaceItems(AEF, 38, 2_000),
+	]
+
+	const makeScopedStore = (items: HistoryItem[]): StoreLike => {
+		const store = makeStore()
+		store.getAll.mockReturnValue(items)
+		return store
+	}
+
+	it("resolves `current` only when a workspace folder exists", () => {
+		expect(resolveTaskHistoryScope("current", "/ws")).toBe("current")
+		expect(resolveTaskHistoryScope(undefined, "/ws")).toBe("current")
+		expect(resolveTaskHistoryScope("all", "/ws")).toBe("all")
+		// No folder open → degrade to "all" so the panel is never empty.
+		expect(resolveTaskHistoryScope("current", undefined)).toBe("all")
+	})
+
+	it("AC1: `current` returns only the active workspace's rows with total === 213", () => {
+		const store = makeScopedStore(all)
+
+		const window = buildTaskHistoryWindow(store, { scope: "current", cwd: DUKE })
+
+		expect(window.scope).toBe("current")
+		expect(window.total).toBe(213)
+		expect(window.bounded).toBe(true)
+		expect(window.items.length).toBeGreaterThanOrEqual(MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW)
+		expect(window.items.every((item) => item.workspace === DUKE)).toBe(true)
+	})
+
+	it("AC2/AC5: paging from nextAnchorTs enumerates all 213 current rows, no dupes/gaps", () => {
+		const store = makeScopedStore(all)
+
+		const assertPageBudget = (items: HistoryItem[]) => {
+			const bytes = Buffer.byteLength(JSON.stringify(items), "utf8")
+			expect(
+				bytes <= MAX_TASK_HISTORY_BYTES_SHIPPED_TO_WEBVIEW ||
+					items.length === MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW,
+			).toBe(true)
+		}
+
+		const first = buildTaskHistoryWindow(store, { scope: "current", cwd: DUKE })
+		assertPageBudget(first.items)
+
+		const ids = first.items.map((item) => item.id)
+		const timestamps = first.items.map((item) => item.ts)
+		let anchor = first.pagingAnchorTs
+		let pages = 1
+
+		while (anchor !== undefined) {
+			const bound = anchor
+			const page = selectScopedOlderTaskHistory(store, { scope: "current", cwd: DUKE, beforeTs: bound })
+			assertPageBudget(page.items)
+			// Progress guard: every row of a page is strictly older than its bound.
+			expect(page.items.every((item) => item.ts < bound)).toBe(true)
+			ids.push(...page.items.map((item) => item.id))
+			timestamps.push(...page.items.map((item) => item.ts))
+			pages++
+			anchor = page.hasMore ? page.nextAnchorTs : undefined
+		}
+
+		expect(ids).toHaveLength(213)
+		expect(new Set(ids).size).toBe(213)
+		for (let i = 1; i < timestamps.length; i++) {
+			expect(timestamps[i]).toBeLessThan(timestamps[i - 1])
+		}
+		expect(pages).toBeLessThanOrEqual(Math.ceil(213 / MIN_TASK_HISTORY_ROWS_SHIPPED_TO_WEBVIEW))
+	})
+
+	it("AC3: `all` covers 492 rows and pages to the tail", () => {
+		const store = makeScopedStore(all)
+
+		const first = buildTaskHistoryWindow(store, { scope: "all", cwd: DUKE })
+		expect(first.total).toBe(492)
+
+		const ids = first.items.map((item) => item.id)
+		let anchor = first.pagingAnchorTs
+		while (anchor !== undefined) {
+			const page = selectScopedOlderTaskHistory(store, { scope: "all", cwd: DUKE, beforeTs: anchor })
+			ids.push(...page.items.map((item) => item.id))
+			anchor = page.hasMore ? page.nextAnchorTs : undefined
+		}
+
+		expect(ids).toHaveLength(492)
+		expect(new Set(ids).size).toBe(492)
+	})
+
+	it("AC4: a scoped page re-attaches a split ancestor; anchor is the last contiguous row", () => {
+		const store = makeScopedStore([
+			makeHistoryItem({ id: "child", ts: BASE, task: "Child", workspace: DUKE, parentTaskId: "parent" }),
+			makeHistoryItem({ id: "middle", ts: BASE - 5, task: "Middle", workspace: DUKE }),
+			makeHistoryItem({ id: "parent", ts: BASE - 10, task: "Parent", workspace: DUKE }),
+			makeHistoryItem({ id: "other-ws", ts: BASE - 1, task: "Other", workspace: LEAD }),
+		])
+
+		const window = buildTaskHistoryWindow(store, { scope: "current", cwd: DUKE, projection: { maxItems: 1 } })
+
+		expect(window.items.map((item) => item.id)).toEqual(["child", "parent"])
+		// The re-attached parent is older than the cutoff, so the anchor is the last
+		// CONTIGUOUS row (the child), keeping `middle` reachable.
+		expect(window.pagingAnchorTs).toBe(BASE)
+
+		const next = selectScopedOlderTaskHistory(store, {
+			scope: "current",
+			cwd: DUKE,
+			beforeTs: window.pagingAnchorTs as number,
+			projection: { maxItems: 10 },
+		})
+		expect(next.items.map((item) => item.id)).toEqual(["middle", "parent"])
+		expect(next.items.some((item) => item.id === "other-ws")).toBe(false)
+	})
+
+	it("the first page of a scope fetch (beforeTs omitted) is the newest window of that scope", () => {
+		const store = makeScopedStore(all)
+
+		const page = selectScopedOlderTaskHistory(store, { scope: "current", cwd: LEAD })
+
+		expect(page.scope).toBe("current")
+		expect(page.items.every((item) => item.workspace === LEAD)).toBe(true)
+		expect(page.hasMore).toBe(true)
+		expect(page.nextAnchorTs).toBeDefined()
+	})
+
+	it("degrades `current` to the whole store when no workspace folder is open", () => {
+		const store = makeScopedStore(all)
+
+		const window = buildTaskHistoryWindow(store, { scope: "current", cwd: undefined })
+
+		expect(window.scope).toBe("all")
+		expect(window.total).toBe(492)
 	})
 })
