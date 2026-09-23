@@ -25,6 +25,7 @@ Starting the 3.88 pre-release line — a hardening cycle responding to VS Code M
 - **Consent-gated binary downloads** — first-use Semble and DCG acquisition requires fail-closed consent (Allow once / Always allow / Deny) persisted only on explicit choice and never in an untrusted workspace, with version-scoped approval.
 - **Reproducible, secret-free builds** — every VSIX is verified byte-for-byte from committed source; Semble and DCG release-governance records disclose external authorship, pinned versions, and checksums.
 - **Source-matching & audit tooling** — `vsix-audit.mjs` + by-design register retained as an optional on-demand scan (not a publish gate); SECURITY.md records the post-fix reproducible-VSIX measurement.
+- **Docs privacy guard broadened** — `scripts/verify-docs-no-public-ip.mjs` now scans repo Markdown (not only the incidents/postmortems subset) for public IPv4 literals and internal hostnames, is wired into the Code QA static-analysis job, and is covered by unit tests — the follow-up to the 3.88.8 docs disclosure of a remote IP and hostnames.
 
 ### 🩺 Webview Reliability — v3.88.1 / v3.88.2 / v3.88.3 (#64, #328, #331)
 
@@ -42,6 +43,13 @@ Starting the 3.88 pre-release line — a hardening cycle responding to VS Code M
 - **Tree-safe window** — a byte/count boundary no longer splits a parent/child task tree: the window re-attaches the ancestor rows a subtask needs, so a subtask is never rendered as a top-level task (#331).
 - **Renderer-liveness probe (`[webview-liveness]`)** — opt-in, log-only host→webview→host ping/pong probe reporting RTT `p50`/`p99`/`max` and missed pongs once per ~60 s window, plus WARN/ERROR lines past the documented thresholds. Enabled with `ROO_WEBVIEW_LIVENESS_DEBUG=1`, off by default, local-only and never persisted. `[host-health]` instruments the extension host and cannot see a stalled webview renderer/transport, which is what the 2026-09-18 gray-webview capture shows (#331).
 - **Hermetic health-metrics tests** — the host-health gate specs no longer depend on the developer's ambient `ROO_HOST_HEALTH_DEBUG`, so they pass with the flag set or unset (DEBT E).
+
+### 🩺 Webview Reliability — v3.88.9 (#359)
+
+- **Per-workspace history scope** — `Workspace: Current` (the default) now computes the count/byte-bounded `taskHistory` window over the active workspace's tasks instead of truncating the global pool and filtering afterwards, so a multi-workspace install no longer collapses to a single row when `Current` is selected (#359).
+- **Scope-aware, advancing paging** — "Load older tasks" pages from an advancing, scope-aware anchor (omitting `beforeTs` fetches the scope's first page on switch/reset), and a background `taskHistoryUpdated` push now merges into the list instead of replacing it, so paging is no longer reset by unrelated updates (#359).
+- **Byte bound preserved per scope** — the 32 KB budget / 3-row floor / tree-closure projection is applied within each scope, so the 3.88.8 gray-out fix is not re-opened; a composite <256 KB `state` payload budget guard covers the whole message (#359).
+- **Paging observability** — payload WARN/ERROR lines are tagged `scope=current|all`, and a log-only `[webview-metrics] history_paging` line records rows/bytes/`hasMore` (no content), so "Load older tasks seemed broken" is measurable (#359).
 
 ---
 

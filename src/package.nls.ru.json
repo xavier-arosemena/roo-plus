@@ -1,6 +1,6 @@
 {
 	"extension.displayName": "Roo+",
-	"extension.description": "The local-first, bring-your-own-model agentic IDE extension that makes your AI spend legible and your knowledge portable — no cloud, no lock-in, no silent regressions — powered by a curated 302-mode catalog.",
+	"extension.description": "Roo Plus: локальное (local-first), bring-your-own-model агентное расширение для IDE, которое делает ваши расходы на ИИ прозрачными, а знания — переносимыми — без облака, без lock-in, без тихих регрессий — на основе кураторского каталога из 302 режимов.",
 	"views.contextMenu.label": "Roo+",
 	"views.terminalMenu.label": "Roo+",
 	"views.activitybar.title": "Roo+",
