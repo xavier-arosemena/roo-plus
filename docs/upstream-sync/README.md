@@ -115,13 +115,25 @@ provenance of each ported change auditable.
 When a pick conflicts, do **not** default to `--ours`/`--theirs`:
 
 ```bash
-git show <sha> -- <file>            # what upstream intended
-git log --oneline <mergebase>..master -- <file>   # what the fork intended
+git show <sha> -- <file>                          # what upstream intended (+ its PR body)
+git blame -L <a>,<b> HEAD -- <file>               # what the fork intended, attributed to the hunk
+git log -L <a>,<b>:<file>                         # fallback for a brand-new (unblameable) hunk
 ```
+
+The file-scoped `git log --oneline <merge-base>..master -- <file>` is a fallback
+**only** for a brand-new hunk: after a rebrand sweep and the `-x` imports it
+returns churn rather than intent, which is why fork intent is attributed with
+`git blame -L`.
 
 Resolve so **both intents survive**: upstream's bugfix logic, expressed in the
 fork's structure (decomposed handlers, typed messages, branding, no telemetry).
 Escape conflict markers with `\` when writing diffs (`\<<<<<<<`).
+
+Write the two intents, the fork locus, the closed-set resolution and the
+fail-before/pass-after evidence into the batch's resolution record
+([`resolutions/_TEMPLATE.md`](resolutions/_TEMPLATE.md)) and check it with
+`node scripts/verify-resolutions.mjs --batch SYNC-<n> --base <base> --head <ref>`
+before the gate chain — a batch with a conflicted file and no block fails by name.
 
 ### 4.3 Re-apply branding
 
@@ -136,20 +148,20 @@ compares `Roo-Plus ↔ Zoo-Code` tokens explicitly.
 
 ### 4.4 Mandatory gate chain
 
-No batch merges without all of these passing:
+No batch merges without all of these passing. The chain has **one** source of
+truth — the `gate:sync` aggregate — so this section and
+[`../runbooks/upstream-sync.md`](../runbooks/upstream-sync.md) TASK 6 can never
+drift apart (they used to list different chains, and the runbook was the weaker
+one):
 
 ```bash
-node scripts/verify-message-schemas.mjs
-node scripts/verify-upstream-code-index-alignment.mjs --strict
-node scripts/verify-announcement-version.mjs
-node scripts/verify-submodule-pin.mjs
-node scripts/verify-roomodes-sync.mjs
-node scripts/verify-locale-readmes.mjs
-node scripts/verify-semble-checksums.mjs --strict
-node scripts/verify-semble-release-coupling.mjs --base <pr-merge-base> --strict
-pnpm verify:roomodes && pnpm verify:submodule-pin && pnpm verify:announcement-version
-pnpm test:scripts          # the .spec.mjs suites for the gates themselves
+pnpm gate:sync     # every gate, in order: the node gates, the scripts unit tests,
+                   # the resolution-integrity scan (markers + `git diff --check`) and the type check
 ```
+
+The list itself lives in [`../../scripts/gate-sync.mjs`](../../scripts/gate-sync.mjs:1)
+(`--list`/`--help` print it); adding or removing a gate is a one-line change
+there, and a test fails if either document restates a divergent command list.
 
 Rationale: these gates _are_ the fork's invariants. A sync that breaks one has
 regressed the fork, regardless of how clean the pick looked.
@@ -176,7 +188,9 @@ is one of the most-diverged files (12 upstream touches) — expect friction ther
 
 Update [`pending-upstream-commits.md`](pending-upstream-commits.md): set the
 commit's status to `☑` and append the fork SHA, then re-check the summary counts.
-A batch is not done until the register says so.
+A batch is not done until the register says so. Cite the batch's resolution
+record ([`resolutions/`](resolutions/_TEMPLATE.md)) in the batch's **Notes.**
+block so the per-file judgement is reachable from the row.
 
 ## 5. Class playbooks
 
@@ -255,6 +269,7 @@ ESM, zero new runtime dependencies, and the same conventions as the sibling gate
 
 ```bash
 node scripts/upstream-sync-triage.mjs --verify           # register integrity (default mode)
+node scripts/upstream-sync-triage.mjs --verify --repo-only  # merge-base-free subset (the CI profile)
 node scripts/upstream-sync-triage.mjs --refresh          # dry run: propose triage for NEW commits
 node scripts/upstream-sync-triage.mjs --refresh --write  # apply the proposal + header rewrite
 node scripts/upstream-sync-triage.mjs --refresh --json   # machine-readable output
@@ -268,20 +283,87 @@ suite (`scripts/upstream-sync-triage.spec.mjs`) runs as part of `pnpm test:scrip
 Exit codes: `0` verified / refreshed / skipped (a stale `◐` warning alone does NOT
 fail) · `1` a check failed, the merge base is unusable (shallow clone), upstream
 was unavailable with `--strict`, or stale `◐` rows were found with `--strict`.
+Unknown flags and `--repo-only` outside `--verify` fail loudly with `1`.
 
-- `--verify` (default) — assert the register against the repo, reporting **seven
-  independent checks**: (1) `row-sha-format` every row SHA is the canonical
-  9-character prefix; (2) `row-sha-resolves` every row SHA resolves to a commit;
-  (3) `coverage` every commit in `merge-base..upstream/main` has exactly one row
-  and no row points outside that range; (4) `duplicates` no row SHA repeats;
-  (5) `synced-fork-sha` every `☑` row carries a fork SHA reachable from the fork
-  ref (runbook R9); (6) `stale-in-progress` every `◐` row that records a fork SHA
-  must **not** already be reachable from the fork ref — a `◐` row whose fork SHA
-  has landed is _stale_ and must be flipped to `☑` (a `◐` row with no fork SHA is
-  not checked; see §6 of the runbook). This is a **warning by default** and a
-  failure only under `--strict`; (7) `header-counts` the header's pending count,
-  baseline tip and merge base agree with git. It also prints a **per-batch
-  progress roll-up** (resolved vs pending per `SYNC-n`).
+- `--verify` (default) — assert the register against the repo, reporting **sixteen
+  independent checks**, eight of which need no merge base: (1) `row-sha-format`
+  every row SHA is the canonical 9-character prefix; (2) `row-sha-resolves` every
+  row SHA resolves to a commit; (3) `row-parse` every data row in a commit table
+  parses into a register row — a row whose SHA cell lost its backticks is invisible
+  to coverage, and the repo-only profile used to exit 0 blind to it, so this fails
+  by line; (4) `coverage` every commit in `merge-base..upstream/main` has exactly
+  one row and no row points outside that range; (5) `duplicates` no row SHA repeats;
+  (6) `synced-fork-sha` every `☑` row carries a fork SHA reachable from the fork ref
+  (runbook R9) **and** records `Resolved:` and `Version`; (7) `stale-in-progress`
+  every `◐` row that records a fork SHA must **not** already be reachable from the
+  fork ref — a `◐` row whose fork SHA has landed is _stale_ and must be flipped to
+  `☑` (a `◐` row with no fork SHA is not checked; see §6 of the runbook). This is a
+  **warning by default** and a failure only under `--strict`; (8) `class-ladder` —
+  **hard**: `A-CLEAN` ⇒ Δ = 0, because an `A-CLEAN` label asserts pickability;
+  (9) `class-ladder-advisory` — **warning**: `B-CAREFUL` ⇒ 1 ≤ Δ ≤ 5 (Δ > 5 means
+  "inspect before picking", a judgement the tool must not auto-correct);
+  (10) `exception-advisory` — **warning**: a dated `Exception` older than 90 days
+  needs re-confirmation, reported by SHA; (11) `blocked-by` — **hard**: every
+  `Blocked-by` token names a **different row in this register**, and the literal
+  `unknown` is forbidden (write `—`); (12) `blocked-by-pending` — **warning**: the
+  named prerequisite has not landed yet, which is what "blocked" means — a
+  readiness fact, not a defect; (13) `discard-rationale` every `✖` row carries a
+  rationale, inline or in its batch's `**Rationale.**` block; (14) `header-tip` the
+  header's `Upstream tip` is a canonical SHA that resolves in this repo;
+  (15) `header-pending-count` the header's pending count, merge base and tip agree
+  with git; (16) `landed-unflipped` — **hard**: no `☐`/`◐` row's change is already
+  in the fork by patch identity (`git cherry -v <forkRef> upstream/main` marks the
+  upstream commit `-`, and the matching fork commit is named as evidence) or
+  because it already records `Resolved:`/`Version` while still `☐`. This is the
+  "update the table to `☑` when the commit lands" control; it needs history, so it
+  is **full-profile only**. It also prints a **per-batch progress roll-up**
+  (resolved vs pending per `SYNC-n`), the derived **ready set** and every dated
+  **exception**.
+- **Four finding levels** — every finding an operator sees is exactly one of these,
+  and only the first can fail the run:
+    - **fail** — an `error`-severity check reported a defect: a false claim about the
+      register (bad row SHA, a `☑` row without reachability or without
+      `Resolved:`/`Version`, a hard class violation, a `Blocked-by` that is not a
+      different register row). Exit 1.
+    - **advisory** — a `warning`-severity check reported a judgement call
+      (`stale-in-progress`, `class-ladder-advisory`, `exception-advisory`,
+      `blocked-by-pending`). Printed, never fatal; only stale `◐` rows are promoted
+      by `--strict`, because a judgement is not a defect.
+    - **informational** — the **derived ready set** (`A-CLEAN` ∧ Δ 0 ∧
+      `Blocked-by` = ∅ ∧ open, per F-A-4 — a predicate, **not** a class) and the
+      separately labelled **inspect-first** list (`B-CAREFUL` Δ outside 1–5;
+      `B-CAREFUL` ∧ Δ 0 is empty by definition). Printed; never affects the exit code.
+    - **exception** — a **dated** `Exception` cell, `excepted <YYYY-MM-DD> — <reason>`.
+      Its only permitted use is honouring a decision already recorded for a row that
+      violates `A-CLEAN` ⇒ Δ = 0; an undated/mis-shaped token, or one on a row that
+      does not violate the rule, is a hard failure. `--verify` prints every excepted
+      row **by SHA** under its own heading, so an exception can never be silent.
+- `--repo-only` (with `--verify`) — run **only the eight merge-base-free checks**
+  (`row-sha-format`, `row-sha-resolves`, `row-parse`, `duplicates`,
+  `synced-fork-sha`, `stale-in-progress`, `exception-advisory`, `header-tip`) and
+  issue **no git command that references `upstream/main`** or computes the upstream
+  merge base — `coverage`, `header-pending-count` and `landed-unflipped` (the
+  history-dependent checks) are invoked only in the full profile (CP1-3). `row-parse`
+  and `exception-advisory` are pure-markdown, so they run here too, which is what
+  stops the profile going blind to a row whose SHA cell lost its backticks. In
+  `--json`, the quantities this profile cannot evaluate — `counts.pendingCommits`,
+  `counts.missing`, `counts.unexpected` and the top-level `missing`/`unexpected` —
+  are reported as **`null`, never `0`**, so no consumer reads "0 pending" from a
+  profile that never measured it (CP1-7). This is the profile CI gates with, because
+  a `--depth=1` checkout has no merge base and the full profile would be red by
+  construction there (H-03 / F-A-7 / F-G-5).
+  **Precondition — merge-base-free is not object-free.** The profile still needs the
+  commits the register names to exist locally, so a CI job must fetch the fork
+  history and the register's upstream window before running it (`fetch-depth: 0`,
+  or an explicit `git fetch upstream main`). Measured on 2026-09-24: in a fresh
+  1-commit clone `--repo-only` exits 1 on `row-sha-resolves` (101 of 102 rows
+  unresolvable) — red by construction, which is why the check was not made
+  tolerant: an unresolvable row SHA is a real finding, not a skip.
+- **Row cells are resolved by header name, never by index.** Inserting a column
+  before `Status` used to make the parser read the wrong cell, so `☑` rows read as
+  unsynced and the reachability checks went _quiet_ instead of red (F-B-1). The
+  appended schema — `Blocked-by`, `Resolved:`, `Version` — is documented in the
+  register's Legend and in [runbook §6](../runbooks/upstream-sync.md:171).
 - `--refresh` — fetch/deepen upstream, diff `upstream/main` against the baseline
   tip recorded in the register header, compute evidence per new commit (Δ, file
   count, hot-file hits, `CORE_FILES` hits, and telemetry / version / CHANGELOG /
@@ -325,7 +407,11 @@ automates §6 steps 1–4 and the §8 verification itself.
 
 ## 9. Register changelog
 
-| Date       | Event                                                                                                                                                                                  |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-09-16 | Register created. Baseline merge base `252c69b5`; 102 pending upstream commits classified (18 `A-CLEAN`, 25 `B-CAREFUL`, 19 `C-REIMPLEMENT`, 12 `D-LOCAL`, 27 `E-SKIP`, 1 `X-REJECT`). |
-| 2026-09-17 | **Release note — `v3.88.5` superseded by `v3.88.6`.** `src/package.json` was bumped to `3.88.5` by `afe35f6a8`, but the publish run for `master` at `71d621532` (run [`35194285835`](https://github.com/xavier-arosemena/roo-plus/actions/runs/35194285835)) aborted **fail-closed**: the version guard could not query Open VSX (`Open VSX API returned HTTP 503`) and refuses to continue rather than risk a silent skip or a non-monotonic publish. That is an **infrastructure** failure, not a version error — `3.88.5` itself was never rejected as duplicate or non-monotonic. The release was deliberately **not** re-triggered. The mechanism matters: [`pre-release-publish.yml`](../../.github/workflows/pre-release-publish.yml:1) runs on **every push to `master`** and only sets `skip=true` for release-prep subjects (`^chore: prepare vX.Y.Z( stable)? release`), so **any** merge to `master` publishes whatever version is committed — an unbumped merge would have published `3.88.5`. This release is therefore cut with an explicit bump to **`v3.88.6`**: that merge publishes `3.88.6`, and `3.88.5` remains unpublished **as a consequence of that bump**, not by design. A future reader must not read the `3.88.5` gap as a failed or incomplete sync. |
+| Date       | Event                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-09-25 | **Guarded refresh (WS-1c) — 2 upstream commits folded in; register green on both profiles.** `--refresh` ran behind the H-01 guard: deterministic deepen `git fetch --shallow-since=2026-08-19 upstream main` (derived from the register own baseline dates), then the three post-conditions asserted BEFORE any write — a real merge base resolves (`252c69b5`), the recorded baseline tip `9ec139cd8` is an ancestor of `upstream/main`, and the new-commit count (2) is strictly less than the local shallow window (131). Header: Upstream tip `9ec139cd8` → `fadd66a34` (2026-09-25, `chore(coderabbit): allow non-org members to interact with chat` (#1775)); Pending upstream commits 126 → 128. The 2 new rows live in the `SYNC-15` proposals section: `ebf4bd2d3` (`A-CLEAN`/P1, Δ 0) and `fadd66a34` (`E-SKIP`/P4). The Summary tables and the `Baseline recorded` header cell were updated to the recorded counts; `--verify` and `--verify --repo-only` both exit 0. |
+| 2026-09-24 | **Baseline advance (WS-2 / H-01 / HD-04) — 24 upstream commits folded in, register green on both profiles.** `--refresh` ran behind the new guard: deterministic deepen `git fetch --shallow-since=2026-08-19 upstream main` (derived from the register's own merge-base/tip dates, replacing the fixed `--deepen=400`), then three post-conditions asserted BEFORE any write — a real merge base resolves, the recorded baseline tip `500152b78` is an ancestor of `upstream/main`, and the new-commit count (24) is strictly less than the local shallow window (129). A failed post-condition refuses (`--write` included), prints `git fetch --unshallow` / `--shallow-since=<date>`, and leaves the register byte-identical; a window that is gone (unshallowed) is reported explicitly. Header: Upstream tip `500152b78` → `9ec139cd8` (2026-09-24, [Feat] Add Claude Opus 5.5 to model providers (#1756)); Pending upstream commits 102 → 126; 126 rows now cover 126 pending commits (checks `coverage` and `header-pending-count` green; `--verify --repo-only` exits 0). The new rows live in the `SYNC-14` proposals section with the WS-1 column shape (`Blocked-by`/`Resolved:`/`Version` = `—`). Proposed classes: 7 `A-CLEAN` (5 quick-wins), 10 `B-CAREFUL`, 3 `C-REIMPLEMENT`, 2 `D-LOCAL`, 2 `E-SKIP`; proposed priorities: 1 `P0`, 15 `P1`, 2 `P2`, 4 `P3`, 2 `P4`. The single `P0` promotion (`1ebbd954e`, vitest v4.1.11 [security]) is `D-LOCAL` — regenerate locally; it carries no pick. A SYNC-13-style screen (empty-fork-side predictor) flags 8 of the 17 pickable new rows — 3 `A-CLEAN` (`914f0c42a`, `78b74ec1c`, `9176f2f69`) and 5 `B-CAREFUL` (`77e422faf`, `741f19830`, `4436ac537`, `01928c3c4`, `9ec139cd8`) — so check the prerequisite before picking and record `Blocked-by` when a row must land first. The docs' own deepen literals (`README` §6/§8, runbook Pass B) still say `--deepen=400` and "22 instead of 102"; those are H-05's sweep, not this advance. |
+| 2026-09-16 | Register created. Baseline merge base `252c69b5`; 102 pending upstream commits classified (18 `A-CLEAN`, 25 `B-CAREFUL`, 19 `C-REIMPLEMENT`, 12 `D-LOCAL`, 27 `E-SKIP`, 1 `X-REJECT`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| 2026-09-24 | **Ladder enforcement (WS-1b / H-02 amendment) — four rows reclassified, one dated exception, `Blocked-by` corrected.** The deepened `--verify` was red on live data against WS-1's literal invariants (16 `class-ladder` + 4 `blocked-by` failures), so the invariants were adjudicated, not abandoned: `A-CLEAN` ⇒ Δ = 0 stays **hard** (an `A-CLEAN` label asserts pickability); `B-CAREFUL` ⇒ 1 ≤ Δ ≤ 5 becomes an **advisory** (`class-ladder-advisory`, never fatal — Δ > 5 is a judgement to inspect, not a misclassification to auto-correct); `Blocked-by` splits into a **hard** existence check (`blocked-by`: every token must name a _different_ row of this register) plus a **readiness warning** (`blocked-by-pending`, never fatal — a correctly blocked row is precisely one whose blocker has not landed). Four **open** rows were reclassified `A-CLEAN` → `B-CAREFUL` because Δ > 0 is a false pickability claim: `4e8fa09f2` (Δ 4), `c4574ffef` (Δ 2), `147147cda` (Δ 1), `745656a50` (Δ 2) — no priority, status or Δ was changed. The already-merged `a5f4192bf` (Δ 2, `☑`) keeps `A-CLEAN` and carries the register's single dated `Exception` — `excepted 2026-09-16 — merged with Δ2 under the pre-ladder classifier (2026-09-16 triage)` — printed by SHA on every `--verify`, so an exception can never be silent. The literal `unknown` in `Blocked-by` became `—` for `a80b3b3ab` and `745656a50` (the documented chains name no prerequisite row) and the token is now forbidden. A fourth appended column, `Exception`, follows `Version`; the derived ready set (`A-CLEAN` ∧ Δ 0 ∧ `Blocked-by` = ∅ ∧ open) and the inspect-first list are reported informationally and never affect the exit code. |
+| 2026-09-24 | **Schema migration (HD-06 / H-02 / F-B-1) — no reclassification.** Three columns appended after `Status`: `Blocked-by`, `Resolved:`, `Version`; the parser resolves every cell **by header name** instead of by index, so adding columns can no longer make a `☑` row read as unsynced. Populated: `Resolved:` = `2026-09-16` and `Version` = `3.88.4` for the six `☑` rows (merged via PR #345, merge `6c4e9df5c`; the version is the one committed at that merge — `git show 6c4e9df5c:src/package.json`), and `Blocked-by` for the six `SYNC-13` rows from their documented chains (`unknown` where the chain names no row). **No class, priority or Δ was changed** — the 102 rows are byte-identical apart from the appended cells.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| 2026-09-17 | **Release note — `v3.88.5` superseded by `v3.88.6`.** `src/package.json` was bumped to `3.88.5` by `afe35f6a8`, but the publish run for `master` at `71d621532` (run [`35194285835`](https://github.com/xavier-arosemena/roo-plus/actions/runs/35194285835)) aborted **fail-closed**: the version guard could not query Open VSX (`Open VSX API returned HTTP 503`) and refuses to continue rather than risk a silent skip or a non-monotonic publish. That is an **infrastructure** failure, not a version error — `3.88.5` itself was never rejected as duplicate or non-monotonic. The release was deliberately **not** re-triggered. The mechanism matters: [`pre-release-publish.yml`](../../.github/workflows/pre-release-publish.yml:1) runs on **every push to `master`** and only sets `skip=true` for release-prep subjects (`^chore: prepare vX.Y.Z( stable)? release`), so **any** merge to `master` publishes whatever version is committed — an unbumped merge would have published `3.88.5`. This release is therefore cut with an explicit bump to **`v3.88.6`**: that merge publishes `3.88.6`, and `3.88.5` remains unpublished **as a consequence of that bump**, not by design. A future reader must not read the `3.88.5` gap as a failed or incomplete sync.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |

@@ -344,3 +344,44 @@ jobs:
                       packages/core/coverage/unit/lcov.info
                       packages/core/coverage/integration/lcov.info
                   retention-days: 7
+
+    # HD-03 / H-03 / F-A-7 / F-D-2 (WS-3) — the upstream-sync register is the queue
+    # that gates every sync batch, and until this job existed nothing in CI asserted
+    # the LIVE register: `--verify` fails closed on a shallow checkout before it ever
+    # reads the file, and `pnpm test:scripts` exercises the spec with injected probes
+    # only. This job runs the merge-base-free profile (`--repo-only`) so it is green
+    # wherever the repo ships while still failing on a corrupted row.
+    upstream-register:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        # Base-repo context only: no secrets, no untrusted code execution, nothing
+        # to leak — so it is safe and cheap on every PR and merge group.
+        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
+                  # PRECONDITION — FULL FORK HISTORY (WS-1/CP-1, measured).
+                  # `--verify --repo-only` is merge-base-free but NOT object-free:
+                  # `row-sha-resolves` and `header-tip` need the register's commit
+                  # objects, so a default depth-1 checkout would fail every row for
+                  # the wrong reason. Keep `fetch-depth: 0`; do not narrow it.
+                  # This job adds NO `upstream` remote and never fetches upstream —
+                  # the profile issues no `upstream/main` and no upstream-merge-base
+                  # git call (documented in `--help`), and the register's commit
+                  # objects live in the fork's own object store. If a row's object is
+                  # ever absent, fetch it explicitly from origin by its FULL sha
+                  # (`git fetch --no-tags origin <full-sha>`) — never via upstream.
+                  fetch-depth: 0
+            - name: Setup Node.js and pnpm
+              uses: ./.github/actions/setup-node-pnpm
+              with:
+                  # The register check imports local files only — no dependencies.
+                  skip-install: "true"
+            - name: Verify the upstream-sync register (merge-base-free profile)
+              run: |
+                  echo "::group::[CI:CODE-QA:UPSTREAM-REGISTER] Verifying the upstream-sync register"
+                  node scripts/upstream-sync-triage.mjs --verify --repo-only
+                  echo "::notice::[CI:CODE-QA:UPSTREAM-REGISTER] register verified (merge-base-free profile)"
+                  echo "::endgroup::"

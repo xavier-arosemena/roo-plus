@@ -54,6 +54,11 @@ jobs:
           # build time, so CI MUST check it out at the recorded pin — otherwise the
           # build would silently reuse stale committed artifacts.
           submodules: recursive
+          # F-E-1: the publish path predicate diffs the PUSHED RANGE, so both ends
+          # of it (github.event.before and github.sha) must exist locally. The
+          # default depth-1 checkout only has the tip. Read-only use of history;
+          # nothing here is pushed.
+          fetch-depth: 0
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -75,10 +80,10 @@ jobs:
           vsce-pat: ${{ secrets.VSCE_PAT }}
           ovsx-pat: ${{ secrets.OVSX_PAT }}
 
-      - name: Skip if this push is a release merge
+      - name: Skip non-publishable pushes (release merge / publish path predicate)
         id: release-check
         run: |
-          echo "::group::[CI:PRERELEASE:RELEASE-CHECK] Checking whether this push is a release merge"
+          echo "::group::[CI:PRERELEASE:RELEASE-CHECK] Checking whether this push can publish"
           skip=false
           # Matches both "chore: prepare vX.Y.Z release" and "chore: prepare vX.Y.Z stable release",
           # but NOT "chore: prepare vX.Y.Z pre-release" (those SHOULD publish).
@@ -100,6 +105,40 @@ jobs:
             if echo "$merged_subject" | grep -qE "$release_re"; then
               echo "::notice::[CI:PRERELEASE:RELEASE-CHECK] Merge brought in release-prep '${merged_subject}'; skipping pre-release publish."
               skip=true
+            fi
+          fi
+
+          # F-E-1 / HD-01 — PUBLISH PATH PREDICATE.
+          #
+          # `master` is the only publish trigger and bookkeeping merges are the
+          # common case (3 of the last 6 first-parent merges were `docs/*`), so an
+          # unconditional publish either goes red on the duplicate-version guard or
+          # burns a version for a docs/register change. Only a pushed range that
+          # touches a publishable path may run the publish:
+          #   src/**  ·  packages/**  ·  webview-ui/**  ·  src/package.json
+          # (`src/package.json` is inside `src/**`; it is named explicitly because
+          # a `pnpm bump:pre-release` commit touches ONLY that file, and a
+          # bump-only push MUST still publish.)
+          if [ "$skip" = "false" ]; then
+            range_base='${{ github.event.before }}'
+            null_sha='0000000000000000000000000000000000000000'
+            if [ -n "$range_base" ] && [ "$range_base" != "$null_sha" ] && git cat-file -e "${range_base}^{commit}" 2>/dev/null; then
+              changed=$(git diff --name-only "$range_base" '${{ github.sha }}')
+              if printf '%s\n' "$changed" | grep -qE '^(src|packages|webview-ui)/'; then
+                echo "::notice::[CI:PRERELEASE:PATH-CHECK] pushed range touches a publishable path — the publish proceeds."
+                printf '%s\n' "$changed" | head -40 | sed 's/^/::notice::[CI:PRERELEASE:PATH-CHECK]   changed: /'
+              else
+                echo "::notice::[CI:PRERELEASE:PATH-CHECK] pushed range touches NO publishable path (src/**, packages/**, webview-ui/**, src/package.json) — skipping the pre-release publish."
+                printf '%s\n' "$changed" | head -40 | sed 's/^/::notice::[CI:PRERELEASE:PATH-CHECK]   changed: /'
+                skip=true
+              fi
+            else
+              # No usable `before` commit (first push of a branch, force-push, or a
+              # checkout too shallow to contain it) or a manual dispatch. Fail OPEN
+              # to publishing: silently never publishing a committed bump would be
+              # a worse failure than one redundant publish attempt, and the
+              # duplicate/monotonic guard still protects the registry.
+              echo "::notice::[CI:PRERELEASE:PATH-CHECK] no usable \`before\` commit for this push — the path predicate cannot be evaluated, so the publish proceeds (fail-open)."
             fi
           fi
 
