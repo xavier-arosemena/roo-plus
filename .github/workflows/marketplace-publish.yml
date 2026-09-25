@@ -125,6 +125,88 @@ jobs:
           vsce-pat: ${{ secrets.VSCE_PAT }}
           ovsx-pat: ${{ secrets.OVSX_PAT }}
 
+      - name: Guard committed version is not already published on either registry
+        # Fail-closed pre-flight (added after the 2026-09-25 pre-release hijack,
+        # docs/incidents/2026-09-25-prerelease-guard-bypass-3.88.10.md). A version
+        # that already exists on a registry — as a stable OR as a pre-release —
+        # cannot be re-issued: `vsce publish` (no --skip-duplicate here) errors,
+        # and `ovsx publish --skip-duplicate` silently no-ops. Checking BEFORE the
+        # build/package steps turns a late, ambiguous publish failure into a fast,
+        # explicit red run.
+        run: |
+          echo "::group::[CI:MARKETPLACE:GUARD] Verifying the committed version is not already published"
+          node --input-type=module <<'EOF'
+          import fs from "node:fs"
+          import https from "node:https"
+
+          const version = JSON.parse(fs.readFileSync("src/package.json", "utf8")).version
+          if (!/^\d+\.\d+\.\d+$/.test(version)) {
+            console.log(`::error::[CI:MARKETPLACE:GUARD] committed version "${version}" is not a plain major.minor.patch`)
+            process.exit(1)
+          }
+
+          function getJson(hostname, reqPath, options = {}) {
+            return new Promise((resolve, reject) => {
+              const req = https.request({ hostname, path: reqPath, timeout: 15000, ...options }, (res) => {
+                let body = ""
+                res.setEncoding("utf8")
+                res.on("data", (chunk) => { body += chunk })
+                res.on("end", () => {
+                  if (res.statusCode !== 200) {
+                    reject(new Error(`${hostname} returned HTTP ${res.statusCode}`))
+                    return
+                  }
+                  try {
+                    resolve(JSON.parse(body))
+                  } catch (err) {
+                    reject(err)
+                  }
+                })
+              })
+              req.on("timeout", () => { req.destroy(new Error(`${hostname} request timed out`)) })
+              req.on("error", reject)
+              if (options.body) req.write(options.body)
+              req.end()
+            })
+          }
+
+          const queryBody = JSON.stringify({
+            filters: [{ criteria: [{ filterType: 7, value: "xavier-arosemena.roo-plus" }] }],
+            flags: 1, // IncludeVersions
+          })
+
+          let openVsx = []
+          let marketplace = []
+          try {
+            const ovsx = await getJson("open-vsx.org", "/api/xavier-arosemena/roo-plus")
+            openVsx = Object.keys(ovsx.allVersions || {})
+            const mkt = await getJson("marketplace.visualstudio.com", "/_apis/public/gallery/extensionquery", {
+              method: "POST",
+              headers: {
+                Accept: "application/json;api-version=7.2-preview.1",
+                "Content-Type": "application/json",
+                "Content-Length": Buffer.byteLength(queryBody),
+              },
+              body: queryBody,
+            })
+            marketplace = (mkt?.results?.[0]?.extensions?.[0]?.versions || []).map((v) => v.version)
+          } catch (err) {
+            console.log(`::error::[CI:MARKETPLACE:GUARD] could not verify the registries (${err.message}); aborting rather than publishing a version that may already exist`)
+            process.exit(1)
+          }
+
+          const onOpenVsx = openVsx.includes(version)
+          const onMarketplace = marketplace.includes(version)
+          console.log(`[CI:MARKETPLACE:GUARD] ${version} — Open VSX: ${onOpenVsx ? "EXISTS" : "absent"}, VS Marketplace: ${onMarketplace ? "EXISTS" : "absent"}`)
+          if (onOpenVsx || onMarketplace) {
+            const where = [onOpenVsx ? "Open VSX" : null, onMarketplace ? "VS Code Marketplace" : null].filter(Boolean).join(" and ")
+            console.log(`::error::[CI:MARKETPLACE:GUARD] ${version} is ALREADY published to ${where} — a version that already exists cannot be republished as stable. Bump src/package.json to the next patch on this minor line and re-dispatch.`)
+            process.exit(1)
+          }
+          console.log(`::notice::[CI:MARKETPLACE:GUARD] ${version} is unpublished on both registries — proceeding`)
+          EOF
+          echo "::endgroup::"
+
       - name: Verify Semble checksums (SEMBLE_VERSION lockstep)
         run: |
           echo "::group::[CI:MARKETPLACE:SEMBLE] Verifying Semble checksums (--strict)"

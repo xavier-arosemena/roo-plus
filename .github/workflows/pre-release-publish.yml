@@ -108,6 +108,27 @@ jobs:
             fi
           fi
 
+          # FAIL-CLOSED HISTORY GUARD — regression guard for the 2026-09-25
+          # incident in which a stable-prep MERGE (`chore: prepare vX.Y.Z stable
+          # release`) was published as a PRE-RELEASE because the default depth-1
+          # checkout left HEAD^2 unresolvable, so the check above silently did
+          # not fire (skip stayed false) and the publish proceeded.
+          #
+          # `git rev-list --parents -n 1 HEAD` reads the parent SHAs stored in the
+          # commit object, so "this is a merge" is detectable even in a shallow
+          # checkout. If HEAD is a merge but HEAD^2 cannot be resolved, the
+          # release-prep check could NOT be evaluated — refuse to publish rather
+          # than guess. `fetch-depth: 0` on the 'Checkout code' step is what keeps
+          # HEAD^2 available; do not remove it.
+          if [ "$skip" = "false" ]; then
+            head_parent_count=$(git rev-list --parents -n 1 HEAD | wc -w)
+            if [ "$head_parent_count" -ge 3 ] && ! git rev-parse --verify -q HEAD^2 >/dev/null 2>&1; then
+              echo "::error::[CI:PRERELEASE:RELEASE-CHECK] HEAD ($(git rev-parse --short HEAD)) is a merge commit but HEAD^2 is unavailable (shallow checkout) — cannot prove this push does not merge a release-prep. Refusing to publish (fail-closed)."
+              echo "::error::[CI:PRERELEASE:RELEASE-CHECK] Keep \`fetch-depth: 0\` on the 'Checkout code' step so the merge history is present."
+              exit 1
+            fi
+          fi
+
           # F-E-1 / HD-01 — PUBLISH PATH PREDICATE.
           #
           # `master` is the only publish trigger and bookkeeping merges are the
@@ -240,6 +261,55 @@ jobs:
             })
           }
 
+          // Cross-registry guard (added after the 2026-09-25 incident): the
+          // Open VSX-only check could not see that a version was already taken
+          // on the VS Code Marketplace, so a hijacked stable-prep patch looked
+          // "unique". Query BOTH registries before publishing.
+          function fetchMarketplaceVersions() {
+            return new Promise((resolve, reject) => {
+              const body = JSON.stringify({
+                filters: [{ criteria: [{ filterType: 7, value: "xavier-arosemena.roo-plus" }] }],
+                flags: 1, // IncludeVersions
+              })
+              const req = https.request(
+                {
+                  hostname: "marketplace.visualstudio.com",
+                  path: "/_apis/public/gallery/extensionquery",
+                  method: "POST",
+                  timeout: 15000,
+                  headers: {
+                    Accept: "application/json;api-version=7.2-preview.1",
+                    "Content-Type": "application/json",
+                    "Content-Length": Buffer.byteLength(body),
+                  },
+                },
+                (res) => {
+                  if (res.statusCode !== 200) {
+                    res.resume()
+                    reject(new Error(`VS Marketplace API returned HTTP ${res.statusCode}`))
+                    return
+                  }
+                  let out = ""
+                  res.setEncoding("utf8")
+                  res.on("data", (chunk) => { out += chunk })
+                  res.on("end", () => {
+                    try {
+                      const data = JSON.parse(out)
+                      const ext = data?.results?.[0]?.extensions?.[0]
+                      resolve((ext?.versions || []).map((v) => v.version))
+                    } catch (err) {
+                      reject(err)
+                    }
+                  })
+                }
+              )
+              req.on("timeout", () => { req.destroy(new Error("VS Marketplace API request timed out")) })
+              req.on("error", reject)
+              req.write(body)
+              req.end()
+            })
+          }
+
           let published
           try {
             published = await fetchOpenVsxVersions()
@@ -248,10 +318,25 @@ jobs:
             process.exit(1)
           }
 
+          let publishedOnMarketplace
+          try {
+            publishedOnMarketplace = await fetchMarketplaceVersions()
+          } catch (err) {
+            console.log(`::error::[CI:PRERELEASE:GUARD] could not query the VS Code Marketplace to guard against a duplicate/hijacked publish (${err.message}); aborting rather than risk publishing a version that already exists`)
+            process.exit(1)
+          }
+
           if (published.includes(version)) {
             console.log(`::error::[CI:PRERELEASE:GUARD] ${version} is ALREADY published to Open VSX — bump src/package.json to the next pre-release patch on the ${major}.${minor} line (pnpm bump:pre-release)`)
             process.exit(1)
           }
+
+          if (publishedOnMarketplace.includes(version)) {
+            console.log(`::error::[CI:PRERELEASE:GUARD] ${version} is ALREADY published to the VS Code Marketplace (as a stable or a pre-release) — a version that already exists cannot be republished. Bump src/package.json to the next patch on the ${major}.${minor} line.`)
+            process.exit(1)
+          }
+
+          console.log(`::notice::[CI:PRERELEASE:GUARD] ${version} is absent from both registries (checked ${published.length} Open VSX and ${publishedOnMarketplace.length} VS Marketplace versions)`)
 
           const lineRe = new RegExp("^" + major + "\\." + minor + "\\.(\\d+)$")
           let maxPatch = -1
