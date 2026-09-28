@@ -51,6 +51,7 @@ import {
 	EXCEPTION_RECONFIRM_DAYS,
 	extractForkSha,
 	extractMarkerSha,
+	findBlockedByCycles,
 	findUnparsedRowLines,
 	formatRegisterRow,
 	headerColumnMap,
@@ -68,6 +69,8 @@ import {
 	planUpstreamDeepen,
 	proposeClass,
 	proposePriority,
+	rationaleNamesRow,
+	REGISTER_STALE_DAYS,
 	renderRegisterDiff,
 	runRefresh,
 	splitRowCells,
@@ -186,10 +189,16 @@ function makeProbe({
 	 * each signature test overrides it with the case under test.
 	 */
 	commitSignature = () => ({ validity: "G", signer: GITHUB_WEBFLOW_SIGNER }),
+	/**
+	 * WS-8 item 4: the fork commit's message. Left UNDEFINED by default so the
+	 * `synced-fork-sha` link clause is skipped for the fixtures that predate it;
+	 * the link tests supply a message explicitly.
+	 */
+	commitMessage = null,
 } = {}) {
 	const commitSet = new Set(commits)
 	const reachableSet = new Set(reachable)
-	return {
+	const probe = {
 		// `git cat-file -t` resolves a PREFIX, so the stub must too: the register
 		// header records 9-character prefixes while the probe knows full SHAs.
 		commitType: (sha) => {
@@ -202,6 +211,8 @@ function makeProbe({
 		isAncestorOfUpstream,
 		commitSignature,
 	}
+	if (typeof commitMessage === "function") probe.commitMessage = commitMessage
+	return probe
 }
 
 /** A well-formed three-row register over the three fixture commits. */
@@ -1364,7 +1375,7 @@ describe("invariant — ✖ ⇒ non-empty rationale (discard-rationale)", () => 
 		const discard = checkById(report, "discard-rationale")
 		assert.equal(discard.ok, false)
 		assert.match(discard.failures.join("\n"), new RegExp(PREFIX_A))
-		assert.match(discard.failures.join("\n"), /carries no rationale/)
+		assert.match(discard.failures.join("\n"), /not ATTRIBUTABLE/)
 	})
 
 	it("accepts an inline rationale in the Status cell", () => {
@@ -1372,10 +1383,26 @@ describe("invariant — ✖ ⇒ non-empty rationale (discard-rationale)", () => 
 		assert.equal(checkById(report, "discard-rationale").ok, true)
 	})
 
-	it("accepts a batch-level **Rationale.** block", () => {
+	it("accepts a batch-level **Rationale.** block that names the row's SHA", () => {
 		const markdown = invariantRegister({ a: { klass: "D-LOCAL", status: "✖" } }).replace(
 			"## SYNC-1 — Security & Safety Features (`P0`/`P1`)",
-			"## SYNC-1 — Security & Safety Features (`P0`/`P1`)\n\n**Rationale.** The fork owns this concern already.",
+			`## SYNC-1 — Security & Safety Features (\`P0\`/\`P1\`)\n\n**Rationale.** \`${PREFIX_A}\` is owned by the fork already.`,
+		)
+		const report = validateRegister({
+			markdown,
+			pendingShas: HEALTHY_PENDING,
+			probe: makeProbe({ commits: [PREFIX_A, PREFIX_B, PREFIX_C] }),
+		})
+		assert.equal(checkById(report, "discard-rationale").ok, true)
+	})
+
+	// WS-8 item 6: a correctly authored ONE-LINE trailing `**Rationale.** x` block
+	// false-failed — the old matcher required the closing emphasis BEFORE the period
+	// and fell back to a body scan that found no further prose line.
+	it("accepts a one-line trailing `**Rationale.** reason` block (WS-8 item 6)", () => {
+		const markdown = invariantRegister({ a: { klass: "D-LOCAL", status: "✖" } }).replace(
+			"## SYNC-1 — Security & Safety Features (`P0`/`P1`)",
+			`## SYNC-1 — Security & Safety Features (\`P0\`/\`P1\`)\n\n**Rationale.** \`${PREFIX_A}\` is owned by the fork already.`,
 		)
 		const report = validateRegister({
 			markdown,
@@ -1860,6 +1887,50 @@ describe("runRefresh — H-01: a saturated window refuses", () => {
 	})
 })
 
+// CP-2 item 1: the `windowSize === null` branch was only ever exercised with a
+// NUMERIC window (500), so the guard's saturation clause and its "not applicable"
+// report were untested for an UNSHALLOWED clone. An unavailable window must not
+// become a refusal reason, and the clause must be reported, not silently dropped.
+describe("runRefresh — H-01: an UNSHALLOWED clone reports the saturation clause is not applicable", () => {
+	/** `isShallow: false` makes the production `windowSize` computation yield `null`. */
+	const unshallowedIo = (overrides = {}) =>
+		makeRefreshIo({
+			isShallow: () => false,
+			isAncestor: () => true,
+			revRange: () => [NEW_SHA_1, NEW_SHA_2],
+			revListCount: (spec) => (spec === UPSTREAM_REF ? 0 : 4),
+			...overrides,
+		})
+
+	it("does NOT refuse merely because the window is unavailable, and reports it", async () => {
+		const before = healthyRegister()
+		const { io, state } = unshallowedIo({ markdown: before })
+
+		const { code, payload } = await runRefresh(refreshOpts({ write: true }), io)
+
+		assert.equal(code, 0, "an unavailable shallow window is not a refusal reason")
+		assert.equal(payload.refused, undefined)
+		assert.equal(payload.windowSize, null, "an unshallowed clone has no window")
+		assert.match(payload.windowNote, /unshallowed/)
+		assert.match(payload.windowNote, /not applicable/)
+		assert.equal(payload.wrote, true)
+		assert.equal(state.writes, 1)
+	})
+
+	it("still refuses for the RIGHT reason when the window is unavailable", async () => {
+		const before = healthyRegister()
+		const { io, state } = unshallowedIo({ markdown: before, isAncestor: () => false })
+
+		const { code, payload } = await runRefresh(refreshOpts({ write: true }), io)
+
+		assert.equal(code, 1)
+		assert.deepEqual(payload.guard.failures.map((failure) => failure.id), ["baseline-ancestry"])
+		assert.equal(payload.windowSize, null)
+		assert.equal(state.writes, 0)
+		assert.equal(state.markdown, before)
+	})
+})
+
 describe("runRefresh — a genuine advance proposes NEW rows only", () => {
 	it("appends the new commits and leaves every existing row untouched", async () => {
 		const before = healthyRegister()
@@ -2294,6 +2365,7 @@ describe("CP1-4 — check-id profile membership is pinned independently", () => 
 		"blocked-by-pending",
 		"discard-rationale",
 		"header-tip",
+		"register-age",
 		"header-pending-count",
 		"landed-unflipped",
 		"synced-upstream-ancestry",
@@ -2308,6 +2380,7 @@ describe("CP1-4 — check-id profile membership is pinned independently", () => 
 		"stale-in-progress",
 		"exception-advisory",
 		"header-tip",
+		"register-age",
 	]
 
 	it("CHECK_IDS_FULL equals the independent expectation", () => {
@@ -2860,5 +2933,480 @@ describe("WS-4 — `--refresh --write` refuses on an INVALID signature (H-22)", 
 		assert.equal(payload.wrote, true)
 		assert.deepEqual(payload.signatureCounts, { valid: 0, invalid: 0, unverifiable: 1 })
 		assert.equal(state.writes, 1)
+	})
+
+	// CP-2 item 2: the write-refusal hook was only driven for `%G?` = `B` (bad) and
+	// `E` (no keyring). The distinction the guard exists to make — invalid ⇒
+	// REFUSE, unverifiable ⇒ advisory — was untested for `U` (good, validity
+	// unknown), `N` (no signature) and a good signature from a signer outside the
+	// allow-list. These cases pin the boundary from both sides.
+
+	/** Runs one refresh for a single new commit carrying the given `%G?`/`%GS` fields. */
+	async function refreshWithSignature(signature) {
+		const before = healthyRegister()
+		const { io, state } = makeRefreshIo({
+			markdown: before,
+			isAncestor: () => true,
+			revRange: () => [NEW_SHA_1],
+			revListCount: (spec) => (spec === UPSTREAM_REF ? 500 : 4),
+			commitSignature: () => signature,
+		})
+		const { code, payload } = await runRefresh(refreshOpts({ write: true }), io)
+		return { code, payload, state, before }
+	}
+
+	it("does NOT refuse `%G?` = U from an allow-listed signer (good signature, validity unknown)", async () => {
+		const { code, payload, state } = await refreshWithSignature({ validity: "U", signer: GITHUB_WEBFLOW_SIGNER })
+
+		assert.equal(code, 0, "`U` is a good signature; the allow-list, not the code, decides")
+		assert.equal(payload.refused, undefined)
+		assert.deepEqual(payload.signatureCounts, { valid: 1, invalid: 0, unverifiable: 0 })
+		assert.equal(payload.wrote, true)
+		assert.equal(state.writes, 1)
+	})
+
+	it("refuses an UNSIGNED commit (`%G?` = N) — unproven provenance is invalid, not unverifiable", async () => {
+		const { code, payload, state, before } = await refreshWithSignature({ validity: "N", signer: "" })
+
+		assert.equal(code, 1, "no signature at all is a false provenance claim")
+		assert.equal(payload.refused, true)
+		assert.equal(payload.wrote, false)
+		assert.deepEqual(payload.signatureCounts, { valid: 0, invalid: 1, unverifiable: 0 })
+		assert.match(payload.invalidSignatures[0].reason, /NO signature/)
+		assert.equal(state.writes, 0, "--write must refuse: the register is never opened for writing")
+		assert.equal(state.markdown, before, "the register must be byte-identical after a refusal")
+	})
+
+	it("refuses a GOOD signature from a signer NOT on the allow-list (invalid, not unverifiable)", async () => {
+		const { code, payload, state } = await refreshWithSignature({ validity: "G", signer: "Mallory <mallory@example.com>" })
+
+		assert.equal(code, 1, "a good signature from an unknown signer is a false provenance claim")
+		assert.equal(payload.refused, true)
+		assert.deepEqual(payload.signatureCounts, { valid: 0, invalid: 1, unverifiable: 0 })
+		assert.match(payload.invalidSignatures[0].reason, /not in the allow-list/)
+		assert.equal(state.writes, 0)
+	})
+})
+
+// ---------------------------------------------------------------------------
+// CP-2 item 3 — the PRODUCTION landedByPatchId path (no stub)
+// ---------------------------------------------------------------------------
+//
+// Every other `landed-unflipped` case injects `landedByPatchId: () => …`, so
+// `patchIdMap`, `landedUpstreamByPatchId` and `buildProbe().landedByPatchId` —
+// the code that actually runs during `--verify` — were never exercised: the
+// production path could be deleted and the suite would stay green. `buildProbe`
+// shells git with `cwd: ROOT` and the fixed refs `master` / `upstream/main`;
+// pointing `GIT_DIR` / `GIT_WORK_TREE` at a scratch repository redirects those
+// calls to it without touching the tool (validated: `git cherry -v` marks the
+// equivalent upstream commit `-` and both patch-id maps resolve).
+describe("CP2 — the PRODUCTION landedByPatchId path names the row in real git state", () => {
+	const gitOut = (cwd, args) => {
+		const result = spawnSync("git", args, { cwd, encoding: "utf8" })
+		assert.equal(result.status, 0, `git ${args.join(" ")} failed: ${result.stderr}`)
+		return result.stdout.trim()
+	}
+
+	it("reports the upstream commit whose patch is already in the fork, and the check names the row", () => {
+		const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "triage-landed-"))
+		const previousGitDir = process.env.GIT_DIR
+		const previousWorkTree = process.env.GIT_WORK_TREE
+		try {
+			gitOut(tmp, ["init", "-q", "-b", "master", "."])
+			gitOut(tmp, ["config", "user.email", "tester@example.com"])
+			gitOut(tmp, ["config", "user.name", "tester"])
+			gitOut(tmp, ["config", "commit.gpgsign", "false"])
+			fs.writeFileSync(path.join(tmp, "file.txt"), "base\n")
+			gitOut(tmp, ["add", "."])
+			gitOut(tmp, ["commit", "-q", "-m", "base"])
+			const base = gitOut(tmp, ["rev-parse", "HEAD"])
+
+			// The fork lands the change...
+			fs.writeFileSync(path.join(tmp, "file.txt"), "base\nchange\n")
+			gitOut(tmp, ["commit", "-q", "-am", "fork: same change"])
+			const forkSha = gitOut(tmp, ["rev-parse", "master"])
+
+			// ...and upstream holds the SAME patch on its own branch (same patch-id).
+			gitOut(tmp, ["checkout", "-q", "-b", "upstream-work", base])
+			fs.writeFileSync(path.join(tmp, "file.txt"), "base\nchange\n")
+			gitOut(tmp, ["commit", "-q", "-am", "upstream: same change"])
+			const upstreamSha = gitOut(tmp, ["rev-parse", "upstream-work"])
+			gitOut(tmp, ["update-ref", "refs/remotes/upstream/main", upstreamSha])
+			gitOut(tmp, ["checkout", "-q", "master"])
+
+			try {
+				process.env.GIT_DIR = path.join(tmp, ".git")
+				process.env.GIT_WORK_TREE = tmp
+
+				const landed = buildProbe("master").landedByPatchId()
+				assert.deepEqual(
+					landed,
+					[{ upstreamSha, forkSha }],
+					"the production path must report the upstream commit AND the fork commit whose patch-id matched",
+				)
+
+				const sha9 = upstreamSha.slice(0, ROW_SHA_LENGTH)
+				const report = validateRegister({
+					markdown: buildRegister({ rows: [makeRow(sha9, "fix: already landed upstream")], pendingCount: 1 }),
+					pendingShas: null,
+					probe: buildProbe("master"),
+				})
+				const check = checkById(report, "landed-unflipped")
+				assert.equal(check.ok, false, "a still-open row whose patch landed must fail through the REAL seam")
+				assert.match(check.failures.join("\n"), new RegExp(sha9))
+				assert.match(check.failures.join("\n"), new RegExp(forkSha.slice(0, ROW_SHA_LENGTH)))
+				assert.deepEqual(
+					report.landedUnflipped.map((row) => row.sha),
+					[sha9],
+				)
+			} finally {
+				if (previousGitDir === undefined) delete process.env.GIT_DIR
+				else process.env.GIT_DIR = previousGitDir
+				if (previousWorkTree === undefined) delete process.env.GIT_WORK_TREE
+				else process.env.GIT_WORK_TREE = previousWorkTree
+			}
+		} finally {
+			fs.rmSync(tmp, { recursive: true, force: true })
+		}
+	})
+})
+
+// ---------------------------------------------------------------------------
+// CP-2 item 4 — README §8 is self-checking (CP2-1)
+// ---------------------------------------------------------------------------
+//
+// The manual hard-coded "sixteen" checks while the tool derives 18 from
+// CHECK_IDS_FULL, and nothing tied the document to the constant — so a check
+// added to the tool made the manual silently wrong. These tests pin the stated
+// count AND every check id, by name, in both profiles.
+describe("CP2-1 — README §8 states the real check count and enumerates every check by name", () => {
+	/** The §8 section text, from its heading to the next `## 9.` heading. */
+	function readmeSection8() {
+		const lines = fs.readFileSync(path.join(ROOT, "docs/upstream-sync/README.md"), "utf8").split("\n")
+		const start = lines.findIndex((line) => /^## 8\./.test(line))
+		assert.ok(start >= 0, "README §8 heading not found")
+		const end = lines.findIndex((line, index) => index > start && /^## 9\./.test(line))
+		assert.ok(end > start, "README §9 heading not found")
+		return lines.slice(start, end).join("\n")
+	}
+
+	it("states the full-profile count that CHECK_IDS_FULL derives", () => {
+		const text = readmeSection8()
+		const stated = /reporting \*\*(\d+) independent checks\*\*/.exec(text)
+		assert.ok(stated, "README §8 must state its count as `**<n> independent checks**`")
+		assert.equal(Number(stated[1]), CHECK_IDS_FULL.length, "a check added to the tool must fail until the manual is updated")
+		assert.doesNotMatch(text, /\bsixteen\b/i, "the stale hard-coded count word (CP2-1) must be gone")
+	})
+
+	it("states the repo-only count that CHECK_IDS_REPO_ONLY derives", () => {
+		const stated = /only the (\d+) merge-base-free checks/.exec(readmeSection8())
+		assert.ok(stated, "README §8 must state the repo-only count as `only the <n> merge-base-free checks`")
+		assert.equal(Number(stated[1]), CHECK_IDS_REPO_ONLY.length)
+	})
+
+	it("enumerates every full-profile check by name", () => {
+		const text = readmeSection8()
+		for (const id of CHECK_IDS_FULL) {
+			assert.ok(text.includes(`\`${id}\``), `README §8 must document the check \`${id}\``)
+		}
+	})
+
+	it("enumerates every repo-only check by name", () => {
+		const text = readmeSection8()
+		for (const id of CHECK_IDS_REPO_ONLY) {
+			assert.ok(text.includes(`\`${id}\``), `README §8 must document the repo-only check \`${id}\``)
+		}
+	})
+})
+
+// ---------------------------------------------------------------------------
+// WS-8 — the CP-3 red-team findings that were not blocked
+// ---------------------------------------------------------------------------
+
+/** A one-row register whose only row is `☑` with a reachable fork SHA. */
+function linkedRegister({ status, fork = "abc1234" } = {}) {
+	return buildRegister({
+		rows: [
+			makeRow(PREFIX_A, "fix: a", {
+				klass: "A-CLEAN",
+				delta: 0,
+				status: status ?? `☑ \`${fork}\``,
+				resolved: "2026-09-16",
+				version: "3.88.4",
+			}),
+		],
+		pendingCount: 1,
+	})
+}
+
+describe("WS-8 item 4 — a ☑ fork SHA must be LINKED, not merely reachable", () => {
+	it("fails a reachable-but-unrelated fork SHA with no -x trailer (before: it passed)", () => {
+		const report = validateRegister({
+			markdown: linkedRegister(),
+			pendingShas: [SHA_A],
+			probe: makeProbe({
+				commits: [PREFIX_A],
+				reachable: ["abc1234"],
+				commitMessage: () => "fix: something entirely unrelated",
+			}),
+		})
+		assert.equal(report.ok, false)
+		const check = checkById(report, "synced-fork-sha")
+		assert.equal(check.ok, false)
+		assert.match(check.failures.join("\n"), /reachable but unrelated/)
+	})
+
+	it("passes when the fork commit message carries the -x trailer for the row's upstream SHA", () => {
+		const report = validateRegister({
+			markdown: linkedRegister(),
+			pendingShas: [SHA_A],
+			probe: makeProbe({
+				commits: [PREFIX_A],
+				reachable: ["abc1234"],
+				commitMessage: () => `chore: pick\n\n(cherry picked from commit ${SHA_A})`,
+			}),
+		})
+		assert.equal(checkById(report, "synced-fork-sha").ok, true)
+	})
+
+	it("passes when the row declares an explicit Local-fix/divergence record instead of -x", () => {
+		const report = validateRegister({
+			markdown: linkedRegister({ status: "☑ `abc1234` — Local-fix: re-implemented in the fork's handler" }),
+			pendingShas: [SHA_A],
+			probe: makeProbe({
+				commits: [PREFIX_A],
+				reachable: ["abc1234"],
+				commitMessage: () => "fix: re-implemented by hand, no upstream pick",
+			}),
+		})
+		assert.equal(checkById(report, "synced-fork-sha").ok, true)
+	})
+})
+
+describe("WS-8 item 3 — Blocked-by cycles are detected and named by SHA", () => {
+	const markdown = buildRegister({
+		rows: [
+			makeRow(PREFIX_A, "fix: a", { klass: "B-CAREFUL", delta: 1, blockedBy: `\`${PREFIX_B}\`` }),
+			makeRow(PREFIX_B, "fix: b", { klass: "B-CAREFUL", delta: 1, blockedBy: `\`${PREFIX_C}\`` }),
+			makeRow(PREFIX_C, "fix: c", { klass: "B-CAREFUL", delta: 1, blockedBy: `\`${PREFIX_A}\`` }),
+		],
+		pendingCount: 3,
+	})
+
+	it("fails with every cycle member named (A↔B↔C used to pass)", () => {
+		const report = validateRegister({
+			markdown,
+			pendingShas: HEALTHY_PENDING,
+			probe: makeProbe({ commits: [PREFIX_A, PREFIX_B, PREFIX_C] }),
+		})
+		assert.equal(report.ok, false)
+		const check = checkById(report, "blocked-by")
+		assert.equal(check.ok, false)
+		assert.match(check.failures.join("\n"), /cycle/)
+		for (const prefix of [PREFIX_A, PREFIX_B, PREFIX_C]) {
+			assert.match(check.failures.join("\n"), new RegExp(prefix))
+		}
+	})
+
+	it("findBlockedByCycles returns the members by SHA", () => {
+		const { rows } = parseRegister(markdown)
+		const cycles = findBlockedByCycles(rows)
+		assert.equal(cycles.length, 1)
+		assert.deepEqual([...new Set(cycles[0].members)].sort(), [PREFIX_A, PREFIX_B, PREFIX_C].sort())
+	})
+})
+
+describe("WS-8 item 5 — a shared ✖ rationale must be attributable", () => {
+	it("fails when the shared block names no row SHA (one paragraph, 27 rows)", () => {
+		const markdown = invariantRegister({ a: { klass: "D-LOCAL", status: "✖" } }).replace(
+			"## SYNC-1 — Security & Safety Features (`P0`/`P1`)",
+			"## SYNC-1 — Security & Safety Features (`P0`/`P1`)\n\n**Rationale.** The fork owns this concern already.",
+		)
+		const report = validateRegister({
+			markdown,
+			pendingShas: HEALTHY_PENDING,
+			probe: makeProbe({ commits: [PREFIX_A, PREFIX_B, PREFIX_C] }),
+		})
+		assert.equal(report.ok, false)
+		assert.match(checkById(report, "discard-rationale").failures.join("\n"), /not ATTRIBUTABLE/)
+	})
+
+	it("rationaleNamesRow accepts the exact SHA and a plain SHA range", () => {
+		assert.equal(rationaleNamesRow(`discarded: \`${PREFIX_A}\``, PREFIX_A), true)
+		assert.equal(rationaleNamesRow("rows aaa123456–c747c024b are discarded", PREFIX_A), true)
+		assert.equal(rationaleNamesRow("no sha named here", PREFIX_A), false)
+	})
+})
+
+describe("WS-8 item 7 — a Notes table glued to a commit table is not flagged", () => {
+	it("ends the commit table at the first non-row line (a glued 2-cell Notes table is silent)", () => {
+		const markdown = [
+			"# t",
+			"",
+			"## Baseline",
+			"",
+			"| Field | Value |",
+			"| ----- | ----- |",
+			`| Merge base | \`${MERGE_BASE.slice(0, 9)}\` (2026-08-20, "x") |`,
+			`| Upstream tip | \`${TIP.slice(0, 9)}\` (2026-09-16, "x") |`,
+			"| Pending upstream commits | **1** |",
+			"",
+			"## SYNC-1 — x",
+			"",
+			"| SHA | Date | Subject | Class | Pri | Δ | Status | Blocked-by | Resolved: | Version | Exception |",
+			"| --- | ---- | ------- | ----- | --- | - | ------ | ---------- | --------- | ------- | --------- |",
+			makeRow(PREFIX_A, "fix: a"),
+			"| Note | Detail |",
+			"| ---- | ------ |",
+			"| ownership | the fork owns this |",
+			"",
+		].join("\n")
+		assert.deepEqual(findUnparsedRowLines(markdown), [])
+	})
+
+	it("still flags a commit row whose SHA cell lost its backticks", () => {
+		const markdown = buildRegister({
+			rows: [`| ${PREFIX_A} | 2026-09-01 | fix: a | \`A-CLEAN\` | P1 | 0 | ☐ | — | — | — | — |`],
+			pendingCount: 1,
+		})
+		const unparsed = findUnparsedRowLines(markdown)
+		assert.equal(unparsed.length, 1)
+		assert.match(unparsed[0].text, new RegExp(PREFIX_A))
+	})
+})
+
+describe("WS-8 item 9 — the register-age advisory", () => {
+	it("warns when the recorded tip is older than the threshold, and never fails", () => {
+		const report = validateRegister({
+			markdown: invariantRegister(),
+			pendingShas: HEALTHY_PENDING,
+			probe: makeProbe({ commits: [PREFIX_A, PREFIX_B, PREFIX_C] }),
+			today: "2026-12-31",
+		})
+		assert.equal(report.ok, true, "a stale register is an advisory, not a defect")
+		const check = checkById(report, "register-age")
+		assert.equal(check.severity, "warning")
+		assert.equal(check.ok, true)
+		assert.equal(report.registerAge.stale, true)
+		assert.ok(report.registerAge.days > REGISTER_STALE_DAYS)
+		assert.match(check.warnings.join("\n"), /post-refresh gate/)
+	})
+
+	it("is silent for a fresh register", () => {
+		const report = validateRegister({
+			markdown: invariantRegister(),
+			pendingShas: HEALTHY_PENDING,
+			probe: makeProbe({ commits: [PREFIX_A, PREFIX_B, PREFIX_C] }),
+			today: "2026-09-20",
+		})
+		assert.equal(checkById(report, "register-age").warnings.length, 0)
+		assert.equal(report.registerAge.stale, false)
+	})
+})
+
+describe("WS-8 item 2 — a failed fetch refuses --write and reports fetched:false", () => {
+	it("refuses to write when the fetch failed, even though the local ref satisfies the guard", async () => {
+		const before = healthyRegister()
+		const { io, state } = makeRefreshIo({
+			markdown: before,
+			fetchUpstream: () => {
+				throw new Error("network down")
+			},
+			isAncestor: () => true,
+			revRange: () => [NEW_SHA_1],
+			revListCount: (spec) => (spec === UPSTREAM_REF ? 500 : 3),
+		})
+		const { code, payload } = await runRefresh(refreshOpts({ write: true }), io)
+		assert.equal(code, 1)
+		assert.equal(payload.refused, true)
+		assert.equal(payload.wrote, false)
+		assert.equal(payload.fetched, false)
+		assert.equal(state.writes, 0, "--write must never open the register after a failed fetch")
+		assert.equal(state.markdown, before, "the register must be byte-identical")
+	})
+
+	it("reports fetched:false on a dry run after a failed fetch", async () => {
+		const { io } = makeRefreshIo({
+			fetchUpstream: () => {
+				throw new Error("network down")
+			},
+			revRange: () => [],
+			revListCount: (spec) => (spec === UPSTREAM_REF ? 500 : 3),
+		})
+		const { code, payload } = await runRefresh(refreshOpts({ write: false }), io)
+		assert.equal(code, 0)
+		assert.equal(payload.fetched, false)
+	})
+})
+
+describe("WS-8 item 1 — a missing keyring is named, and --signature-strict fails closed", () => {
+	it("decideProvenance names `keyring not configured` for %G? = E", () => {
+		const decision = decideProvenance({ validity: "E", signer: GITHUB_WEBFLOW_SIGNER })
+		assert.equal(decision.outcome, "unverifiable")
+		assert.equal(decision.keyringMissing, true)
+		assert.match(decision.reason, /keyring not configured/)
+	})
+
+	it("fails the provenance check under --signature-strict when no keyring is present", () => {
+		const report = validateRegister({
+			markdown: linkedRegister(),
+			pendingShas: [SHA_A],
+			probe: makeProbe({
+				commits: [PREFIX_A],
+				reachable: ["abc1234"],
+				commitMessage: () => `(cherry picked from commit ${SHA_A})`,
+				commitSignature: () => ({ validity: "E", signer: GITHUB_WEBFLOW_SIGNER }),
+			}),
+			signatureStrict: true,
+		})
+		assert.equal(report.ok, false)
+		const check = checkById(report, "provenance")
+		assert.equal(check.ok, false)
+		assert.match(check.failures.join("\n"), /keyring not configured/)
+	})
+})
+
+describe("WS-8 item 10 — pinned boundary / floor values (previously decorative)", () => {
+	it("the exception reason floor is exactly 20", () => {
+		assert.equal(MIN_EXCEPTION_REASON_LENGTH, 20)
+	})
+
+	it("a reason of exactly the floor is accepted (`<`, not `<=`)", () => {
+		const reason = "x".repeat(MIN_EXCEPTION_REASON_LENGTH)
+		assert.deepEqual(parseException(`excepted 2026-01-01 — ${reason}`), { date: "2026-01-01", reason })
+	})
+
+	it("an exception exactly AT the re-confirmation window is NOT aged (`>`, not `>=`)", () => {
+		assert.equal(daysBetween("2026-01-01", "2026-04-01"), EXCEPTION_RECONFIRM_DAYS)
+		const report = validateRegister({
+			markdown: invariantRegister({
+				a: {
+					klass: "A-CLEAN",
+					delta: 2,
+					exception: "excepted 2026-01-01 — merged with Δ2 under the pre-ladder classifier",
+				},
+			}),
+			pendingShas: HEALTHY_PENDING,
+			probe: makeProbe({ commits: [PREFIX_A, PREFIX_B, PREFIX_C] }),
+			today: "2026-04-01",
+		})
+		assert.equal(checkById(report, "exception-advisory").warnings.length, 0)
+		assert.deepEqual(report.agedExceptions, [])
+	})
+
+	it("normaliseSignerIdentity lowercases the identity (allow-list matching depends on it)", () => {
+		const identity = normaliseSignerIdentity("GitHub <Noreply@GitHub.COM>")
+		assert.equal(identity.text, "github <noreply@github.com>")
+		assert.equal(decideProvenance({ validity: "G", signer: "GitHub <Noreply@GitHub.COM>" }).outcome, "valid")
+	})
+
+	it("the ready set excludes a discarded (✖) row", () => {
+		const markdown = buildRegister({
+			rows: [makeRow(PREFIX_A, "fix: a", { klass: "A-CLEAN", delta: 0, status: "✖ deliberately not taken" })],
+			pendingCount: 1,
+		})
+		const { rows } = parseRegister(markdown)
+		assert.equal(rows[0].discarded, true)
+		assert.deepEqual(buildReadySet(rows), [])
 	})
 })

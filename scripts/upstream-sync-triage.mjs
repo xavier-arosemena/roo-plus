@@ -308,6 +308,25 @@ export const MIN_EXCEPTION_REASON_LENGTH = 20
  * so this is a `warning`-severity check reported by SHA, not a defect.
  */
 export const EXCEPTION_RECONFIRM_DAYS = 90
+/**
+ * Days after which the register is reported as STALE (WS-8 item 9). The register
+ * header records the upstream tip the register was refreshed against; the full
+ * profile re-derives `coverage`/`header-pending-count` from the LIVE
+ * `upstream/main`, so the register is red-by-construction the moment upstream
+ * advances. This advisory (never fatal, pure markdown, merge-base-free) tells an
+ * operator that the frozen snapshot has aged, so the full profile is understood
+ * as a POST-REFRESH gate and the repo-only profile as the CI gate.
+ */
+export const REGISTER_STALE_DAYS = 30
+/**
+ * How the `☑` contract proves a fork SHA is the row's own pick and not merely a
+ * reachable-but-unrelated commit (WS-8 item 4): the `-x` provenance trailer a
+ * `git cherry-pick -x` writes into the fork commit message. A row that cannot
+ * show the trailer must declare one of the explicit divergence markers instead
+ * (a hand-port that never touches upstream's commit).
+ */
+export const CHERRY_PICK_TRAILER_RE = /cherry picked from commit ([0-9a-f]{7,40})/gi
+export const LOCAL_FIX_MARKER_RE = /(?:local-fix|divergence)\s*:/i
 
 /**
  * Default allow-listed signer identity (F-F-1 / H-22). Upstream signs every
@@ -391,13 +410,23 @@ export function decideProvenance({ validity, signer = "", allowedSigners = DEFAU
 	const kind = SIGNATURE_VALIDITY.get(code) ?? "invalid"
 	const identity = normaliseSignerIdentity(signer)
 	if (kind === "unverifiable") {
+		/**
+		 * `%G?` = E is the ONLY code that means "no keyring here". It is reported
+		 * with the literal phrase `keyring not configured` and a `keyringMissing`
+		 * flag so CI can fail closed on a missing keyring instead of mistaking the
+		 * advisory for a pass (WS-8 item 1).
+		 */
 		return {
 			outcome: "unverifiable",
 			code,
 			signer: identity.text,
+			keyringMissing: code === "E",
 			reason:
-				`the signature cannot be checked in this checkout (\`%G?\` = ${code})` +
-				`${identity.text ? `, signer \`${identity.text}\`` : ""}`,
+				code === "E"
+					? `keyring not configured — this checkout has no keyring, so \`%G?\` = E and the signature cannot be checked` +
+						`${identity.text ? ` (signer \`${identity.text}\`)` : ""}`
+					: `the signature cannot be checked in this checkout (\`%G?\` = ${code})` +
+						`${identity.text ? `, signer \`${identity.text}\`` : ""}`,
 		}
 	}
 	if (kind === "invalid") {
@@ -651,6 +680,55 @@ export function parseBlockedBy(value) {
 }
 
 /**
+ * Finds every cycle in the `Blocked-by` token graph (WS-8 item 3).
+ *
+ * The `blocked-by` closure check proves each token names a row; it does NOT prove
+ * the prerequisite graph is acyclic, so an A↔B pair passed. This is a DFS over
+ * the resolved edges (tokens that name a different row of the register); every
+ * back-edge yields a cycle whose members are reported by SHA. Pure — exported.
+ */
+export function findBlockedByCycles(rows) {
+	const bySha = new Map(rows.map((row) => [row.sha, row]))
+	const edges = new Map()
+	for (const row of rows) {
+		const targets = []
+		for (const token of row.blockedByTokens) {
+			if (token.toLowerCase() === UNKNOWN_BLOCKED_BY_TOKEN) continue
+			const target = bySha.get(token) ?? bySha.get(token.slice(0, ROW_SHA_LENGTH))
+			if (target && target.sha !== row.sha) targets.push(target.sha)
+		}
+		edges.set(row.sha, targets)
+	}
+	const cycles = []
+	const seen = new Set()
+	/** 0 = unvisited · 1 = on the current path · 2 = fully explored. */
+	const state = new Map()
+	const path = []
+	const visit = (sha) => {
+		state.set(sha, 1)
+		path.push(sha)
+		for (const next of edges.get(sha) ?? []) {
+			const nextState = state.get(next) ?? 0
+			if (nextState === 1) {
+				const start = path.indexOf(next)
+				const members = path.slice(start)
+				const key = [...members].sort().join(",")
+				if (!seen.has(key)) {
+					seen.add(key)
+					cycles.push({ sha: next, line: bySha.get(next)?.line ?? null, members: [...members, next] })
+				}
+			} else if (nextState === 0) {
+				visit(next)
+			}
+		}
+		path.pop()
+		state.set(sha, 2)
+	}
+	for (const row of rows) if ((state.get(row.sha) ?? 0) === 0) visit(row.sha)
+	return cycles
+}
+
+/**
  * Parses an `Exception` cell.
  *
  * `null` when the cell is empty (the `—` placeholder), `{ malformed }` when a
@@ -824,17 +902,18 @@ export function parseRegister(markdown) {
 export function findUnparsedRowLines(markdown) {
 	const lines = markdown.split("\n")
 	const unparsed = []
-	let inTable = false
+	/** Content-cell width of the commit-table header currently open, or null. */
+	let headerWidth = null
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i]
 		if (isRowTableHeader(line)) {
-			inTable = true
+			headerWidth = splitRowCells(line).length
 			continue
 		}
-		if (!inTable) continue
+		if (headerWidth === null) continue
 		// A commit table ends at the first line that is not a `|`-leading row.
 		if (!/^\s*\|/.test(line)) {
-			inTable = false
+			headerWidth = null
 			continue
 		}
 		const cells = splitRowCells(line)
@@ -842,6 +921,19 @@ export function findUnparsedRowLines(markdown) {
 		// (the Δ column separator is a single `-`). A data row never has an
 		// all-dashes content row, so this cannot mask a real row.
 		if (cells.length > 0 && cells.every((cell) => /^:?-+:?$/.test(cell))) continue
+		/**
+		 * A Glued Notes table (WS-8 item 7) has a DIFFERENT cell width than the
+		 * commit table, and its first cell is prose, not a hex SHA. Both are
+		 * "non-row lines": they END the commit table instead of being flagged as a
+		 * lost-backticks row. Only a same-width line whose first cell is a
+		 * hex-ish SHA (with or without backticks) is a genuine commit row — the
+		 * shape a row takes when its SHA cell lost its backticks (CP1-8).
+		 */
+		const firstCell = cells[0] ? cells[0].replace(/`/g, "").trim() : ""
+		if (cells.length !== headerWidth || !/^[0-9a-fA-F]{4,40}$/.test(firstCell)) {
+			headerWidth = null
+			continue
+		}
 		if (ROW_SHA_RE.test(line)) continue
 		unparsed.push({ line: i + 1, text: line.trim() })
 	}
@@ -1001,6 +1093,7 @@ export const CHECK_IDS_FULL = [
 	"blocked-by-pending",
 	"discard-rationale",
 	"header-tip",
+	"register-age",
 	"header-pending-count",
 	"landed-unflipped",
 	"synced-upstream-ancestry",
@@ -1026,6 +1119,7 @@ export const CHECK_IDS_REPO_ONLY = [
 	"stale-in-progress",
 	"exception-advisory",
 	"header-tip",
+	"register-age",
 ]
 
 /** The two `--verify` profiles. */
@@ -1038,14 +1132,58 @@ export const VERIFY_PROFILES = ["full", "repo-only"]
  * `Blocked-by`/`Resolved:`/`Version`).
  * Pure — exported for the spec.
  */
-export function sectionHasRationale(lines) {
-	const index = lines.findIndex((line) => /Rationale/i.test(line) && !/^\s*#/.test(line))
-	if (index === -1) return false
-	if (/\*{0,2}Rationale\*{0,2}\.?:?\s+\S/i.test(lines[index])) return true
-	return lines.slice(index + 1).some((line) => {
+export function sectionRationaleBlock(lines) {
+	/**
+	 * The rationale marker is a prose line (never a heading or a table row). The
+	 * old matcher anchored the FIRST `/Rationale/i` line anywhere — including a
+	 * table cell — and required the closing emphasis to precede the period, so a
+	 * correctly authored one-line `**Rationale.** reason` false-failed (WS-8 item
+	 * 6). Emphasis markers are stripped before testing, so `**Rationale.**` and
+	 * `Rationale:` both count.
+	 */
+	const index = lines.findIndex((line) => /Rationale/i.test(line) && !/^\s*[#|]/.test(line))
+	if (index === -1) return null
+	const inline = lines[index].replace(/[*_`>]/g, "").trim()
+	const parts = []
+	if (/^Rationale\b[.:]?\s*\S/i.test(inline)) parts.push(inline)
+	for (const line of lines.slice(index + 1)) {
 		const text = line.trim()
-		return text !== "" && !text.startsWith("|") && !text.startsWith("#") && !text.startsWith("---")
-	})
+		// The block ends at the next heading or table — otherwise prose from a
+		// LATER section (e.g. the recommended-execution-order list, which repeats
+		// row SHAs) would be read as part of the rationale and falsely attribute a
+		// row.
+		if (text.startsWith("#") || text.startsWith("|") || text.startsWith("---")) break
+		if (text === "") continue
+		parts.push(text)
+	}
+	const block = parts.join("\n").trim()
+	return block === "" ? null : block
+}
+
+/**
+ * Whether one `SYNC-n` section documents a rationale and, if so, its text. The
+ * text is what `discard-rationale` uses to attribute a shared batch-level block
+ * back to a specific `✖` row by SHA (WS-8 item 5). Pure — exported for the spec.
+ */
+export function sectionHasRationale(lines) {
+	return sectionRationaleBlock(lines) !== null
+}
+
+/**
+ * Whether a rationale block is ATTRIBUTABLE to one row SHA (WS-8 item 5): the
+ * block must name the row, either literally or as a `sha..sha` / `sha–sha` range
+ * endpoint. A single shared sentence that names no SHA is no longer enough.
+ * Pure — exported for the spec.
+ */
+export function rationaleNamesRow(blockText, sha) {
+	if (!blockText || !sha) return false
+	const needle = String(sha).toLowerCase()
+	const haystack = String(blockText).toLowerCase()
+	if (haystack.includes(needle)) return true
+	for (const match of haystack.matchAll(/([0-9a-f]{4,40})\s*(?:\.\.|\u2013|\u2014)\s*([0-9a-f]{4,40})/g)) {
+		if (needle.startsWith(match[1]) || needle.startsWith(match[2])) return true
+	}
+	return false
 }
 
 /** The body lines of one `SYNC-n` section, excluding its heading. Pure. */
@@ -1112,8 +1250,8 @@ export function validateRegister({
  const cross = crossCheckRows(rows, pendingShas)
  const hasPendingList = Array.isArray(pendingShas) && pendingShas.length > 0
 	const lines = markdown.split("\n")
-	const rationaleBySection = new Map(
-		sections.map((section) => [section.id, sectionHasRationale(sectionLines(lines, sections, section.id))]),
+	const rationaleBlockBySection = new Map(
+		sections.map((section) => [section.id, sectionRationaleBlock(sectionLines(lines, sections, section.id))]),
 	)
 
 	// 1 — every row SHA is the canonical 9-character prefix.
@@ -1199,6 +1337,24 @@ export function validateRegister({
 				syncedCheck,
 				`line ${row.line}: \`${row.sha}\` claims fork SHA \`${row.forkSha}\`, which is not reachable from ${forkRef}`,
 			)
+		} else if (typeof probe.commitMessage === "function") {
+			// WS-8 item 4: reachability alone is not a LINK. A reachable but
+			// unrelated fork commit passed the old contract. The fork commit must
+			// cite this row's upstream SHA in the `-x` provenance trailer, or the row
+			// must declare an explicit `Local-fix:`/`divergence:` record (a hand-port
+			// that never touches upstream's commit).
+			const message = probe.commitMessage(row.forkSha) ?? ""
+			const trailers = [...String(message).matchAll(CHERRY_PICK_TRAILER_RE)].map((match) => match[1].toLowerCase())
+			const linked = trailers.some((sha) => sha.startsWith(row.sha.toLowerCase()))
+			const declared = LOCAL_FIX_MARKER_RE.test(row.status)
+			if (!linked && !declared) {
+				fail(
+					syncedCheck,
+					`line ${row.line}: \`${row.sha}\` claims fork SHA \`${row.forkSha}\`, which is reachable from ${forkRef} ` +
+						`but NOT linked to this row — its message carries no \`cherry picked from commit ${row.sha}…\` trailer and ` +
+						`the row declares no \`Local-fix:\`/\`divergence:\` record, so the fork SHA is reachable but unrelated`,
+				)
+			}
 		}
 		if (!row.resolved) {
 			fail(
@@ -1406,21 +1562,35 @@ export function validateRegister({
 			}
 		}
 	}
+	// 8c — cycle detection (WS-8 item 3): the closure check above cannot see an
+	// A↔B prerequisite loop, which makes both rows permanently unpickable. Every
+	// cycle member is named by SHA.
+	for (const cycle of findBlockedByCycles(rows)) {
+		fail(
+			blockedCheck,
+			`line ${cycle.line}: \`${cycle.sha}\` is part of a ${BLOCKED_BY_COLUMN} cycle: ${cycle.members.join(" → ")} — ` +
+				`a prerequisite loop can never be satisfied; break it`,
+		)
+	}
 
 	// 9 — a deliberately-discarded row must say why: inline in the Status cell, or
-	// in its batch's rationale block.
-	const discardCheck = makeCheck("discard-rationale", `every ${DISCARD_MARKER} row carries a rationale`)
+	// in its batch's rationale block ATTRIBUTED to the row by SHA (WS-8 item 5).
+	const discardCheck = makeCheck("discard-rationale", `every ${DISCARD_MARKER} row carries an ATTRIBUTABLE rationale`)
 	for (const row of rows) {
 		if (!row.discarded) continue
 		const inline = row.status.replaceAll(DISCARD_MARKER, "").trim()
-		const sectionRationale = row.sectionId !== null && rationaleBySection.get(row.sectionId) === true
-		if (inline === "" && !sectionRationale) {
-			fail(
-				discardCheck,
-				`line ${row.line}: \`${row.sha}\` is marked ${DISCARD_MARKER} but carries no rationale — state it ` +
-					`in the Status cell or add a **Rationale.** block to ${row.sectionId ?? "its section"}`,
-			)
-		}
+		if (inline !== "") continue
+		// WS-8 item 5: a shared batch-level paragraph is only a rationale for a row
+		// if it can be attributed to that row — inline, or the block names the row's
+		// SHA (or a SHA range). One paragraph covering 27 rows unattributed fails.
+		const block = row.sectionId !== null ? rationaleBlockBySection.get(row.sectionId) : null
+		if (block && rationaleNamesRow(block, row.sha)) continue
+		fail(
+			discardCheck,
+			`line ${row.line}: \`${row.sha}\` is marked ${DISCARD_MARKER} but its rationale is not ATTRIBUTABLE — state it ` +
+				`inline in the Status cell, or name this row's SHA (or a SHA range) in ${row.sectionId ?? "its section"}'s ` +
+				`**Rationale.** block`,
+		)
 	}
 
 	// 10 — the merge-base-free half of the old `header-counts` (F-A-7): the
@@ -1436,6 +1606,29 @@ export function validateRegister({
 		fail(
 			tipCheck,
 			`header records upstream tip \`${baseline.upstreamTip}\`, which does not resolve to a commit in this repo`,
+		)
+	}
+
+	// 10a — WS-8 item 9: the register is a FROZEN snapshot but the full profile
+	// re-derives `coverage`/`header-pending-count` from the LIVE `upstream/main`, so
+	// it is red-by-construction the moment upstream advances. This advisory (pure
+	// markdown, merge-base-free, never fatal) names the register's age so an
+	// operator understands the full profile as a POST-REFRESH gate and the
+	// repo-only profile as the CI gate.
+	const ageCheck = makeCheck(
+		"register-age",
+		`advisory: the register was refreshed against its recorded tip within ${REGISTER_STALE_DAYS} days`,
+		{ severity: "warning" },
+	)
+	const registerAgeDays = daysBetween(baseline.upstreamTipDate, today)
+	if (baseline.upstreamTipDate === null) {
+		warn(ageCheck, "the header records no dated Upstream tip, so the register's age cannot be measured")
+	} else if (registerAgeDays !== null && registerAgeDays > REGISTER_STALE_DAYS) {
+		warn(
+			ageCheck,
+			`the register was refreshed against \`${baseline.upstreamTip}\` on ${baseline.upstreamTipDate} — ` +
+				`${registerAgeDays} days ago (> ${REGISTER_STALE_DAYS}) — refresh it (\`--refresh\`) before running the ` +
+				`full profile, which is a post-refresh gate (advisory only: the run stays green)`,
 		)
 	}
 
@@ -1630,6 +1823,7 @@ export function validateRegister({
 		blockedPendingCheck,
 		discardCheck,
 		tipCheck,
+		ageCheck,
 		headerCheck,
 		landedCheck,
 		ancestryCheck,
@@ -1658,6 +1852,17 @@ export function validateRegister({
 		exceptions,
 		/** Dated exceptions older than the re-confirmation window (CP1-9). */
 		agedExceptions,
+		/**
+		 * WS-8 item 9: the register's age relative to its recorded tip date, and
+		 * whether it exceeds the stale threshold. An advisory input — reported so an
+		 * operator can see the snapshot has aged, never a failure.
+		 */
+		registerAge: {
+			tipDate: baseline.upstreamTipDate,
+			days: registerAgeDays,
+			stale: registerAgeDays !== null && registerAgeDays > REGISTER_STALE_DAYS,
+			thresholdDays: REGISTER_STALE_DAYS,
+		},
 		/** Rows still `☐`/`◐` whose change is already in the fork (CP1-2). */
 		landedUnflipped,
 		/**
@@ -2518,6 +2723,14 @@ export function buildProbe(forkRef = FORK_REF) {
 			const [validity = "", signer = ""] = out.trim().split("\u001f")
 			return { validity, signer }
 		},
+		/**
+		 * WS-8 item 4: the full commit message of a fork commit, so the `☑` contract
+		 * can require the `-x` provenance trailer (`cherry picked from commit <sha>`)
+		 * rather than mere reachability. Offline and fork-ref-only — no uplink.
+		 */
+		commitMessage(sha) {
+			return gitQuiet(["log", "-1", "--format=%B", sha]) ?? ""
+		},
 	}
 }
 
@@ -2722,6 +2935,7 @@ async function runVerify(opts) {
 			staleInProgress: report.staleInProgress,
 			signatureCounts: report.signatureCounts,
 			unverifiableProvenance: report.unverifiableProvenance,
+			registerAge: report.registerAge,
 			exceptions: report.exceptions,
 			agedExceptions: report.agedExceptions,
 			landedUnflipped: report.landedUnflipped,
@@ -2961,13 +3175,46 @@ export async function runRefresh(opts, io = createRefreshIo()) {
 		}
 		return {
 			code: 0,
-			payload: { mode: "refresh", ok: true, skipped: true, deepenCommand: deepen.command, reason: detail },
+			payload: { mode: "refresh", ok: true, skipped: true, fetched, deepenCommand: deepen.command, reason: detail },
+		}
+	}
+	/**
+	 * WS-8 item 2: a FAILED fetch must not be silently re-based on the local ref.
+	 * The local ref satisfies the ancestor post-condition, so the guard would pass
+	 * and `--write` would re-baseline on a stale-but-locally-consistent ref — the
+	 * S1 failure the refresh guard exists to prevent. A write is therefore refused
+	 * outright; a dry run may continue, but its payload reports `fetched: false`.
+	 */
+	const fetched = fetchError === null
+	if (fetchError && opts.write) {
+		const detail = fetchError.message
+		if (!opts.json) {
+			logError(
+				TAG,
+				`refresh REFUSED — \`git fetch\` failed, so the local ${UPSTREAM_REF} ref is stale and must not be re-baselined on.`,
+			)
+			logError(TAG, detail)
+			logError(TAG, "The register was NOT modified (--write refuses too).")
+			logEndGroup()
+		}
+		return {
+			code: 1,
+			payload: {
+				mode: "refresh",
+				ok: false,
+				refused: true,
+				wrote: false,
+				fetched: false,
+				register: REGISTER_PATH,
+				deepenCommand: deepen.command,
+				error: `refusing to write: the upstream fetch failed (${detail})`,
+			},
 		}
 	}
 	if (fetchError && !opts.json) {
 		logWarn(
 			TAG,
-			`fetching upstream failed (${fetchError.message}) — falling back to the local ${UPSTREAM_REF} ref.`,
+			`fetching upstream failed (${fetchError.message}) — the local ${UPSTREAM_REF} ref is stale; a dry run is shown but \`--write\` refuses (fetched: false).`,
 		)
 	}
 
@@ -3004,6 +3251,7 @@ export async function runRefresh(opts, io = createRefreshIo()) {
 				ok: false,
 				refused: true,
 				wrote: false,
+				fetched,
 				register: REGISTER_PATH,
 				baselineTip: baseline.upstreamTip,
 				deepenCommand: deepen.command,
@@ -3057,6 +3305,7 @@ export async function runRefresh(opts, io = createRefreshIo()) {
 				ok: false,
 				refused: true,
 				wrote: false,
+				fetched,
 				register: REGISTER_PATH,
 				deepenCommand: deepen.command,
 				newCommitCount: newShas.length,
@@ -3123,6 +3372,7 @@ export async function runRefresh(opts, io = createRefreshIo()) {
 				mode: "refresh",
 				ok: true,
 				skipped: false,
+				fetched,
 				wrote: Boolean(opts.write && proposals.length > 0),
 				register: REGISTER_PATH,
 				baselineTip: baseline.upstreamTip,
@@ -3157,6 +3407,7 @@ export async function runRefresh(opts, io = createRefreshIo()) {
 				mode: "refresh",
 				ok: true,
 				skipped: false,
+				fetched,
 				deepenCommand: deepen.command,
 				newCommitCount: 0,
 				signatureCounts,
@@ -3200,6 +3451,7 @@ export async function runRefresh(opts, io = createRefreshIo()) {
 			mode: "refresh",
 			ok: true,
 			skipped: false,
+			fetched,
 			wrote: Boolean(opts.write),
 			deepenCommand: deepen.command,
 			newCommitCount: proposals.length,
@@ -3231,13 +3483,21 @@ Modes:
              resolve, every data row parsing into a register row (row-parse),
              coverage of merge-base..${UPSTREAM_REF} (missing / unexpected), duplicate
              rows, every ${SYNCED_MARKER} row carrying a fork SHA reachable from the fork ref AND
-             recording ${RESOLVED_COLUMN}/${VERSION_COLUMN}, every ${IN_PROGRESS_MARKER} row whose recorded
+             LINKED to the row (its message must carry the \`cherry picked from commit <row sha>\`
+             trailer, or the row must declare a \`Local-fix:\`/\`divergence:\` record — mere
+             reachability is not a link) AND recording ${RESOLVED_COLUMN}/${VERSION_COLUMN},
+             every ${IN_PROGRESS_MARKER} row whose recorded
              fork SHA is already reachable from the fork ref (stale-in-progress),
              the HARD class invariant (class-ladder: \`A-CLEAN\` ⇒ Δ = 0), the
              ADVISORY B-CAREFUL ladder (class-ladder-advisory), the exception
              re-confirmation advisory (exception-advisory), ${BLOCKED_BY_COLUMN} closure
-             (blocked-by), its readiness advisory (blocked-by-pending), a rationale
-             for every ${DISCARD_MARKER} row, the header tip resolving, the header's pending count /
+             (blocked-by — every token names a different row and the prerequisite
+             graph must be ACYCLIC, cycles are named by SHA), its readiness advisory
+             (blocked-by-pending), an ATTRIBUTABLE rationale
+             for every ${DISCARD_MARKER} row (inline, or naming the row's SHA in the
+             batch's **Rationale.** block), the header tip resolving, the register-age
+             advisory (the register is a frozen snapshot; the full profile is a
+             POST-REFRESH gate, while --repo-only is the CI gate), the header's pending count /
              merge base / tip matching git, and landed-unflipped: a ${PENDING_MARKER}/${IN_PROGRESS_MARKER} row
              whose change is ALREADY in the fork by patch identity (git cherry) or
              that already records ${RESOLVED_COLUMN}/${VERSION_COLUMN} — the "update the table to
@@ -3273,16 +3533,19 @@ Options:
              and never issue a git command that references ${UPSTREAM_REF} or computes
              the upstream merge base. This is the profile CI can gate in the clone
              shape the repo ships in (a --depth=1 checkout has no merge base), so
-             it exits 0 where the full profile fails closed. \`row-parse\` and
-             \`exception-advisory\` are pure-markdown, so they run here too, which is
-             what stops the profile going blind to a row whose SHA cell lost its
-             backticks. Quantities this profile cannot evaluate (pendingCommits,
+             it exits 0 where the full profile fails closed. \`row-parse\`,
+             \`exception-advisory\` and \`register-age\` are pure-markdown, so they run
+             here too, which is what stops the profile going blind to a row whose SHA
+             cell lost its backticks and lets CI surface a stale-snapshot advisory.
+             Quantities this profile cannot evaluate (pendingCommits,
              missing, unexpected) are reported as \`null\` in --json, never as \`0\`.
              PR CI runs this profile with FULL fork history (fetch-depth: 0): the
              profile is merge-base-free but NOT object-free — row-sha-resolves still
              needs the register's commit objects, so a --depth=1 checkout fails every
              row for the wrong reason. The two provenance checks reference
-             ${UPSTREAM_REF} and therefore belong to the full profile.
+             ${UPSTREAM_REF} and therefore belong to the full profile, which is a
+             POST-REFRESH gate (it re-derives coverage from the LIVE upstream/main and
+             is red-by-construction once upstream advances) rather than the CI gate.
   --json     Emit the machine-readable report on stdout instead of the log.
   --strict   Exit 1 when ${UPSTREAM_REF} cannot be resolved (no local ref and the
              fetch failed), AND exit 1 when stale-in-progress rows are found.

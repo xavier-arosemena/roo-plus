@@ -31,9 +31,12 @@ import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
 import {
+	DECLARED_LOCUS_RE,
+	KNOWN_GATE_IDS,
 	RATIONALE_MIN_LENGTH,
 	RESOLUTION_VALUES,
 	ROOT,
+	TEST_FILE_RE,
 	closedCReimplementRows,
 	createGitProbe,
 	isR5RefusedPath,
@@ -371,5 +374,77 @@ describe("the CLI is usable and never silently passes", () => {
 			status = typeof error.status === "number" ? error.status : 1
 		}
 		assert.equal(status, 2)
+	})
+})
+
+// ---------------------------------------------------------------------------
+// WS-8 item 8 — resolution records cannot be theatre
+// ---------------------------------------------------------------------------
+
+describe("WS-8 item 8 — fork_locus, evidence and rationale must be real, not decorative", () => {
+	it("pins the declared-locus and test-file shapes", () => {
+		assert.ok(DECLARED_LOCUS_RE.test("src/core/webview/handlers/"))
+		assert.ok(KNOWN_GATE_IDS.includes("gate:sync"))
+		assert.ok(TEST_FILE_RE.test("Task.spec.ts"))
+	})
+
+	it("fork_locus naming a bare directory (not a declared location) fails by path", () => {
+		const probe = cleanProbe({ isTrackedFile: () => false, isTracked: () => true })
+		const findings = findingsFor({ probe, record: { blocks: [block({ fields: { fork_locus: "src/core/task" } })] } })
+		assert.deepEqual(offenders(findings, "fork-locus-unresolved"), ["src/core/task"])
+	})
+
+	it("fork_locus naming a tracked file passes", () => {
+		const probe = cleanProbe({ isTrackedFile: (candidate) => candidate === TASK_FILE, isTracked: () => false })
+		const findings = findingsFor({ probe, record: { blocks: [block({ fields: { fork_locus: TASK_FILE } })] } })
+		assert.deepEqual(offenders(findings, "fork-locus-unresolved"), [])
+	})
+
+	it("fork_locus naming a DECLARED handler location passes", () => {
+		const probe = cleanProbe({ isTrackedFile: () => false, isTracked: () => true })
+		const findings = findingsFor({
+			probe,
+			record: { blocks: [block({ fields: { fork_locus: "src/core/webview/handlers/" } })] },
+		})
+		assert.deepEqual(offenders(findings, "fork-locus-unresolved"), [])
+	})
+
+	it("evidence naming a test that does not exist fails by file", () => {
+		const probe = cleanProbe({ isTrackedFile: () => false })
+		const findings = findingsFor({
+			probe,
+			record: {
+				blocks: [
+					block({
+						fields: { evidence: "src/core/task/__tests__/Ghost.spec.ts fails before, passes after" },
+					}),
+				],
+			},
+		})
+		assert.deepEqual(offenders(findings, "evidence-unattested"), [TASK_FILE])
+	})
+
+	it("evidence naming an existing test file passes", () => {
+		const testFile = "src/core/task/__tests__/Task.spec.ts"
+		const probe = cleanProbe({ isTrackedFile: (candidate) => candidate === testFile })
+		const findings = findingsFor({
+			probe,
+			record: { blocks: [block({ fields: { evidence: `${testFile} fails before, passes after` } })] },
+		})
+		assert.deepEqual(offenders(findings, "evidence-unattested"), [])
+	})
+
+	it("a copy-pasted rationale shared by two blocks fails", () => {
+		const shared = "The fork scoping and upstream atomicity are independent concerns."
+		const historyFile = "src/core/task/History.ts"
+		const blocks = [
+			block({ file: TASK_FILE, fields: { rationale: shared } }),
+			block({ file: historyFile, fields: { rationale: shared } }),
+		]
+		const findings = findingsFor({
+			rangeFiles: [TASK_FILE, historyFile],
+			record: { metadata: { conflicted_files: `${TASK_FILE}, ${historyFile}` }, blocks },
+		})
+		assert.deepEqual(offenders(findings, "rationale-duplicated"), [historyFile])
 	})
 })

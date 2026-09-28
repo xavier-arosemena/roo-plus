@@ -10,22 +10,22 @@ Operating manual + refresh procedure: [`README.md`](README.md).
 
 ## Baseline
 
-| Field                                    | Value                                                                                                                                                                                                        |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Baseline recorded                        | 2026-09-16 (initial register; each later refresh is recorded in the README §9 changelog)                                                                                                                     |
-| Merge base                               | `252c69b5` (2026-08-20, "fix: stream reasoning_content in LM Studio provider (#1175)")                                                                                                                       |
-| Upstream tip                             | `fadd66a34` (2026-09-25, "chore(coderabbit): allow non-org members to interact with chat (#1775)")                                                                                                           |
-| Fork tip                                 | `77a670196` (2026-09-15, PR #338 merge)                                                                                                                                                                      |
-| Pending upstream commits                 | **128**                                                                                                                                                                                                      |
-| Fork-only commits                        | 180                                                                                                                                                                                                          |
-| Conflict surface (files changed by both) | 272                                                                                                                                                                                                          |
-| Refresh procedure                        | Automated by [`scripts/upstream-sync-triage.mjs`](../../scripts/upstream-sync-triage.mjs:1) — `--refresh` (dry run), `--refresh --write` to apply, `--verify` to check. See [`README.md` §6](README.md).     |
+| Field                                    | Value                                                                                                                                                                                                                                                                |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Baseline recorded                        | 2026-09-16 (initial register; each later refresh is recorded in the README §9 changelog)                                                                                                                                                                             |
+| Merge base                               | `252c69b5` (2026-08-20, "fix: stream reasoning_content in LM Studio provider (#1175)")                                                                                                                                                                               |
+| Upstream tip                             | `fadd66a34` (2026-09-25, "chore(coderabbit): allow non-org members to interact with chat (#1775)")                                                                                                                                                                   |
+| Fork tip                                 | `77a670196` (2026-09-15, PR #338 merge)                                                                                                                                                                                                                              |
+| Pending upstream commits                 | **128**                                                                                                                                                                                                                                                              |
+| Fork-only commits                        | 180                                                                                                                                                                                                                                                                  |
+| Conflict surface (files changed by both) | 272                                                                                                                                                                                                                                                                  |
+| Refresh procedure                        | Automated by [`scripts/upstream-sync-triage.mjs`](../../scripts/upstream-sync-triage.mjs:1) — `--refresh` (dry run), `--refresh --write` to apply, `--verify` to check. See [`README.md` §6](README.md).                                                             |
 | Evidence snapshots                       | [`raw-upstream-commits.txt`](raw-upstream-commits.txt) and [`triage-raw.tsv`](triage-raw.tsv) — generated 2026-09-16 at the initial baseline (they are a dated snapshot, not a view of the current tip); regenerate via [`README.md` §2](README.md), never hand-edit |
 
 > **Shallow-clone warning.** This checkout is shallow (`.git/shallow`). Before
 > computing a merge base, deepen the upstream ref or the numbers are wrong.
 > `--refresh` does this deterministically (`git fetch --shallow-since=<date>
-> upstream main`, the date derived from this header); by hand, use
+upstream main`, the date derived from this header); by hand, use
 > `git fetch --unshallow upstream main`. With a shallow graft `git merge-base`
 > returns nothing and `rev-list --count upstream/main` reports only the fetch
 > window, not the real backlog recorded in the `Pending upstream commits` cell
@@ -52,11 +52,14 @@ Operating manual + refresh procedure: [`README.md`](README.md).
 `node scripts/upstream-sync-triage.mjs --verify`:
 
 - `☑ <fork-sha>` — **merged**. It MUST also record the released **`Version`** and the
-  resolution **`Resolved:`** date; a `☑` row missing either fails the check
-  `synced-fork-sha` by row SHA.
-- `✖` — **deliberately discarded**. It MUST carry a rationale: inline in the Status
-  cell (`✖ <reason>`) or in its batch's **Rationale.** block. Absent that, the check
-  `discard-rationale` fails by row SHA.
+  resolution **`Resolved:`** date, and its fork SHA must be **linked**: the fork commit
+  message carries the `-x` trailer `cherry picked from commit <row sha>`, or the row
+  declares a `Local-fix:`/`divergence:` record (a re-implementation). A fork SHA that is
+  merely reachable fails the check `synced-fork-sha` by row SHA.
+- `✖` — **deliberately discarded**. It MUST carry an **attributable** rationale: inline in
+  the Status cell (`✖ <reason>`) or in its batch's **Rationale.** block, which must name the
+  row's SHA (or a SHA range). One shared paragraph that names no SHA fails the check
+  `discard-rationale` by row SHA.
 - `☐` pending · `◐` in flight · `⏸` deferred by decision. A landed `◐` row is stale
   (`stale-in-progress`); a bare `◐` with no fork SHA is not checked.
 - A `☐`/`◐` row is also checked against the fork by **patch identity**: if its
@@ -70,11 +73,12 @@ Operating manual + refresh procedure: [`README.md`](README.md).
 chains), comma-separated when there is more than one. `—` = not blocked. Two
 different things are checked, at two different levels:
 
-- **Hard** (`blocked-by`): every token must name a **different row in this register**.
-  A token that names no row, names the row itself, or is the literal `unknown` fails
-  by row SHA. The literal `unknown` is **forbidden** — a named unknown looks like a
-  resolved reference while carrying no information, so write `—` when the documented
-  chain names no row.
+- **Hard** (`blocked-by`): every token must name a **different row in this register**,
+  and the prerequisite graph must be **acyclic** — an A↔B loop can never be satisfied, so
+  a cycle fails by member SHA. A token that names no row, names the row itself, or is the
+  literal `unknown` fails by row SHA. The literal `unknown` is **forbidden** — a named
+  unknown looks like a resolved reference while carrying no information, so write `—` when
+  the documented chain names no row.
 - **Advisory** (`blocked-by-pending`, never fatal): the named prerequisite has not
   landed yet. That is a **readiness** fact, not a data defect — a correctly blocked
   row is precisely one whose blocker has not landed.
@@ -110,8 +114,8 @@ merge base (conflict-surface size). `Δ 0` is the strongest clean-pick signal.
 
 ## Summary
 
-| Class           | Count                  |
-| --------------- | ---------------------- |
+| Class           | Count                         |
+| --------------- | ----------------------------- |
 | `A-CLEAN`       | 22 (19 are `A-CLEAN` ∧ P0–P2) |
 | `B-CAREFUL`     | 39                            |
 | `C-REIMPLEMENT` | 22                            |
@@ -129,15 +133,36 @@ merge base (conflict-surface size). `Δ 0` is the strongest clean-pick signal.
 | `P4`     | 36    |
 
 **Read this as:** the fork is not "128 commits behind" — the backlog is the
-`Pending upstream commits` count above, and what is *pickable today* is the
+`Pending upstream commits` count above, and what is _pickable today_ is the
 **derived ready set**, which `--verify` computes (`A-CLEAN` ∧ Δ 0 ∧ `Blocked-by` = ∅
 ∧ open). This prose pins no ready-set number on purpose: it is a predicate over the
 rows, not a stored fact, so a pinned literal would only rot. 22 rows are
 `C-REIMPLEMENT` — deliberate re-implementation because of architecture the fork
 changed — and 44 are either owned locally or permanently out of scope (14 `D-LOCAL`
-+ 30 `E-SKIP`). (The 2026-09-24 ladder enforcement moved four `A-CLEAN` rows with
-Δ > 0 to `B-CAREFUL`; the 2026-09-24 and 2026-09-25 guarded refreshes folded in 24
-and 2 upstream commits respectively — see the manual's §9 changelog.)
+
+- 30 `E-SKIP`). (The 2026-09-24 ladder enforcement moved four `A-CLEAN` rows with
+  Δ > 0 to `B-CAREFUL`; the 2026-09-24 and 2026-09-25 guarded refreshes folded in 24
+  and 2 upstream commits respectively — see the manual's §9 changelog.)
+
+### Tracked-versus-recorded scope (the two progress series)
+
+The headline `Pending upstream commits` count above is raw backlog and, by
+construction, can only grow as upstream advances. Progress is reported as two
+**series** (ADR amendment 2026-09-28, H-21 / HD-11):
+
+| Series               | What it counts                                                                                             | How to read it off the register                       |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **Tracked absorbed** | `P0`/`P1` rows that are `☑`, plus the divergence program as it lands                                       | count `☑` rows whose priority is `P0`/`P1`            |
+| **Divergence stock** | open `C-REIMPLEMENT` rows — the structural program that forces hand-ports, plus the rebrand/conflict scope | count `☐`/`◐`/`⏸` rows whose class is `C-REIMPLEMENT` |
+
+**Tracked (counted):** `P0`/`P1` + the divergence program. **Recorded but never
+counted as "pending":** `P3`/`P4`, `D-LOCAL`, `E-SKIP`, and the single `X-REJECT`
+row. **Forced decision:** if the _ready set_ drops below **5**, the oldest
+unresolved `P0` passes **30 days**, or **two consecutive cycles close zero rows**,
+the next cycle MUST record a decision (fund the divergence program, declare a
+merge mode with a written resolution policy, or add capacity) instead of
+continuing. The register owner re-confirms the tracked scope quarterly. The
+machine-parsed `## Baseline` table above is deliberately left unchanged.
 
 ---
 
@@ -375,13 +400,20 @@ would catch the regression rather than importing upstream's E2E verbatim.
 | ----------- | ---------- | ----------------------------------------------------------------------------- | ---------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
 | `1ad8f528d` | 2026-08-21 | fix(telemetry): default telemetry to opt-out with explicit consent UI (#1069) | `X-REJECT` | P4  | 53  | ✖      | —          | —         | —       | —         |
 
-**Rationale.** The commit adds a telemetry consent UI across 61 files including
+**Rationale.** Row `` `1ad8f528d` `` — the commit adds a telemetry consent UI across 61 files including
 17 locale `settings.json`/`welcome.json` pairs and `PRIVACY.md`. The fork has
-**zero** telemetry references in `src/` and `webview-ui/src/` (upstream: 131
-files) after the deliberate v3.88.0 telemetry purge responding to Marketplace
-notice #305. Opt-out is strictly weaker than the fork's removal; merging this
-would re-introduce the very surface that was purged. If the privacy _language_
-in `PRIVACY.md` is an improvement, lift the wording only.
+**zero telemetry transport call sites** (`captureEvent(` → 0 across tracked
+`src/**`) after the deliberate v3.88.0 telemetry purge responding to Marketplace
+notice #305; the token "telemetry" still lingers in inert scaffolding in a
+minority of tracked files. Opt-out is strictly weaker than the fork's removal;
+merging this would re-introduce the very surface that was purged. If the privacy
+_language_ in `PRIVACY.md` is an improvement, lift the wording only.
+
+> **Superseded by plan §2 (E11d/E12) / §11 — 2026-09-28 (H-05, lens D).** The
+> original "**zero** telemetry references in `src/` and `webview-ui/src/`
+> (upstream: 131 files)" was withdrawn: the verified invariant is "0
+> `captureEvent(` call sites", and the "131 files" figure has no recorded scope
+> or SHA and is not reproducible.
 
 ## SYNC-12 — Out of Scope (`E-SKIP`, upstream-org automation)
 
@@ -390,6 +422,12 @@ merge queue, mutation-testing gates, coverage caching, PR labelling, VSIX upload
 The fork runs different CI (`.github/workflows/code-qa.yml`,
 `label-pr-review-state.yml` are among the most-diverged files: 9 and 7 upstream
 touches respectively). Re-evaluate only if the fork adopts the same tooling.
+The discarded rows are, in table order: `d28e4a129`, `efc30cfa0`, `8f7f48ad5`,
+`ad05c1c14`, `b18b6f01c`, `7bc054ba8`, `104700e92`, `6b319e330`, `a1ca0c8f7`,
+`79cd12f2c`, `b2f63d366`, `ca8a22f12`, `dee40cc3d`, `134923e15`, `034c14104`,
+`01c7357a7`, `d8f2d47ec`, `7cd854972`, `0ea690508`, `294c5fff1`, `4fe5a1f77`,
+`ba46d1f34`, `99025b1fb`, `1da6fa660`, `072b6f36f`, `fdef10685`, `99736300f`
+(each row is attributed here by SHA, WS-8 item 5).
 
 | SHA         | Date       | Subject                                                                             | Class    | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
 | ----------- | ---------- | ----------------------------------------------------------------------------------- | -------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
@@ -567,10 +605,10 @@ These 24 commit(s) landed on `upstream/main` after the recorded baseline tip `50
 
 These 2 commit(s) landed on `upstream/main` after the recorded baseline tip `9ec139cd8`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
 
-| SHA | Date | Subject | Class | Pri | Δ | Status | Blocked-by | Resolved: | Version | Exception |
-| --- | ---- | ------- | ----- | --- | - | ------ | ---------- | --------- | ------- | ------- |
-| `ebf4bd2d3` | 2026-09-24 | fix(prompts): report the shell that actually runs under Inline Terminal (#1682) | `A-CLEAN` | P1 | 0 | ☐ | — | — | — | — |
-| `fadd66a34` | 2026-09-25 | chore(coderabbit): allow non-org members to interact with chat (#1775) | `E-SKIP` | P4 | 0 | ☐ | — | — | — | — |
+| SHA         | Date       | Subject                                                                         | Class     | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
+| ----------- | ---------- | ------------------------------------------------------------------------------- | --------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
+| `ebf4bd2d3` | 2026-09-24 | fix(prompts): report the shell that actually runs under Inline Terminal (#1682) | `A-CLEAN` | P1  | 0   | ☐      | —          | —         | —       | —         |
+| `fadd66a34` | 2026-09-25 | chore(coderabbit): allow non-org members to interact with chat (#1775)          | `E-SKIP`  | P4  | 0   | ☐      | —          | —         | —       | —         |
 
 **`ebf4bd2d3` evidence.** Δ 0 of 4 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
 
@@ -590,4 +628,3 @@ These 2 commit(s) landed on `upstream/main` after the recorded baseline tip `9ec
 7. **SYNC-8**, **SYNC-10**, **SYNC-9 local re-implementations** as capacity allows.
 8. **SYNC-7** — background enabler; lowers the cost of every subsequent sync.
 9. **SYNC-6** — evaluate each theming fix for "already solved by fork" before doing any work.
-   doing any work.

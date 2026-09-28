@@ -125,6 +125,32 @@ export const REBRAND_SUBJECT_RE = /(^|\W)rebrand(\W|$)|normalise\s+upstream\s+to
 /** The `C-REIMPLEMENT` class token as it appears in the register. */
 export const C_REIMPLEMENT = "C-REIMPLEMENT"
 
+/**
+ * A DECLARED handler/registry locus. `fork_locus:` normally names a tracked file
+ * (the behaviour moved INTO that file); a directory is only acceptable when it is
+ * one of these declared locations, because a bare directory is not a locus
+ * (WS-8 item 8 — "fork_locus: src/core/webview/handlers/" was theatre).
+ */
+export const DECLARED_LOCUS_RE = /^(?:src\/core\/webview\/handlers\/|packages\/types\/src\/webview-messages\/)/
+
+/** A fork test-file path shape the `evidence:` field may name. */
+export const TEST_FILE_RE = /\.(?:spec|test)\.(?:ts|tsx|js|jsx|mjs|cjs)$/i
+
+/**
+ * Gate ids an `evidence:` field may cite instead of a test file. A record that
+ * names neither an existing test file nor one of these is not fix-equivalence
+ * evidence (WS-8 item 8).
+ */
+export const KNOWN_GATE_IDS = Object.freeze([
+	"gate:sync",
+	"verify-resolutions",
+	"verify:upstream-sync",
+	"check-types",
+	"lint",
+	"message-schemas",
+	"upstream-code-index-alignment",
+])
+
 /** The status marker the register uses for a merged row. */
 export const SYNCED_MARKER = "☑"
 
@@ -436,6 +462,52 @@ export function validateRecord({
 			}
 		}
 
+		// WS-8 item 8: `fork_locus:` must resolve to a TRACKED file, or a DECLARED
+		// handler/registry location (a bare directory is not a locus). `none` is the
+		// empty value.
+		if (block.fields.fork_locus !== undefined && block.fields.fork_locus !== "") {
+			const locus = stripBackticks(block.fields.fork_locus)
+				.split(/\s+[—–-]\s+/)[0]
+				.trim()
+			if (locus && !/^none$/i.test(locus)) {
+				const trackedFile = typeof probe.isTrackedFile === "function" ? probe.isTrackedFile(locus) : true
+				const declared =
+					DECLARED_LOCUS_RE.test(locus) && (typeof probe.isTracked === "function" ? probe.isTracked(locus) : true)
+				if (!trackedFile && !declared) {
+					findings.push(
+						finding(
+							"fork-locus-unresolved",
+							locus,
+							`${block.path}: \`fork_locus: ${locus}\` is neither a tracked file nor a declared handler/registry location (${String(DECLARED_LOCUS_RE)})`,
+						),
+					)
+				}
+			}
+		}
+
+		// WS-8 item 8: `evidence:` must name an EXISTING test file or a KNOWN gate id.
+		// A test that does not exist is not fix-equivalence evidence.
+		if (block.fields.evidence !== undefined && block.fields.evidence !== "") {
+			const evidence = stripBackticks(block.fields.evidence)
+			const attested = evidence.split(/[\s,;()]+/).some((token) => {
+				if (!token) return false
+				const lowered = token.toLowerCase()
+				if (KNOWN_GATE_IDS.includes(lowered)) return true
+				if (lowered.startsWith("gate:")) return true
+				if (!TEST_FILE_RE.test(token)) return false
+				return typeof probe.isTrackedFile === "function" ? probe.isTrackedFile(token) : true
+			})
+			if (!attested) {
+				findings.push(
+					finding(
+						"evidence-unattested",
+						block.path,
+						`${block.path}: \`evidence:\` names no existing test file and no known gate id (${KNOWN_GATE_IDS.join(", ")})`,
+					),
+				)
+			}
+		}
+
 		for (const droppedPath of parseDroppedEntries(block.fields.dropped)) {
 			if (!isR5RefusedPath(droppedPath)) {
 				findings.push(
@@ -446,6 +518,25 @@ export function validateRecord({
 					),
 				)
 			}
+		}
+	}
+
+	// WS-8 item 8: a copy-pasted 20-character rationale is not a decision record.
+	const seenRationales = new Map()
+	for (const block of record.blocks) {
+		const rationale = block.fields.rationale
+		if (rationale === undefined || rationale === "") continue
+		const key = rationale.trim().toLowerCase()
+		if (seenRationales.has(key)) {
+			findings.push(
+				finding(
+					"rationale-duplicated",
+					block.path,
+					`${block.path}: \`rationale:\` is identical to the one in ${seenRationales.get(key)} — a copy-pasted rationale is not a decision record`,
+				),
+			)
+		} else {
+			seenRationales.set(key, block.path)
 		}
 	}
 
@@ -590,6 +681,15 @@ export function createGitProbe({ root = ROOT } = {}) {
 			const result = capture(["diff", "--name-only", `${base}...${head}`])
 			return result.code === 0 ? lines(result.out) : null
 		},
+		/** True when `path` is a TRACKED FILE (`git ls-files --error-unmatch`). */
+		isTrackedFile(path) {
+			return capture(["ls-files", "--error-unmatch", "--", path]).code === 0
+		},
+		/** True when `path` (file OR directory) has tracked files under it. */
+		isTracked(path) {
+			const result = capture(["ls-files", "--", path])
+			return result.code === 0 && lines(result.out).length > 0
+		},
 		/** Committed range + working tree + untracked: everything the batch touched. */
 		touchedFiles(base, head) {
 			return [
@@ -645,6 +745,10 @@ Record mode checks — every failure is reported BY FILE OR SHA:
   fork-sha-reachable      \`fork:\` is reachable from --fork-ref
   fork-sha-not-rebrand    \`fork:\` is not a rebrand sweep commit (${String(REBRAND_SUBJECT_RE)})
   dropped-path-r5         every \`dropped:\` path is one of R5's refused paths
+  fork-locus-unresolved   \`fork_locus:\` resolves to a tracked file or a declared
+                          handler/registry location (a bare directory is not a locus)
+  evidence-unattested     \`evidence:\` names an existing test file or a known gate id
+  rationale-duplicated    two blocks do not share a copy-pasted rationale
   record-range-extra      a recorded path the batch never touched in --base...--head
   record-range-missing    a file the batch touched with no block in the record
   record-declared-mismatch  \`conflicted_files:\` and the block list disagree
