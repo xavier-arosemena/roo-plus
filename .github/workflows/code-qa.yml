@@ -166,6 +166,59 @@ jobs:
                   echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:ANNOUNCEMENT] announcement data verified for the current version"
                   echo "::endgroup::"
 
+    # WS-8 item 1 — the flagship provenance control is only enforceable with a
+    # keyring. The full profile is a POST-REFRESH gate (it re-derives coverage from
+    # the register's recorded tip, so it is not run per-PR); it runs here on master
+    # pushes with --signature-strict. If the GitHub web-flow key cannot be
+    # provisioned the keyring step FAILS CLOSED with "keyring not configured"
+    # instead of letting the run pass as an advisory, so "unverifiable" can never
+    # be mistaken for a pass.
+    upstream-sync-provenance:
+        name: upstream-sync provenance (post-refresh gate, master push only)
+        runs-on: ubuntu-latest
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  # This job never pushes.
+                  persist-credentials: false
+                  # The full profile needs fork history to resolve every row SHA
+                  # and compute the merge base.
+                  fetch-depth: 0
+            - name: Setup Node.js and pnpm
+              uses: ./.github/actions/setup-node-pnpm
+            - name: Import the GitHub web-flow signing key (provenance keyring)
+              run: |
+                  echo "::group::[CI:CODE-QA:UPSTREAM-PROVENANCE:KEYRING] Importing the GitHub web-flow signing key"
+                  if ! curl -fsSL https://github.com/web-flow.gpg -o /tmp/web-flow.gpg; then
+                      echo "::error::[CI:CODE-QA:UPSTREAM-PROVENANCE:KEYRING] keyring not configured — could not download the GitHub web-flow key"
+                      exit 1
+                  fi
+                  gpg --batch --quiet --import /tmp/web-flow.gpg
+                  if ! gpg --list-keys --with-colons | grep -q '^pub:'; then
+                      echo "::error::[CI:CODE-QA:UPSTREAM-PROVENANCE:KEYRING] keyring not configured — the GitHub web-flow key was not imported"
+                      exit 1
+                  fi
+                  echo "::notice::[CI:CODE-QA:UPSTREAM-PROVENANCE:KEYRING] web-flow keyring configured"
+                  echo "::endgroup::"
+            - name: Pin upstream/main to the register's recorded tip (post-refresh)
+              run: |
+                  echo "::group::[CI:CODE-QA:UPSTREAM-PROVENANCE:PIN] Fetching upstream and pinning to the recorded tip"
+                  git remote add upstream "https://github.com/Zoo-Code-Org/Zoo-Code.git" 2>/dev/null || true
+                  SINCE=$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseBaseline } from "./scripts/upstream-sync-triage.mjs"; const b = parseBaseline(readFileSync("docs/upstream-sync/pending-upstream-commits.md", "utf8")); process.stdout.write(b.mergeBaseDate ?? "2026-08-19")')
+                  git fetch --no-tags --shallow-since="$SINCE" upstream main
+                  TIP=$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseBaseline } from "./scripts/upstream-sync-triage.mjs"; process.stdout.write(parseBaseline(readFileSync("docs/upstream-sync/pending-upstream-commits.md", "utf8")).upstreamTip ?? "")')
+                  git update-ref refs/remotes/upstream/main "$(git rev-parse "${TIP}^{commit}")"
+                  echo "::notice::[CI:CODE-QA:UPSTREAM-PROVENANCE:PIN] upstream/main pinned to ${TIP}"
+                  echo "::endgroup::"
+            - name: Verify ☑ provenance with a keyring and --signature-strict
+              run: |
+                  echo "::group::[CI:CODE-QA:UPSTREAM-PROVENANCE:VERIFY] Verifying ☑ provenance with signature enforcement"
+                  node scripts/upstream-sync-triage.mjs --verify --signature-strict
+                  echo "::notice::[CI:CODE-QA:UPSTREAM-PROVENANCE:VERIFY] provenance verified with enforced signatures"
+                  echo "::endgroup::"
+
     audit-dependencies:
         runs-on: ubuntu-latest
         steps:
