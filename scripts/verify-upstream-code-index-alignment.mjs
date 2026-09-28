@@ -33,6 +33,15 @@
  *   - modes    : an entry may list several of the above (e.g. branding +
  *                fork-telemetry); they compose in order.
  *
+ * Divergence ledger (H-11):
+ *   - Every allow-list entry (a CORE_FILES entry carrying a mode) MUST have a row
+ *     in docs/upstream-sync/allowlist-ledger.md recording WHY the relaxation
+ *     exists, and the row must satisfy its kind's requirements. The ledger
+ *     RECORDS divergence and never AUTHORISES it — the allow-list is CORE_FILES,
+ *     in this file, and a ledger row naming no allow-list entry fails too. This
+ *     check is pure and local, so it runs BEFORE any upstream resolution and is
+ *     green independently of the file-drift check below.
+ *
  * Upstream resolution:
  *   - A local `upstream/main` ref is used as-is (offline-safe).
  *   - Otherwise `git fetch upstream main --depth=1` is attempted (the remote is
@@ -421,6 +430,173 @@ export function failedPaths(results) {
 }
 
 /**
+ * The divergence ledger (H-11): one row per allow-list entry recording why the
+ * relaxation exists. The ledger RECORDS divergence; it never AUTHORISES it — the
+ * allow-list is {@link CORE_FILES} (code), and a ledger row naming no allow-list
+ * entry is itself a failure.
+ */
+export const ALLOWLIST_LEDGER_PATH = "docs/upstream-sync/allowlist-ledger.md"
+
+/**
+ * The gate's real allow-list mode → ledger kind. Total over {@link CORE_FILES}'
+ * modes, so a row's `kind` is DERIVED from the entry's real mode(s) and never
+ * invented: `fork-telemetry` is the fork-feature class. Exported so the spec and
+ * the ledger's own header cannot drift apart.
+ */
+export const ALLOWLIST_MODE_KINDS = {
+	branding: "branding",
+	"fork-config": "fork-config",
+	"fork-telemetry": "fork-feature",
+}
+
+/** The ledger's closed sets. */
+export const ALLOWLIST_LEDGER_KINDS = ["branding", "fork-config", "fork-feature"]
+export const ALLOWLIST_LEDGER_DISPOSITIONS = ["divergent-forever", "pending-upstream", "local-only"]
+
+/** A forcing upstream SHA: an abbreviated hex prefix (9–40 chars). */
+export const FORCING_SHA_RE = /^[0-9a-f]{9,40}$/
+
+/** The kind that MUST cite the upstream SHA which forced the exception. */
+const FORK_FEATURE_KIND = "fork-feature"
+
+/** The allow-list modes declared on a CORE_FILES entry (`entry.mode` / `.modes`). */
+export function entryModes(entry) {
+	return entry.modes ?? (entry.mode ? [entry.mode] : [])
+}
+
+/**
+ * The ledger `kind` an allow-list entry requires, or null when the entry is NOT
+ * allow-listed (no mode ⇒ it must stay byte-identical and carries no exception).
+ * Pure — exported for the spec.
+ */
+export function expectedLedgerKind(entry) {
+	const modes = entryModes(entry)
+	if (modes.length === 0) return null
+	return modes.map((mode) => ALLOWLIST_MODE_KINDS[mode] ?? mode).join("+")
+}
+
+/** The entries that carry an allow-list exception. Pure — exported for the spec. */
+export function allowlistedEntries(entries = CORE_FILES) {
+	return entries.filter((entry) => entryModes(entry).length > 0)
+}
+
+/** Normalises a markdown table header cell into a lookup key. */
+function headerKey(cell) {
+	return (cell ?? "")
+		.replace(/[`*]/g, "")
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "")
+}
+
+/** Normalises a markdown table body cell into a plain value (`—` ⇒ empty). */
+function cellValue(cell) {
+	const value = (cell ?? "").replace(/[`*]/g, "").trim()
+	return value === "—" || value === "-" ? "" : value
+}
+
+/**
+ * Parses the divergence ledger's table. Columns are matched BY HEADER NAME, so
+ * inserting a column cannot shift a value into the wrong field. Returns rows as
+ * `{ entry, kind, reason, forcingSha, date, disposition, line }`. Rows before the
+ * header (prose, other tables) and separator rows are skipped. Pure — exported
+ * for the spec.
+ */
+export function parseAllowlistLedger(markdown) {
+	const lines = String(markdown ?? "").split("\n")
+	const headerIndex = lines.findIndex((line) => {
+		if (!line.trim().startsWith("|")) return false
+		const keys = line.split("|").map(headerKey)
+		return keys.includes("entry") && keys.includes("kind") && keys.includes("disposition")
+	})
+	if (headerIndex === -1) return []
+	const headers = lines[headerIndex].split("|").slice(1, -1).map(headerKey)
+	const rows = []
+	for (let i = headerIndex + 1; i < lines.length; i++) {
+		const line = lines[i]
+		if (!line.trim().startsWith("|")) {
+			if (rows.length > 0) break
+			continue
+		}
+		const cells = line.split("|").slice(1, -1)
+		if (cells.every((cell) => /^\s*:?-{2,}:?\s*$/.test(cell))) continue // separator
+		const values = {}
+		headers.forEach((key, index) => {
+			values[key] = cellValue(cells[index])
+		})
+		rows.push({
+			entry: values.entry ?? "",
+			kind: values.kind ?? "",
+			reason: values.reason ?? "",
+			forcingSha: values.forcingupstreamsha ?? "",
+			date: values.date ?? "",
+			disposition: values.disposition ?? "",
+			line: i + 1,
+		})
+	}
+	return rows
+}
+
+/**
+ * Checks the ledger against the allow-list: every allow-list entry has exactly one
+ * row, no row names a non-entry, and each row satisfies its kind's requirements.
+ * Every failure NAMES THE ENTRY (never a line number). Pure — exported for the
+ * spec.
+ *
+ * Returns `{ ok, failures: [{ entry, problem }], entries, rows }`.
+ */
+export function assessAllowlistLedger({ entries = CORE_FILES, markdown } = {}) {
+	const rows = parseAllowlistLedger(markdown)
+	const allowlisted = allowlistedEntries(entries)
+	const failures = []
+	const fail = (entry, problem) => failures.push({ entry, problem })
+
+	const byEntry = new Map()
+	for (const row of rows) {
+		if (!byEntry.has(row.entry)) byEntry.set(row.entry, [])
+		byEntry.get(row.entry).push(row)
+	}
+
+	for (const row of rows) {
+		if (row.entry === "") {
+			fail("(blank entry)", "ledger row has no `entry`")
+			continue
+		}
+		const entry = allowlisted.find((candidate) => candidate.path === row.entry)
+		if (!entry) {
+			fail(row.entry, "names no allow-list entry — the ledger records divergence, it does not authorise it")
+			continue
+		}
+		const expected = expectedLedgerKind(entry)
+		if (row.kind !== expected) {
+			fail(row.entry, `kind "${row.kind}" disagrees with the entry's modes (expected "${expected}")`)
+		}
+		if (row.reason === "") {
+			fail(row.entry, "reason is empty")
+		}
+		if (!ALLOWLIST_LEDGER_DISPOSITIONS.includes(row.disposition)) {
+			fail(
+				row.entry,
+				`disposition "${row.disposition}" is not one of ${ALLOWLIST_LEDGER_DISPOSITIONS.join(" | ")}`,
+			)
+		}
+		if (row.kind.split("+").includes(FORK_FEATURE_KIND) && !FORCING_SHA_RE.test(row.forcingSha)) {
+			fail(row.entry, "fork-feature row must cite the `forcing upstream SHA` that made the exception necessary")
+		}
+	}
+
+	for (const entry of allowlisted) {
+		const matching = byEntry.get(entry.path) ?? []
+		if (matching.length === 0) {
+			fail(entry.path, `no ledger row for allow-list kind "${expectedLedgerKind(entry)}"`)
+		} else if (matching.length > 1) {
+			fail(entry.path, `duplicate ledger rows (${matching.length})`)
+		}
+	}
+
+	return { ok: failures.length === 0, failures, entries: allowlisted.length, rows: rows.length }
+}
+
+/**
  * Decides whether to enforce or skip the gate when upstream is unavailable.
  * Pure — exported for the spec.
  *
@@ -524,6 +700,38 @@ async function main() {
 	}
 
 	logStep(TAG, "Verifying the Qdrant code-index core stays aligned with upstream Zoo-Code")
+
+	// 0. Divergence ledger (H-11). Pure and local, so it runs BEFORE any upstream
+	//    resolution: the ledger is green independently of the (possibly
+	//    unreachable) upstream ref AND of any file drift reported below.
+	logStep(`${TAG}:LEDGER`, `Checking the divergence ledger (${ALLOWLIST_LEDGER_PATH})`)
+	let ledgerMarkdown = null
+	try {
+		ledgerMarkdown = await readFile(path.join(ROOT, ALLOWLIST_LEDGER_PATH), "utf8")
+	} catch {
+		ledgerMarkdown = null
+	}
+	if (ledgerMarkdown === null) {
+		logError(
+			`${TAG}:LEDGER`,
+			`the divergence ledger ${ALLOWLIST_LEDGER_PATH} is missing — every allow-list entry must have a ledger row (H-11).`,
+		)
+		process.exit(1)
+	}
+	const ledgerReport = assessAllowlistLedger({ entries: CORE_FILES, markdown: ledgerMarkdown })
+	if (!ledgerReport.ok) {
+		logError(`${TAG}:LEDGER`, `the divergence ledger does not cover the allow-list (${ALLOWLIST_LEDGER_PATH}):`)
+		for (const failure of ledgerReport.failures) {
+			logError(`${TAG}:LEDGER`, `- ${failure.entry}: ${failure.problem}`)
+		}
+		logEndGroup()
+		process.exit(1)
+	}
+	logSuccess(
+		`${TAG}:LEDGER`,
+		`divergence ledger OK: ${ledgerReport.entries} allow-list entries, ${ledgerReport.rows} ledger rows, all satisfied.`,
+	)
+	logEndGroup()
 
 	// 1. Resolve upstream/main: local ref first (offline), fetch when missing
 	//    or when --fetch is passed.

@@ -12,17 +12,30 @@
 
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
+import { readFile } from "node:fs/promises"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 import {
+	ALLOWLIST_LEDGER_DISPOSITIONS,
+	ALLOWLIST_LEDGER_PATH,
+	ALLOWLIST_MODE_KINDS,
+	CORE_FILES,
 	assessAll,
+	assessAllowlistLedger,
 	compareCoreFile,
 	decideRunMode,
+	entryModes,
+	expectedLedgerKind,
 	failedPaths,
 	getNormalizer,
 	normalizeBranding,
+	parseAllowlistLedger,
 	stripForkTelemetry,
 	stripSembleBinaryPath,
 } from "./verify-upstream-code-index-alignment.mjs"
+
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
 const UPSTREAM_CORE = "export const core = 1\n"
 
@@ -293,5 +306,160 @@ describe("decideRunMode (network-unavailable → skip, not fail)", () => {
 			run: false,
 			fail: true,
 		})
+	})
+})
+
+/**
+	* H-11 — the allow-list divergence ledger. Every rule below NAMES THE OFFENDER
+	* (the entry path), never a line number; the failures are asserted by entry.
+	*/
+
+/** Minimal allow-list: one of each real mode, one composed, one non-allow-listed. */
+const LEDGER_ENTRIES = [
+	{ path: "src/branding.ts", mode: "branding" },
+	{ path: "src/config.ts", mode: "fork-config" },
+	{ path: "src/telemetry.ts", mode: "fork-telemetry" },
+	{ path: "src/composed.ts", modes: ["branding", "fork-telemetry"] },
+	{ path: "src/exact.ts" },
+]
+
+/** Renders a ledger table from row objects (omitted `forcingSha` becomes `—`). */
+function ledgerMarkdown(rows) {
+	const header = [
+		"| entry | kind | reason | forcing upstream SHA | date | disposition |",
+		"| --- | --- | --- | --- | --- | --- |",
+	]
+	const body = rows.map(
+		(row) =>
+			`| \`${row.entry ?? ""}\` | ${row.kind ?? ""} | ${row.reason ?? ""} | ${row.forcingSha ?? "—"} | ${
+				row.date ?? "2026-09-28"
+			} | ${row.disposition ?? "divergent-forever"} |`,
+	)
+	return [...header, ...body].join("\n") + "\n"
+}
+
+/** A complete, satisfying row set for {@link LEDGER_ENTRIES}. */
+function satisfyingRows() {
+	return [
+		{ entry: "src/branding.ts", kind: "branding", reason: "branding token normalisation" },
+		{ entry: "src/config.ts", kind: "fork-config", reason: "fork-only sembleBinaryPath field" },
+		{
+			entry: "src/telemetry.ts",
+			kind: "fork-feature",
+			reason: "v3.88.0 telemetry purge",
+			forcingSha: "1ad8f528d",
+		},
+		{
+			entry: "src/composed.ts",
+			kind: "branding+fork-feature",
+			reason: "branding plus the telemetry purge",
+			forcingSha: "1ad8f528d",
+		},
+	]
+}
+
+/** The failures (entry + problem) for a markdown ledger against LEDGER_ENTRIES. */
+function failuresFor(rows) {
+	return assessAllowlistLedger({ entries: LEDGER_ENTRIES, markdown: ledgerMarkdown(rows) }).failures
+}
+
+/** True when `failures` blames `entry` with a problem matching `pattern`. */
+function namesEntry(failures, entry, pattern) {
+	return failures.some((failure) => failure.entry === entry && pattern.test(failure.problem))
+}
+
+describe("allow-list divergence ledger (H-11)", () => {
+	it("maps every real allow-list mode to a ledger kind", () => {
+		const modes = new Set(CORE_FILES.flatMap((entry) => entryModes(entry)))
+		assert.ok(modes.size > 0)
+		for (const mode of modes) {
+			assert.equal(typeof ALLOWLIST_MODE_KINDS[mode], "string", `no ledger kind for mode:${mode}`)
+		}
+	})
+
+	it("derives each entry's kind from its real modes (composed kinds joined in order)", () => {
+		assert.equal(expectedLedgerKind({ path: "a.ts", mode: "branding" }), "branding")
+		assert.equal(expectedLedgerKind({ path: "a.ts", mode: "fork-telemetry" }), "fork-feature")
+		assert.equal(expectedLedgerKind({ path: "a.ts", modes: ["branding", "fork-telemetry"] }), "branding+fork-feature")
+		assert.equal(expectedLedgerKind({ path: "a.ts" }), null)
+	})
+
+	it("passes when every allow-list entry has a satisfying row", () => {
+		const report = assessAllowlistLedger({ entries: LEDGER_ENTRIES, markdown: ledgerMarkdown(satisfyingRows()) })
+		assert.deepEqual(report.failures, [])
+		assert.equal(report.ok, true)
+		assert.equal(report.entries, 4)
+		assert.equal(report.rows, 4)
+	})
+
+	it("fails on an allow-list entry with no ledger row, naming the entry", () => {
+		const rows = satisfyingRows().filter((row) => row.entry !== "src/telemetry.ts")
+		const failures = failuresFor(rows)
+		assert.ok(namesEntry(failures, "src/telemetry.ts", /no ledger row/))
+	})
+
+	it("fails on a row that names no allow-list entry, naming the entry", () => {
+		const rows = [...satisfyingRows(), { entry: "src/not-gated.ts", kind: "branding", reason: "made up" }]
+		const failures = failuresFor(rows)
+		assert.ok(namesEntry(failures, "src/not-gated.ts", /names no allow-list entry/))
+	})
+
+	it("fails on a row whose kind disagrees with the entry's real modes, naming the entry", () => {
+		const rows = satisfyingRows().map((row) =>
+			row.entry === "src/telemetry.ts" ? { ...row, kind: "branding", forcingSha: undefined } : row,
+		)
+		const failures = failuresFor(rows)
+		assert.ok(namesEntry(failures, "src/telemetry.ts", /kind "branding" disagrees/))
+	})
+
+	it("fails on a row with an empty reason, naming the entry", () => {
+		const rows = satisfyingRows().map((row) => (row.entry === "src/branding.ts" ? { ...row, reason: "" } : row))
+		const failures = failuresFor(rows)
+		assert.ok(namesEntry(failures, "src/branding.ts", /reason is empty/))
+	})
+
+	it("fails on a fork-feature row with no forcing upstream SHA, naming the entry", () => {
+		const rows = satisfyingRows().map((row) =>
+			row.entry === "src/telemetry.ts" ? { ...row, forcingSha: undefined } : row,
+		)
+		const failures = failuresFor(rows)
+		assert.ok(namesEntry(failures, "src/telemetry.ts", /forcing upstream SHA/))
+	})
+
+	it("passes a branding row with NO forcing upstream SHA (the original design flaw)", () => {
+		// A branding normalisation is systematic — there is no single upstream commit
+		// that forced it, so requiring a SHA here was the flaw this test guards.
+		const failures = failuresFor(satisfyingRows())
+		assert.equal(failures.filter((failure) => failure.entry === "src/branding.ts").length, 0)
+	})
+
+	it("fails on duplicate ledger rows for one entry, naming the entry", () => {
+		const rows = [...satisfyingRows(), { entry: "src/branding.ts", kind: "branding", reason: "second row" }]
+		const failures = failuresFor(rows)
+		assert.ok(namesEntry(failures, "src/branding.ts", /duplicate ledger rows/))
+	})
+
+	it("fails on a disposition outside the closed set, naming the entry", () => {
+		const rows = satisfyingRows().map((row) =>
+			row.entry === "src/config.ts" ? { ...row, disposition: "someday" } : row,
+		)
+		const failures = failuresFor(rows)
+		assert.ok(namesEntry(failures, "src/config.ts", new RegExp(ALLOWLIST_LEDGER_DISPOSITIONS.join(" \\| "))))
+	})
+
+	it("parses the ledger by header name, not column position", () => {
+		const rows = parseAllowlistLedger(ledgerMarkdown(satisfyingRows()))
+		assert.equal(rows.length, 4)
+		assert.equal(rows[0].entry, "src/branding.ts")
+		assert.equal(rows[2].forcingSha, "1ad8f528d")
+		assert.equal(rows[0].disposition, "divergent-forever")
+	})
+
+	it("passes the REAL allow-list against the REAL ledger (clean state)", async () => {
+		const markdown = await readFile(path.join(REPO_ROOT, ALLOWLIST_LEDGER_PATH), "utf8")
+		const report = assessAllowlistLedger({ entries: CORE_FILES, markdown })
+		assert.deepEqual(report.failures, [])
+		assert.equal(report.ok, true)
+		assert.equal(report.entries, report.rows)
 	})
 })

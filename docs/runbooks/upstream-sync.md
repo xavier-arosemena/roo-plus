@@ -10,25 +10,38 @@
 
 These are hard constraints, not preferences. Violating any of them invalidates the batch.
 
-| #   | Rule                                                                                                                                                                                           | Why                                                                                                                                        |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| R1  | **Deepen before measuring.** `git fetch --deepen=400 upstream main`, then confirm `git merge-base upstream/main master` prints a SHA.                                                          | This clone is shallow. Without it, `merge-base` is empty and counts are wrong (reported 22 instead of 102).                                |
-| R2  | **One batch = one theme = one branch.** `git checkout -b sync/<batch-id>-<theme>`.                                                                                                             | Keeps a bad sync revertable per theme instead of unpicking a 272-file merge.                                                               |
-| R3  | **Cherry-pick with provenance:** `git cherry-pick -x <sha>`.                                                                                                                                   | Makes the register's fork-SHA column verifiable.                                                                                           |
-| R4  | **Never resolve a conflict by picking a side — attribute the hunk first, then satisfy both.** Upstream intent: `git show <sha> -- <file>` + the upstream PR body. Fork intent: `git blame -L <a>,<b> HEAD -- <file>` (fallback `git log -L <a>,<b>:<file>`); the file-scoped `git log --oneline <merge-base>..master -- <file>` is a fallback **only** for a brand-new hunk with no blameable line — after a rebrand sweep and `-x` imports it returns churn, not intent. Both intents **and the fork-locus map** are written into the batch's resolution record (`docs/upstream-sync/resolutions/SYNC-<n>.md`, TASK 3(c)) and checked by `node scripts/verify-resolutions.mjs`. | Upstream fixes must be re-expressed in the fork's structure, not substituted for it — and a resolution nobody can audit is a guess. |
-| R5  | **Never take these from upstream:** `src/package.json` version/name fields, `CHANGELOG*`, `locales/*/README.md`, `pnpm-lock.yaml`, `.github/**`, `.coderabbit*`.                               | The fork owns its version line (`3.88.x` / `roo-plus`, upstream is `3.82.x` / `zoo-code`), its changelog policy, its lockfile, and its CI. |
-| R6  | **Suppression counts may never increase.** After editing a file: `pnpm --dir src exec eslint --prune-suppressions --max-warnings=0 <relative-file>`.                                           | [`src/eslint-suppressions.json`](../../src/eslint-suppressions.json:1) is a ratchet; counts are a ceiling.                                 |
-| R7  | **No `as any`, no `as unknown as T` (except documented last resort), no new lint disables, no silently swallowed promises.**                                                                   | [`AGENTS.md`](../../AGENTS.md) rules; fix the new code instead.                                                                            |
-| R8  | **No `.changeset` files. No CHANGELOG edits.**                                                                                                                                                 | Changesets are maintainer-managed; CHANGELOG is updated in bulk at release time.                                                           |
-| R9  | **The register may only be marked `☑` when the fork SHA exists on `master`.**                                                                                                                  | Prevents "we fixed something similar" from being recorded as a sync.                                                                       |
-| R10 | **Run the full gate chain before claiming done** (§4).                                                                                                                                         | The gates _are_ the fork's invariants.                                                                                                     |
+| #   | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Why                                                                                                                                                           |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | **Deepen before measuring.** `git fetch --shallow-since=<register merge-base date> upstream main`, then confirm `git merge-base upstream/main master` prints a SHA.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | This clone is shallow. Without it, `merge-base` is empty and counts are wrong (the full profile needs a real merge base; the `--repo-only` profile does not). |
+| R2  | **One batch = one theme = one branch.** `git checkout -b sync/<batch-id>-<theme>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Keeps a bad sync revertable per theme instead of unpicking a 272-file merge.                                                                                  |
+| R3  | **Cherry-pick with provenance:** `git cherry-pick -x <sha>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Makes the register's fork-SHA column verifiable.                                                                                                              |
+| R4  | **Never resolve a conflict by picking a side — attribute the hunk first, then satisfy both.** Upstream intent: `git show <sha> -- <file>` + the upstream PR body. Fork intent: `git blame -L <a>,<b> HEAD -- <file>` (fallback `git log -L <a>,<b>:<file>`); the file-scoped `git log --oneline <merge-base>..master -- <file>` is a fallback **only** for a brand-new hunk with no blameable line — after a rebrand sweep and `-x` imports it returns churn, not intent. Both intents **and the fork-locus map** are written into the batch's resolution record (`docs/upstream-sync/resolutions/SYNC-<n>.md`, TASK 3(c)) and checked by `node scripts/verify-resolutions.mjs`. | Upstream fixes must be re-expressed in the fork's structure, not substituted for it — and a resolution nobody can audit is a guess.                           |
+| R5  | **Never take these from upstream:** `src/package.json` version/name fields, `CHANGELOG*`, `locales/*/README.md`, `pnpm-lock.yaml`, `.github/**`, `.coderabbit*`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | The fork owns its version line (`3.88.x` / `roo-plus`, upstream is `3.82.x` / `zoo-code`), its changelog policy, its lockfile, and its CI.                    |
+| R6  | **Suppression counts may never increase.** After editing a file: `pnpm --dir src exec eslint --prune-suppressions --max-warnings=0 <relative-file>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | [`src/eslint-suppressions.json`](../../src/eslint-suppressions.json:1) is a ratchet; counts are a ceiling.                                                    |
+| R7  | **No `as any`, no `as unknown as T` (except documented last resort), no new lint disables, no silently swallowed promises.**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | [`AGENTS.md`](../../AGENTS.md) rules; fix the new code instead.                                                                                               |
+| R8  | **No `.changeset` files. No CHANGELOG edits.**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Changesets are maintainer-managed; CHANGELOG is updated in bulk at release time.                                                                              |
+| R9  | **The register may only be marked `☑` when the fork SHA exists on `master`.**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Prevents "we fixed something similar" from being recorded as a sync.                                                                                          |
+| R10 | **Run the full gate chain before claiming done** (§4).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | The gates _are_ the fork's invariants.                                                                                                                        |
 
-**Provenance is validated, not asserted (H-22).** `pnpm verify:upstream-sync` asserts that every
-`☑` row's upstream SHA resolves, is an ancestor of `upstream/main`, and carries a signature from an
+**Provenance is validated, not asserted (H-22, WS-8 item 1).** `pnpm verify:upstream-sync` asserts that every
+`☑` row's upstream SHA resolves, is an ancestor of `upstream/main`, is **linked** to its fork SHA (the
+fork commit message carries the `-x` trailer `cherry picked from commit <row sha>`, or the row declares a
+`Local-fix:`/`divergence:` record — mere reachability is not a link), and carries a signature from an
 allow-listed signer (GitHub web-flow by default: `GitHub <noreply@github.com>`). An **invalid**
 signature — present but bad, or from a signer that is not allow-listed — fails. **Unverifiable**
-(no keyring in this checkout, `%G?` reports `E`) is an advisory unless `--signature-strict` is
-passed, so the tool stays usable on a machine with no keyring.
+(no keyring in this checkout, `%G?` reports `E`) is an advisory for a LOCAL run unless
+`--signature-strict` is passed; under `--signature-strict` a missing keyring fails with the literal
+**"keyring not configured"** rather than passing as an advisory.
+
+**Where the gate runs (WS-8 item 1).** The `.github/workflows/code-qa.yml` job
+`upstream-sync-provenance` runs on `master` pushes only and (a) imports the GitHub web-flow key with
+`curl https://github.com/web-flow.gpg | gpg --import`, **failing closed with "keyring not configured"**
+if it cannot, then (b) pins `upstream/main` to the register's recorded tip and runs
+`node scripts/upstream-sync-triage.mjs --verify --signature-strict`. `--signature-strict` stays
+**opt-in for local runs**; CI turns it on. The **full profile is a POST-REFRESH gate** (it re-derives
+`coverage`/`header-pending-count` from the recorded tip and is red by construction once upstream
+advances); the **`--verify --repo-only` profile is the CI gate** that runs on every PR. The
+`register-age` check (advisory) warns when the register is older than 30 days.
 
 ## 2. Stop conditions — ask the human instead of guessing
 
@@ -78,7 +91,7 @@ READ FIRST, in order:
 BATCH: ______ (e.g. SYNC-1)   MODE: 💻 Code
 
 TASK 1 — Establish the baseline (do not skip).
-  git fetch --deepen=400 upstream main
+  git fetch --shallow-since=<register merge-base date> upstream main
   git merge-base upstream/main master          # MUST print a SHA; if empty, you are in a shallow clone
   git rev-list --count master..upstream/main   # MUST equal the register's pending count
   If either check fails, STOP and report.
@@ -144,6 +157,16 @@ TASK 7 — Release the batch (fail-closed: "no bump" is NOT a neutral choice).
      version whose CHANGELOG describes something else. Bump BEFORE you merge.
 
 TASK 8 — Update the register.
+  FIRST, assert provenance where a ☑ row is born (decision (c), 2026-09-28): the signature check is
+  ADVISORY while measuring and STRICT when asserting provenance — i.e. exactly here, the moment the
+  batch picks commits and before any row flips to ☑. Run it against the signer allow-list (GitHub
+  web-flow by default):
+    node scripts/upstream-sync-triage.mjs --verify --signature-strict
+  An UNVERIFIABLE signature (no keyring in this checkout, `%G?` = E) is only an advisory in a local
+  triage run; under `--signature-strict` it is a FAILURE ("keyring not configured"). If you see that,
+  import the key first (`curl https://github.com/web-flow.gpg | gpg --import`) and re-run — do NOT
+  flip a row to ☑ on an unverified signature. Local triage keeps the advisory default; the tool's
+  defaults are unchanged.
   Set each synced row's status to ☑ and append the fork SHA; record the released version in the
   row's `Version:` cell (the column exists) and the merge date in `Resolved:`; use ✖ only with a
   recorded rationale.
@@ -156,7 +179,8 @@ TASK 8 — Update the register.
 TASK 9 — Report.
   Batch · commits picked (sha → fork sha) · commits re-implemented and where · gate results ·
   released version · register rows changed · anything deferred with the reason ·
-  the resolution record path with its per-file resolutions · the verify-resolutions result.
+  the resolution record path with its per-file resolutions · the verify-resolutions result ·
+  the two progress series (tracked absorbed; divergence stock, H-21).
 
 STOP AND ASK (see runbook §2) rather than guessing when: Δ>5 outside C-REIMPLEMENT, a gate fails
 for a non-local reason, the intent of a handler change is ambiguous, or a new persisted setting
@@ -171,7 +195,7 @@ ROLE: Upstream register refresh for Roo+.
 READ FIRST: docs/runbooks/upstream-sync.md, docs/upstream-sync/README.md (§3 classifier, §6 refresh),
 docs/upstream-sync/pending-upstream-commits.md (note its recorded baseline tip).
 
-TASK 1 — Deepen and re-baseline:  git fetch --deepen=400 upstream main
+TASK 1 — Deepen and re-baseline:  git fetch --shallow-since=<register merge-base date> upstream main
   Note the register's recorded upstream tip (OLD). Confirm it is still reachable:  git log -1 <OLD>
 
 TASK 2 — Isolate the NEW commits only:  git log --reverse --format='%h|%ad|%an|%s' --date=short <OLD>..upstream/main
@@ -189,11 +213,18 @@ TASK 4 — Classify with README §3's rules and assign each to an existing SYNC-
   or a new one. Never renumber existing batches. Set class + priority + Δ + status (☐).
 
 TASK 5 — Update the register header: new upstream tip and pending count. Append a dated row to its
-  changelog section (how many new commits, how classified, what was promoted to P0/P1).
+  changelog section (how many new commits, how classified, what was promoted to P0/P1). Report the TWO
+  progress series (ADR amendment 2026-09-28, H-21): TRACKED absorbed (P0/P1 + the divergence program)
+  and DIVERGENCE STOCK (open C-REIMPLEMENT rows), in the register's Summary/progress area — never by
+  editing the machine-parsed `## Baseline` table.
 
 TASK 6 — Verification is mandatory. Run the implemented register check:
-    node scripts/upstream-sync-triage.mjs --verify            # or: pnpm verify:upstream-sync
-    node scripts/upstream-sync-triage.mjs --verify --repo-only   # merge-base-free subset (CI profile)
+    node scripts/upstream-sync-triage.mjs --verify            # POST-REFRESH gate (full profile)
+    node scripts/upstream-sync-triage.mjs --verify --repo-only   # merge-base-free subset (CI gate)
+  The full profile is a POST-REFRESH gate: it re-derives `coverage`/`header-pending-count`
+  from the register's recorded tip, so it is red-by-construction the moment upstream advances —
+  run it after `--refresh`, not as a per-push gate. The repo-only profile is what PR CI gates with.
+  The `register-age` advisory (both profiles) warns when the register is older than 30 days.
   It reports the full check set (`--help` prints it; the counts are derived from the code, never
   from prose) at FOUR levels and exits 1 only on a `fail`:
     fail           a false claim about the register — `A-CLEAN` ⇒ Δ = 0 (class-ladder),
@@ -235,8 +266,12 @@ DO NOT reclassify or delete existing rows without saying so explicitly and why.
   merge date on the fork ref; `Version` = the released extension version at that merge.
   `Exception` = a **dated** decision record, `excepted <YYYY-MM-DD> — <reason>`, and its
   only permitted use is a row that violates `A-CLEAN` ⇒ Δ = 0 and whose history cannot be
-  rewritten. A `☑` row MUST carry `Resolved:` and `Version`; a `✖` row MUST carry a rationale
-  (inline or in the batch's `**Rationale.**` block).
+  rewritten. A `☑` row MUST carry `Resolved:` and `Version`, AND its fork SHA must be **linked**
+  (the fork commit's `-x` trailer cites the row's upstream SHA, or the row declares a
+  `Local-fix:`/`divergence:` record) — a reachable-but-unrelated fork SHA fails `synced-fork-sha`.
+  A `✖` row MUST carry an **ATTRIBUTABLE** rationale: inline, or the batch's `**Rationale.**` block
+  must name the row's SHA (or a SHA range) so one shared paragraph cannot cover unrelated rows.
+  A `Blocked-by` prerequisite graph MUST be acyclic; a cycle is reported by member SHA.
 - **`A-CLEAN` ⇒ Δ = 0 is hard; `Blocked-by` is not.** An `A-CLEAN` label asserts pickability,
   so a row with Δ > 0 MUST be reclassified (the four rows reclassified on 2026-09-24 are the
   precedent) or excepted with a dated `Exception`. A row that records a prerequisite is
@@ -269,6 +304,10 @@ DO NOT reclassify or delete existing rows without saying so explicitly and why.
       with a non release-prep subject, `pnpm generate:announcements` run only if the line-base
       CHANGELOG section changed, and `node scripts/verify-announcement-version.mjs` green. An
       unbumped batch merge fails closed in CI, so "no bump" is not a neutral choice.
+- [ ] **Provenance asserted, not just measured:** `node scripts/upstream-sync-triage.mjs --verify --signature-strict`
+      is green before any row is flipped to `☑`. The rule in one line: **advisory while measuring,
+      strict when asserting provenance** — an unverifiable signature (no keyring) is an advisory in
+      local triage but a failure here, where a `☑` row is born.
 - [ ] Register rows updated with fork SHAs **and the released version in each `Version:` cell**;
       batch heading marked DONE if complete.
 - [ ] PR opened with the batch id, the commits, gate results, the released version, and the
@@ -276,15 +315,15 @@ DO NOT reclassify or delete existing rows without saying so explicitly and why.
 
 ## 8. Known failure modes
 
-| Symptom                                                                                                                              | Cause                                                                                                | Action                                                                                                                     |
-| ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `merge-base` prints nothing / "22 behind"                                                                                            | Shallow clone                                                                                        | R1 — deepen first                                                                                                          |
-| Conflict in [`webviewMessageHandler.ts`](../../src/core/webview/webviewMessageHandler.ts:1) that mixes 4000 lines of unrelated logic | Wrong class: it is structural                                                                        | Re-classify to `C-REIMPLEMENT`, close the pick, re-implement into [`handlers/`](../../src/core/webview/handlers/chat.ts:1) |
-| Code-index gate fails on one file after a clean pick                                                                                 | File is in `CORE_FILES` and must stay byte-identical                                                 | Re-align that file (or extend the allow-list deliberately, with a reason)                                                  |
-| Gate fails in a file the batch never touched                                                                                         | Pre-existing drift                                                                                   | Report it; do not fix silently                                                                                             |
-| Register looks complete but a commit is missing                                                                                      | 10-char SHA row                                                                                      | Run `node scripts/upstream-sync-triage.mjs --verify` — it names the row (manual fallback: the row-scoped regex, README §8) |
-| Endless conflict churn on a whole-history merge                                                                                      | Escape hatch used as default                                                                         | Abandon; return to batches                                                                                                 |
-| Pick conflicts against an **empty fork side** (`Δ 0` but not pickable)                                                               | Unsynced upstream predecessor — `Δ` is fork-side only                                                | Move the row to the prerequisite batch (`SYNC-13`); land the predecessor, then re-attempt                                  |
-| `--verify` warns `stale-in-progress` (and `--strict` exits 1)                                                                        | A `◐` row's recorded fork SHA is already merged to the fork ref — the register under-reports reality | Flip those rows to `☑ <fork-sha>` (§6), then re-run `--verify` until the warning is gone                                   |
-| `verify-resolutions` reports `conflict-marker` at `path:line`                                                                        | A pick was resolved with a marker left behind — the classic half-resolution                                       | Remove the marker (never suppress the gate), then re-run `pnpm gate:sync`                                                    |
-| `verify-resolutions --batch SYNC-n` exits 1 with "no resolution record for SYNC-n"                                                   | The batch hit a conflict and recorded no judgement, so the resolution is unauditable                              | Copy `docs/upstream-sync/resolutions/_TEMPLATE.md` to `SYNC-<n>.md` and write one block per conflicted file (R4 / TASK 3(c)) |
+| Symptom                                                                                                                              | Cause                                                                                                | Action                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `merge-base` prints nothing / "no merge base"                                                                                        | Shallow clone                                                                                        | R1 — deepen first                                                                                                            |
+| Conflict in [`webviewMessageHandler.ts`](../../src/core/webview/webviewMessageHandler.ts:1) that mixes 4000 lines of unrelated logic | Wrong class: it is structural                                                                        | Re-classify to `C-REIMPLEMENT`, close the pick, re-implement into [`handlers/`](../../src/core/webview/handlers/chat.ts:1)   |
+| Code-index gate fails on one file after a clean pick                                                                                 | File is in `CORE_FILES` and must stay byte-identical                                                 | Re-align that file (or extend the allow-list deliberately, with a reason)                                                    |
+| Gate fails in a file the batch never touched                                                                                         | Pre-existing drift                                                                                   | Report it; do not fix silently                                                                                               |
+| Register looks complete but a commit is missing                                                                                      | 10-char SHA row                                                                                      | Run `node scripts/upstream-sync-triage.mjs --verify` — it names the row (manual fallback: the row-scoped regex, README §8)   |
+| Endless conflict churn on a whole-history merge                                                                                      | Escape hatch used as default                                                                         | Abandon; return to batches                                                                                                   |
+| Pick conflicts against an **empty fork side** (`Δ 0` but not pickable)                                                               | Unsynced upstream predecessor — `Δ` is fork-side only                                                | Move the row to the prerequisite batch (`SYNC-13`); land the predecessor, then re-attempt                                    |
+| `--verify` warns `stale-in-progress` (and `--strict` exits 1)                                                                        | A `◐` row's recorded fork SHA is already merged to the fork ref — the register under-reports reality | Flip those rows to `☑ <fork-sha>` (§6), then re-run `--verify` until the warning is gone                                     |
+| `verify-resolutions` reports `conflict-marker` at `path:line`                                                                        | A pick was resolved with a marker left behind — the classic half-resolution                          | Remove the marker (never suppress the gate), then re-run `pnpm gate:sync`                                                    |
+| `verify-resolutions --batch SYNC-n` exits 1 with "no resolution record for SYNC-n"                                                   | The batch hit a conflict and recorded no judgement, so the resolution is unauditable                 | Copy `docs/upstream-sync/resolutions/_TEMPLATE.md` to `SYNC-<n>.md` and write one block per conflicted file (R4 / TASK 3(c)) |

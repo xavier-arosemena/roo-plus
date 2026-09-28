@@ -33,14 +33,14 @@ The remaining detection path, `git log -1 --format=%s`, only matches a
 
 ## Evidence
 
-| Item | Value |
-| --- | --- |
-| Run | [`actions/runs/36126444728`](https://github.com/xavier-arosemena/roo-plus/actions/runs/36126444728) (merge push `c6975c50e`) |
-| Guard step | `Skip if this push is a release merge` → `skip=false` |
-| Publish steps | `Publish pre-release to VS Code Marketplace` **and** `… to Open VSX Registry` both executed |
-| VS Marketplace | `3.88.10` → HTTP 200 with `Microsoft.VisualStudio.Code.PreRelease=true` |
-| Open VSX | `3.88.10` published; `latest` moved to it (until `3.88.11` outranked it) |
-| Tag / release | none created (the stable workflow owns tags) |
+| Item           | Value                                                                                                                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Run            | [`actions/runs/36126444728`](https://github.com/xavier-arosemena/roo-plus/actions/runs/36126444728) (merge push `c6975c50e`)                                                               |
+| Guard step     | `Skip non-publishable pushes (release merge / publish path predicate)` (step renamed 2026-09-28; it was `Skip if this push is a release merge` when this incident occurred) → `skip=false` |
+| Publish steps  | `Publish pre-release to VS Code Marketplace` **and** `… to Open VSX Registry` both executed                                                                                                |
+| VS Marketplace | `3.88.10` → HTTP 200 with `Microsoft.VisualStudio.Code.PreRelease=true`                                                                                                                    |
+| Open VSX       | `3.88.10` published; `latest` moved to it (until `3.88.11` outranked it)                                                                                                                   |
+| Tag / release  | none created (the stable workflow owns tags)                                                                                                                                               |
 
 Control probes during verification: `3.88.99` and `3.88.8` → HTTP 404 on the
 Marketplace, confirming the 200 for `3.88.10` was real.
@@ -63,24 +63,24 @@ CI.
 
 1. **Stable shipped as `3.88.11`** — cut from `master`, merged with a **rebase**
    merge so `master`'s tip is a plain single-parent commit whose subject matches
-   the committed `release_re` (the guard's *direct-push* branch, which does not
+   the committed `release_re` (the guard's _direct-push_ branch, which does not
    need `HEAD^2`). Then `Publish Stable Extension` was dispatched on `master`
    (run `36134895485`), publishing to both registries and creating the
    `v3.88.11` tag/release.
 2. **Guard hardening** (same PR as the parked upstream-sync WIP, as its own
    commit):
-   - `fetch-depth: 0` on the pre-release checkout — the root fix for `HEAD^2`.
-   - **Fail-closed history guard** — if HEAD is a merge commit but `HEAD^2` is
-     unavailable, the run **fails** instead of publishing.
-   - **Cross-registry duplicate guard** — the pre-release guard now checks the
-     **VS Code Marketplace** in addition to Open VSX, and `marketplace-publish.yml`
-     gained a fail-closed pre-flight that refuses a version that already exists on
-     either registry.
+    - `fetch-depth: 0` on the pre-release checkout — the root fix for `HEAD^2`.
+    - **Fail-closed history guard** — if HEAD is a merge commit but `HEAD^2` is
+      unavailable, the run **fails** instead of publishing.
+    - **Cross-registry duplicate guard** — the pre-release guard now checks the
+      **VS Code Marketplace** in addition to Open VSX, and `marketplace-publish.yml`
+      gained a fail-closed pre-flight that refuses a version that already exists on
+      either registry.
 
 ## Preventive actions
 
 - Prefer a **rebase** merge for stable-prep branches; alternatively land the
-  guard fix on `master` *before* merging release-prep work. With the fail-closed
+  guard fix on `master` _before_ merging release-prep work. With the fail-closed
   guard in place a silent hijack is no longer possible — it turns red instead.
 - Verify the pre-release run for a stable-prep merge reports `skip=true`.
 - Documented end-to-end in [`docs/runbooks/release-publishing.md`](../runbooks/release-publishing.md).

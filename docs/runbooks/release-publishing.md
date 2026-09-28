@@ -8,10 +8,10 @@ Incident that motivated the guards:
 
 ## Channels and triggers
 
-| Channel | Workflow | Trigger | Ref gate |
-| --- | --- | --- | --- |
-| Pre-release | [`pre-release-publish.yml`](../../.github/workflows/pre-release-publish.yml:1) | `push` to `master` (+ `workflow_dispatch`) | `require-master-ref` |
-| Stable | [`marketplace-publish.yml`](../../.github/workflows/marketplace-publish.yml:1) | `workflow_dispatch` **only** | `require-master-ref` (`master`) |
+| Channel     | Workflow                                                                       | Trigger                                    | Ref gate                        |
+| ----------- | ------------------------------------------------------------------------------ | ------------------------------------------ | ------------------------------- |
+| Pre-release | [`pre-release-publish.yml`](../../.github/workflows/pre-release-publish.yml:1) | `push` to `master` (+ `workflow_dispatch`) | `require-master-ref`            |
+| Stable      | [`marketplace-publish.yml`](../../.github/workflows/marketplace-publish.yml:1) | `workflow_dispatch` **only**               | `require-master-ref` (`master`) |
 
 `master` is the only branch that publishes. The version in `src/package.json`
 **is** the published version — there is no build-time derivation or mutation.
@@ -19,7 +19,7 @@ Incident that motivated the guards:
 ## Versioning in one line each
 
 - **Pre-releases** are consecutive patches on the current minor: `pnpm bump:pre-release`.
-- **Stable** is the *next patch* on that same minor (it promotes the tested bits).
+- **Stable** is the _next patch_ on that same minor (it promotes the tested bits).
 - The **next cycle** starts a new minor: `pnpm bump:line`.
 - A version that already exists on a registry **cannot** be re-issued. If it is
   consumed (e.g. published as a pre-release by mistake), the stable **must** move
@@ -38,11 +38,28 @@ Incident that motivated the guards:
    GitHub evaluates the workflow file **from the pushed commit**, so this guard
    takes effect on the very push that introduces it.
 3. **Publish path predicate** — only a pushed range touching `src/**`,
-   `packages/**`, `webview-ui/**` (which contains `src/package.json`) publishes.
-   Fails **open** when `github.event.before` is unusable.
+   `packages/**`, `webview-ui/**` (which contains `src/package.json`) publishes; a
+   range touching no publishable path skips with a `::notice::`. When the
+   predicate **cannot** be evaluated it no longer publishes implicitly: publishing
+   requires an explicit `workflow_dispatch` confirmation
+   (`confirm_publish=true` — see the polarity note below), and otherwise skips
+   with a `::notice::` that says how to publish deliberately.
 4. **Cross-registry duplicate / monotonic guard** — fails when the committed
    version already exists on **Open VSX _or_ the VS Code Marketplace**, or is not
    greater than the max published patch on its minor line.
+
+> **Guard polarity — guards 2 and 3 are deliberately opposite; do not "fix" one
+> to match the other.** Guard 2 (the history guard) is **fail-closed**: an
+> unevaluable merge history _refuses_ to publish (exit 1), because publishing a
+> stable-prep merge as a pre-release is the 2026-09-25 incident. Guard 3 (the path
+> predicate) is **fail-open-by-confirmation**: when it cannot be evaluated —
+> `github.event.before` is unusable (first push of a branch, a manual dispatch, or
+> a checkout too shallow to contain it) **or** `github.event.forced` is true — it
+> skips unless the run was dispatched with `confirm_publish=true`. So a deliberate
+> manual publish still works, while a force-push or an implicit `workflow_dispatch`
+> can no longer publish by accident. A normal push with a resolvable, non-forced
+> `before` is unchanged: the predicate decides on the changed paths alone. Guard 4
+> remains the fail-closed backstop for any publish that proceeds.
 
 **Stable** ([`marketplace-publish.yml`](../../.github/workflows/marketplace-publish.yml:1)):
 
@@ -66,15 +83,15 @@ Incident that motivated the guards:
 3. Commit with the subject **`chore: prepare vX.Y.Z stable release`** — this exact
    shape is what guard 1 matches.
 4. Open a PR and merge with **`--rebase`** (recommended). A **merge** commit is
-   safe *only* when `fetch-depth: 0` is present on the pre-release checkout; a
+   safe _only_ when `fetch-depth: 0` is present on the pre-release checkout; a
    rebase merge makes the pushed tip a single-parent commit, which guard 1
    matches without needing `HEAD^2`.
 5. Confirm the pre-release run for the merge push logs
    `Commit 'chore: prepare vX.Y.Z stable release' is a release-prep; skipping pre-release publish.` → `skip=true`.
 6. Dispatch the stable publish:
-   ```bash
-   gh workflow run marketplace-publish.yml --ref master
-   ```
+    ```bash
+    gh workflow run marketplace-publish.yml --ref master
+    ```
 7. Verify (see below) — both registries must show the version as **stable**, and
    the GitHub release + tag `vX.Y.Z` must exist.
 
