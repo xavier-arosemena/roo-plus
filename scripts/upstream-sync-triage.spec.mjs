@@ -857,6 +857,18 @@ describe("chooseForkRef — shared fork-ref resolution (regression: stale local 
 		assert.equal(ref, "origin/master")
 	})
 
+	it("prefers origin/master when local master is ABSENT (a CI PR-merge checkout)", () => {
+		// WS-12, measured in PR #392's CI: actions/checkout checks out
+		// `refs/remotes/pull/N/merge` and creates NO local `master`, while
+		// `origin/master` is present. The old resolution required localMasterResolves,
+		// so it fell back to a non-existent `master` and `synced-fork-sha` reported six
+		// false "not reachable" defects. An absent local ref cannot be ahead.
+		assert.equal(
+			chooseForkRef({ originResolves: true, localMasterResolves: false, localMasterIsAncestorOfOrigin: false }),
+			ORIGIN_FORK_REF,
+		)
+	})
+
 	it("falls back to local master when master is ahead or diverged (not an ancestor)", () => {
 		assert.equal(
 			chooseForkRef({

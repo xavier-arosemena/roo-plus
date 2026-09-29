@@ -424,8 +424,12 @@ Unknown flags and `--repo-only` outside `--verify` fail loudly with `1`.
 - `--fork-ref <ref>` — override the fork ref used by the `synced-fork-sha` and
   `stale-in-progress` reachability checks. Both checks resolve it through the
   **same** helper, so they cannot diverge: `--fork-ref`, else `origin/master` when
-  it resolves and local `master` is an ancestor of it (a stale local ref), else
-  local `master`. The resolved ref is printed and reflected in the check messages.
+  it resolves and local `master` cannot be ahead of it — local `master` is absent (a
+  CI PR-merge checkout creates no local branch) or is an ancestor of `origin/master`
+  (a stale local ref) — else local `master`. The resolved ref is printed and
+  reflected in the check messages. (Measured in PR #392's CI: without the absent-ref
+  case the tool compared against a non-existent local `master`, so every `☑` fork SHA
+  looked unreachable and `synced-fork-sha` reported six false defects.)
 - `--json` — emit the machine-readable report (both modes) for scripted consumption.
 
 > **Classification is never automated for existing rows.** `--refresh` proposes

@@ -150,8 +150,9 @@
  *     so shell strings are never used.
  *   - The fork ref is resolved once per run and shared by BOTH the `☑` and `◐`
  *     reachability checks so they can never diverge: `--fork-ref <ref>` wins,
- *     else `origin/master` when it resolves and local `master` is an ancestor of
- *     it (a stale local ref), else `master`.
+ *     else `origin/master` when it resolves and local `master` cannot be ahead of
+ *     it — local `master` is ABSENT (a CI PR-merge checkout has no local branch) or
+ *     is a stale ancestor of `origin/master` — else local `master`.
  *   - `stale-in-progress` is a WARNING by default (exit 0): a stale `◐` is an
  *     operator-hygiene problem, not a structural defect, and failing mainline
  *     until a human flips the rows would be worse. `--strict` promotes it.
@@ -2501,8 +2502,10 @@ export function evaluateRefreshGuard({
  * failed the reachability check and the `◐` drift went unseen. Resolution order:
  *
  *   1. the `--fork-ref <ref>` override, when given;
- *   2. `origin/master`, when it resolves AND local `master` is an ancestor of it
- *      (local `master` is stale rather than ahead or diverged);
+ *   2. `origin/master`, when it resolves AND local `master` cannot be ahead of it:
+ *      either local `master` is ABSENT (a CI PR-merge checkout checks out
+ *      `refs/remotes/pull/N/merge` and creates no local `master`) or it is an
+ *      ancestor of `origin/master` (stale rather than ahead/diverged);
  *   3. local `master` otherwise.
  *
  * BOTH the `☑` (`synced-fork-sha`) and `◐` (`stale-in-progress`) checks consume
@@ -2511,7 +2514,16 @@ export function evaluateRefreshGuard({
  */
 export function chooseForkRef({ override, originResolves, localMasterResolves, localMasterIsAncestorOfOrigin }) {
 	if (override) return override
-	if (originResolves && localMasterResolves && localMasterIsAncestorOfOrigin) return ORIGIN_FORK_REF
+	/**
+	 * WS-12 (measured in PR #392's CI): a PR-merge checkout has `origin/master`
+	 * (actions/checkout fetches `refs/heads/*` into `refs/remotes/origin/*`) but NO
+	 * local `master` branch. Requiring `localMasterResolves` made the tool fall back
+	 * to a local `master` that does not exist, so `merge-base --is-ancestor` failed
+	 * for every `☑` row and `synced-fork-sha` reported six false "not reachable"
+	 * defects. An ABSENT local ref cannot be ahead, so it must prefer `origin/master`
+	 * exactly like a stale one.
+	 */
+	if (originResolves && (!localMasterResolves || localMasterIsAncestorOfOrigin)) return ORIGIN_FORK_REF
 	return FORK_REF
 }
 
@@ -2677,7 +2689,9 @@ function resolveForkRef(override) {
 	let reason
 	if (override) reason = "--fork-ref override"
 	else if (ref === ORIGIN_FORK_REF)
-		reason = `local ${FORK_REF} is an ancestor of ${ORIGIN_FORK_REF} (stale local ref)`
+		reason = localMasterResolves
+			? `local ${FORK_REF} is an ancestor of ${ORIGIN_FORK_REF} (stale local ref)`
+			: `local ${FORK_REF} is absent; ${ORIGIN_FORK_REF} is the fork ref`
 	else reason = `local ${FORK_REF}`
 	return { ref, reason }
 }
@@ -3879,8 +3893,10 @@ Options:
              problem or a stale register never turns mainline red on its own.
   --fork-ref <ref>
              Override the fork ref used by the reachability checks. Default
-             resolution: origin/master when it resolves and local master is an
-             ancestor of it (a stale local ref), else master. Both the ${SYNCED_MARKER} and
+             resolution: origin/master when it resolves and local master cannot be
+             ahead of it — local master is absent (a CI PR-merge checkout creates no
+             local branch) or is an ancestor of origin/master (a stale local ref) —
+             else master. Both the ${SYNCED_MARKER} and
              ${IN_PROGRESS_MARKER} checks use the same resolved ref.
   --signature-strict
              Promote an UNVERIFIABLE commit signature (\`%G?\` = \`E\`, i.e. no keyring
