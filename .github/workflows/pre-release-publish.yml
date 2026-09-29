@@ -21,6 +21,18 @@ on:
   push:
     branches: [master]
   workflow_dispatch: # Allows manual triggering.
+    inputs:
+      # The path predicate (in the 'release-check' step) can only be evaluated when
+      # `github.event.before` resolves to a commit. On a manual dispatch (and after
+      # a force-push) it cannot, so a publish there requires this EXPLICIT
+      # confirmation — the old implicit fail-open became fail-open-by-confirmation
+      # (WS-9, decision (b)). Default false ⇒ a dispatch without it SKIPs with a
+      # ::notice:: that says how to publish deliberately.
+      confirm_publish:
+        description: "Publish even though the pushed range cannot be diffed (manual dispatch or force-push). Set true to publish."
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -54,6 +66,11 @@ jobs:
           # build time, so CI MUST check it out at the recorded pin — otherwise the
           # build would silently reuse stale committed artifacts.
           submodules: recursive
+          # F-E-1: the publish path predicate diffs the PUSHED RANGE, so both ends
+          # of it (github.event.before and github.sha) must exist locally. The
+          # default depth-1 checkout only has the tip. Read-only use of history;
+          # nothing here is pushed.
+          fetch-depth: 0
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -75,10 +92,10 @@ jobs:
           vsce-pat: ${{ secrets.VSCE_PAT }}
           ovsx-pat: ${{ secrets.OVSX_PAT }}
 
-      - name: Skip if this push is a release merge
+      - name: Skip non-publishable pushes (release merge / publish path predicate)
         id: release-check
         run: |
-          echo "::group::[CI:PRERELEASE:RELEASE-CHECK] Checking whether this push is a release merge"
+          echo "::group::[CI:PRERELEASE:RELEASE-CHECK] Checking whether this push can publish"
           skip=false
           # Matches both "chore: prepare vX.Y.Z release" and "chore: prepare vX.Y.Z stable release",
           # but NOT "chore: prepare vX.Y.Z pre-release" (those SHOULD publish).
@@ -100,6 +117,91 @@ jobs:
             if echo "$merged_subject" | grep -qE "$release_re"; then
               echo "::notice::[CI:PRERELEASE:RELEASE-CHECK] Merge brought in release-prep '${merged_subject}'; skipping pre-release publish."
               skip=true
+            fi
+          fi
+
+          # FAIL-CLOSED HISTORY GUARD — regression guard for the 2026-09-25
+          # incident in which a stable-prep MERGE (`chore: prepare vX.Y.Z stable
+          # release`) was published as a PRE-RELEASE because the default depth-1
+          # checkout left HEAD^2 unresolvable, so the check above silently did
+          # not fire (skip stayed false) and the publish proceeded.
+          #
+          # `git rev-list --parents -n 1 HEAD` reads the parent SHAs stored in the
+          # commit object, so "this is a merge" is detectable even in a shallow
+          # checkout. If HEAD is a merge but HEAD^2 cannot be resolved, the
+          # release-prep check could NOT be evaluated — refuse to publish rather
+          # than guess. `fetch-depth: 0` on the 'Checkout code' step is what keeps
+          # HEAD^2 available; do not remove it.
+          if [ "$skip" = "false" ]; then
+            head_parent_count=$(git rev-list --parents -n 1 HEAD | wc -w)
+            if [ "$head_parent_count" -ge 3 ] && ! git rev-parse --verify -q HEAD^2 >/dev/null 2>&1; then
+              echo "::error::[CI:PRERELEASE:RELEASE-CHECK] HEAD ($(git rev-parse --short HEAD)) is a merge commit but HEAD^2 is unavailable (shallow checkout) — cannot prove this push does not merge a release-prep. Refusing to publish (fail-closed)."
+              echo "::error::[CI:PRERELEASE:RELEASE-CHECK] Keep \`fetch-depth: 0\` on the 'Checkout code' step so the merge history is present."
+              exit 1
+            fi
+          fi
+
+          # F-E-1 / HD-01 / WS-9(b) — PUBLISH PATH PREDICATE.
+          #
+          # `master` is the only publish trigger and bookkeeping merges are the
+          # common case (3 of the last 6 first-parent merges were `docs/*`), so an
+          # unconditional publish either goes red on the duplicate-version guard or
+          # burns a version for a docs/register change. Only a pushed range that
+          # touches a publishable path may run the publish:
+          #   src/**  ·  packages/**  ·  webview-ui/**  ·  src/package.json
+          # (`src/package.json` is inside `src/**`; it is named explicitly because
+          # a `pnpm bump:pre-release` commit touches ONLY that file, and a
+          # bump-only push MUST still publish.)
+          #
+          # POLARITY — the two guards below are deliberately OPPOSITE, and confusing
+          # them is how this file gets edited into a publish hole:
+          #   · guard 2 (the history guard ABOVE) is FAIL-CLOSED — an unevaluable
+          #     merge history refuses to publish (exit 1);
+          #   · this path predicate is FAIL-OPEN-BY-CONFIRMATION — when it cannot be
+          #     evaluated (no usable `before`: a first push, a force-push, or a
+          #     manual dispatch) it does NOT silently publish; publishing requires
+          #     the explicit `workflow_dispatch` input `confirm_publish=true`.
+          #     Without that confirmation it SKIPS with a ::notice:: that explains
+          #     why and how to publish deliberately. A normal push with a
+          #     resolvable, non-forced `before` is UNCHANGED: the predicate decides
+          #     on the changed paths alone, and the duplicate/monotonic version
+          #     guard remains the fail-closed backstop for any publish that proceeds.
+          if [ "$skip" = "false" ]; then
+            range_base='${{ github.event.before }}'
+            null_sha='0000000000000000000000000000000000000000'
+            forced='${{ github.event.forced }}'
+            confirm_publish='${{ github.event.inputs.confirm_publish }}'
+            before_usable=false
+            if [ -n "$range_base" ] && [ "$range_base" != "$null_sha" ] && git cat-file -e "${range_base}^{commit}" 2>/dev/null; then
+              before_usable=true
+            fi
+
+            if [ "$before_usable" = "true" ] && [ "$forced" != "true" ]; then
+              changed=$(git diff --name-only "$range_base" '${{ github.sha }}')
+              if printf '%s\n' "$changed" | grep -qE '^(src|packages|webview-ui)/'; then
+                echo "::notice::[CI:PRERELEASE:PATH-CHECK] pushed range touches a publishable path — the publish proceeds."
+                printf '%s\n' "$changed" | head -40 | sed 's/^/::notice::[CI:PRERELEASE:PATH-CHECK]   changed: /'
+              else
+                echo "::notice::[CI:PRERELEASE:PATH-CHECK] pushed range touches NO publishable path (src/**, packages/**, webview-ui/**, src/package.json) — skipping the pre-release publish."
+                printf '%s\n' "$changed" | head -40 | sed 's/^/::notice::[CI:PRERELEASE:PATH-CHECK]   changed: /'
+                skip=true
+              fi
+            else
+              # The path predicate cannot be evaluated. Publishing is allowed ONLY
+              # on an explicit dispatch confirmation — never implicitly.
+              if [ "$before_usable" = "true" ]; then
+                reason="\`github.event.forced\` is true — this push rewrote history, so the diff from \`before\` is not the change set that landed"
+              else
+                reason="no usable \`before\` commit (first push of a branch, a manual \`workflow_dispatch\`, or a checkout too shallow to contain it)"
+              fi
+              if [ "$confirm_publish" = "true" ]; then
+                echo "::notice::[CI:PRERELEASE:PATH-CHECK] ${reason}; \`confirm_publish=true\` was passed to \`workflow_dispatch\`, so the publish proceeds on explicit confirmation."
+              else
+                echo "::notice::[CI:PRERELEASE:PATH-CHECK] SKIPPING the pre-release publish — ${reason}, so the path predicate cannot be evaluated and no explicit confirmation was given."
+                echo "::notice::[CI:PRERELEASE:PATH-CHECK] To publish deliberately, re-run it manually: Actions → 'Publish Pre-release Version' → Run workflow → set confirm_publish=true (or: gh workflow run pre-release-publish.yml --ref master -f confirm_publish=true)."
+                echo "::notice::[CI:PRERELEASE:PATH-CHECK] The cross-registry duplicate/monotonic version guard still runs on any publish that proceeds — it is the fail-closed backstop."
+                skip=true
+              fi
             fi
           fi
 
@@ -201,6 +303,55 @@ jobs:
             })
           }
 
+          // Cross-registry guard (added after the 2026-09-25 incident): the
+          // Open VSX-only check could not see that a version was already taken
+          // on the VS Code Marketplace, so a hijacked stable-prep patch looked
+          // "unique". Query BOTH registries before publishing.
+          function fetchMarketplaceVersions() {
+            return new Promise((resolve, reject) => {
+              const body = JSON.stringify({
+                filters: [{ criteria: [{ filterType: 7, value: "xavier-arosemena.roo-plus" }] }],
+                flags: 1, // IncludeVersions
+              })
+              const req = https.request(
+                {
+                  hostname: "marketplace.visualstudio.com",
+                  path: "/_apis/public/gallery/extensionquery",
+                  method: "POST",
+                  timeout: 15000,
+                  headers: {
+                    Accept: "application/json;api-version=7.2-preview.1",
+                    "Content-Type": "application/json",
+                    "Content-Length": Buffer.byteLength(body),
+                  },
+                },
+                (res) => {
+                  if (res.statusCode !== 200) {
+                    res.resume()
+                    reject(new Error(`VS Marketplace API returned HTTP ${res.statusCode}`))
+                    return
+                  }
+                  let out = ""
+                  res.setEncoding("utf8")
+                  res.on("data", (chunk) => { out += chunk })
+                  res.on("end", () => {
+                    try {
+                      const data = JSON.parse(out)
+                      const ext = data?.results?.[0]?.extensions?.[0]
+                      resolve((ext?.versions || []).map((v) => v.version))
+                    } catch (err) {
+                      reject(err)
+                    }
+                  })
+                }
+              )
+              req.on("timeout", () => { req.destroy(new Error("VS Marketplace API request timed out")) })
+              req.on("error", reject)
+              req.write(body)
+              req.end()
+            })
+          }
+
           let published
           try {
             published = await fetchOpenVsxVersions()
@@ -209,10 +360,25 @@ jobs:
             process.exit(1)
           }
 
+          let publishedOnMarketplace
+          try {
+            publishedOnMarketplace = await fetchMarketplaceVersions()
+          } catch (err) {
+            console.log(`::error::[CI:PRERELEASE:GUARD] could not query the VS Code Marketplace to guard against a duplicate/hijacked publish (${err.message}); aborting rather than risk publishing a version that already exists`)
+            process.exit(1)
+          }
+
           if (published.includes(version)) {
             console.log(`::error::[CI:PRERELEASE:GUARD] ${version} is ALREADY published to Open VSX — bump src/package.json to the next pre-release patch on the ${major}.${minor} line (pnpm bump:pre-release)`)
             process.exit(1)
           }
+
+          if (publishedOnMarketplace.includes(version)) {
+            console.log(`::error::[CI:PRERELEASE:GUARD] ${version} is ALREADY published to the VS Code Marketplace (as a stable or a pre-release) — a version that already exists cannot be republished. Bump src/package.json to the next patch on the ${major}.${minor} line.`)
+            process.exit(1)
+          }
+
+          console.log(`::notice::[CI:PRERELEASE:GUARD] ${version} is absent from both registries (checked ${published.length} Open VSX and ${publishedOnMarketplace.length} VS Marketplace versions)`)
 
           const lineRe = new RegExp("^" + major + "\\." + minor + "\\.(\\d+)$")
           let maxPatch = -1
