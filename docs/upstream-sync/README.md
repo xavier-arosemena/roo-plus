@@ -281,6 +281,7 @@ node scripts/upstream-sync-triage.mjs --refresh --write  # apply the proposal + 
 node scripts/upstream-sync-triage.mjs --refresh --json   # machine-readable output
 node scripts/upstream-sync-triage.mjs --verify --strict  # fail on stale ◐ rows and on unreachable upstream
 node scripts/upstream-sync-triage.mjs --verify --fork-ref origin/master  # override the fork ref
+node scripts/upstream-sync-triage.mjs --verify --repo-only --fetch-missing-objects  # fetch missing register objects
 ```
 
 Shortcuts: `pnpm verify:upstream-sync` and `pnpm refresh:upstream-sync`; the spec
@@ -370,25 +371,40 @@ Unknown flags and `--repo-only` outside `--verify` fail loudly with `1`.
 - `--repo-only` (with `--verify`) — run **only the 9 merge-base-free checks**
   (`row-sha-format`, `row-sha-resolves`, `row-parse`, `duplicates`,
   `synced-fork-sha`, `stale-in-progress`, `exception-advisory`, `header-tip`,
-  `register-age`) and
-  issue **no git command that references `upstream/main`** or computes the upstream
-  merge base — `coverage`, `header-pending-count` and `landed-unflipped` (the
-  history-dependent checks) are invoked only in the full profile (CP1-3). `row-parse`,
-  `exception-advisory` and `register-age` are pure-markdown, so they run here too, which is what
-  stops the profile going blind to a row whose SHA cell lost its backticks. In
-  `--json`, the quantities this profile cannot evaluate — `counts.pendingCommits`,
+  `register-age`) and compute **no upstream merge base** — `coverage`,
+  `header-pending-count` and `landed-unflipped` (the history-dependent checks) are
+  invoked only in the full profile (CP1-3). `row-parse`, `exception-advisory` and
+  `register-age` are pure-markdown, so they run here too, which is what stops the
+  profile going blind to a row whose SHA cell lost its backticks. In `--json`, the
+  quantities this profile cannot evaluate — `counts.pendingCommits`,
   `counts.missing`, `counts.unexpected` and the top-level `missing`/`unexpected` —
   are reported as **`null`, never `0`**, so no consumer reads "0 pending" from a
   profile that never measured it (CP1-7). This is the profile CI gates with, because
   a `--depth=1` checkout has no merge base and the full profile would be red by
   construction there (H-03 / F-A-7 / F-G-5).
-  **Precondition — merge-base-free is not object-free.** The profile still needs the
-  commits the register names to exist locally, so a CI job must fetch the fork
-  history and the register's upstream window before running it (`fetch-depth: 0`,
-  or an explicit `git fetch upstream main`). Measured on 2026-09-24: in a fresh
-  1-commit clone `--repo-only` exits 1 on `row-sha-resolves` (101 of 102 rows
-  unresolvable) — red by construction, which is why the check was not made
-  tolerant: an unresolvable row SHA is a real finding, not a skip.
+  **Precondition — merge-base-free is NOT object-free (WS-12).** The profile still
+  needs the commits the register names to exist locally: its rows cite **upstream**
+  commits, which a fork-only CI clone does not have. The profile issues **no
+  upstream merge-base command**, but with `--fetch-missing-objects` it may fetch the
+  missing register objects — preferring the fork's own `origin`
+  (`git fetch --no-tags --filter=blob:none origin <full-sha>…`) and falling back to
+  the bounded `git fetch --no-tags --shallow-since=<register date> upstream main`
+  **only** when `origin` cannot serve them. A CI job therefore keeps `fetch-depth: 0`
+  (fork history is what `synced-fork-sha` needs) and enables the fetch. Measured on
+  2026-09-24 in a fresh fork-only clone: `--repo-only` exits 1 on `row-sha-resolves`
+  (129 of 129 objects missing); with `--fetch-missing-objects` the fetch serves all
+  129 (102 from `origin`, 27 from the upstream fallback) and the profile exits 0. An
+  object that remains unresolvable still FAILS — the check was never made tolerant:
+  **"does not resolve"** (a bad row SHA) and **"object could not be fetched"** (the
+  environment served nothing) are two distinct, both-fatal messages, never a skip.
+- `--fetch-missing-objects` (with `--verify`) — **opt-in** fetch of the register's
+  commit objects that do not resolve locally, run BEFORE the checks. Order: `origin`
+  first (one batched `git fetch --no-tags --filter=blob:none origin <full-sha>…`, no
+  third-party contact), then the bounded upstream fallback only for what remains
+  missing. **OFF by default** (an interactive run never touches the network) and ON
+  in the two CI jobs that gate the live register. What was missing, what was fetched
+  and from where is printed; an object that stays unresolvable is reported under
+  `row-sha-resolves`/`header-tip` as one of the two messages above.
 - **Row cells are resolved by header name, never by index.** Inserting a column
   before `Status` used to make the parser read the wrong cell, so `☑` rows read as
   unsynced and the reachability checks went _quiet_ instead of red (F-B-1). The
@@ -428,9 +444,11 @@ Unknown flags and `--repo-only` outside `--verify` fail loudly with `1`.
 > commit look absent from the register.
 
 **Shallow clones.** Only the **full** profile requires a real merge base;
-`--verify --repo-only` is merge-base-free — it runs only the checks that never
-reference `upstream/main` — and is the profile CI gates, because a `--depth=1`
-checkout has no merge base. When the full profile has no merge base,
+`--verify --repo-only` is merge-base-free — it computes no upstream merge base and
+its checks never consult `upstream/main` (though it may fetch the register's missing
+objects from `origin`, then the bounded upstream fallback, when
+`--fetch-missing-objects` is given) — and is the profile CI gates, because a
+`--depth=1` checkout has no merge base. When the full profile has no merge base,
 `git merge-base` returns nothing and the pending count would read only the fetch
 window, so the tool fails closed with the exact remediation: a deepen whose date
 is derived from the register header (the same command `--refresh` runs), or

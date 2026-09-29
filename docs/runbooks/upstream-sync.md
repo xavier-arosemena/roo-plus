@@ -243,11 +243,18 @@ TASK 6 — Verification is mandatory. Run the implemented register check:
                    live misclassification: reclassify the row instead.
   Report rows = pending commits, 0 duplicates, 0 missing, 0 unexpected. A 10-character
   row SHA must be reported BY NAME.
-  `--repo-only` runs only the merge-base-free checks and is the profile PR CI gates. Note the
-  precondition: the profile is merge-base-free but NOT object-free — `row-sha-resolves` still needs
-  the register's commit objects, so the CI job checks out full fork history (`fetch-depth: 0`) and
-  never adds an `upstream` remote. The full profile fails closed without a merge base by design, and
-  the two provenance checks (`synced-upstream-ancestry`, `provenance`) are full-profile only.
+  `--repo-only` runs only the merge-base-free checks and is the profile PR CI gates. Precondition
+  (WS-12): the profile is merge-base-free but NOT object-free — its rows cite UPSTREAM commits, so
+  `row-sha-resolves`/`header-tip` need commit objects a fork-only clone does not have. The CI job
+  therefore checks out full fork history (`fetch-depth: 0`) and enables `--fetch-missing-objects`,
+  which fetches exactly those objects BEFORE the checks: `origin` first
+  (`git fetch --no-tags --filter=blob:none origin <full-sha>…`, no third-party contact), and the
+  bounded `git fetch --no-tags --shallow-since=<register date> upstream main` fallback only for what
+  `origin` cannot serve. The profile still computes no upstream merge base, and an object that stays
+  unresolvable FAILS with one of two distinct messages — "does not resolve" (a bad row SHA) or
+  "object could not be fetched" (the environment served nothing). The full profile fails closed
+  without a merge base by design, and the two provenance checks
+  (`synced-upstream-ancestry`, `provenance`) are full-profile only.
   MANUAL FALLBACK (only if the script is unavailable) — row-scoped, NOT a naive hex grep (README §8):
     grep -oE '^\| `[0-9a-f]{9}` \|' docs/upstream-sync/pending-upstream-commits.md | sort | uniq -c
     git rev-list master..upstream/main | cut -c1-9 | sort   # diff against the row SHAs above

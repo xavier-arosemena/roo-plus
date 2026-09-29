@@ -35,12 +35,15 @@ import {
 	CHECK_IDS_FULL,
 	CHECK_IDS_REPO_ONLY,
 	chooseForkRef,
+	classifyUnresolvedObject,
 	cleanCell,
+	collectMissingRegisterObjects,
 	computeCommitEvidence,
 	crossCheckRows,
 	daysBetween,
 	decideProvenance,
 	decideRunMode,
+	ensureRegisterObjects,
 	DEFAULT_ALLOWED_SIGNERS,
 	GITHUB_WEBFLOW_SIGNER,
 	normaliseSignerIdentity,
@@ -65,6 +68,7 @@ import {
 	parseBaseline,
 	parseBlockedBy,
 	parseException,
+	parseFullShaIndex,
 	parseRegister,
 	planUpstreamDeepen,
 	proposeClass,
@@ -72,7 +76,9 @@ import {
 	rationaleNamesRow,
 	REGISTER_STALE_DAYS,
 	renderRegisterDiff,
+	resolutionFailureText,
 	runRefresh,
+	shouldFetchMissingObjects,
 	splitRowCells,
 	validateRegister,
 	verifyExitCode,
@@ -86,6 +92,8 @@ import {
 	ROOT,
 	ROW_SHA_LENGTH,
 	UNKNOWN_BLOCKED_BY_TOKEN,
+	UNRESOLVED_COULD_NOT_FETCH,
+	UNRESOLVED_DOES_NOT_RESOLVE,
 	UPSTREAM_REF,
 } from "./upstream-sync-triage.mjs"
 
@@ -2709,12 +2717,19 @@ describe("parseArgs", () => {
 			strict: true,
 			write: true,
 			repoOnly: false,
+			fetchMissingObjects: false,
 			help: false,
 			forkRef: null,
 			signatureStrict: false,
 			allowSigners: [],
 			unknown: [],
 		})
+	})
+
+	it("parses --fetch-missing-objects (OFF unless requested — WS-12)", () => {
+		assert.equal(parseArgs(["--verify", "--repo-only", "--fetch-missing-objects"]).fetchMissingObjects, true)
+		assert.equal(parseArgs(["--verify", "--repo-only"]).fetchMissingObjects, false)
+		assert.equal(parseArgs(["--fetch-missing-objects"]).mode, "verify")
 	})
 
 	it("parses --repo-only", () => {
@@ -3408,5 +3423,242 @@ describe("WS-8 item 10 — pinned boundary / floor values (previously decorative
 		const { rows } = parseRegister(markdown)
 		assert.equal(rows[0].discarded, true)
 		assert.deepEqual(buildReadySet(rows), [])
+	})
+})
+
+// ---------------------------------------------------------------------------
+// WS-12 — repo-only object availability (PR #392 CI red)
+// ---------------------------------------------------------------------------
+
+/** The 40-character object name of a fixture row prefix. */
+const FULL = (sha) => `${sha}${"0".repeat(40 - ROW_SHA_LENGTH)}`
+
+/** A register whose rows are exactly `shas` (all unresolvable by default). */
+function registerWithMissing(shas) {
+	return buildRegister({
+		rows: shas.map((sha, index) => makeRow(sha, `fix: missing object ${index}`)),
+		pendingCount: shas.length,
+	})
+}
+
+/**
+	* The IO fake for `ensureRegisterObjects`. It models EXACTLY the two remotes the
+	* fix names: `origin` (the fork's own, preferred) and the bounded `upstream`
+	* fallback, each able to produce only the SHAs it is told it "serves".
+	* `originCalls`/`upstreamCalls` make "no fetch attempted" observably different
+	* from "a fetch that returned nothing".
+	*/
+function makeFetchIo({ present = [], originServes = [], upstreamServes = [], index = new Map(), tipMissing = false } = {}) {
+	const set = new Set(present)
+	const tip = TIP.slice(0, ROW_SHA_LENGTH)
+	const state = { originCalls: 0, upstreamCalls: 0, originShas: [], upstreamCommands: [] }
+	return {
+		state,
+		io: {
+			commitType: (sha) => (set.has(sha) || (!tipMissing && sha === tip) ? "commit" : null),
+			readFullShaIndex: () => index,
+			fetchOrigin: (shas) => {
+				state.originCalls += 1
+				state.originShas = shas
+				for (const full of shas) {
+					const short = full.slice(0, ROW_SHA_LENGTH)
+					if (originServes.includes(short)) set.add(short)
+				}
+				return originServes.length > 0
+			},
+			fetchUpstream: (plan) => {
+				state.upstreamCalls += 1
+				state.upstreamCommands.push(plan.command)
+				for (const short of upstreamServes) set.add(short)
+				// Mirrors production: the fallback "served" only if it actually answered.
+				return upstreamServes.length > 0
+			},
+		},
+	}
+}
+
+describe("WS-12 — missing register objects: opt-in fetch, origin preferred", () => {
+	it("does NOT fetch when nothing is missing", async () => {
+		// The header tip counts too, so it is resolvable in this fake.
+		const { io, state } = makeFetchIo({ present: [PREFIX_A] })
+		const report = await ensureRegisterObjects({ markdown: registerWithMissing([PREFIX_A]), enabled: true, io })
+		assert.deepEqual(report.missing, [])
+		assert.equal(state.originCalls, 0, "nothing missing must not touch the network")
+		assert.equal(state.upstreamCalls, 0)
+		assert.match(report.note, /nothing missing/)
+	})
+
+	it("does NOT fetch when the capability is OFF, and says what was missing", async () => {
+		const { io, state } = makeFetchIo({ index: new Map([[PREFIX_A, FULL(PREFIX_A)]]) })
+		const report = await ensureRegisterObjects({ markdown: registerWithMissing([PREFIX_A]), enabled: false, io })
+		assert.deepEqual(report.missing, [PREFIX_A], "the missing object is still REPORTED")
+		assert.equal(report.requested, false)
+		assert.equal(state.originCalls, 0, "the flag being off must not touch the network")
+		assert.equal(state.upstreamCalls, 0)
+		assert.match(report.note, /--fetch-missing-objects is off/)
+	})
+
+	it("a missing object origin CAN serve resolves, and upstream is never contacted", async () => {
+		const index = new Map([
+			[PREFIX_A, FULL(PREFIX_A)],
+			[PREFIX_B, FULL(PREFIX_B)],
+		])
+		const { io, state } = makeFetchIo({ originServes: [PREFIX_A, PREFIX_B], index })
+		const report = await ensureRegisterObjects({
+			markdown: registerWithMissing([PREFIX_A, PREFIX_B]),
+			enabled: true,
+			io,
+		})
+		assert.deepEqual(report.fetchedFromOrigin.slice().sort(), [PREFIX_A, PREFIX_B].sort())
+		assert.deepEqual(report.stillMissing, [])
+		assert.equal(report.served, true)
+		assert.equal(state.upstreamCalls, 0, "origin served everything — upstream must NOT be contacted")
+		assert.match(report.originCommand, /fetch --no-tags --filter=blob:none origin 2 object/)
+	})
+
+	it("falls back to the bounded upstream fetch ONLY for what origin could not serve", async () => {
+		const index = new Map([
+			[PREFIX_A, FULL(PREFIX_A)],
+			[PREFIX_B, FULL(PREFIX_B)],
+		])
+		const { io, state } = makeFetchIo({ originServes: [PREFIX_A], upstreamServes: [PREFIX_B], index })
+		const report = await ensureRegisterObjects({
+			markdown: registerWithMissing([PREFIX_A, PREFIX_B]),
+			enabled: true,
+			io,
+		})
+		assert.deepEqual(report.fetchedFromOrigin, [PREFIX_A])
+		assert.deepEqual(report.fetchedFromUpstream, [PREFIX_B])
+		assert.deepEqual(report.stillMissing, [])
+		assert.equal(state.originCalls, 1, "origin is tried exactly once, and FIRST")
+		assert.equal(state.upstreamCalls, 1)
+		assert.match(state.upstreamCommands[0], /upstream main/, "the fallback is the bounded upstream fetch")
+	})
+
+	it("a row with no recorded full SHA cannot be named to origin and goes to the fallback", async () => {
+		const { io, state } = makeFetchIo({ index: new Map(), upstreamServes: [PREFIX_A] })
+		const report = await ensureRegisterObjects({ markdown: registerWithMissing([PREFIX_A]), enabled: true, io })
+		assert.equal(state.originCalls, 0, "a refspec needs a FULL object name — origin cannot be asked")
+		assert.match(report.originCommand, /no full SHA is recorded/)
+		assert.deepEqual(report.fetchedFromUpstream, [PREFIX_A])
+	})
+
+	it("reports 'object could not be fetched' (NOT 'does not resolve') when no remote serves it", async () => {
+		const index = new Map([[PREFIX_A, FULL(PREFIX_A)]])
+		const { io, state } = makeFetchIo({ index })
+		const markdown = registerWithMissing([PREFIX_A])
+		const report = await ensureRegisterObjects({ markdown, enabled: true, io })
+		assert.deepEqual(report.stillMissing, [PREFIX_A])
+		assert.equal(report.served, false, "no remote answered, so the object is an ENVIRONMENT failure")
+		assert.equal(state.originCalls, 1, "origin was tried first")
+		assert.equal(state.upstreamCalls, 1, "and the bounded upstream fallback was tried second")
+
+		const validation = validateRegister({
+			markdown,
+			pendingShas: null,
+			profile: "repo-only",
+			probe: makeProbe({ commits: [] }),
+			objectFetch: { requested: true, served: false },
+		})
+		const check = checkById(validation, "row-sha-resolves")
+		assert.equal(validation.ok, false, "an unfetchable object must still FAIL — never a silent pass")
+		assert.equal(check.ok, false)
+		const text = check.failures.join("\n")
+		assert.match(text, /object could not be fetched/)
+		assert.doesNotMatch(text, /does not resolve/)
+		assert.match(text, new RegExp(PREFIX_A), "the row is named")
+	})
+
+	it("reports 'does not resolve' (NOT the fetch message) for a truly wrong SHA in a served environment", async () => {
+		const markdown = registerWithMissing([PREFIX_C])
+		const validation = validateRegister({
+			markdown,
+			pendingShas: null,
+			profile: "repo-only",
+			probe: makeProbe({ commits: [] }),
+			objectFetch: { requested: true, served: true },
+		})
+		const check = checkById(validation, "row-sha-resolves")
+		assert.equal(check.ok, false)
+		const text = check.failures.join("\n")
+		assert.match(text, /does not resolve/)
+		assert.doesNotMatch(text, /object could not be fetched/)
+		assert.match(text, new RegExp(PREFIX_C), "the row is named")
+	})
+
+	it("header-tip shares the two failure modes (an unfetchable tip is not a bad tip)", () => {
+		const markdown = registerWithMissing([PREFIX_A])
+		const unfetchable = validateRegister({
+			markdown,
+			pendingShas: null,
+			profile: "repo-only",
+			probe: makeProbe({ commits: [PREFIX_A], upstreamTip: null }),
+			objectFetch: { requested: true, served: false },
+		})
+		const tipFailure = checkById(unfetchable, "header-tip").failures.join("\n")
+		assert.match(tipFailure, /object could not be fetched/)
+
+		const served = validateRegister({
+			markdown,
+			pendingShas: null,
+			profile: "repo-only",
+			probe: makeProbe({ commits: [PREFIX_A], upstreamTip: null }),
+			objectFetch: { requested: true, served: true },
+		})
+		const servedFailure = checkById(served, "header-tip").failures.join("\n")
+		assert.match(servedFailure, /does not resolve to a commit in this repo/)
+		assert.doesNotMatch(servedFailure, /object could not be fetched/)
+	})
+
+	it("classifyUnresolvedObject maps the three inputs to exactly two failure kinds (never a pass)", () => {
+		assert.equal(classifyUnresolvedObject({ type: "commit", objectFetch: { requested: true, served: false } }), null)
+		assert.equal(classifyUnresolvedObject({ type: null, objectFetch: null }), UNRESOLVED_DOES_NOT_RESOLVE)
+		assert.equal(
+			classifyUnresolvedObject({ type: null, objectFetch: { requested: false, served: false } }),
+			UNRESOLVED_DOES_NOT_RESOLVE,
+		)
+		assert.equal(
+			classifyUnresolvedObject({ type: null, objectFetch: { requested: true, served: true } }),
+			UNRESOLVED_DOES_NOT_RESOLVE,
+		)
+		assert.equal(
+			classifyUnresolvedObject({ type: null, objectFetch: { requested: true, served: false } }),
+			UNRESOLVED_COULD_NOT_FETCH,
+		)
+	})
+
+	it("resolutionFailureText names the row in both kinds and never emits one for a resolved object", () => {
+		const base = { line: 7, sha: PREFIX_A, subject: "fix: x" }
+		assert.match(resolutionFailureText({ ...base, kind: UNRESOLVED_DOES_NOT_RESOLVE }), /does not resolve/)
+		assert.match(resolutionFailureText({ ...base, kind: UNRESOLVED_COULD_NOT_FETCH }), /object could not be fetched/)
+		for (const text of [
+			resolutionFailureText({ ...base, kind: UNRESOLVED_DOES_NOT_RESOLVE }),
+			resolutionFailureText({ ...base, kind: UNRESOLVED_COULD_NOT_FETCH }),
+		]) {
+			assert.match(text, new RegExp(`line 7: \`${PREFIX_A}\``), "the line and the SHA are named")
+		}
+	})
+
+	it("collectMissingRegisterObjects reports rows AND the header tip", () => {
+		const { rows, baseline } = parseRegister(registerWithMissing([PREFIX_A]))
+		const missing = collectMissingRegisterObjects({ rows, baseline, commitType: () => null })
+		assert.deepEqual(
+			missing.map((entry) => entry.kind).sort(),
+			["header-tip", "row"],
+		)
+		const kinds = collectMissingRegisterObjects({ rows, baseline, commitType: () => "commit" })
+		assert.deepEqual(kinds, [], "nothing missing when every object resolves")
+	})
+
+	it("parseFullShaIndex maps a 9-char prefix to its full SHA and ignores non-SHA lines", () => {
+		const index = parseFullShaIndex(`${FULL(PREFIX_A)}|2026-08-20|Author|subject\nnot a sha at all\n`)
+		assert.equal(index.get(PREFIX_A), FULL(PREFIX_A))
+		assert.equal(index.size, 1)
+	})
+
+	it("shouldFetchMissingObjects is OFF unless the flag is requested", () => {
+		assert.equal(shouldFetchMissingObjects({}), false)
+		assert.equal(shouldFetchMissingObjects({ fetchMissingObjects: false }), false)
+		assert.equal(shouldFetchMissingObjects({ fetchMissingObjects: true }), true)
 	})
 })

@@ -38,6 +38,13 @@ jobs:
                   # Needed to run verify-submodule-pin.mjs / verify-roomodes-sync.mjs:
                   # a missing or wrong-pin submodule is a packaging hazard for the VSIX.
                   submodules: recursive
+                  # PRECONDITION — FULL FORK HISTORY (WS-12). `pnpm test:scripts` runs
+                  # the register spec, which asserts the LIVE register under
+                  # `--verify --repo-only`; that profile is merge-base-free but NOT
+                  # object-free (`synced-fork-sha` needs the fork's commit objects, and
+                  # `row-sha-resolves`/`header-tip` the register's). A depth-1 checkout
+                  # makes that spec red for the wrong reason, so keep `fetch-depth: 0`.
+                  fetch-depth: 0
             - name: Reject invisible / homoglyph Unicode
               run: |
                   echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:UNICODE] Scanning for invisible / homoglyph Unicode"
@@ -80,6 +87,17 @@ jobs:
                   python3 -c "import yaml" >/dev/null 2>&1 || sudo apt-get update -qq && sudo apt-get install -y -qq python3-yaml
                   python3 scripts/ensure_descriptions.py --check
                   echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:DESCRIPTIONS] mode descriptions gate passed"
+                  echo "::endgroup::"
+            # WS-12: the register spec asserts the LIVE register with `--verify
+            # --repo-only`, whose rows cite UPSTREAM commits a fork-only clone lacks.
+            # Fetch exactly those objects FIRST (origin preferred, bounded upstream
+            # fallback) so the spec — and this job — are red only on real defects.
+            # This is also an early, explicit register gate for the PR.
+            - name: Fetch the upstream-sync register objects (WS-12)
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:REGISTER-OBJECTS] Making the register's commit objects available"
+                  node scripts/upstream-sync-triage.mjs --verify --repo-only --fetch-missing-objects
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:REGISTER-OBJECTS] register objects available (origin preferred)"
                   echo "::endgroup::"
             - name: Run scripts unit tests (sync + submodule pin gate)
               run: |
@@ -415,26 +433,30 @@ jobs:
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
               with:
                   persist-credentials: false
-                  # PRECONDITION — FULL FORK HISTORY (WS-1/CP-1, measured).
+                  # PRECONDITION — FULL FORK HISTORY (WS-1/CP-1, measured; WS-12).
                   # `--verify --repo-only` is merge-base-free but NOT object-free:
-                  # `row-sha-resolves` and `header-tip` need the register's commit
-                  # objects, so a default depth-1 checkout would fail every row for
-                  # the wrong reason. Keep `fetch-depth: 0`; do not narrow it.
-                  # This job adds NO `upstream` remote and never fetches upstream —
-                  # the profile issues no `upstream/main` and no upstream-merge-base
-                  # git call (documented in `--help`), and the register's commit
-                  # objects live in the fork's own object store. If a row's object is
-                  # ever absent, fetch it explicitly from origin by its FULL sha
-                  # (`git fetch --no-tags origin <full-sha>`) — never via upstream.
+                  # `synced-fork-sha` needs the fork's history, and `row-sha-resolves`/
+                  # `header-tip` need the register's UPSTREAM commit objects, which a
+                  # fork-only clone does not have. Keep `fetch-depth: 0`; do not
+                  # narrow it.
                   fetch-depth: 0
             - name: Setup Node.js and pnpm
               uses: ./.github/actions/setup-node-pnpm
               with:
                   # The register check imports local files only — no dependencies.
                   skip-install: "true"
+            # WS-12: this job gates the LIVE register. The profile computes no upstream
+            # merge base, but it DOES need the register's commit objects, so it fetches
+            # the missing ones first — preferring the fork's own `origin`
+            # (`git fetch --no-tags --filter=blob:none origin <full-sha>…`) and falling
+            # back to the bounded `git fetch --no-tags --shallow-since=<register date>
+            # upstream main` only when `origin` cannot serve them. An object that stays
+            # unresolvable FAILS with one of two distinct messages — "does not resolve"
+            # (a bad row SHA) or "object could not be fetched" (the environment served
+            # nothing) — never a skip.
             - name: Verify the upstream-sync register (merge-base-free profile)
               run: |
                   echo "::group::[CI:CODE-QA:UPSTREAM-REGISTER] Verifying the upstream-sync register"
-                  node scripts/upstream-sync-triage.mjs --verify --repo-only
+                  node scripts/upstream-sync-triage.mjs --verify --repo-only --fetch-missing-objects
                   echo "::notice::[CI:CODE-QA:UPSTREAM-REGISTER] register verified (merge-base-free profile)"
                   echo "::endgroup::"

@@ -161,6 +161,7 @@
  * Usage (repo root):
  *   node scripts/upstream-sync-triage.mjs [--verify] [--json] [--strict] [--fork-ref <ref>]
  *   node scripts/upstream-sync-triage.mjs --verify --repo-only     # merge-base-free subset
+ *   node scripts/upstream-sync-triage.mjs --verify --repo-only --fetch-missing-objects
  *   node scripts/upstream-sync-triage.mjs --refresh          # dry run
  *   node scripts/upstream-sync-triage.mjs --refresh --write  # update register
  *   node scripts/upstream-sync-triage.mjs --help
@@ -173,12 +174,18 @@
  *      and --strict was given, or upstream was unavailable and --strict was given,
  *      or stale `◐` rows were found and --strict was given
  *
- * `--verify --repo-only` runs the `CHECK_IDS_REPO_ONLY` profile (merge-base-free)
- * and issues NO git command that references `upstream/main` or computes the
- * upstream merge base — the `header-pending-count`, `coverage` and
- * `landed-unflipped` checks (which do) are invoked only in the full profile
- * (CP1-3). That lets CI gate the register in the exact clone shape it ships in (a
- * `--depth=1` checkout with no usable merge base — F-D-2/F-G-5). Quantities the
+ * `--verify --repo-only` runs the `CHECK_IDS_REPO_ONLY` profile. It needs NO MERGE
+ * BASE and never computes the upstream merge base (`header-pending-count`,
+ * `coverage` and `landed-unflipped` — which do — are invoked only in the full
+ * profile, CP1-3), so CI can gate the register in the clone shape it ships in (a
+ * `--depth=1` checkout — F-D-2/F-G-5). It is NOT object-free, though: WS-12
+ * measured that a fork-only CI clone lacks the UPSTREAM commits the register's rows
+ * cite, so `row-sha-resolves` and `header-tip` fail for the wrong reason. The
+ * opt-in `--fetch-missing-objects` capability (OFF by default, ON in the two CI
+ * jobs that gate the register) fetches exactly those objects first — preferring the
+ * fork's own `origin`, falling back to a bounded `upstream` fetch — and an
+ * unresolved object is then reported as DATA ("does not resolve") or ENVIRONMENT
+ * ("object could not be fetched"), never as a collapsed message. Quantities the
  * profile cannot evaluate (`pendingCommits`, `missing`, `unexpected`) are `null`
  * in `--json`, never `0` (CP1-7).
  *
@@ -205,6 +212,18 @@ export const ROOT = path.resolve(__dirname, "..")
 export const REGISTER_PATH = "docs/upstream-sync/pending-upstream-commits.md"
 /** Operating manual whose §9 "Register changelog" records refresh events. */
 export const README_PATH = "docs/upstream-sync/README.md"
+/**
+ * WS-12: the register's evidence snapshot — the only repo-local record of the
+ * FULL 40-character SHAs behind the register's 9-character row SHAs.
+ *
+ * `git fetch <remote> <sha>` resolves an object name only when it is FULL
+ * (`git fetch origin c6eb8fb57` fails with "couldn't find remote ref"), so the
+ * prefix must be expanded before a per-SHA fetch is possible. The snapshot is a
+ * dated *evidence* file, but a commit's full SHA is immutable, so the mapping
+ * cannot go stale; a row added after the snapshot simply has no entry and is
+ * served by the bounded upstream fallback instead.
+ */
+export const EVIDENCE_SNAPSHOT_PATH = "docs/upstream-sync/triage-raw.tsv"
 /** Upstream ref compared against; `master` is the fork ref. */
 export const UPSTREAM_REF = "upstream/main"
 /**
@@ -238,6 +257,16 @@ const GIT_MAX_BUFFER = 64 * 1024 * 1024
  * defect because it silently fails 9-character prefix matching.
  */
 export const ROW_SHA_LENGTH = 9
+
+/**
+ * WS-12: the TWO outcomes of an unresolved register object. `row-sha-resolves`
+ * and `header-tip` must never collapse them into one message: an object that is
+ * absent from the register's reality is a DATA defect, while an object this
+ * environment could not fetch is an INFRA failure that must not read as a bad
+ * row. Named constants, asserted verbatim by the spec.
+ */
+export const UNRESOLVED_DOES_NOT_RESOLVE = "does-not-resolve"
+export const UNRESOLVED_COULD_NOT_FETCH = "could-not-fetch"
 
 /**
  * ROW-SCOPED row matcher. Only the FIRST cell of a table row counts as a commit
@@ -984,6 +1013,84 @@ export function crossCheckRows(rows, pendingShas = null) {
 	return { expected, duplicates, missing, unexpected }
 }
 
+/**
+	* WS-12: maps each 9-character row SHA to its FULL 40-character object name.
+	*
+	* A register row records a prefix, and git resolves an object name in a fetch
+	* refspec only when it is FULL, so the prefix has to be expanded before the
+	* missing objects can be named to `git fetch`. The only repo-local record of the
+	* full SHAs is the register's evidence snapshot (`triage-raw.tsv`); a commit's
+	* full SHA never changes, so a row added after the snapshot simply has no entry
+	* and is left to the upstream fallback. Pure — exported for the spec.
+	*/
+export function parseFullShaIndex(text) {
+	const index = new Map()
+	for (const line of String(text ?? "").split("\n")) {
+		const match = /^([0-9a-fA-F]{40})\b/.exec(line.trim())
+		if (match) index.set(match[1].slice(0, ROW_SHA_LENGTH).toLowerCase(), match[1].toLowerCase())
+	}
+	return index
+}
+
+/**
+	* WS-12: every commit the repo-only profile must resolve locally and does not —
+	* each register row, plus the header's recorded upstream tip. Each entry names
+	* the row (line/subject) so both the fetch log and the check failures can name
+	* it. Pure (the git lookup is injected) — exported for the spec.
+	*/
+export function collectMissingRegisterObjects({ rows = [], baseline = {}, commitType }) {
+	const missing = []
+	for (const row of rows) {
+		if (commitType(row.sha) !== "commit") {
+			missing.push({ sha: row.sha, kind: "row", line: row.line, subject: row.subject })
+		}
+	}
+	const tip = baseline ? baseline.upstreamTip : null
+	if (tip && /^[0-9a-fA-F]{7,40}$/.test(tip) && commitType(tip) !== "commit") {
+		missing.push({ sha: tip, kind: "header-tip", line: null, subject: "header Upstream tip" })
+	}
+	return missing
+}
+
+/**
+	* WS-12: which of the two failure kinds an unresolved object is.
+	*
+	*   `does-not-resolve`  the SHA is wrong or absent from the fetched reality —
+	*                       a defect in the register.
+	*   `could-not-fetch`   the object is missing AND the environment served nothing
+	*                       (neither `origin` nor `upstream`), so the register
+	*                       cannot be judged here — an infra failure.
+	*
+	* The distinction is knowable only when the capability was requested and NO
+	* fetch command succeeded (`objectFetch.served !== true`): with the capability
+	* off, or after a remote answered, an unresolved object is `does-not-resolve` —
+	* never a silent pass, never a collapsed message. Pure — exported for the spec.
+	*/
+export function classifyUnresolvedObject({ type, objectFetch = null } = {}) {
+	if (type === "commit") return null
+	if (objectFetch && objectFetch.requested === true && objectFetch.served !== true) {
+		return UNRESOLVED_COULD_NOT_FETCH
+	}
+	return UNRESOLVED_DOES_NOT_RESOLVE
+}
+
+/**
+	* The `row-sha-resolves` failure text for one unresolved object. The two kinds are
+	* textually distinct and both name the row. Pure — exported for the spec.
+	*/
+export function resolutionFailureText({ kind, line, sha, subject, type = null }) {
+	if (kind === UNRESOLVED_COULD_NOT_FETCH) {
+		return (
+			`line ${line}: \`${sha}\` ("${subject}") object could not be fetched — \`git cat-file -t\` failed and ` +
+			`neither \`origin\` nor \`upstream\` could serve the object (an environment failure, not a bad row SHA)`
+		)
+	}
+	return (
+		`line ${line}: \`${sha}\` ("${subject}") does not resolve to a commit` +
+		`${type ? ` (git cat-file -t reports "${type}")` : " (git cat-file -t failed)"}`
+	)
+}
+
 // ---------------------------------------------------------------------------
 // Register validation (pure, via an injected probe)
 // ---------------------------------------------------------------------------
@@ -1243,6 +1350,13 @@ export function validateRegister({
 	signatureStrict = false,
 	/** Signer allow-list for the provenance decision (default: GitHub web-flow). */
 	allowedSigners = DEFAULT_ALLOWED_SIGNERS,
+	/**
+	 * WS-12: `{ requested, served }` — whether the missing-object fetch was asked
+	 * for, and whether any fetch command succeeded. It only ever chooses BETWEEN
+	 * the two failure texts of an unresolved object; it can never turn one into a
+	 * pass.
+	 */
+	objectFetch = null,
 }) {
  const selectedProfile = profile === "repo-only" ? "repo-only" : "full"
  const isFull = selectedProfile === "full"
@@ -1267,17 +1381,17 @@ export function validateRegister({
 		}
 	}
 
-	// 2 — every row SHA resolves in the repo.
+	// 2 — every row SHA resolves in the repo. WS-12: an unresolved object reports
+	// ONE of two distinct failures (both fatal, both naming the row) — "does not
+	// resolve" (a bad row SHA) versus "object could not be fetched" (the
+	// environment could not serve it). A missing CI object must never be reported
+	// as a wrong SHA, and neither may ever pass silently.
 	const resolveCheck = makeCheck("row-sha-resolves", "every row SHA resolves to a commit in this repo")
 	for (const row of rows) {
 		const type = probe.commitType(row.sha)
-		if (type !== "commit") {
-			fail(
-				resolveCheck,
-				`line ${row.line}: \`${row.sha}\` ("${row.subject}") does not resolve to a commit` +
-					`${type ? ` (git cat-file -t reports "${type}")` : " (git cat-file -t failed)"}`,
-			)
-		}
+		if (type === "commit") continue
+		const kind = classifyUnresolvedObject({ type, objectFetch })
+		fail(resolveCheck, resolutionFailureText({ kind, line: row.line, sha: row.sha, subject: row.subject, type }))
 	}
 
 	// 2b — a data-looking line in a commit table that did NOT parse into a row is
@@ -1602,11 +1716,25 @@ export function validateRegister({
 		fail(tipCheck, `header has no parseable "Upstream tip" — the refresh baseline cannot be derived`)
 	} else if (!/^[0-9a-fA-F]{7,40}$/.test(baseline.upstreamTip)) {
 		fail(tipCheck, `header records a non-SHA "Upstream tip" \`${baseline.upstreamTip}\``)
-	} else if (probe.commitType(baseline.upstreamTip) !== "commit") {
-		fail(
-			tipCheck,
-			`header records upstream tip \`${baseline.upstreamTip}\`, which does not resolve to a commit in this repo`,
-		)
+	} else {
+		// WS-12: the tip shares the resolution path with `row-sha-resolves`, so it
+		// reports the same two distinct failures — never one collapsed message.
+		const tipType = probe.commitType(baseline.upstreamTip)
+		if (tipType !== "commit") {
+			const kind = classifyUnresolvedObject({ type: tipType, objectFetch })
+			if (kind === UNRESOLVED_COULD_NOT_FETCH) {
+				fail(
+					tipCheck,
+					`header records upstream tip \`${baseline.upstreamTip}\`, whose object could not be fetched — ` +
+						`neither \`origin\` nor \`upstream\` could serve it (an environment failure, not a bad tip)`,
+				)
+			} else {
+				fail(
+					tipCheck,
+					`header records upstream tip \`${baseline.upstreamTip}\`, which does not resolve to a commit in this repo`,
+				)
+			}
+		}
 	}
 
 	// 10a — WS-8 item 9: the register is a FROZEN snapshot but the full profile
@@ -2413,6 +2541,12 @@ export function parseArgs(argv) {
 		strict: false,
 		write: false,
 		repoOnly: false,
+		/**
+		 * WS-12: opt-in fetch of the register's missing commit objects before the
+		 * checks run. OFF unless requested, so `--verify` behaves identically on a
+		 * laptop; the two CI jobs that gate the live register pass the flag.
+		 */
+		fetchMissingObjects: false,
 		help: false,
 		forkRef: null,
 		/**
@@ -2457,6 +2591,9 @@ export function parseArgs(argv) {
 				break
 			case "--repo-only":
 				opts.repoOnly = true
+				break
+			case "--fetch-missing-objects":
+				opts.fetchMissingObjects = true
 				break
 			case "--fork-ref": {
 				const value = argv[i + 1]
@@ -2687,8 +2824,14 @@ function landedUpstreamByPatchId(forkRef, mergeBase) {
  * `commitType`, so the spec must be able to drive the REAL resolver (git
  * `cat-file -t`), not a stub that returns a constant (CP1-5).
  */
-export function buildProbe(forkRef = FORK_REF) {
+export function buildProbe(forkRef = FORK_REF, { objectFetch = null } = {}) {
 	return {
+		/**
+		 * WS-12: the run-level fetch verdict, so an unresolved object can be
+		 * reported as DATA ("does not resolve") or ENVIRONMENT ("object could not be
+		 * fetched") without `validateRegister` knowing anything about remotes.
+		 */
+		objectFetch: () => objectFetch,
 		commitType(sha) {
 			const out = gitQuiet(["cat-file", "-t", sha])
 			return out ? out.trim() : null
@@ -2732,6 +2875,135 @@ export function buildProbe(forkRef = FORK_REF) {
 			return gitQuiet(["log", "-1", "--format=%B", sha]) ?? ""
 		},
 	}
+}
+
+/**
+	* WS-12: whether the opt-in capability is on for this run. OFF unless requested —
+	* a laptop's behaviour must not change — and switched on by
+	* `--fetch-missing-objects` in the two CI jobs that gate the live register.
+	* Pure — exported for the spec.
+	*/
+export function shouldFetchMissingObjects(opts = {}) {
+	return opts.fetchMissingObjects === true
+}
+
+/**
+	* WS-12: the production IO port for `ensureRegisterObjects()`. Every member is a
+	* thin git/file wrapper and decides no policy, so the fetch ORDER and the two
+	* failure kinds stay unit-testable with injected fakes — the seam
+	* `createRefreshIo()` and `validateRegister({ probe })` already use.
+	*/
+export function createObjectFetchIo() {
+	return {
+		commitType: (sha) => {
+			const out = gitQuiet(["cat-file", "-t", sha])
+			return out ? out.trim() : null
+		},
+		readFullShaIndex: async () =>
+			parseFullShaIndex(await readFile(path.join(ROOT, EVIDENCE_SNAPSHOT_PATH), "utf8")),
+		/**
+		 * (1) the PREFERRED fetch: the missing objects come from the fork's own
+		 * remote, so there is no third-party contact. `--filter=blob:none` keeps the
+		 * pack to the commit/tree objects the check needs (`git cat-file -t` only),
+		 * and leaves `remote.<origin>.promisor` set, which is what keeps the skipped
+		 * blobs fetchable on demand later.
+		 */
+		fetchOrigin: (shas) => {
+			try {
+				git(["fetch", "--no-tags", "--filter=blob:none", "origin", ...shas], { timeout: FETCH_TIMEOUT_MS })
+				return true
+			} catch {
+				return false
+			}
+		},
+		/** (2) the bounded fallback — the same fetch the provenance job already uses. */
+		fetchUpstream: (plan) => {
+			try {
+				fetchUpstream(plan)
+				return true
+			} catch {
+				return false
+			}
+		},
+	}
+}
+
+/**
+	* WS-12: makes the register's commit objects available BEFORE the checks run,
+	* without ever touching the register. The order is deliberate:
+	*
+	*   1. collect the row / header-tip SHAs that do not resolve locally;
+	*   2. none missing → do NOTHING (no network, no fetch);
+	*   3. capability OFF → do NOTHING, but report what was missing so the run stays
+	*      honest and a laptop's behaviour is unchanged;
+	*   4. `git fetch --no-tags --filter=blob:none origin <full-sha>…` — ONE batched
+	*      command against the fork's own remote. Only SHAs whose full name is
+	*      recorded in the evidence snapshot can be named (a fetch refspec needs a
+	*      FULL object name); the rest wait for step 5;
+	*   5. only if objects are STILL missing, the bounded upstream fallback
+	*      (`git fetch --no-tags --shallow-since=<register date> upstream main` — the
+	*      deterministic deepen `--refresh` and the provenance job already use).
+	*
+	* The report's `served` says whether ANY fetch command succeeded, which is exactly
+	* what separates "this object is not in the register's reality" from "this
+	* environment could not fetch it". Pure-ish (all IO injected) — exported for the spec.
+	*/
+export async function ensureRegisterObjects({ markdown, enabled = false, io }) {
+	const { rows, baseline } = parseRegister(markdown)
+	const missing = collectMissingRegisterObjects({ rows, baseline, commitType: io.commitType })
+	const report = {
+		requested: Boolean(enabled),
+		missing: missing.map((entry) => entry.sha),
+		originCommand: null,
+		upstreamCommand: null,
+		fetchedFromOrigin: [],
+		fetchedFromUpstream: [],
+		stillMissing: [],
+		served: false,
+		note: "",
+	}
+	if (missing.length === 0) {
+		report.note = "nothing missing — no fetch attempted"
+		return report
+	}
+	if (!enabled) {
+		report.stillMissing = missing.map((entry) => entry.sha)
+		report.note = `${missing.length} register object(s) missing locally and --fetch-missing-objects is off — no fetch attempted`
+		return report
+	}
+
+	report.note = "fetch attempted (origin first, bounded upstream fallback only if objects remain missing)"
+	const index = (await io.readFullShaIndex()) ?? new Map()
+	const targets = []
+	for (const entry of missing) {
+		const full = index.get(String(entry.sha).toLowerCase())
+		if (full) targets.push(full)
+	}
+	if (targets.length > 0) {
+		report.originCommand = `git fetch --no-tags --filter=blob:none origin ${targets.length} object(s)`
+		report.served = io.fetchOrigin(targets) === true || report.served
+	} else {
+		report.originCommand = "skipped — no full SHA is recorded for the missing object(s)"
+	}
+	const afterOrigin = collectMissingRegisterObjects({ rows, baseline, commitType: io.commitType })
+	report.fetchedFromOrigin = report.missing.filter((sha) => !afterOrigin.some((entry) => entry.sha === sha))
+
+	if (afterOrigin.length > 0) {
+		const plan = planUpstreamDeepen({
+			mergeBaseDate: baseline.mergeBaseDate,
+			upstreamTipDate: baseline.upstreamTipDate,
+		})
+		report.upstreamCommand = plan.command
+		report.served = io.fetchUpstream(plan) === true || report.served
+		const afterUpstream = collectMissingRegisterObjects({ rows, baseline, commitType: io.commitType })
+		report.fetchedFromUpstream = afterOrigin
+			.filter((entry) => !afterUpstream.some((candidate) => candidate.sha === entry.sha))
+			.map((entry) => entry.sha)
+		report.stillMissing = afterUpstream.map((entry) => entry.sha)
+	} else {
+		report.stillMissing = []
+	}
+	return report
 }
 
 /**
@@ -2891,6 +3163,22 @@ async function runVerify(opts) {
 	}
 
 	const markdown = await readFile(path.join(ROOT, REGISTER_PATH), "utf8")
+	/**
+	 * WS-12: the register's rows cite UPSTREAM commits, which a fork-only CI clone
+	 * does not have — the repo-only profile is merge-base-free but NOT object-free.
+	 * When the capability is requested (`--fetch-missing-objects`) the missing
+	 * objects are fetched BEFORE the checks run, preferring the fork's own remote
+	 * (`origin`) and falling back to a bounded `upstream` fetch. OFF by default, so
+	 * an interactive run is unchanged. `served` is the run-level fact that lets an
+	 * unresolved object be reported as a DATA defect or an ENVIRONMENT failure —
+	 * never a silent pass, never one collapsed message.
+	 */
+	const objectFetchReport = await ensureRegisterObjects({
+		markdown,
+		enabled: shouldFetchMissingObjects(opts),
+		io: createObjectFetchIo(),
+	})
+	const objectFetchVerdict = { requested: objectFetchReport.requested, served: objectFetchReport.served }
 	const pendingShas =
 		profile === "full"
 			? (gitQuiet(["rev-list", "--reverse", `${merge.mergeBase}..${UPSTREAM_REF}`]) ?? "")
@@ -2902,9 +3190,10 @@ async function runVerify(opts) {
 	const report = validateRegister({
 		markdown,
 		pendingShas,
-		probe: buildProbe(forkRef.ref),
+		probe: buildProbe(forkRef.ref, { objectFetch: objectFetchVerdict }),
 		forkRef: forkRef.ref,
 		profile,
+		objectFetch: objectFetchVerdict,
 		/**
 		 * WS-4/F-F-1: provenance is configurable per run. `--signature-strict`
 		 * promotes an UNVERIFIABLE signature (no keyring, `%G?` = `E`) from an
@@ -2926,6 +3215,7 @@ async function runVerify(opts) {
 			forkRef: forkRef.ref,
 			forkRefReason: forkRef.reason,
 			register: REGISTER_PATH,
+			objectFetch: objectFetchReport,
 			mergeBase: merge ? merge.mergeBase.slice(0, 12) : null,
 			upstreamTip: profile === "full" ? upstreamTipSha().slice(0, 12) : null,
 			counts: report.counts,
@@ -2953,6 +3243,28 @@ async function runVerify(opts) {
 			staleCount: report.staleInProgress.length,
 			strict: Boolean(opts.strict),
 		})
+	}
+
+	// WS-12: keep the fetch VISIBLE — what was missing, what was fetched, from
+	// where, and whether any remote answered. Silence here would let a missing
+	// object look like a wrong row SHA.
+	if (objectFetchReport.missing.length > 0) {
+		logStep(
+			`${TAG}:OBJECTS`,
+			`register objects missing locally (${objectFetchReport.missing.length}) — ${objectFetchReport.note}`,
+		)
+		for (const sha of objectFetchReport.missing) logWarn(`${TAG}:OBJECTS`, `\`${sha}\` does not resolve locally`)
+		if (objectFetchReport.originCommand) logInfo(`${TAG}:OBJECTS`, `origin: ${objectFetchReport.originCommand}`)
+		if (objectFetchReport.upstreamCommand)
+			logInfo(`${TAG}:OBJECTS`, `upstream fallback: ${objectFetchReport.upstreamCommand}`)
+		logInfo(
+			`${TAG}:OBJECTS`,
+			`fetched ${objectFetchReport.fetchedFromOrigin.length} from origin · ` +
+				`${objectFetchReport.fetchedFromUpstream.length} from upstream · ` +
+				`${objectFetchReport.stillMissing.length} still missing` +
+				`${objectFetchReport.served ? "" : " (no remote served the objects)"}`,
+		)
+		logEndGroup()
 	}
 
 	logStep(TAG, `Verifying ${REGISTER_PATH} (${profile} profile, ${report.checks.length} checks)`)
@@ -3530,22 +3842,36 @@ Options:
   --repo-only
              (with --verify) Run ONLY the ${CHECK_IDS_REPO_ONLY.length} merge-base-free checks —
              ${CHECK_IDS_REPO_ONLY.join(", ")} —
-             and never issue a git command that references ${UPSTREAM_REF} or computes
-             the upstream merge base. This is the profile CI can gate in the clone
-             shape the repo ships in (a --depth=1 checkout has no merge base), so
-             it exits 0 where the full profile fails closed. \`row-parse\`,
-             \`exception-advisory\` and \`register-age\` are pure-markdown, so they run
-             here too, which is what stops the profile going blind to a row whose SHA
-             cell lost its backticks and lets CI surface a stale-snapshot advisory.
-             Quantities this profile cannot evaluate (pendingCommits,
-             missing, unexpected) are reported as \`null\` in --json, never as \`0\`.
-             PR CI runs this profile with FULL fork history (fetch-depth: 0): the
-             profile is merge-base-free but NOT object-free — row-sha-resolves still
-             needs the register's commit objects, so a --depth=1 checkout fails every
-             row for the wrong reason. The two provenance checks reference
+             and never compute the upstream merge base (no merge-base against
+             ${UPSTREAM_REF}). This is the profile CI gates in the clone shape the repo
+             ships in (a --depth=1 checkout has no merge base), so it exits 0 where the
+             full profile fails closed. \`row-parse\`, \`exception-advisory\` and
+             \`register-age\` are pure-markdown, so they run here too, which is what stops
+             the profile going blind to a row whose SHA cell lost its backticks and lets
+             CI surface a stale-snapshot advisory. Quantities this profile cannot
+             evaluate (pendingCommits, missing, unexpected) are reported as \`null\` in
+             --json, never as \`0\`.
+             MERGE-BASE-FREE IS NOT OBJECT-FREE: \`row-sha-resolves\` and \`header-tip\`
+             still need the register's commit objects, which a fork-only CI clone does
+             NOT have. The profile therefore requires FULL fork history (fetch-depth: 0)
+             and, with --fetch-missing-objects, may fetch the missing register objects —
+             preferring \`origin\` (the fork's own remote) and falling back to a bounded
+             \`upstream\` fetch only when \`origin\` cannot serve them. It never issues an
+             upstream merge-base command. The two provenance checks reference
              ${UPSTREAM_REF} and therefore belong to the full profile, which is a
              POST-REFRESH gate (it re-derives coverage from the LIVE upstream/main and
              is red-by-construction once upstream advances) rather than the CI gate.
+  --fetch-missing-objects
+             (with --verify) BEFORE the checks run, fetch the register's commit objects
+             that do not resolve locally. PREFERRED: one batched
+             \`git fetch --no-tags --filter=blob:none origin <full-sha>…\` against the
+             fork's own remote — no third-party contact. Only if objects are STILL
+             missing: the bounded \`git fetch --no-tags --shallow-since=<register date>
+             upstream main\` fallback (the same deepen --refresh uses). OFF by default, so
+             an interactive run never touches the network; ON in the two CI jobs that gate
+             the live register. An unresolved object is then reported as "object could not
+             be fetched" (the environment served nothing) instead of "does not resolve"
+             (a bad row SHA) — two distinct messages, both fatal, neither a silent pass.
   --json     Emit the machine-readable report on stdout instead of the log.
   --strict   Exit 1 when ${UPSTREAM_REF} cannot be resolved (no local ref and the
              fetch failed), AND exit 1 when stale-in-progress rows are found.
