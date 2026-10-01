@@ -383,11 +383,10 @@ _intent_ locally or not at all; taking the commit would regress the fork.
 
 ## SYNC-10 — Test-Only Ports (`P3`)
 
-| SHA         | Date       | Subject                                                      | Class       | Pri | Δ   | Status | Blocked-by               | Resolved: | Version | Exception |
-| ----------- | ---------- | ------------------------------------------------------------ | ----------- | --- | --- | ------ | ------------------------ | --------- | ------- | --------- |
-| `ae6c1a876` | 2026-09-11 | test(e2e): add LM Studio reasoning_content e2e guard (#1322) | `A-CLEAN`   | P3  | 0   | ☐      | —                        | —         | —       | —         |
-| `87d41aa4f` | 2026-09-12 | test(webview): stabilize theme contrast audit (#1613)        | `A-CLEAN`   | P3  | 0   | ☐      | `d7795ca3f`, `fec4e1353` | —         | —       | —         |
-| `147147cda` | 2026-08-30 | test(e2e): ignore partial asks in completion waits (#1449)   | `B-CAREFUL` | P3  | 1   | ☐      | —                        | —         | —       | —         |
+| SHA         | Date       | Subject                                                    | Class       | Pri | Δ   | Status | Blocked-by               | Resolved: | Version | Exception |
+| ----------- | ---------- | ---------------------------------------------------------- | ----------- | --- | --- | ------ | ------------------------ | --------- | ------- | --------- |
+| `87d41aa4f` | 2026-09-12 | test(webview): stabilize theme contrast audit (#1613)      | `A-CLEAN`   | P3  | 0   | ☐      | `d7795ca3f`, `fec4e1353` | —         | —       | —         |
+| `147147cda` | 2026-08-30 | test(e2e): ignore partial asks in completion waits (#1449) | `B-CAREFUL` | P3  | 1   | ☐      | —                        | —         | —       | —         |
 
 **Notes.** Cheap, but only worth taking where the fork has the corresponding test
 lane. Per the fork's test-placement guidance, port these at the lowest layer that
@@ -491,14 +490,14 @@ recorded prerequisite is two different things and only one of them is a defect:
   `cc9c0afe9` are blocked on `a80b3b3ab`, and `1165aebc8` / `500152b78` name a prerequisite that
   has already landed (`7e85e2793` / `5e8fcc846`).
 
-| SHA         | Date       | Subject                                                                     | Class       | Pri | Δ   | Status      | Blocked-by               | Resolved:  | Version | Exception |
-| ----------- | ---------- | --------------------------------------------------------------------------- | ----------- | --- | --- | ----------- | ------------------------ | ---------- | ------- | --------- |
-| `a80b3b3ab` | 2026-08-30 | [Fix] Opencode Go routes gpt-5.6-luna through /v1/responses (#1443)         | `A-CLEAN`   | P1  | 0   | ☑ 89d43bca9 | 6ad8a6e58                | 2026-10-01 | 3.88.12 | —         |
-| `7bb14e44e` | 2026-09-04 | fix(opencode-go): send conversation session header (#1512)                  | `A-CLEAN`   | P1  | 0   | ☑ 10079cbbe | `a80b3b3ab`              | 2026-10-01 | 3.88.12 | —         |
-| `1165aebc8` | 2026-09-11 | fix(nanogpt): preserve optional tool parameters (#1590)                     | `A-CLEAN`   | P1  | 0   | ☐           | `4c7474d42`, `f424bbbe4` | —          | —       | —         |
-| `500152b78` | 2026-09-16 | [Fix] DeepSeek Flash cannot read attached images (#1618)                    | `A-CLEAN`   | P1  | 0   | ☐           | `c4574ffef`, `d5f779575` | —          | —       | —         |
-| `745656a50` | 2026-09-12 | fix(settings): preserve configured LiteLLM model ID in model picker (#1368) | `B-CAREFUL` | P1  | 2   | ☐           | —                        | —          | —       | —         |
-| `cc9c0afe9` | 2026-09-10 | [Fix] OpenCode Go context meter shows incorrect limits (#1428)              | `A-CLEAN`   | P2  | 0   | ☑ 07f0966a8 | `a80b3b3ab`              | 2026-10-01 | 3.88.12 | —         |
+| SHA         | Date       | Subject                                                                     | Class       | Pri | Δ   | Status                                            | Blocked-by               | Resolved:  | Version | Exception |
+| ----------- | ---------- | --------------------------------------------------------------------------- | ----------- | --- | --- | ------------------------------------------------- | ------------------------ | ---------- | ------- | --------- |
+| `a80b3b3ab` | 2026-08-30 | [Fix] Opencode Go routes gpt-5.6-luna through /v1/responses (#1443)         | `A-CLEAN`   | P1  | 0   | ☑ 89d43bca9                                       | 6ad8a6e58                | 2026-10-01 | 3.88.12 | —         |
+| `7bb14e44e` | 2026-09-04 | fix(opencode-go): send conversation session header (#1512)                  | `A-CLEAN`   | P1  | 0   | ☑ 10079cbbe                                       | `a80b3b3ab`              | 2026-10-01 | 3.88.12 | —         |
+| `1165aebc8` | 2026-09-11 | fix(nanogpt): preserve optional tool parameters (#1590)                     | `A-CLEAN`   | P1  | 0   | ✖ predecessor 1ad8f528d is X-REJECT — unreachable | —                        | —          | —       | —         |
+| `500152b78` | 2026-09-16 | [Fix] DeepSeek Flash cannot read attached images (#1618)                    | `A-CLEAN`   | P1  | 0   | ☐                                                 | `c4574ffef`, `d5f779575` | —          | —       | —         |
+| `745656a50` | 2026-09-12 | fix(settings): preserve configured LiteLLM model ID in model picker (#1368) | `B-CAREFUL` | P1  | 2   | ☐                                                 | —                        | —          | —       | —         |
+| `cc9c0afe9` | 2026-09-10 | [Fix] OpenCode Go context meter shows incorrect limits (#1428)              | `A-CLEAN`   | P2  | 0   | ☑ 07f0966a8                                       | `a80b3b3ab`              | 2026-10-01 | 3.88.12 | —         |
 
 **Prerequisite chains (verified 2026-09-16)**
 
@@ -530,7 +529,7 @@ These 22 commit(s) landed on `upstream/main` after the recorded baseline tip `50
 | `a0f2e0355` | 2026-09-18 | [Fix] Prevent unavailable tools from appearing in system prompts (#1505)                                   | `C-REIMPLEMENT` | P1  | 9   | ☐      | —                                                  | —         | —       | —         |
 | `332b83f22` | 2026-09-18 | [Fix] Awaiting-author label clears before maintainer re-review after author pushes (#1672)                 | `B-CAREFUL`     | P1  | 1   | ☐      | —                                                  | —         | —       | —         |
 | `8535808da` | 2026-09-19 | chore: prepare v3.82.2 release (#1677)                                                                     | `D-LOCAL`       | P3  | 3   | ☐      | —                                                  | —         | —       | —         |
-| `9e4a52d99` | 2026-09-19 | fix: align codebase search readiness across mode filters (#1630)                                           | `A-CLEAN`       | P1  | 0   | ☐      | —                                                  | —         | —       | —         |
+| `9e4a52d99` | 2026-09-19 | fix: align codebase search readiness across mode filters (#1630)                                           | `A-CLEAN`       | P1  | 0   | ☐      | `216450810`                                        | —         | —       | —         |
 | `7c302a51b` | 2026-09-19 | fix(visual): mask context-token counter in electron sidebar snapshot (#1680)                               | `A-CLEAN`       | P1  | 0   | ☐      | `8187d3cf9`                                        | —         | —       | —         |
 | `c5b585565` | 2026-09-19 | [Docs] Add lifecycle verification GAP report and remediation blocks (#1626)                                | `B-CAREFUL`     | P3  | 1   | ☐      | —                                                  | —         | —       | —         |
 | `a799355ee` | 2026-09-19 | chore: replace Navad with James in weekly release reminder rotation (#1700)                                | `E-SKIP`        | P4  | 1   | ☐      | —                                                  | —         | —       | —         |
@@ -776,6 +775,18 @@ Created 2026-10-01 from the bottom-up prerequisite drain (see the dependency-ann
 - **`D-LOCAL` blocker**: `057dfeebb` — never cherry-picked.
 - **`✖` blockers that will never land**: `8f7f48ad5`, `8efff00e6` — their dependents `97265fd8e`, `87d41aa4f`, `8187d3cf9` are local-reimplementation or reject candidates, not sync targets.
 - **Fork divergence**: `ec77e3f1e` (see SYNC-19), which gates `c4574ffef`.
+
+## SYNC-21 — Test-only ports (`P3`) — ✅ DONE (1/1)
+
+Created 2026-10-01 while draining the remaining verified-clean rows. `ae6c1a876` is self-contained (a new fixture plus a new suite file; all its imports resolve on the fork) and applied cleanly — no resolution record required.
+
+| SHA         | Date       | Subject                                                      | Class     | Pri | Δ   | Status      | Blocked-by | Resolved:  | Version | Exception |
+| ----------- | ---------- | ------------------------------------------------------------ | --------- | --- | --- | ----------- | ---------- | ---------- | ------- | --------- |
+| `ae6c1a876` | 2026-09-11 | test(e2e): add LM Studio reasoning_content e2e guard (#1322) | `A-CLEAN` | P3  | 0   | ☑ 1598956b5 | —          | 2026-10-01 | 3.88.12 | —         |
+
+**Notes — the other clean candidate, deferred.** `9e4a52d99` (#1630) was attempted and aborted: its new spec imports `src/services/code-index/code-index-manager-registry.ts`, a module that **does not exist on the fork** — it is created by the unsynced `216450810` (#1622, `C-REIMPLEMENT`). This is an **import-level dependency** that the same-file predecessor scan cannot see, so `9e4a52d99` now records `Blocked-by: 216450810`.
+
+**Latent defect closed.** `1165aebc8` (#1590) is now `✖`: one of its prerequisites, `1ad8f528d` (#1069, telemetry consent), is `X-REJECT`, so the chain can never land and the row was never pickable. `Blocked-by` was cleared with the status.
 
 ## Recommended execution order
 
