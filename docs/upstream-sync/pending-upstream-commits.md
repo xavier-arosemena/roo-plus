@@ -523,7 +523,7 @@ recorded prerequisite is two different things and only one of them is a defect:
 
 ## SYNC-14 — Refresh 2026-09-24 (proposals — needs human triage)
 
-These 24 commit(s) landed on `upstream/main` after the recorded baseline tip `500152b78`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
+These 22 commit(s) landed on `upstream/main` after the recorded baseline tip `500152b78`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
 
 | SHA         | Date       | Subject                                                                                                    | Class           | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
 | ----------- | ---------- | ---------------------------------------------------------------------------------------------------------- | --------------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
@@ -534,7 +534,6 @@ These 24 commit(s) landed on `upstream/main` after the recorded baseline tip `50
 | `8535808da` | 2026-09-19 | chore: prepare v3.82.2 release (#1677)                                                                     | `D-LOCAL`       | P3  | 3   | ☐      | —          | —         | —       | —         |
 | `9e4a52d99` | 2026-09-19 | fix: align codebase search readiness across mode filters (#1630)                                           | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
 | `7c302a51b` | 2026-09-19 | fix(visual): mask context-token counter in electron sidebar snapshot (#1680)                               | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
-| `bac8adcf2` | 2026-09-19 | fix(terminal): prevent inline terminal cmd.exe fallback on Windows (#1673)                                 | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
 | `c5b585565` | 2026-09-19 | [Docs] Add lifecycle verification GAP report and remediation blocks (#1626)                                | `B-CAREFUL`     | P3  | 1   | ☐      | —          | —         | —       | —         |
 | `a799355ee` | 2026-09-19 | chore: replace Navad with James in weekly release reminder rotation (#1700)                                | `E-SKIP`        | P4  | 1   | ☐      | —          | —         | —       | —         |
 | `914f0c42a` | 2026-09-20 | test(e2e): poll restart conversation history (#1663)                                                       | `A-CLEAN`       | P3  | 0   | ☐      | —          | —         | —       | —         |
@@ -546,7 +545,6 @@ These 24 commit(s) landed on `upstream/main` after the recorded baseline tip `50
 | `f6af57a1d` | 2026-09-20 | fix(openai-native): use canonical default model (#1627)                                                    | `B-CAREFUL`     | P1  | 3   | ☐      | —          | —         | —       | —         |
 | `1a0f8fc04` | 2026-09-20 | fix(task): keep delegated child mode isolated (#1637)                                                      | `C-REIMPLEMENT` | P1  | 6   | ☐      | —          | —         | —       | —         |
 | `01928c3c4` | 2026-09-21 | fix(model-cache): propagate caller cancellation into catalog fetches (#1683)                               | `B-CAREFUL`     | P1  | 3   | ☐      | —          | —         | —       | —         |
-| `78b74ec1c` | 2026-09-22 | fix(terminal): inherit the host UTF-8 locale instead of forcing en_US.UTF-8 (#1713)                        | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
 | `7328cbf9f` | 2026-09-23 | fix(task): preserve subtask links after repeated Stop (#1678)                                              | `C-REIMPLEMENT` | P1  | 2   | ☐      | —          | —         | —       | —         |
 | `f78064753` | 2026-09-23 | chore: append scope-boundary instruction to CodeRabbit global path instructions (#1757)                    | `E-SKIP`        | P4  | 0   | ☐      | —          | —         | —       | —         |
 | `9176f2f69` | 2026-09-24 | [Feat] Add GPT-6 Sol and Luna to OpenAI model catalogs (#1755)                                             | `A-CLEAN`       | P2  | 0   | ☐      | —          | —         | —       | —         |
@@ -565,8 +563,6 @@ These 24 commit(s) landed on `upstream/main` after the recorded baseline tip `50
 **`9e4a52d99` evidence.** Δ 0 of 3 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
 
 **`7c302a51b` evidence.** Δ 0 of 2 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
-
-**`bac8adcf2` evidence.** Δ 0 of 2 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
 
 **`c5b585565` evidence.** Δ 1 of 8 file(s) · hot: package.json. Proposed `B-CAREFUL` / P3: Δ 1 — small overlap, cherry-pick then rebrand + gates; hygiene intent prefix "docs"
 
@@ -590,8 +586,6 @@ These 24 commit(s) landed on `upstream/main` after the recorded baseline tip `50
 
 **`01928c3c4` evidence.** Δ 3 of 29 file(s). Proposed `B-CAREFUL` / P1: Δ 3 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
 
-**`78b74ec1c` evidence.** Δ 0 of 4 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
-
 **`7328cbf9f` evidence.** Δ 2 of 2 file(s) · hot: src/core/webview/ClineProvider.ts. Proposed `C-REIMPLEMENT` / P1: structural divergence (decomposed webview handlers / ClineProvider); intent prefix "fix"
 
 **`f78064753` evidence.** Δ 0 of 1 file(s) · hot: .coderabbit.yaml. Proposed `E-SKIP` / P4: files touch only upstream-org automation (.github/.coderabbit/CONTRIBUTING); E-SKIP — not applicable to the fork
@@ -604,14 +598,11 @@ These 24 commit(s) landed on `upstream/main` after the recorded baseline tip `50
 
 ## SYNC-15 — Refresh 2026-09-25 (proposals — needs human triage)
 
-These 2 commit(s) landed on `upstream/main` after the recorded baseline tip `9ec139cd8`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
+These 1 commit(s) landed on `upstream/main` after the recorded baseline tip `9ec139cd8`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
 
-| SHA         | Date       | Subject                                                                         | Class     | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
-| ----------- | ---------- | ------------------------------------------------------------------------------- | --------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
-| `ebf4bd2d3` | 2026-09-24 | fix(prompts): report the shell that actually runs under Inline Terminal (#1682) | `A-CLEAN` | P1  | 0   | ☐      | —          | —         | —       | —         |
-| `fadd66a34` | 2026-09-25 | chore(coderabbit): allow non-org members to interact with chat (#1775)          | `E-SKIP`  | P4  | 0   | ☐      | —          | —         | —       | —         |
-
-**`ebf4bd2d3` evidence.** Δ 0 of 4 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
+| SHA         | Date       | Subject                                                                | Class    | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
+| ----------- | ---------- | ---------------------------------------------------------------------- | -------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
+| `fadd66a34` | 2026-09-25 | chore(coderabbit): allow non-org members to interact with chat (#1775) | `E-SKIP` | P4  | 0   | ☐      | —          | —         | —       | —         |
 
 **`fadd66a34` evidence.** Δ 0 of 1 file(s) · hot: .coderabbit.yaml. Proposed `E-SKIP` / P4: files touch only upstream-org automation (.github/.coderabbit/CONTRIBUTING); E-SKIP — not applicable to the fork
 
@@ -621,36 +612,36 @@ These 2 commit(s) landed on `upstream/main` after the recorded baseline tip `9ec
 
 These 28 commit(s) landed on `upstream/main` after the recorded baseline tip `fadd66a34`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
 
-| SHA         | Date       | Subject                                                                                                    | Class           | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
-| ----------- | ---------- | ---------------------------------------------------------------------------------------------------------- | --------------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
-| `c8c3926d5` | 2026-09-25 | fix(ci): isolate workflow config test from Turbo cache (#1782)                                             | `B-CAREFUL`     | P1  | 3   | ☐      | —          | —         | —       | —         |
-| `c028d24ba` | 2026-09-25 | fix(code-index): initialize external task managers before search (#1725)                                   | `C-REIMPLEMENT` | P1  | 6   | ☐      | —          | —         | —       | —         |
-| `219db1da5` | 2026-09-25 | perf(webview): stop task history globalState writes (#1664)                                                | `C-REIMPLEMENT` | P1  | 5   | ☐      | —          | —         | —       | —         |
-| `921810d84` | 2026-09-25 | fix(bedrock): report output truncation and expose model token limits (#1718)                               | `C-REIMPLEMENT` | P1  | 6   | ☐      | —          | —         | —       | —         |
-| `aaa22e167` | 2026-09-26 | fix(vscode-lm): sanitize lone UTF-16 surrogates in text and tool input (#1605)                             | `B-CAREFUL`     | P1  | 4   | ☐      | —          | —         | —       | —         |
-| `601f4a5fc` | 2026-09-26 | fix(task): pass null targetTask to handleModeSwitch for slash commands (#1784)                             | `B-CAREFUL`     | P1  | 2   | ☐      | —          | —         | —       | —         |
-| `a9ebf1a6a` | 2026-09-26 | fix(vertex): correct Claude Opus 5.5 max output tokens to 128K (#1777)                                     | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
-| `eb83244e9` | 2026-09-26 | [Docs] Add release documentation PR step (#1786)                                                           | `B-CAREFUL`     | P3  | 1   | ☐      | —          | —         | —       | —         |
-| `898ec061b` | 2026-09-26 | fix: clear nativeArgs when tool-call finalize fails (#1221) (#1634)                                        | `B-CAREFUL`     | P1  | 2   | ☐      | —          | —         | —       | —         |
-| `c0a50e5b9` | 2026-09-26 | Update code owners (#1809)                                                                                 | `E-SKIP`        | P4  | 1   | ☐      | —          | —         | —       | —         |
-| `1803c01ba` | 2026-09-26 | Release v3.84.0 (#1810)                                                                                    | `C-REIMPLEMENT` | P3  | 42  | ☐      | —          | —         | —       | —         |
-| `7c291bb08` | 2026-09-26 | fix(webview-message-handler): enforce workspace containment for markdown-sourced openFile requests (#1762) | `C-REIMPLEMENT` | P1  | 19  | ☐      | —          | —         | —       | —         |
-| `3c09f1756` | 2026-09-28 | refactor(code-index): separate service factories and embedder validation (#1818)                           | `C-REIMPLEMENT` | P3  | 2   | ☐      | —          | —         | —       | —         |
-| `d0dec4b12` | 2026-09-28 | fix(task): keep the first abort reason (RSK-19) (#1811)                                                    | `C-REIMPLEMENT` | P1  | 3   | ☐      | —          | —         | —       | —         |
-| `222585693` | 2026-09-28 | fix: reset didFinishAbortingStream for each API request (#1801) (#1812)                                    | `B-CAREFUL`     | P1  | 2   | ☐      | —          | —         | —       | —         |
-| `d351a155e` | 2026-09-28 | refactor(code-index): introduce workspace scope behind registry (#1766)                                    | `A-CLEAN`       | P3  | 0   | ☐      | —          | —         | —       | —         |
-| `8bec7c138` | 2026-09-28 | refactor(code-index): extract scan execution without behavior changes (#1834)                              | `B-CAREFUL`     | P3  | 2   | ☐      | —          | —         | —       | —         |
-| `778ad3e18` | 2026-09-28 | refactor(code-index): scope state ownership and workspace status delivery (#1768)                          | `C-REIMPLEMENT` | P3  | 5   | ☐      | —          | —         | —       | —         |
-| `e277ab927` | 2026-09-29 | refactor(code-index): extract single-file preparation (#1836)                                              | `B-CAREFUL`     | P3  | 2   | ☐      | —          | —         | —       | —         |
-| `2da6ea2ae` | 2026-09-30 | fix: streaming tool-call argument loss in NativeToolCallParser (#695) (#700)                               | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
-| `0f75a60bc` | 2026-09-30 | fix(vscode-lm): window-safe middle-out truncation of tool_result content (#1606)                           | `B-CAREFUL`     | P1  | 2   | ☐      | —          | —         | —       | —         |
-| `bf3bc781b` | 2026-09-30 | refactor(code-index): route workspace actions through scopes (#1778)                                       | `C-REIMPLEMENT` | P3  | 3   | ☐      | —          | —         | —       | —         |
-| `0b7cd10fc` | 2026-09-30 | refactor(code-index): use immutable configuration snapshots (#1815)                                        | `B-CAREFUL`     | P3  | 3   | ☐      | —          | —         | —       | —         |
-| `ceceb087f` | 2026-09-30 | feat(openai): add GPT-6.1 Sol support (#1864)                                                              | `C-REIMPLEMENT` | P2  | 1   | ☐      | —          | —         | —       | —         |
-| `9a2c3fbcf` | 2026-10-01 | [Feat] Add community-approved label for community code approvals (#1873)                                   | `B-CAREFUL`     | P2  | 2   | ☐      | —          | —         | —       | —         |
-| `5bb51916e` | 2026-10-01 | chore(deps): update dependency lru-cache to v11.5.3 (#1583)                                                | `D-LOCAL`       | P3  | 1   | ☐      | —          | —         | —       | —         |
-| `0b6c41895` | 2026-10-01 | fix(dev): use 127.0.0.1 instead of localhost for dev server (IPv6 resolution) (#1589)                      | `C-REIMPLEMENT` | P1  | 3   | ☐      | —          | —         | —       | —         |
-| `c6e6ee398` | 2026-10-01 | fix(webview): batch repeated tool preambles (#1658)                                                        | `B-CAREFUL`     | P1  | 1   | ☐      | —          | —         | —       | —         |
+| SHA         | Date       | Subject                                                                                                    | Class           | Pri | Δ   | Status | Blocked-by               | Resolved: | Version | Exception |
+| ----------- | ---------- | ---------------------------------------------------------------------------------------------------------- | --------------- | --- | --- | ------ | ------------------------ | --------- | ------- | --------- |
+| `c8c3926d5` | 2026-09-25 | fix(ci): isolate workflow config test from Turbo cache (#1782)                                             | `B-CAREFUL`     | P1  | 3   | ☐      | —                        | —         | —       | —         |
+| `c028d24ba` | 2026-09-25 | fix(code-index): initialize external task managers before search (#1725)                                   | `C-REIMPLEMENT` | P1  | 6   | ☐      | —                        | —         | —       | —         |
+| `219db1da5` | 2026-09-25 | perf(webview): stop task history globalState writes (#1664)                                                | `C-REIMPLEMENT` | P1  | 5   | ☐      | —                        | —         | —       | —         |
+| `921810d84` | 2026-09-25 | fix(bedrock): report output truncation and expose model token limits (#1718)                               | `C-REIMPLEMENT` | P1  | 6   | ☐      | —                        | —         | —       | —         |
+| `aaa22e167` | 2026-09-26 | fix(vscode-lm): sanitize lone UTF-16 surrogates in text and tool input (#1605)                             | `B-CAREFUL`     | P1  | 4   | ☐      | —                        | —         | —       | —         |
+| `601f4a5fc` | 2026-09-26 | fix(task): pass null targetTask to handleModeSwitch for slash commands (#1784)                             | `B-CAREFUL`     | P1  | 2   | ☐      | —                        | —         | —       | —         |
+| `a9ebf1a6a` | 2026-09-26 | fix(vertex): correct Claude Opus 5.5 max output tokens to 128K (#1777)                                     | `A-CLEAN`       | P1  | 0   | ☐      | `0d937c050`, `9ec139cd8` | —         | —       | —         |
+| `eb83244e9` | 2026-09-26 | [Docs] Add release documentation PR step (#1786)                                                           | `B-CAREFUL`     | P3  | 1   | ☐      | —                        | —         | —       | —         |
+| `898ec061b` | 2026-09-26 | fix: clear nativeArgs when tool-call finalize fails (#1221) (#1634)                                        | `B-CAREFUL`     | P1  | 2   | ☐      | —                        | —         | —       | —         |
+| `c0a50e5b9` | 2026-09-26 | Update code owners (#1809)                                                                                 | `E-SKIP`        | P4  | 1   | ☐      | —                        | —         | —       | —         |
+| `1803c01ba` | 2026-09-26 | Release v3.84.0 (#1810)                                                                                    | `C-REIMPLEMENT` | P3  | 42  | ☐      | —                        | —         | —       | —         |
+| `7c291bb08` | 2026-09-26 | fix(webview-message-handler): enforce workspace containment for markdown-sourced openFile requests (#1762) | `C-REIMPLEMENT` | P1  | 19  | ☐      | —                        | —         | —       | —         |
+| `3c09f1756` | 2026-09-28 | refactor(code-index): separate service factories and embedder validation (#1818)                           | `C-REIMPLEMENT` | P3  | 2   | ☐      | —                        | —         | —       | —         |
+| `d0dec4b12` | 2026-09-28 | fix(task): keep the first abort reason (RSK-19) (#1811)                                                    | `C-REIMPLEMENT` | P1  | 3   | ☐      | —                        | —         | —       | —         |
+| `222585693` | 2026-09-28 | fix: reset didFinishAbortingStream for each API request (#1801) (#1812)                                    | `B-CAREFUL`     | P1  | 2   | ☐      | —                        | —         | —       | —         |
+| `d351a155e` | 2026-09-28 | refactor(code-index): introduce workspace scope behind registry (#1766)                                    | `A-CLEAN`       | P3  | 0   | ☐      | —                        | —         | —       | —         |
+| `8bec7c138` | 2026-09-28 | refactor(code-index): extract scan execution without behavior changes (#1834)                              | `B-CAREFUL`     | P3  | 2   | ☐      | —                        | —         | —       | —         |
+| `778ad3e18` | 2026-09-28 | refactor(code-index): scope state ownership and workspace status delivery (#1768)                          | `C-REIMPLEMENT` | P3  | 5   | ☐      | —                        | —         | —       | —         |
+| `e277ab927` | 2026-09-29 | refactor(code-index): extract single-file preparation (#1836)                                              | `B-CAREFUL`     | P3  | 2   | ☐      | —                        | —         | —       | —         |
+| `2da6ea2ae` | 2026-09-30 | fix: streaming tool-call argument loss in NativeToolCallParser (#695) (#700)                               | `A-CLEAN`       | P1  | 0   | ☐      | `9d43817fd`              | —         | —       | —         |
+| `0f75a60bc` | 2026-09-30 | fix(vscode-lm): window-safe middle-out truncation of tool_result content (#1606)                           | `B-CAREFUL`     | P1  | 2   | ☐      | —                        | —         | —       | —         |
+| `bf3bc781b` | 2026-09-30 | refactor(code-index): route workspace actions through scopes (#1778)                                       | `C-REIMPLEMENT` | P3  | 3   | ☐      | —                        | —         | —       | —         |
+| `0b7cd10fc` | 2026-09-30 | refactor(code-index): use immutable configuration snapshots (#1815)                                        | `B-CAREFUL`     | P3  | 3   | ☐      | —                        | —         | —       | —         |
+| `ceceb087f` | 2026-09-30 | feat(openai): add GPT-6.1 Sol support (#1864)                                                              | `C-REIMPLEMENT` | P2  | 1   | ☐      | —                        | —         | —       | —         |
+| `9a2c3fbcf` | 2026-10-01 | [Feat] Add community-approved label for community code approvals (#1873)                                   | `B-CAREFUL`     | P2  | 2   | ☐      | —                        | —         | —       | —         |
+| `5bb51916e` | 2026-10-01 | chore(deps): update dependency lru-cache to v11.5.3 (#1583)                                                | `D-LOCAL`       | P3  | 1   | ☐      | —                        | —         | —       | —         |
+| `0b6c41895` | 2026-10-01 | fix(dev): use 127.0.0.1 instead of localhost for dev server (IPv6 resolution) (#1589)                      | `C-REIMPLEMENT` | P1  | 3   | ☐      | —                        | —         | —       | —         |
+| `c6e6ee398` | 2026-10-01 | fix(webview): batch repeated tool preambles (#1658)                                                        | `B-CAREFUL`     | P1  | 1   | ☐      | —                        | —         | —       | —         |
 
 **`c8c3926d5` evidence.** Δ 3 of 10 file(s) · hot: .github/workflows/code-qa.yml, src/eslint.config.mjs, src/package.json. Proposed `B-CAREFUL` / P1: Δ 3 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
 
@@ -708,6 +699,23 @@ These 28 commit(s) landed on `upstream/main` after the recorded baseline tip `fa
 
 **`c6e6ee398` evidence.** Δ 1 of 4 file(s). Proposed `B-CAREFUL` / P1: Δ 1 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
 
+## SYNC-17 — Inline Terminal & shell-reporting correctness (`P1`) — ✅ DONE (3/3)
+
+Created 2026-10-01 by re-homing three `A-CLEAN` rows out of the SYNC-14 (`bac8adcf2`, `78b74ec1c`) and SYNC-15 (`ebf4bd2d3`) refresh proposals. All three measure `Δ 0` against the current fork surface, and every target file is untouched by the fork since the merge base. `bac8adcf2` is the intra-batch prerequisite for `78b74ec1c` (same file, `src/integrations/terminal/ExecaTerminalProcess.ts`; the 15 upstream commits between them touch none of these paths) and was landed first.
+
+| SHA         | Date       | Subject                                                                             | Class     | Pri | Δ   | Status      | Blocked-by  | Resolved:  | Version | Exception |
+| ----------- | ---------- | ----------------------------------------------------------------------------------- | --------- | --- | --- | ----------- | ----------- | ---------- | ------- | --------- |
+| `bac8adcf2` | 2026-09-19 | fix(terminal): prevent inline terminal cmd.exe fallback on Windows (#1673)          | `A-CLEAN` | P1  | 0   | ☑ e0ccd6931 | —           | 2026-10-01 | 3.88.12 | —         |
+| `78b74ec1c` | 2026-09-22 | fix(terminal): inherit the host UTF-8 locale instead of forcing en_US.UTF-8 (#1713) | `A-CLEAN` | P1  | 0   | ☑ 7758c5c1f | `bac8adcf2` | 2026-10-01 | 3.88.12 | —         |
+| `ebf4bd2d3` | 2026-09-24 | fix(prompts): report the shell that actually runs under Inline Terminal (#1682)     | `A-CLEAN` | P1  | 0   | ☑ c7d039612 | —           | 2026-10-01 | 3.88.12 | —         |
+
+**Notes.** No resolution record is required: all three picks applied without a conflict (`ebf4bd2d3` auto-merged `src/integrations/terminal/__tests__/shell-system-prompt-divergence.spec.ts`, which the earlier branding sweep had normalised), and each is a `git cherry-pick -x` whose message carries the trailer.
+
+**Deferred runner-ups (dependency-blocked — §2 empty-fork-side stop condition).** The same batch proposed `a9ebf1a6a` (Vertex Claude Opus 5.5 max output 128K) and `2da6ea2ae` (streaming tool-call argument loss in `NativeToolCallParser`). Both read `A-CLEAN` / `Δ 0` on fork-side overlap, but their upstream pre-images differ from the merge base while the fork side equals it, so they are deltas on upstream content the fork lacks:
+
+- `a9ebf1a6a` (#1777) is blocked by the unsynced `9ec139cd8` (#1756, add Claude Opus 5.5) and `0d937c050` (#1508, add Claude Fable 5.1); its trial pick conflicted on the exact `claude-opus-5-5` / `claude-fable-5-1` insertion block in `packages/types/src/providers/vertex.ts`. Land the provider chain first.
+- `2da6ea2ae` (#695/#700) is blocked by the unsynced `9d43817fd` (#1470), which is `C-REIMPLEMENT` and must be hand-ported, never cherry-picked.
+
 ## Recommended execution order
 
 1. **SYNC-1 `A-CLEAN` trio** — ✅ synced (☑) on `master` — merged via PR #345 (merge `6c4e9df5c`): `c6eb8fb57` → `f4287ff4f`,
@@ -722,3 +730,5 @@ These 28 commit(s) landed on `upstream/main` after the recorded baseline tip `fa
 7. **SYNC-8**, **SYNC-10**, **SYNC-9 local re-implementations** as capacity allows.
 8. **SYNC-7** — background enabler; lowers the cost of every subsequent sync.
 9. **SYNC-6** — evaluate each theming fix for "already solved by fork" before doing any work.
+10. **SYNC-17** — inline terminal & shell-reporting correctness — ✅ synced (☑) on `sync/SYNC-17-inline-terminal-shell`:
+    `bac8adcf2` → `e0ccd6931`, `78b74ec1c` → `7758c5c1f`, `ebf4bd2d3` → `c7d039612`.
