@@ -262,7 +262,6 @@ Theme: the bulk of the `A-CLEAN` quick-wins live here.
 | SHA         | Date       | Subject                                                                        | Class           | Pri | Δ   | Status      | Blocked-by | Resolved:  | Version | Exception |
 | ----------- | ---------- | ------------------------------------------------------------------------------ | --------------- | --- | --- | ----------- | ---------- | ---------- | ------- | --------- |
 | `7e85e2793` | 2026-08-22 | [Fix] NanoGPT Muse Spark fails during tool use (#1310)                         | `A-CLEAN`       | P1  | 0   | ☑ 2868dec51 | —          | 2026-09-16 | 3.88.4  | —         |
-| `4e8fa09f2` | 2026-09-03 | fix: yield reasoning chunks before content chunks in providers (#1462)         | `B-CAREFUL`     | P1  | 4   | ☐           | —          | —          | —       | —         |
 | `bd399fa77` | 2026-08-22 | fix(openai-codex): complete prompts over the streaming transport (#1243)       | `B-CAREFUL`     | P1  | 4   | ☐           | —          | —          | —       | —         |
 | `b0fdbc7a7` | 2026-08-28 | [Fix] Vertex Gemini 3.7 fails after tools return empty output (#1250)          | `B-CAREFUL`     | P1  | 2   | ☐           | —          | —          | —       | —         |
 | `4c7474d42` | 2026-09-06 | [Fix] Reasoning models stop thinking after model selection (#1349)             | `B-CAREFUL`     | P1  | 1   | ☐           | —          | —          | —       | —         |
@@ -492,14 +491,14 @@ recorded prerequisite is two different things and only one of them is a defect:
   `cc9c0afe9` are blocked on `a80b3b3ab`, and `1165aebc8` / `500152b78` name a prerequisite that
   has already landed (`7e85e2793` / `5e8fcc846`).
 
-| SHA         | Date       | Subject                                                                     | Class       | Pri | Δ   | Status      | Blocked-by                            | Resolved:  | Version | Exception |
-| ----------- | ---------- | --------------------------------------------------------------------------- | ----------- | --- | --- | ----------- | ------------------------------------- | ---------- | ------- | --------- |
-| `a80b3b3ab` | 2026-08-30 | [Fix] Opencode Go routes gpt-5.6-luna through /v1/responses (#1443)         | `A-CLEAN`   | P1  | 0   | ☑ 89d43bca9 | 6ad8a6e58                             | 2026-10-01 | 3.88.12 | —         |
-| `7bb14e44e` | 2026-09-04 | fix(opencode-go): send conversation session header (#1512)                  | `A-CLEAN`   | P1  | 0   | ☑ 10079cbbe | `a80b3b3ab`                           | 2026-10-01 | 3.88.12 | —         |
-| `1165aebc8` | 2026-09-11 | fix(nanogpt): preserve optional tool parameters (#1590)                     | `A-CLEAN`   | P1  | 0   | ☐           | `4c7474d42`, `4e8fa09f2`, `f424bbbe4` | —          | —       | —         |
-| `500152b78` | 2026-09-16 | [Fix] DeepSeek Flash cannot read attached images (#1618)                    | `A-CLEAN`   | P1  | 0   | ☐           | `4e8fa09f2`, `c4574ffef`, `d5f779575` | —          | —       | —         |
-| `745656a50` | 2026-09-12 | fix(settings): preserve configured LiteLLM model ID in model picker (#1368) | `B-CAREFUL` | P1  | 2   | ☐           | —                                     | —          | —       | —         |
-| `cc9c0afe9` | 2026-09-10 | [Fix] OpenCode Go context meter shows incorrect limits (#1428)              | `A-CLEAN`   | P2  | 0   | ☑ 07f0966a8 | `a80b3b3ab`                           | 2026-10-01 | 3.88.12 | —         |
+| SHA         | Date       | Subject                                                                     | Class       | Pri | Δ   | Status      | Blocked-by               | Resolved:  | Version | Exception |
+| ----------- | ---------- | --------------------------------------------------------------------------- | ----------- | --- | --- | ----------- | ------------------------ | ---------- | ------- | --------- |
+| `a80b3b3ab` | 2026-08-30 | [Fix] Opencode Go routes gpt-5.6-luna through /v1/responses (#1443)         | `A-CLEAN`   | P1  | 0   | ☑ 89d43bca9 | 6ad8a6e58                | 2026-10-01 | 3.88.12 | —         |
+| `7bb14e44e` | 2026-09-04 | fix(opencode-go): send conversation session header (#1512)                  | `A-CLEAN`   | P1  | 0   | ☑ 10079cbbe | `a80b3b3ab`              | 2026-10-01 | 3.88.12 | —         |
+| `1165aebc8` | 2026-09-11 | fix(nanogpt): preserve optional tool parameters (#1590)                     | `A-CLEAN`   | P1  | 0   | ☐           | `4c7474d42`, `f424bbbe4` | —          | —       | —         |
+| `500152b78` | 2026-09-16 | [Fix] DeepSeek Flash cannot read attached images (#1618)                    | `A-CLEAN`   | P1  | 0   | ☐           | `c4574ffef`, `d5f779575` | —          | —       | —         |
+| `745656a50` | 2026-09-12 | fix(settings): preserve configured LiteLLM model ID in model picker (#1368) | `B-CAREFUL` | P1  | 2   | ☐           | —                        | —          | —       | —         |
+| `cc9c0afe9` | 2026-09-10 | [Fix] OpenCode Go context meter shows incorrect limits (#1428)              | `A-CLEAN`   | P2  | 0   | ☑ 07f0966a8 | `a80b3b3ab`              | 2026-10-01 | 3.88.12 | —         |
 
 **Prerequisite chains (verified 2026-09-16)**
 
@@ -761,6 +760,22 @@ This is the same defect the SYNC-13 section documents: `Δ` measures fork-side o
 - **Stale `Δ`/class on two rows.** `500152b78` records `A-CLEAN` Δ 0, but after its unsynced predecessor `5e8fcc846` landed on the fork the fork now overlaps 4 of its files (true Δ 4); `1165aebc8` likewise recomputes to Δ 2. An `A-CLEAN` label asserts Δ 0 (hard ladder), so both should be reclassified to `B-CAREFUL` by the next refresh — deliberately left as-is here to keep this pass to readiness data only.
 - **`✖`-blocked rows.** `97265fd8e` and `87d41aa4f` also depend on discarded `E-SKIP` rows (`8efff00e6`, `8f7f48ad5`) that will never land, so they are `D-LOCAL`/`✖` candidates rather than pickable rows.
 - **Trial-picking is the only reliable filter.** `ec77e3f1e` (SYNC-19) passed this annotation _and_ the structural check, yet failed at pick + test time (fork-divergent Z AI selection) — see the SYNC-19 Notes.
+
+## SYNC-20 — Prerequisite drain: provider reasoning-chunk ordering (`P1`) — ✅ DONE (1/1)
+
+Created 2026-10-01 from the bottom-up prerequisite drain (see the dependency-annotation section above). `4e8fa09f2` is a **root** — it had no unsynced predecessor — and it advances the chain for `1165aebc8` / `500152b78` / `f424bbbe4` / `d5f779575`. Landed cleanly (16 files, all auto-merged); no resolution record required. The `Blocked-by` cells of its dependents were updated to drop the now-synced `4e8fa09f2`.
+
+| SHA         | Date       | Subject                                                                | Class       | Pri | Δ   | Status      | Blocked-by | Resolved:  | Version | Exception |
+| ----------- | ---------- | ---------------------------------------------------------------------- | ----------- | --- | --- | ----------- | ---------- | ---------- | ------- | --------- |
+| `4e8fa09f2` | 2026-09-03 | fix: yield reasoning chunks before content chunks in providers (#1462) | `B-CAREFUL` | P1  | 4   | ☑ ff840aaee | —          | 2026-10-01 | 3.88.12 | —         |
+
+**Deferred from this drain (time / risk review).** The chains bottom out largely in work that cannot be a cherry-pick, so bottom-up draining is a program rather than a batch:
+
+- **Sibling root `0d937c050`** (#1508, Claude Fable 5.1) — attempted and aborted: it conflicts **structurally** in `src/api/providers/anthropic.ts` (the fork's `createMessage` streaming setup differs from upstream's), so its `claude-fable-5-1` cases plus the tool-choice normalisation need a hand-port. It also unblocks nothing on its own.
+- **`C-REIMPLEMENT` blockers** (hand-port, never cherry-pick): `fec4e1353` (Δ 14), `2ecbf35a8` (Δ 13), `216450810` (Δ 13), `9d43817fd` (Δ 10, a P1 gating `2da6ea2ae`), `d5f779575`'s `8d296deef` (Δ 5) / `4140c2c83`, and `972e75078` (Δ 30).
+- **`D-LOCAL` blocker**: `057dfeebb` — never cherry-picked.
+- **`✖` blockers that will never land**: `8f7f48ad5`, `8efff00e6` — their dependents `97265fd8e`, `87d41aa4f`, `8187d3cf9` are local-reimplementation or reject candidates, not sync targets.
+- **Fork divergence**: `ec77e3f1e` (see SYNC-19), which gates `c4574ffef`.
 
 ## Recommended execution order
 
