@@ -312,15 +312,15 @@ Theme: reduce the structural divergence that forces `C-REIMPLEMENT` on everythin
 else. This batch has no direct user-visible value but lowers the cost of all
 future syncs.
 
-| SHA         | Date       | Subject                                                                  | Class           | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
-| ----------- | ---------- | ------------------------------------------------------------------------ | --------------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
-| `216450810` | 2026-09-16 | refactor(code-index): extract manager registry (#1622)                   | `C-REIMPLEMENT` | P3  | 13  | ☐      | —          | —         | —       | —         |
-| `afdede5b9` | 2026-08-20 | lint(providers): enforce canonical identifiers (#1297)                   | `C-REIMPLEMENT` | P3  | 36  | ☐      | —          | —         | —       | —         |
-| `972e75078` | 2026-09-01 | refactor(eslint): share provider identifier rule across packages (#1421) | `C-REIMPLEMENT` | P3  | 30  | ☐      | —          | —         | —       | —         |
-| `c82f0a35b` | 2026-09-11 | refactor(providers): finish canonical identifier audit (#1493)           | `C-REIMPLEMENT` | P3  | 7   | ☐      | —          | —         | —       | —         |
-| `db61d7364` | 2026-09-11 | test(code-index,tools): cover lines left uncovered by #1297 (#1317)      | `C-REIMPLEMENT` | P3  | 3   | ☐      | —          | —         | —       | —         |
-| `1a7e71883` | 2026-09-01 | [Chore] Add concurrent task lifecycle model check (#1478)                | `C-REIMPLEMENT` | P3  | 4   | ☐      | —          | —         | —       | —         |
-| `97265fd8e` | 2026-08-30 | test(webview): capture typed host messages (#1446)                       | `A-CLEAN`       | P2  | 0   | ☐      | —          | —         | —       | —         |
+| SHA         | Date       | Subject                                                                  | Class           | Pri | Δ   | Status | Blocked-by  | Resolved: | Version | Exception |
+| ----------- | ---------- | ------------------------------------------------------------------------ | --------------- | --- | --- | ------ | ----------- | --------- | ------- | --------- |
+| `216450810` | 2026-09-16 | refactor(code-index): extract manager registry (#1622)                   | `C-REIMPLEMENT` | P3  | 13  | ☐      | —           | —         | —       | —         |
+| `afdede5b9` | 2026-08-20 | lint(providers): enforce canonical identifiers (#1297)                   | `C-REIMPLEMENT` | P3  | 36  | ☐      | —           | —         | —       | —         |
+| `972e75078` | 2026-09-01 | refactor(eslint): share provider identifier rule across packages (#1421) | `C-REIMPLEMENT` | P3  | 30  | ☐      | —           | —         | —       | —         |
+| `c82f0a35b` | 2026-09-11 | refactor(providers): finish canonical identifier audit (#1493)           | `C-REIMPLEMENT` | P3  | 7   | ☐      | —           | —         | —       | —         |
+| `db61d7364` | 2026-09-11 | test(code-index,tools): cover lines left uncovered by #1297 (#1317)      | `C-REIMPLEMENT` | P3  | 3   | ☐      | —           | —         | —       | —         |
+| `1a7e71883` | 2026-09-01 | [Chore] Add concurrent task lifecycle model check (#1478)                | `C-REIMPLEMENT` | P3  | 4   | ☐      | —           | —         | —       | —         |
+| `97265fd8e` | 2026-08-30 | test(webview): capture typed host messages (#1446)                       | `A-CLEAN`       | P2  | 0   | ☐      | `fec4e1353` | —         | —       | —         |
 
 **Notes.** The provider-identifier family (`afdede5b9`, `972e75078`,
 `c82f0a35be`, `db61d7364`) is one logical change spread over four commits and
@@ -384,11 +384,11 @@ _intent_ locally or not at all; taking the commit would regress the fork.
 
 ## SYNC-10 — Test-Only Ports (`P3`)
 
-| SHA         | Date       | Subject                                                      | Class       | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
-| ----------- | ---------- | ------------------------------------------------------------ | ----------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
-| `ae6c1a876` | 2026-09-11 | test(e2e): add LM Studio reasoning_content e2e guard (#1322) | `A-CLEAN`   | P3  | 0   | ☐      | —          | —         | —       | —         |
-| `87d41aa4f` | 2026-09-12 | test(webview): stabilize theme contrast audit (#1613)        | `A-CLEAN`   | P3  | 0   | ☐      | —          | —         | —       | —         |
-| `147147cda` | 2026-08-30 | test(e2e): ignore partial asks in completion waits (#1449)   | `B-CAREFUL` | P3  | 1   | ☐      | —          | —         | —       | —         |
+| SHA         | Date       | Subject                                                      | Class       | Pri | Δ   | Status | Blocked-by               | Resolved: | Version | Exception |
+| ----------- | ---------- | ------------------------------------------------------------ | ----------- | --- | --- | ------ | ------------------------ | --------- | ------- | --------- |
+| `ae6c1a876` | 2026-09-11 | test(e2e): add LM Studio reasoning_content e2e guard (#1322) | `A-CLEAN`   | P3  | 0   | ☐      | —                        | —         | —       | —         |
+| `87d41aa4f` | 2026-09-12 | test(webview): stabilize theme contrast audit (#1613)        | `A-CLEAN`   | P3  | 0   | ☐      | `d7795ca3f`, `fec4e1353` | —         | —       | —         |
+| `147147cda` | 2026-08-30 | test(e2e): ignore partial asks in completion waits (#1449)   | `B-CAREFUL` | P3  | 1   | ☐      | —                        | —         | —       | —         |
 
 **Notes.** Cheap, but only worth taking where the fork has the corresponding test
 lane. Per the fork's test-placement guidance, port these at the lowest layer that
@@ -492,14 +492,14 @@ recorded prerequisite is two different things and only one of them is a defect:
   `cc9c0afe9` are blocked on `a80b3b3ab`, and `1165aebc8` / `500152b78` name a prerequisite that
   has already landed (`7e85e2793` / `5e8fcc846`).
 
-| SHA         | Date       | Subject                                                                     | Class       | Pri | Δ   | Status      | Blocked-by  | Resolved:  | Version | Exception |
-| ----------- | ---------- | --------------------------------------------------------------------------- | ----------- | --- | --- | ----------- | ----------- | ---------- | ------- | --------- |
-| `a80b3b3ab` | 2026-08-30 | [Fix] Opencode Go routes gpt-5.6-luna through /v1/responses (#1443)         | `A-CLEAN`   | P1  | 0   | ☑ 89d43bca9 | 6ad8a6e58   | 2026-10-01 | 3.88.12 | —         |
-| `7bb14e44e` | 2026-09-04 | fix(opencode-go): send conversation session header (#1512)                  | `A-CLEAN`   | P1  | 0   | ☑ 10079cbbe | `a80b3b3ab` | 2026-10-01 | 3.88.12 | —         |
-| `1165aebc8` | 2026-09-11 | fix(nanogpt): preserve optional tool parameters (#1590)                     | `A-CLEAN`   | P1  | 0   | ☐           | `7e85e2793` | —          | —       | —         |
-| `500152b78` | 2026-09-16 | [Fix] DeepSeek Flash cannot read attached images (#1618)                    | `A-CLEAN`   | P1  | 0   | ☐           | `5e8fcc846` | —          | —       | —         |
-| `745656a50` | 2026-09-12 | fix(settings): preserve configured LiteLLM model ID in model picker (#1368) | `B-CAREFUL` | P1  | 2   | ☐           | —           | —          | —       | —         |
-| `cc9c0afe9` | 2026-09-10 | [Fix] OpenCode Go context meter shows incorrect limits (#1428)              | `A-CLEAN`   | P2  | 0   | ☑ 07f0966a8 | `a80b3b3ab` | 2026-10-01 | 3.88.12 | —         |
+| SHA         | Date       | Subject                                                                     | Class       | Pri | Δ   | Status      | Blocked-by                            | Resolved:  | Version | Exception |
+| ----------- | ---------- | --------------------------------------------------------------------------- | ----------- | --- | --- | ----------- | ------------------------------------- | ---------- | ------- | --------- |
+| `a80b3b3ab` | 2026-08-30 | [Fix] Opencode Go routes gpt-5.6-luna through /v1/responses (#1443)         | `A-CLEAN`   | P1  | 0   | ☑ 89d43bca9 | 6ad8a6e58                             | 2026-10-01 | 3.88.12 | —         |
+| `7bb14e44e` | 2026-09-04 | fix(opencode-go): send conversation session header (#1512)                  | `A-CLEAN`   | P1  | 0   | ☑ 10079cbbe | `a80b3b3ab`                           | 2026-10-01 | 3.88.12 | —         |
+| `1165aebc8` | 2026-09-11 | fix(nanogpt): preserve optional tool parameters (#1590)                     | `A-CLEAN`   | P1  | 0   | ☐           | `4c7474d42`, `4e8fa09f2`, `f424bbbe4` | —          | —       | —         |
+| `500152b78` | 2026-09-16 | [Fix] DeepSeek Flash cannot read attached images (#1618)                    | `A-CLEAN`   | P1  | 0   | ☐           | `4e8fa09f2`, `c4574ffef`, `d5f779575` | —          | —       | —         |
+| `745656a50` | 2026-09-12 | fix(settings): preserve configured LiteLLM model ID in model picker (#1368) | `B-CAREFUL` | P1  | 2   | ☐           | —                                     | —          | —       | —         |
+| `cc9c0afe9` | 2026-09-10 | [Fix] OpenCode Go context meter shows incorrect limits (#1428)              | `A-CLEAN`   | P2  | 0   | ☑ 07f0966a8 | `a80b3b3ab`                           | 2026-10-01 | 3.88.12 | —         |
 
 **Prerequisite chains (verified 2026-09-16)**
 
@@ -524,30 +524,30 @@ recorded prerequisite is two different things and only one of them is a defect:
 
 These 22 commit(s) landed on `upstream/main` after the recorded baseline tip `500152b78`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
 
-| SHA         | Date       | Subject                                                                                                    | Class           | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
-| ----------- | ---------- | ---------------------------------------------------------------------------------------------------------- | --------------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
-| `10b45abf7` | 2026-09-17 | fix(ci): scope mutation diff to merge result base (#1655)                                                  | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
-| `77e422faf` | 2026-09-17 | fix: \_isGrokXAI() false-positive substring match breaks token usage for domains containing "x.ai" (#1484) | `B-CAREFUL`     | P1  | 1   | ☐      | —          | —         | —       | —         |
-| `a0f2e0355` | 2026-09-18 | [Fix] Prevent unavailable tools from appearing in system prompts (#1505)                                   | `C-REIMPLEMENT` | P1  | 9   | ☐      | —          | —         | —       | —         |
-| `332b83f22` | 2026-09-18 | [Fix] Awaiting-author label clears before maintainer re-review after author pushes (#1672)                 | `B-CAREFUL`     | P1  | 1   | ☐      | —          | —         | —       | —         |
-| `8535808da` | 2026-09-19 | chore: prepare v3.82.2 release (#1677)                                                                     | `D-LOCAL`       | P3  | 3   | ☐      | —          | —         | —       | —         |
-| `9e4a52d99` | 2026-09-19 | fix: align codebase search readiness across mode filters (#1630)                                           | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
-| `7c302a51b` | 2026-09-19 | fix(visual): mask context-token counter in electron sidebar snapshot (#1680)                               | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
-| `c5b585565` | 2026-09-19 | [Docs] Add lifecycle verification GAP report and remediation blocks (#1626)                                | `B-CAREFUL`     | P3  | 1   | ☐      | —          | —         | —       | —         |
-| `a799355ee` | 2026-09-19 | chore: replace Navad with James in weekly release reminder rotation (#1700)                                | `E-SKIP`        | P4  | 1   | ☐      | —          | —         | —       | —         |
-| `914f0c42a` | 2026-09-20 | test(e2e): poll restart conversation history (#1663)                                                       | `A-CLEAN`       | P3  | 0   | ☐      | —          | —         | —       | —         |
-| `08d05eb0f` | 2026-09-20 | fix(vscode-lm): add guarded recovery parser and schema conversion (#1188)                                  | `B-CAREFUL`     | P1  | 2   | ☐      | —          | —         | —       | —         |
-| `741f19830` | 2026-09-20 | [Chore] Reduce Windows CI cold-start time (#1654)                                                          | `B-CAREFUL`     | P3  | 3   | ☐      | —          | —         | —       | —         |
-| `1ebbd954e` | 2026-09-20 | chore(deps): update dependency vitest to v4.1.11 [security] (#1582)                                        | `D-LOCAL`       | P0  | 7   | ☐      | —          | —         | —       | —         |
-| `4436ac537` | 2026-09-20 | fix(mcp): preserve concurrent MCP settings during initial creation (fixes #1371) (#1380)                   | `B-CAREFUL`     | P1  | 1   | ☐      | —          | —         | —       | —         |
-| `f797477b8` | 2026-09-20 | fix(code-index): search the task workspace without initializing managers (#1629)                           | `B-CAREFUL`     | P1  | 2   | ☐      | —          | —         | —       | —         |
-| `f6af57a1d` | 2026-09-20 | fix(openai-native): use canonical default model (#1627)                                                    | `B-CAREFUL`     | P1  | 3   | ☐      | —          | —         | —       | —         |
-| `1a0f8fc04` | 2026-09-20 | fix(task): keep delegated child mode isolated (#1637)                                                      | `C-REIMPLEMENT` | P1  | 6   | ☐      | —          | —         | —       | —         |
-| `01928c3c4` | 2026-09-21 | fix(model-cache): propagate caller cancellation into catalog fetches (#1683)                               | `B-CAREFUL`     | P1  | 3   | ☐      | —          | —         | —       | —         |
-| `7328cbf9f` | 2026-09-23 | fix(task): preserve subtask links after repeated Stop (#1678)                                              | `C-REIMPLEMENT` | P1  | 2   | ☐      | —          | —         | —       | —         |
-| `f78064753` | 2026-09-23 | chore: append scope-boundary instruction to CodeRabbit global path instructions (#1757)                    | `E-SKIP`        | P4  | 0   | ☐      | —          | —         | —       | —         |
-| `9176f2f69` | 2026-09-24 | [Feat] Add GPT-6 Sol and Luna to OpenAI model catalogs (#1755)                                             | `A-CLEAN`       | P2  | 0   | ☐      | —          | —         | —       | —         |
-| `9ec139cd8` | 2026-09-24 | [Feat] Add Claude Opus 5.5 to model providers (#1756)                                                      | `B-CAREFUL`     | P2  | 3   | ☐      | —          | —         | —       | —         |
+| SHA         | Date       | Subject                                                                                                    | Class           | Pri | Δ   | Status | Blocked-by                                         | Resolved: | Version | Exception |
+| ----------- | ---------- | ---------------------------------------------------------------------------------------------------------- | --------------- | --- | --- | ------ | -------------------------------------------------- | --------- | ------- | --------- |
+| `10b45abf7` | 2026-09-17 | fix(ci): scope mutation diff to merge result base (#1655)                                                  | `A-CLEAN`       | P1  | 0   | ☐      | `057dfeebb`, `2ecbf35a8`, `4140c2c83`, `9d43817fd` | —         | —       | —         |
+| `77e422faf` | 2026-09-17 | fix: \_isGrokXAI() false-positive substring match breaks token usage for domains containing "x.ai" (#1484) | `B-CAREFUL`     | P1  | 1   | ☐      | —                                                  | —         | —       | —         |
+| `a0f2e0355` | 2026-09-18 | [Fix] Prevent unavailable tools from appearing in system prompts (#1505)                                   | `C-REIMPLEMENT` | P1  | 9   | ☐      | —                                                  | —         | —       | —         |
+| `332b83f22` | 2026-09-18 | [Fix] Awaiting-author label clears before maintainer re-review after author pushes (#1672)                 | `B-CAREFUL`     | P1  | 1   | ☐      | —                                                  | —         | —       | —         |
+| `8535808da` | 2026-09-19 | chore: prepare v3.82.2 release (#1677)                                                                     | `D-LOCAL`       | P3  | 3   | ☐      | —                                                  | —         | —       | —         |
+| `9e4a52d99` | 2026-09-19 | fix: align codebase search readiness across mode filters (#1630)                                           | `A-CLEAN`       | P1  | 0   | ☐      | —                                                  | —         | —       | —         |
+| `7c302a51b` | 2026-09-19 | fix(visual): mask context-token counter in electron sidebar snapshot (#1680)                               | `A-CLEAN`       | P1  | 0   | ☐      | `8187d3cf9`                                        | —         | —       | —         |
+| `c5b585565` | 2026-09-19 | [Docs] Add lifecycle verification GAP report and remediation blocks (#1626)                                | `B-CAREFUL`     | P3  | 1   | ☐      | —                                                  | —         | —       | —         |
+| `a799355ee` | 2026-09-19 | chore: replace Navad with James in weekly release reminder rotation (#1700)                                | `E-SKIP`        | P4  | 1   | ☐      | —                                                  | —         | —       | —         |
+| `914f0c42a` | 2026-09-20 | test(e2e): poll restart conversation history (#1663)                                                       | `A-CLEAN`       | P3  | 0   | ☐      | `2ecbf35a8`, `8d296deef`                           | —         | —       | —         |
+| `08d05eb0f` | 2026-09-20 | fix(vscode-lm): add guarded recovery parser and schema conversion (#1188)                                  | `B-CAREFUL`     | P1  | 2   | ☐      | —                                                  | —         | —       | —         |
+| `741f19830` | 2026-09-20 | [Chore] Reduce Windows CI cold-start time (#1654)                                                          | `B-CAREFUL`     | P3  | 3   | ☐      | —                                                  | —         | —       | —         |
+| `1ebbd954e` | 2026-09-20 | chore(deps): update dependency vitest to v4.1.11 [security] (#1582)                                        | `D-LOCAL`       | P0  | 7   | ☐      | —                                                  | —         | —       | —         |
+| `4436ac537` | 2026-09-20 | fix(mcp): preserve concurrent MCP settings during initial creation (fixes #1371) (#1380)                   | `B-CAREFUL`     | P1  | 1   | ☐      | —                                                  | —         | —       | —         |
+| `f797477b8` | 2026-09-20 | fix(code-index): search the task workspace without initializing managers (#1629)                           | `B-CAREFUL`     | P1  | 2   | ☐      | —                                                  | —         | —       | —         |
+| `f6af57a1d` | 2026-09-20 | fix(openai-native): use canonical default model (#1627)                                                    | `B-CAREFUL`     | P1  | 3   | ☐      | —                                                  | —         | —       | —         |
+| `1a0f8fc04` | 2026-09-20 | fix(task): keep delegated child mode isolated (#1637)                                                      | `C-REIMPLEMENT` | P1  | 6   | ☐      | —                                                  | —         | —       | —         |
+| `01928c3c4` | 2026-09-21 | fix(model-cache): propagate caller cancellation into catalog fetches (#1683)                               | `B-CAREFUL`     | P1  | 3   | ☐      | —                                                  | —         | —       | —         |
+| `7328cbf9f` | 2026-09-23 | fix(task): preserve subtask links after repeated Stop (#1678)                                              | `C-REIMPLEMENT` | P1  | 2   | ☐      | —                                                  | —         | —       | —         |
+| `f78064753` | 2026-09-23 | chore: append scope-boundary instruction to CodeRabbit global path instructions (#1757)                    | `E-SKIP`        | P4  | 0   | ☐      | —                                                  | —         | —       | —         |
+| `9176f2f69` | 2026-09-24 | [Feat] Add GPT-6 Sol and Luna to OpenAI model catalogs (#1755)                                             | `A-CLEAN`       | P2  | 0   | ☐      | `f424bbbe4`                                        | —         | —       | —         |
+| `9ec139cd8` | 2026-09-24 | [Feat] Add Claude Opus 5.5 to model providers (#1756)                                                      | `B-CAREFUL`     | P2  | 3   | ☐      | —                                                  | —         | —       | —         |
 
 **`10b45abf7` evidence.** Δ 0 of 2 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
 
@@ -627,7 +627,7 @@ These 27 commit(s) landed on `upstream/main` after the recorded baseline tip `fa
 | `3c09f1756` | 2026-09-28 | refactor(code-index): separate service factories and embedder validation (#1818)                           | `C-REIMPLEMENT` | P3  | 2   | ☐      | —                        | —         | —       | —         |
 | `d0dec4b12` | 2026-09-28 | fix(task): keep the first abort reason (RSK-19) (#1811)                                                    | `C-REIMPLEMENT` | P1  | 3   | ☐      | —                        | —         | —       | —         |
 | `222585693` | 2026-09-28 | fix: reset didFinishAbortingStream for each API request (#1801) (#1812)                                    | `B-CAREFUL`     | P1  | 2   | ☐      | —                        | —         | —       | —         |
-| `d351a155e` | 2026-09-28 | refactor(code-index): introduce workspace scope behind registry (#1766)                                    | `A-CLEAN`       | P3  | 0   | ☐      | —                        | —         | —       | —         |
+| `d351a155e` | 2026-09-28 | refactor(code-index): introduce workspace scope behind registry (#1766)                                    | `A-CLEAN`       | P3  | 0   | ☐      | `216450810`              | —         | —       | —         |
 | `8bec7c138` | 2026-09-28 | refactor(code-index): extract scan execution without behavior changes (#1834)                              | `B-CAREFUL`     | P3  | 2   | ☐      | —                        | —         | —       | —         |
 | `778ad3e18` | 2026-09-28 | refactor(code-index): scope state ownership and workspace status delivery (#1768)                          | `C-REIMPLEMENT` | P3  | 5   | ☐      | —                        | —         | —       | —         |
 | `e277ab927` | 2026-09-29 | refactor(code-index): extract single-file preparation (#1836)                                              | `B-CAREFUL`     | P3  | 2   | ☐      | —                        | —         | —       | —         |
@@ -733,6 +733,34 @@ Created 2026-10-01 by re-homing `22cc416ba` out of the SYNC-5 curated list. It a
 **Notes.** **Deferred in this batch — `ec77e3f1e` (#1430, add GLM-5.3-Flash).** Attempted and aborted: its `webview-ui/src/components/ui/hooks/__tests__/useSelectedModel.spec.ts` hunk adds a `Z AI provider` describe block that the fork does not have, and those cases fail (4 tests) because the fork's zai model-selection diverges from upstream's catalog/identifiers. The fork's Z AI selection path needs its own sync before this row can land; recorded here rather than as a `Blocked-by` SHA because the gap is a fork divergence, not a single unsynced predecessor.
 
 **Lesson (recorded for the next refresh).** The strict predecessor check still over-reports: `ec77e3f1e` passed it yet failed at cherry-pick + test time. Trial-picking is the only reliable filter; the register's derived ready set should be treated as a _candidate_ list.
+
+## Refresh 2026-10-01 — dependency annotation (`☐` readiness pass)
+
+The 2026-10-01 refresh found **0 new upstream commits** (`--refresh`: baseline tip `c6e6ee398` unchanged), so no rows were added. This pass instead corrects the **readiness data** the earlier refreshes left blank: every open `A-CLEAN` row now records the **unsynced upstream predecessor(s)** it actually depends on, in `Blocked-by`.
+
+**Method.** For an open `A-CLEAN` row, for every file it touches, list the upstream commits in `merge-base..<row>` that also touch that file; a predecessor is "unsynced" when it is not reachable from the fork ref; keep only those whose own register status is still open (`☐`) — a `☑` predecessor has landed and is not a blocker.
+
+**Result.** The derived ready set drops from **14 to 2** (`9e4a52d99` P1, `ae6c1a876` P3): 11 of the 13 open `A-CLEAN` rows were never pickable.
+
+- `10b45abf7` → `057dfeebb`, `2ecbf35a8`, `4140c2c83`, `9d43817fd`
+- `1165aebc8` → `4c7474d42`, `4e8fa09f2`, `f424bbbe4`
+- `2da6ea2ae` → `9d43817fd`
+- `500152b78` → `4e8fa09f2`, `c4574ffef`, `d5f779575`
+- `7c302a51b` → `8187d3cf9`
+- `87d41aa4f` → `d7795ca3f`, `fec4e1353`
+- `914f0c42a` → `2ecbf35a8`, `8d296deef`
+- `9176f2f69` → `f424bbbe4`
+- `97265fd8e` → `fec4e1353`
+- `a9ebf1a6a` → `0d937c050`, `9ec139cd8`
+- `d351a155e` → `216450810`
+
+This is the same defect the SYNC-13 section documents: `Δ` measures fork-side overlap only, so an `A-CLEAN`/Δ 0 label cannot see an unsynced upstream predecessor. `Blocked-by` is the missing half.
+
+**Flagged for the next refresh (not changed here):**
+
+- **Stale `Δ`/class on two rows.** `500152b78` records `A-CLEAN` Δ 0, but after its unsynced predecessor `5e8fcc846` landed on the fork the fork now overlaps 4 of its files (true Δ 4); `1165aebc8` likewise recomputes to Δ 2. An `A-CLEAN` label asserts Δ 0 (hard ladder), so both should be reclassified to `B-CAREFUL` by the next refresh — deliberately left as-is here to keep this pass to readiness data only.
+- **`✖`-blocked rows.** `97265fd8e` and `87d41aa4f` also depend on discarded `E-SKIP` rows (`8efff00e6`, `8f7f48ad5`) that will never land, so they are `D-LOCAL`/`✖` candidates rather than pickable rows.
+- **Trial-picking is the only reliable filter.** `ec77e3f1e` (SYNC-19) passed this annotation _and_ the structural check, yet failed at pick + test time (fork-divergent Z AI selection) — see the SYNC-19 Notes.
 
 ## Recommended execution order
 
