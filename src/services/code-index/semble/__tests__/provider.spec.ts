@@ -995,8 +995,8 @@ describe("SembleProvider", () => {
 			})
 		})
 
-		it("should return results regardless of their score — even when searchMinScore is configured (Zoo-Code reference)", async () => {
-			// The Semble path applies NO score threshold, matching Zoo-Code. A raw
+		it("should return results regardless of their score — even when searchMinScore is configured (Roo-Plus reference)", async () => {
+			// The Semble path applies NO score threshold, matching Roo-Plus. A raw
 			// response with scores far below the (Qdrant-tuned) 0.4 threshold is
 			// returned in full — this is the regression guard for F1, where the
 			// previously-added 0.4 score filter produced recurring empty results.
@@ -1025,7 +1025,7 @@ describe("SembleProvider", () => {
 			})
 		})
 
-		it("should NOT over-fetch or cap when searchMaxResults is configured (Zoo-Code reference)", async () => {
+		it("should NOT over-fetch or cap when searchMaxResults is configured (Roo-Plus reference)", async () => {
 			const customProvider = new SembleProvider("/workspace", mockContext, mockStateManager, {
 				searchMaxResults: 2,
 			})

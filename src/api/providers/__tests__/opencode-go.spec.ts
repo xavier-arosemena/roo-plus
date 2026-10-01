@@ -40,7 +40,7 @@ vitest.mock("../fetchers/modelCache", () => ({
 			"glm-5.1": { ...opencodeGoModels["glm-5.1"] },
 			// Anthropic-format model used to exercise the /v1/messages path.
 			"qwen3.7-max": { ...opencodeGoModels["qwen3.7-max"] },
-			// Responses-format model (Zoo-Code-Org/Zoo-Code#1431).
+			// Responses-format model (Roo-Plus-Org/Roo-Plus#1431).
 			"gpt-5.6-luna": { ...opencodeGoModels["gpt-5.6-luna"] },
 		})
 	}),
@@ -95,7 +95,7 @@ describe("OpencodeGoHandler", () => {
 			expect.objectContaining({
 				baseURL: "https://opencode.ai/zen/go/v1",
 				apiKey: "test-key",
-				defaultHeaders: expect.objectContaining({ "User-Agent": `ZooCode/${Package.version}` }),
+				defaultHeaders: expect.objectContaining({ "User-Agent": `RooPlus/${Package.version}` }),
 			}),
 		)
 	})
@@ -108,7 +108,7 @@ describe("OpencodeGoHandler", () => {
 				// NOT include the trailing `/v1` used by the OpenAI client.
 				baseURL: "https://opencode.ai/zen/go",
 				apiKey: "test-key",
-				defaultHeaders: expect.objectContaining({ "User-Agent": `ZooCode/${Package.version}` }),
+				defaultHeaders: expect.objectContaining({ "User-Agent": `RooPlus/${Package.version}` }),
 			}),
 		)
 	})
@@ -835,7 +835,7 @@ describe("OpencodeGoHandler", () => {
 
 	describe("Responses-format models (gpt-5.6-luna)", () => {
 		// gpt-5.6-luna is Responses-only on the Go gateway: its chat-completions
-		// adapter fails with an opaque HTTP 500 (Zoo-Code-Org/Zoo-Code#1431),
+		// adapter fails with an opaque HTTP 500 (Roo-Plus-Org/Roo-Plus#1431),
 		// so the handler must route it through /v1/responses and never fall
 		// back to chat completions.
 		const lunaOptions: ApiHandlerOptions = {

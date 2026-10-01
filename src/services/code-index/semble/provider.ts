@@ -252,7 +252,7 @@ export class SembleProvider implements ISembleProvider {
 				console.log(`[SembleProvider] Searching in ${this.workspacePath}`)
 			}
 
-			// Reference-aligned (Zoo-Code SembleProvider): request exactly the
+			// Reference-aligned (Roo-Plus SembleProvider): request exactly the
 			// configured topK. NO min-score filter and NO max-results slice are
 			// applied to Semble results — searchMinScore/searchMaxResults are
 			// consumed ONLY by the Qdrant path (search-service.ts / qdrant-client.ts).
@@ -311,7 +311,7 @@ export class SembleProvider implements ISembleProvider {
 
 			// NOTE: searchMinScore/searchMaxResults are intentionally NOT applied
 			// here. They are consumed only by the Qdrant path (search-service.ts /
-			// qdrant-client.ts); the reference Zoo-Code SembleProvider applies no
+			// qdrant-client.ts); the reference Roo-Plus SembleProvider applies no
 			// score filter and no result cap to Semble results.
 
 			if (isSembleVerboseLoggingEnabled()) {
