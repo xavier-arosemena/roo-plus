@@ -1,0 +1,5 @@
+# Resolution records cite source paths that contain `__tests__`. Prettier's Markdown
+# printer rewrites `__x__` emphasis to `**x**`, which silently corrupts those paths and
+# makes `node scripts/verify-resolutions.mjs --batch SYNC-<n>` fail its range check.
+# Keep the records out of formatting so their paths stay literal.
+docs/upstream-sync/resolutions/
