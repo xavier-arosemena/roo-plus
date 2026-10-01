@@ -21,6 +21,19 @@ export const webviewDidLaunchMessageSchema = z.object({
 	type: z.literal("webviewDidLaunch"),
 })
 
+/**
+ * The served HTML's boot guard observed a failed boot (2026-09-18 gray-webview
+ * capture follow-up — see `src/core/webview/webviewBootGuard.ts`).
+ *
+ * `reason` is the detector that fired: the bounded watchdog timeout, a resource
+ * `load` error, or a script `throw`. Validated strictly so a forged payload
+ * cannot smuggle arbitrary fields across the boundary.
+ */
+export const webviewBootFailureMessageSchema = z.object({
+	type: z.literal("webviewBootFailure"),
+	reason: z.enum(["watchdog", "load", "throw"]),
+})
+
 /** The announcement banner was shown/dismissed (empty payload). */
 export const didShowAnnouncementMessageSchema = z.object({
 	type: z.literal("didShowAnnouncement"),
@@ -193,6 +206,7 @@ export const openMarkdownPreviewMessageSchema = z.object({
 /** Discriminated union of the misc domain's fully-typed messages. */
 export const miscMessageSchema = z.discriminatedUnion("type", [
 	webviewDidLaunchMessageSchema,
+	webviewBootFailureMessageSchema,
 	didShowAnnouncementMessageSchema,
 	importRooHistoryMessageSchema,
 	resetStateMessageSchema,
@@ -219,6 +233,18 @@ export const miscMessageSchema = z.discriminatedUnion("type", [
 export type MiscMessage = z.infer<typeof miscMessageSchema>
 
 /**
+ * Upper bound for the liveness pong's optional integer counters (F-3).
+ *
+ * The counters are renderer-global session tallies, so a genuine value is tiny
+ * (dozens at most). Bounding them ABOVE keeps the boundary contract symmetric
+ * with the existing `nonnegative()` lower bound: a hostile or corrupt renderer
+ * cannot smuggle an arbitrarily large integer (or `Number.MAX_SAFE_INTEGER`
+ * noise) into a log line, and a payload above the bound is rejected outright
+ * rather than forwarded to the probe.
+ */
+const LIVENESS_COUNTER_MAX = 1_000_000
+
+/**
  * Renderer-liveness probe, webview → host half: the webview's reply to a
  * `livenessPing` (2026-09-18 gray-webview capture; see the host-side probe in
  * `src/core/webview/webviewLivenessProbe.ts`).
@@ -229,4 +255,23 @@ export type MiscMessage = z.infer<typeof miscMessageSchema>
 export const livenessPongMessageSchema = z.object({
 	type: z.literal("livenessPong"),
 	livenessPongSeq: z.number(),
+	/**
+	 * Optional integer count of webview RESOURCE load failures observed since the
+	 * renderer booted (2026-09-18 gray-webview capture — asset 401s on both
+	 * servers, which the RTT probe is otherwise blind to). Numbers only: no URL,
+	 * element identity, or content is carried, and the host probe stays inert
+	 * unless `ROO_WEBVIEW_LIVENESS_DEBUG` is set.
+	 *
+	 * Bounded above ({@link LIVENESS_COUNTER_MAX}) as well as below (F-3).
+	 */
+	resourceErrorCount: z.number().int().nonnegative().max(LIVENESS_COUNTER_MAX).optional(),
+	/**
+	 * F-2: optional integer count of malformed `state` pushes this webview session
+	 * REPAIRED through the salvage path (`salvageExtensionState`, T2.1) instead of
+	 * vetoing hydration. Same shape and privacy rules as `resourceErrorCount`: an
+	 * integer only (no payload, key names, or content), session memory only, no
+	 * egress, and surfaced by the host probe as `salvaged_states=N` only when
+	 * non-zero. Bounded above ({@link LIVENESS_COUNTER_MAX}) for the same reason.
+	 */
+	salvagedStateCount: z.number().int().nonnegative().max(LIVENESS_COUNTER_MAX).optional(),
 })

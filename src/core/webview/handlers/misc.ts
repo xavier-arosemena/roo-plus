@@ -18,6 +18,7 @@ import {
 	readFileContentMessageSchema,
 	searchFilesMessageSchema,
 	switchTabMessageSchema,
+	webviewBootFailureMessageSchema,
 } from "@roo-code/types"
 import { customToolRegistry } from "@roo-code/core"
 
@@ -37,6 +38,14 @@ import type { MarketplaceManager } from "../../../services/marketplace"
 import { selectOlderClineMessages } from "../clineMessagesForWebview"
 import { selectScopedOlderTaskHistory } from "../../services/TaskHistoryService"
 import { getCurrentCwd, getGlobalState, updateGlobalState } from "./shared"
+
+/**
+ * NEW-2: minimum interval (ms) between user-facing `webviewBootFailure`
+ * notifications for one webview. The notification is shown at most once per
+ * window; the LOCAL diagnostic line is emitted for every failure regardless of
+ * this throttle (privacy contract: static label + enum reason only).
+ */
+export const WEBVIEW_BOOT_FAILURE_NOTIFY_WINDOW_MS = 60_000
 
 export const miscMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
 	"didShowAnnouncement",
@@ -61,6 +70,7 @@ export const miscMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
 	"searchFiles",
 	"switchTab",
 	"taskSyncEnabled",
+	"webviewBootFailure",
 	"webviewDidLaunch",
 ])
 
@@ -77,6 +87,8 @@ export async function handleMiscMessages(
 		| "getState"
 		| "getStateToPostToWebview"
 		| "isViewLaunched"
+		| "webviewBootFailureNotified"
+		| "webviewBootFailureNotifiedAt"
 		| "log"
 		| "latestAnnouncementId"
 		| "taskHistoryStore"
@@ -93,6 +105,12 @@ export async function handleMiscMessages(
 ): Promise<void> {
 	switch (message.type) {
 		case "webviewDidLaunch":
+			// A fresh document has mounted, so this is a NEW webview — re-arm the
+			// boot-failure notification throttle (a reload of a previously-failed
+			// panel may legitimately warn again immediately).
+			provider.webviewBootFailureNotified = false
+			provider.webviewBootFailureNotifiedAt = 0
+
 			// Load custom modes first (this also primes the file-backed cache). The
 			// list is intentionally NOT mirrored into the global Memento anymore —
 			// the ~760 KB catalog mirror is the residual large-state warning on
@@ -172,6 +190,58 @@ export async function handleMiscMessages(
 
 			provider.isViewLaunched = true
 			break
+		case "webviewBootFailure": {
+			// The served HTML's boot guard reported a failed boot
+			// (2026-09-18 gray-webview capture follow-up). The webview has already
+			// painted its own self-contained fallback + Reload affordance; this
+			// handler records WHY locally so the host-health capture can correlate
+			// it. LOCAL-ONLY: no telemetry, no egress.
+			const result = webviewBootFailureMessageSchema.safeParse(message)
+
+			if (!result.success) {
+				provider.log(
+					`[webviewMessageHandler] Rejected malformed webviewBootFailure message: ${result.error.message}`,
+				)
+				break
+			}
+
+			provider.log(`[webview-boot] failure reason=${result.data.reason}`)
+
+			// F-1: the WATCHDOG is a HEURISTIC over a slow-but-healthy mount ("#root
+			// still empty after 6 s"), and the guard RETRACTS it — when the app
+			// finally mounts it clears the fallback (DEF-4) — so alarming the user
+			// would be wrong most of the time it fires. It stays LOG-ONLY.
+			//
+			// `load` (a resource genuinely 404'd) and `throw` (the module threw) are
+			// DETERMINISTIC module-boot failures: those keep the single non-modal
+			// warning (never modal — the user retries from the panel's own Reload
+			// button).
+			if (result.data.reason === "watchdog") {
+				break
+			}
+
+			// NEW-2: rate-limit the user-facing notification to AT MOST ONE per
+			// window PER WEBVIEW, even if the message is duplicated or forged (the
+			// guard already latches per document; this is the host-side ceiling).
+			// A genuinely repeated deterministic failure still surfaces after the
+			// window elapses. The local `[webview-boot]` log line above is emitted
+			// for EVERY failure regardless of this throttle. The throttle is
+			// re-armed on `webviewDidLaunch`.
+			const now = Date.now()
+			if (
+				provider.webviewBootFailureNotified &&
+				now - provider.webviewBootFailureNotifiedAt < WEBVIEW_BOOT_FAILURE_NOTIFY_WINDOW_MS
+			) {
+				break
+			}
+			provider.webviewBootFailureNotified = true
+			provider.webviewBootFailureNotifiedAt = now
+
+			void vscode.window.showWarningMessage(
+				"Roo+ webview failed to boot. Use the Reload button in the panel to retry.",
+			)
+			break
+		}
 		case "didShowAnnouncement":
 			await updateGlobalState(provider, "lastShownAnnouncementId", provider.latestAnnouncementId)
 			await provider.postStateToWebview()
@@ -600,7 +670,11 @@ export async function handleMiscMessages(
 		case "livenessPong": {
 			// Renderer-liveness probe reply (2026-09-18 gray-webview capture).
 			// The probe owns the accounting and is inert while its gate is off; this
-			// only validates the number and forwards it. Nothing is logged here.
+			// only validates the numbers and forwards them. Nothing is logged here.
+			// T2.3: the optional integer resource-error count rides along so the
+			// probe can surface the asset-401 channel it is otherwise blind to.
+			// F-2: the optional integer salvaged-`state` count rides along so a
+			// malformed `state` the webview repaired is observable host-side.
 			const result = livenessPongMessageSchema.safeParse(message)
 
 			if (!result.success) {
@@ -608,7 +682,11 @@ export async function handleMiscMessages(
 				break
 			}
 
-			provider.recordWebviewLivenessPong(result.data.livenessPongSeq)
+			provider.recordWebviewLivenessPong(
+				result.data.livenessPongSeq,
+				result.data.resourceErrorCount,
+				result.data.salvagedStateCount,
+			)
 			break
 		}
 		case "insertTextIntoTextarea": {

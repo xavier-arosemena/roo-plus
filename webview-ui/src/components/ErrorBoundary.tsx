@@ -67,6 +67,24 @@ class ErrorBoundary extends Component<ErrorProps, ErrorState> {
 						{t("errorBoundary.githubText")}
 					</a>
 				</p>
+
+				{/*
+				 * Reload affordance. The label is a literal (not `t(...)`) on
+				 * purpose: this boundary is also mounted as the OUTERMOST boundary
+				 * in `index.tsx`, outside `TranslationProvider`, where translation
+				 * keys may render verbatim. The recovery control must stay legible
+				 * even when i18n resources are unavailable.
+				 */}
+				<div className="mb-4">
+					<button
+						type="button"
+						onClick={() => window.location.reload()}
+						aria-label="Reload the Roo+ view"
+						className="inline-flex items-center rounded border border-vscode-button-background bg-vscode-button-background px-3 py-1 text-sm text-vscode-button-foreground hover:bg-vscode-button-hoverBackground">
+						Reload
+					</button>
+				</div>
+
 				<p className="mb-2">{t("errorBoundary.copyInstructions")}</p>
 
 				<div className="mb-4">

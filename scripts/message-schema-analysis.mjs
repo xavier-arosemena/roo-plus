@@ -164,6 +164,8 @@ export const MESSAGE_SCHEMA_BASELINE = [
 	"downloadErrorDiagnostics",
 	// Misc domain (S1 sub-task 13)
 	"webviewDidLaunch",
+	// Webview boot guard failure report (2026-09-18 gray-webview capture follow-up).
+	"webviewBootFailure",
 	"didShowAnnouncement",
 	"importRooHistory",
 	"resetState",
@@ -192,8 +194,8 @@ export const MESSAGE_SCHEMA_BASELINE = [
 	* Maximum permitted number of UNTYPED message types (WebviewMessageType members
 	* without a schema in the registry).
 	*
-	* Verified derivation (2026-08-11): 165 literal members of the
-	* `WebviewMessage.type` union minus 165 registered in the zod registry
+	* Verified derivation (2026-09-30): 166 literal members of the
+	* `WebviewMessage.type` union minus 166 registered in the zod registry
 	* (`packages/types/src/webview-messages/index.ts`) = 0 untyped. This is the
 	* current count as of S1-M13 (the final sub-task: Debug + Misc + Loose
 	* domains landed) and must only ever DECREASE as domains migrate; increasing

@@ -23,7 +23,20 @@
  * [webview-liveness] rtt_ms p50=4 p99=210 max=410 | missed=0 n=12
  * [webview-liveness] WARN rtt_ms p50=9 p99=2140 max=4100 | missed=1 n=12
  * [webview-liveness] ERROR rtt_ms p50=0 p99=0 max=0 | missed=12 n=0 | window runbook=docs/runbooks/gray-webview.md
+ * [webview-liveness] WARN rtt_ms p50=3 p99=6 max=9 | missed=0 n=12 | resource_errors=9
+ * [webview-liveness] WARN rtt_ms p50=8 p99=11 max=14 | missed=0 n=12 | state_drops=2
+ * [webview-liveness] WARN rtt_ms p50=5 p99=8 max=12 | missed=0 n=12 | salvaged_states=1
  * ```
+ *
+ * The trailing suffixes are INTEGER-only, appear ONLY when non-zero, and are the
+ * extra signals this probe carries beyond RTT/missed:
+ *  - `resource_errors=N` — webview resource load failures since boot (the
+ *    2026-09-18 asset-401 channel the RTT round trip is otherwise blind to).
+ *  - `state_drops=N` — outbound `state` pushes the host transport dropped (T2.2).
+ *  - `salvaged_states=N` — malformed `state` pushes the webview REPAIRED through
+ *    the salvage path instead of vetoing hydration (F-2/T2.1). A suffix only (it
+ *    does not force a WARN on its own); like the other two it is an integer, is
+ *    never persisted, and never leaves the local output channel.
  *
  * PRIVACY CONTRACT (the same bar as `webviewPayloadMetrics.ts` and
  * `extensionHostHealthMetrics.ts`; PRIVACY.md:33 — "Zero telemetry by design"):
@@ -37,10 +50,11 @@
  * - NO IDENTIFIERS / NO CONTENT. The logged vocabulary is integers (milliseconds,
  *   counts), the literal prefix `[webview-liveness]`, static metric labels and the
  *   static runbook path. Never logged: task ids, message text, prompts, file
- *   paths, provider config, model names, stack traces. The wire payload is a single
- *   monotonic sequence NUMBER and the class never receives a message object at all
- *   — {@link WebviewLivenessProbe.recordPong} is handed a number — so it cannot
- *   leak what it never sees.
+ *   paths, provider config, model names, stack traces. The wire payload is a
+ *   monotonic sequence NUMBER plus optional integer COUNTS — resource errors,
+ *   dropped `state` pushes, salvaged `state` pushes — and the class never receives
+ *   a message object at all ({@link WebviewLivenessProbe.recordPong} is handed
+ *   numbers) — so it cannot leak what it never sees.
  * - NO NEW TELEMETRY EVENT. Deliberately no `RooCodeEventName` / event schema, so
  *   "zero telemetry by design" stays literally true (mirrors host-health).
  * - GATE. `ROO_WEBVIEW_LIVENESS_DEBUG=1|true`, read once through
@@ -50,7 +64,9 @@
  * - OFF ⇒ COMPLETELY INERT. {@link WebviewLivenessProbe.start} is the only place a
  *   timer is created and it returns immediately when the gate is false, so a
  *   disabled probe schedules nothing, posts nothing, logs nothing and
- *   {@link WebviewLivenessProbe.recordPong} is a no-op.
+ *   {@link WebviewLivenessProbe.recordPong} / {@link
+ *   WebviewLivenessProbe.recordStateDrop} are no-ops (the resource-error count is
+ *   never even read).
  * - LOG LINES ONLY. No popup, no auto-reload: diagnosis §8.3 rules out an
  *   automatic host reload, and reloading the renderer would destroy the evidence
  *   and the user's in-flight work for the same reasons.
@@ -157,6 +173,20 @@ function percentile(sortedAscending: number[], rank: number): number {
 	return sortedAscending[index]
 }
 
+/**
+ * Normalizes a renderer-reported counter to a non-negative integer, or `null`
+ * when the value is missing, non-finite or negative — in which case it is
+ * IGNORED rather than surfaced. Shared by the resource-error (T2.3) and
+ * salvaged-`state` (F-2) counts so every wire counter is sanitized identically.
+ */
+function sanitizeCounter(value: number | undefined): number | null {
+	if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+		return null
+	}
+
+	return Math.floor(value)
+}
+
 export class WebviewLivenessProbe {
 	/** Whether the probe is armed. `false` ⇒ every method is a no-op. */
 	readonly enabled: boolean
@@ -166,6 +196,16 @@ export class WebviewLivenessProbe {
 	private readonly pending = new Map<number, number>()
 	private rttSamplesMs: number[] = []
 	private missedPongs = 0
+	/** Latest integer resource-error count reported by the renderer (T2.3). */
+	private resourceErrorCount = 0
+	/** Outbound `state` pushes the host transport dropped this session (T2.2). */
+	private stateDrops = 0
+	/**
+	 * Latest integer salvaged-`state` count reported by the renderer (F-2): the
+	 * number of malformed `state` pushes the webview repaired instead of letting
+	 * them veto hydration.
+	 */
+	private salvagedStateCount = 0
 	private cancelTickTimer?: () => void
 	private windowStart: number
 	private started = false
@@ -191,15 +231,30 @@ export class WebviewLivenessProbe {
 	}
 
 	/**
-	 * Records a pong. `seq` is the only input — no message, task, path or provider
-	 * value ever reaches this class.
+	 * Records a pong. The only inputs are numbers — a sequence number and the
+	 * OPTIONAL integer COUNTS reported by the renderer (T2.3 resource errors, F-2
+	 * salvaged `state` pushes) — so no message, task, path or provider value ever
+	 * reaches this class.
 	 *
 	 * Unknown, already-answered or already-expired sequence numbers are ignored, so
 	 * a duplicate pong can never double-count an RTT.
 	 */
-	recordPong(seq: number): void {
+	recordPong(seq: number, resourceErrorCount?: number, salvagedStateCount?: number): void {
 		if (!this.enabled || this.disposed) {
 			return
+		}
+
+		// Both counters are renderer-global (not per sequence), so they are
+		// recorded even if this pong answers an unknown/stale ping. Integers only;
+		// a negative/non-finite/garbage value is ignored rather than surfaced.
+		const resourceErrors = sanitizeCounter(resourceErrorCount)
+		if (resourceErrors !== null) {
+			this.resourceErrorCount = Math.max(this.resourceErrorCount, resourceErrors)
+		}
+
+		const salvagedStates = sanitizeCounter(salvagedStateCount)
+		if (salvagedStates !== null) {
+			this.salvagedStateCount = Math.max(this.salvagedStateCount, salvagedStates)
 		}
 
 		const sentAt = this.pending.get(seq)
@@ -209,6 +264,37 @@ export class WebviewLivenessProbe {
 
 		this.pending.delete(seq)
 		this.rttSamplesMs.push(Math.max(0, this.deps.now() - sentAt))
+	}
+
+	/**
+	 * Counts an outbound `state` push the host transport DROPPED (T2.2) — the
+	 * gray-webview channel. The next window surfaces it as a WARN with a
+	 * `state_drops=N` suffix (the drop itself is the WARN trigger).
+	 *
+	 * Gate-gated and integer-only: while the gate is off this is a complete no-op
+	 * (no counter, no output).
+	 */
+	recordStateDrop(): void {
+		if (!this.enabled || this.disposed) {
+			return
+		}
+
+		this.stateDrops += 1
+	}
+
+	/** Latest integer resource-error count reported by the renderer (0 if none). */
+	getResourceErrorCount(): number {
+		return this.resourceErrorCount
+	}
+
+	/** Latest integer salvaged-`state` count reported by the renderer (0 if none). */
+	getSalvagedStateCount(): number {
+		return this.salvagedStateCount
+	}
+
+	/** Number of dropped `state` pushes observed this session. */
+	getStateDropCount(): number {
+		return this.stateDrops
 	}
 
 	/** Cancels the timer and drops every pending sample. Safe to call twice. */
@@ -223,6 +309,9 @@ export class WebviewLivenessProbe {
 		this.pending.clear()
 		this.rttSamplesMs = []
 		this.missedPongs = 0
+		this.resourceErrorCount = 0
+		this.salvagedStateCount = 0
+		this.stateDrops = 0
 		this.started = false
 	}
 
@@ -266,15 +355,23 @@ export class WebviewLivenessProbe {
 		this.rttSamplesMs = []
 		this.missedPongs = 0
 
-		// A window that saw neither a pong nor a timeout has nothing to report.
-		if (n === 0 && missed === 0) {
+		// A window that saw no pong, no timeout, no resource error and no salvaged
+		// `state` has nothing to report. (`state_drops` can only be non-zero once
+		// `tick` has run, which itself keeps the window alive, so it need not be in
+		// this guard.)
+		if (n === 0 && missed === 0 && this.resourceErrorCount === 0 && this.salvagedStateCount === 0) {
 			return
 		}
 
 		const p50 = percentile(rtts, 50)
 		const p99 = percentile(rtts, 99)
 		const max = n === 0 ? 0 : rtts[n - 1]
-		const metrics = `rtt_ms p50=${p50} p99=${p99} max=${max} | missed=${missed} n=${n}`
+		// Integer-only suffixes, appended ONLY when non-zero, so the base line is
+		// byte-for-byte unchanged when there is nothing extra to report.
+		const resourceSuffix = this.resourceErrorCount > 0 ? ` | resource_errors=${this.resourceErrorCount}` : ""
+		const dropSuffix = this.stateDrops > 0 ? ` | state_drops=${this.stateDrops}` : ""
+		const salvagedSuffix = this.salvagedStateCount > 0 ? ` | salvaged_states=${this.salvagedStateCount}` : ""
+		const metrics = `rtt_ms p50=${p50} p99=${p99} max=${max} | missed=${missed} n=${n}${resourceSuffix}${dropSuffix}${salvagedSuffix}`
 
 		// ERROR: the renderer answered nothing at all, or its tail latency is past
 		// the point where it is effectively frozen.
@@ -283,7 +380,10 @@ export class WebviewLivenessProbe {
 			return
 		}
 
-		if (p99 >= WEBVIEW_LIVENESS_RTT_WARN_P99_MS || missed >= WEBVIEW_LIVENESS_MISSED_WARN) {
+		// WARN: degraded tail latency, missed pongs, or the host transport dropped a
+		// `state` push (T2.2). `resource_errors` / `salvaged_states` are suffixes
+		// only — they document a degraded channel without forcing a WARN here.
+		if (p99 >= WEBVIEW_LIVENESS_RTT_WARN_P99_MS || missed >= WEBVIEW_LIVENESS_MISSED_WARN || this.stateDrops > 0) {
 			this.deps.log(`${WEBVIEW_LIVENESS_PREFIX} WARN ${metrics}`)
 			return
 		}

@@ -295,6 +295,8 @@ describe("parseWebviewMessage", () => {
 			"downloadErrorDiagnostics",
 			// Misc domain (S1 sub-task 13)
 			"webviewDidLaunch",
+			// Webview boot guard failure report (2026-09-18 gray-webview capture).
+			"webviewBootFailure",
 			"didShowAnnouncement",
 			"importRooHistory",
 			"resetState",
@@ -330,7 +332,7 @@ describe("parseWebviewMessage", () => {
 		for (const type of expected) {
 			expect(webviewMessageSchemas[type]).toBeDefined()
 		}
-		expect(Object.keys(webviewMessageSchemas)).toHaveLength(158)
+		expect(Object.keys(webviewMessageSchemas)).toHaveLength(159)
 	})
 
 	it("builds a discriminated union over the registered types", () => {
