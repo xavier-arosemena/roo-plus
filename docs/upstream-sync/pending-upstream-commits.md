@@ -275,7 +275,7 @@ Theme: the bulk of the `A-CLEAN` quick-wins live here.
 | `ec77e3f1e` | 2026-08-28 | feat(providers): add GLM-5.3-Flash support (#1430)                             | `B-CAREFUL`     | P2  | 1   | ☐           | —          | —          | —       | —         |
 | `0d937c050` | 2026-09-04 | Add Claude Fable 5.1 support (#1508)                                           | `B-CAREFUL`     | P2  | 6   | ☐           | —          | —          | —       | —         |
 | `f424bbbe4` | 2026-09-04 | [Feat] Add verified GPT-6 Astra support across providers (#1506)               | `B-CAREFUL`     | P2  | 8   | ☐           | —          | —          | —       | —         |
-| `6ad8a6e58` | 2026-08-22 | fix(zoo-gateway): stop inventing UI cost from default model prices (#1339)     | `B-CAREFUL`     | P2  | 5   | ☐           | —          | —          | —       | —         |
+| `6ad8a6e58` | 2026-08-22 | fix(zoo-gateway): stop inventing UI cost from default model prices (#1339)     | `B-CAREFUL`     | P2  | 5   | ☑ 085209350 | —          | 2026-10-01 | 3.88.12 | —         |
 | `d033a14c2` | 2026-09-03 | [Feat] Add custom request fields for OpenAI-compatible providers (#1350)       | `C-REIMPLEMENT` | P2  | 27  | ☐           | —          | —          | —       | —         |
 
 **Notes.** `7e85e2793`, `db52d7fc7` and `5e8fcc846` are synced (☑) on `master` — merged via PR #345 (merge `6c4e9df5c`).
@@ -462,7 +462,7 @@ The discarded rows are, in table order: `d28e4a129`, `efc30cfa0`, `8f7f48ad5`,
 
 ---
 
-## SYNC-13 — Provider quick-wins blocked on unsynced upstream prerequisites (`P1`/`P2`)
+## SYNC-13 — Provider quick-wins blocked on unsynced upstream prerequisites (`P1`/`P2`) — ✅ DONE (3/6)
 
 Created 2026-09-16 from the former `SYNC-5` dependent subset (the “SYNC-5b” grouping). These rows
 were classed `A-CLEAN` on `Δ` alone, which proved wrong: `Δ` measures **fork-side** overlap only
@@ -493,14 +493,14 @@ recorded prerequisite is two different things and only one of them is a defect:
   `cc9c0afe9` are blocked on `a80b3b3ab`, and `1165aebc8` / `500152b78` name a prerequisite that
   has already landed (`7e85e2793` / `5e8fcc846`).
 
-| SHA         | Date       | Subject                                                                     | Class       | Pri | Δ   | Status | Blocked-by  | Resolved: | Version | Exception |
-| ----------- | ---------- | --------------------------------------------------------------------------- | ----------- | --- | --- | ------ | ----------- | --------- | ------- | --------- |
-| `a80b3b3ab` | 2026-08-30 | [Fix] Opencode Go routes gpt-5.6-luna through /v1/responses (#1443)         | `A-CLEAN`   | P1  | 0   | ☐      | —           | —         | —       | —         |
-| `7bb14e44e` | 2026-09-04 | fix(opencode-go): send conversation session header (#1512)                  | `A-CLEAN`   | P1  | 0   | ☐      | `a80b3b3ab` | —         | —       | —         |
-| `1165aebc8` | 2026-09-11 | fix(nanogpt): preserve optional tool parameters (#1590)                     | `A-CLEAN`   | P1  | 0   | ☐      | `7e85e2793` | —         | —       | —         |
-| `500152b78` | 2026-09-16 | [Fix] DeepSeek Flash cannot read attached images (#1618)                    | `A-CLEAN`   | P1  | 0   | ☐      | `5e8fcc846` | —         | —       | —         |
-| `745656a50` | 2026-09-12 | fix(settings): preserve configured LiteLLM model ID in model picker (#1368) | `B-CAREFUL` | P1  | 2   | ☐      | —           | —         | —       | —         |
-| `cc9c0afe9` | 2026-09-10 | [Fix] OpenCode Go context meter shows incorrect limits (#1428)              | `A-CLEAN`   | P2  | 0   | ☐      | `a80b3b3ab` | —         | —       | —         |
+| SHA         | Date       | Subject                                                                     | Class       | Pri | Δ   | Status      | Blocked-by  | Resolved:  | Version | Exception |
+| ----------- | ---------- | --------------------------------------------------------------------------- | ----------- | --- | --- | ----------- | ----------- | ---------- | ------- | --------- |
+| `a80b3b3ab` | 2026-08-30 | [Fix] Opencode Go routes gpt-5.6-luna through /v1/responses (#1443)         | `A-CLEAN`   | P1  | 0   | ☑ 89d43bca9 | 6ad8a6e58   | 2026-10-01 | 3.88.12 | —         |
+| `7bb14e44e` | 2026-09-04 | fix(opencode-go): send conversation session header (#1512)                  | `A-CLEAN`   | P1  | 0   | ☑ 10079cbbe | `a80b3b3ab` | 2026-10-01 | 3.88.12 | —         |
+| `1165aebc8` | 2026-09-11 | fix(nanogpt): preserve optional tool parameters (#1590)                     | `A-CLEAN`   | P1  | 0   | ☐           | `7e85e2793` | —          | —       | —         |
+| `500152b78` | 2026-09-16 | [Fix] DeepSeek Flash cannot read attached images (#1618)                    | `A-CLEAN`   | P1  | 0   | ☐           | `5e8fcc846` | —          | —       | —         |
+| `745656a50` | 2026-09-12 | fix(settings): preserve configured LiteLLM model ID in model picker (#1368) | `B-CAREFUL` | P1  | 2   | ☐           | —           | —          | —       | —         |
+| `cc9c0afe9` | 2026-09-10 | [Fix] OpenCode Go context meter shows incorrect limits (#1428)              | `A-CLEAN`   | P2  | 0   | ☑ 07f0966a8 | `a80b3b3ab` | 2026-10-01 | 3.88.12 | —         |
 
 **Prerequisite chains (verified 2026-09-16)**
 
