@@ -14,9 +14,9 @@ Operating manual + refresh procedure: [`README.md`](README.md).
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Baseline recorded                        | 2026-09-16 (initial register; each later refresh is recorded in the README §9 changelog)                                                                                                                                                                             |
 | Merge base                               | `252c69b5` (2026-08-20, "fix: stream reasoning_content in LM Studio provider (#1175)")                                                                                                                                                                               |
-| Upstream tip                             | `fadd66a34` (2026-09-25, "chore(coderabbit): allow non-org members to interact with chat (#1775)")                                                                                                                                                                   |
+| Upstream tip                             | `c6e6ee398` (2026-10-01, "fix(webview): batch repeated tool preambles (#1658)")                                                                                                                                                                                      |
 | Fork tip                                 | `77a670196` (2026-09-15, PR #338 merge)                                                                                                                                                                                                                              |
-| Pending upstream commits                 | **128**                                                                                                                                                                                                                                                              |
+| Pending upstream commits                 | **156**                                                                                                                                                                                                                                                              |
 | Fork-only commits                        | 180                                                                                                                                                                                                                                                                  |
 | Conflict surface (files changed by both) | 272                                                                                                                                                                                                                                                                  |
 | Refresh procedure                        | Automated by [`scripts/upstream-sync-triage.mjs`](../../scripts/upstream-sync-triage.mjs:1) — `--refresh` (dry run), `--refresh --write` to apply, `--verify` to check. See [`README.md` §6](README.md).                                                             |
@@ -116,33 +116,34 @@ merge base (conflict-surface size). `Δ 0` is the strongest clean-pick signal.
 
 | Class           | Count                         |
 | --------------- | ----------------------------- |
-| `A-CLEAN`       | 22 (19 are `A-CLEAN` ∧ P0–P2) |
-| `B-CAREFUL`     | 39                            |
-| `C-REIMPLEMENT` | 22                            |
-| `D-LOCAL`       | 14                            |
-| `E-SKIP`        | 30                            |
+| `A-CLEAN`       | 25 (21 are `A-CLEAN` ∧ P0–P2) |
+| `B-CAREFUL`     | 51                            |
+| `C-REIMPLEMENT` | 33                            |
+| `D-LOCAL`       | 15                            |
+| `E-SKIP`        | 31                            |
 | `X-REJECT`      | 1                             |
-| **Total**       | **128**                       |
+| **Total**       | **156**                       |
 
 | Priority | Count |
 | -------- | ----- |
 | `P0`     | 6     |
-| `P1`     | 42    |
-| `P2`     | 16    |
-| `P3`     | 28    |
-| `P4`     | 36    |
+| `P1`     | 57    |
+| `P2`     | 18    |
+| `P3`     | 38    |
+| `P4`     | 37    |
 
-**Read this as:** the fork is not "128 commits behind" — the backlog is the
+**Read this as:** the fork is not "156 commits behind" — the backlog is the
 `Pending upstream commits` count above, and what is _pickable today_ is the
 **derived ready set**, which `--verify` computes (`A-CLEAN` ∧ Δ 0 ∧ `Blocked-by` = ∅
 ∧ open). This prose pins no ready-set number on purpose: it is a predicate over the
-rows, not a stored fact, so a pinned literal would only rot. 22 rows are
+rows, not a stored fact, so a pinned literal would only rot. 33 rows are
 `C-REIMPLEMENT` — deliberate re-implementation because of architecture the fork
-changed — and 44 are either owned locally or permanently out of scope (14 `D-LOCAL`
+changed — and 46 are either owned locally or permanently out of scope (15 `D-LOCAL`
 
-- 30 `E-SKIP`). (The 2026-09-24 ladder enforcement moved four `A-CLEAN` rows with
-  Δ > 0 to `B-CAREFUL`; the 2026-09-24 and 2026-09-25 guarded refreshes folded in 24
-  and 2 upstream commits respectively — see the manual's §9 changelog.)
+- 31 `E-SKIP`). (The 2026-09-24 ladder enforcement moved four `A-CLEAN` rows with
+  Δ > 0 to `B-CAREFUL`; the 2026-09-24, 2026-09-25 and 2026-10-01 guarded refreshes
+  folded in 24, 2 and 28 upstream commits respectively — see the manual's §9
+  changelog.)
 
 ### Tracked-versus-recorded scope (the two progress series)
 
@@ -613,6 +614,99 @@ These 2 commit(s) landed on `upstream/main` after the recorded baseline tip `9ec
 **`ebf4bd2d3` evidence.** Δ 0 of 4 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
 
 **`fadd66a34` evidence.** Δ 0 of 1 file(s) · hot: .coderabbit.yaml. Proposed `E-SKIP` / P4: files touch only upstream-org automation (.github/.coderabbit/CONTRIBUTING); E-SKIP — not applicable to the fork
+
+---
+
+## SYNC-16 — Refresh 2026-10-01 (proposals — needs human triage)
+
+These 28 commit(s) landed on `upstream/main` after the recorded baseline tip `fadd66a34`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
+
+| SHA         | Date       | Subject                                                                                                    | Class           | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
+| ----------- | ---------- | ---------------------------------------------------------------------------------------------------------- | --------------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
+| `c8c3926d5` | 2026-09-25 | fix(ci): isolate workflow config test from Turbo cache (#1782)                                             | `B-CAREFUL`     | P1  | 3   | ☐      | —          | —         | —       | —         |
+| `c028d24ba` | 2026-09-25 | fix(code-index): initialize external task managers before search (#1725)                                   | `C-REIMPLEMENT` | P1  | 6   | ☐      | —          | —         | —       | —         |
+| `219db1da5` | 2026-09-25 | perf(webview): stop task history globalState writes (#1664)                                                | `C-REIMPLEMENT` | P1  | 5   | ☐      | —          | —         | —       | —         |
+| `921810d84` | 2026-09-25 | fix(bedrock): report output truncation and expose model token limits (#1718)                               | `C-REIMPLEMENT` | P1  | 6   | ☐      | —          | —         | —       | —         |
+| `aaa22e167` | 2026-09-26 | fix(vscode-lm): sanitize lone UTF-16 surrogates in text and tool input (#1605)                             | `B-CAREFUL`     | P1  | 4   | ☐      | —          | —         | —       | —         |
+| `601f4a5fc` | 2026-09-26 | fix(task): pass null targetTask to handleModeSwitch for slash commands (#1784)                             | `B-CAREFUL`     | P1  | 2   | ☐      | —          | —         | —       | —         |
+| `a9ebf1a6a` | 2026-09-26 | fix(vertex): correct Claude Opus 5.5 max output tokens to 128K (#1777)                                     | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
+| `eb83244e9` | 2026-09-26 | [Docs] Add release documentation PR step (#1786)                                                           | `B-CAREFUL`     | P3  | 1   | ☐      | —          | —         | —       | —         |
+| `898ec061b` | 2026-09-26 | fix: clear nativeArgs when tool-call finalize fails (#1221) (#1634)                                        | `B-CAREFUL`     | P1  | 2   | ☐      | —          | —         | —       | —         |
+| `c0a50e5b9` | 2026-09-26 | Update code owners (#1809)                                                                                 | `E-SKIP`        | P4  | 1   | ☐      | —          | —         | —       | —         |
+| `1803c01ba` | 2026-09-26 | Release v3.84.0 (#1810)                                                                                    | `C-REIMPLEMENT` | P3  | 42  | ☐      | —          | —         | —       | —         |
+| `7c291bb08` | 2026-09-26 | fix(webview-message-handler): enforce workspace containment for markdown-sourced openFile requests (#1762) | `C-REIMPLEMENT` | P1  | 19  | ☐      | —          | —         | —       | —         |
+| `3c09f1756` | 2026-09-28 | refactor(code-index): separate service factories and embedder validation (#1818)                           | `C-REIMPLEMENT` | P3  | 2   | ☐      | —          | —         | —       | —         |
+| `d0dec4b12` | 2026-09-28 | fix(task): keep the first abort reason (RSK-19) (#1811)                                                    | `C-REIMPLEMENT` | P1  | 3   | ☐      | —          | —         | —       | —         |
+| `222585693` | 2026-09-28 | fix: reset didFinishAbortingStream for each API request (#1801) (#1812)                                    | `B-CAREFUL`     | P1  | 2   | ☐      | —          | —         | —       | —         |
+| `d351a155e` | 2026-09-28 | refactor(code-index): introduce workspace scope behind registry (#1766)                                    | `A-CLEAN`       | P3  | 0   | ☐      | —          | —         | —       | —         |
+| `8bec7c138` | 2026-09-28 | refactor(code-index): extract scan execution without behavior changes (#1834)                              | `B-CAREFUL`     | P3  | 2   | ☐      | —          | —         | —       | —         |
+| `778ad3e18` | 2026-09-28 | refactor(code-index): scope state ownership and workspace status delivery (#1768)                          | `C-REIMPLEMENT` | P3  | 5   | ☐      | —          | —         | —       | —         |
+| `e277ab927` | 2026-09-29 | refactor(code-index): extract single-file preparation (#1836)                                              | `B-CAREFUL`     | P3  | 2   | ☐      | —          | —         | —       | —         |
+| `2da6ea2ae` | 2026-09-30 | fix: streaming tool-call argument loss in NativeToolCallParser (#695) (#700)                               | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
+| `0f75a60bc` | 2026-09-30 | fix(vscode-lm): window-safe middle-out truncation of tool_result content (#1606)                           | `B-CAREFUL`     | P1  | 2   | ☐      | —          | —         | —       | —         |
+| `bf3bc781b` | 2026-09-30 | refactor(code-index): route workspace actions through scopes (#1778)                                       | `C-REIMPLEMENT` | P3  | 3   | ☐      | —          | —         | —       | —         |
+| `0b7cd10fc` | 2026-09-30 | refactor(code-index): use immutable configuration snapshots (#1815)                                        | `B-CAREFUL`     | P3  | 3   | ☐      | —          | —         | —       | —         |
+| `ceceb087f` | 2026-09-30 | feat(openai): add GPT-6.1 Sol support (#1864)                                                              | `C-REIMPLEMENT` | P2  | 1   | ☐      | —          | —         | —       | —         |
+| `9a2c3fbcf` | 2026-10-01 | [Feat] Add community-approved label for community code approvals (#1873)                                   | `B-CAREFUL`     | P2  | 2   | ☐      | —          | —         | —       | —         |
+| `5bb51916e` | 2026-10-01 | chore(deps): update dependency lru-cache to v11.5.3 (#1583)                                                | `D-LOCAL`       | P3  | 1   | ☐      | —          | —         | —       | —         |
+| `0b6c41895` | 2026-10-01 | fix(dev): use 127.0.0.1 instead of localhost for dev server (IPv6 resolution) (#1589)                      | `C-REIMPLEMENT` | P1  | 3   | ☐      | —          | —         | —       | —         |
+| `c6e6ee398` | 2026-10-01 | fix(webview): batch repeated tool preambles (#1658)                                                        | `B-CAREFUL`     | P1  | 1   | ☐      | —          | —         | —       | —         |
+
+**`c8c3926d5` evidence.** Δ 3 of 10 file(s) · hot: .github/workflows/code-qa.yml, src/eslint.config.mjs, src/package.json. Proposed `B-CAREFUL` / P1: Δ 3 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`c028d24ba` evidence.** Δ 6 of 7 file(s). Proposed `C-REIMPLEMENT` / P1: Δ 6 — large overlap; runbook §2 stop condition (Δ>5 outside C-REIMPLEMENT) means inspect by hand; intent prefix "fix"
+
+**`219db1da5` evidence.** Δ 5 of 5 file(s) · hot: src/core/webview/ClineProvider.ts, src/eslint-suppressions.json. Proposed `C-REIMPLEMENT` / P1: structural divergence (decomposed webview handlers / ClineProvider); intent prefix "perf"
+
+**`921810d84` evidence.** Δ 6 of 14 file(s) · hot: src/core/task/Task.ts, src/eslint-suppressions.json. Proposed `C-REIMPLEMENT` / P1: Δ 6 — large overlap; runbook §2 stop condition (Δ>5 outside C-REIMPLEMENT) means inspect by hand; intent prefix "fix"
+
+**`aaa22e167` evidence.** Δ 4 of 4 file(s). Proposed `B-CAREFUL` / P1: Δ 4 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`601f4a5fc` evidence.** Δ 2 of 2 file(s) · hot: src/core/task/Task.ts. Proposed `B-CAREFUL` / P1: Δ 2 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`a9ebf1a6a` evidence.** Δ 0 of 2 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
+
+**`eb83244e9` evidence.** Δ 1 of 1 file(s). Proposed `B-CAREFUL` / P3: Δ 1 — small overlap, cherry-pick then rebrand + gates; hygiene intent prefix "docs"
+
+**`898ec061b` evidence.** Δ 2 of 3 file(s) · hot: src/core/task/Task.ts. Proposed `B-CAREFUL` / P1: Δ 2 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`c0a50e5b9` evidence.** Δ 1 of 1 file(s). Proposed `E-SKIP` / P4: files touch only upstream-org automation (.github/.coderabbit/CONTRIBUTING); E-SKIP — not applicable to the fork
+
+**`1803c01ba` evidence.** Δ 42 of 43 file(s) · hot: src/core/webview/ClineProvider.ts, src/package.json. Proposed `C-REIMPLEMENT` / P3: structural divergence (decomposed webview handlers / ClineProvider); unrecognised intent prefix — defaulting to P3 for human review
+
+**`7c291bb08` evidence.** Δ 19 of 22 file(s) · hot: src/core/webview/webviewMessageHandler.ts. Proposed `C-REIMPLEMENT` / P1: structural divergence (decomposed webview handlers / ClineProvider); intent prefix "fix"
+
+**`3c09f1756` evidence.** Δ 2 of 24 file(s) · CORE_FILES: src/services/code-index/service-factory.ts. Proposed `C-REIMPLEMENT` / P3: telemetry hit — the fork purged the telemetry transport; re-implement, never cherry-pick; hygiene intent prefix "refactor"
+
+**`d0dec4b12` evidence.** Δ 3 of 4 file(s) · hot: src/core/task/Task.ts, src/core/webview/ClineProvider.ts. Proposed `C-REIMPLEMENT` / P1: telemetry hit — the fork purged the telemetry transport; re-implement, never cherry-pick; intent prefix "fix"
+
+**`222585693` evidence.** Δ 2 of 2 file(s) · hot: src/core/task/Task.ts. Proposed `B-CAREFUL` / P1: Δ 2 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`d351a155e` evidence.** Δ 0 of 4 file(s). Proposed `A-CLEAN` / P3: Δ 0 — no overlap with any fork-touched file; hygiene intent prefix "refactor"
+
+**`8bec7c138` evidence.** Δ 2 of 4 file(s) · CORE_FILES: src/services/code-index/orchestrator.ts. Proposed `B-CAREFUL` / P3: Δ 2 — small overlap, cherry-pick then rebrand + gates; hygiene intent prefix "refactor"
+
+**`778ad3e18` evidence.** Δ 5 of 13 file(s) · hot: src/core/webview/ClineProvider.ts. Proposed `C-REIMPLEMENT` / P3: structural divergence (decomposed webview handlers / ClineProvider); hygiene intent prefix "refactor"
+
+**`e277ab927` evidence.** Δ 2 of 5 file(s) · CORE_FILES: src/services/code-index/processors/file-watcher.ts. Proposed `B-CAREFUL` / P3: Δ 2 — small overlap, cherry-pick then rebrand + gates; hygiene intent prefix "refactor"
+
+**`2da6ea2ae` evidence.** Δ 0 of 2 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
+
+**`0f75a60bc` evidence.** Δ 2 of 3 file(s). Proposed `B-CAREFUL` / P1: Δ 2 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`bf3bc781b` evidence.** Δ 3 of 9 file(s) · hot: src/core/webview/ClineProvider.ts, src/core/webview/webviewMessageHandler.ts. Proposed `C-REIMPLEMENT` / P3: structural divergence (decomposed webview handlers / ClineProvider); hygiene intent prefix "refactor"
+
+**`0b7cd10fc` evidence.** Δ 3 of 4 file(s) · CORE_FILES: src/services/code-index/interfaces/config.ts. Proposed `B-CAREFUL` / P3: Δ 3 — small overlap, cherry-pick then rebrand + gates; hygiene intent prefix "refactor"
+
+**`ceceb087f` evidence.** Δ 1 of 6 file(s). Proposed `C-REIMPLEMENT` / P2: telemetry hit — the fork purged the telemetry transport; re-implement, never cherry-pick; intent prefix "feat"
+
+**`9a2c3fbcf` evidence.** Δ 2 of 3 file(s) · hot: .github/workflows/label-pr-review-state.yml. Proposed `B-CAREFUL` / P2: Δ 2 — small overlap, cherry-pick then rebrand + gates; intent prefix "feat"
+
+**`5bb51916e` evidence.** Δ 1 of 1 file(s) · hot: pnpm-lock.yaml. Proposed `D-LOCAL` / P3: files are dependency manifests / lockfile — regenerate locally; hygiene intent prefix "chore"
+
+**`0b6c41895` evidence.** Δ 3 of 3 file(s) · hot: src/core/webview/ClineProvider.ts. Proposed `C-REIMPLEMENT` / P1: structural divergence (decomposed webview handlers / ClineProvider); intent prefix "fix"
+
+**`c6e6ee398` evidence.** Δ 1 of 4 file(s). Proposed `B-CAREFUL` / P1: Δ 1 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
 
 ## Recommended execution order
 
