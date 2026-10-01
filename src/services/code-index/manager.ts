@@ -472,7 +472,7 @@ export class CodeIndexManager {
 
 		// Branch: if provider is "semble", create SembleProvider instead of external services
 		if (this._configManager!.currentEmbedderProvider === "semble") {
-			// Reference-aligned (Zoo-Code): do NOT forward searchMinScore /
+			// Reference-aligned (Roo-Plus): do NOT forward searchMinScore /
 			// searchMaxResults to the Semble provider. The Semble search path
 			// applies no score filter and no result cap — those settings are
 			// consumed only by the Qdrant path (search-service.ts / qdrant-client.ts).

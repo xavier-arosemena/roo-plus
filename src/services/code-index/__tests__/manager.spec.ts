@@ -961,7 +961,7 @@ describe("CodeIndexManager - handleSettingsChange regression", () => {
 
 			await manager.handleSettingsChange()
 
-			// Reference-aligned (Zoo-Code): the Semble provider is created WITHOUT
+			// Reference-aligned (Roo-Plus): the Semble provider is created WITHOUT
 			// searchMinScore/searchMaxResults — the Semble path applies no score
 			// filter / result cap; those settings are consumed only by the Qdrant path.
 			expect(SembleProvider).toHaveBeenCalledWith(

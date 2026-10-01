@@ -447,7 +447,7 @@ describe("getEnvironmentDetails", () => {
 		expect(getGitStatus).toHaveBeenCalledWith(mockCwd, 5)
 	})
 
-	// Regression test for https://github.com/Zoo-Code-Org/Zoo-Code/issues/1024
+	// Regression test for https://github.com/Roo-Plus-Org/Roo-Plus/issues/1024
 	// When ripgrep cannot be found (e.g. @vscode/ripgrep >=1.18 platform layout on
 	// Windows), listFiles throws "Could not find ripgrep binary". getEnvironmentDetails
 	// must not propagate this — the task should proceed to the API call, not hang at 0%.

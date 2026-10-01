@@ -48,14 +48,14 @@ export interface SembleConfig {
 	/**
 	 * Minimum similarity score (0-1). KEPT for API stability / future providers
 	 * — NOT applied by the Semble search path, which (matching the reference
-	 * Zoo-Code provider) applies no score filter. Consumed only by the Qdrant
+	 * Roo-Plus provider) applies no score filter. Consumed only by the Qdrant
 	 * path (`codebaseIndexSearchMinScore`).
 	 */
 	searchMinScore?: number
 	/**
 	 * Maximum number of results. KEPT for API stability / future providers —
 	 * NOT applied by the Semble search path, which (matching the reference
-	 * Zoo-Code provider) applies no result cap. Consumed only by the Qdrant
+	 * Roo-Plus provider) applies no result cap. Consumed only by the Qdrant
 	 * path (`codebaseIndexSearchMaxResults`).
 	 */
 	searchMaxResults?: number

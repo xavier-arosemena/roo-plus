@@ -96,7 +96,7 @@ describe("getBinPath", () => {
 		expect(await getBinPath(appRoot)).toBeUndefined()
 	})
 
-	// Regression test for https://github.com/Zoo-Code-Org/Zoo-Code/issues/1024
+	// Regression test for https://github.com/Roo-Plus-Org/Roo-Plus/issues/1024
 	// VS Code 1.130+ ships @vscode/ripgrep >=1.18, where the binary lives in a
 	// platform-specific optional package (e.g. @vscode/ripgrep-win32-x64).
 	// None of the previous candidate paths matched this layout.

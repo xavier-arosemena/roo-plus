@@ -1,4 +1,4 @@
-// Regression test for https://github.com/Zoo-Code-Org/Zoo-Code/issues/634
+// Regression test for https://github.com/Roo-Plus-Org/Roo-Plus/issues/634
 //
 // Root cause: getShell() (system prompt) used config.get() which merges all scopes
 // including workspace, while Terminal.getConfiguredDefaultProfileName() used

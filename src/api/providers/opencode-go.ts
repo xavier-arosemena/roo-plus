@@ -73,7 +73,7 @@ type OpencodeGoFormat = "anthropic" | "openai" | "responses"
  *     minimax-m2.7, minimax-m2.5) models.
  *   - OpenAI Responses (`/v1/responses`) — used by gpt-5.6-luna, whose
  *     chat-completions adapter fails with an opaque HTTP 500
- *     (Zoo-Code-Org/Zoo-Code#1431).
+ *     (Roo-Plus-Org/Roo-Plus#1431).
  *
  * Sending an Anthropic-format model to the chat completions endpoint is
  * rejected with `401 Model <id> is not supported for format oa-compat`, so this
@@ -303,7 +303,7 @@ export class OpencodeGoHandler extends RouterProvider implements SingleCompletio
 	 *
 	 * There is deliberately no fallback to `/v1/chat/completions`: the
 	 * gateway's chat-completions adapter for these models fails with an opaque
-	 * HTTP 500 (Zoo-Code-Org/Zoo-Code#1431), so failures are surfaced as-is
+	 * HTTP 500 (Roo-Plus-Org/Roo-Plus#1431), so failures are surfaced as-is
 	 * with the same `Opencode Go completion error:` prefix used by the other
 	 * wire formats.
 	 */
