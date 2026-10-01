@@ -271,7 +271,6 @@ Theme: the bulk of the `A-CLEAN` quick-wins live here.
 | `db52d7fc7` | 2026-08-22 | feat(models): add Gemini 3.5 Flash Lite and 3.1 Flash Lite (#1334)             | `A-CLEAN`       | P2  | 0   | ☑ 388a75a6d | —          | 2026-09-16 | 3.88.4  | —         |
 | `5e8fcc846` | 2026-09-02 | [Feat] Add deepseek-v4-flash-vision-exp to Deepseek AI (#1438)                 | `A-CLEAN`       | P2  | 0   | ☑ 567b94bd9 | —          | 2026-09-16 | 3.88.4  | —         |
 | `c4574ffef` | 2026-09-05 | feat(providers): add DeepSeek V4 Flash Vision Exp (#1488)                      | `B-CAREFUL`     | P2  | 2   | ☐           | —          | —          | —       | —         |
-| `22cc416ba` | 2026-09-03 | refactor(api): make Gemini CLI handler routing explicit (#1442)                | `B-CAREFUL`     | P2  | 1   | ☐           | —          | —          | —       | —         |
 | `ec77e3f1e` | 2026-08-28 | feat(providers): add GLM-5.3-Flash support (#1430)                             | `B-CAREFUL`     | P2  | 1   | ☐           | —          | —          | —       | —         |
 | `0d937c050` | 2026-09-04 | Add Claude Fable 5.1 support (#1508)                                           | `B-CAREFUL`     | P2  | 6   | ☐           | —          | —          | —       | —         |
 | `f424bbbe4` | 2026-09-04 | [Feat] Add verified GPT-6 Astra support across providers (#1506)               | `B-CAREFUL`     | P2  | 8   | ☐           | —          | —          | —       | —         |
@@ -722,6 +721,18 @@ Created 2026-10-01 by re-homing `aaa22e167` out of the SYNC-16 refresh proposal.
 | `aaa22e167` | 2026-09-26 | fix(vscode-lm): sanitize lone UTF-16 surrogates in text and tool input (#1605) | `B-CAREFUL` | P1  | 4   | ☑ 9e23f8be2 | —          | 2026-10-01 | 3.88.12 | —         |
 
 **Notes.** Resolution record: [`resolutions/SYNC-18.md`](resolutions/SYNC-18.md) — one `vscode-lm.ts` import conflict (upstream's import block is a superset of the fork's) plus three auto-merged files; 4 blocks, `verify-resolutions --batch` green. The pick is a `git cherry-pick -x` with the trailer present.
+
+## SYNC-19 — Provider routing (clean pick) (`P2`) — ✅ DONE (1/1)
+
+Created 2026-10-01 by re-homing `22cc416ba` out of the SYNC-5 curated list. It auto-merged cleanly (one file, `src/api/index.ts`) — no conflict, so no resolution record is required.
+
+| SHA         | Date       | Subject                                                         | Class       | Pri | Δ   | Status      | Blocked-by | Resolved:  | Version | Exception |
+| ----------- | ---------- | --------------------------------------------------------------- | ----------- | --- | --- | ----------- | ---------- | ---------- | ------- | --------- |
+| `22cc416ba` | 2026-09-03 | refactor(api): make Gemini CLI handler routing explicit (#1442) | `B-CAREFUL` | P2  | 1   | ☑ 5fcc1148a | —          | 2026-10-01 | 3.88.12 | —         |
+
+**Notes.** **Deferred in this batch — `ec77e3f1e` (#1430, add GLM-5.3-Flash).** Attempted and aborted: its `webview-ui/src/components/ui/hooks/__tests__/useSelectedModel.spec.ts` hunk adds a `Z AI provider` describe block that the fork does not have, and those cases fail (4 tests) because the fork's zai model-selection diverges from upstream's catalog/identifiers. The fork's Z AI selection path needs its own sync before this row can land; recorded here rather than as a `Blocked-by` SHA because the gap is a fork divergence, not a single unsynced predecessor.
+
+**Lesson (recorded for the next refresh).** The strict predecessor check still over-reports: `ec77e3f1e` passed it yet failed at cherry-pick + test time. Trial-picking is the only reliable filter; the register's derived ready set should be treated as a _candidate_ list.
 
 ## Recommended execution order
 
