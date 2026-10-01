@@ -610,7 +610,7 @@ These 1 commit(s) landed on `upstream/main` after the recorded baseline tip `9ec
 
 ## SYNC-16 — Refresh 2026-10-01 (proposals — needs human triage)
 
-These 28 commit(s) landed on `upstream/main` after the recorded baseline tip `fadd66a34`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
+These 27 commit(s) landed on `upstream/main` after the recorded baseline tip `fadd66a34`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
 
 | SHA         | Date       | Subject                                                                                                    | Class           | Pri | Δ   | Status | Blocked-by               | Resolved: | Version | Exception |
 | ----------- | ---------- | ---------------------------------------------------------------------------------------------------------- | --------------- | --- | --- | ------ | ------------------------ | --------- | ------- | --------- |
@@ -618,7 +618,6 @@ These 28 commit(s) landed on `upstream/main` after the recorded baseline tip `fa
 | `c028d24ba` | 2026-09-25 | fix(code-index): initialize external task managers before search (#1725)                                   | `C-REIMPLEMENT` | P1  | 6   | ☐      | —                        | —         | —       | —         |
 | `219db1da5` | 2026-09-25 | perf(webview): stop task history globalState writes (#1664)                                                | `C-REIMPLEMENT` | P1  | 5   | ☐      | —                        | —         | —       | —         |
 | `921810d84` | 2026-09-25 | fix(bedrock): report output truncation and expose model token limits (#1718)                               | `C-REIMPLEMENT` | P1  | 6   | ☐      | —                        | —         | —       | —         |
-| `aaa22e167` | 2026-09-26 | fix(vscode-lm): sanitize lone UTF-16 surrogates in text and tool input (#1605)                             | `B-CAREFUL`     | P1  | 4   | ☐      | —                        | —         | —       | —         |
 | `601f4a5fc` | 2026-09-26 | fix(task): pass null targetTask to handleModeSwitch for slash commands (#1784)                             | `B-CAREFUL`     | P1  | 2   | ☐      | —                        | —         | —       | —         |
 | `a9ebf1a6a` | 2026-09-26 | fix(vertex): correct Claude Opus 5.5 max output tokens to 128K (#1777)                                     | `A-CLEAN`       | P1  | 0   | ☐      | `0d937c050`, `9ec139cd8` | —         | —       | —         |
 | `eb83244e9` | 2026-09-26 | [Docs] Add release documentation PR step (#1786)                                                           | `B-CAREFUL`     | P3  | 1   | ☐      | —                        | —         | —       | —         |
@@ -634,7 +633,7 @@ These 28 commit(s) landed on `upstream/main` after the recorded baseline tip `fa
 | `778ad3e18` | 2026-09-28 | refactor(code-index): scope state ownership and workspace status delivery (#1768)                          | `C-REIMPLEMENT` | P3  | 5   | ☐      | —                        | —         | —       | —         |
 | `e277ab927` | 2026-09-29 | refactor(code-index): extract single-file preparation (#1836)                                              | `B-CAREFUL`     | P3  | 2   | ☐      | —                        | —         | —       | —         |
 | `2da6ea2ae` | 2026-09-30 | fix: streaming tool-call argument loss in NativeToolCallParser (#695) (#700)                               | `A-CLEAN`       | P1  | 0   | ☐      | `9d43817fd`              | —         | —       | —         |
-| `0f75a60bc` | 2026-09-30 | fix(vscode-lm): window-safe middle-out truncation of tool_result content (#1606)                           | `B-CAREFUL`     | P1  | 2   | ☐      | —                        | —         | —       | —         |
+| `0f75a60bc` | 2026-09-30 | fix(vscode-lm): window-safe middle-out truncation of tool_result content (#1606)                           | `B-CAREFUL`     | P1  | 2   | ☐      | `08d05eb0f`              | —         | —       | —         |
 | `bf3bc781b` | 2026-09-30 | refactor(code-index): route workspace actions through scopes (#1778)                                       | `C-REIMPLEMENT` | P3  | 3   | ☐      | —                        | —         | —       | —         |
 | `0b7cd10fc` | 2026-09-30 | refactor(code-index): use immutable configuration snapshots (#1815)                                        | `B-CAREFUL`     | P3  | 3   | ☐      | —                        | —         | —       | —         |
 | `ceceb087f` | 2026-09-30 | feat(openai): add GPT-6.1 Sol support (#1864)                                                              | `C-REIMPLEMENT` | P2  | 1   | ☐      | —                        | —         | —       | —         |
@@ -650,8 +649,6 @@ These 28 commit(s) landed on `upstream/main` after the recorded baseline tip `fa
 **`219db1da5` evidence.** Δ 5 of 5 file(s) · hot: src/core/webview/ClineProvider.ts, src/eslint-suppressions.json. Proposed `C-REIMPLEMENT` / P1: structural divergence (decomposed webview handlers / ClineProvider); intent prefix "perf"
 
 **`921810d84` evidence.** Δ 6 of 14 file(s) · hot: src/core/task/Task.ts, src/eslint-suppressions.json. Proposed `C-REIMPLEMENT` / P1: Δ 6 — large overlap; runbook §2 stop condition (Δ>5 outside C-REIMPLEMENT) means inspect by hand; intent prefix "fix"
-
-**`aaa22e167` evidence.** Δ 4 of 4 file(s). Proposed `B-CAREFUL` / P1: Δ 4 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
 
 **`601f4a5fc` evidence.** Δ 2 of 2 file(s) · hot: src/core/task/Task.ts. Proposed `B-CAREFUL` / P1: Δ 2 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
 
@@ -716,6 +713,16 @@ Created 2026-10-01 by re-homing three `A-CLEAN` rows out of the SYNC-14 (`bac8ad
 - `a9ebf1a6a` (#1777) is blocked by the unsynced `9ec139cd8` (#1756, add Claude Opus 5.5) and `0d937c050` (#1508, add Claude Fable 5.1); its trial pick conflicted on the exact `claude-opus-5-5` / `claude-fable-5-1` insertion block in `packages/types/src/providers/vertex.ts`. Land the provider chain first.
 - `2da6ea2ae` (#695/#700) is blocked by the unsynced `9d43817fd` (#1470), which is `C-REIMPLEMENT` and must be hand-ported, never cherry-picked.
 
+## SYNC-18 — vscode-lm robustness (`P1`) — ✅ DONE (1/1)
+
+Created 2026-10-01 by re-homing `aaa22e167` out of the SYNC-16 refresh proposal. Its sibling `0f75a60bc` (#1606) was attempted in the same batch and **deferred**: it is dependency-blocked on the unsynced `08d05eb0f` (#1188), which introduced `extractLeakedToolCalls` / `trailingPartialToolMarkerLength` into `src/api/providers/vscode-lm.ts` — the fork lacks that block, so `0f75a60bc`'s trial pick conflicted on it and was aborted rather than resolved by importing an unsynced feature. Recorded in `Blocked-by`.
+
+| SHA         | Date       | Subject                                                                        | Class       | Pri | Δ   | Status      | Blocked-by | Resolved:  | Version | Exception |
+| ----------- | ---------- | ------------------------------------------------------------------------------ | ----------- | --- | --- | ----------- | ---------- | ---------- | ------- | --------- |
+| `aaa22e167` | 2026-09-26 | fix(vscode-lm): sanitize lone UTF-16 surrogates in text and tool input (#1605) | `B-CAREFUL` | P1  | 4   | ☑ 9e23f8be2 | —          | 2026-10-01 | 3.88.12 | —         |
+
+**Notes.** Resolution record: [`resolutions/SYNC-18.md`](resolutions/SYNC-18.md) — one `vscode-lm.ts` import conflict (upstream's import block is a superset of the fork's) plus three auto-merged files; 4 blocks, `verify-resolutions --batch` green. The pick is a `git cherry-pick -x` with the trailer present.
+
 ## Recommended execution order
 
 1. **SYNC-1 `A-CLEAN` trio** — ✅ synced (☑) on `master` — merged via PR #345 (merge `6c4e9df5c`): `c6eb8fb57` → `f4287ff4f`,
@@ -732,3 +739,5 @@ Created 2026-10-01 by re-homing three `A-CLEAN` rows out of the SYNC-14 (`bac8ad
 9. **SYNC-6** — evaluate each theming fix for "already solved by fork" before doing any work.
 10. **SYNC-17** — inline terminal & shell-reporting correctness — ✅ synced (☑) on `sync/SYNC-17-inline-terminal-shell`:
     `bac8adcf2` → `e0ccd6931`, `78b74ec1c` → `7758c5c1f`, `ebf4bd2d3` → `c7d039612`.
+11. **SYNC-18** — vscode-lm robustness — ✅ synced (☑) on `sync/SYNC-18-vscode-lm-robustness`: `aaa22e167` → `9e23f8be2`.
+    `0f75a60bc` deferred (blocked by the unsynced `08d05eb0f`).
