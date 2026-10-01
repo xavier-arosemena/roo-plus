@@ -6,7 +6,7 @@
 
 ## 1. Symptoms
 
-- The Roo+ panel turns **pale gray** with nothing rendering.
+- The Roo+ panel turns **pale gray** with nothing rendering. (On boot-guard builds — Track 1, see §3a — the dead grey panel is instead replaced by an in-panel **"The Roo+ view failed to load"** fallback with a **Reload** button.)
 - The agent task **continues** in the extension host: commands run, messages stream, cost accrues.
 - The chat **input is dead** — Accept/Save buttons do not respond, typing does nothing.
 - Recurs multiple times per session; may also block approving extension tool calls (observed as "interrupted").
@@ -77,8 +77,27 @@ Work through these in order; stop at the first hit.
 
 ## 3. Immediate mitigations
 
+**First-line: use the panel's own recovery (boot-guard builds).**
+A failed boot is now **self-reported**, not a bare grey panel. The served HTML injects a nonce'd
+boot guard ([§3a](#3a-boot-guard-detection-triggers-and-reason-codes)) that paints a self-contained
+fallback — the text **"The Roo+ view failed to load"** and a focusable **Reload** button that calls
+`location.reload()`. On failure the webview also posts exactly one typed `webviewBootFailure`
+message. So:
+
+1. If you can see the fallback, click **Reload** in the panel — it recovers a wedged renderer
+   (including one whose `/assets/*.js` never loaded) without reloading your window.
+2. Before escalating, open the **Roo+ output channel** and look for
+   `[webview-boot] failure reason=<reason>`. The host logs this **local-only** line on each
+   report (no telemetry, no egress). The user-facing notification is **not** raised for
+   `watchdog` (a heuristic over a slow-but-healthy mount, which the guard retracts once the app
+   finally mounts) and is raised **at most once per 60-second window per webview** for the
+   deterministic `load` / `throw` failures (the local `[webview-boot]` log line is always emitted).
+   `<reason>` is `watchdog` / `load` / `throw` — meaning in §3a.
+3. Only escalate (§4) if the failure survives a **Reload**.
+
 **A. Reload the window (always safe, works when the renderer is wedged):**
-Command Palette → `Developer: Reload Window`.
+Command Palette → `Developer: Reload Window`. Use this when **no** fallback appears at all — i.e.
+the webview document itself never loaded, so the boot guard had no document to run in.
 
 **B. Purge the `state.vscdb` taskHistory blob (≤ 3.88.0, local machine only):**
 Follow [postmortem §4a](../postmortems/2026-09-09-webview-grayout-console-warnings.md#4a-interim-mitigation-run-now-on-the-local-machine-until-the-fixed-build-is-installed)
@@ -90,6 +109,41 @@ delete the extension-id row).
 > installed release re-writes the Memento mirror ~5 s after any task-history
 > change. Only the fixed build (which clears the key on startup and never
 > rewrites it) is a permanent cure.
+
+### 3a. Boot-guard detection triggers and reason codes
+
+The guard is injected into the served webview HTML by
+[`ClineProvider.getHtmlContent()`](../../src/core/webview/ClineProvider.ts:1) from
+[`src/core/webview/webviewBootGuard.ts`](../../src/core/webview/webviewBootGuard.ts:1)
+(`BOOT_WATCHDOG_TIMEOUT_MS = 6000`). It fires **once** from the first of three triggers and paints a
+self-contained fallback ("The Roo+ view failed to load" + the panel's Reload button):
+
+| Trigger                                    | Detection                                                                                              | `reason`   |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------ | ---------- |
+| **Watchdog timeout**                       | `#root` is still empty `BOOT_WATCHDOG_TIMEOUT_MS` (6 s) after the document loads                       | `watchdog` |
+| **Resource `error` event**                 | a window `error` (capture) fires before the app mounted — e.g. the module bundle or a stylesheet 404'd | `load`     |
+| **Script exception / unhandled rejection** | an `unhandledrejection` fires before the app mounted                                                   | `throw`    |
+
+Whichever trigger hits first wins; the guard posts **exactly one** typed `webviewBootFailure`
+message with `reason: "watchdog" | "load" | "throw"` and then renders the fallback.
+
+The **`watchdog` trigger is a heuristic** — an empty `#root` after 6 s can also be a
+slow-but-healthy mount — and the guard **retracts** it: when the app finally mounts it clears the
+fallback (DEF-4). It is therefore **log-only** host-side: `reason=watchdog` is written to the output
+channel but raises **no** notification. Only the deterministic `load` / `throw` failures raise the
+**non-modal** warning, and at most **one per 60-second window per webview** (the host-side
+throttle is re-armed when a fresh document posts `webviewDidLaunch`). The local `[webview-boot]`
+log line is emitted for every failure regardless of the throttle.
+
+The watchdog is **disarmed** by the app's existing `webviewDidLaunch` signal (no new "ready"
+message type), so a healthy boot never shows the fallback. The watchdog is also armed
+**independently** of the `acquireVsCodeApi` wrapper install, and any install-step failure leaves a
+local `[webview-boot-guard] install step failed: <stage>` line — the guard must never be silently
+inert. `webview-ui/src/index.tsx` is also self-defending: it
+null-checks `#root`, catches render throws (see
+[`webview-ui/src/utils/webviewBootstrapError.ts`](../../webview-ui/src/utils/webviewBootstrapError.ts:1)),
+and wraps the app in an outer `ErrorBoundary` so bootstrap-path throws are caught too. The CSP was
+**not** changed — the guard is nonce'd and permitted by the existing `'strict-dynamic'` policy.
 
 ## 4. Escalation matrix
 
@@ -242,6 +296,34 @@ The window and its paging are now **per workspace scope** (default `current`); v
 - [ ] A **background task update** during paging does **not** reduce the visible row count (the `taskHistoryUpdated` push merges now).
 - [ ] `[webview-metrics] history_paging scope=… pages=… rows=… bytes=… hasMore=0|1` appears once per fetch, `pages` advances within the window, and `hasMore=0` at the tail (this line is what makes "Load older tasks seemed broken" measurable).
 - [ ] History panel still renders (the full history remains file-backed under `globalStorage/tasks/…`; `_index.json`/`history_item.json` are read-only).
+
+### 6b. Boot-guard, hydration and liveness checklist (Tracks 1–2)
+
+- [ ] **Boot-failure fallback appears, and disarms on a healthy boot.** With a deliberately broken
+      asset (make one `/assets/*.js` 404), the panel shows **"The Roo+ view failed to load"** + a
+      focusable **Reload** button, and the output channel logs exactly one
+      `[webview-boot] failure reason=<reason>`. The non-modal notification is raised only for the
+      deterministic `load` / `throw` reasons and **at most once per 60-second window per webview**
+      (the local log line is emitted for every failure); a `watchdog` report is **log-only**. On a
+      **healthy** boot the guard is disarmed by
+      `webviewDidLaunch`, so **no** fallback and **no** `[webview-boot]` line appear even after 6 s
+      (`BOOT_WATCHDOG_TIMEOUT_MS`).
+- [ ] **A malformed/deferred `state` still hydrates.** A **known** `state` that fails validation is
+      salvaged (unknown keys stripped, malformed known scalars dropped) and hydration proceeds —
+      the previous permanent veto is gone; an **unknown** message type is still rejected (fail-closed
+      allowlist unchanged). Either way, hydration completes within `HYDRATION_TIMEOUT_MS` (8 s) of
+      `webviewDidLaunch`, or it hydrates with defaults and shows a **non-blocking** banner.
+- [ ] **Liveness counters surface only when non-zero.** With `ROO_WEBVIEW_LIVENESS_DEBUG=1`, the
+      `livenessPong` carries optional integers `resourceErrorCount` and `salvagedStateCount`
+      (bounded above by the schema), and the probe line appends
+      `resource_errors=N` / `state_drops=N` / `salvaged_states=N` **only** when the respective count
+      is non-zero. `salvaged_states=N` counts malformed `state` pushes the webview repaired through
+      the T2.1 salvage path (observable host-side instead of a webview-console-only warning); like
+      `resource_errors` it is a suffix only and does not force a WARN. With the gate off the probe
+      is completely inert (no timer, no ping). Artefacts:
+      [`src/core/webview/webviewBootGuard.ts`](../../src/core/webview/webviewBootGuard.ts:1),
+      [`webview-ui/src/utils/webviewBootstrapError.ts`](../../webview-ui/src/utils/webviewBootstrapError.ts:1),
+      [`webview-ui/src/utils/resourceErrorCounter.ts`](../../webview-ui/src/utils/resourceErrorCounter.ts:1).
 
 ## Privacy note
 

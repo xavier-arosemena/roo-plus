@@ -667,6 +667,33 @@ describe("ClineProvider", () => {
 		expect(scriptSrcMatch![0]).toContain("'wasm-unsafe-eval'")
 	})
 
+	test("serves the nonce'd boot guard in the production HTML without weakening the CSP", async () => {
+		provider = new ClineProvider(
+			{ ...mockContext, extensionMode: vscode.ExtensionMode.Development },
+			mockOutputChannel,
+			"sidebar",
+			new ContextProxy(mockContext),
+		)
+		vi.mocked(axios.get).mockRejectedValueOnce(new Error("Network error"))
+
+		await provider.resolveWebviewView(mockWebviewView)
+
+		const html = mockWebviewView.webview.html
+
+		// The boot guard self-heals a dead panel: a self-contained fallback +
+		// the typed webviewBootFailure report + the webviewDidLaunch disarm hook.
+		expect(html).toContain("The Roo+ view failed to load")
+		expect(html).toContain("roo-webview-boot-fallback")
+		expect(html).toContain("webviewBootFailure")
+		expect(html).toContain("webviewDidLaunch")
+
+		// The guard must NOT relax the CSP: scripts stay nonce-gated only.
+		const scriptSrcMatch = html.match(/script-src[^;]*;/)
+		expect(scriptSrcMatch).not.toBeNull()
+		expect(scriptSrcMatch![0]).toContain("'nonce-")
+		expect(scriptSrcMatch![0]).not.toContain("'unsafe-inline'")
+	})
+
 	describe("getHMRHtmlContent (dev mode CSP + Vite identity probe)", () => {
 		const createDevProvider = () =>
 			new ClineProvider(
@@ -872,6 +899,61 @@ describe("ClineProvider", () => {
 
 		// Should not throw
 		await expect(provider.postMessageToWebview(message)).resolves.toBeUndefined()
+	})
+
+	test("postMessageToWebview does NOT record the payload SLI when the send throws (T2.2)", async () => {
+		await provider.resolveWebviewView(mockWebviewView)
+		mockPostMessage.mockClear()
+		const logSpy = vi.spyOn(provider, "log").mockImplementation(() => {})
+
+		const payloads: WebviewPayloadSizeEvent[] = []
+		provider.on(RooCodeEventName.WebviewPayloadSize, (payload) => {
+			payloads.push(payload)
+		})
+
+		mockPostMessage.mockRejectedValueOnce(new Error("boom"))
+
+		const largeState = {
+			version: "1.0.0",
+			clineMessages: [{ ts: 1, type: "say", say: "text", text: "x".repeat(300 * 1024) }],
+		} as unknown as ExtensionState
+
+		await expect(provider.postMessageToWebview({ type: "state", state: largeState })).resolves.toBeUndefined()
+
+		// The dispatch never reached the renderer, so no delivered-message SLI.
+		expect(payloads).toHaveLength(0)
+		expect(logSpy.mock.calls.map(([m]) => m).some((m) => m.includes("[webview-metrics]"))).toBe(false)
+	})
+
+	test("postMessageToWebview increments the dropped counter and surfaces the drop (T2.2)", async () => {
+		await provider.resolveWebviewView(mockWebviewView)
+		mockPostMessage.mockClear()
+		const logSpy = vi.spyOn(provider, "log").mockImplementation(() => {})
+
+		mockPostMessage.mockRejectedValueOnce(new Error("Webview is disposed"))
+
+		await provider.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
+
+		expect(provider.getDroppedMessageCount()).toBe(1)
+		expect(logSpy.mock.calls.map(([m]) => m).some((m) => m.includes("[webview-post] dropped type=action"))).toBe(
+			true,
+		)
+	})
+
+	test("a dropped `state` push is recorded by the liveness probe (T2.2)", async () => {
+		await provider.resolveWebviewView(mockWebviewView)
+		mockPostMessage.mockClear()
+		vi.spyOn(provider, "log").mockImplementation(() => {})
+
+		// Bracket notation accesses the private probe without an `any` cast.
+		const dropSpy = vi.spyOn(provider["webviewLivenessProbe"], "recordStateDrop")
+
+		mockPostMessage.mockRejectedValueOnce(new Error("Webview is disposed"))
+
+		await provider.postMessageToWebview({ type: "state", state: { version: "1.0.0" } as unknown as ExtensionState })
+
+		expect(provider.getDroppedMessageCount()).toBe(1)
+		expect(dropSpy).toHaveBeenCalledTimes(1)
 	})
 
 	test("postStateToWebview does not force action navigation for non-compliant MDM state", async () => {

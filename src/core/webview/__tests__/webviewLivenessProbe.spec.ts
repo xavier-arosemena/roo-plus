@@ -17,11 +17,13 @@ const START_TIME = 1_000_000
 
 /**
  * Every `[webview-liveness]` line, in both shapes (periodic / WARN / ERROR):
- * the literal prefix, static labels, integers and the static runbook path ONLY.
- * Anything else — a task id, a path, message text, a provider value — is a leak.
+ * the literal prefix, static labels, integers (including the optional
+ * `resource_errors` / `state_drops` / `salvaged_states` suffixes) and the static
+ * runbook path ONLY. Anything else — a task id, a path, message text, a provider
+ * value — is a leak.
  */
 const LIVENESS_LINE_PATTERN =
-	/^\[webview-liveness\] (WARN |ERROR )?rtt_ms p50=\d+ p99=\d+ max=\d+ \| missed=\d+ n=\d+( \| window runbook=docs\/runbooks\/gray-webview\.md)?$/
+	/^\[webview-liveness\] (WARN |ERROR )?rtt_ms p50=\d+ p99=\d+ max=\d+ \| missed=\d+ n=\d+( \| (resource_errors|state_drops|salvaged_states)=\d+)*( \| window runbook=docs\/runbooks\/gray-webview\.md)?$/
 
 interface Harness {
 	probe: WebviewLivenessProbe
@@ -287,5 +289,76 @@ describe("WebviewLivenessProbe", () => {
 
 		expect(h.pings.length).toBe(pingsAtDispose)
 		expect(h.logLines.length).toBe(logsAtDispose)
+	})
+
+	test("surfaces the integer resource-error count on the window line (T2.3)", () => {
+		const h = createHarness({ enabled: true, replyLatencyMs: 5 })
+
+		h.probe.start()
+		// The webview reports 4 resource load failures on its pong.
+		h.probe.recordPong(1, 4)
+		h.runTicks(TICKS_PER_WINDOW)
+
+		expect(h.probe.getResourceErrorCount()).toBe(4)
+		expect(h.logLines).toHaveLength(1)
+		expect(h.logLines[0]).toContain("resource_errors=4")
+	})
+
+	test("surfaces the integer salvaged-state count on the window line (F-2)", () => {
+		const h = createHarness({ enabled: true, replyLatencyMs: 5 })
+
+		h.probe.start()
+		// The webview repaired 2 malformed `state` pushes and reports the count.
+		h.probe.recordPong(1, 0, 2)
+		h.runTicks(TICKS_PER_WINDOW)
+
+		expect(h.probe.getSalvagedStateCount()).toBe(2)
+		expect(h.logLines).toHaveLength(1)
+		expect(h.logLines[0]).toContain("salvaged_states=2")
+		// Suffix only: a salvage does NOT force a WARN on its own (the RTT is healthy).
+		expect(h.logLines[0]).not.toContain("WARN")
+		expect(h.logLines[0]).toMatch(LIVENESS_LINE_PATTERN)
+	})
+
+	test("records salvaged_states from a pong that answers no pending ping (F-2)", () => {
+		const h = createHarness({ enabled: true, replyLatencyMs: 5 })
+
+		h.probe.start()
+		// An unknown sequence number: the counter is renderer-global, so it is still
+		// recorded while no RTT sample is taken from this pong.
+		h.probe.recordPong(999, 0, 3)
+		h.runTicks(TICKS_PER_WINDOW)
+
+		expect(h.probe.getSalvagedStateCount()).toBe(3)
+		expect(h.logLines.join("\n")).toContain("salvaged_states=3")
+	})
+
+	test("a dropped `state` push surfaces state_drops as a WARN (T2.2)", () => {
+		const h = createHarness({ enabled: true, replyLatencyMs: 3 })
+
+		h.probe.start()
+		h.probe.recordStateDrop()
+
+		expect(h.probe.getStateDropCount()).toBe(1)
+
+		h.runTicks(TICKS_PER_WINDOW)
+
+		expect(h.logLines).toHaveLength(1)
+		expect(h.logLines[0]).toContain("[webview-liveness] WARN")
+		expect(h.logLines[0]).toContain("state_drops=1")
+	})
+
+	test("flag off ⇒ every counter stays 0 and drops are inert (T2.2/T2.3/F-2)", () => {
+		const h = createHarness({ enabled: false })
+
+		h.probe.start()
+		h.probe.recordPong(1, 9, 9)
+		h.probe.recordStateDrop()
+		h.runTicks(20)
+
+		expect(h.probe.getResourceErrorCount()).toBe(0)
+		expect(h.probe.getSalvagedStateCount()).toBe(0)
+		expect(h.probe.getStateDropCount()).toBe(0)
+		expect(h.logLines).toEqual([])
 	})
 })

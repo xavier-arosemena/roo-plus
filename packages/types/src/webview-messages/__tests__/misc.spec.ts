@@ -309,4 +309,25 @@ describe("parseWebviewMessage boundary for misc", () => {
 			expect(result.message.type).toBe("webviewDidLaunch")
 		}
 	})
+
+	it("accepts a valid webviewBootFailure message at the boundary", () => {
+		const result = parseWebviewMessage({ type: "webviewBootFailure", reason: "watchdog" })
+		expect(result.ok).toBe(true)
+		if (result.ok) {
+			expect(result.message.type).toBe("webviewBootFailure")
+			expect(result.message.reason).toBe("watchdog")
+		}
+	})
+
+	it("rejects a webviewBootFailure with an out-of-enum reason at the boundary", () => {
+		const result = parseWebviewMessage({ type: "webviewBootFailure", reason: "bogus" })
+		expect(result.ok).toBe(false)
+		if (!result.ok) {
+			expect(result.error).toContain("webviewBootFailure")
+		}
+	})
+
+	it("rejects a webviewBootFailure missing the reason at the boundary", () => {
+		expect(parseWebviewMessage({ type: "webviewBootFailure" }).ok).toBe(false)
+	})
 })

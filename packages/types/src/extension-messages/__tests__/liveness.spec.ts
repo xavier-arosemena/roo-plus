@@ -54,5 +54,89 @@ describe("renderer-liveness probe messages", () => {
 			)
 			expect(livenessPongMessageSchema.safeParse({ type: "livenessPong" }).success).toBe(false)
 		})
+
+		it("carries the OPTIONAL integer resource-error count (T2.3)", () => {
+			const parsed = parseWebviewMessage({ type: "livenessPong", livenessPongSeq: 9, resourceErrorCount: 3 })
+
+			expect(parsed.ok).toBe(true)
+
+			if (parsed.ok) {
+				expect(parsed.message.resourceErrorCount).toBe(3)
+			}
+		})
+
+		it("stays backward-compatible when the resource-error count is omitted", () => {
+			const parsed = parseWebviewMessage({ type: "livenessPong", livenessPongSeq: 9 })
+
+			expect(parsed.ok).toBe(true)
+
+			if (parsed.ok) {
+				expect(parsed.message.resourceErrorCount).toBeUndefined()
+			}
+		})
+
+		it("rejects a non-integer / negative / string resource-error count", () => {
+			for (const resourceErrorCount of [1.5, -1, "3", Number.NaN]) {
+				expect(
+					livenessPongMessageSchema.safeParse({
+						type: "livenessPong",
+						livenessPongSeq: 1,
+						resourceErrorCount,
+					}).success,
+				).toBe(false)
+			}
+		})
+
+		it("rejects a counter ABOVE the upper bound (F-3)", () => {
+			// The bound is symmetric: `nonnegative()` caps the bottom, `max()` caps the
+			// top, so a hostile/corrupt renderer cannot inject an unbounded integer.
+			expect(
+				livenessPongMessageSchema.safeParse({
+					type: "livenessPong",
+					livenessPongSeq: 1,
+					resourceErrorCount: 1_000_001,
+				}).success,
+			).toBe(false)
+
+			expect(
+				livenessPongMessageSchema.safeParse({
+					type: "livenessPong",
+					livenessPongSeq: 1,
+					salvagedStateCount: 1_000_001,
+				}).success,
+			).toBe(false)
+
+			// The exact maximum is still accepted (inclusive bound).
+			expect(
+				livenessPongMessageSchema.safeParse({
+					type: "livenessPong",
+					livenessPongSeq: 1,
+					resourceErrorCount: 1_000_000,
+				}).success,
+			).toBe(true)
+		})
+
+		it("carries the OPTIONAL integer salvaged-state count (F-2)", () => {
+			const parsed = parseWebviewMessage({
+				type: "livenessPong",
+				livenessPongSeq: 9,
+				resourceErrorCount: 0,
+				salvagedStateCount: 2,
+			})
+
+			expect(parsed.ok).toBe(true)
+
+			if (parsed.ok) {
+				expect(parsed.message.salvagedStateCount).toBe(2)
+			}
+
+			// Backward-compatible when omitted.
+			const omitted = parseWebviewMessage({ type: "livenessPong", livenessPongSeq: 9 })
+			expect(omitted.ok).toBe(true)
+
+			if (omitted.ok) {
+				expect(omitted.message.salvagedStateCount).toBeUndefined()
+			}
+		})
 	})
 })

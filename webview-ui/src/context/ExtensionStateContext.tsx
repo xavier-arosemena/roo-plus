@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useEffect, useState } from "react"
+import React, { createContext, useCallback, useEffect, useRef, useState } from "react"
 
 import {
 	type ProviderSettings,
@@ -20,6 +20,7 @@ import {
 	DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 	DEFAULT_DIFF_FUZZY_THRESHOLD,
 	parseExtensionMessage,
+	salvageExtensionState,
 } from "@roo-code/types"
 
 import { findLastIndex } from "@roo/array"
@@ -31,12 +32,27 @@ import { experimentDefault } from "@roo/experiments"
 
 import { vscode } from "@src/utils/vscode"
 import { convertTextMateToHljs } from "@src/utils/textMateToHljs"
+import { getResourceErrorCount } from "@src/utils/resourceErrorCounter"
 import { mergeClineMessagesState, mergeOlderClineMessagesPage } from "@src/utils/mergeClineMessagesState"
 import { appendOlderTaskHistoryPage, mergeTaskHistoryState } from "@src/utils/mergeTaskHistoryState"
+
+/**
+ * T2.1 (gray-webview follow-up): how long the webview waits after
+ * `webviewDidLaunch` for a valid `state` push before hydrating with defaults and
+ * showing a non-blocking banner, rather than staying permanently blank. Exported
+ * so the hydration-timeout test arms the same value the component does.
+ */
+export const HYDRATION_TIMEOUT_MS = 8000
 
 export interface ExtensionStateContextType extends ExtensionState {
 	historyPreviewCollapsed?: boolean // Add the new state property
 	didHydrateState: boolean
+	/**
+	 * T2.1: `true` when hydration was forced by the timeout (no valid `state`
+	 * arrived in time). The UI still renders (with defaults) and shows a small
+	 * non-blocking banner instead of a permanent blank panel.
+	 */
+	hydrationTimedOut: boolean
 	showWelcome: boolean
 	theme: any
 	mcpServers: McpServer[]
@@ -344,6 +360,27 @@ const createInitialExtensionState = (): ExtensionState => ({
 	lockApiConfigAcrossModes: false,
 })
 
+/**
+ * T2.1: returns the SALVAGED `state` payload when `raw` is a KNOWN `state`
+ * message that failed strict validation, otherwise `undefined`.
+ *
+ * Only `type === "state"` (a registered type) is salvaged, so unknown /
+ * unregistered message TYPES keep being rejected by the fail-closed allowlist.
+ * A `state` message with a missing / garbage `state` body salvages to `{}`, which
+ * still hydrates (with defaults) instead of vetoing hydration forever.
+ */
+function trySalvageStateMessage(raw: unknown): Partial<ExtensionState> | undefined {
+	if (typeof raw !== "object" || raw === null) {
+		return undefined
+	}
+
+	if ((raw as { type?: unknown }).type !== "state") {
+		return undefined
+	}
+
+	return salvageExtensionState((raw as { state?: unknown }).state)
+}
+
 type ExtensionStateProviderInitialState = Partial<ExtensionState> & {
 	routerModels?: RouterModels
 }
@@ -357,6 +394,15 @@ export const ExtensionStateContextProvider: React.FC<{
 	)
 
 	const [didHydrateState, setDidHydrateState] = useState(false)
+	const [hydrationTimedOut, setHydrationTimedOut] = useState(false)
+	// Mirrors `didHydrateState` for the timeout callback, which must read the
+	// latest value without re-arming the timer on every render.
+	const didHydrateRef = useRef(false)
+	// F-2: how many malformed `state` pushes this webview session has REPAIRED via
+	// the T2.1 salvage path. Session memory only, an integer only — surfaced on the
+	// env-gated liveness pong as `salvaged_states=N` so a salvage is observable
+	// host-side instead of being a webview-console-only warning.
+	const salvagedStateCountRef = useRef(0)
 	const [showWelcome, setShowWelcome] = useState(false)
 	const [theme, setTheme] = useState<any>(undefined)
 	const [filePaths, setFilePaths] = useState<string[]>([])
@@ -404,6 +450,46 @@ export const ExtensionStateContextProvider: React.FC<{
 		}))
 	}, [])
 
+	/**
+	 * Applies a `state` push — whether it arrived via the strict-valid path or
+	 * the T2.1 salvage path — and marks the webview hydrated. Extracted so both
+	 * paths run the exact same hydration logic (hydration is never vetoed).
+	 */
+	const applyStateMessage = useCallback((newState: Partial<ExtensionState>) => {
+		setState((prevState) => mergeExtensionState(prevState, newState))
+		setShowWelcome(!checkExistKey(newState.apiConfiguration))
+		// T2.1: seen a `state` (valid or salvaged) ⇒ hydrate, no matter what.
+		didHydrateRef.current = true
+		setDidHydrateState(true)
+		// Update alwaysAllowFollowupQuestions if present in state message
+		if ((newState as any).alwaysAllowFollowupQuestions !== undefined) {
+			setAlwaysAllowFollowupQuestions((newState as any).alwaysAllowFollowupQuestions)
+		}
+		// Update followupAutoApproveTimeoutMs if present in state message
+		if ((newState as any).followupAutoApproveTimeoutMs !== undefined) {
+			setFollowupAutoApproveTimeoutMs((newState as any).followupAutoApproveTimeoutMs)
+		}
+		// Update includeTaskHistoryInEnhance if present in state message
+		if ((newState as any).includeTaskHistoryInEnhance !== undefined) {
+			setIncludeTaskHistoryInEnhance((newState as any).includeTaskHistoryInEnhance)
+		}
+		// Update includeCurrentTime if present in state message
+		if ((newState as any).includeCurrentTime !== undefined) {
+			setIncludeCurrentTime((newState as any).includeCurrentTime)
+		}
+		// Update includeCurrentCost if present in state message
+		if ((newState as any).includeCurrentCost !== undefined) {
+			setIncludeCurrentCost((newState as any).includeCurrentCost)
+		}
+		// Handle marketplace data if present in state message
+		if (newState.marketplaceItems !== undefined) {
+			setMarketplaceItems(newState.marketplaceItems)
+		}
+		if (newState.marketplaceInstalledMetadata !== undefined) {
+			setMarketplaceInstalledMetadata(newState.marketplaceInstalledMetadata)
+		}
+	}, [])
+
 	const handleMessage = useCallback(
 		(event: MessageEvent) => {
 			// Boundary-validate extension→webview messages (Phase 2, Domains
@@ -412,43 +498,30 @@ export const ExtensionStateContextProvider: React.FC<{
 			// unregistered types are rejected (hard allowlist, fail-closed).
 			const parsed = parseExtensionMessage(event.data)
 			if (!parsed.ok) {
+				// T2.1 (gray-webview follow-up): a KNOWN `state` message that fails
+				// strict validation must NOT permanently veto hydration — `App.tsx`
+				// renders `null` until `didHydrateState`, so a rejection here is a
+				// permanent blank panel. Salvage the usable fields and hydrate.
+				// Unknown/unregistered message TYPES stay rejected (fail-closed).
+				const salvaged = trySalvageStateMessage(event.data)
+				if (salvaged) {
+					// F-2: count the repair so the host-side liveness probe can
+					// surface `salvaged_states=N` (the webview console is not visible
+					// to host operators).
+					salvagedStateCountRef.current += 1
+					console.warn(
+						`[ExtensionStateContext] Salvaged malformed state message; hydrating with the usable subset: ${parsed.error}`,
+					)
+					applyStateMessage(salvaged)
+					return
+				}
 				console.error(`[ExtensionStateContext] Rejected malformed extension message: ${parsed.error}`)
 				return
 			}
 			const message = parsed.message
 			switch (message.type) {
 				case "state": {
-					const newState = message.state ?? {}
-					setState((prevState) => mergeExtensionState(prevState, newState))
-					setShowWelcome(!checkExistKey(newState.apiConfiguration))
-					setDidHydrateState(true)
-					// Update alwaysAllowFollowupQuestions if present in state message
-					if ((newState as any).alwaysAllowFollowupQuestions !== undefined) {
-						setAlwaysAllowFollowupQuestions((newState as any).alwaysAllowFollowupQuestions)
-					}
-					// Update followupAutoApproveTimeoutMs if present in state message
-					if ((newState as any).followupAutoApproveTimeoutMs !== undefined) {
-						setFollowupAutoApproveTimeoutMs((newState as any).followupAutoApproveTimeoutMs)
-					}
-					// Update includeTaskHistoryInEnhance if present in state message
-					if ((newState as any).includeTaskHistoryInEnhance !== undefined) {
-						setIncludeTaskHistoryInEnhance((newState as any).includeTaskHistoryInEnhance)
-					}
-					// Update includeCurrentTime if present in state message
-					if ((newState as any).includeCurrentTime !== undefined) {
-						setIncludeCurrentTime((newState as any).includeCurrentTime)
-					}
-					// Update includeCurrentCost if present in state message
-					if ((newState as any).includeCurrentCost !== undefined) {
-						setIncludeCurrentCost((newState as any).includeCurrentCost)
-					}
-					// Handle marketplace data if present in state message
-					if (newState.marketplaceItems !== undefined) {
-						setMarketplaceItems(newState.marketplaceItems)
-					}
-					if (newState.marketplaceInstalledMetadata !== undefined) {
-						setMarketplaceInstalledMetadata(newState.marketplaceInstalledMetadata)
-					}
+					applyStateMessage(message.state ?? {})
 					break
 				}
 				case "action": {
@@ -628,7 +701,18 @@ export const ExtensionStateContextProvider: React.FC<{
 					// sends numbers only — the probe is log-only and inert unless its env
 					// gate is on, in which case no ping is ever sent.
 					if (typeof message.livenessPingSeq === "number") {
-						vscode.postMessage({ type: "livenessPong", livenessPongSeq: message.livenessPingSeq })
+						vscode.postMessage({
+							type: "livenessPong",
+							livenessPongSeq: message.livenessPingSeq,
+							// T2.3: integer count of resource load failures since boot
+							// (asset 401s). Numbers only — no content or identifiers — so
+							// the host probe can surface the channel it is otherwise blind to.
+							resourceErrorCount: getResourceErrorCount(),
+							// F-2: integer count of malformed `state` pushes this session
+							// repaired via the salvage path. Same privacy bar — a number
+							// only, no payload or key names.
+							salvagedStateCount: salvagedStateCountRef.current,
+						})
 					}
 					break
 				}
@@ -659,7 +743,7 @@ export const ExtensionStateContextProvider: React.FC<{
 				}
 			}
 		},
-		[setListApiConfigMeta],
+		[setListApiConfigMeta, applyStateMessage],
 	)
 
 	useEffect(() => {
@@ -671,6 +755,28 @@ export const ExtensionStateContextProvider: React.FC<{
 
 	useEffect(() => {
 		vscode.postMessage({ type: "webviewDidLaunch" })
+	}, [])
+
+	// T2.1: if no valid `state` arrives within HYDRATION_TIMEOUT_MS of launch,
+	// hydrate with defaults and surface a small non-blocking banner instead of
+	// staying permanently blank. Keyed to the SAME `webviewDidLaunch` signal —
+	// no new "ready" message type is introduced.
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (didHydrateRef.current) {
+				return
+			}
+
+			didHydrateRef.current = true
+			setDidHydrateState(true)
+			setHydrationTimedOut(true)
+
+			console.warn(
+				`[ExtensionStateContext] No valid 'state' within ${HYDRATION_TIMEOUT_MS}ms of launch; hydrating with defaults`,
+			)
+		}, HYDRATION_TIMEOUT_MS)
+
+		return () => clearTimeout(timer)
 	}, [])
 
 	// Apply the configurable chat font size as a CSS variable. When unset, the
@@ -691,6 +797,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		chatFontSize: state.chatFontSize ?? undefined,
 		reasoningBlockCollapsed: state.reasoningBlockCollapsed ?? true,
 		didHydrateState,
+		hydrationTimedOut,
 		showWelcome,
 		theme,
 		mcpServers,
@@ -811,7 +918,19 @@ export const ExtensionStateContextProvider: React.FC<{
 			setState((prevState) => ({ ...prevState, showWorktreesInHomeScreen: value })),
 	}
 
-	return <ExtensionStateContext.Provider value={contextValue}>{children}</ExtensionStateContext.Provider>
+	return (
+		<ExtensionStateContext.Provider value={contextValue}>
+			{hydrationTimedOut && (
+				<div
+					data-testid="hydration-timeout-banner"
+					role="status"
+					className="bg-vscode-inputValidation-warningBackground text-vscode-inputValidation-warningForeground border-b border-vscode-inputValidation-warningBorder px-3 py-1.5 text-xs">
+					Roo+ is still starting up. Showing default settings until the extension responds.
+				</div>
+			)}
+			{children}
+		</ExtensionStateContext.Provider>
+	)
 }
 
 export const useExtensionState = () => {

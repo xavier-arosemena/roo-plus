@@ -328,7 +328,7 @@ export function parseExtensionMessage(raw: unknown): ParseExtensionMessageResult
 	return { ok: false, error: `Unregistered extension message type '${type}'` }
 }
 
-export { stateMessageSchema, extensionStateSubsetSchema } from "./state.js"
+export { stateMessageSchema, extensionStateSubsetSchema, salvageExtensionState } from "./state.js"
 export type { StateMessage } from "./state.js"
 export {
 	commandExecutionStatusMessageSchema,

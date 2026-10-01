@@ -184,6 +184,7 @@ import {
 	searchFilesMessageSchema,
 	switchTabMessageSchema,
 	taskSyncEnabledMessageSchema,
+	webviewBootFailureMessageSchema,
 	webviewDidLaunchMessageSchema,
 } from "./misc.js"
 import { draggedImagesMessageSchema } from "./loose.js"
@@ -350,6 +351,8 @@ export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType
 	downloadErrorDiagnostics: downloadErrorDiagnosticsMessageSchema,
 	// Misc domain (S1 sub-task 13)
 	webviewDidLaunch: webviewDidLaunchMessageSchema,
+	// Webview boot guard failure report (2026-09-18 gray-webview capture).
+	webviewBootFailure: webviewBootFailureMessageSchema,
 	didShowAnnouncement: didShowAnnouncementMessageSchema,
 	importRooHistory: importRooHistoryMessageSchema,
 	// Renderer-liveness probe reply (2026-09-18 gray-webview capture).
@@ -523,6 +526,7 @@ export const webviewMessageSchema = z.discriminatedUnion("type", [
 	downloadErrorDiagnosticsMessageSchema,
 	// Misc domain (S1 sub-task 13)
 	webviewDidLaunchMessageSchema,
+	webviewBootFailureMessageSchema,
 	didShowAnnouncementMessageSchema,
 	importRooHistoryMessageSchema,
 	resetStateMessageSchema,
@@ -814,6 +818,7 @@ export {
 	searchFilesMessageSchema,
 	switchTabMessageSchema,
 	taskSyncEnabledMessageSchema,
+	webviewBootFailureMessageSchema,
 	webviewDidLaunchMessageSchema,
 	miscMessageSchema,
 } from "./misc.js"

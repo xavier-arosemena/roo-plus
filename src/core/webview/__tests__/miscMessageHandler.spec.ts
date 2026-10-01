@@ -87,9 +87,10 @@ vi.mock("../handlers/shared", () => ({
 	updateGlobalState: vi.fn(),
 }))
 
+import * as vscode from "vscode"
 import { openFile } from "../../../integrations/misc/open-file"
 import { getGlobalState, updateGlobalState } from "../handlers/shared"
-import { handleMiscMessages } from "../handlers/misc"
+import { WEBVIEW_BOOT_FAILURE_NOTIFY_WINDOW_MS, handleMiscMessages } from "../handlers/misc"
 
 describe("miscMessageHandler", () => {
 	const mockLog = vi.fn()
@@ -107,7 +108,13 @@ describe("miscMessageHandler", () => {
 			getMcpHub: vi.fn().mockReturnValue(undefined),
 			workspaceTracker: undefined,
 			isViewLaunched: false,
+			// F-3: the one-per-session boot-failure notification latch starts unset.
+			webviewBootFailureNotified: false,
 			latestAnnouncementId: "announcement-1",
+			recordWebviewLivenessPong: vi.fn(),
+			// Minimal webviewDidLaunch deps so the latch re-arm can be exercised.
+			customModesManager: { getCustomModes: vi.fn().mockResolvedValue([]) },
+			providerSettingsManager: { listConfig: vi.fn().mockResolvedValue([]) },
 		}) as unknown as ClineProvider
 
 	beforeEach(() => {
@@ -225,6 +232,157 @@ describe("miscMessageHandler", () => {
 			await handleMiscMessages(provider, undefined, { type: "getDismissedUpsells" })
 
 			expect(mockPostMessageToWebview).toHaveBeenCalledWith({ type: "dismissedUpsells", list: [] })
+		})
+	})
+
+	describe("webviewBootFailure", () => {
+		it("logs the watchdog reason locally but does NOT notify (F-1: heuristic, retracted by DEF-4)", async () => {
+			const provider = createMockProvider()
+
+			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "watchdog" })
+
+			expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=watchdog")
+			// The watchdog is a heuristic over a slow-but-healthy mount and the guard
+			// retracts it when the app finally mounts, so it must stay LOG-ONLY.
+			expect(vscode.window.showWarningMessage).not.toHaveBeenCalled()
+		})
+
+		it.each(["load", "throw"] as const)(
+			"logs reason=%s and shows exactly one non-modal notification (deterministic failure)",
+			async (reason) => {
+				const provider = createMockProvider()
+
+				await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason })
+
+				expect(mockLog).toHaveBeenCalledWith(`[webview-boot] failure reason=${reason}`)
+				expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
+			},
+		)
+
+		it("notifies at most ONCE within the rate-limit window even if the message is duplicated (NEW-2)", async () => {
+			const provider = createMockProvider()
+
+			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "load" })
+			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "throw" })
+
+			// Both reasons are still logged (the diagnostic channel is unaffected) …
+			expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=load")
+			expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=throw")
+			// … but the user is warned exactly once inside the window.
+			expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
+		})
+
+		it("rate-limits to one per 60 s window per webview and always logs locally (NEW-2)", async () => {
+			const provider = createMockProvider()
+
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"))
+
+			try {
+				// First deterministic failure: shown.
+				await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "load" })
+				expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
+
+				// Duplicate inside the window: suppressed, but STILL logged locally.
+				await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "throw" })
+				expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
+				expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=load")
+				expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=throw")
+
+				// Just inside the window (window − 1 ms): still suppressed.
+				vi.advanceTimersByTime(WEBVIEW_BOOT_FAILURE_NOTIFY_WINDOW_MS - 1)
+				await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "load" })
+				expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
+
+				// Window elapsed: allowed again.
+				vi.advanceTimersByTime(1)
+				await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "throw" })
+				expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(2)
+			} finally {
+				vi.useRealTimers()
+			}
+		})
+
+		it("re-arms the notification throttle when a fresh document mounts (NEW-2)", async () => {
+			const provider = createMockProvider()
+
+			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "load" })
+			expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
+
+			// A reload arrives as a new document whose app posts webviewDidLaunch.
+			await handleMiscMessages(provider, undefined, { type: "webviewDidLaunch" })
+			expect(provider.webviewBootFailureNotified).toBe(false)
+
+			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "throw" })
+			expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(2)
+		})
+
+		it("rejects a malformed webviewBootFailure (out-of-enum reason) without logging a boot line", async () => {
+			const provider = createMockProvider()
+
+			await handleMiscMessages(provider, undefined, {
+				type: "webviewBootFailure",
+				reason: "bogus",
+			} as unknown as WebviewMessage)
+
+			expect(mockLog).toHaveBeenCalledWith(
+				expect.stringContaining("Rejected malformed webviewBootFailure message"),
+			)
+			expect(mockLog).not.toHaveBeenCalledWith(expect.stringContaining("[webview-boot] failure reason="))
+			expect(vscode.window.showWarningMessage).not.toHaveBeenCalled()
+		})
+	})
+
+	describe("livenessPong", () => {
+		it("forwards the sequence number and the optional resource-error count to the probe (T2.3)", async () => {
+			const provider = createMockProvider()
+
+			await handleMiscMessages(provider, undefined, {
+				type: "livenessPong",
+				livenessPongSeq: 11,
+				resourceErrorCount: 2,
+			})
+
+			expect(provider.recordWebviewLivenessPong).toHaveBeenCalledWith(11, 2, undefined)
+		})
+
+		it("forwards the optional salvaged-state count to the probe (F-2)", async () => {
+			const provider = createMockProvider()
+
+			await handleMiscMessages(provider, undefined, {
+				type: "livenessPong",
+				livenessPongSeq: 12,
+				resourceErrorCount: 0,
+				salvagedStateCount: 1,
+			})
+
+			expect(provider.recordWebviewLivenessPong).toHaveBeenCalledWith(12, 0, 1)
+		})
+
+		it("rejects a livenessPong above the F-3 counter ceiling instead of forwarding it", async () => {
+			const provider = createMockProvider()
+
+			await handleMiscMessages(provider, undefined, {
+				type: "livenessPong",
+				livenessPongSeq: 13,
+				resourceErrorCount: 1_000_001,
+			})
+
+			expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed livenessPong message"))
+			expect(provider.recordWebviewLivenessPong).not.toHaveBeenCalled()
+		})
+
+		it("rejects a livenessPong whose SALVAGED-state count is above the counter ceiling (NEW-3)", async () => {
+			const provider = createMockProvider()
+
+			await handleMiscMessages(provider, undefined, {
+				type: "livenessPong",
+				livenessPongSeq: 14,
+				salvagedStateCount: 1_000_001,
+			})
+
+			expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Rejected malformed livenessPong message"))
+			expect(provider.recordWebviewLivenessPong).not.toHaveBeenCalled()
 		})
 	})
 

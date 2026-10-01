@@ -356,6 +356,8 @@ Evidence: [`docs/incidents/2026-09-18-gray-webview.md`](docs/incidents/2026-09-1
 [`docs/incidents/2026-09-17-taskHistory-state-payload.md`](docs/incidents/2026-09-17-taskHistory-state-payload.md),
 [`docs/postmortems/2026-09-09-webview-grayout-console-warnings.md`](docs/postmortems/2026-09-09-webview-grayout-console-warnings.md).
 
+Operator-facing behaviour shipped by Tracks 1–2 (boot guard + in-panel Reload, hydration timeout, liveness counters) is documented in [`docs/runbooks/gray-webview.md`](docs/runbooks/gray-webview.md) §3 / §3a / §6b; the T2.4 snapshot/delta-ordering investigation is entry **H** below.
+
 ### A. Client-side webview-resource layer is a second, independent gray-out mechanism
 
 **Location**: remote webview resource CDN (`…vscode-resource.vscode-cdn.net/assets/*.js`), workbench heartbeat
@@ -420,6 +422,17 @@ Evidence: [`docs/incidents/2026-09-18-gray-webview.md`](docs/incidents/2026-09-1
 - **CI guard added**: [`scripts/verify-docs-no-public-ip.mjs`](scripts/verify-docs-no-public-ip.mjs) (+ spec) hard-fails on any non-localhost/unspecified IPv4 literal under `docs/`, wired into the `static-analysis` job of [`code-qa.yml`](.github/workflows/code-qa.yml) and into `test:scripts`. Allow-list is explicit: `127.0.0.1`, `0.0.0.0`, and the RFC 5737 documentation ranges (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`).
 - **Rotation readiness**: a dependency report (client `~/.ssh/config`, VS Codium `remoteAuthority`/workspace state, workspace + MCP config, server-side keys/listeners/certs/firewall) accompanies the remediation. Key nuance: windows whose `remoteAuthority` is a **raw IP** must be switched to an SSH **alias** before the address changes; alias-based windows rotate transparently via `~/.ssh/config` alone.
 - **Deliberately NOT done (owner-only)**: no git-history rewrite, force-push, or credential rotation was performed. **Recommended primary mitigation: rotate the address at the provider** — forward redaction cannot un-disclose the pushed history, and history rewrite is destructive, requires a force-push, invalidates clones, and still may persist in forks/caches.
+
+### H. Snapshot/delta ordering (T2.4 investigation, 2026-09-30) — NOT reproduced as an unguarded defect
+
+**Investigated**: whether an outbound `state` SNAPSHOT can overtake a newer message DELTA (`messageUpdated` / `taskHistoryItemUpdated` / `taskHistoryUpdated`) and clobber it, via async `postMessage` ordering or queued deltas.
+**Finding**: reordering is possible in principle — [`postStateToWebview()`](src/core/webview/ClineProvider.ts) snapshots state through `await getStateToPostToWebview()` _before_ it posts, and each [`postMessageToWebview()`](src/core/webview/ClineProvider.ts) awaits its own send, so two async producers (task streaming vs. a cloud/mode/settings push) can interleave — but the repository ALREADY carries the monotonic-sequence guard this task would add:
+
+- host: every `postStateToWebview()` / `postStateToWebviewWithoutTaskHistory()` increments `clineMessagesSeq` and stamps it onto the snapshot (`private clineMessagesSeq` — "monotonically increasing sequence number for clineMessages state pushes");
+- webview: the `clineMessagesSeq` guard in [`mergeExtensionState()`](webview-ui/src/context/ExtensionStateContext.tsx) rejects a `state` snapshot whose `clineMessagesSeq` is not strictly newer, so a stale snapshot cannot overwrite newer streamed messages;
+- `postStateToWebviewWithoutClineMessages()` / `postStateToWebviewWithoutTaskHistory()` additionally stop cloud/mode/settings pushes from carrying a stale transcript/history at all.
+  **Conclusion**: NO code change made (per the T2.4 "only if reproducible" rule). The stale-snapshot-overwrites-deltas case is already guarded for the one field where it was observed (`clineMessages`); the delta channels are idempotent / merge-based, so no reproducible, currently-unguarded reorder was found.
+  **Residual / follow-up**: the stamped sequence covers `clineMessages` only, not `taskHistory` or scalar fields. If a future field is shown to suffer the same race, extend the SAME stamped-sequence + merge-guard pattern rather than adding a second mechanism.
 
 ---
 

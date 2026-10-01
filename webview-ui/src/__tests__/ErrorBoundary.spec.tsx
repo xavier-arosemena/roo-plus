@@ -79,4 +79,19 @@ describe("ErrorBoundary", () => {
 
 		spy.mockRestore()
 	})
+
+	it("renders a Reload affordance when a child component throws", () => {
+		vi.spyOn(console, "error").mockImplementation(() => {})
+
+		render(
+			<ErrorBoundary>
+				<ErrorThrower shouldThrow={true} message="Test component error" />
+			</ErrorBoundary>,
+		)
+
+		const reload = screen.getByRole("button", { name: "Reload the Roo+ view" })
+		expect(reload).toBeInTheDocument()
+		expect(reload.tagName).toBe("BUTTON")
+		expect(reload).toHaveAttribute("aria-label", "Reload the Roo+ view")
+	})
 })

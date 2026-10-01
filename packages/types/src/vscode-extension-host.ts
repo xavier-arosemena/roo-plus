@@ -721,6 +721,9 @@ export interface WebviewMessage {
 		| "getOlderTaskHistory"
 		// Renderer-liveness probe reply (2026-09-18 gray-webview capture).
 		| "livenessPong"
+		// Webview boot guard: the served HTML's fallback reported a failed boot
+		// (2026-09-18 gray-webview capture follow-up — see webviewBootGuard.ts).
+		| "webviewBootFailure"
 		| "debugSetting"
 		// Worktree messages
 		| "listWorktrees"
@@ -780,6 +783,26 @@ export interface WebviewMessage {
 	scope?: "current" | "all"
 	/** For `livenessPong`: the `livenessPingSeq` being answered (a number only). */
 	livenessPongSeq?: number
+	/**
+	 * For `livenessPong`: an OPTIONAL integer count of webview resource load
+	 * failures since boot (2026-09-18 gray-webview capture — asset 401s the RTT
+	 * probe is otherwise blind to). A number only; never content or identifiers.
+	 */
+	resourceErrorCount?: number
+	/**
+	 * For `livenessPong`: an OPTIONAL integer count of malformed `state` pushes
+	 * the webview REPAIRED through the salvage path (F-2, T2.1) rather than
+	 * vetoing hydration. Same shape/privacy rules as `resourceErrorCount`: a
+	 * number only, surfaced by the probe as `salvaged_states=N` when non-zero.
+	 */
+	salvagedStateCount?: number
+	/**
+	 * For `webviewBootFailure`: which detector observed the failed boot.
+	 * `"watchdog"` = the bounded `#root`-empty timeout; `"load"` = a resource
+	 * `error` event (the module bundle or a stylesheet 404'd); `"throw"` = a
+	 * script exception / unhandled rejection.
+	 */
+	reason?: "watchdog" | "load" | "throw"
 	bool?: boolean
 	value?: number
 	stepIndex?: number

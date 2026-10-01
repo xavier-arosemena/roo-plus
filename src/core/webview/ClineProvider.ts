@@ -112,6 +112,7 @@ import type { ClineMessage, TodoItem } from "@roo-code/types"
 import { TaskHistoryStore } from "../task-persistence"
 import { getNonce } from "./getNonce"
 import { getUri } from "./getUri"
+import { buildWebviewBootGuardScript } from "./webviewBootGuard"
 import { REQUESTY_BASE_URL } from "../../shared/utils/requesty"
 import { PendingEditOperationStore, type PendingEditOperationInput } from "./PendingEditOperationStore"
 import { WebviewPayloadMetrics } from "./webviewPayloadMetrics"
@@ -301,12 +302,24 @@ export class ClineProvider
 	 * Records a `livenessPong` from the webview (renderer-liveness probe,
 	 * 2026-09-18 gray-webview capture).
 	 *
-	 * The payload is only the sequence number the probe itself sent — numbers, never
-	 * identifiers or content — and this is a no-op while the probe's env gate is off,
-	 * so `handlers/misc.ts` can forward unconditionally.
+	 * The payload is only the sequence number the probe itself sent plus the
+	 * optional integer COUNTS (resource errors, salvaged `state` pushes) — numbers,
+	 * never identifiers or content — and this is a no-op while the probe's env gate
+	 * is off, so `handlers/misc.ts` can forward unconditionally.
 	 */
-	recordWebviewLivenessPong(seq: number): void {
-		this.webviewLivenessProbe?.recordPong(seq)
+	recordWebviewLivenessPong(seq: number, resourceErrorCount?: number, salvagedStateCount?: number): void {
+		this.webviewLivenessProbe?.recordPong(seq, resourceErrorCount, salvagedStateCount)
+	}
+
+	/**
+	 * Session-only count of outbound webview messages whose `postMessage` rejected
+	 * (T2.2). LOCAL-ONLY and integer-only: exposed for tests and local health
+	 * captures, never for egress.
+	 */
+	private droppedMessageCount = 0
+
+	getDroppedMessageCount(): number {
+		return this.droppedMessageCount
 	}
 
 	private runDelegationTransition<T>(parentTaskId: string, fn: () => Promise<T>): Promise<T> {
@@ -456,6 +469,31 @@ export class ClineProvider
 	private clineMessagesSeq = 0
 
 	public isViewLaunched = false
+	/**
+	 * Whether a user-facing `webviewBootFailure` notification has already been
+	 * shown inside the current rate-limit window.
+	 *
+	 * The webview boot guard latches its own report (exactly one per document),
+	 * but a duplicate/forged `webviewBootFailure` message must not paint a second
+	 * notification. `handlers/misc.ts` sets this latch before showing the warning
+	 * and resets it (with {@link webviewBootFailureNotifiedAt}) when a fresh
+	 * document reports `webviewDidLaunch`.
+	 *
+	 * NEW-2: the ceiling is at most ONE non-modal notification per 60 s window per
+	 * webview — not one per session — so a genuinely repeated deterministic failure
+	 * (e.g. a persistent asset 404) still surfaces after the window elapses while
+	 * duplicates inside the window stay suppressed. The local log line is emitted
+	 * for EVERY failure regardless of this throttle.
+	 */
+	public webviewBootFailureNotified = false
+	/**
+	 * NEW-2: wall-clock time (ms, `Date.now()`) of the last user-facing
+	 * `webviewBootFailure` notification. Paired with
+	 * {@link webviewBootFailureNotified} so the notification is rate-limited to one
+	 * per 60 s window per webview (`WEBVIEW_BOOT_FAILURE_NOTIFY_WINDOW_MS` in
+	 * `handlers/misc.ts`). `0` means "never".
+	 */
+	public webviewBootFailureNotifiedAt = 0
 	public settingsImportedAt?: number
 	/**
 	 * LINE-BASE identity for the "What's New" popup (bug #265).
@@ -1451,15 +1489,38 @@ export class ClineProvider
 			return
 		}
 
-		// Payload-size SLI (issue #64 part A). Local-only and privacy-bounded:
-		// WebviewPayloadMetrics records byte counts and static field names
-		// only, never message content. Optional chaining keeps plain fake
-		// provider objects (used in some tests via .call()) working unchanged.
+		try {
+			await this.view?.webview.postMessage(message)
+		} catch (error) {
+			// T2.2: a dispatch that throws never reached the renderer. Surface it
+			// instead of swallowing it, and do NOT count it as delivered below.
+			this.droppedMessageCount += 1
+			const reason = error instanceof Error ? error.message : String(error)
+			// LOCAL-ONLY: static label + message type + integer count + reason. No
+			// egress, and never any message content (privacy contract).
+			this.log(`[webview-post] dropped type=${message.type} count=${this.droppedMessageCount} reason=${reason}`)
+
+			if (message.type === "state") {
+				// A dropped `state` push is the gray-webview channel: record the drop so
+				// the liveness probe / health capture surfaces it (a no-op while the
+				// probe's env gate is off).
+				this.webviewLivenessProbe?.recordStateDrop()
+			}
+
+			return
+		}
+
+		// Payload-size SLI (issue #64 part A), recorded ONLY after a successful send
+		// so the metric reflects DELIVERED messages (T2.2 ordering fix — the bytes
+		// were previously counted before the send, inflating the SLI with phantom
+		// payloads on every drop). Local-only and privacy-bounded: byte counts and
+		// static field names only, never message content. Optional chaining keeps
+		// plain fake provider objects (used in some tests via .call()) working.
 		if (message.type === "state") {
 			// Extension-host health SLI (diagnosis 2026-09-15 §4.3): time the
-			// serialize step, the attribution bridge between payload work and
-			// host lag. The `hrtime` pair is taken ONLY while the gate is on, so
-			// a disabled instance adds no allocation or timing at all.
+			// serialize step, the attribution bridge between payload work and host
+			// lag. The `hrtime` pair is taken ONLY while the gate is on, so a
+			// disabled instance adds no allocation or timing at all.
 			if (this.hostHealthMetrics?.enabled) {
 				const serializeStart = process.hrtime.bigint()
 				this.payloadMetrics?.recordStateMessage(message)
@@ -1469,12 +1530,6 @@ export class ClineProvider
 			} else {
 				this.payloadMetrics?.recordStateMessage(message)
 			}
-		}
-
-		try {
-			await this.view?.webview.postMessage(message)
-		} catch {
-			// View disposed, drop message silently
 		}
 	}
 
@@ -1687,6 +1742,7 @@ export class ClineProvider
           <body>
             <noscript>You need to enable JavaScript to run this app.</noscript>
             <div id="root"></div>
+            ${buildWebviewBootGuardScript(nonce)}
             <script nonce="${nonce}" type="module" src="${scriptUri}"></script>
           </body>
         </html>
