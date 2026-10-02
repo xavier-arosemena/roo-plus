@@ -273,7 +273,7 @@ Theme: the bulk of the `A-CLEAN` quick-wins live here.
 | `ec77e3f1e` | 2026-08-28 | feat(providers): add GLM-5.3-Flash support (#1430)                             | `B-CAREFUL`     | P2  | 1   | ☐           | —          | —          | —       | —         |
 | `0d937c050` | 2026-09-04 | Add Claude Fable 5.1 support (#1508)                                           | `B-CAREFUL`     | P2  | 6   | ☐           | —          | —          | —       | —         |
 | `f424bbbe4` | 2026-09-04 | [Feat] Add verified GPT-6 Astra support across providers (#1506)               | `B-CAREFUL`     | P2  | 8   | ☐           | —          | —          | —       | —         |
-| `6ad8a6e58` | 2026-08-22 | fix(zoo-gateway): stop inventing UI cost from default model prices (#1339)     | `B-CAREFUL`     | P2  | 5   | ☑ 085209350 | —          | 2026-10-01 | 3.88.12 | —         |
+| `6ad8a6e58` | 2026-08-22 | fix(zoo-gateway): stop inventing UI cost from default model prices (#1339)     | `B-CAREFUL`     | P2  | 5   | ☑ 783d82f45 | —          | 2026-10-01 | 3.88.12 | —         |
 | `d033a14c2` | 2026-09-03 | [Feat] Add custom request fields for OpenAI-compatible providers (#1350)       | `C-REIMPLEMENT` | P2  | 27  | ☐           | —          | —          | —       | —         |
 
 **Notes.** `7e85e2793`, `db52d7fc7` and `5e8fcc846` are synced (☑) on `master` — merged via PR #345 (merge `6c4e9df5c`).
@@ -492,12 +492,12 @@ recorded prerequisite is two different things and only one of them is a defect:
 
 | SHA         | Date       | Subject                                                                     | Class       | Pri | Δ   | Status                                            | Blocked-by               | Resolved:  | Version | Exception |
 | ----------- | ---------- | --------------------------------------------------------------------------- | ----------- | --- | --- | ------------------------------------------------- | ------------------------ | ---------- | ------- | --------- |
-| `a80b3b3ab` | 2026-08-30 | [Fix] Opencode Go routes gpt-5.6-luna through /v1/responses (#1443)         | `A-CLEAN`   | P1  | 0   | ☑ 89d43bca9                                       | 6ad8a6e58                | 2026-10-01 | 3.88.12 | —         |
-| `7bb14e44e` | 2026-09-04 | fix(opencode-go): send conversation session header (#1512)                  | `A-CLEAN`   | P1  | 0   | ☑ 10079cbbe                                       | `a80b3b3ab`              | 2026-10-01 | 3.88.12 | —         |
+| `a80b3b3ab` | 2026-08-30 | [Fix] Opencode Go routes gpt-5.6-luna through /v1/responses (#1443)         | `A-CLEAN`   | P1  | 0   | ☑ f1edfd9ef                                       | 6ad8a6e58                | 2026-10-01 | 3.88.12 | —         |
+| `7bb14e44e` | 2026-09-04 | fix(opencode-go): send conversation session header (#1512)                  | `A-CLEAN`   | P1  | 0   | ☑ c40ddb877                                       | `a80b3b3ab`              | 2026-10-01 | 3.88.12 | —         |
 | `1165aebc8` | 2026-09-11 | fix(nanogpt): preserve optional tool parameters (#1590)                     | `A-CLEAN`   | P1  | 0   | ✖ predecessor 1ad8f528d is X-REJECT — unreachable | —                        | —          | —       | —         |
 | `500152b78` | 2026-09-16 | [Fix] DeepSeek Flash cannot read attached images (#1618)                    | `A-CLEAN`   | P1  | 0   | ☐                                                 | `c4574ffef`, `d5f779575` | —          | —       | —         |
 | `745656a50` | 2026-09-12 | fix(settings): preserve configured LiteLLM model ID in model picker (#1368) | `B-CAREFUL` | P1  | 2   | ☐                                                 | —                        | —          | —       | —         |
-| `cc9c0afe9` | 2026-09-10 | [Fix] OpenCode Go context meter shows incorrect limits (#1428)              | `A-CLEAN`   | P2  | 0   | ☑ 07f0966a8                                       | `a80b3b3ab`              | 2026-10-01 | 3.88.12 | —         |
+| `cc9c0afe9` | 2026-09-10 | [Fix] OpenCode Go context meter shows incorrect limits (#1428)              | `A-CLEAN`   | P2  | 0   | ☑ 3fdeebd27                                       | `a80b3b3ab`              | 2026-10-01 | 3.88.12 | —         |
 
 **Prerequisite chains (verified 2026-09-16)**
 
@@ -699,9 +699,9 @@ Created 2026-10-01 by re-homing three `A-CLEAN` rows out of the SYNC-14 (`bac8ad
 
 | SHA         | Date       | Subject                                                                             | Class     | Pri | Δ   | Status      | Blocked-by  | Resolved:  | Version | Exception |
 | ----------- | ---------- | ----------------------------------------------------------------------------------- | --------- | --- | --- | ----------- | ----------- | ---------- | ------- | --------- |
-| `bac8adcf2` | 2026-09-19 | fix(terminal): prevent inline terminal cmd.exe fallback on Windows (#1673)          | `A-CLEAN` | P1  | 0   | ☑ e0ccd6931 | —           | 2026-10-01 | 3.88.12 | —         |
-| `78b74ec1c` | 2026-09-22 | fix(terminal): inherit the host UTF-8 locale instead of forcing en_US.UTF-8 (#1713) | `A-CLEAN` | P1  | 0   | ☑ 7758c5c1f | `bac8adcf2` | 2026-10-01 | 3.88.12 | —         |
-| `ebf4bd2d3` | 2026-09-24 | fix(prompts): report the shell that actually runs under Inline Terminal (#1682)     | `A-CLEAN` | P1  | 0   | ☑ c7d039612 | —           | 2026-10-01 | 3.88.12 | —         |
+| `bac8adcf2` | 2026-09-19 | fix(terminal): prevent inline terminal cmd.exe fallback on Windows (#1673)          | `A-CLEAN` | P1  | 0   | ☑ 7f1a94513 | —           | 2026-10-01 | 3.88.12 | —         |
+| `78b74ec1c` | 2026-09-22 | fix(terminal): inherit the host UTF-8 locale instead of forcing en_US.UTF-8 (#1713) | `A-CLEAN` | P1  | 0   | ☑ 36987eca6 | `bac8adcf2` | 2026-10-01 | 3.88.12 | —         |
+| `ebf4bd2d3` | 2026-09-24 | fix(prompts): report the shell that actually runs under Inline Terminal (#1682)     | `A-CLEAN` | P1  | 0   | ☑ 5bdc36375 | —           | 2026-10-01 | 3.88.12 | —         |
 
 **Notes.** No resolution record is required: all three picks applied without a conflict (`ebf4bd2d3` auto-merged `src/integrations/terminal/__tests__/shell-system-prompt-divergence.spec.ts`, which the earlier branding sweep had normalised), and each is a `git cherry-pick -x` whose message carries the trailer.
 
@@ -716,7 +716,7 @@ Created 2026-10-01 by re-homing `aaa22e167` out of the SYNC-16 refresh proposal.
 
 | SHA         | Date       | Subject                                                                        | Class       | Pri | Δ   | Status      | Blocked-by | Resolved:  | Version | Exception |
 | ----------- | ---------- | ------------------------------------------------------------------------------ | ----------- | --- | --- | ----------- | ---------- | ---------- | ------- | --------- |
-| `aaa22e167` | 2026-09-26 | fix(vscode-lm): sanitize lone UTF-16 surrogates in text and tool input (#1605) | `B-CAREFUL` | P1  | 4   | ☑ 9e23f8be2 | —          | 2026-10-01 | 3.88.12 | —         |
+| `aaa22e167` | 2026-09-26 | fix(vscode-lm): sanitize lone UTF-16 surrogates in text and tool input (#1605) | `B-CAREFUL` | P1  | 4   | ☑ 6d3c71c51 | —          | 2026-10-01 | 3.88.12 | —         |
 
 **Notes.** Resolution record: [`resolutions/SYNC-18.md`](resolutions/SYNC-18.md) — one `vscode-lm.ts` import conflict (upstream's import block is a superset of the fork's) plus three auto-merged files; 4 blocks, `verify-resolutions --batch` green. The pick is a `git cherry-pick -x` with the trailer present.
 
@@ -726,7 +726,7 @@ Created 2026-10-01 by re-homing `22cc416ba` out of the SYNC-5 curated list. It a
 
 | SHA         | Date       | Subject                                                         | Class       | Pri | Δ   | Status      | Blocked-by | Resolved:  | Version | Exception |
 | ----------- | ---------- | --------------------------------------------------------------- | ----------- | --- | --- | ----------- | ---------- | ---------- | ------- | --------- |
-| `22cc416ba` | 2026-09-03 | refactor(api): make Gemini CLI handler routing explicit (#1442) | `B-CAREFUL` | P2  | 1   | ☑ 5fcc1148a | —          | 2026-10-01 | 3.88.12 | —         |
+| `22cc416ba` | 2026-09-03 | refactor(api): make Gemini CLI handler routing explicit (#1442) | `B-CAREFUL` | P2  | 1   | ☑ 0228b1f96 | —          | 2026-10-01 | 3.88.12 | —         |
 
 **Notes.** **Deferred in this batch — `ec77e3f1e` (#1430, add GLM-5.3-Flash).** Attempted and aborted: its `webview-ui/src/components/ui/hooks/__tests__/useSelectedModel.spec.ts` hunk adds a `Z AI provider` describe block that the fork does not have, and those cases fail (4 tests) because the fork's zai model-selection diverges from upstream's catalog/identifiers. The fork's Z AI selection path needs its own sync before this row can land; recorded here rather than as a `Blocked-by` SHA because the gap is a fork divergence, not a single unsynced predecessor.
 
@@ -766,7 +766,7 @@ Created 2026-10-01 from the bottom-up prerequisite drain (see the dependency-ann
 
 | SHA         | Date       | Subject                                                                | Class       | Pri | Δ   | Status      | Blocked-by | Resolved:  | Version | Exception |
 | ----------- | ---------- | ---------------------------------------------------------------------- | ----------- | --- | --- | ----------- | ---------- | ---------- | ------- | --------- |
-| `4e8fa09f2` | 2026-09-03 | fix: yield reasoning chunks before content chunks in providers (#1462) | `B-CAREFUL` | P1  | 4   | ☑ ff840aaee | —          | 2026-10-01 | 3.88.12 | —         |
+| `4e8fa09f2` | 2026-09-03 | fix: yield reasoning chunks before content chunks in providers (#1462) | `B-CAREFUL` | P1  | 4   | ☑ 8934b150f | —          | 2026-10-01 | 3.88.12 | —         |
 
 **Deferred from this drain (time / risk review).** The chains bottom out largely in work that cannot be a cherry-pick, so bottom-up draining is a program rather than a batch:
 
@@ -782,7 +782,7 @@ Created 2026-10-01 while draining the remaining verified-clean rows. `ae6c1a876`
 
 | SHA         | Date       | Subject                                                      | Class     | Pri | Δ   | Status      | Blocked-by | Resolved:  | Version | Exception |
 | ----------- | ---------- | ------------------------------------------------------------ | --------- | --- | --- | ----------- | ---------- | ---------- | ------- | --------- |
-| `ae6c1a876` | 2026-09-11 | test(e2e): add LM Studio reasoning_content e2e guard (#1322) | `A-CLEAN` | P3  | 0   | ☑ 1598956b5 | —          | 2026-10-01 | 3.88.12 | —         |
+| `ae6c1a876` | 2026-09-11 | test(e2e): add LM Studio reasoning_content e2e guard (#1322) | `A-CLEAN` | P3  | 0   | ☑ c5c45b999 | —          | 2026-10-01 | 3.88.12 | —         |
 
 **Notes — the other clean candidate, deferred.** `9e4a52d99` (#1630) was attempted and aborted: its new spec imports `src/services/code-index/code-index-manager-registry.ts`, a module that **does not exist on the fork** — it is created by the unsynced `216450810` (#1622, `C-REIMPLEMENT`). This is an **import-level dependency** that the same-file predecessor scan cannot see, so `9e4a52d99` now records `Blocked-by: 216450810`.
 
