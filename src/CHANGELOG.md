@@ -51,6 +51,15 @@ Starting the 3.88 pre-release line — a hardening cycle responding to VS Code M
 - **Byte bound preserved per scope** — the 32 KB budget / 3-row floor / tree-closure projection is applied within each scope, so the 3.88.8 gray-out fix is not re-opened; a composite <256 KB `state` payload budget guard covers the whole message (#359).
 - **Paging observability** — payload WARN/ERROR lines are tagged `scope=current|all`, and a log-only `[webview-metrics] history_paging` line records rows/bytes/`hasMore` (no content), so "Load older tasks seemed broken" is measurable (#359).
 
+### 🔄 Upstream Sync & Core Hardening — v3.88.10 … v3.88.13 (#410, #362)
+
+- **Webview boot hardening (#362)** — a nonce'd inline boot guard (watchdog + `error`/`unhandledrejection` fast paths, self-contained Reload fallback disarmed by `webviewDidLaunch`), a late-mount fallback with a bounded poll, a self-defending entry mount and outer `ErrorBoundary`, malformed-`state` salvage hydration with a timeout, corrected send/drop accounting, `resource_errors`/`state_drops`/`salvaged_states` liveness counters, and host-side rate limiting for `webviewBootFailure` notifications, plus an extension-host webview-boot smoke test.
+- **Inline terminal shell fidelity** — `getShell()` now reports the shell that actually runs (zsh / PowerShell profile / cmd), the host UTF-8 locale is inherited instead of forcing `en_US.UTF-8`, and the inline terminal no longer falls back to `cmd.exe` on Windows (#1682, #1713, #1673).
+- **VS Code LM robustness** — lone UTF-16 surrogates are sanitized in message text, tool-call/result ids and the system prompt before a request is sent, so the backend no longer rejects the whole request with a 400 (#1605).
+- **Provider routing & cost reporting** — reasoning chunks are yielded before content chunks to stop streaming truncation, Gemini CLI handler routing is explicit, OpenCode Go routes `gpt-5.6-luna` via `/v1/responses`, sends the conversation session header and reports corrected context limits, and the router no longer invents UI cost from default model prices (#1462, #1442, #1443, #1512, #1428, #1339).
+- **Qdrant code-index core re-synced** — orchestration scan execution, service factories + embedder validation, single-file preparation and immutable configuration snapshots are forward-ported from upstream while keeping the fork's telemetry purge, so the core stays cherry-pickable and the upstream-alignment gate is green.
+- **Release & dependency hardening** — the fail-closed pre-release guard chain, cross-registry duplicate checks and provenance gates are enforced on `master`, and high-severity advisories are pinned (`axios` ≥ 1.20.0, `fast-uri` ≥ 3.1.7, `undici` ≥ 6.28.1, `brace-expansion` ≥ 5.0.11).
+
 ---
 
 ## [3.87.0] — 2026-08-27

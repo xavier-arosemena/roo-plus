@@ -1294,11 +1294,6 @@
 			"count": 43
 		}
 	},
-	"services/code-index/config-manager.ts": {
-		"@typescript-eslint/no-explicit-any": {
-			"count": 1
-		}
-	},
 	"services/code-index/embedders/__tests__/bedrock.spec.ts": {
 		"@typescript-eslint/no-explicit-any": {
 			"count": 7
