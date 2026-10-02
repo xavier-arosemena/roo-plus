@@ -2248,9 +2248,26 @@ describe("--json output purity", () => {
 			}
 		}
 		// Readiness is reported, never failed: the rows whose named blocker is open.
+		// Snapshot refreshed after the SYNC-13 … SYNC-21 drain: the a80b3b3ab children
+		// (7bb14e44e, cc9c0afe9) have landed, and the SYNC-14…16 refresh proposals now
+		// carry the open prerequisites. De-duplicated — a row can name several open
+		// blockers and is reported once per blocker.
 		assert.deepEqual(
-			report.blockedByPending.map((row) => row.sha).sort(),
-			["7bb14e44e", "cc9c0afe9"],
+			[...new Set(report.blockedByPending.map((row) => row.sha))].sort(),
+			[
+				"0f75a60bc",
+				"10b45abf7",
+				"2da6ea2ae",
+				"500152b78",
+				"7c302a51b",
+				"87d41aa4f",
+				"914f0c42a",
+				"9176f2f69",
+				"97265fd8e",
+				"9e4a52d99",
+				"a9ebf1a6a",
+				"d351a155e",
+			],
 			"only rows whose named prerequisite has not landed are pending",
 		)
 
@@ -2263,8 +2280,10 @@ describe("--json output purity", () => {
 		assert.equal(report.exceptions[0].date, "2026-09-16")
 		assert.match(report.exceptions[0].reason, /pre-ladder classifier/)
 
-		// The ready set is derived and informational, never a class.
-		assert.ok(report.readySet.length > 0, "the live register has at least one pickable-today row")
+		// The ready set is derived and informational, never a class. It is EMPTY on the
+		// current register: every A-CLEAN Δ0 row has either landed (SYNC-1/5/13/17…21) or
+		// gained an open prerequisite, so the per-entry invariants below are asserted
+		// defensively instead of via a "must be non-empty" canary.
 		for (const entry of report.readySet) {
 			const row = rows.find((candidate) => candidate.sha === entry.sha)
 			assert.equal(row.klass, "A-CLEAN", `ready row \`${entry.sha}\` must be A-CLEAN`)
@@ -2272,10 +2291,7 @@ describe("--json output purity", () => {
 			assert.deepEqual(row.blockedByTokens, [], `ready row \`${entry.sha}\` must not be blocked`)
 			assert.ok(!row.synced && !row.discarded && !row.inProgress, `ready row \`${entry.sha}\` must be open`)
 		}
-		assert.ok(
-			report.readySet.some((row) => row.sha === "a80b3b3ab"),
-			"the opencode-go root has no prerequisite row, so it is ready",
-		)
+		assert.ok(!report.readySet.some((row) => row.sha === "a80b3b3ab"), "a landed row is not ready")
 		assert.ok(!report.readySet.some((row) => row.sha === "7bb14e44e"), "a blocked row is not ready")
 		assert.ok(!report.readySet.some((row) => row.sha === "a5f4192bf"), "the excepted merged row is not ready")
 	})

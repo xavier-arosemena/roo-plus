@@ -224,7 +224,11 @@ jobs:
               run: |
                   echo "::group::[CI:CODE-QA:UPSTREAM-PROVENANCE:PIN] Fetching upstream and pinning to the recorded tip"
                   git remote add upstream "https://github.com/Zoo-Code-Org/Zoo-Code.git" 2>/dev/null || true
-                  SINCE=$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseBaseline } from "./scripts/upstream-sync-triage.mjs"; const b = parseBaseline(readFileSync("docs/upstream-sync/pending-upstream-commits.md", "utf8")); process.stdout.write(b.mergeBaseDate ?? "2026-08-19")')
+                  # H-01: derive the deepen window from the register's own baseline dates via
+                  # planUpstreamDeepen (the EARLIER of its merge-base / upstream-tip dates, minus
+                  # one day of margin). Fetching `--shallow-since=<merge-base date>` alone slices
+                  # the merge base off, so `--verify --signature-strict` aborts with "no merge base".
+                  SINCE=$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseBaseline, planUpstreamDeepen } from "./scripts/upstream-sync-triage.mjs"; const b = parseBaseline(readFileSync("docs/upstream-sync/pending-upstream-commits.md", "utf8")); process.stdout.write(planUpstreamDeepen(b).since ?? "2026-08-19")')
                   git fetch --no-tags --shallow-since="$SINCE" upstream main
                   TIP=$(node --input-type=module -e 'import { readFileSync } from "node:fs"; import { parseBaseline } from "./scripts/upstream-sync-triage.mjs"; process.stdout.write(parseBaseline(readFileSync("docs/upstream-sync/pending-upstream-commits.md", "utf8")).upstreamTip ?? "")')
                   git update-ref refs/remotes/upstream/main "$(git rev-parse "${TIP}^{commit}")"
