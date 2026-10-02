@@ -1,10 +1,17 @@
 import type { MockedClass, MockedFunction } from "vitest"
 import { CodeIndexServiceFactory } from "../service-factory"
+import { EmbedderFactory } from "../embedders/embedder-factory"
+import { VectorStoreFactory } from "../vector-store/vector-store-factory"
 import { OpenAiEmbedder } from "../embedders/openai"
 import { CodeIndexOllamaEmbedder } from "../embedders/ollama"
 import { OpenAICompatibleEmbedder } from "../embedders/openai-compatible"
 import { GeminiEmbedder } from "../embedders/gemini"
 import { QdrantVectorStore } from "../vector-store/qdrant-client"
+import { MistralEmbedder } from "../embedders/mistral"
+import { VercelAiGatewayEmbedder } from "../embedders/vercel-ai-gateway"
+import { BedrockEmbedder } from "../embedders/bedrock"
+import { OpenRouterEmbedder } from "../embedders/openrouter"
+import type { CodeIndexConfig } from "../interfaces/config"
 
 import { clearAllMocks } from "../../../test-utils/reset"
 
@@ -14,6 +21,10 @@ vitest.mock("../embedders/ollama")
 vitest.mock("../embedders/openai-compatible")
 vitest.mock("../embedders/gemini")
 vitest.mock("../vector-store/qdrant-client")
+vitest.mock("../embedders/mistral")
+vitest.mock("../embedders/vercel-ai-gateway")
+vitest.mock("../embedders/bedrock")
+vitest.mock("../embedders/openrouter")
 
 // Mock the embedding models module
 vitest.mock("../../../shared/embeddingModels", () => ({
@@ -21,24 +32,42 @@ vitest.mock("../../../shared/embeddingModels", () => ({
 	getModelDimension: vitest.fn(),
 }))
 
+// Mock TelemetryService
+vitest.mock("@roo-code/telemetry", () => ({
+	TelemetryService: {
+		instance: {
+			captureEvent: vitest.fn(),
+		},
+	},
+}))
+
 const MockedOpenAiEmbedder = OpenAiEmbedder as MockedClass<typeof OpenAiEmbedder>
 const MockedCodeIndexOllamaEmbedder = CodeIndexOllamaEmbedder as MockedClass<typeof CodeIndexOllamaEmbedder>
 const MockedOpenAICompatibleEmbedder = OpenAICompatibleEmbedder as MockedClass<typeof OpenAICompatibleEmbedder>
 const MockedGeminiEmbedder = GeminiEmbedder as MockedClass<typeof GeminiEmbedder>
 const MockedQdrantVectorStore = QdrantVectorStore as MockedClass<typeof QdrantVectorStore>
+const MockedMistralEmbedder = MistralEmbedder as MockedClass<typeof MistralEmbedder>
+const MockedVercelAiGatewayEmbedder = VercelAiGatewayEmbedder as MockedClass<typeof VercelAiGatewayEmbedder>
+const MockedBedrockEmbedder = BedrockEmbedder as MockedClass<typeof BedrockEmbedder>
+const MockedOpenRouterEmbedder = OpenRouterEmbedder as MockedClass<typeof OpenRouterEmbedder>
 
 // Import the mocked functions
 import { getDefaultModelId, getModelDimension } from "../../../shared/embeddingModels"
+import { providerIdentifiers } from "@roo-code/types/provider-identifiers"
 const mockGetDefaultModelId = getDefaultModelId as MockedFunction<typeof getDefaultModelId>
 const mockGetModelDimension = getModelDimension as MockedFunction<typeof getModelDimension>
 
 describe("CodeIndexServiceFactory", () => {
 	let factory: CodeIndexServiceFactory
+	let embedderFactory: EmbedderFactory
+	let vectorStoreFactory: VectorStoreFactory
 	let mockConfigManager: any
 	let mockCacheManager: any
 
 	beforeEach(() => {
 		clearAllMocks()
+		embedderFactory = new EmbedderFactory()
+		vectorStoreFactory = new VectorStoreFactory()
 
 		mockConfigManager = {
 			getConfig: vitest.fn(),
@@ -50,11 +79,115 @@ describe("CodeIndexServiceFactory", () => {
 	})
 
 	describe("createEmbedder", () => {
+		it("uses the current configuration and creates a fresh embedder on every call", () => {
+			const config: CodeIndexConfig = {
+				isConfigured: true,
+				embedderProvider: providerIdentifiers.openai,
+				openAiOptions: { openAiNativeApiKey: "test-key" },
+				modelId: "first-model",
+			}
+			mockConfigManager.getConfig.mockReturnValueOnce(config).mockReturnValueOnce({
+				...config,
+				modelId: "second-model",
+			})
+
+			const first = embedderFactory.create(mockConfigManager.getConfig())
+			const second = embedderFactory.create(mockConfigManager.getConfig())
+
+			expect(first).not.toBe(second)
+			expect(MockedOpenAiEmbedder).toHaveBeenNthCalledWith(1, {
+				openAiNativeApiKey: "test-key",
+				openAiEmbeddingModelId: "first-model",
+			})
+			expect(MockedOpenAiEmbedder).toHaveBeenNthCalledWith(2, {
+				openAiNativeApiKey: "test-key",
+				openAiEmbeddingModelId: "second-model",
+			})
+		})
+
+		const requiredSettings = [
+			["openai", "openAiOptions", "openAiNativeApiKey", "openAiConfigMissing"],
+			["ollama", "ollamaOptions", "ollamaBaseUrl", "ollamaConfigMissing"],
+			["gemini", "geminiOptions", "apiKey", "geminiConfigMissing"],
+			["mistral", "mistralOptions", "apiKey", "mistralConfigMissing"],
+			["vercel-ai-gateway", "vercelAiGatewayOptions", "apiKey", "vercelAiGatewayConfigMissing"],
+			["bedrock", "bedrockOptions", "region", "bedrockConfigMissing"],
+			["openrouter", "openRouterOptions", "apiKey", "openRouterConfigMissing"],
+		] as const
+
+		it.each(requiredSettings)("rejects missing options for %s (%s.%s)", (provider, _options, _setting, error) => {
+			mockConfigManager.getConfig.mockReturnValue({ embedderProvider: provider })
+
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(`serviceFactory.${error}`)
+		})
+
+		it.each(requiredSettings)("rejects empty %s setting %s.%s", (provider, options, setting, error) => {
+			mockConfigManager.getConfig.mockReturnValue({
+				embedderProvider: provider,
+				[options]: { baseUrl: "https://example.com", apiKey: "test-key", [setting]: "" },
+			})
+
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(`serviceFactory.${error}`)
+		})
+
+		it.each(["constructor", "toString", "__proto__"])("rejects prototype key %s as a provider", (provider) => {
+			mockConfigManager.getConfig.mockReturnValue({ embedderProvider: provider })
+
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.invalidEmbedderType",
+			)
+		})
+
+		it("preserves OpenAI options and overrides the embedded model without mutating config", () => {
+			const openAiOptions = Object.freeze({
+				openAiNativeApiKey: "test-key",
+				openAiEmbeddingModelId: "old-model",
+				openAiBaseUrl: "https://example.com/v1",
+			})
+			const config: CodeIndexConfig = Object.freeze({
+				isConfigured: true,
+				embedderProvider: providerIdentifiers.openai,
+				modelId: "new-model",
+				openAiOptions,
+			})
+			mockConfigManager.getConfig.mockReturnValue(config)
+
+			const embedder = embedderFactory.create(mockConfigManager.getConfig())
+
+			expect(embedder).toBeInstanceOf(OpenAiEmbedder)
+			expect(MockedOpenAiEmbedder).toHaveBeenCalledWith({
+				...openAiOptions,
+				openAiEmbeddingModelId: "new-model",
+			})
+			expect(openAiOptions.openAiEmbeddingModelId).toBe("old-model")
+		})
+
+		it("preserves Ollama options and overrides the embedded model without mutating config", () => {
+			const ollamaOptions = Object.freeze({
+				ollamaBaseUrl: "http://localhost:11434",
+				ollamaModelId: "old-model",
+				ollamaApiKey: "test-key",
+			})
+			const config: CodeIndexConfig = Object.freeze({
+				isConfigured: true,
+				embedderProvider: providerIdentifiers.ollama,
+				modelId: "new-model",
+				ollamaOptions,
+			})
+			mockConfigManager.getConfig.mockReturnValue(config)
+
+			const embedder = embedderFactory.create(mockConfigManager.getConfig())
+
+			expect(embedder).toBeInstanceOf(CodeIndexOllamaEmbedder)
+			expect(MockedCodeIndexOllamaEmbedder).toHaveBeenCalledWith({ ...ollamaOptions, ollamaModelId: "new-model" })
+			expect(ollamaOptions.ollamaModelId).toBe("old-model")
+		})
+
 		it("should pass model ID to OpenAI embedder when using OpenAI provider", () => {
 			// Arrange
 			const testModelId = "text-embedding-3-large"
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: testModelId,
 				openAiOptions: {
 					openAiNativeApiKey: "test-api-key",
@@ -63,7 +196,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act
-			factory.createEmbedder()
+			embedderFactory.create(mockConfigManager.getConfig())
 
 			// Assert
 			expect(MockedOpenAiEmbedder).toHaveBeenCalledWith({
@@ -76,7 +209,7 @@ describe("CodeIndexServiceFactory", () => {
 			// Arrange
 			const testModelId = "nomic-embed-text:latest"
 			const testConfig = {
-				embedderProvider: "ollama",
+				embedderProvider: providerIdentifiers.ollama,
 				modelId: testModelId,
 				ollamaOptions: {
 					ollamaBaseUrl: "http://localhost:11434",
@@ -85,7 +218,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act
-			factory.createEmbedder()
+			embedderFactory.create(mockConfigManager.getConfig())
 
 			// Assert
 			expect(MockedCodeIndexOllamaEmbedder).toHaveBeenCalledWith({
@@ -97,7 +230,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should handle undefined model ID for OpenAI embedder", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: undefined,
 				openAiOptions: {
 					openAiNativeApiKey: "test-api-key",
@@ -106,7 +239,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act
-			factory.createEmbedder()
+			embedderFactory.create(mockConfigManager.getConfig())
 
 			// Assert
 			expect(MockedOpenAiEmbedder).toHaveBeenCalledWith({
@@ -118,7 +251,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should handle undefined model ID for Ollama embedder", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "ollama",
+				embedderProvider: providerIdentifiers.ollama,
 				modelId: undefined,
 				ollamaOptions: {
 					ollamaBaseUrl: "http://localhost:11434",
@@ -127,7 +260,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act
-			factory.createEmbedder()
+			embedderFactory.create(mockConfigManager.getConfig())
 
 			// Assert
 			expect(MockedCodeIndexOllamaEmbedder).toHaveBeenCalledWith({
@@ -139,7 +272,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should throw error when OpenAI API key is missing", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: "text-embedding-3-large",
 				openAiOptions: {
 					openAiNativeApiKey: undefined,
@@ -148,13 +281,15 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act & Assert
-			expect(() => factory.createEmbedder()).toThrow("serviceFactory.openAiConfigMissing")
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.openAiConfigMissing",
+			)
 		})
 
 		it("should throw error when Ollama base URL is missing", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "ollama",
+				embedderProvider: providerIdentifiers.ollama,
 				modelId: "nomic-embed-text:latest",
 				ollamaOptions: {
 					ollamaBaseUrl: undefined,
@@ -163,7 +298,9 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act & Assert
-			expect(() => factory.createEmbedder()).toThrow("serviceFactory.ollamaConfigMissing")
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.ollamaConfigMissing",
+			)
 		})
 
 		it("should pass model ID to OpenAI Compatible embedder when using OpenAI Compatible provider", () => {
@@ -180,7 +317,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act
-			factory.createEmbedder()
+			embedderFactory.create(mockConfigManager.getConfig())
 
 			// Assert
 			expect(MockedOpenAICompatibleEmbedder).toHaveBeenCalledWith(
@@ -203,7 +340,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act
-			factory.createEmbedder()
+			embedderFactory.create(mockConfigManager.getConfig())
 
 			// Assert
 			expect(MockedOpenAICompatibleEmbedder).toHaveBeenCalledWith(
@@ -213,36 +350,36 @@ describe("CodeIndexServiceFactory", () => {
 			)
 		})
 
-		it("should throw error when OpenAI Compatible base URL is missing", () => {
+		it.each([undefined, ""])("rejects missing or empty OpenAI Compatible base URL: %s", (baseUrl) => {
 			// Arrange
 			const testConfig = {
 				embedderProvider: "openai-compatible",
 				modelId: "text-embedding-3-large",
 				openAiCompatibleOptions: {
-					baseUrl: undefined,
+					baseUrl,
 					apiKey: "test-api-key",
 				},
 			}
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act & Assert
-			expect(() => factory.createEmbedder()).toThrow("serviceFactory.openAiCompatibleConfigMissing")
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow("validation.baseUrlRequired")
 		})
 
-		it("should throw error when OpenAI Compatible API key is missing", () => {
+		it.each([undefined, ""])("rejects missing or empty OpenAI Compatible API key: %s", (apiKey) => {
 			// Arrange
 			const testConfig = {
 				embedderProvider: "openai-compatible",
 				modelId: "text-embedding-3-large",
 				openAiCompatibleOptions: {
 					baseUrl: "https://api.example.com/v1",
-					apiKey: undefined,
+					apiKey,
 				},
 			}
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act & Assert
-			expect(() => factory.createEmbedder()).toThrow("serviceFactory.openAiCompatibleConfigMissing")
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow("validation.apiKeyRequired")
 		})
 
 		it("should throw error when OpenAI Compatible options are missing", () => {
@@ -255,13 +392,13 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act & Assert
-			expect(() => factory.createEmbedder()).toThrow("serviceFactory.openAiCompatibleConfigMissing")
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow("validation.baseUrlRequired")
 		})
 
 		it("should create GeminiEmbedder with default model when no modelId specified", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "gemini",
+				embedderProvider: providerIdentifiers.gemini,
 				geminiOptions: {
 					apiKey: "test-gemini-api-key",
 				},
@@ -269,7 +406,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act
-			factory.createEmbedder()
+			embedderFactory.create(mockConfigManager.getConfig())
 
 			// Assert
 			expect(MockedGeminiEmbedder).toHaveBeenCalledWith("test-gemini-api-key", undefined)
@@ -278,7 +415,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should create GeminiEmbedder with specified modelId", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "gemini",
+				embedderProvider: providerIdentifiers.gemini,
 				modelId: "gemini-embedding-001",
 				geminiOptions: {
 					apiKey: "test-gemini-api-key",
@@ -287,7 +424,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act
-			factory.createEmbedder()
+			embedderFactory.create(mockConfigManager.getConfig())
 
 			// Assert
 			expect(MockedGeminiEmbedder).toHaveBeenCalledWith("test-gemini-api-key", "gemini-embedding-001")
@@ -297,7 +434,7 @@ describe("CodeIndexServiceFactory", () => {
 			// Arrange - service-factory passes the config modelId directly;
 			// GeminiEmbedder handles the migration internally
 			const testConfig = {
-				embedderProvider: "gemini",
+				embedderProvider: providerIdentifiers.gemini,
 				modelId: "text-embedding-004",
 				geminiOptions: {
 					apiKey: "test-gemini-api-key",
@@ -306,7 +443,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act
-			factory.createEmbedder()
+			embedderFactory.create(mockConfigManager.getConfig())
 
 			// Assert - factory passes the original modelId; GeminiEmbedder migrates it internally
 			expect(MockedGeminiEmbedder).toHaveBeenCalledWith("test-gemini-api-key", "text-embedding-004")
@@ -315,7 +452,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should throw error when Gemini API key is missing", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "gemini",
+				embedderProvider: providerIdentifiers.gemini,
 				geminiOptions: {
 					apiKey: undefined,
 				},
@@ -323,19 +460,292 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act & Assert
-			expect(() => factory.createEmbedder()).toThrow("serviceFactory.geminiConfigMissing")
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.geminiConfigMissing",
+			)
 		})
 
 		it("should throw error when Gemini options are missing", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "gemini",
+				embedderProvider: providerIdentifiers.gemini,
 				geminiOptions: undefined,
 			}
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act & Assert
-			expect(() => factory.createEmbedder()).toThrow("serviceFactory.geminiConfigMissing")
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.geminiConfigMissing",
+			)
+		})
+
+		it("should pass model ID to Mistral embedder when using Mistral provider", () => {
+			// Arrange
+			const testModelId = "mistral-embed"
+			const testConfig = {
+				embedderProvider: providerIdentifiers.mistral,
+				modelId: testModelId,
+				mistralOptions: {
+					apiKey: "test-mistral-key",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act
+			embedderFactory.create(mockConfigManager.getConfig())
+
+			// Assert
+			expect(MockedMistralEmbedder).toHaveBeenCalledWith("test-mistral-key", testModelId)
+		})
+
+		it("should throw error when Mistral API key is missing", () => {
+			// Arrange
+			const testConfig = {
+				embedderProvider: providerIdentifiers.mistral,
+				modelId: "mistral-embed",
+				mistralOptions: {
+					apiKey: undefined,
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act & Assert
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.mistralConfigMissing",
+			)
+		})
+
+		it("should handle undefined model ID for Mistral embedder", () => {
+			// Arrange
+			const testConfig = {
+				embedderProvider: providerIdentifiers.mistral,
+				modelId: undefined,
+				mistralOptions: {
+					apiKey: "test-mistral-key",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act
+			embedderFactory.create(mockConfigManager.getConfig())
+
+			// Assert — modelId omitted so the embedder selects its documented default model.
+			expect(MockedMistralEmbedder).toHaveBeenCalledWith("test-mistral-key", undefined)
+		})
+
+		it("should pass model ID to Vercel AI Gateway embedder when using Vercel AI Gateway provider", () => {
+			// Arrange
+			const testModelId = "vercel-embed-model"
+			const testConfig = {
+				embedderProvider: providerIdentifiers.vercelAiGateway,
+				modelId: testModelId,
+				vercelAiGatewayOptions: {
+					apiKey: "test-vercel-key",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act
+			embedderFactory.create(mockConfigManager.getConfig())
+
+			// Assert
+			expect(MockedVercelAiGatewayEmbedder).toHaveBeenCalledWith("test-vercel-key", testModelId)
+		})
+
+		it("should throw error when Vercel AI Gateway API key is missing", () => {
+			// Arrange
+			const testConfig = {
+				embedderProvider: providerIdentifiers.vercelAiGateway,
+				modelId: "vercel-embed-model",
+				vercelAiGatewayOptions: {
+					apiKey: undefined,
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act & Assert
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.vercelAiGatewayConfigMissing",
+			)
+		})
+
+		it("should handle undefined model ID for Vercel AI Gateway embedder", () => {
+			// Arrange
+			const testConfig = {
+				embedderProvider: providerIdentifiers.vercelAiGateway,
+				modelId: undefined,
+				vercelAiGatewayOptions: {
+					apiKey: "test-vercel-key",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act
+			embedderFactory.create(mockConfigManager.getConfig())
+
+			// Assert — modelId omitted so the embedder selects its documented default model.
+			expect(MockedVercelAiGatewayEmbedder).toHaveBeenCalledWith("test-vercel-key", undefined)
+		})
+
+		it("should pass region, profile and model ID to Bedrock embedder when using Bedrock provider", () => {
+			// Arrange
+			const testModelId = "amazon.titan-embed-text-v1"
+			const testConfig = {
+				embedderProvider: providerIdentifiers.bedrock,
+				modelId: testModelId,
+				bedrockOptions: {
+					region: "eu-west-1",
+					profile: "test-profile",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act
+			embedderFactory.create(mockConfigManager.getConfig())
+
+			// Assert
+			expect(MockedBedrockEmbedder).toHaveBeenCalledWith("eu-west-1", "test-profile", testModelId)
+		})
+
+		it("should pass undefined profile to Bedrock embedder when no profile is configured", () => {
+			// Arrange — Bedrock profile is optional; only region is required.
+			const testModelId = "amazon.titan-embed-text-v1"
+			const testConfig = {
+				embedderProvider: providerIdentifiers.bedrock,
+				modelId: testModelId,
+				bedrockOptions: {
+					region: "us-east-1",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act
+			embedderFactory.create(mockConfigManager.getConfig())
+
+			// Assert — profile omitted so the embedder falls back to the default credential chain.
+			expect(MockedBedrockEmbedder).toHaveBeenCalledWith("us-east-1", undefined, testModelId)
+		})
+
+		it("should throw error when Bedrock region is missing", () => {
+			// Arrange
+			const testConfig = {
+				embedderProvider: providerIdentifiers.bedrock,
+				modelId: "amazon.titan-embed-text-v1",
+				bedrockOptions: {
+					region: undefined,
+					profile: "test-profile",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act & Assert
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.bedrockConfigMissing",
+			)
+		})
+
+		it("should handle undefined model ID for Bedrock embedder", () => {
+			// Arrange
+			const testConfig = {
+				embedderProvider: providerIdentifiers.bedrock,
+				modelId: undefined,
+				bedrockOptions: {
+					region: "us-east-1",
+					profile: "test-profile",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act
+			embedderFactory.create(mockConfigManager.getConfig())
+
+			// Assert — modelId omitted so the embedder selects its documented default model.
+			expect(MockedBedrockEmbedder).toHaveBeenCalledWith("us-east-1", "test-profile", undefined)
+		})
+
+		it("should pass API key, model ID and specific provider to OpenRouter embedder", () => {
+			// Arrange
+			const testModelId = "openai/text-embedding-3-large"
+			const testConfig = {
+				embedderProvider: providerIdentifiers.openrouter,
+				modelId: testModelId,
+				openRouterOptions: {
+					apiKey: "test-openrouter-key",
+					specificProvider: providerIdentifiers.openai,
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act
+			embedderFactory.create(mockConfigManager.getConfig())
+
+			// Assert
+			expect(MockedOpenRouterEmbedder).toHaveBeenCalledWith(
+				"test-openrouter-key",
+				testModelId,
+				undefined,
+				"openai",
+			)
+		})
+
+		it("should pass undefined specificProvider to OpenRouter embedder when no provider is selected", () => {
+			// Arrange — specificProvider is optional; only apiKey is required.
+			const testModelId = "openai/text-embedding-3-large"
+			const testConfig = {
+				embedderProvider: providerIdentifiers.openrouter,
+				modelId: testModelId,
+				openRouterOptions: {
+					apiKey: "test-openrouter-key",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act
+			embedderFactory.create(mockConfigManager.getConfig())
+
+			// Assert — specificProvider omitted so the embedder routes to its default provider.
+			expect(MockedOpenRouterEmbedder).toHaveBeenCalledWith(
+				"test-openrouter-key",
+				testModelId,
+				undefined,
+				undefined,
+			)
+		})
+
+		it("should throw error when OpenRouter API key is missing", () => {
+			// Arrange
+			const testConfig = {
+				embedderProvider: providerIdentifiers.openrouter,
+				modelId: "openai/text-embedding-3-large",
+				openRouterOptions: {
+					apiKey: undefined,
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act & Assert
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.openRouterConfigMissing",
+			)
+		})
+
+		it("should handle undefined model ID for OpenRouter embedder", () => {
+			// Arrange
+			const testConfig = {
+				embedderProvider: providerIdentifiers.openrouter,
+				modelId: undefined,
+				openRouterOptions: {
+					apiKey: "test-openrouter-key",
+					specificProvider: providerIdentifiers.openai,
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig)
+
+			// Act
+			embedderFactory.create(mockConfigManager.getConfig())
+
+			// Assert — modelId omitted so the embedder selects its documented default model.
+			expect(MockedOpenRouterEmbedder).toHaveBeenCalledWith("test-openrouter-key", undefined, undefined, "openai")
 		})
 
 		it("should throw error for invalid embedder provider", () => {
@@ -347,7 +757,9 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act & Assert
-			expect(() => factory.createEmbedder()).toThrow("serviceFactory.invalidEmbedderType")
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.invalidEmbedderType",
+			)
 		})
 
 		it("should throw when provider is semble (semble handles its own embedding)", () => {
@@ -356,7 +768,7 @@ describe("CodeIndexServiceFactory", () => {
 			}
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
-			expect(() => factory.createEmbedder()).toThrow(
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
 				"Semble provider handles its own embedding. Do not call createEmbedder() for semble",
 			)
 		})
@@ -372,7 +784,7 @@ describe("CodeIndexServiceFactory", () => {
 			// Arrange
 			const testModelId = "text-embedding-3-large"
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: testModelId,
 				qdrantUrl: "http://localhost:6333",
 				qdrantApiKey: "test-key",
@@ -381,7 +793,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(3072)
 
 			// Act
-			factory.createVectorStore()
+			vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")
 
 			// Assert
 			expect(mockGetModelDimension).toHaveBeenCalledWith("openai", testModelId)
@@ -397,7 +809,7 @@ describe("CodeIndexServiceFactory", () => {
 			// Arrange
 			const testModelId = "nomic-embed-text:latest"
 			const testConfig = {
-				embedderProvider: "ollama",
+				embedderProvider: providerIdentifiers.ollama,
 				modelId: testModelId,
 				qdrantUrl: "http://localhost:6333",
 				qdrantApiKey: "test-key",
@@ -406,7 +818,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(768)
 
 			// Act
-			factory.createVectorStore()
+			vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")
 
 			// Assert
 			expect(mockGetModelDimension).toHaveBeenCalledWith("ollama", testModelId)
@@ -431,7 +843,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(3072)
 
 			// Act
-			factory.createVectorStore()
+			vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")
 
 			// Assert
 			expect(mockGetModelDimension).toHaveBeenCalledWith("openai-compatible", testModelId)
@@ -463,7 +875,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(modelDimension) // This should be used
 
 			// Act
-			factory.createVectorStore()
+			vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")
 
 			// Assert
 			expect(mockGetModelDimension).toHaveBeenCalledWith("openai-compatible", testModelId)
@@ -494,7 +906,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(undefined) // Model has no built-in dimension
 
 			// Act
-			factory.createVectorStore()
+			vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")
 
 			// Assert
 			expect(mockGetModelDimension).toHaveBeenCalledWith("openai-compatible", testModelId)
@@ -523,7 +935,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(768)
 
 			// Act
-			factory.createVectorStore()
+			vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")
 
 			// Assert
 			expect(mockGetModelDimension).toHaveBeenCalledWith("openai-compatible", testModelId)
@@ -553,7 +965,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(undefined)
 
 			// Act & Assert
-			expect(() => factory.createVectorStore()).toThrow(
+			expect(() => vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")).toThrow(
 				"serviceFactory.vectorDimensionNotDeterminedOpenAiCompatible",
 			)
 		})
@@ -575,7 +987,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(undefined)
 
 			// Act & Assert
-			expect(() => factory.createVectorStore()).toThrow(
+			expect(() => vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")).toThrow(
 				"serviceFactory.vectorDimensionNotDeterminedOpenAiCompatible",
 			)
 		})
@@ -583,7 +995,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should use model-specific dimension for Gemini provider", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "gemini",
+				embedderProvider: providerIdentifiers.gemini,
 				modelId: "gemini-embedding-001",
 				qdrantUrl: "http://localhost:6333",
 				qdrantApiKey: "test-key",
@@ -592,7 +1004,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(3072)
 
 			// Act
-			factory.createVectorStore()
+			vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")
 
 			// Assert
 			expect(mockGetModelDimension).toHaveBeenCalledWith("gemini", "gemini-embedding-001")
@@ -607,7 +1019,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should use default model dimension for Gemini when modelId not specified", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "gemini",
+				embedderProvider: providerIdentifiers.gemini,
 				qdrantUrl: "http://localhost:6333",
 				qdrantApiKey: "test-key",
 			}
@@ -616,7 +1028,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(3072)
 
 			// Act
-			factory.createVectorStore()
+			vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")
 
 			// Assert
 			expect(mockGetDefaultModelId).toHaveBeenCalledWith("gemini")
@@ -632,7 +1044,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should use default model when config.modelId is undefined", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: undefined,
 				qdrantUrl: "http://localhost:6333",
 				qdrantApiKey: "test-key",
@@ -641,7 +1053,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(1536)
 
 			// Act
-			factory.createVectorStore()
+			vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")
 
 			// Assert
 			expect(mockGetModelDimension).toHaveBeenCalledWith("openai", "default-model")
@@ -656,7 +1068,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should throw error when vector dimension cannot be determined", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: "unknown-model",
 				qdrantUrl: "http://localhost:6333",
 				qdrantApiKey: "test-key",
@@ -665,13 +1077,15 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(undefined)
 
 			// Act & Assert
-			expect(() => factory.createVectorStore()).toThrow("serviceFactory.vectorDimensionNotDetermined")
+			expect(() => vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")).toThrow(
+				"serviceFactory.vectorDimensionNotDetermined",
+			)
 		})
 
 		it("should throw error when Qdrant URL is missing", () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: "text-embedding-3-small",
 				qdrantUrl: undefined,
 				qdrantApiKey: "test-key",
@@ -680,7 +1094,9 @@ describe("CodeIndexServiceFactory", () => {
 			mockGetModelDimension.mockReturnValue(1536)
 
 			// Act & Assert
-			expect(() => factory.createVectorStore()).toThrow("serviceFactory.qdrantUrlMissing")
+			expect(() => vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")).toThrow(
+				"serviceFactory.qdrantUrlMissing",
+			)
 		})
 
 		it("should throw when provider is semble (semble handles its own vector storage)", () => {
@@ -689,7 +1105,7 @@ describe("CodeIndexServiceFactory", () => {
 			}
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
-			expect(() => factory.createVectorStore()).toThrow(
+			expect(() => vectorStoreFactory.create(mockConfigManager.getConfig(), "/test/workspace")).toThrow(
 				"Semble provider handles its own vector storage. Do not call createVectorStore() for semble",
 			)
 		})
@@ -707,7 +1123,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should validate OpenAI embedder successfully", async () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: "text-embedding-3-small",
 				openAiOptions: {
 					openAiNativeApiKey: "test-api-key",
@@ -720,7 +1136,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockEmbedderInstance.validateConfiguration.mockResolvedValue({ valid: true })
 
 			// Act
-			const embedder = factory.createEmbedder()
+			const embedder = embedderFactory.create(mockConfigManager.getConfig())
 			const result = await factory.validateEmbedder(embedder)
 
 			// Assert
@@ -731,7 +1147,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should return validation error from OpenAI embedder", async () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: "text-embedding-3-small",
 				openAiOptions: {
 					openAiNativeApiKey: "invalid-key",
@@ -747,7 +1163,7 @@ describe("CodeIndexServiceFactory", () => {
 			})
 
 			// Act
-			const embedder = factory.createEmbedder()
+			const embedder = embedderFactory.create(mockConfigManager.getConfig())
 			const result = await factory.validateEmbedder(embedder)
 
 			// Assert
@@ -760,7 +1176,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should validate Ollama embedder successfully", async () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "ollama",
+				embedderProvider: providerIdentifiers.ollama,
 				modelId: "nomic-embed-text",
 				ollamaOptions: {
 					ollamaBaseUrl: "http://localhost:11434",
@@ -773,7 +1189,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockEmbedderInstance.validateConfiguration.mockResolvedValue({ valid: true })
 
 			// Act
-			const embedder = factory.createEmbedder()
+			const embedder = embedderFactory.create(mockConfigManager.getConfig())
 			const result = await factory.validateEmbedder(embedder)
 
 			// Assert
@@ -798,7 +1214,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockEmbedderInstance.validateConfiguration.mockResolvedValue({ valid: true })
 
 			// Act
-			const embedder = factory.createEmbedder()
+			const embedder = embedderFactory.create(mockConfigManager.getConfig())
 			const result = await factory.validateEmbedder(embedder)
 
 			// Assert
@@ -809,7 +1225,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should validate Gemini embedder successfully", async () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "gemini",
+				embedderProvider: providerIdentifiers.gemini,
 				geminiOptions: {
 					apiKey: "test-gemini-api-key",
 				},
@@ -821,7 +1237,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockEmbedderInstance.validateConfiguration.mockResolvedValue({ valid: true })
 
 			// Act
-			const embedder = factory.createEmbedder()
+			const embedder = embedderFactory.create(mockConfigManager.getConfig())
 			const result = await factory.validateEmbedder(embedder)
 
 			// Assert
@@ -832,7 +1248,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should handle validation exceptions", async () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: "text-embedding-3-small",
 				openAiOptions: {
 					openAiNativeApiKey: "test-api-key",
@@ -846,7 +1262,7 @@ describe("CodeIndexServiceFactory", () => {
 			mockEmbedderInstance.validateConfiguration.mockRejectedValue(networkError)
 
 			// Act
-			const embedder = factory.createEmbedder()
+			const embedder = embedderFactory.create(mockConfigManager.getConfig())
 			const result = await factory.validateEmbedder(embedder)
 
 			// Assert
@@ -860,7 +1276,7 @@ describe("CodeIndexServiceFactory", () => {
 		it("should return error for invalid embedder configuration", async () => {
 			// Arrange
 			const testConfig = {
-				embedderProvider: "openai",
+				embedderProvider: providerIdentifiers.openai,
 				modelId: "text-embedding-3-small",
 				openAiOptions: {
 					openAiNativeApiKey: undefined, // Missing API key
@@ -871,7 +1287,7 @@ describe("CodeIndexServiceFactory", () => {
 			// Act & Assert
 			// This should throw when trying to create the embedder
 			await expect(async () => {
-				const embedder = factory.createEmbedder()
+				const embedder = embedderFactory.create(mockConfigManager.getConfig())
 				await factory.validateEmbedder(embedder)
 			}).rejects.toThrow("serviceFactory.openAiConfigMissing")
 		})
@@ -886,7 +1302,9 @@ describe("CodeIndexServiceFactory", () => {
 
 			// Act & Assert
 			// This should throw when trying to create the embedder
-			expect(() => factory.createEmbedder()).toThrow("serviceFactory.invalidEmbedderType")
+			expect(() => embedderFactory.create(mockConfigManager.getConfig())).toThrow(
+				"serviceFactory.invalidEmbedderType",
+			)
 		})
 	})
 })

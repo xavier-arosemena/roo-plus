@@ -13,7 +13,9 @@ overrides:
     esbuild: "0.28.1"
     rollup: "4.60.4"
     vite: "8.1.0"
-    undici: "6.28.0"
+    # undici — 6.28.0 is vulnerable (GHSA: DoS via unrequested WebSocket
+    # subprotocol); patched >=6.28.1
+    undici: ">=6.28.1"
     form-data: ">=4.0.4"
     bluebird: ">=3.7.2"
     glob: "11.1.0"
@@ -31,9 +33,10 @@ overrides:
     "@eslint/eslintrc>minimatch": "^5.1.8"
     "@vscode/vsce>minimatch": "^10.0.3"
 
-    # fast-uri (4 HIGH advisories: GHSA-q3j6-qgpj-74h6, GHSA-v39h-62p7-jpjc, …)
-    # >=3.1.6 required (ajv>fast-uri resolved 3.1.5 under ^3.1.5)
-    fast-uri: "^3.1.6"
+    # fast-uri (HIGH + MODERATE advisories: GHSA-q3j6-qgpj-74h6, GHSA-v39h-62p7-jpjc,
+    # GHSA-hrr3-gc8f-f4qj, …) — 3.x below 3.1.8 is vulnerable to inconsistent
+    # host-case normalization via percent-encoded octets. Stay on the 3.x line.
+    fast-uri: "^3.1.8"
 
     # ip-address (1 HIGH + 2 MEDIUM: GHSA-mwp4-54f8-5fhr, …) — transitive via
     # @modelcontextprotocol/sdk>express-rate-limit>ip-address
@@ -89,10 +92,10 @@ overrides:
 
     # ── HIGH severity fixes (Phase 2) ──
 
-    # brace-expansion (HIGH) — eslint>minimatch brings in ^1.1.x (brace-expansion 1.x),
-    # @eslint/eslintrc>minimatch brings in ^2.0.1 (brace-expansion 2.x).
-    # Neither 1.x nor 2.x are patched — fix requires >=5.0.9
-    brace-expansion: "^5.0.9"
+    # brace-expansion (HIGH + MODERATE) — everything below 5.0.12 is vulnerable
+    # (GHSA stack-exhaustion on nested groups, plus the quadratic-time expansion
+    # DoS GHSA-q2hr-2g5m-vwhr). Global single-version pin, as before.
+    brace-expansion: ">=5.0.12"
 
     # @babel/core (LOW) — webview-ui>@vitejs/plugin-react>@babel/core stuck at 7.29.0
     "@vitejs/plugin-react>@babel/core": "^7.29.6"

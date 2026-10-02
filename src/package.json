@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "xavier-arosemena",
-	"version": "3.88.12",
+	"version": "3.88.13",
 	"icon": "assets/icons/icon.png",
 	"galleryBanner": {
 		"color": "#617A91",
@@ -492,7 +492,7 @@
 		"@roo-code/types": "workspace:^",
 		"ai-sdk-provider-poe": "2.0.18",
 		"async-mutex": "^0.5.0",
-		"axios": "^1.18.1",
+		"axios": "^1.20.0",
 		"chokidar": "^4.0.1",
 		"clone-deep": "^4.0.1",
 		"delay": "^6.0.0",
