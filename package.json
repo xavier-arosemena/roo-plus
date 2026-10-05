@@ -35,6 +35,7 @@
 		"gate:sync": "node scripts/gate-sync.mjs",
 		"verify:submodule-pin": "node scripts/verify-submodule-pin.mjs",
 		"verify:announcement-version": "node scripts/verify-announcement-version.mjs",
+		"verify:webview-build": "node webview-ui/scripts/verify-webview-build-parity.mjs",
 		"generate:announcements": "node scripts/generate-announcements.mjs",
 		"bump:pre-release": "node scripts/bump-pre-release-version.mjs",
 		"bump:line": "node scripts/bump-pre-release-version.mjs --line",

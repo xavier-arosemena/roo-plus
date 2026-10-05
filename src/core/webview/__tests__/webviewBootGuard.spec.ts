@@ -68,6 +68,48 @@ describe("buildWebviewBootGuardScript", () => {
 		expect(body).toContain("window.acquireVsCodeApi")
 	})
 
+	it("classifies only a <script> element error as a fatal load failure (issue #416)", () => {
+		const body = buildWebviewBootGuardScriptBody()
+
+		// The element-level error branch compares the tag name against "script"
+		// and RETURNS for anything else (modulepreload hint links, stylesheets,
+		// <img>, web fonts), so a benign resource error can never latch `failed`
+		// or paint the fallback over a healthy boot.
+		expect(body).toContain("var tagName = String(target.tagName).toLowerCase();")
+		expect(body).toContain('if (tagName !== "script") {')
+		expect(body).toContain("return;")
+	})
+
+	it("posts through the guard's own wrapper on the normal path and never steals the raw handle (issue #416)", () => {
+		const body = buildWebviewBootGuardScriptBody()
+
+		expect(body).toContain("var apiWrapperInstalled = false;")
+		expect(body).toContain("apiWrapperInstalled = true;")
+		// Normal path: the memoizing wrapper is used, so the app's handle survives.
+		expect(body).toContain("if (apiWrapperInstalled) {")
+		// The old raw-acquire helper must be gone: it consumed the app's
+		// single-use handle ahead of the app on EVERY path.
+		expect(body).not.toContain("function getVsCodeApi()")
+	})
+
+	it("H1 residual: restricts the last-resort raw acquire to a load failure", () => {
+		const body = buildWebviewBootGuardScriptBody()
+
+		// Best-effort NON-DESTRUCTIVE re-install for a configurable non-writable
+		// handle: the same memoizing wrapper is installed via defineProperty.
+		expect(body).toContain("Object.getOwnPropertyDescriptor")
+		expect(body).toContain("Object.defineProperty")
+		expect(body).toContain("descriptor.configurable")
+		// Last-resort raw acquire for the truly non-configurable case, but ONLY for
+		// a provably-dead "load" failure (the entry module never ran).
+		expect(body).toContain("function isTerminalFailure(reason)")
+		expect(body).toContain('return reason === "load";')
+		// A "watchdog" may be a slow-but-healthy mount and MUST NOT steal the
+		// app's single-use handle, so the old watchdog+load predicate is gone.
+		expect(body).not.toContain('reason === "watchdog" || reason === "load"')
+		expect(body).toContain("if (!isTerminalFailure(reason)) {")
+	})
+
 	it("never mutates the object returned by the real acquireVsCodeApi (DEF-1)", () => {
 		const body = buildWebviewBootGuardScriptBody()
 

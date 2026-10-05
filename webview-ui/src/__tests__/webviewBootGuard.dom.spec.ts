@@ -77,13 +77,14 @@ function installFrozenVsCodeApiStub(): Omit<GuardHarness, "handle" | "acquire"> 
 }
 
 /**
- * Install an `acquireVsCodeApi` the guard CANNOT wrap: it is a NON-WRITABLE data
- * property, so the guard's strict-mode assignment
- * `window.acquireVsCodeApi = function () { ... }` throws a TypeError (F-4).
+ * Install a NON-WRITABLE (but CONFIGURABLE) `acquireVsCodeApi`, so the guard's
+ * strict-mode assignment `window.acquireVsCodeApi = function () { ... }` throws
+ * a TypeError (F-4).
  *
- * Before the fix, that throw was swallowed by the single install `try` block and
- * skipped `armWatchdog()`, leaving the guard with ZERO protection. The real
- * `acquireVsCodeApi` is still callable, so the guard can still post its report.
+ * H1 (issue #416 hardening): because the property is configurable, the guard can
+ * still install its memoizing wrapper NON-DESTRUCTIVELY via `Object.defineProperty`.
+ * The app keeps a working shared handle (the wrapper memoizes the real handle),
+ * so a terminal failure IS host-visible again — asserted by the H1 tests below.
  */
 function installNonWritableVsCodeApiStub(): { realPostMessage: MockSpy } {
 	const realPostMessage = vi.fn()
@@ -101,6 +102,45 @@ function installNonWritableVsCodeApiStub(): { realPostMessage: MockSpy } {
 	})
 
 	return { realPostMessage }
+}
+
+/**
+ * Install an `acquireVsCodeApi` the guard CANNOT wrap AT ALL: NON-WRITABLE and
+ * NON-CONFIGURABLE, so neither the strict-mode assignment nor
+ * `Object.defineProperty` can replace it.
+ *
+ * H1 residual: to keep a provably dead panel from being silent, the guard falls
+ * back to ONE raw `acquireVsCodeApi()` call on the TERMINAL path only. That does
+ * consume the app's single-use handle — the documented trade-off for this
+ * abnormal environment (see `postBootFailure`).
+ *
+ * NOTE: a non-configurable global cannot be removed in `afterEach`, so the test
+ * that uses this helper MUST be the LAST test in the file (it is).
+ */
+function installNonConfigurableVsCodeApiStub(): { realPostMessage: MockSpy; acquireCallCount: () => number } {
+	const realPostMessage = vi.fn()
+	const frozenApi: GuardApi = Object.freeze({
+		postMessage: realPostMessage,
+		getState: vi.fn(() => ({})),
+		setState: vi.fn((state: unknown) => state),
+	})
+
+	let acquireCalls = 0
+	const acquireReal = () => {
+		acquireCalls += 1
+		if (acquireCalls > 1) {
+			throw new Error("acquireVsCodeApi() can only be called once per session")
+		}
+		return frozenApi
+	}
+	Object.defineProperty(window, "acquireVsCodeApi", {
+		configurable: false,
+		enumerable: false,
+		writable: false,
+		value: acquireReal,
+	})
+
+	return { realPostMessage, acquireCallCount: () => acquireCalls }
 }
 
 /**
@@ -241,7 +281,40 @@ describe("webview boot guard (jsdom)", () => {
 		expect(realPostMessage).toHaveBeenCalledWith({ type: "webviewBootFailure", reason: "throw" })
 	})
 
-	it("still arms the watchdog when the API wrapper cannot be installed (F-4 regression)", () => {
+	it("ignores non-fatal resource errors (modulepreload/img) but treats a <script> error as a load failure (issue #416)", () => {
+		const { realPostMessage } = evaluateGuard()
+
+		// A benign, non-fatal modulepreload hint failing must NOT paint the
+		// fallback and must NOT post a webviewBootFailure — the app can still
+		// mount (this is the #416 false-positive the guard used to latch on).
+		const preload = document.createElement("link")
+		preload.rel = "modulepreload"
+		preload.href = "/assets/missing-chunk.js"
+		document.body.appendChild(preload)
+		preload.dispatchEvent(new Event("error"))
+
+		// Same for an <img> (and, by the same element-agnostic rule, fonts).
+		const img = document.createElement("img")
+		img.src = "/assets/missing.png"
+		document.body.appendChild(img)
+		img.dispatchEvent(new Event("error"))
+
+		expect(document.getElementById("roo-webview-boot-fallback")).toBeNull()
+		expect(realPostMessage).not.toHaveBeenCalled()
+
+		// A genuinely failed <script> (the entry module or a dynamically
+		// imported chunk) IS fatal: paint the fallback and post reason=load.
+		const script = document.createElement("script")
+		script.src = "/assets/index.js"
+		document.body.appendChild(script)
+		script.dispatchEvent(new Event("error"))
+
+		expect(document.getElementById("roo-webview-boot-fallback")).not.toBeNull()
+		expect(realPostMessage).toHaveBeenCalledTimes(1)
+		expect(realPostMessage).toHaveBeenCalledWith({ type: "webviewBootFailure", reason: "load" })
+	})
+
+	it("H1: wraps a non-writable but CONFIGURABLE acquireVsCodeApi via defineProperty and reports a terminal failure", () => {
 		const { realPostMessage } = installNonWritableVsCodeApiStub()
 		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
 
@@ -249,14 +322,19 @@ describe("webview boot guard (jsdom)", () => {
 		// assignment onto the non-writable property fails.
 		expect(() => new Function(buildWebviewBootGuardScriptBody())()).not.toThrow()
 
-		// F-4: the wrapper-install failure is REPORTED on a local static line, never
-		// silently swallowed.
-		expect(warnSpy).toHaveBeenCalledWith(
+		// H1: the configurable handle is re-wrapped NON-DESTRUCTIVELY, so the
+		// install SUCCEEDS and no failure diagnostic is logged.
+		expect(warnSpy).not.toHaveBeenCalledWith(
 			expect.stringContaining("[webview-boot-guard] install step failed: api-wrapper"),
 		)
 
-		// The watchdog was armed FIRST and independently, so a dead boot is still
-		// detected: the fallback is painted and exactly one failure is reported.
+		// The app still receives a working, MEMOIZED handle (no theft).
+		const acquire = Reflect.get(window, "acquireVsCodeApi") as () => GuardApi
+		const handle = acquire()
+		expect(typeof handle.postMessage).toBe("function")
+		expect(acquire()).toBe(handle)
+
+		// A terminal watchdog failure is now HOST-VISIBLE through the wrapper.
 		vi.advanceTimersByTime(BOOT_WATCHDOG_TIMEOUT_MS + 1)
 
 		expect(document.getElementById("roo-webview-boot-fallback")).not.toBeNull()
@@ -283,24 +361,24 @@ describe("webview boot guard (jsdom)", () => {
 		expect(document.getElementById("roo-webview-boot-fallback")).toBeNull()
 	})
 
-	it("clears a late-mounted fallback via the #root poll even when the wrapper cannot install (NEW-1)", () => {
+	it("H1: still clears a late-mounted fallback via the #root poll when the wrapper is installed via defineProperty (NEW-1)", () => {
 		const { realPostMessage } = installNonWritableVsCodeApiStub()
 		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
 
 		new Function(buildWebviewBootGuardScriptBody())()
 
-		// The wrapper could not be installed, so the webviewDidLaunch disarm hook is
-		// never live…
-		expect(warnSpy).toHaveBeenCalledWith(
+		// H1: the configurable handle was re-wrapped, so the install succeeded and
+		// no failure diagnostic is logged…
+		expect(warnSpy).not.toHaveBeenCalledWith(
 			expect.stringContaining("[webview-boot-guard] install step failed: api-wrapper"),
 		)
 
-		// …yet the watchdog still paints the fallback, and the independent #root
-		// poll still clears it once the app mounts late.
+		// …the watchdog paints the fallback and reports it…
 		vi.advanceTimersByTime(BOOT_WATCHDOG_TIMEOUT_MS + 1)
 		expect(document.getElementById("roo-webview-boot-fallback")).not.toBeNull()
 		expect(realPostMessage).toHaveBeenCalledWith({ type: "webviewBootFailure", reason: "watchdog" })
 
+		// …and the independent #root poll still clears it once the app mounts late.
 		document.getElementById("root")?.appendChild(document.createElement("div"))
 		vi.advanceTimersByTime(BOOT_FALLBACK_CLEAR_POLL_MS)
 
@@ -334,5 +412,54 @@ describe("webview boot guard (jsdom)", () => {
 		// Past the bound the poll stops: no timer may survive it.
 		vi.advanceTimersByTime(BOOT_FALLBACK_CLEAR_MAX_MS)
 		expect(vi.getTimerCount()).toBe(0)
+	})
+
+	it("H1 residual: only a load failure posts via a last-resort raw acquire when the wrapper cannot be installed at all", () => {
+		// MUST be the LAST test in this file: the non-configurable global cannot be
+		// removed in `afterEach`, so nothing later may redefine it.
+		const { realPostMessage, acquireCallCount } = installNonConfigurableVsCodeApiStub()
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+
+		// --- Phase 1: a watchdog trip must NOT steal the single-use handle ---
+		new Function(buildWebviewBootGuardScriptBody())()
+
+		// Neither the assignment nor defineProperty could wrap the handle, so the
+		// F-4 diagnostic fires…
+		expect(warnSpy).toHaveBeenCalledWith(
+			expect.stringContaining("[webview-boot-guard] install step failed: api-wrapper"),
+		)
+		// …and the guard has NOT touched the handle yet.
+		expect(acquireCallCount()).toBe(0)
+
+		vi.advanceTimersByTime(BOOT_WATCHDOG_TIMEOUT_MS + 1)
+
+		// The in-panel fallback is still painted (the user-facing signal remains)…
+		expect(document.getElementById("roo-webview-boot-fallback")).not.toBeNull()
+		// …but a watchdog may be a slow-but-healthy mount, so the guard must NOT
+		// consume the app's single-use handle and must NOT post a possibly
+		// false-positive failure to the host. A watchdog is deliberately SILENT to
+		// the host in this abnormal environment.
+		expect(realPostMessage).not.toHaveBeenCalled()
+		expect(acquireCallCount()).toBe(0)
+
+		// --- Phase 2: a <script>/entry-module load failure DOES post ---
+		// A fresh guard instance (its own `failed`/`postedFailure` latches) proves
+		// the load path independently, because a single instance latches on its
+		// first failure and would ignore the later trigger.
+		document.body.innerHTML = '<div id="root"></div>'
+		new Function(buildWebviewBootGuardScriptBody())()
+
+		const script = document.createElement("script")
+		script.src = "/assets/index.js"
+		document.body.appendChild(script)
+		script.dispatchEvent(new Event("error"))
+
+		// "load" unambiguously means the entry module never ran, so consuming the
+		// raw single-use handle is safe: the host DOES see the typed failure.
+		expect(realPostMessage).toHaveBeenCalledTimes(1)
+		expect(realPostMessage).toHaveBeenCalledWith({ type: "webviewBootFailure", reason: "load" })
+		expect(acquireCallCount()).toBe(1)
+
+		warnSpy.mockRestore()
 	})
 })
