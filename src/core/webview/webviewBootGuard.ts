@@ -15,7 +15,19 @@
  *  - primarily detects failure with a bounded watchdog timeout that checks
  *    `#root` for children (error events alone are insufficient);
  *  - secondarily observes `window` `error` (capture) and `unhandledrejection`;
- *  - posts exactly one `webviewBootFailure` message to the host;
+ *    ISSUE #416: only a failed `<script>` element is fatal — benign resource
+ *    errors (modulepreload hints, stylesheets, images, fonts) are ignored so
+ *    the guard cannot false-positive over a healthy boot;
+ *  - posts exactly one `webviewBootFailure` message to the host. On the normal
+ *    path it posts ONLY via a handle obtained through its own memoizing
+ *    `acquireVsCodeApi` wrapper (never by acquiring the raw single-use handle
+ *    ahead of the app). H1 residual: if the wrapper cannot be installed at all,
+ *    ONLY a `<script>`/entry-module LOAD error (`reason === "load"` — the module
+ *    provably never ran) falls back to a last-resort raw acquire. A `watchdog`
+ *    trip may be a slow-but-healthy mount, so it must NEVER steal the app's
+ *    single-use handle: in that abnormal environment a watchdog stays silent to
+ *    the host by design (the in-panel fallback + the bounded `#root` poll remain
+ *    the user-facing signals) — see `postBootFailure` for the documented trade-off;
  *  - is disarmed when the app posts its existing `webviewDidLaunch` success
  *    signal (T1.4 — reused rather than inventing a second "boot OK" type), and
  *    removes any fallback it painted during a slow-but-healthy boot;
@@ -94,7 +106,11 @@ export function buildWebviewBootGuardScriptBody(): string {
 	var watchdogTimer = null;
 	var fallbackPollTimer = null;
 	var fallbackPollDeadlineTimer = null;
-	var vsCodeApi = null;
+	// FIX-2: only true once the delegating wrapper is actually installed. The
+	// guard may ONLY post through a handle it obtained via that wrapper; if the
+	// wrapper install failed it must NOT acquire the raw handle ahead of the app
+	// (see postBootFailure), because acquireVsCodeApi is single-use per document.
+	var apiWrapperInstalled = false;
 
 	function rootIsEmpty() {
 		try {
@@ -187,33 +203,78 @@ export function buildWebviewBootGuardScriptBody(): string {
 		stopFallbackPoll();
 	}
 
-	// acquireVsCodeApi throws if it is called more than once per document, so we
-	// reuse the single instance the app acquires (either the one we wrapped or
-	// one we lazily request ourselves).
-	function getVsCodeApi() {
-		if (vsCodeApi) {
-			return vsCodeApi;
-		}
-		try {
-			if (typeof window.acquireVsCodeApi === "function") {
-				vsCodeApi = window.acquireVsCodeApi();
-			}
-		} catch (error) {
-			vsCodeApi = null;
-		}
-		return vsCodeApi;
+	// H1 residual (issue #416 follow-up): is "reason" a failure that proves the
+	// entry module NEVER RAN, so consuming the app's single-use handle is safe?
+	// ONLY "load" qualifies: the entry <script>/module failed to FETCH, so the
+	// module never executed and the app can never need its own acquireVsCodeApi()
+	// handle.
+	//
+	// "watchdog" is DELIBERATELY EXCLUDED: an empty #root after WATCHDOG_TIMEOUT_MS
+	// may still be a slow-but-healthy mount. Because the real handle is single-use,
+	// a raw acquire here would make the app's own acquireVsCodeApi() throw when it
+	// finally initializes -> a DEF-1-class dead panel. We prefer NOT stealing the
+	// handle over reporting a possible false positive.
+	//
+	// "throw" is EXCLUDED for the same reason: an unhandled rejection or a one-off
+	// script exception can still be followed by a successful mount.
+	function isTerminalFailure(reason) {
+		return reason === "load";
 	}
 
+	// Post a boot-failure message through a handle (the memoizing wrapper on the
+	// normal path, or the last-resort raw acquire below).
+	function postBootFailureMessage(api, reason) {
+		if (api && typeof api.postMessage === "function") {
+			api.postMessage({ type: FAILURE_MESSAGE_TYPE, reason: reason });
+		}
+	}
+
+	// FIX-2: post the failure ONLY through a handle obtained via the guard's own
+	// delegating wrapper. acquireVsCodeApi is single-use per document; on the
+	// normal path we must NOT call window.acquireVsCodeApi() raw, because doing so
+	// would consume the app's one handle and make the app's own
+	// acquireVsCodeApi() throw.
+	//
+	// H1 residual: but when the wrapper install ALSO failed (a non-writable AND
+	// non-configurable handle, so installApiWrapper could neither assign nor
+	// Object.defineProperty it) a genuinely dead panel was COMPLETELY silent to
+	// the host — only the in-panel fallback remained. ONLY a "load" failure (the
+	// entry <script>/module never executed, so the app can never need its own
+	// handle) accepts the documented trade-off of one last-resort raw acquire, so
+	// the host still sees the typed boot-failure message.
+	//
+	// A "watchdog" failure is NOT terminal here: it may be a slow-but-healthy
+	// mount, so stealing the single-use handle could break a boot that would
+	// otherwise succeed. In this abnormal environment a watchdog therefore stays
+	// SILENT to the host BY DESIGN -- the in-panel fallback and the bounded #root
+	// poll remain the user-facing signals. This path is unreachable on the normal
+	// path (apiWrapperInstalled is true) and for the recoverable "throw" reason,
+	// so the no-handle-theft guarantee for every healthy boot is intact.
 	function postBootFailure(reason) {
 		if (postedFailure) {
 			return;
 		}
 		postedFailure = true;
 		try {
-			var api = getVsCodeApi();
-			if (api && typeof api.postMessage === "function") {
-				api.postMessage({ type: FAILURE_MESSAGE_TYPE, reason: reason });
+			if (typeof window.acquireVsCodeApi !== "function") {
+				// No handle factory at all (abnormal environment): nothing can be
+				// posted. The local fallback UI remains the only affordance.
+				return;
 			}
+			if (apiWrapperInstalled) {
+				// Normal path: the installed wrapper memoizes the handle, so the
+				// app's later acquireVsCodeApi() call reuses this same object.
+				postBootFailureMessage(window.acquireVsCodeApi(), reason);
+				return;
+			}
+			// H1 residual: wrapper could not be installed. ONLY a "load" failure
+			// (the entry module provably never ran) justifies consuming the raw
+			// single-use handle; a "watchdog" may be a slow-but-healthy mount and
+			// must never steal the app's handle, and "throw" may still recover.
+			if (!isTerminalFailure(reason)) {
+				return;
+			}
+			postBootFailureMessage(window.acquireVsCodeApi(), reason);
 		} catch (error) {
 			// Host channel unavailable; the local fallback UI still renders.
 		}
@@ -268,10 +329,19 @@ export function buildWebviewBootGuardScriptBody(): string {
 		var reason = "throw";
 		try {
 			var target = event && event.target;
-			// Resource load failures (a 404 on the module bundle or a stylesheet)
-			// surface as element "error" events; script exceptions surface on
-			// window with a "message".
+			// FIX-1 (issue #416): only a failed script element — the entry module
+			// or a dynamically imported chunk — is fatal. A resource "error" on
+			// ANY other element (a modulepreload hint emitted by the preload
+			// helper, a stylesheet, an image, a web font) is NON-FATAL: the app
+			// can still mount, so treating it as a dead boot is a false positive.
+			// These element errors must be ignored outright (no fallback, no
+			// failure report, no failed latch). Script exceptions still surface
+			// on window with a "message" and fall through as reason="throw".
 			if (target && target !== window && target.tagName) {
+				var tagName = String(target.tagName).toLowerCase();
+				if (tagName !== "script") {
+					return;
+				}
 				reason = "load";
 			}
 		} catch (error) {
@@ -300,7 +370,7 @@ export function buildWebviewBootGuardScriptBody(): string {
 			return;
 		}
 		var cached = null;
-		window.acquireVsCodeApi = function () {
+		var wrapper = function () {
 			if (cached) {
 				return cached;
 			}
@@ -323,9 +393,46 @@ export function buildWebviewBootGuardScriptBody(): string {
 					return real.setState.apply(real, arguments);
 				},
 			};
-			vsCodeApi = cached;
 			return cached;
 		};
+		// Preferred install: a plain assignment works when the property is
+		// writable, and only then is apiWrapperInstalled set. The wrapper
+		// MEMOIZES the handle, so the app's own acquireVsCodeApi() reuses the
+		// same object — the single-use guarantee is preserved.
+		try {
+			window.acquireVsCodeApi = wrapper;
+			apiWrapperInstalled = true;
+			return;
+		} catch (error) {
+			// Non-writable property: fall through to the defineProperty path.
+		}
+		// H1: a NON-WRITABLE-but-CONFIGURABLE handle can still be wrapped
+		// NON-DESTRUCTIVELY via Object.defineProperty. The replacement is the
+		// SAME memoizing delegating wrapper, so the guard and the app still share
+		// ONE real handle and the app's acquireVsCodeApi() keeps working. It is
+		// only attempted after the plain assignment failed and only when the
+		// property is configurable, so a truly frozen global is left untouched
+		// (apiWrapperInstalled stays false and postBootFailure uses its
+		// terminal-only last-resort raw acquire instead).
+		try {
+			var descriptor = Object.getOwnPropertyDescriptor(window, "acquireVsCodeApi");
+			if (descriptor && descriptor.configurable) {
+				Object.defineProperty(window, "acquireVsCodeApi", {
+					configurable: true,
+					enumerable: descriptor.enumerable,
+					writable: true,
+					value: wrapper,
+				});
+				apiWrapperInstalled = true;
+			}
+		} catch (error) {
+			// Non-configurable: apiWrapperInstalled stays false.
+		}
+		// F-4: report the (still) failed install locally so an inert guard is
+		// never silent. Only reached when NEITHER install strategy worked.
+		if (!apiWrapperInstalled) {
+			logGuardDiagnostic("api-wrapper");
+		}
 	}
 
 	// F-4: a failure in ANY install step is reported on a LOCAL static line. It is

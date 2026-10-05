@@ -90,7 +90,11 @@ vi.mock("../handlers/shared", () => ({
 import * as vscode from "vscode"
 import { openFile } from "../../../integrations/misc/open-file"
 import { getGlobalState, updateGlobalState } from "../handlers/shared"
-import { WEBVIEW_BOOT_FAILURE_NOTIFY_WINDOW_MS, handleMiscMessages } from "../handlers/misc"
+import {
+	WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS,
+	WEBVIEW_BOOT_FAILURE_NOTIFY_WINDOW_MS,
+	handleMiscMessages,
+} from "../handlers/misc"
 
 describe("miscMessageHandler", () => {
 	const mockLog = vi.fn()
@@ -110,6 +114,8 @@ describe("miscMessageHandler", () => {
 			isViewLaunched: false,
 			// F-3: the one-per-session boot-failure notification latch starts unset.
 			webviewBootFailureNotified: false,
+			webviewBootFailureNotifiedAt: 0,
+			webviewBootFailureNotifyTimer: undefined,
 			latestAnnouncementId: "announcement-1",
 			recordWebviewLivenessPong: vi.fn(),
 			// Minimal webviewDidLaunch deps so the latch re-arm can be exercised.
@@ -236,6 +242,17 @@ describe("miscMessageHandler", () => {
 	})
 
 	describe("webviewBootFailure", () => {
+		beforeEach(() => {
+			vi.useFakeTimers()
+		})
+
+		afterEach(() => {
+			vi.useRealTimers()
+		})
+
+		/** Advance past the notification grace window so a scheduled warning fires. */
+		const flushGrace = () => vi.advanceTimersByTime(WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS)
+
 		it("logs the watchdog reason locally but does NOT notify (F-1: heuristic, retracted by DEF-4)", async () => {
 			const provider = createMockProvider()
 
@@ -243,18 +260,24 @@ describe("miscMessageHandler", () => {
 
 			expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=watchdog")
 			// The watchdog is a heuristic over a slow-but-healthy mount and the guard
-			// retracts it when the app finally mounts, so it must stay LOG-ONLY.
+			// retracts it when the app finally mounts, so it must stay LOG-ONLY —
+			// even after the debounce grace window elapses.
+			flushGrace()
 			expect(vscode.window.showWarningMessage).not.toHaveBeenCalled()
 		})
 
 		it.each(["load", "throw"] as const)(
-			"logs reason=%s and shows exactly one non-modal notification (deterministic failure)",
+			"logs reason=%s and shows exactly one non-modal notification after the grace window (deterministic failure)",
 			async (reason) => {
 				const provider = createMockProvider()
 
 				await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason })
 
 				expect(mockLog).toHaveBeenCalledWith(`[webview-boot] failure reason=${reason}`)
+				// ISSUE #416: the warning is DEBOUNCED — nothing is painted until
+				// the grace window elapses (so a fast recovery can retract it).
+				expect(vscode.window.showWarningMessage).not.toHaveBeenCalled()
+				flushGrace()
 				expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
 			},
 		)
@@ -269,51 +292,80 @@ describe("miscMessageHandler", () => {
 			expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=load")
 			expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=throw")
 			// … but the user is warned exactly once inside the window.
+			flushGrace()
 			expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
 		})
 
 		it("rate-limits to one per 60 s window per webview and always logs locally (NEW-2)", async () => {
 			const provider = createMockProvider()
 
-			vi.useFakeTimers()
-			vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"))
+			// First deterministic failure: scheduled, then shown after the grace.
+			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "load" })
+			flushGrace()
+			expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
 
-			try {
-				// First deterministic failure: shown.
-				await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "load" })
-				expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
+			// Duplicate inside the window: suppressed (no new timer is scheduled,
+			// so the clock does not advance here), but STILL logged locally.
+			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "throw" })
+			expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
+			expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=load")
+			expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=throw")
 
-				// Duplicate inside the window: suppressed, but STILL logged locally.
-				await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "throw" })
-				expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
-				expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=load")
-				expect(mockLog).toHaveBeenCalledWith("[webview-boot] failure reason=throw")
+			// Just inside the window: still suppressed. (The clock is one grace
+			// window past t=0, so advance the remainder minus that grace.)
+			vi.advanceTimersByTime(WEBVIEW_BOOT_FAILURE_NOTIFY_WINDOW_MS - WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS - 1)
+			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "load" })
+			flushGrace()
+			expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
 
-				// Just inside the window (window − 1 ms): still suppressed.
-				vi.advanceTimersByTime(WEBVIEW_BOOT_FAILURE_NOTIFY_WINDOW_MS - 1)
-				await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "load" })
-				expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
+			// Window elapsed: allowed again.
+			vi.advanceTimersByTime(1)
+			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "throw" })
+			flushGrace()
+			expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(2)
+		})
 
-				// Window elapsed: allowed again.
-				vi.advanceTimersByTime(1)
-				await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "throw" })
-				expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(2)
-			} finally {
-				vi.useRealTimers()
-			}
+		it("cancels a pending warning when a successful boot arrives first (issue #416 retraction)", async () => {
+			const provider = createMockProvider()
+
+			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "load" })
+			// Scheduled, but not yet shown.
+			expect(vscode.window.showWarningMessage).not.toHaveBeenCalled()
+
+			// The same document mounts successfully before the grace elapses.
+			await handleMiscMessages(provider, undefined, { type: "webviewDidLaunch" })
+
+			// The pending timer is cancelled and the latch is reset…
+			expect(provider.webviewBootFailureNotifyTimer).toBeUndefined()
+			expect(provider.webviewBootFailureNotified).toBe(false)
+			expect(provider.webviewBootFailureNotifiedAt).toBe(0)
+			// …and the retraction is surfaced exactly once for triage.
+			expect(mockLog).toHaveBeenCalledWith("[webview-boot] recovered")
+
+			// Even past the grace window the retracted warning never appears.
+			flushGrace()
+			expect(vscode.window.showWarningMessage).not.toHaveBeenCalled()
 		})
 
 		it("re-arms the notification throttle when a fresh document mounts (NEW-2)", async () => {
 			const provider = createMockProvider()
 
 			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "load" })
+			flushGrace()
 			expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1)
 
 			// A reload arrives as a new document whose app posts webviewDidLaunch.
 			await handleMiscMessages(provider, undefined, { type: "webviewDidLaunch" })
 			expect(provider.webviewBootFailureNotified).toBe(false)
 
+			// H3: the warning ALREADY painted (the grace window was flushed above),
+			// so this late launch is NOT a recovery — it logs the DISTINCT
+			// late-launch line and must NOT claim a recovery that did not happen.
+			expect(mockLog).toHaveBeenCalledWith("[webview-boot] late-launch after warning")
+			expect(mockLog).not.toHaveBeenCalledWith("[webview-boot] recovered")
+
 			await handleMiscMessages(provider, undefined, { type: "webviewBootFailure", reason: "throw" })
+			flushGrace()
 			expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(2)
 		})
 

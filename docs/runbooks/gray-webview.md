@@ -75,6 +75,24 @@ Work through these in order; stop at the first hit.
    mirror, and clear the legacy key on startup. If on a pre-fix version,
    install the fixed VSIX (§3 mitigation B) for the permanent cure.
 
+5. **Root-absolute asset URLs → HTTP 401 (webview build-integrity class, issue #416).**
+   In the failing webview's DevTools Console, look for
+   `Failed to load resource: the server responded with a status of 401` against a
+   **root-absolute** `/assets/<chunk>.js` URL — i.e. one with **no**
+   `/…/webview-ui/build/` `asWebviewUri` prefix, answered by the remote
+   `vscode-resource.vscode-cdn.net` server. Most visible in a **remote-SSH** window.
+   The **entry** document/script (`index.html` and the `index.js` entry) still load
+   **200** via `asWebviewUri`; the 401s instead hit **runtime-referenced** resources
+   requested root-absolutely — the JS `modulepreload` hints and the **60
+   `url(/assets/fonts/…)` refs emitted into `index.css`** — so `index.css` is **not**
+   claimed to answer 200 (it referenced those root-absolute font URLs). The boot guard
+   reports `[webview-boot] failure reason=load` (a real entry-script failure — §3a).
+   This is a **pre-fix build** signature:
+   `base: "./"` in [`vite.config.ts`](../../webview-ui/vite.config.ts:94) makes every
+   emitted URL relative so it resolves under the `asWebviewUri` prefix. A build that
+   carries the fix cannot reproduce it; the build-parity gate (§6c) is what keeps it
+   fixed.
+
 ## 3. Immediate mitigations
 
 **First-line: use the panel's own recovery (boot-guard builds).**
@@ -93,6 +111,14 @@ message. So:
    finally mounts) and is raised **at most once per 60-second window per webview** for the
    deterministic `load` / `throw` failures (the local `[webview-boot]` log line is always emitted).
    `<reason>` is `watchdog` / `load` / `throw` — meaning in §3a.
+   The warning is also **retractable**: it is debounced by
+   `WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS` (1750 ms, the boot-failure notification constants in
+   [`handlers/misc.ts`](../../src/core/webview/handlers/misc.ts:60)) and **cancelled** if
+   `webviewDidLaunch` arrives inside that window, so a transient pre-commit trip never leaves a
+   stale toast. Two further **local-only** lines disambiguate the host outcome:
+   `[webview-boot] recovered` (a pending, never-shown warning was cancelled — a real retraction)
+   and `[webview-boot] late-launch after warning` (a launch arrived **after** the warning already
+   painted, which a VS Code notification cannot retract).
 3. Only escalate (§4) if the failure survives a **Reload**.
 
 **A. Reload the window (always safe, works when the renderer is wedged):**
@@ -118,14 +144,25 @@ The guard is injected into the served webview HTML by
 (`BOOT_WATCHDOG_TIMEOUT_MS = 6000`). It fires **once** from the first of three triggers and paints a
 self-contained fallback ("The Roo+ view failed to load" + the panel's Reload button):
 
-| Trigger                                    | Detection                                                                                              | `reason`   |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------ | ---------- |
-| **Watchdog timeout**                       | `#root` is still empty `BOOT_WATCHDOG_TIMEOUT_MS` (6 s) after the document loads                       | `watchdog` |
-| **Resource `error` event**                 | a window `error` (capture) fires before the app mounted — e.g. the module bundle or a stylesheet 404'd | `load`     |
-| **Script exception / unhandled rejection** | an `unhandledrejection` fires before the app mounted                                                   | `throw`    |
+| Trigger                                    | Detection                                                                                                                              | `reason`   |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| **Watchdog timeout**                       | `#root` is still empty `BOOT_WATCHDOG_TIMEOUT_MS` (6 s) after the document loads                                                       | `watchdog` |
+| **Script `error` event**                   | a window `error` (capture) on a **`<script>` element** fires before the app mounted — the entry module or a dynamically-imported chunk | `load`     |
+| **Script exception / unhandled rejection** | an `unhandledrejection` fires before the app mounted                                                                                   | `throw`    |
 
 Whichever trigger hits first wins; the guard posts **exactly one** typed `webviewBootFailure`
 message with `reason: "watchdog" | "load" | "throw"` and then renders the fallback.
+
+**Issue #416 hardening — `load` is scoped to `<script>` only.** The capture-phase handler now
+classifies a resource `error` as fatal **only** when `event.target` is a `<script>` element (the
+entry module or a dynamically-imported chunk). A failure on any **other** element — a
+`rel=modulepreload` hint, a `<link>`, an `<img>`, or a web font — is **ignored**: it no longer
+paints the fallback, posts `webviewBootFailure`, or sets the failed latch. Script exceptions still
+surface on `window` (`target === window`) and remain `reason="throw"`. The
+`webviewBootFailureMessageSchema` `reason` enum is **unchanged** (`watchdog` | `load` | `throw`);
+only the trigger scope narrowed. Therefore a `reason=load` report now means a **real
+entry-script / entry-module load failure**, not a benign asset or hint 401. See
+[`webviewBootGuard.ts`](../../src/core/webview/webviewBootGuard.ts:332).
 
 The **`watchdog` trigger is a heuristic** — an empty `#root` after 6 s can also be a
 slow-but-healthy mount — and the guard **retracts** it: when the app finally mounts it clears the
@@ -139,7 +176,14 @@ The watchdog is **disarmed** by the app's existing `webviewDidLaunch` signal (no
 message type), so a healthy boot never shows the fallback. The watchdog is also armed
 **independently** of the `acquireVsCodeApi` wrapper install, and any install-step failure leaves a
 local `[webview-boot-guard] install step failed: <stage>` line — the guard must never be silently
-inert. `webview-ui/src/index.tsx` is also self-defending: it
+inert. When the wrapper install fails in a way that leaves the handle **non-writable** _and_
+**non-configurable**, a **terminal** dead boot is still reported to the host through a last-resort
+**raw** `acquireVsCodeApi` post (so the host still receives `webviewBootFailure`), with the
+documented trade-off that the app's **single-use** handle is consumed in that abnormal
+environment. The DevTools diagnostic for that case is
+`[webview-boot-guard] install step failed: api-wrapper`. This is **LOW** severity and only in
+that abnormal environment — every healthy boot keeps the no-handle-theft guarantee.
+`webview-ui/src/index.tsx` is also self-defending: it
 null-checks `#root`, catches render throws (see
 [`webview-ui/src/utils/webviewBootstrapError.ts`](../../webview-ui/src/utils/webviewBootstrapError.ts:1)),
 and wraps the app in an outer `ErrorBoundary` so bootstrap-path throws are caught too. The CSP was
@@ -325,6 +369,27 @@ The window and its paging are now **per workspace scope** (default `current`); v
       [`webview-ui/src/utils/webviewBootstrapError.ts`](../../webview-ui/src/utils/webviewBootstrapError.ts:1),
       [`webview-ui/src/utils/resourceErrorCounter.ts`](../../webview-ui/src/utils/resourceErrorCounter.ts:1).
 
+### 6c. Build-parity regression guard (issue #416)
+
+The 401 root-absolute asset-URL class is guarded in CI so a `base` regression cannot reach a
+release:
+
+- [`verify-webview-build-parity.mjs`](../../webview-ui/scripts/verify-webview-build-parity.mjs:258)
+  scans the **built** `index.html`, `assets/index.js`, and `assets/index.css` for root-absolute
+  asset refs — including the `"/"+` preload-helper composition — and exits non-zero on any hit (or
+  on a missing expected artifact). Spec:
+  [`verify-webview-build-parity.spec.mjs`](../../webview-ui/scripts/verify-webview-build-parity.spec.mjs:178).
+- It runs on every PR and `master` push in the `COMPILE:WEBVIEW-PARITY` step of
+  [`.github/workflows/code-qa.yml`](../../.github/workflows/code-qa.yml:279), which performs a
+  **fresh `vite build`**, and is exposed locally as the `verify:webview-build` script in
+  [`package.json`](../../package.json:38).
+
+> **Stale-build caveat:** `src/webview-ui/build` is **gitignored**
+> ([`src/.gitignore`](../../src/.gitignore:4)) yet **vendored into the VSIX**
+> ([`src/.vscodeignore`](../../src/.vscodeignore:19)) — so a **stale local build** can mask the
+> fix. Re-run `pnpm verify:webview-build` (or a fresh `vite build`) before concluding a build is
+> clean.
+
 ## Privacy note
 
 All `[webview-metrics]` SLI data is **local-only**:
@@ -342,3 +407,12 @@ All `[webview-metrics]` SLI data is **local-only**:
   the typed `WebviewPayloadSize` event consumed only by local programmatic
   consumers (extension host / local CLI event stream). Routing that event to
   any remote sink requires a privacy review.
+- The **boot-guard / 401** diagnostics ride the same bar and are **local-only**:
+  `[webview-boot] failure reason=<reason>`, `[webview-boot] recovered`,
+  `[webview-boot] late-launch after warning`, and
+  `[webview-boot-guard] install step failed: <stage>` are **output-channel lines** carrying an
+  enum reason and a static label only. The webview-side resource-error counter
+  ([`resourceErrorCounter.ts`](../../webview-ui/src/utils/resourceErrorCounter.ts:1)) is a
+  **session-memory integer** surfaced only under `ROO_WEBVIEW_LIVENESS_DEBUG` — no URL, element
+  identity, path, or content — and the build-parity gate (§6c) is dev-time tooling that reads
+  build artifacts only, with no runtime data and no egress.

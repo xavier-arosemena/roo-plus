@@ -494,6 +494,16 @@ export class ClineProvider
 	 * `handlers/misc.ts`). `0` means "never".
 	 */
 	public webviewBootFailureNotifiedAt = 0
+	/**
+	 * ISSUE #416: handle of the pending DEBOUNCED boot-failure warning. VS Code
+	 * notifications cannot be dismissed programmatically, so the warning is
+	 * scheduled behind a short grace window
+	 * (`WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS` in `handlers/misc.ts`) and CANCELLED
+	 * if the webview posts `webviewDidLaunch` (a successful boot) first. That is
+	 * the retraction: a transient false-positive never paints a warning.
+	 * `undefined` means "no pending notification".
+	 */
+	public webviewBootFailureNotifyTimer: ReturnType<typeof setTimeout> | undefined = undefined
 	public settingsImportedAt?: number
 	/**
 	 * LINE-BASE identity for the "What's New" popup (bug #265).
@@ -904,7 +914,24 @@ export class ClineProvider
 	- https://vscode-docs.readthedocs.io/en/stable/extensions/patterns-and-principles/
 	- https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/src/extension.ts
 	*/
+	/**
+	 * H2 (issue #416 hardening): cancel a pending DEBOUNCED boot-failure warning.
+	 *
+	 * `webviewBootFailureNotifyTimer` (handlers/misc.ts) is tied to a specific
+	 * webview document. If that webview is disposed or re-resolved before the
+	 * grace window elapses, firing the timer would paint a stale toast for a
+	 * dead/replaced panel, so it must be cancelled on both transitions.
+	 */
+	private clearPendingBootFailureNotify(): void {
+		if (this.webviewBootFailureNotifyTimer !== undefined) {
+			clearTimeout(this.webviewBootFailureNotifyTimer)
+			this.webviewBootFailureNotifyTimer = undefined
+		}
+	}
+
 	private clearWebviewResources() {
+		// H2: a dispose/replace must not leave a pending boot-failure toast.
+		this.clearPendingBootFailureNotify()
 		while (this.webviewDisposables.length) {
 			const x = this.webviewDisposables.pop()
 			if (x) {
@@ -1086,6 +1113,10 @@ export class ClineProvider
 	}
 
 	async resolveWebviewView(webviewView: vscode.WebviewView | vscode.WebviewPanel) {
+		// H2 (issue #416 hardening): a re-resolve replaces the webview document,
+		// so cancel any pending grace-debounced boot-failure warning for the
+		// PREVIOUS document before it can paint a stale toast.
+		this.clearPendingBootFailureNotify()
 		this.view = webviewView
 		const inTabMode = "onDidChangeViewState" in webviewView
 

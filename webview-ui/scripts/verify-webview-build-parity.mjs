@@ -230,6 +230,70 @@ export function scanBundle(buildDir) {
 	return { ok: hard.length === 0, hard, soft }
 }
 
+/**
+	* ISSUE #416: root-absolute asset references that must NEVER appear in the
+	* built webview. The webview is served from a NON-root `asWebviewUri` prefix,
+	* so a root-absolute `/assets/...` escapes that prefix and the resource server
+	* answers 401 (a pale-grey, dead panel). Vite/Rolldown defaults to `base:"/"`,
+	* which emits `src="/assets/…"` / `href="/assets/…"` in `index.html`, the
+	* preload helper (`"/"+e`) plus `"/assets/…"` imports in `index.js`, and 60
+	* `url(/assets/fonts/…)` refs in `index.css`. `base:"./"` in `vite.config.ts`
+	* fixes all three; this gate makes a recurrence fail CI.
+	*
+	* Each entry names a build-relative file and the literal substrings that must
+	* NOT be present. Missing files are reported so a build that silently stops
+	* emitting `index.js`/`index.css` is caught too.
+	*/
+export const ROOT_ABSOLUTE_ASSET_CHECKS = [
+	{
+		file: "index.html",
+		patterns: ['src="/assets/', 'href="/assets/', 'src="/fonts/', 'href="/fonts/'],
+	},
+	{
+		file: path.join("assets", "index.js"),
+		// H5: '"/"+' is the root-absolute preload-helper composition Vite emits
+		// under `base:"/"` (e.g. `return"/"+e`). A `base` regression can manifest
+		// ONLY through this helper — with no literal `"/assets/"` anywhere — so
+		// omitting it let such a build evade the earlier checks entirely.
+		patterns: ['"/assets/', '"/fonts/', "url(/assets/", '"/"+'],
+	},
+	{
+		file: path.join("assets", "index.css"),
+		patterns: ["url(/assets/", "url(/fonts/"],
+	},
+]
+
+/**
+	* Scan the built webview output for root-absolute asset references (issue
+	* #416). Returns `{ ok, violations }` where each violation is
+	* `{ file, pattern, count }` (or `{ file, pattern: "<missing-file>", count: 0 }`
+	* when an expected build artifact is absent).
+	*/
+export function scanRootAbsoluteAssetRefs(buildDir) {
+	const violations = []
+
+	for (const check of ROOT_ABSOLUTE_ASSET_CHECKS) {
+		const abs = path.join(buildDir, check.file)
+
+		if (!existsSync(abs)) {
+			violations.push({ file: check.file, pattern: "<missing-file>", count: 0 })
+			continue
+		}
+
+		const content = readFileSync(abs, "utf8")
+
+		for (const pattern of check.patterns) {
+			const count = content.split(pattern).length - 1
+
+			if (count > 0) {
+				violations.push({ file: check.file, pattern, count })
+			}
+		}
+	}
+
+	return { ok: violations.length === 0, violations }
+}
+
 /** Run a fresh webview production build (`vite build`, no type-check). */
 function buildWebview() {
 	const npx = process.platform === "win32" ? "npx.cmd" : "npx"
@@ -286,6 +350,23 @@ export function main(argv = process.argv.slice(2)) {
 			`[verify-webview-build-parity] note: jsxDEV present in ${bundleResult.soft.length} file(s) — third-party dev-runtime branch, informational only, not a gate`,
 		)
 	}
+
+	// ISSUE #416: the built webview must reference its assets RELATIVELY. A
+	// root-absolute `/assets/…` escapes the non-root asWebviewUri prefix and is
+	// answered 401, producing a dead panel. Fail CI on any recurrence.
+	const urlResult = scanRootAbsoluteAssetRefs(BUILD_DIR)
+
+	if (urlResult.violations.length > 0) {
+		console.error(
+			"\n[verify-webview-build-parity] FAIL: built webview contains root-absolute asset references (issue #416). These escape the non-root asWebviewUri prefix and 401 — ensure `base: \"./\"` is set in vite.config.ts:",
+		)
+		for (const { file, pattern, count } of urlResult.violations) {
+			console.error(`  - ${pattern} (x${count}) in ${file}`)
+		}
+		return 1
+	}
+
+	console.log("[verify-webview-build-parity] build-parity OK (no root-absolute asset references)")
 
 	console.log("[verify-webview-build-parity] PASS: webview build and test toolchains are in parity")
 	return 0

@@ -37,6 +37,7 @@ import { safeWriteJson } from "../../../utils/safeWriteJson"
 import { ClineProvider } from "../ClineProvider"
 import { STATE_WARN_BYTES } from "../webviewPayloadMetrics"
 import { webviewMessageHandler } from "../webviewMessageHandler"
+import { WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS } from "../handlers/misc"
 import { Terminal } from "../../../integrations/terminal/Terminal"
 import { MessageManager } from "../../message-manager"
 import { forceFullModelDetailsLoad, hasLoadedFullDetails } from "../../../api/providers/fetchers/lmstudio"
@@ -1505,6 +1506,58 @@ describe("ClineProvider", () => {
 			([msg]) => typeof msg === "string" && msg.includes("Disposing ClineProvider..."),
 		)
 		expect(disposeCalls).toHaveLength(1)
+	})
+
+	test("H2: a pending boot-failure notification timer does not fire after dispose", async () => {
+		await provider.resolveWebviewView(mockWebviewView)
+
+		vi.useFakeTimers()
+		try {
+			const onFire = vi.fn()
+			// The spec's DOM lib types global setTimeout as `number`, while the
+			// provider field is `ReturnType<typeof setTimeout>` (Node `Timeout`);
+			// the fake timer only needs to be stored and cleared.
+			provider.webviewBootFailureNotifyTimer = setTimeout(
+				onFire,
+				WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS,
+			) as unknown as ReturnType<typeof setTimeout>
+
+			await provider.dispose()
+
+			// Pre-H2 the stale timer survived dispose and painted a toast here.
+			expect(provider.webviewBootFailureNotifyTimer).toBeUndefined()
+			vi.advanceTimersByTime(WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS + 1)
+			expect(onFire).not.toHaveBeenCalled()
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
+	test("H2: a pending boot-failure notification timer does not fire after a re-resolve", async () => {
+		await provider.resolveWebviewView(mockWebviewView)
+
+		vi.useFakeTimers()
+		try {
+			const onFire = vi.fn()
+			// See the note in the dispose test: DOM vs Node setTimeout typing.
+			provider.webviewBootFailureNotifyTimer = setTimeout(
+				onFire,
+				WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS,
+			) as unknown as ReturnType<typeof setTimeout>
+
+			// A re-resolve replaces the document. The entry-point clear runs before
+			// any await, so the stale timer is cancelled synchronously.
+			const resolvePromise = provider.resolveWebviewView(mockWebviewView)
+			expect(provider.webviewBootFailureNotifyTimer).toBeUndefined()
+			vi.advanceTimersByTime(WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS + 1)
+			expect(onFire).not.toHaveBeenCalled()
+
+			// Restore real timers before draining the in-flight resolve.
+			vi.useRealTimers()
+			await resolvePromise
+		} finally {
+			vi.useRealTimers()
+		}
 	})
 
 	test("handles webviewDidLaunch message", async () => {

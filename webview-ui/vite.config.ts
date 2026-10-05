@@ -86,6 +86,12 @@ export default defineConfig(({ mode }) => {
 	const plugins: PluginOption[] = [react(), tailwindcss(), persistPortPlugin(), wasmPlugin(), sourcemapPlugin()]
 
 	return {
+		// Emit RELATIVE asset URLs (`./assets/...`) instead of Vite's default
+		// root-absolute `/assets/...` (issue #416). The webview is served from a
+		// non-root `asWebviewUri` prefix, so a root-absolute URL escapes that
+		// prefix and the resource server answers 401: the emitted preload helper
+		// (`"/"+e`) and the 60 `url(/assets/fonts/…)` refs in the CSS all break.
+		base: "./",
 		plugins,
 		resolve: {
 			tsconfigPaths: true,
@@ -94,6 +100,10 @@ export default defineConfig(({ mode }) => {
 			outDir,
 			emptyOutDir: true,
 			reportCompressedSize: false,
+			// Belt-and-braces with the hardened boot guard (issue #416): do not
+			// emit `link[rel=modulepreload]` hint links at all. A benign preload
+			// hint failing to load must never be conflated with a dead boot.
+			modulePreload: false,
 			// Generate complete source maps with original TypeScript sources
 			sourcemap: true,
 			// Vite 8 uses Rolldown/Oxc by default; keep non-production modes readable.

@@ -36,19 +36,19 @@ import { sleep, waitFor } from "./utils"
  * `handlers/misc.ts` and confirmed empirically: a freshly created handle reports
  * `false` until the handshake arrives), so it cannot latch true by accident.
  *
- * A further signal exists but is deliberately NOT asserted: the guard's own failure
+ * A further signal exists and IS asserted (as a NEGATIVE): the guard's own failure
  * report. `handlers/misc.ts` sets the public `provider.webviewBootFailureNotified`
  * latch for a DETERMINISTIC failure (`reason=load`/`reason=throw`) and the guard posts
  * to its own document's host listener — i.e. to the very provider instance
  * `roo-plus.openInNewTab` returns — so the latch is readable without any console
- * scraping. It is nonetheless left unasserted because validation runs showed it
- * INTERMITTENT: in this sandbox the tab-panel document sometimes reports
- * `reason=load` (a resource genuinely fails to load, the documented 2026-09-18
- * asset-failure channel) while the app still mounts successfully, and sometimes
- * reports nothing at all. Asserting it either way would make the smoke flaky for the
- * wrong reason. That same observation is also positive evidence that the guard script
- * runs in this harness and that its host channel works end to end, which is why the
- * mount signal can be trusted as the boot-health indicator.
+ * scraping. Before issue #416 this latch was INTERMITTENT for a HEALTHY boot: the
+ * guard classified a benign resource error (a `link[rel=modulepreload]` hint, a
+ * stylesheet, an image, a font) as a fatal `reason=load` even though the app still
+ * mounted. After the #416 fix that can no longer happen — the guard only reports a
+ * failed `<script>`, preload hints are no longer emitted (`build.modulePreload:false`),
+ * and a successful `webviewDidLaunch` retracts/resets any pending latch — so a healthy
+ * boot MUST leave `webviewBootFailureNotified === false`. Asserting that negative is
+ * exactly the regression guard for #416.
  *
  * DELIBERATELY NOT COVERED (recorded as an honest gap, not papered over)
  * - The fallback overlay markup and the focusability of its Reload button: the guard
@@ -191,6 +191,18 @@ suite("Roo+ webview boot", function () {
 				readBooleanProperty(host, "viewLaunched"),
 				true,
 				"the freshly served webview document must still be mounted after the guard watchdog window",
+			)
+
+			// ISSUE #416 regression guard: a HEALTHY boot must NOT report a boot
+			// failure. The guard only classifies a failed `<script>` as fatal,
+			// modulepreload hints are no longer emitted, and a successful
+			// `webviewDidLaunch` retracts/resets any pending notification latch —
+			// so the host-side latch must read false (readBooleanProperty returns
+			// `undefined` for a miss, so a vacuous pass is impossible).
+			assert.strictEqual(
+				readBooleanProperty(host, "webviewBootFailureNotified"),
+				false,
+				"a healthy boot must not latch webviewBootFailureNotified (issue #416)",
 			)
 		} finally {
 			await disposeWebviewHost(host)

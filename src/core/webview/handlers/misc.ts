@@ -47,6 +47,18 @@ import { getCurrentCwd, getGlobalState, updateGlobalState } from "./shared"
  */
 export const WEBVIEW_BOOT_FAILURE_NOTIFY_WINDOW_MS = 60_000
 
+/**
+ * ISSUE #416: grace window (ms) before the user-facing `webviewBootFailure`
+ * warning is actually shown. VS Code notifications cannot be dismissed
+ * programmatically, so the warning is DEBOUNCED: if the same webview posts
+ * `webviewDidLaunch` (a successful boot) inside this window the pending
+ * notification is cancelled and never painted. This retracts the warning for
+ * the transient false-positive case while preserving the warning for a
+ * deterministic module-boot failure. The 60 s rate-limit window still applies
+ * on top of this debounce (the latch is set at schedule time).
+ */
+export const WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS = 1_750
+
 export const miscMessageTypes: ReadonlySet<WebviewMessageType> = new Set([
 	"didShowAnnouncement",
 	"dismissUpsell",
@@ -89,6 +101,7 @@ export async function handleMiscMessages(
 		| "isViewLaunched"
 		| "webviewBootFailureNotified"
 		| "webviewBootFailureNotifiedAt"
+		| "webviewBootFailureNotifyTimer"
 		| "log"
 		| "latestAnnouncementId"
 		| "taskHistoryStore"
@@ -108,6 +121,26 @@ export async function handleMiscMessages(
 			// A fresh document has mounted, so this is a NEW webview — re-arm the
 			// boot-failure notification throttle (a reload of a previously-failed
 			// panel may legitimately warn again immediately).
+			//
+			// ISSUE #416: also RETRACT a pending boot-failure warning. The warning
+			// is debounced (`WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS`); a successful
+			// boot arriving inside the grace window cancels the pending timer so
+			// the notification is never painted.
+			//
+			// H3: `[webview-boot] recovered` must mean a REAL retraction — the
+			// pending warning was cancelled before it painted, so the user never
+			// saw the toast. If the warning ALREADY painted (the timer is gone but
+			// the latch is still set) there is nothing to recover: VS Code
+			// notifications cannot be dismissed, so we emit a DISTINCT
+			// `[webview-boot] late-launch after warning` line instead of claiming
+			// a recovery that did not happen.
+			if (provider.webviewBootFailureNotifyTimer !== undefined) {
+				clearTimeout(provider.webviewBootFailureNotifyTimer)
+				provider.webviewBootFailureNotifyTimer = undefined
+				provider.log("[webview-boot] recovered")
+			} else if (provider.webviewBootFailureNotified) {
+				provider.log("[webview-boot] late-launch after warning")
+			}
 			provider.webviewBootFailureNotified = false
 			provider.webviewBootFailureNotifiedAt = 0
 
@@ -234,12 +267,26 @@ export async function handleMiscMessages(
 			) {
 				break
 			}
+			// Latch immediately (at SCHEDULE time) so a duplicate/forged report
+			// inside the grace window cannot queue a second notification.
 			provider.webviewBootFailureNotified = true
 			provider.webviewBootFailureNotifiedAt = now
 
-			void vscode.window.showWarningMessage(
-				"Roo+ webview failed to boot. Use the Reload button in the panel to retry.",
-			)
+			if (provider.webviewBootFailureNotifyTimer !== undefined) {
+				clearTimeout(provider.webviewBootFailureNotifyTimer)
+			}
+			// ISSUE #416: VS Code notifications cannot be dismissed, so do NOT
+			// paint the warning synchronously. Debounce it behind a short grace
+			// window; if this document posts `webviewDidLaunch` (a successful
+			// boot) first the pending warning is cancelled and never shown, which
+			// retracts the transient false-positive without weakening the warning
+			// for a deterministic module-boot failure.
+			provider.webviewBootFailureNotifyTimer = setTimeout(() => {
+				provider.webviewBootFailureNotifyTimer = undefined
+				void vscode.window.showWarningMessage(
+					"Roo+ webview failed to boot. Use the Reload button in the panel to retry.",
+				)
+			}, WEBVIEW_BOOT_FAILURE_NOTIFY_GRACE_MS)
 			break
 		}
 		case "didShowAnnouncement":

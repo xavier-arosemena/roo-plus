@@ -8,6 +8,8 @@ import {
 	extractReactPluginCall,
 	normalizeSignature,
 	scanBundle,
+	scanRootAbsoluteAssetRefs,
+	ROOT_ABSOLUTE_ASSET_CHECKS,
 	HARD_BUNDLE_MARKERS,
 	SOFT_BUNDLE_MARKERS,
 } from "./verify-webview-build-parity.mjs"
@@ -98,4 +100,112 @@ test("hard and soft marker lists are disjoint", () => {
 	for (const hard of HARD_BUNDLE_MARKERS) {
 		assert.ok(!SOFT_BUNDLE_MARKERS.includes(hard), `marker "${hard}" must not be both hard and soft`)
 	}
+})
+
+// ---------------------------------------------------------------------------
+// scanRootAbsoluteAssetRefs — issue #416 root-absolute asset gate
+// ---------------------------------------------------------------------------
+
+/**
+ * Writes a minimal three-file webview build fixture into a temp dir and runs
+ * `fn(root, cleanup)`. `cleanup` is always run.
+ */
+function withBuildFixture(files, fn) {
+	const root = mkdtempSync(path.join(os.tmpdir(), "webview-url-parity-"))
+
+	try {
+		for (const [rel, content] of Object.entries(files)) {
+			const abs = path.join(root, rel)
+			mkdirSync(path.dirname(abs), { recursive: true })
+			writeFileSync(abs, content)
+		}
+		fn(root)
+	} finally {
+		rmSync(root, { recursive: true, force: true })
+	}
+}
+
+test("scanRootAbsoluteAssetRefs passes a relative-base build fixture", () => {
+	withBuildFixture(
+		{
+			"index.html":
+				'<script type="module" src="./assets/index.js"></script>\n<link rel="stylesheet" href="./assets/index.css" />',
+			"assets/index.js": 'import x from "./chunk-abc.js"; const a=function(e,t){return new URL(e,t).href};',
+			"assets/index.css": "@font-face{src:url(./fonts/codicon.ttf)}",
+		},
+		(root) => {
+			const result = scanRootAbsoluteAssetRefs(root)
+			assert.equal(result.ok, true)
+			assert.deepEqual(result.violations, [])
+		},
+	)
+})
+
+test("scanRootAbsoluteAssetRefs fails a root-absolute build fixture (issue #416)", () => {
+	withBuildFixture(
+		{
+			"index.html":
+				'<script type="module" src="/assets/index.js"></script>\n<link rel="stylesheet" href="/assets/index.css" />',
+			// The preload helper's root-absolute href plus a root-absolute
+			// dynamic-import chunk specifier.
+			"assets/index.js": 'const a=function(e){return "/"+e}; import("/assets/chunk-abc.js");',
+			"assets/index.css": "@font-face{src:url(/assets/fonts/codicon.ttf)}",
+		},
+		(root) => {
+			const result = scanRootAbsoluteAssetRefs(root)
+			assert.equal(result.ok, false)
+
+			const files = new Set(result.violations.map((v) => v.file))
+			assert.ok(files.has("index.html"), "index.html root-absolute src/href must be flagged")
+			assert.ok(files.has(path.join("assets", "index.js")), "index.js root-absolute import must be flagged")
+			assert.ok(files.has(path.join("assets", "index.css")), "index.css root-absolute url() must be flagged")
+
+			// Every violation reports a non-zero count for a real pattern hit.
+			assert.ok(result.violations.every((v) => v.pattern !== "<missing-file>" && v.count > 0))
+		},
+	)
+})
+
+test("scanRootAbsoluteAssetRefs reports missing build artifacts", () => {
+	withBuildFixture({}, (root) => {
+		const result = scanRootAbsoluteAssetRefs(root)
+		assert.equal(result.ok, false)
+		assert.equal(result.violations.length, ROOT_ABSOLUTE_ASSET_CHECKS.length)
+		assert.ok(result.violations.every((v) => v.pattern === "<missing-file>" && v.count === 0))
+	})
+})
+
+test("scanRootAbsoluteAssetRefs flags the root-absolute preload-helper composition with no literal /assets/ (H5)", () => {
+	withBuildFixture(
+		{
+			"index.html": '<script type="module" src="./assets/index.js"></script>',
+			// A `base` regression that manifests ONLY through the preload helper:
+			// there is no literal "/assets/" string anywhere in this file, so the
+			// pre-H5 checks could not see it. The `"/"+` composition is the tell.
+			"assets/index.js": 'const p=function(e){return "/"+e};',
+			"assets/index.css": "",
+		},
+		(root) => {
+			const result = scanRootAbsoluteAssetRefs(root)
+			assert.equal(result.ok, false)
+			const jsViolation = result.violations.find((v) => v.file === path.join("assets", "index.js"))
+			assert.ok(jsViolation, "the root-absolute preload-helper composition must be flagged")
+			assert.equal(jsViolation.pattern, '"/"+')
+		},
+	)
+})
+
+test("scanRootAbsoluteAssetRefs passes the relative preload-helper composition (H5)", () => {
+	withBuildFixture(
+		{
+			"index.html": '<script type="module" src="./assets/index.js"></script>',
+			"assets/index.js": 'const p=function(e){return "./"+e};',
+			"assets/index.css": "",
+		},
+		(root) => {
+			const result = scanRootAbsoluteAssetRefs(root)
+			assert.equal(result.ok, true)
+			assert.deepEqual(result.violations, [])
+		},
+	)
 })
