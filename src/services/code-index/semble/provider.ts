@@ -182,7 +182,7 @@ export class SembleProvider implements ISembleProvider {
 			return
 		}
 
-		console.log("[SembleProvider] Semble found and ready.")
+		console.debug("[SembleProvider] Semble found and ready.")
 
 		// Semble indexes on-the-fly, so we mark as "Indexed" (ready for search).
 		// The version is included in the status message so the UI (CodeIndexPopover)

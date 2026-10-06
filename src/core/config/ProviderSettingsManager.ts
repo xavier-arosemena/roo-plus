@@ -581,7 +581,7 @@ export class ProviderSettingsManager {
 					} catch (error) {
 						// If we can't build the API handler or get model info, skip filtering
 						// to avoid accidental data loss from incomplete configurations
-						console.warn(`Skipping token field filtering for config '${name}': ${error}`)
+						console.debug(`Skipping token field filtering for config '${name}': ${error}`)
 					}
 				}
 				return profiles

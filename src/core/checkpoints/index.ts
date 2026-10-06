@@ -43,16 +43,20 @@ export async function getCheckpointService(task: Task, { interval = 250 }: { int
 	const checkpointTimeoutMs = task.checkpointTimeout * 1000
 
 	const log = (message: string) => {
-		console.log(message)
-
 		try {
-			provider?.log(message)
+			if (provider) {
+				// Route to the Roo+ Output channel; the DevTools console mirror is
+				// gated centrally by `shouldMirrorToConsole` (see ClineProvider.log).
+				provider.log(message)
+			} else {
+				console.log(message)
+			}
 		} catch (err) {
 			// NO-OP
 		}
 	}
 
-	console.log("[Task#getCheckpointService] initializing checkpoints service")
+	log("[Task#getCheckpointService] initializing checkpoints service")
 
 	try {
 		const workspaceDir = task.cwd || getWorkspacePath()
@@ -81,6 +85,7 @@ export async function getCheckpointService(task: Task, { interval = 250 }: { int
 		if (task.checkpointServiceInitializing) {
 			const checkpointInitStartTime = Date.now()
 			let warningShown = false
+			let lastLoggedSecond = -1
 
 			await pWaitFor(
 				() => {
@@ -92,9 +97,11 @@ export async function getCheckpointService(task: Task, { interval = 250 }: { int
 						sendCheckpointInitWarn(task, "WAIT_TIMEOUT", WARNING_THRESHOLD_MS / 1000)
 					}
 
-					console.log(
-						`[Task#getCheckpointService] waiting for service to initialize (${Math.round(elapsed / 1000)}s)`,
-					)
+					const elapsedSeconds = Math.floor(elapsed / 1000)
+					if (elapsedSeconds !== lastLoggedSecond) {
+						lastLoggedSecond = elapsedSeconds
+						log(`[Task#getCheckpointService] waiting for service to initialize (${elapsedSeconds}s)`)
+					}
 					return !!task.checkpointService && !!task?.checkpointService?.isInitialized
 				},
 				{ interval, timeout: checkpointTimeoutMs },

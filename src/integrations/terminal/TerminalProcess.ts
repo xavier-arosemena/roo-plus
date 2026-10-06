@@ -206,7 +206,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 			])
 
 			if (result === COMPLETED_BEFORE_STREAM) {
-				console.info("[Terminal Process] shell execution completed before stream arrived — finishing cleanly")
+				console.debug("[Terminal Process] shell execution completed before stream arrived — finishing cleanly")
 				cancelStreamWait()
 				this.terminal.activeShellExecution = undefined
 				this.terminal.busy = false
@@ -322,7 +322,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 					// chunk would be dropped before being appended. Break only on the
 					// sentinel so data chunks always flow through even when completion races.
 					streamEndedByEvent = true
-					console.info(
+					console.debug(
 						`[Terminal Process] shell execution complete event broke stream loop after ${chunkCount} chunk(s), +${Date.now() - streamStartedAt}ms`,
 					)
 					break
@@ -335,7 +335,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 						// elapsed time alone is not proof of completion. Re-arm the idle timer
 						// and keep waiting for a real chunk, the D marker, or the end event.
 						// Reuse the existing nextChunk promise — do NOT call iterator.next() again.
-						console.info(
+						console.debug(
 							`[Terminal Process] idle timeout fired but shell execution is running — re-arming (${chunkCount} chunks so far)`,
 						)
 						continue
@@ -348,7 +348,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 						// onDidStartTerminalShellExecution hasn't fired yet — the shell is
 						// still initializing. Don't self-finalize; re-arm the idle timer
 						// and keep waiting.
-						console.info(
+						console.debug(
 							`[Terminal Process] idle timeout fired but shell execution not started yet — waiting for shell init (${elapsedMs}ms elapsed)`,
 						)
 						continue
@@ -356,11 +356,11 @@ export class TerminalProcess extends BaseTerminalProcess {
 
 					// Shell integration timeout exceeded and onDidStartTerminalShellExecution
 					// never fired — something went wrong during shell init. Self-finalize.
-					console.info(
+					console.debug(
 						`[Terminal Process] shell execution never started after ${elapsedMs}ms — self-finalizing`,
 					)
 					idleTimedOut = true
-					console.info(
+					console.debug(
 						`[Terminal Process] idle timeout (${IDLE_TIMEOUT_MS}ms) after ${chunkCount} chunk(s) — self-finalizing`,
 					)
 					break
@@ -373,7 +373,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 				}
 
 				chunkCount++
-				console.info(
+				console.debug(
 					`[Terminal Process] stream chunk #${chunkCount} (+${Date.now() - streamStartedAt}ms, ${data.length} chars)`,
 				)
 
@@ -403,7 +403,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 
 				if (this.matchBeforeVsceEndMarkers(this.fullOutput) !== undefined) {
 					sawEndMarker = true
-					console.info(
+					console.debug(
 						`[Terminal Process] D marker observed in stream after ${chunkCount} chunk(s), +${Date.now() - streamStartedAt}ms`,
 					)
 					break
@@ -416,7 +416,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 			}
 
 			if (!sawEndMarker && !streamEndedByEvent) {
-				console.info(
+				console.debug(
 					`[Terminal Process] stream ended without a D marker after ${chunkCount} chunk(s), +${Date.now() - streamStartedAt}ms`,
 				)
 			}
@@ -438,7 +438,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 			//                                wait for shellExecutionComplete directly.
 			if (streamEndedByEvent || idleTimedOut) {
 				// Already resolved or deliberately skipping — nothing to wait for.
-				console.info(
+				console.debug(
 					`[Terminal Process] skipping shellExecutionComplete wait (streamEndedByEvent=${streamEndedByEvent}, idleTimedOut=${idleTimedOut})`,
 				)
 			} else if (sawEndMarker) {
@@ -454,7 +454,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 				const waitStartedAt = Date.now()
 				await Promise.race([shellExecutionComplete, grace])
 				clearTimeout(graceTimer)
-				console.info(
+				console.debug(
 					`[Terminal Process] post-marker wait resolved after ${Date.now() - waitStartedAt}ms via ${
 						graceWon ? "grace timer (no onDidEndTerminalShellExecution)" : "shellExecutionComplete"
 					}`,
@@ -462,7 +462,7 @@ export class TerminalProcess extends BaseTerminalProcess {
 			} else {
 				const waitStartedAt = Date.now()
 				await shellExecutionComplete
-				console.info(
+				console.debug(
 					`[Terminal Process] shellExecutionComplete resolved after ${Date.now() - waitStartedAt}ms (stream closed, no D marker)`,
 				)
 			}

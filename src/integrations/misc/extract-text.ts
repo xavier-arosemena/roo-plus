@@ -1,6 +1,4 @@
 import * as path from "path"
-// @ts-ignore-next-line
-import pdf from "pdf-parse/lib/pdf-parse"
 import mammoth from "mammoth"
 import fs from "fs/promises"
 import { isBinaryFile } from "isbinaryfile"
@@ -10,6 +8,12 @@ import { DEFAULT_LINE_LIMIT } from "../../core/prompts/tools/native-tools/read_f
 
 async function extractTextFromPDF(filePath: string): Promise<string> {
 	const dataBuffer = await fs.readFile(filePath)
+	// Lazy-load pdf-parse only when a PDF is actually read. A top-level import
+	// pulls pdfjs/core-js into the activation path and evaluates code that
+	// touches `navigator` at module load, so defer it to first use.
+	// @ts-ignore-next-line -- pdf-parse ships no type declarations
+	const pdfModule = await import("pdf-parse/lib/pdf-parse")
+	const pdf = pdfModule.default ?? pdfModule
 	const data = await pdf(dataBuffer)
 	return addLineNumbers(data.text)
 }
