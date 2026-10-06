@@ -122,6 +122,12 @@ jobs:
           # Stable publishes always run from master.
           require-master-ref: "true"
           validate-tokens: "true"
+          # The VS Code Marketplace is currently unavailable as a publish target, so
+          # a broken/expired VSCE PAT must NOT abort the run before the Open VSX
+          # publish — Open VSX is the registry this stable release MUST land on. The
+          # VS publish step is continue-on-error and its outcome is reported by the
+          # summary step at the end of the job.
+          fail-on-invalid-vsce-pat: "false"
           vsce-pat: ${{ secrets.VSCE_PAT }}
           ovsx-pat: ${{ secrets.OVSX_PAT }}
 
@@ -177,9 +183,15 @@ jobs:
 
           let openVsx = []
           let marketplace = []
+          let marketplaceLookupError = null
           try {
             const ovsx = await getJson("open-vsx.org", "/api/xavier-arosemena/roo-plus")
             openVsx = Object.keys(ovsx.allVersions || {})
+          } catch (err) {
+            console.log(`::error::[CI:MARKETPLACE:GUARD] could not query Open VSX (${err.message}); aborting rather than risking a duplicate publish on the registry this stable MUST land on`)
+            process.exit(1)
+          }
+          try {
             const mkt = await getJson("marketplace.visualstudio.com", "/_apis/public/gallery/extensionquery", {
               method: "POST",
               headers: {
@@ -191,19 +203,29 @@ jobs:
             })
             marketplace = (mkt?.results?.[0]?.extensions?.[0]?.versions || []).map((v) => v.version)
           } catch (err) {
-            console.log(`::error::[CI:MARKETPLACE:GUARD] could not verify the registries (${err.message}); aborting rather than publishing a version that may already exist`)
-            process.exit(1)
+            marketplaceLookupError = err.message
           }
 
           const onOpenVsx = openVsx.includes(version)
           const onMarketplace = marketplace.includes(version)
-          console.log(`[CI:MARKETPLACE:GUARD] ${version} — Open VSX: ${onOpenVsx ? "EXISTS" : "absent"}, VS Marketplace: ${onMarketplace ? "EXISTS" : "absent"}`)
-          if (onOpenVsx || onMarketplace) {
-            const where = [onOpenVsx ? "Open VSX" : null, onMarketplace ? "VS Code Marketplace" : null].filter(Boolean).join(" and ")
-            console.log(`::error::[CI:MARKETPLACE:GUARD] ${version} is ALREADY published to ${where} — a version that already exists cannot be republished as stable. Bump src/package.json to the next patch on this minor line and re-dispatch.`)
+          console.log(`[CI:MARKETPLACE:GUARD] ${version} — Open VSX: ${onOpenVsx ? "EXISTS" : "absent"}, VS Marketplace: ${marketplaceLookupError ? "lookup FAILED" : onMarketplace ? "EXISTS" : "absent"}`)
+
+          if (onOpenVsx) {
+            console.log(`::error::[CI:MARKETPLACE:GUARD] ${version} is ALREADY published to Open VSX — a version that already exists cannot be re-published. Bump src/package.json to the next patch on this minor line and re-dispatch.`)
             process.exit(1)
           }
-          console.log(`::notice::[CI:MARKETPLACE:GUARD] ${version} is unpublished on both registries — proceeding`)
+
+          // The VS Code Marketplace is currently unavailable as a publish target, so
+          // its leg of this guard is ADVISORY: it must never be able to block an Open
+          // VSX release. Open VSX above stays fail-closed. Provenance problems still
+          // surface loudly as warnings.
+          if (marketplaceLookupError) {
+            console.log(`::warning::[CI:MARKETPLACE:GUARD] VS Marketplace version lookup failed (${marketplaceLookupError}) — continuing; the Open VSX release is unaffected.`)
+          } else if (onMarketplace) {
+            console.log(`::warning::[CI:MARKETPLACE:GUARD] ${version} already exists on the VS Code Marketplace — the VS publish below will be skipped/fail, but Open VSX is unaffected. If this version was consumed by mistake, bump to the next patch.`)
+          }
+
+          console.log(`::notice::[CI:MARKETPLACE:GUARD] ${version} is unpublished on Open VSX — proceeding`)
           EOF
           echo "::endgroup::"
 
@@ -256,22 +278,41 @@ jobs:
           echo "::notice::[CI:MARKETPLACE:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher"
           echo "::endgroup::"
 
-      - name: Publish to VS Code Marketplace
-        if: env.VSCE_PAT != ''
-        run: |
-          echo "::group::[CI:MARKETPLACE:PUBLISH:VSCE] Publishing to VS Code Marketplace"
-          package_version=$(node -p "require('./src/package.json').version")
-          npx @vscode/vsce publish --packagePath "bin/roo-plus-${package_version}.vsix"
-          echo "::notice::[CI:MARKETPLACE:PUBLISH:VSCE] Published xavier-arosemena.roo-plus ${package_version} to VS Code Marketplace"
-          echo "::endgroup::"
-
+      # OPEN VSX FIRST. Open VSX is the registry this stable release targets and
+      # must not be gated on the VS Code Marketplace, which is currently
+      # unavailable. This step is deliberately NOT continue-on-error: a failure
+      # here stops the run before the GitHub release/tag is created.
       - name: Publish to Open VSX Registry
+        id: publish-ovsx
         if: env.OVSX_PAT != ''
         run: |
           echo "::group::[CI:MARKETPLACE:PUBLISH:OVSX] Publishing to Open VSX Registry"
           package_version=$(node -p "require('./src/package.json').version")
           pnpm exec ovsx publish "bin/roo-plus-${package_version}.vsix" --skip-duplicate
           echo "::notice::[CI:MARKETPLACE:PUBLISH:OVSX] Published xavier-arosemena.roo-plus ${package_version} to Open VSX Registry"
+          echo "::endgroup::"
+
+      - name: Fail fast when the Open VSX token is missing
+        # A "successful" stable run that publishes nothing to the registry this
+        # release targets would be a silent failure.
+        if: env.OVSX_PAT == ''
+        run: |
+          echo "::error::[CI:MARKETPLACE:TOKEN-GUARD] OVSX_PAT is not configured in the marketplace-production environment — the stable cannot be published to Open VSX."
+          echo "::error::[CI:MARKETPLACE:TOKEN-GUARD] Add it at: Settings → Environments → marketplace-production → Add secret."
+          exit 1
+
+      - name: Publish to VS Code Marketplace
+        id: publish-vsce
+        # continue-on-error: the VS Code Marketplace is currently unavailable as a
+        # publish target and must never abort a release Open VSX has already
+        # received. The outcome is reported by the summary step at the end.
+        continue-on-error: true
+        if: env.VSCE_PAT != ''
+        run: |
+          echo "::group::[CI:MARKETPLACE:PUBLISH:VSCE] Publishing to VS Code Marketplace"
+          package_version=$(node -p "require('./src/package.json').version")
+          npx @vscode/vsce publish --packagePath "bin/roo-plus-${package_version}.vsix"
+          echo "::notice::[CI:MARKETPLACE:PUBLISH:VSCE] Published xavier-arosemena.roo-plus ${package_version} to VS Code Marketplace"
           echo "::endgroup::"
 
       # Keep the packaged artifact attached to the run for audit and manual
@@ -317,3 +358,23 @@ jobs:
               --target "$GITHUB_SHA" \
               "$vsix_path"
           fi
+
+      - name: Publish summary — warn (do not fail) when only the VS Marketplace failed
+        # The VS Code Marketplace is currently unavailable as a publish target.
+        # Open VSX is the registry the stable release MUST land on, and that step is
+        # fail-closed (the job can only reach here if Open VSX succeeded). A VS
+        # Marketplace failure is therefore reported as a WARNING, so a delivered
+        # Open VSX release is not masked by a red run — while staying visible in the
+        # log, the run annotations, and the job summary.
+        if: steps.publish-vsce.outcome == 'failure'
+        run: |
+          package_version=$(node -p "require('./src/package.json').version")
+          echo "::warning::[CI:MARKETPLACE:SUMMARY] xavier-arosemena.roo-plus ${package_version} was published to Open VSX but NOT to the VS Code Marketplace (the Marketplace is currently unavailable). The stable release is considered DELIVERED on Open VSX; re-run this workflow once VS Marketplace publishes succeed again."
+          {
+            echo "## Stable publish summary — \`${package_version}\`"
+            echo ""
+            echo "| Registry | Result |"
+            echo "| --- | --- |"
+            echo "| Open VSX | ✅ published |"
+            echo "| VS Code Marketplace | ⚠️ failed (Marketplace currently unavailable) |"
+          } >> "$GITHUB_STEP_SUMMARY"
