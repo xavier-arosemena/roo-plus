@@ -67,8 +67,27 @@ Incident that motivated the guards:
    approved PR for the dispatched commit.
 2. `publish-stable` — `environment: marketplace-production`, concurrency group
    `marketplace-production` (never two concurrent stable publishes).
-3. **Pre-flight duplicate guard** — refuses a committed version that already
-   exists on either registry, **before** the build/package steps.
+3. **Pre-flight duplicate guard** — the **Open VSX leg is fail-closed** (a version
+   already on Open VSX aborts the run before the build/package steps), while the
+   **VS Code Marketplace leg is advisory** (`::warning::` only): the Marketplace is
+   an unavailable publish target and must never be able to block an Open VSX
+   release.
+4. **Open VSX is published FIRST** and is **not** `continue-on-error`, so the
+   GitHub release/tag is only created once Open VSX actually has the version.
+5. **VS Code Marketplace is best-effort** — `continue-on-error: true`, with its
+   outcome reported by a final summary step (`::warning::` + job summary). A
+   Marketplace-only failure therefore leaves the run **green**: the release is
+   considered delivered on Open VSX.
+6. **`fail-on-invalid-vsce-pat: "false"`** — an expired/blocked VSCE PAT must not
+   abort the run before the Open VSX publish.
+
+> ⚠️ **Known limitation — Marketplace backfill.** Because the Open VSX leg of
+> guard 3 is fail-closed, re-dispatching this workflow for a version that is
+> already on Open VSX fails at the guard, so the workflow cannot be used to
+> backfill a version onto the VS Code Marketplace after an outage. Backfill it
+> manually with
+> `npx @vscode/vsce publish --packagePath bin/roo-plus-<version>.vsix` (or add a
+> dedicated dispatch input) once the Marketplace accepts publishes again.
 
 > ⚠️ **`fetch-depth: 0` on the pre-release checkout is load-bearing.** Removing it
 > reintroduces the shallow-history blind spot; the fail-closed guard turns that
@@ -92,8 +111,10 @@ Incident that motivated the guards:
     ```bash
     gh workflow run marketplace-publish.yml --ref master
     ```
-7. Verify (see below) — both registries must show the version as **stable**, and
-   the GitHub release + tag `vX.Y.Z` must exist.
+7. Verify (see below) — **Open VSX must show the version as stable** and the
+   GitHub release + tag `vX.Y.Z` must exist. The VS Code Marketplace is
+   best-effort while it is unavailable: a `::warning::` from the summary step is
+   expected and does **not** mean the release failed.
 
 Refuse direct `git push` to `master`: Husky's `pre-commit`/`pre-push` reject it,
 and the rebase-merge path is what makes the guard deterministic.
