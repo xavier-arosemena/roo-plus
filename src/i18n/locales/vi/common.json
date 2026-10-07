@@ -29,7 +29,8 @@
 		"alwaysAllow": "Luôn cho phép",
 		"deny": "Từ chối",
 		"semblePurpose": "tìm kiếm và lập chỉ mục mã trong không gian làm việc của bạn",
-		"dcgPurpose": "kiểm tra an toàn trước các lệnh phá hoại (tùy chọn)"
+		"dcgPurpose": "kiểm tra an toàn trước các lệnh phá hoại (tùy chọn)",
+		"esbuildPurpose": "biên dịch và đóng gói các công cụ tùy chỉnh TypeScript"
 	},
 	"errors": {
 		"invalid_data_uri": "Định dạng URI dữ liệu không hợp lệ",

@@ -29,7 +29,8 @@
 		"alwaysAllow": "始终允许",
 		"deny": "拒绝",
 		"semblePurpose": "在工作区中进行代码搜索与索引",
-		"dcgPurpose": "破坏性命令执行前的安全检查（可选启用）"
+		"dcgPurpose": "破坏性命令执行前的安全检查（可选启用）",
+		"esbuildPurpose": "转译和打包 TypeScript 自定义工具"
 	},
 	"errors": {
 		"invalid_mcp_config": "项目MCP配置格式无效",

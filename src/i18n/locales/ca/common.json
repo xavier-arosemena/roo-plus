@@ -33,7 +33,8 @@
 		"alwaysAllow": "Permetre sempre",
 		"deny": "Denegar",
 		"semblePurpose": "cerca i indexació de codi al teu espai de treball",
-		"dcgPurpose": "comprovacions de seguretat abans d'ordres destructives (opcional)"
+		"dcgPurpose": "comprovacions de seguretat abans d'ordres destructives (opcional)",
+		"esbuildPurpose": "transpilació i empaquetatge d'eines personalitzades de TypeScript"
 	},
 	"errors": {
 		"invalid_data_uri": "Format d'URI de dades no vàlid",

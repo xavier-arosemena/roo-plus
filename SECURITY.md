@@ -268,7 +268,10 @@ by `untrustedWorkspaces.supported:false` + consent — see
 [`src/utils/workspaceTrust.ts`](src/utils/workspaceTrust.ts)). A maintainer may
 **regenerate** the register when running a deliberate pass on a newer artifact —
 any new file/rule, or a severity/count escalation of a listed finding, should be
-re-triaged into the register with a reason.
+re-triaged into the register with a reason. The register is **filename-keyed** to
+the scanner's reported paths, so a webview rebuild that re-hashes chunk names
+invalidates the affected entries and the gate **fails closed** until they are
+re-mapped — regenerate it with YARA-X present before treating it as a baseline.
 
 **Standing supply-chain / #305 controls** — these, not vsix-audit, are the
 automated release-time checks:

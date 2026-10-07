@@ -170,16 +170,19 @@ export function copyWasms(srcDir: string, distDir: string): void {
 }
 
 /**
- * Copy esbuild-wasm files to the dist/bin directory.
+ * Copy the small esbuild-wasm runtime files to the dist directory.
  *
- * This function copies the esbuild-wasm CLI and WASM binary, which provides
- * a cross-platform esbuild implementation that works on all platforms.
- *
- * Files copied:
+ * Custom-tool transpilation runs the esbuild-wasm CLI, which needs three small
+ * JavaScript runtime files plus the ~14 MB `esbuild.wasm` engine:
  * - bin/esbuild (Node.js CLI script)
- * - esbuild.wasm (WASM binary)
  * - wasm_exec_node.js (Go WASM runtime for Node.js)
  * - wasm_exec.js (Go WASM runtime dependency)
+ *
+ * The `esbuild.wasm` engine is intentionally NOT packaged in the VSIX: it is
+ * the single largest packaged file and is only needed when a custom tool is
+ * used. It is downloaded, checksum-verified and cached on first use (see
+ * `src/services/custom-tools/esbuild-engine.ts`). The runtime files copied here
+ * are the source the engine installer copies alongside the downloaded engine.
  */
 function copyEsbuildWasmFiles(nodeModulesDir: string, distDir: string): void {
 	const esbuildWasmDir = path.join(nodeModulesDir, "esbuild-wasm")
@@ -192,12 +195,12 @@ function copyEsbuildWasmFiles(nodeModulesDir: string, distDir: string): void {
 	const binDir = path.join(distDir, "bin")
 	fs.mkdirSync(binDir, { recursive: true })
 
-	// Files to copy - the esbuild CLI script expects wasm_exec_node.js and esbuild.wasm
-	// to be one directory level up from the bin directory (i.e., in distDir directly).
-	// wasm_exec_node.js requires wasm_exec.js, so we need to copy that too.
+	// Files to copy - the esbuild CLI script expects esbuild.wasm and
+	// wasm_exec_node.js to be one directory level up from the bin directory
+	// (i.e., in distDir directly). wasm_exec_node.js requires wasm_exec.js, so we
+	// need to copy that too. esbuild.wasm is omitted (downloaded on first use).
 	const filesToCopy = [
 		{ src: path.join(esbuildWasmDir, "bin", "esbuild"), dest: path.join(binDir, "esbuild") },
-		{ src: path.join(esbuildWasmDir, "esbuild.wasm"), dest: path.join(distDir, "esbuild.wasm") },
 		{ src: path.join(esbuildWasmDir, "wasm_exec_node.js"), dest: path.join(distDir, "wasm_exec_node.js") },
 		{ src: path.join(esbuildWasmDir, "wasm_exec.js"), dest: path.join(distDir, "wasm_exec.js") },
 	]
@@ -223,7 +226,9 @@ function copyEsbuildWasmFiles(nodeModulesDir: string, distDir: string): void {
 		}
 	}
 
-	console.log(`[copyWasms] Copied ${filesToCopy.length} esbuild-wasm files to ${distDir}`)
+	console.log(
+		`[copyWasms] Copied ${filesToCopy.length} esbuild-wasm runtime files to ${distDir} (esbuild.wasm is downloaded on first use)`,
+	)
 }
 
 export function copyLocales(srcDir: string, distDir: string): void {

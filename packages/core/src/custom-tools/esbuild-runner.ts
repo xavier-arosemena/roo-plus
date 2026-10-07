@@ -5,8 +5,11 @@
  * the JavaScript API. This uses esbuild-wasm which is cross-platform and works
  * on all operating systems without needing native binaries.
  *
- * In production, the esbuild-wasm CLI script is bundled in dist/bin/.
- * In development, it falls back to using esbuild-wasm from node_modules.
+ * The esbuild-wasm CLI script is bundled in dist/bin/ together with the Go WASM
+ * runtime JS. The ~14 MB esbuild.wasm engine is NOT bundled: it is downloaded,
+ * checksum-verified and cached on first use, and the resolved engine script path
+ * is supplied explicitly by the caller. In development the engine falls back to
+ * esbuild-wasm from node_modules.
  */
 
 import path from "path"
@@ -109,14 +112,22 @@ function findEsbuildWasmScript(startDir: string): string | null {
  * Get the path to the esbuild CLI script.
  *
  * Resolution order:
- * 1. Production: Look in extension's dist/bin directory for bundled script.
- * 2. Development: Use esbuild-wasm from node_modules (relative to this module).
- * 3. Fallback: Try process.cwd() as last resort.
+ * 1. Explicit path (e.g. the checksum-verified engine installed on first use).
+ * 2. Production: Look in extension's dist/bin directory for bundled script.
+ * 3. Development: Use esbuild-wasm from node_modules (relative to this module).
+ * 4. Fallback: Try process.cwd() as last resort.
  *
  * @param extensionPath - Path to the extension's root directory (production)
+ * @param esbuildScriptPath - Explicit path to the esbuild CLI script. Used for
+ *   the lazily-acquired engine (see `src/services/custom-tools/esbuild-engine.ts`).
  * @returns Path to the esbuild CLI script
  */
-export function getEsbuildScriptPath(extensionPath?: string): string {
+export function getEsbuildScriptPath(extensionPath?: string, esbuildScriptPath?: string): string {
+	// Explicit path (e.g. the downloaded engine) wins when the file exists.
+	if (esbuildScriptPath && fs.existsSync(esbuildScriptPath)) {
+		return esbuildScriptPath
+	}
+
 	// Production: look in extension's dist/bin directory.
 	if (extensionPath) {
 		const prodPath = path.join(extensionPath, "dist", "bin", "esbuild")
@@ -153,11 +164,17 @@ export function getEsbuildScriptPath(extensionPath?: string): string {
  *
  * @param options - Build options
  * @param extensionPath - Path to extension root (for finding bundled script)
+ * @param esbuildScriptPath - Explicit path to the esbuild CLI script (e.g. the
+ *   lazily-acquired engine). Takes precedence over auto-discovery when it exists.
  * @returns Promise that resolves when build completes
  * @throws Error if the build fails
  */
-export async function runEsbuild(options: EsbuildOptions, extensionPath?: string): Promise<void> {
-	const scriptPath = getEsbuildScriptPath(extensionPath)
+export async function runEsbuild(
+	options: EsbuildOptions,
+	extensionPath?: string,
+	esbuildScriptPath?: string,
+): Promise<void> {
+	const scriptPath = getEsbuildScriptPath(extensionPath, esbuildScriptPath)
 
 	const args: string[] = [
 		scriptPath,

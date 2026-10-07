@@ -1,31 +1,90 @@
-import {
-	createHighlighter,
-	type Highlighter,
-	type BundledTheme,
-	type BundledLanguage,
-	bundledLanguages,
-	bundledThemes,
-} from "shiki"
+import { createdBundledHighlighter } from "shiki/core"
+import { createOnigurumaEngine } from "shiki/engine/oniguruma"
 
-// Extend BundledLanguage to include 'txt' because Shiki supports this but it is
-// not listed in the bundled languages
-export type ExtendedLanguage = BundledLanguage | "txt"
+// ---------------------------------------------------------------------------
+// Curated Shiki language surface.
+//
+// Importing `bundledLanguages` (or `shiki/bundle/web`) makes the bundler emit a
+// chunk for every grammar in the dynamic-import map, even though each chunk is
+// only fetched lazily. The webview renders a small, fixed set of languages — the
+// extension map in `getLanguageFromPath.ts`, the alias map below, and the
+// languages used by the product's own docs/code blocks — so the import surface
+// is curated explicitly here. Every entry stays a lazy dynamic import: a grammar
+// is loaded on demand, never all upfront, and unknown languages fall back to
+// `txt`.
+// ---------------------------------------------------------------------------
+const curatedLanguageModules = {
+	c: () => import("shiki/langs/c.mjs"),
+	clojure: () => import("shiki/langs/clojure.mjs"),
+	cpp: () => import("shiki/langs/cpp.mjs"),
+	csharp: () => import("shiki/langs/csharp.mjs"),
+	css: () => import("shiki/langs/css.mjs"),
+	csv: () => import("shiki/langs/csv.mjs"),
+	dart: () => import("shiki/langs/dart.mjs"),
+	diff: () => import("shiki/langs/diff.mjs"),
+	dockerfile: () => import("shiki/langs/dockerfile.mjs"),
+	elixir: () => import("shiki/langs/elixir.mjs"),
+	elm: () => import("shiki/langs/elm.mjs"),
+	erlang: () => import("shiki/langs/erlang.mjs"),
+	gdscript: () => import("shiki/langs/gdscript.mjs"),
+	go: () => import("shiki/langs/go.mjs"),
+	graphql: () => import("shiki/langs/graphql.mjs"),
+	haskell: () => import("shiki/langs/haskell.mjs"),
+	html: () => import("shiki/langs/html.mjs"),
+	ini: () => import("shiki/langs/ini.mjs"),
+	java: () => import("shiki/langs/java.mjs"),
+	javascript: () => import("shiki/langs/javascript.mjs"),
+	json: () => import("shiki/langs/json.mjs"),
+	jsx: () => import("shiki/langs/jsx.mjs"),
+	julia: () => import("shiki/langs/julia.mjs"),
+	kotlin: () => import("shiki/langs/kotlin.mjs"),
+	latex: () => import("shiki/langs/latex.mjs"),
+	log: () => import("shiki/langs/log.mjs"),
+	lua: () => import("shiki/langs/lua.mjs"),
+	markdown: () => import("shiki/langs/markdown.mjs"),
+	mermaid: () => import("shiki/langs/mermaid.mjs"),
+	"objective-c": () => import("shiki/langs/objective-c.mjs"),
+	php: () => import("shiki/langs/php.mjs"),
+	powershell: () => import("shiki/langs/powershell.mjs"),
+	python: () => import("shiki/langs/python.mjs"),
+	r: () => import("shiki/langs/r.mjs"),
+	ruby: () => import("shiki/langs/ruby.mjs"),
+	rust: () => import("shiki/langs/rust.mjs"),
+	scala: () => import("shiki/langs/scala.mjs"),
+	shellscript: () => import("shiki/langs/shellscript.mjs"),
+	shellsession: () => import("shiki/langs/shellsession.mjs"),
+	sql: () => import("shiki/langs/sql.mjs"),
+	swift: () => import("shiki/langs/swift.mjs"),
+	toml: () => import("shiki/langs/toml.mjs"),
+	tsx: () => import("shiki/langs/tsx.mjs"),
+	typescript: () => import("shiki/langs/typescript.mjs"),
+	xml: () => import("shiki/langs/xml.mjs"),
+	yaml: () => import("shiki/langs/yaml.mjs"),
+} as const
 
-// Map common language aliases to their Shiki BundledLanguage equivalent
+// Every canonical id above is a valid Shiki `BundledLanguage`; `txt` is Shiki's
+// plain-text sentinel, which is supported but not listed among the grammars.
+type CuratedLanguage = keyof typeof curatedLanguageModules
+
+export type ExtendedLanguage = CuratedLanguage | "txt"
+
+// Map common language aliases to their curated Shiki language equivalent. All
+// non-`txt` targets must be keys of `curatedLanguageModules`.
 const languageAliases: Record<string, ExtendedLanguage> = {
-	// Plain text variants
+	// Plain text variants (resolve to the `txt` sentinel; no grammar chunk).
 	text: "txt",
 	plaintext: "txt",
 	plain: "txt",
 
 	// Shell/Bash variants
-	sh: "shell",
-	bash: "shell",
-	zsh: "shell",
-	shellscript: "shell",
-	"shell-script": "shell",
-	console: "shell",
-	terminal: "shell",
+	sh: "shellscript",
+	bash: "shellscript",
+	zsh: "shellscript",
+	shell: "shellscript",
+	console: "shellscript",
+	terminal: "shellscript",
+	"shell-script": "shellscript",
+	"shell-session": "shellsession",
 
 	// JavaScript variants
 	js: "javascript",
@@ -47,12 +106,12 @@ const languageAliases: Record<string, ExtendedLanguage> = {
 	md: "markdown",
 
 	// C++ variants
-	cpp: "c++",
-	cc: "c++",
+	"c++": "cpp",
+	cc: "cpp",
 
 	// C# variants
-	cs: "c#",
-	csharp: "c#",
+	"c#": "csharp",
+	cs: "csharp",
 
 	// HTML variants
 	htm: "html",
@@ -61,7 +120,7 @@ const languageAliases: Record<string, ExtendedLanguage> = {
 	yml: "yaml",
 
 	// Docker variants
-	dockerfile: "docker",
+	docker: "dockerfile",
 
 	// CSS variants
 	styles: "css",
@@ -83,7 +142,25 @@ const languageAliases: Record<string, ExtendedLanguage> = {
 	pgsql: "sql",
 	plsql: "sql",
 	oracle: "sql",
+
+	// Objective-C (the file-extension map yields "objectivec")
+	objectivec: "objective-c",
 }
+
+// Only the two GitHub themes that `CodeBlock`/`highlightDiff` actually request
+// are bundled; the remaining Shiki themes are dropped.
+const curatedThemes = {
+	"github-dark": () => import("shiki/themes/github-dark.mjs"),
+	"github-light": () => import("shiki/themes/github-light.mjs"),
+}
+
+const createCuratedHighlighter = createdBundledHighlighter<string, string>({
+	langs: curatedLanguageModules,
+	themes: curatedThemes,
+	engine: () => createOnigurumaEngine(import("shiki/wasm")),
+})
+
+type Highlighter = Awaited<ReturnType<typeof createCuratedHighlighter>>
 
 // Track which languages we've warned about to avoid duplicate warnings
 const warnedLanguages = new Set<string>()
@@ -97,9 +174,9 @@ export function normalizeLanguage(language: string | undefined): ExtendedLanguag
 	// Convert to lowercase for consistent matching
 	const normalizedInput = language.toLowerCase()
 
-	// If it's already a valid bundled language, return it
-	if (normalizedInput in bundledLanguages) {
-		return normalizedInput as BundledLanguage
+	// If it's a curated bundled language, return it
+	if (normalizedInput in curatedLanguageModules) {
+		return normalizedInput as CuratedLanguage
 	}
 
 	// Check if it's an alias
@@ -125,7 +202,7 @@ export const isLanguageLoaded = (language: string): boolean => {
 const LANGUAGE_LOAD_DELAY = 0
 
 // Common languages for first-stage initialization
-const initialLanguages: BundledLanguage[] = ["shell", "log"]
+const initialLanguages: CuratedLanguage[] = ["shellscript", "log"]
 
 // Singleton state
 const state: {
@@ -150,8 +227,8 @@ export const getHighlighter = async (language?: string): Promise<Highlighter> =>
 				// const startTime = performance.now()
 				// console.debug("[Shiki] Initialization started...")
 
-				const instance = await createHighlighter({
-					themes: Object.keys(bundledThemes) as BundledTheme[],
+				const instance = await createCuratedHighlighter({
+					themes: ["github-light", "github-dark"],
 					langs: initialLanguages,
 				})
 
@@ -185,7 +262,7 @@ export const getHighlighter = async (language?: string): Promise<Highlighter> =>
 							await new Promise((resolve) => setTimeout(resolve, LANGUAGE_LOAD_DELAY))
 						}
 
-						await instance.loadLanguage(shikilang as BundledLanguage)
+						await instance.loadLanguage(shikilang)
 						state.loadedLanguages.add(shikilang)
 
 						// const loadTime = Math.round(performance.now() - loadStart)
