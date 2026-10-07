@@ -19,7 +19,7 @@ export class EmbedderFactory implements IEmbedderFactory {
 	// Each provider owns its constructor arguments and validation. The record requires
 	// an entry for every vector embedder provider when the supported union changes.
 	// TODO: Inject the provider factory registry via DI instead of constructing factories here.
-	// https://github.com/Zoo-Code-Org/Zoo-Code/issues/1817
+	// https://github.com/Roo-Plus-Org/Roo-Plus/issues/1817
 	private readonly embedderFactories: Readonly<Record<VectorEmbedderProvider, IEmbedderFactory>> = {
 		[providerIdentifiers.openai]: new OpenAiEmbedderFactory(),
 		[providerIdentifiers.ollama]: new OllamaEmbedderFactory(),
