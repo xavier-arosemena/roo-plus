@@ -14,9 +14,9 @@ Operating manual + refresh procedure: [`README.md`](README.md).
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Baseline recorded                        | 2026-09-16 (initial register; each later refresh is recorded in the README §9 changelog)                                                                                                                                                                             |
 | Merge base                               | `252c69b5` (2026-08-20, "fix: stream reasoning_content in LM Studio provider (#1175)")                                                                                                                                                                               |
-| Upstream tip                             | `c6e6ee398` (2026-10-01, "fix(webview): batch repeated tool preambles (#1658)")                                                                                                                                                                                      |
+| Upstream tip                             | `842b37e76` (2026-10-07, "fix(webview): route code actions to the last active chat (#1946)")                                                                                                                                                                         |
 | Fork tip                                 | `77a670196` (2026-09-15, PR #338 merge)                                                                                                                                                                                                                              |
-| Pending upstream commits                 | **156**                                                                                                                                                                                                                                                              |
+| Pending upstream commits                 | **188**                                                                                                                                                                                                                                                              |
 | Fork-only commits                        | 180                                                                                                                                                                                                                                                                  |
 | Conflict surface (files changed by both) | 272                                                                                                                                                                                                                                                                  |
 | Refresh procedure                        | Automated by [`scripts/upstream-sync-triage.mjs`](../../scripts/upstream-sync-triage.mjs:1) — `--refresh` (dry run), `--refresh --write` to apply, `--verify` to check. See [`README.md` §6](README.md).                                                             |
@@ -116,33 +116,33 @@ merge base (conflict-surface size). `Δ 0` is the strongest clean-pick signal.
 
 | Class           | Count                         |
 | --------------- | ----------------------------- |
-| `A-CLEAN`       | 25 (21 are `A-CLEAN` ∧ P0–P2) |
-| `B-CAREFUL`     | 51                            |
-| `C-REIMPLEMENT` | 33                            |
-| `D-LOCAL`       | 15                            |
+| `A-CLEAN`       | 33 (24 are `A-CLEAN` ∧ P0–P2) |
+| `B-CAREFUL`     | 66                            |
+| `C-REIMPLEMENT` | 39                            |
+| `D-LOCAL`       | 18                            |
 | `E-SKIP`        | 31                            |
 | `X-REJECT`      | 1                             |
-| **Total**       | **156**                       |
+| **Total**       | **188**                       |
 
 | Priority | Count |
 | -------- | ----- |
 | `P0`     | 6     |
-| `P1`     | 57    |
-| `P2`     | 18    |
-| `P3`     | 38    |
+| `P1`     | 74    |
+| `P2`     | 21    |
+| `P3`     | 50    |
 | `P4`     | 37    |
 
-**Read this as:** the fork is not "156 commits behind" — the backlog is the
+**Read this as:** the fork is not "188 commits behind" — the backlog is the
 `Pending upstream commits` count above, and what is _pickable today_ is the
 **derived ready set**, which `--verify` computes (`A-CLEAN` ∧ Δ 0 ∧ `Blocked-by` = ∅
 ∧ open). This prose pins no ready-set number on purpose: it is a predicate over the
-rows, not a stored fact, so a pinned literal would only rot. 33 rows are
+rows, not a stored fact, so a pinned literal would only rot. 39 rows are
 `C-REIMPLEMENT` — deliberate re-implementation because of architecture the fork
-changed — and 46 are either owned locally or permanently out of scope (15 `D-LOCAL`
+changed — and 49 are either owned locally or permanently out of scope (18 `D-LOCAL`
 
 - 31 `E-SKIP`). (The 2026-09-24 ladder enforcement moved four `A-CLEAN` rows with
-  Δ > 0 to `B-CAREFUL`; the 2026-09-24, 2026-09-25 and 2026-10-01 guarded refreshes
-  folded in 24, 2 and 28 upstream commits respectively — see the manual's §9
+  Δ > 0 to `B-CAREFUL`; the 2026-09-24, 2026-09-25, 2026-10-01 and 2026-10-07 guarded
+  refreshes folded in 24, 2, 28 and 32 upstream commits respectively — see the manual's §9
   changelog.)
 
 ### Tracked-versus-recorded scope (the two progress series)
@@ -787,6 +787,111 @@ Created 2026-10-01 while draining the remaining verified-clean rows. `ae6c1a876`
 **Notes — the other clean candidate, deferred.** `9e4a52d99` (#1630) was attempted and aborted: its new spec imports `src/services/code-index/code-index-manager-registry.ts`, a module that **does not exist on the fork** — it is created by the unsynced `216450810` (#1622, `C-REIMPLEMENT`). This is an **import-level dependency** that the same-file predecessor scan cannot see, so `9e4a52d99` now records `Blocked-by: 216450810`.
 
 **Latent defect closed.** `1165aebc8` (#1590) is now `✖`: one of its prerequisites, `1ad8f528d` (#1069, telemetry consent), is `X-REJECT`, so the chain can never land and the row was never pickable. `Blocked-by` was cleared with the status.
+
+---
+
+## SYNC-22 — Refresh 2026-10-07 (proposals — needs human triage)
+
+These 32 commit(s) landed on `upstream/main` after the recorded baseline tip `c6e6ee398`. Classes/priorities below are **proposals** computed from git-derived evidence (README §3) by `scripts/upstream-sync-triage.mjs --refresh`; review before picking and re-home any row whose theme belongs to an existing batch.
+
+| SHA         | Date       | Subject                                                                                                    | Class           | Pri | Δ   | Status | Blocked-by | Resolved: | Version | Exception |
+| ----------- | ---------- | ---------------------------------------------------------------------------------------------------------- | --------------- | --- | --- | ------ | ---------- | --------- | ------- | --------- |
+| `82e3f21e4` | 2026-10-01 | fix(mcp): validate native mcp_tool_use dispatch through the shared tool-policy layer (#1724)               | `C-REIMPLEMENT` | P1  | 2   | ☐      | —          | —         | —       | —         |
+| `0aa636c26` | 2026-10-01 | fix(webview): stop flushing throttled state for partial say messages (#1852)                               | `B-CAREFUL`     | P1  | 3   | ☐      | —          | —         | —       | —         |
+| `c38db3ed7` | 2026-10-02 | fix(anthropic): correct Opus 5.5 output budget (#1854)                                                     | `B-CAREFUL`     | P1  | 1   | ☐      | —          | —         | —       | —         |
+| `be2de3461` | 2026-10-02 | chore(deps): update dependency mocha to v11.8.0 (#1585)                                                    | `D-LOCAL`       | P3  | 3   | ☐      | —          | —         | —       | —         |
+| `feb3386f6` | 2026-10-02 | fix(opencode-go): add DeepSeek V4.1 Flash metadata (#1659)                                                 | `B-CAREFUL`     | P1  | 3   | ☐      | —          | —         | —       | —         |
+| `632ef53b8` | 2026-10-02 | Stop interrupted tasks from replaying rejected subtasks (#1726)                                            | `C-REIMPLEMENT` | P3  | 6   | ☐      | —          | —         | —       | —         |
+| `a704002b6` | 2026-10-02 | [Docs] Specify P1 persisted ownership and add the run-state kernel target architecture (#1706)             | `A-CLEAN`       | P3  | 0   | ☐      | —          | —         | —       | —         |
+| `299bddfaa` | 2026-10-02 | fix(prompts): add line-number stripping warning to search_replace, edit_file, and read_file (#1685)        | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
+| `a07706653` | 2026-10-03 | fix(prompts): prevent models from hallucinating line numbers in apply_diff (#641)                          | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
+| `fcc51b564` | 2026-10-03 | Release v3.86.0 (#1897)                                                                                    | `C-REIMPLEMENT` | P3  | 41  | ☐      | —          | —         | —       | —         |
+| `7186191a6` | 2026-10-03 | Blanket auto-deny for unapproved commands (hands-free mode) (#1760)                                        | `C-REIMPLEMENT` | P3  | 30  | ☐      | —          | —         | —       | —         |
+| `72143527f` | 2026-10-03 | Disable extensions when launching Extension Host for debugging (#1860)                                     | `A-CLEAN`       | P3  | 0   | ☐      | —          | —         | —       | —         |
+| `21576772e` | 2026-10-03 | [Fix] DeepSeek/OpenAI requests fail permanently when task history contains a lone UTF-16 surrogate (#1831) | `B-CAREFUL`     | P1  | 5   | ☐      | —          | —         | —       | —         |
+| `05d683a3b` | 2026-10-03 | feat(api): shared abort-signal cancellation-scope helpers (#1651)                                          | `B-CAREFUL`     | P2  | 2   | ☐      | —          | —         | —       | —         |
+| `ba35bb35b` | 2026-10-03 | chore(deps): update dependency posthog-js to v1.435.3 (#1586)                                              | `D-LOCAL`       | P3  | 1   | ☐      | —          | —         | —       | —         |
+| `51181e824` | 2026-10-03 | fix(providers): forward task abortSignal in openai and lm-studio handlers (#1686)                          | `B-CAREFUL`     | P1  | 4   | ☐      | —          | —         | —       | —         |
+| `3859e5dd8` | 2026-10-03 | fix(code-index): remove automatic startup embedder validation (#1879)                                      | `C-REIMPLEMENT` | P1  | 7   | ☐      | —          | —         | —       | —         |
+| `754a9160d` | 2026-10-04 | fix(bedrock): expose Opus 5.5 output token limit (#1903)                                                   | `B-CAREFUL`     | P1  | 1   | ☐      | —          | —         | —       | —         |
+| `0298294d6` | 2026-10-04 | fix(api): honor custom model IDs for OpenAI-compatible providers (#1846)                                   | `B-CAREFUL`     | P1  | 4   | ☐      | —          | —         | —       | —         |
+| `95acd2ad2` | 2026-10-04 | feat(xai): add grok-build-0.1 model metadata (#1687)                                                       | `B-CAREFUL`     | P2  | 1   | ☐      | —          | —         | —       | —         |
+| `c9cac8fce` | 2026-10-04 | chore(deps): update dependency posthog-node to v5.55.0 (#1587)                                             | `D-LOCAL`       | P3  | 1   | ☐      | —          | —         | —       | —         |
+| `8cd3a763f` | 2026-10-04 | [Chore] Add packages/types to changed-code mutation testing (#1892) (#1893)                                | `A-CLEAN`       | P3  | 0   | ☐      | —          | —         | —       | —         |
+| `70cafe419` | 2026-10-04 | fix: update openai sane-default parameter values for custom models (#1847)                                 | `B-CAREFUL`     | P1  | 3   | ☐      | —          | —         | —       | —         |
+| `31c4a6427` | 2026-10-04 | Revert "fix(prompts): prevent models from hallucinating line numbers in apply_diff (#641)" (#1908)         | `A-CLEAN`       | P3  | 0   | ☐      | —          | —         | —       | —         |
+| `a1cc065d2` | 2026-10-04 | fix(prompts): remove stray tab before Tool Use Guidelines heading (#1415) (#1440)                          | `B-CAREFUL`     | P1  | 1   | ☐      | —          | —         | —       | —         |
+| `3e027343d` | 2026-10-05 | fix(mcp): parse tool names with double underscores in server names (#1737)                                 | `A-CLEAN`       | P1  | 0   | ☐      | —          | —         | —       | —         |
+| `1368407c0` | 2026-10-05 | fix(task): check abort before an ask row posts (RSK-20) (#1895)                                            | `B-CAREFUL`     | P1  | 1   | ☐      | —          | —         | —       | —         |
+| `9af61f87e` | 2026-10-05 | refactor(task): remove dead Task.isPaused field (RSK-12) (#1894)                                           | `B-CAREFUL`     | P3  | 4   | ☐      | —          | —         | —       | —         |
+| `3bea5b1b3` | 2026-10-06 | test(e2e): wait for resolved context window in visual chat scenario (#1941)                                | `A-CLEAN`       | P3  | 0   | ☐      | —          | —         | —       | —         |
+| `d7963fc2d` | 2026-10-06 | perf(write-path): remove artificial write delays by default (part of #1375) (#1381)                        | `B-CAREFUL`     | P1  | 5   | ☐      | —          | —         | —       | —         |
+| `e69c6a6b3` | 2026-10-07 | feat(task): add the pure run-state kernel module (#1942)                                                   | `B-CAREFUL`     | P2  | 1   | ☐      | —          | —         | —       | —         |
+| `842b37e76` | 2026-10-07 | fix(webview): route code actions to the last active chat (#1946)                                           | `C-REIMPLEMENT` | P1  | 24  | ☐      | —          | —         | —       | —         |
+
+**`82e3f21e4` evidence.** Δ 2 of 2 file(s). Proposed `C-REIMPLEMENT` / P1: telemetry hit — the fork purged the telemetry transport; re-implement, never cherry-pick; intent prefix "fix"
+
+**`0aa636c26` evidence.** Δ 3 of 3 file(s) · hot: src/core/task/Task.ts. Proposed `B-CAREFUL` / P1: Δ 3 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`c38db3ed7` evidence.** Δ 1 of 2 file(s). Proposed `B-CAREFUL` / P1: Δ 1 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`be2de3461` evidence.** Δ 3 of 3 file(s) · hot: package.json, pnpm-lock.yaml. Proposed `D-LOCAL` / P3: files are dependency manifests / lockfile — regenerate locally; hygiene intent prefix "chore"
+
+**`feb3386f6` evidence.** Δ 3 of 3 file(s). Proposed `B-CAREFUL` / P1: Δ 3 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`632ef53b8` evidence.** Δ 6 of 19 file(s) · hot: src/core/task/Task.ts, src/core/webview/ClineProvider.ts. Proposed `C-REIMPLEMENT` / P3: structural divergence (decomposed webview handlers / ClineProvider); unrecognised intent prefix — defaulting to P3 for human review
+
+**`a704002b6` evidence.** Δ 0 of 8 file(s). Proposed `A-CLEAN` / P3: Δ 0 — no overlap with any fork-touched file; hygiene intent prefix "docs"
+
+**`299bddfaa` evidence.** Δ 0 of 3 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
+
+**`a07706653` evidence.** Δ 0 of 2 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
+
+**`fcc51b564` evidence.** Δ 41 of 41 file(s) · hot: src/core/webview/ClineProvider.ts, src/package.json. Proposed `C-REIMPLEMENT` / P3: structural divergence (decomposed webview handlers / ClineProvider); unrecognised intent prefix — defaulting to P3 for human review
+
+**`7186191a6` evidence.** Δ 30 of 61 file(s) · hot: src/core/task/Task.ts, src/core/webview/ClineProvider.ts. Proposed `C-REIMPLEMENT` / P3: telemetry hit — the fork purged the telemetry transport; re-implement, never cherry-pick; unrecognised intent prefix — defaulting to P3 for human review
+
+**`72143527f` evidence.** Δ 0 of 1 file(s). Proposed `A-CLEAN` / P3: Δ 0 — no overlap with any fork-touched file; unrecognised intent prefix — defaulting to P3 for human review
+
+**`21576772e` evidence.** Δ 5 of 14 file(s). Proposed `B-CAREFUL` / P1: Δ 5 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`05d683a3b` evidence.** Δ 2 of 3 file(s). Proposed `B-CAREFUL` / P2: Δ 2 — small overlap, cherry-pick then rebrand + gates; intent prefix "feat"
+
+**`ba35bb35b` evidence.** Δ 1 of 1 file(s) · hot: pnpm-lock.yaml. Proposed `D-LOCAL` / P3: files are dependency manifests / lockfile — regenerate locally; hygiene intent prefix "chore"
+
+**`51181e824` evidence.** Δ 4 of 5 file(s). Proposed `B-CAREFUL` / P1: Δ 4 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`3859e5dd8` evidence.** Δ 7 of 7 file(s) · hot: src/eslint-suppressions.json · CORE_FILES: src/services/code-index/orchestrator.ts. Proposed `C-REIMPLEMENT` / P1: telemetry hit — the fork purged the telemetry transport; re-implement, never cherry-pick; intent prefix "fix"
+
+**`754a9160d` evidence.** Δ 1 of 3 file(s). Proposed `B-CAREFUL` / P1: Δ 1 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`0298294d6` evidence.** Δ 4 of 4 file(s). Proposed `B-CAREFUL` / P1: Δ 4 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`95acd2ad2` evidence.** Δ 1 of 2 file(s). Proposed `B-CAREFUL` / P2: Δ 1 — small overlap, cherry-pick then rebrand + gates; intent prefix "feat"
+
+**`c9cac8fce` evidence.** Δ 1 of 1 file(s) · hot: pnpm-lock.yaml. Proposed `D-LOCAL` / P3: files are dependency manifests / lockfile — regenerate locally; hygiene intent prefix "chore"
+
+**`8cd3a763f` evidence.** Δ 0 of 2 file(s). Proposed `A-CLEAN` / P3: Δ 0 — no overlap with any fork-touched file; hygiene intent prefix "chore"
+
+**`70cafe419` evidence.** Δ 3 of 10 file(s). Proposed `B-CAREFUL` / P1: Δ 3 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`31c4a6427` evidence.** Δ 0 of 2 file(s). Proposed `A-CLEAN` / P3: Δ 0 — no overlap with any fork-touched file; unrecognised intent prefix — defaulting to P3 for human review
+
+**`a1cc065d2` evidence.** Δ 1 of 10 file(s). Proposed `B-CAREFUL` / P1: Δ 1 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`3e027343d` evidence.** Δ 0 of 2 file(s). Proposed `A-CLEAN` / P1: Δ 0 — no overlap with any fork-touched file; intent prefix "fix"
+
+**`1368407c0` evidence.** Δ 1 of 3 file(s) · hot: src/core/task/Task.ts. Proposed `B-CAREFUL` / P1: Δ 1 — small overlap, cherry-pick then rebrand + gates; intent prefix "fix"
+
+**`9af61f87e` evidence.** Δ 4 of 6 file(s) · hot: src/core/task/Task.ts, src/eslint-suppressions.json. Proposed `B-CAREFUL` / P3: Δ 4 — small overlap, cherry-pick then rebrand + gates; hygiene intent prefix "refactor"
+
+**`3bea5b1b3` evidence.** Δ 0 of 1 file(s). Proposed `A-CLEAN` / P3: Δ 0 — no overlap with any fork-touched file; hygiene intent prefix "test"
+
+**`d7963fc2d` evidence.** Δ 5 of 7 file(s) · hot: src/eslint-suppressions.json. Proposed `B-CAREFUL` / P1: Δ 5 — small overlap, cherry-pick then rebrand + gates; intent prefix "perf"
+
+**`e69c6a6b3` evidence.** Δ 1 of 3 file(s). Proposed `B-CAREFUL` / P2: Δ 1 — small overlap, cherry-pick then rebrand + gates; intent prefix "feat"
+
+**`842b37e76` evidence.** Δ 24 of 46 file(s) · hot: src/core/webview/ClineProvider.ts. Proposed `C-REIMPLEMENT` / P1: structural divergence (decomposed webview handlers / ClineProvider); intent prefix "fix"
 
 ## Recommended execution order
 
