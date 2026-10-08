@@ -577,7 +577,7 @@ export class CustomModesManager {
 			await this.context.globalState.update(PRE_INSTALLED_MODES_KEY, true)
 			await this.context.globalState.update("preInstalledModesVersion", currentVersion)
 			this.clearCache()
-			console.log(`[CustomModesManager] Seeded ${mergedModes.length} pre-installed modes from bundled asset`)
+			console.debug(`[CustomModesManager] Seeded ${mergedModes.length} pre-installed modes from bundled asset`)
 		} catch (error) {
 			console.error(`[CustomModesManager] Failed to seed pre-installed modes:`, error)
 			// Do NOT set the flag on failure — retry on next activation

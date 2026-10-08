@@ -2203,7 +2203,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	 */
 	public cancelCurrentRequest(): void {
 		if (this.currentRequestAbortController) {
-			console.log(`[Task#${this.taskId}.${this.instanceId}] Aborting current HTTP request`)
+			console.debug(`[Task#${this.taskId}.${this.instanceId}] Aborting current HTTP request`)
 			this.currentRequestAbortController.abort()
 			this.currentRequestAbortController = undefined
 		}
@@ -2271,7 +2271,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	}
 
 	public dispose(): void {
-		console.log(`[Task#dispose] disposing task ${this.taskId}.${this.instanceId}`)
+		console.debug(`[Task#dispose] disposing task ${this.taskId}.${this.instanceId}`)
 
 		// Stop the idle telemetry check and report any unflushed activity as a
 		// shutdown installment, so a task torn down mid-work (panel closed, task
@@ -3016,7 +3016,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						}
 
 						if (this.abort) {
-							console.log(`aborting stream, this.abandoned = ${this.abandoned}`)
+							console.debug(`aborting stream, this.abandoned = ${this.abandoned}`)
 
 							if (!this.abandoned) {
 								// Only need to gracefully abort if this instance
@@ -3231,7 +3231,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 								// Check if task was aborted during the backoff
 								if (this.abort) {
-									console.log(
+									console.debug(
 										`[Task#${this.taskId}.${this.instanceId}] Task aborted during mid-stream retry backoff`,
 									)
 									// Abort the entire task
@@ -3638,7 +3638,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 						// Check if task was aborted during the backoff
 						if (this.abort) {
-							console.log(
+							console.debug(
 								`[Task#${this.taskId}.${this.instanceId}] Task aborted during empty-assistant retry backoff`,
 							)
 							break
@@ -4303,7 +4303,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		abortSignal.addEventListener(
 			"abort",
 			() => {
-				console.log(`[Task#${this.taskId}.${this.instanceId}] AbortSignal triggered for current request`)
+				console.debug(`[Task#${this.taskId}.${this.instanceId}] AbortSignal triggered for current request`)
 				this.currentRequestAbortController = undefined
 			},
 			{ once: true },

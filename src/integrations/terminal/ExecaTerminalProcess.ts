@@ -108,7 +108,7 @@ export class ExecaTerminalProcess extends BaseTerminalProcess {
 				let timeoutId: NodeJS.Timeout | undefined
 
 				const kill = new Promise<void>((resolve) => {
-					console.log(`[ExecaTerminalProcess#run] SIGKILL -> ${this.pid}`)
+					console.debug(`[ExecaTerminalProcess#run] SIGKILL -> ${this.pid}`)
 
 					timeoutId = setTimeout(() => {
 						try {
@@ -122,7 +122,7 @@ export class ExecaTerminalProcess extends BaseTerminalProcess {
 				try {
 					await Promise.race([this.subprocess, kill])
 				} catch (error) {
-					console.log(
+					console.debug(
 						`[ExecaTerminalProcess#run] subprocess termination error: ${error instanceof Error ? error.message : String(error)}`,
 					)
 				}

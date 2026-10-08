@@ -93,6 +93,7 @@ import { setTtsEnabled, setTtsSpeed } from "../../utils/tts"
 import { getWorkspaceGitInfo } from "../../utils/git"
 import { getWorkspacePath } from "../../utils/path"
 import { OrganizationAllowListViolationError } from "../../utils/errors"
+import { shouldMirrorToConsole } from "../../utils/consoleMirror"
 
 import { setPanel } from "../../activate/registerCommands"
 
@@ -3108,8 +3109,13 @@ export class ClineProvider
 	// logging
 
 	public log(message: string) {
+		// Always surface to the Roo+ Output channel (the operator/runbook surface).
 		this.outputChannel.appendLine(message)
-		console.log(message)
+		// Mirror to the extension-host DevTools console only when explicitly
+		// requested, or for the runbook SLIs that operators read there.
+		if (shouldMirrorToConsole(message)) {
+			console.log(message)
+		}
 	}
 
 	// getters

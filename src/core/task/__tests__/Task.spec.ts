@@ -2325,8 +2325,8 @@ describe("Cline", () => {
 				const abortSpy = vi.spyOn(mockAbortController, "abort")
 				task.currentRequestAbortController = mockAbortController
 
-				// Spy on console.log
-				const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {})
+				// Spy on console.debug (the routine cancellation log is verbose-level)
+				const consoleDebugSpy = vi.spyOn(console, "debug").mockImplementation(() => {})
 
 				// Call cancelCurrentRequest
 				task.cancelCurrentRequest()
@@ -2338,10 +2338,10 @@ describe("Cline", () => {
 				expect(task.currentRequestAbortController).toBeUndefined()
 
 				// Verify logging
-				expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("Aborting current HTTP request"))
+				expect(consoleDebugSpy).toHaveBeenCalledWith(expect.stringContaining("Aborting current HTTP request"))
 
-				// Restore console.log
-				consoleLogSpy.mockRestore()
+				// Restore console.debug
+				consoleDebugSpy.mockRestore()
 			})
 
 			it("should handle missing AbortController gracefully", () => {

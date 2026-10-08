@@ -210,7 +210,7 @@ export async function handleTaskMessages(
 						return { id, success: true }
 					} catch (error) {
 						// Keep error logging for debugging purposes
-						console.log(
+						console.error(
 							`Failed to delete task ${id}: ${error instanceof Error ? error.message : String(error)}`,
 						)
 						return { id, success: false }

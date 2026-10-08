@@ -50,7 +50,7 @@ export class TerminalRegistry {
 				async (e: vscode.TerminalShellExecutionStartEvent) => {
 					const terminal = this.getTerminalByVSCETerminal(e.terminal)
 
-					console.info("[onDidStartTerminalShellExecution]", {
+					console.debug("[onDidStartTerminalShellExecution]", {
 						command: e.execution?.commandLine?.value,
 						terminalId: terminal?.id,
 					})
@@ -76,7 +76,7 @@ export class TerminalRegistry {
 							(!process.isHot && process.ownExecution === undefined) ||
 							process.ownExecution === e.execution
 						if (!isOwnExecution) {
-							console.info(
+							console.debug(
 								"[TerminalRegistry] Ignoring onDidStartTerminalShellExecution for a different execution",
 								{ terminalId: terminal.id },
 							)
@@ -110,7 +110,7 @@ export class TerminalRegistry {
 					const process = terminal?.process
 					const exitDetails = TerminalProcess.interpretExitCode(e.exitCode)
 
-					console.info("[onDidEndTerminalShellExecution]", {
+					console.debug("[onDidEndTerminalShellExecution]", {
 						command: e.execution?.commandLine?.value,
 						terminalId: terminal?.id,
 						...exitDetails,
@@ -144,7 +144,7 @@ export class TerminalRegistry {
 						process.ownExecution !== e.execution
 
 					if (isStaleExecution) {
-						console.info(
+						console.debug(
 							"[TerminalRegistry] Ignoring stale onDidEndTerminalShellExecution for a superseded execution",
 							{ terminalId: terminal.id, exitCode: e.exitCode },
 						)
@@ -159,7 +159,7 @@ export class TerminalRegistry {
 						// waiting for completion, deliver the signal so it doesn't
 						// hang forever. See #489 / #622.
 						if (process) {
-							console.info(
+							console.debug(
 								"[TerminalRegistry] End event arrived before running=true (race); delivering completion signal",
 								{ terminalId: terminal.id, exitCode: e.exitCode },
 							)

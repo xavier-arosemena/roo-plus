@@ -129,13 +129,13 @@ describe("Task dispose method", () => {
 
 	test("should clean up all resources in correct order", () => {
 		const removeAllListenersSpy = vi.spyOn(task, "removeAllListeners")
-		const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {})
+		const consoleDebugSpy = vi.spyOn(console, "debug").mockImplementation(() => {})
 
 		// Call dispose
 		task.dispose()
 
 		// Verify dispose was called and logged
-		expect(consoleLogSpy).toHaveBeenCalledWith(
+		expect(consoleDebugSpy).toHaveBeenCalledWith(
 			expect.stringContaining(`[Task#dispose] disposing task ${task.taskId}.${task.instanceId}`),
 		)
 
@@ -143,7 +143,7 @@ describe("Task dispose method", () => {
 		expect(removeAllListenersSpy).toHaveBeenCalledOnce()
 
 		// Clean up
-		consoleLogSpy.mockRestore()
+		consoleDebugSpy.mockRestore()
 	})
 
 	test("should prevent memory leaks by removing listeners before other cleanup", () => {
