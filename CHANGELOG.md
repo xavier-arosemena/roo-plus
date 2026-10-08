@@ -4,6 +4,20 @@
 
 ---
 
+## [3.89.0] — 2026-10-08
+
+### Minor — Upstream Sync, Quieter Consoles & a Leaner VSIX
+
+Starting the 3.89 pre-release line. This launch bundles the SYNC-22 upstream-sync batch, quiets the developer console, and trims the packaged extension footprint.
+
+### 📣 What's New
+
+- 🧹 Quieter developer console — provider fetchers, terminal, MCP and checkpoint paths no longer emit console/unhandled-rejection noise; failures are captured and classified instead (#327)
+- 📦 Leaner packaged VSIX — redundant webview chunks and packaged files are trimmed, guarded by a new `verify-vsix-budget` gate (#13)
+- 🔄 Upstream sync (SYNC-22) — forward-ports the provider-metadata, prompt and MCP tool-name batches and removes the automatic code-index startup embedder validation (#411)
+
+---
+
 ## [3.88.0] — 2026-09-09
 
 ### Minor — Privacy, Trust & Reproducible Source

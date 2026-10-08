@@ -18,14 +18,12 @@ export interface ReleaseAnnouncement {
 }
 
 export const Announcements: Record<string, ReleaseAnnouncement> = {
-	"3.88.0": {
-		version: "3.88.0",
+	"3.89.0": {
+		version: "3.89.0",
 		highlights: [
-			"🕵️ Zero telemetry by design — PostHog removed entirely; Roo+ reports nothing, and builds are reproducible with no secrets",
-			"🔐 Trust-gated operations — sensitive commands require workspace trust; first-use binary downloads require your explicit consent",
-			"🧊 No more gray, frozen webview — state updates no longer ship your full task history to the webview, so it stays responsive over remote links (v3.88.1)",
-			"📉 Large-state warning gone — the multi-MB task-history mirror is no longer written into VS Code global state (v3.88.1)",
-			"🧹 Quieter developer consoles — Semble search logs moved to the output channel, and production source-map 404 noise stopped (v3.88.1)",
+			"🧹 Quieter developer console — provider fetchers, terminal, MCP and checkpoint paths no longer emit console/unhandled-rejection noise; failures are captured and classified instead (#327)",
+			"📦 Leaner packaged VSIX — redundant webview chunks and packaged files are trimmed, guarded by a new `verify-vsix-budget` gate (#13)",
+			"🔄 Upstream sync (SYNC-22) — forward-ports the provider-metadata, prompt and MCP tool-name batches and removes the automatic code-index startup embedder validation (#411)",
 		],
 	},
 }
