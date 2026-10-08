@@ -1136,10 +1136,7 @@ describe("exception — a dated Exception honours a recorded decision", () => {
 		assert.equal(report.exceptions[0].sha, PREFIX_A, "the excepted row must be named by SHA")
 		assert.equal(report.exceptions[0].date, "2026-09-16")
 		assert.match(report.exceptions[0].reason, /pre-ladder classifier/)
-		assert.equal(
-			verifyExitCode({ ok: report.ok, staleCount: report.staleInProgress.length, strict: false }),
-			0,
-		)
+		assert.equal(verifyExitCode({ ok: report.ok, staleCount: report.staleInProgress.length, strict: false }), 0)
 	})
 
 	it("fails when the exception token is not dated (an exception can never be silent)", () => {
@@ -1878,7 +1875,10 @@ describe("runRefresh — H-01: a recorded tip outside the window refuses and wri
 		assert.equal(payload.ok, false)
 		assert.equal(payload.refused, true)
 		assert.equal(payload.wrote, false)
-		assert.deepEqual(payload.guard.failures.map((failure) => failure.id), ["baseline-ancestry"])
+		assert.deepEqual(
+			payload.guard.failures.map((failure) => failure.id),
+			["baseline-ancestry"],
+		)
 		assert.match(payload.remediation, /git fetch --unshallow upstream main/)
 		assert.match(payload.remediation, /--shallow-since=<date>/)
 		assert.equal(state.writes, 0, "--write must refuse: the register is never opened for writing")
@@ -1900,7 +1900,10 @@ describe("runRefresh — H-01: a saturated window refuses", () => {
 		const { code, payload } = await runRefresh(refreshOpts({ write: true }), io)
 
 		assert.equal(code, 1)
-		assert.deepEqual(payload.guard.failures.map((failure) => failure.id), ["window-saturated"])
+		assert.deepEqual(
+			payload.guard.failures.map((failure) => failure.id),
+			["window-saturated"],
+		)
 		assert.match(payload.guard.failures[0].message, /not strictly less than the local shallow window/)
 		assert.equal(state.writes, 0)
 		assert.equal(state.markdown, before)
@@ -1944,7 +1947,10 @@ describe("runRefresh — H-01: an UNSHALLOWED clone reports the saturation claus
 		const { code, payload } = await runRefresh(refreshOpts({ write: true }), io)
 
 		assert.equal(code, 1)
-		assert.deepEqual(payload.guard.failures.map((failure) => failure.id), ["baseline-ancestry"])
+		assert.deepEqual(
+			payload.guard.failures.map((failure) => failure.id),
+			["baseline-ancestry"],
+		)
 		assert.equal(payload.windowSize, null)
 		assert.equal(state.writes, 0)
 		assert.equal(state.markdown, before)
@@ -1967,10 +1973,10 @@ describe("runRefresh — a genuine advance proposes NEW rows only", () => {
 		assert.equal(payload.ok, true)
 		assert.equal(payload.wrote, true)
 		assert.equal(payload.newCommitCount, 2)
-		assert.deepEqual(payload.proposals.map((row) => row.sha9), [
-			NEW_SHA_1.slice(0, ROW_SHA_LENGTH),
-			NEW_SHA_2.slice(0, ROW_SHA_LENGTH),
-		])
+		assert.deepEqual(
+			payload.proposals.map((row) => row.sha9),
+			[NEW_SHA_1.slice(0, ROW_SHA_LENGTH), NEW_SHA_2.slice(0, ROW_SHA_LENGTH)],
+		)
 		assert.equal(payload.deepenCommand, "git fetch --shallow-since=2026-08-19 upstream main")
 		assert.equal(payload.windowNote, "local shallow window 500 commit(s); new-commit count 2 < window")
 		assert.equal(state.writes, 1)
@@ -1979,7 +1985,10 @@ describe("runRefresh — a genuine advance proposes NEW rows only", () => {
 		const after = parseRegister(state.markdown)
 		for (const row of originalRows) {
 			assert.ok(state.markdown.includes(row.raw), `existing row must survive verbatim: ${row.raw}`)
-			assert.deepEqual(after.rows.find((candidate) => candidate.sha === row.sha), row)
+			assert.deepEqual(
+				after.rows.find((candidate) => candidate.sha === row.sha),
+				row,
+			)
 		}
 		assert.equal(after.rows.length, originalRows.length + 2, "exactly the NEW commits are appended")
 		for (const sha of [NEW_SHA_1, NEW_SHA_2].map((full) => full.slice(0, ROW_SHA_LENGTH))) {
@@ -2011,7 +2020,10 @@ describe("runRefresh — the baseline-ancestry clause is load-bearing", () => {
 
 		const refused = evaluateRefreshGuard(facts)
 		assert.equal(refused.ok, false)
-		assert.deepEqual(refused.failures.map((failure) => failure.id), ["baseline-ancestry"])
+		assert.deepEqual(
+			refused.failures.map((failure) => failure.id),
+			["baseline-ancestry"],
+		)
 		assert.match(refused.failures[0].message, /NOT an ancestor/)
 		assert.equal(evaluateRefreshGuard({ ...facts, baselineTipIsAncestor: true }).ok, true)
 	})
@@ -2239,7 +2251,11 @@ describe("--json output purity", () => {
 		for (const row of rows) {
 			for (const token of row.blockedByTokens) {
 				const resolved = token.slice(0, ROW_SHA_LENGTH)
-				assert.notEqual(token.toLowerCase(), UNKNOWN_BLOCKED_BY_TOKEN, `row \`${row.sha}\` still records \`unknown\``)
+				assert.notEqual(
+					token.toLowerCase(),
+					UNKNOWN_BLOCKED_BY_TOKEN,
+					`row \`${row.sha}\` still records \`unknown\``,
+				)
 				assert.ok(
 					rows.some((candidate) => candidate.sha === resolved),
 					`row \`${row.sha}\` names \`${token}\`, which is not a register row`,
@@ -2532,7 +2548,10 @@ describe("CP1-2 — landed-unflipped fails a landed-but-open row by SHA", () => 
 		const report = validateRegister({
 			markdown,
 			pendingShas: HEALTHY_PENDING,
-			probe: { ...probeWithLanded([{ upstreamSha: SHA_A, forkSha: FORK_SHA }]), isReachableFromForkRef: () => true },
+			probe: {
+				...probeWithLanded([{ upstreamSha: SHA_A, forkSha: FORK_SHA }]),
+				isReachableFromForkRef: () => true,
+			},
 		})
 		assert.equal(checkById(report, "landed-unflipped").ok, true)
 	})
@@ -2668,7 +2687,9 @@ describe("CP1-3 — --repo-only issues no git command that references upstream",
 		const logPath = path.join(shimDir, "git-calls.log")
 		const realGit = spawnSync("sh", ["-c", "command -v git"], { encoding: "utf8" }).stdout.trim()
 		assert.ok(realGit, "could not locate the real git binary for the shim")
-		const shim = ["#!/bin/sh", `printf '%s\\n' "$*" >> "$TRIAGE_GIT_LOG"`, `exec "$TRIAGE_REAL_GIT" "$@"`, ""].join("\n")
+		const shim = ["#!/bin/sh", `printf '%s\\n' "$*" >> "$TRIAGE_GIT_LOG"`, `exec "$TRIAGE_REAL_GIT" "$@"`, ""].join(
+			"\n",
+		)
 		const shimPath = path.join(shimDir, "git")
 		fs.writeFileSync(shimPath, shim, { mode: 0o755 })
 
@@ -2700,7 +2721,11 @@ describe("CP1-5 — the production git resolver discriminates a real SHA from a 
 		assert.match(head, /^[0-9a-f]{40}$/, "expected a real HEAD SHA in this checkout")
 		const probe = buildProbe("master")
 		assert.equal(probe.commitType(head), "commit", "a real SHA must resolve to a commit")
-		assert.equal(probe.commitType("0000000000000000000000000000000000000000"), null, "an absent object must not resolve")
+		assert.equal(
+			probe.commitType("0000000000000000000000000000000000000000"),
+			null,
+			"an absent object must not resolve",
+		)
 		assert.equal(probe.commitType("not-a-sha"), null, "a bogus token must not resolve")
 	})
 
@@ -2810,7 +2835,13 @@ describe("parseArgs", () => {
 /** A one-row register whose single row is `☑` (so the provenance checks apply). */
 function syncedRegister() {
 	return buildRegister({
-		rows: [makeRow(PREFIX_A, "fix: a synced row", { status: "☑ `abc1234`", resolved: "2026-09-16", version: "3.88.4" })],
+		rows: [
+			makeRow(PREFIX_A, "fix: a synced row", {
+				status: "☑ `abc1234`",
+				resolved: "2026-09-16",
+				version: "3.88.4",
+			}),
+		],
 		pendingCount: 1,
 	})
 }
@@ -2857,7 +2888,10 @@ describe("WS-4 — the signature decision maps every git `%G?` code (F-F-1)", ()
 	})
 
 	it("resolves the allow-list: flag, then UPSTREAM_SIGNER_ALLOWLIST, then the default", () => {
-		assert.deepEqual(resolveAllowedSigners({ UPSTREAM_SIGNER_ALLOWLIST: "A <a@b>, C <c@d>" }), ["A <a@b>", "C <c@d>"])
+		assert.deepEqual(resolveAllowedSigners({ UPSTREAM_SIGNER_ALLOWLIST: "A <a@b>, C <c@d>" }), [
+			"A <a@b>",
+			"C <c@d>",
+		])
 		assert.deepEqual(resolveAllowedSigners({}, ["X <x@y>"]), ["X <x@y>"])
 		assert.deepEqual(resolveAllowedSigners({}), DEFAULT_ALLOWED_SIGNERS)
 	})
@@ -3025,7 +3059,10 @@ describe("WS-4 — `--refresh --write` refuses on an INVALID signature (H-22)", 
 	})
 
 	it("refuses a GOOD signature from a signer NOT on the allow-list (invalid, not unverifiable)", async () => {
-		const { code, payload, state } = await refreshWithSignature({ validity: "G", signer: "Mallory <mallory@example.com>" })
+		const { code, payload, state } = await refreshWithSignature({
+			validity: "G",
+			signer: "Mallory <mallory@example.com>",
+		})
 
 		assert.equal(code, 1, "a good signature from an unknown signer is a false provenance claim")
 		assert.equal(payload.refused, true)
@@ -3141,7 +3178,11 @@ describe("CP2-1 — README §8 states the real check count and enumerates every 
 		const text = readmeSection8()
 		const stated = /reporting \*\*(\d+) independent checks\*\*/.exec(text)
 		assert.ok(stated, "README §8 must state its count as `**<n> independent checks**`")
-		assert.equal(Number(stated[1]), CHECK_IDS_FULL.length, "a check added to the tool must fail until the manual is updated")
+		assert.equal(
+			Number(stated[1]),
+			CHECK_IDS_FULL.length,
+			"a check added to the tool must fail until the manual is updated",
+		)
 		assert.doesNotMatch(text, /\bsixteen\b/i, "the stale hard-coded count word (CP2-1) must be gone")
 	})
 
@@ -3474,13 +3515,19 @@ function registerWithMissing(shas) {
 }
 
 /**
-	* The IO fake for `ensureRegisterObjects`. It models EXACTLY the two remotes the
-	* fix names: `origin` (the fork's own, preferred) and the bounded `upstream`
-	* fallback, each able to produce only the SHAs it is told it "serves".
-	* `originCalls`/`upstreamCalls` make "no fetch attempted" observably different
-	* from "a fetch that returned nothing".
-	*/
-function makeFetchIo({ present = [], originServes = [], upstreamServes = [], index = new Map(), tipMissing = false } = {}) {
+ * The IO fake for `ensureRegisterObjects`. It models EXACTLY the two remotes the
+ * fix names: `origin` (the fork's own, preferred) and the bounded `upstream`
+ * fallback, each able to produce only the SHAs it is told it "serves".
+ * `originCalls`/`upstreamCalls` make "no fetch attempted" observably different
+ * from "a fetch that returned nothing".
+ */
+function makeFetchIo({
+	present = [],
+	originServes = [],
+	upstreamServes = [],
+	index = new Map(),
+	tipMissing = false,
+} = {}) {
 	const set = new Set(present)
 	const tip = TIP.slice(0, ROW_SHA_LENGTH)
 	const state = { originCalls: 0, upstreamCalls: 0, originShas: [], upstreamCommands: [] }
@@ -3643,7 +3690,10 @@ describe("WS-12 — missing register objects: opt-in fetch, origin preferred", (
 	})
 
 	it("classifyUnresolvedObject maps the three inputs to exactly two failure kinds (never a pass)", () => {
-		assert.equal(classifyUnresolvedObject({ type: "commit", objectFetch: { requested: true, served: false } }), null)
+		assert.equal(
+			classifyUnresolvedObject({ type: "commit", objectFetch: { requested: true, served: false } }),
+			null,
+		)
 		assert.equal(classifyUnresolvedObject({ type: null, objectFetch: null }), UNRESOLVED_DOES_NOT_RESOLVE)
 		assert.equal(
 			classifyUnresolvedObject({ type: null, objectFetch: { requested: false, served: false } }),
@@ -3662,7 +3712,10 @@ describe("WS-12 — missing register objects: opt-in fetch, origin preferred", (
 	it("resolutionFailureText names the row in both kinds and never emits one for a resolved object", () => {
 		const base = { line: 7, sha: PREFIX_A, subject: "fix: x" }
 		assert.match(resolutionFailureText({ ...base, kind: UNRESOLVED_DOES_NOT_RESOLVE }), /does not resolve/)
-		assert.match(resolutionFailureText({ ...base, kind: UNRESOLVED_COULD_NOT_FETCH }), /object could not be fetched/)
+		assert.match(
+			resolutionFailureText({ ...base, kind: UNRESOLVED_COULD_NOT_FETCH }),
+			/object could not be fetched/,
+		)
 		for (const text of [
 			resolutionFailureText({ ...base, kind: UNRESOLVED_DOES_NOT_RESOLVE }),
 			resolutionFailureText({ ...base, kind: UNRESOLVED_COULD_NOT_FETCH }),
@@ -3674,10 +3727,7 @@ describe("WS-12 — missing register objects: opt-in fetch, origin preferred", (
 	it("collectMissingRegisterObjects reports rows AND the header tip", () => {
 		const { rows, baseline } = parseRegister(registerWithMissing([PREFIX_A]))
 		const missing = collectMissingRegisterObjects({ rows, baseline, commitType: () => null })
-		assert.deepEqual(
-			missing.map((entry) => entry.kind).sort(),
-			["header-tip", "row"],
-		)
+		assert.deepEqual(missing.map((entry) => entry.kind).sort(), ["header-tip", "row"])
 		const kinds = collectMissingRegisterObjects({ rows, baseline, commitType: () => "commit" })
 		assert.deepEqual(kinds, [], "nothing missing when every object resolves")
 	})
