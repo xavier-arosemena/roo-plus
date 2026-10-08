@@ -1,5 +1,7 @@
 import { CodeIndexManager } from "../manager"
 import { CodeIndexServiceFactory } from "../service-factory"
+import { CodeIndexOrchestrator } from "../orchestrator"
+import { CodeIndexSearchService } from "../search-service"
 import { CodeIndexConfigManager } from "../config-manager"
 import { CacheManager } from "../cache-manager"
 import { SembleProvider } from "../semble"
@@ -422,63 +424,19 @@ describe("CodeIndexManager - handleSettingsChange regression", () => {
 			;(manager as any)._configManager = mockConfigManager
 		})
 
-		it("should validate embedder during _recreateServices when validation succeeds", async () => {
-			// Arrange
-			mockServiceFactoryInstance.validateEmbedder.mockResolvedValue({ valid: true })
+		it("should create indexing services without a startup embedder validation request", async () => {
+			mockServiceFactoryInstance.validateEmbedder.mockResolvedValue({
+				valid: false,
+				error: "Embedder unavailable",
+			})
 
-			// Act - directly call the private method for testing
-			await (manager as any)._recreateServices()
+			await manager["_recreateServices"]()
 
-			// Assert
 			expect(mockServiceFactoryInstance.createServices).toHaveBeenCalled()
-			const createdEmbedder = mockServiceFactoryInstance.createServices.mock.results[0].value.embedder
-			expect(mockServiceFactoryInstance.validateEmbedder).toHaveBeenCalledWith(createdEmbedder)
+			expect(mockServiceFactoryInstance.validateEmbedder).not.toHaveBeenCalled()
 			expect(mockStateManager.setSystemState).not.toHaveBeenCalledWith("Error", expect.any(String))
-		})
-
-		it("should set error state when embedder validation fails", async () => {
-			// Arrange
-			mockServiceFactoryInstance.validateEmbedder.mockResolvedValue({
-				valid: false,
-				error: "embeddings:validation.authenticationFailed",
-			})
-
-			// Act & Assert
-			await expect((manager as any)._recreateServices()).rejects.toThrow(
-				"embeddings:validation.authenticationFailed",
-			)
-
-			// Assert other expectations
-			expect(mockServiceFactoryInstance.createServices).toHaveBeenCalled()
-			const createdEmbedder = mockServiceFactoryInstance.createServices.mock.results[0].value.embedder
-			expect(mockServiceFactoryInstance.validateEmbedder).toHaveBeenCalledWith(createdEmbedder)
-			expect(mockStateManager.setSystemState).toHaveBeenCalledWith(
-				"Error",
-				"embeddings:validation.authenticationFailed",
-			)
-		})
-
-		it("should set generic error state when embedder validation throws", async () => {
-			// Arrange
-			// Since the real service factory catches exceptions, we should mock it to resolve with an error
-			mockServiceFactoryInstance.validateEmbedder.mockResolvedValue({
-				valid: false,
-				error: "embeddings:validation.configurationError",
-			})
-
-			// Act & Assert
-			await expect((manager as any)._recreateServices()).rejects.toThrow(
-				"embeddings:validation.configurationError",
-			)
-
-			// Assert other expectations
-			expect(mockServiceFactoryInstance.createServices).toHaveBeenCalled()
-			const createdEmbedder = mockServiceFactoryInstance.createServices.mock.results[0].value.embedder
-			expect(mockServiceFactoryInstance.validateEmbedder).toHaveBeenCalledWith(createdEmbedder)
-			expect(mockStateManager.setSystemState).toHaveBeenCalledWith(
-				"Error",
-				"embeddings:validation.configurationError",
-			)
+			expect(manager["_orchestrator"]).toBeInstanceOf(CodeIndexOrchestrator)
+			expect(manager["_searchService"]).toBeInstanceOf(CodeIndexSearchService)
 		})
 
 		it("should handle embedder creation failure", async () => {
@@ -632,7 +590,7 @@ describe("CodeIndexManager - handleSettingsChange regression", () => {
 			// Assert - manager should be initialized again
 			expect(manager.isInitialized).toBe(true)
 			expect(mockServiceFactoryInstance.createServices).toHaveBeenCalled()
-			expect(mockServiceFactoryInstance.validateEmbedder).toHaveBeenCalled()
+			expect(mockServiceFactoryInstance.validateEmbedder).not.toHaveBeenCalled()
 		})
 
 		it("should be safe to call when not in error state (idempotent)", async () => {

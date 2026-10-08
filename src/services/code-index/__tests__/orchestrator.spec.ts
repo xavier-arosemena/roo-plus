@@ -42,8 +42,8 @@ vi.mock("@roo-code/telemetry", () => ({
 }))
 
 // Mock i18n translator used in orchestrator messages
-vi.mock("../../i18n", () => ({
-	t: (key: string, params?: any) => {
+vi.mock("../../../i18n", () => ({
+	t: (key: string, params?: { errorMessage?: string }) => {
 		if (key === "embeddings:orchestrator.failedDuringInitialScan" && params?.errorMessage) {
 			return `Failed during initial scan: ${params.errorMessage}`
 		}
@@ -200,34 +200,85 @@ describe("CodeIndexOrchestrator - error path cleanup gating", () => {
 		expect(lastCall[0]).toBe("Error")
 	})
 
-	it("should call clearCollection() and clear cache when an error occurs after initialize() succeeds (indexing started)", async () => {
-		// Arrange: initialize succeeds; fail soon after to enter error path with indexingStarted=true
-		vectorStore.initialize.mockResolvedValue(false) // existing collection
-		vectorStore.hasIndexedData.mockResolvedValue(false) // force full scan path
-		vectorStore.markIndexingIncomplete.mockRejectedValue(new Error("mark incomplete failure"))
+	it.each([false, true])(
+		"only cleans up a failed full scan when the collection was created by this run: %s",
+		async (created) => {
+			vectorStore.initialize.mockResolvedValue(created)
+			vectorStore.hasIndexedData.mockResolvedValue(false) // force full scan path
+			vectorStore.markIndexingIncomplete.mockRejectedValue(new Error("mark incomplete failure"))
 
-		const orchestrator = new CodeIndexOrchestrator(
-			configManager,
-			stateManager,
-			workspacePath,
-			cacheManager,
-			vectorStore,
-			scanner,
-			fileWatcher,
-		)
+			const orchestrator = new CodeIndexOrchestrator(
+				configManager,
+				stateManager,
+				workspacePath,
+				cacheManager,
+				vectorStore,
+				scanner,
+				fileWatcher,
+			)
 
-		// Act
-		await orchestrator.startIndexing()
+			// Act
+			await orchestrator.startIndexing()
 
-		// Assert: cleanup gated behind indexingStarted should have happened
-		expect(vectorStore.clearCollection).toHaveBeenCalledTimes(1)
-		expect(cacheManager.clearCacheFile).toHaveBeenCalledTimes(1)
+			expect(vectorStore.clearCollection).toHaveBeenCalledTimes(created ? 1 : 0)
+			// A new collection clears stale cache at initialization and again on failure.
+			expect(cacheManager.clearCacheFile).toHaveBeenCalledTimes(created ? 2 : 0)
 
-		// Error state should be set
-		expect(stateManager.setSystemState).toHaveBeenCalled()
-		const lastCall = stateManager.setSystemState.mock.calls[stateManager.setSystemState.mock.calls.length - 1]
-		expect(lastCall[0]).toBe("Error")
-	})
+			// Error state should be set
+			expect(stateManager.setSystemState).toHaveBeenCalled()
+			const lastCall = stateManager.setSystemState.mock.calls[stateManager.setSystemState.mock.calls.length - 1]
+			expect(lastCall[0]).toBe("Error")
+		},
+	)
+
+	it.each([false, true])(
+		"only cleans up after partial full-scan progress when the collection was created by this run: %s",
+		async (created) => {
+			const failure = new Error("batch failure after partial progress")
+			vectorStore.initialize.mockResolvedValue(created)
+			vectorStore.hasIndexedData.mockResolvedValue(false)
+			vectorStore.markIndexingIncomplete.mockResolvedValue(undefined)
+			scanner.scanDirectory.mockImplementation(
+				async (
+					_dir: string,
+					onError: (error: Error) => void,
+					onIndexed: (count: number) => void,
+					onParsed: (count: number) => void,
+				) => {
+					onParsed(3)
+					onIndexed(1)
+					onError(failure)
+					return { stats: { processed: 1, skipped: 0 }, totalBlockCount: 3 }
+				},
+			)
+			const orchestrator = new CodeIndexOrchestrator(
+				configManager,
+				stateManager,
+				workspacePath,
+				cacheManager,
+				vectorStore,
+				scanner,
+				fileWatcher,
+			)
+
+			await orchestrator.startIndexing()
+
+			expect(scanner.scanDirectory).toHaveBeenCalledOnce()
+			expect(stateManager.reportBlockIndexingProgress).toHaveBeenLastCalledWith(1, 3)
+			expect(stateManager.setSystemState).toHaveBeenLastCalledWith(
+				"Error",
+				expect.stringContaining(failure.message),
+			)
+			expect(stateManager.setSystemState).not.toHaveBeenCalledWith("Indexed", expect.any(String))
+			expect(vectorStore.clearCollection).toHaveBeenCalledTimes(created ? 1 : 0)
+			// New collections clear stale cache before scanning and again during error cleanup.
+			expect(cacheManager.clearCacheFile).toHaveBeenCalledTimes(created ? 2 : 0)
+			expect(vectorStore.markIndexingIncomplete).toHaveBeenCalledOnce()
+			expect(vectorStore.markIndexingComplete).not.toHaveBeenCalled()
+			expect(fileWatcher.initialize).not.toHaveBeenCalled()
+			expect(fileWatcher.dispose).toHaveBeenCalledOnce()
+		},
+	)
 
 	it("collects batch errors from full scan and transitions to Error when all blocks fail", async () => {
 		const batchError = new Error("batch failure")
@@ -259,16 +310,59 @@ describe("CodeIndexOrchestrator - error path cleanup gating", () => {
 		expect(calls[calls.length - 1]).toBe("Error")
 	})
 
-	it("collects batch errors from incremental scan and still completes indexing", async () => {
-		const batchError = new Error("incremental batch failure")
-		vectorStore.initialize.mockResolvedValue(false) // existing collection
-		vectorStore.hasIndexedData.mockResolvedValue(true) // force incremental scan path
-		vectorStore.markIndexingIncomplete.mockResolvedValue(undefined)
-		vectorStore.markIndexingComplete.mockResolvedValue(undefined)
+	it.each([0, 2])(
+		"preserves the existing index on incremental batch failure after %s indexed blocks",
+		async (indexed) => {
+			const batchError = new Error("incremental batch failure")
+			vectorStore.initialize.mockResolvedValue(false) // existing collection
+			vectorStore.hasIndexedData.mockResolvedValue(true) // force incremental scan path
+			vectorStore.markIndexingIncomplete.mockResolvedValue(undefined)
+			vectorStore.markIndexingComplete.mockResolvedValue(undefined)
 
-		// Incremental scan reports a batch error but returns a result — orchestrator completes normally
-		scanner.scanDirectory.mockImplementation(async (_dir: string, onBatchError: (e: Error) => void) => {
-			onBatchError(batchError)
+			scanner.scanDirectory.mockImplementation(
+				async (_dir: string, onBatchError: (e: Error) => void, onIndexed: (count: number) => void) => {
+					onIndexed(indexed)
+					onBatchError(batchError)
+					return { stats: { processed: 1, skipped: 0 }, totalBlockCount: 3 }
+				},
+			)
+
+			const orchestrator = new CodeIndexOrchestrator(
+				configManager,
+				stateManager,
+				workspacePath,
+				cacheManager,
+				vectorStore,
+				scanner,
+				fileWatcher,
+			)
+
+			await orchestrator.startIndexing()
+
+			expect(orchestrator.state).toBe("Error")
+			expect(stateManager.setSystemState).toHaveBeenLastCalledWith(
+				"Error",
+				expect.stringContaining(batchError.message),
+			)
+			expect(stateManager.setSystemState).not.toHaveBeenCalledWith("Indexed", expect.any(String))
+			expect(vectorStore.markIndexingIncomplete).toHaveBeenCalledOnce()
+			expect(vectorStore.markIndexingComplete).not.toHaveBeenCalled()
+			expect(vectorStore.clearCollection).not.toHaveBeenCalled()
+			expect(cacheManager.clearCacheFile).not.toHaveBeenCalled()
+			expect(fileWatcher.initialize).not.toHaveBeenCalled()
+			expect(fileWatcher.dispose).toHaveBeenCalledOnce()
+		},
+	)
+
+	it("preserves an existing index after an incremental failure and a failed full-scan retry", async () => {
+		let complete = true
+		vectorStore.initialize.mockResolvedValue(false)
+		vectorStore.hasIndexedData.mockImplementation(async () => complete)
+		vectorStore.markIndexingIncomplete.mockImplementation(async () => {
+			complete = false
+		})
+		scanner.scanDirectory.mockImplementation(async (_dir: string, onError: (error: Error) => void) => {
+			onError(new Error("embedding failed"))
 			return { stats: { processed: 0, skipped: 0 }, totalBlockCount: 0 }
 		})
 
@@ -282,12 +376,23 @@ describe("CodeIndexOrchestrator - error path cleanup gating", () => {
 			fileWatcher,
 		)
 
-		await orchestrator.startIndexing()
-
-		// Incremental scan doesn't gate on batch errors — Indexed state is still reached
-		const calls = stateManager.setSystemState.mock.calls.map((c: any[]) => c[0])
-		expect(calls[calls.length - 1]).toBe("Indexed")
-		expect(calls).not.toContain("Error")
+		for (let attempt = 1; attempt <= 2; attempt++) {
+			await orchestrator.startIndexing()
+			expect(complete).toBe(false)
+			expect(orchestrator.state).toBe("Error")
+			expect(scanner.scanDirectory).toHaveBeenCalledTimes(attempt)
+			expect(vectorStore.markIndexingIncomplete).toHaveBeenCalledTimes(attempt)
+			expect(vectorStore.clearCollection).not.toHaveBeenCalled()
+			expect(cacheManager.clearCacheFile).not.toHaveBeenCalled()
+			expect(vectorStore.markIndexingComplete).not.toHaveBeenCalled()
+			expect(fileWatcher.initialize).not.toHaveBeenCalled()
+		}
+		expect(stateManager.setSystemState).toHaveBeenCalledWith("Indexing", "Checking for new or modified files...")
+		expect(stateManager.setSystemState).toHaveBeenCalledWith(
+			"Indexing",
+			"Services ready. Starting workspace scan...",
+		)
+		expect(stateManager.setSystemState).not.toHaveBeenCalledWith("Indexed", expect.any(String))
 	})
 })
 
