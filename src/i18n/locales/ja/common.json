@@ -29,7 +29,8 @@
 		"alwaysAllow": "常に許可",
 		"deny": "拒否",
 		"semblePurpose": "ワークスペース内のコード検索とインデックス作成",
-		"dcgPurpose": "破壊的なコマンドの前の安全チェック（オプトイン）"
+		"dcgPurpose": "破壊的なコマンドの前の安全チェック（オプトイン）",
+		"esbuildPurpose": "TypeScriptカスタムツールのトランスパイルとバンドル"
 	},
 	"errors": {
 		"invalid_data_uri": "データURIフォーマットが無効です",

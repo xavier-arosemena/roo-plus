@@ -29,7 +29,8 @@
 		"alwaysAllow": "Selalu izinkan",
 		"deny": "Tolak",
 		"semblePurpose": "pencarian dan pengindeksan kode di ruang kerja Anda",
-		"dcgPurpose": "pemeriksaan keamanan sebelum perintah destruktif (opsional)"
+		"dcgPurpose": "pemeriksaan keamanan sebelum perintah destruktif (opsional)",
+		"esbuildPurpose": "mentranspilasi dan mem-bundel custom tool TypeScript"
 	},
 	"errors": {
 		"invalid_data_uri": "Format data URI tidak valid",

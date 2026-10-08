@@ -29,7 +29,8 @@
 		"alwaysAllow": "Always allow",
 		"deny": "Deny",
 		"semblePurpose": "code search and indexing in your workspace",
-		"dcgPurpose": "pre-command safety checks for destructive commands (opt-in)"
+		"dcgPurpose": "pre-command safety checks for destructive commands (opt-in)",
+		"esbuildPurpose": "transpiling and bundling TypeScript custom tools"
 	},
 	"errors": {
 		"invalid_data_uri": "Invalid data URI format",

@@ -10,11 +10,32 @@
 !package.json
 !package.nls.*
 
-# Include the built extension
-!dist
+# Include the built extension.
+# NOTE: vsce (3.9.2) splits .vscodeignore into an "ignore" list and a "negate"
+# list and evaluates them independently, so a negate ALWAYS wins over an ignore
+# regardless of textual order. A blanket `!dist` therefore re-includes every
+# file under dist (including `dist/**/*.map` and the duplicate
+# `dist/assets/marketplace/*`), and cannot be narrowed by a later ignore
+# pattern. The runtime-required dist entries are enumerated explicitly instead.
+# `dist/assets/**` is a build-time duplicate of the top-level
+# `assets/marketplace/**` (the copy actually read at runtime) and is
+# intentionally not packaged.
+!dist/*.js
+# Runtime-only WASM includes (Sub-task G). The former blanket `!dist/*.wasm`
+# is deliberately narrowed to the two runtime categories below: it would have
+# silently re-packaged a future re-copy of the ~13.9 MB `esbuild.wasm` engine.
+# `esbuild.wasm` is intentionally NOT packaged (download-only; see
+# docs/adr/adr-semble-binary-download-only.md, src/services/custom-tools/
+# esbuild-engine.ts, and `copyWasms` in packages/build/src/esbuild.ts). Only the
+# tree-sitter grammars + core loader and the tiktoken runtime are shipped.
+!dist/tree-sitter*.wasm
+!dist/tiktoken_bg.wasm
+!dist/bin/**
+!dist/i18n/**
+!dist/workers/*.js
+!dist/workers/*.wasm
 
 # Include the built webview
-!**/*.map
 !webview-ui/audio
 !webview-ui/build/assets/*.js
 !webview-ui/build/assets/*.ttf

@@ -29,7 +29,8 @@
 		"alwaysAllow": "항상 허용",
 		"deny": "거부",
 		"semblePurpose": "작업 영역의 코드 검색 및 인덱싱",
-		"dcgPurpose": "파괴적인 명령 전 안전 검사(선택 사항)"
+		"dcgPurpose": "파괴적인 명령 전 안전 검사(선택 사항)",
+		"esbuildPurpose": "TypeScript 사용자 정의 도구의 트랜스파일 및 번들링"
 	},
 	"errors": {
 		"invalid_data_uri": "잘못된 데이터 URI 형식",

@@ -26,6 +26,16 @@ export interface RegistryOptions {
 	nodePaths?: string[]
 	/** Path to the extension root directory (for finding bundled esbuild binary in production). */
 	extensionPath?: string
+	/**
+	 * Explicit path to the esbuild CLI script. Used for the lazily-acquired,
+	 * checksum-verified engine installed on first use (production).
+	 */
+	esbuildScriptPath?: string
+	/**
+	 * Lazily resolves the esbuild CLI script path on first use of a custom tool.
+	 * Invoked at most once per registry instance; the result is cached.
+	 */
+	esbuildScriptResolver?: () => Promise<string | undefined>
 }
 
 export class CustomToolRegistry {
@@ -34,6 +44,8 @@ export class CustomToolRegistry {
 	private cacheDir: string
 	private nodePaths: string[]
 	private extensionPath?: string
+	private esbuildScriptPath?: string
+	private esbuildScriptResolver?: () => Promise<string | undefined>
 	private lastLoaded: Map<string, number> = new Map()
 
 	constructor(options?: RegistryOptions) {
@@ -41,6 +53,8 @@ export class CustomToolRegistry {
 		// Default to current working directory's node_modules.
 		this.nodePaths = options?.nodePaths ?? [path.join(process.cwd(), "node_modules")]
 		this.extensionPath = options?.extensionPath
+		this.esbuildScriptPath = options?.esbuildScriptPath
+		this.esbuildScriptResolver = options?.esbuildScriptResolver
 	}
 
 	/**
@@ -235,6 +249,57 @@ export class CustomToolRegistry {
 	}
 
 	/**
+	 * Set the path to the esbuild CLI script used to transpile TypeScript tools.
+	 * Used for the lazily-acquired, checksum-verified engine.
+	 */
+	setEsbuildScriptPath(esbuildScriptPath: string): void {
+		this.esbuildScriptPath = esbuildScriptPath
+	}
+
+	/**
+	 * Register a resolver that lazily acquires the esbuild CLI script on first
+	 * use of a custom tool. The resolver is invoked at most once; its result is
+	 * cached for the registry's lifetime.
+	 */
+	setEsbuildScriptResolver(resolver: () => Promise<string | undefined>): void {
+		this.esbuildScriptResolver = resolver
+	}
+
+	/**
+	 * Resolve the esbuild CLI script path for this registry.
+	 *
+	 * Prefers an explicitly configured path, then the lazily-invoked resolver
+	 * (used in production to acquire the engine on first use). Returns undefined
+	 * when neither is configured, so callers fall back to the auto-discovery in
+	 * `getEsbuildScriptPath()`.
+	 *
+	 * @throws When a resolver is configured but cannot produce a path — the
+	 *   custom tool then fails loudly rather than silently falling back to a
+	 *   bundled engine that no longer ships.
+	 */
+	private async resolveEsbuildScriptPath(): Promise<string | undefined> {
+		if (this.esbuildScriptPath) {
+			return this.esbuildScriptPath
+		}
+
+		if (!this.esbuildScriptResolver) {
+			return undefined
+		}
+
+		const resolved = await this.esbuildScriptResolver()
+
+		if (!resolved) {
+			throw new Error(
+				"The esbuild engine required to run custom tools is unavailable. " +
+					"Check your network connection and retry, or re-approve the download.",
+			)
+		}
+
+		this.esbuildScriptPath = resolved
+		return resolved
+	}
+
+	/**
 	 * Clear the TypeScript compilation cache (both in-memory and on disk).
 	 * This removes all tool-specific subdirectories and their contents.
 	 */
@@ -310,6 +375,10 @@ export class CustomToolRegistry {
 		// Tool's node_modules takes priority (listed first).
 		const nodePaths = fs.existsSync(toolNodeModules) ? [toolNodeModules, ...this.nodePaths] : this.nodePaths
 
+		// Resolve the esbuild CLI script. In production this triggers the
+		// lazy, checksum-verified engine download on first use of a custom tool.
+		const esbuildScriptPath = await this.resolveEsbuildScriptPath()
+
 		// Bundle the TypeScript file with dependencies using esbuild CLI.
 		// - Node.js built-ins are external (they can't be bundled and are always available)
 		// - npm packages are bundled with CommonJS require() shim for compatibility
@@ -328,6 +397,7 @@ export class CustomToolRegistry {
 				banner: COMMONJS_REQUIRE_BANNER,
 			},
 			this.extensionPath,
+			esbuildScriptPath,
 		)
 
 		// Copy .env files from the tool's source directory to the tool-specific cache directory.

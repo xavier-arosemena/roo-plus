@@ -17,6 +17,9 @@ if (fs.existsSync(envPath)) {
 
 import { customToolRegistry } from "@roo-code/core"
 
+import { ensureEsbuildEngine } from "./services/custom-tools/esbuild-engine"
+import { requestEsbuildDownloadApproval } from "./services/binary-acquisition/esbuild"
+
 import "./utils/path" // Necessary to have access to String.prototype.toPosix.
 import { createOutputChannelLogger, createDualLogger } from "./utils/outputChannelLogger"
 import { initializeNetworkProxy } from "./utils/networkProxy"
@@ -120,8 +123,18 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Only applied in debug mode (F5).
 	await initializeNetworkProxy(context, outputChannel)
 
-	// Set extension path for custom tool registry to find bundled esbuild
+	// Set extension path for the custom tool registry and wire the lazy esbuild
+	// engine installer. The esbuild-wasm engine (~14 MB) is no longer bundled in
+	// the VSIX; it is downloaded, checksum-verified and cached on first use of a
+	// custom tool (never at activation).
 	customToolRegistry.setExtensionPath(context.extensionPath)
+	customToolRegistry.setEsbuildScriptResolver(async () =>
+		ensureEsbuildEngine({
+			extensionPath: context.extensionPath,
+			storageDir: context.globalStorageUri.fsPath,
+			onBeforeDownload: () => requestEsbuildDownloadApproval(context),
+		}),
+	)
 
 	// Migrate old settings to new
 	await migrateSettings(context, outputChannel)

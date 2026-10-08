@@ -29,7 +29,8 @@
 		"alwaysAllow": "Her zaman izin ver",
 		"deny": "Reddet",
 		"semblePurpose": "çalışma alanınızdaki kod arama ve dizinleme",
-		"dcgPurpose": "yıkıcı komutlardan önce güvenlik kontrolleri (isteğe bağlı)"
+		"dcgPurpose": "yıkıcı komutlardan önce güvenlik kontrolleri (isteğe bağlı)",
+		"esbuildPurpose": "TypeScript özel araçlarını dönüştürme ve paketleme"
 	},
 	"errors": {
 		"invalid_data_uri": "Geçersiz veri URI formatı",
