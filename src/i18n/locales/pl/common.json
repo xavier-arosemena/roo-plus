@@ -29,7 +29,8 @@
 		"alwaysAllow": "Zawsze zezwalaj",
 		"deny": "Odmów",
 		"semblePurpose": "wyszukiwanie i indeksowanie kodu w Twoim obszarze roboczym",
-		"dcgPurpose": "kontrole bezpieczeństwa przed destrukcyjnymi poleceniami (opcjonalne)"
+		"dcgPurpose": "kontrole bezpieczeństwa przed destrukcyjnymi poleceniami (opcjonalne)",
+		"esbuildPurpose": "transpilowanie i łączenie niestandardowych narzędzi TypeScript"
 	},
 	"errors": {
 		"invalid_data_uri": "Nieprawidłowy format URI danych",

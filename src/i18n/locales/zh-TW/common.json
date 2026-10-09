@@ -29,7 +29,8 @@
 		"alwaysAllow": "始終允許",
 		"deny": "拒絕",
 		"semblePurpose": "在工作區中進行程式碼搜尋與索引",
-		"dcgPurpose": "破壞性命令執行前的安全檢查（可選啟用）"
+		"dcgPurpose": "破壞性命令執行前的安全檢查（可選啟用）",
+		"esbuildPurpose": "轉譯與打包 TypeScript 自訂工具"
 	},
 	"errors": {
 		"invalid_data_uri": "資料 URI 格式無效",

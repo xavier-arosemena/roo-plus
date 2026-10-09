@@ -106,13 +106,13 @@ export class MessageManager {
 			// Collect condenseIds from condense_context events
 			if (msg.say === "condense_context" && msg.contextCondense?.condenseId) {
 				condenseIds.add(msg.contextCondense.condenseId)
-				console.log(`[MessageManager] Found condense_context to remove: ${msg.contextCondense.condenseId}`)
+				console.debug(`[MessageManager] Found condense_context to remove: ${msg.contextCondense.condenseId}`)
 			}
 
 			// Collect truncationIds from sliding_window_truncation events
 			if (msg.say === "sliding_window_truncation" && msg.contextTruncation?.truncationId) {
 				truncationIds.add(msg.contextTruncation.truncationId)
-				console.log(
+				console.debug(
 					`[MessageManager] Found sliding_window_truncation to remove: ${msg.contextTruncation.truncationId}`,
 				)
 			}

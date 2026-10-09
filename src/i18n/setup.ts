@@ -59,7 +59,7 @@ if (!isTestEnv) {
 				})
 			})
 
-			console.log(`Loaded translations for languages: ${Object.keys(translations).join(", ")}`)
+			console.debug(`Loaded translations for languages: ${Object.keys(translations).join(", ")}`)
 		} catch (dirError) {
 			console.error(`Error processing directory ${localesDir}:`, dirError)
 		}

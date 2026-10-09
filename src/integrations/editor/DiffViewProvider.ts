@@ -394,8 +394,8 @@ export class DiffViewProvider {
 			try {
 				await delay(safeDelayMs)
 			} catch (error) {
-				// Log error but continue - delay failure shouldn't break the save operation
-				console.warn(`Failed to apply write delay: ${error}`)
+				// Non-fatal: a failed delay should not break the save operation.
+				console.debug(`Failed to apply write delay: ${error}`)
 			}
 
 			const postDiagnostics = vscode.languages.getDiagnostics()
@@ -1188,7 +1188,7 @@ export class DiffViewProvider {
 			try {
 				await delay(safeDelayMs)
 			} catch (error) {
-				console.warn(`Failed to apply write delay: ${error}`)
+				console.debug(`Failed to apply write delay: ${error}`)
 			}
 
 			const postDiagnostics = vscode.languages.getDiagnostics()

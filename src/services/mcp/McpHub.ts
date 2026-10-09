@@ -39,6 +39,7 @@ import { fileExistsAtPath } from "../../utils/fs"
 import { TOKEN_EXPIRY_BUFFER_MS, OAUTH_FLOW_TIMEOUT_MS } from "./constants"
 import { SecretStorageService } from "./SecretStorageService"
 import { McpOAuthClientProvider } from "./McpOAuthClientProvider"
+import { isBenignMcpStderr } from "./stderrClassification"
 import { arePathsEqual, getWorkspacePath } from "../../utils/path"
 import { injectVariables } from "../../utils/config"
 import { safeWriteJson } from "../../utils/safeWriteJson"
@@ -767,11 +768,9 @@ export class McpHub {
 				if (stderrStream) {
 					stderrStream.on("data", async (data: Buffer) => {
 						const output = data.toString()
-						// Check if output contains INFO level log
-						const isInfoLog = /INFO/i.test(output)
 
-						if (isInfoLog) {
-							// Log normal informational messages
+						if (isBenignMcpStderr(output)) {
+							// Informational banner (e.g. "… running on stdio") — not an error.
 							console.log(`Server "${name}" info:`, output)
 						} else {
 							// Treat as error log

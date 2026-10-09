@@ -82,7 +82,12 @@ export async function getNanoGptModels(apiKey?: string): Promise<ModelRecord> {
 		for (const rawModel of responseResult.data.data) {
 			const modelResult = nanoGptModelSchema.safeParse(rawModel)
 			if (!modelResult.success) {
-				console.warn("Skipping invalid NanoGPT model entry")
+				// Log only the offending id — never dump the whole (untrusted, possibly
+				// large) provider payload to the console.
+				const rawId = (rawModel as { id?: unknown })?.id
+				console.warn(
+					`Skipping invalid NanoGPT model entry: ${typeof rawId === "string" ? rawId : "<unknown id>"}`,
+				)
 				continue
 			}
 

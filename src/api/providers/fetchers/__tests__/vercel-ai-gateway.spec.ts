@@ -96,7 +96,8 @@ describe("Vercel AI Gateway Fetchers", () => {
 			consoleErrorSpy.mockRestore()
 		})
 
-		it("handles invalid response schema gracefully", async () => {
+		it("handles a response without a model list gracefully", async () => {
+			const consoleWarnSpy = vitest.spyOn(console, "warn").mockImplementation(function () {})
 			const consoleErrorSpy = vitest.spyOn(console, "error").mockImplementation(function () {})
 			mockedAxios.get.mockResolvedValueOnce({
 				data: {
@@ -108,11 +109,13 @@ describe("Vercel AI Gateway Fetchers", () => {
 			const models = await getVercelAiGatewayModels()
 
 			expect(models).toEqual({})
-			expect(consoleErrorSpy).toHaveBeenCalled()
+			expect(consoleWarnSpy).toHaveBeenCalled()
+			expect(consoleErrorSpy).not.toHaveBeenCalled()
+			consoleWarnSpy.mockRestore()
 			consoleErrorSpy.mockRestore()
 		})
 
-		it("continues processing with partially valid schema", async () => {
+		it("continues processing with a partially valid top-level response", async () => {
 			const consoleErrorSpy = vitest.spyOn(console, "error").mockImplementation(function () {})
 			const invalidResponse = {
 				data: {
@@ -140,8 +143,37 @@ describe("Vercel AI Gateway Fetchers", () => {
 
 			const models = await getVercelAiGatewayModels()
 
-			expect(consoleErrorSpy).toHaveBeenCalled()
+			// The per-entry fallback recovers the model without surfacing an error.
+			expect(consoleErrorSpy).not.toHaveBeenCalled()
 			expect(models["anthropic/claude-sonnet-4"]).toBeDefined()
+			consoleErrorSpy.mockRestore()
+		})
+
+		it("backfills defaults when context_window and max_tokens are omitted", async () => {
+			const consoleErrorSpy = vitest.spyOn(console, "error").mockImplementation(function () {})
+			mockedAxios.get.mockResolvedValueOnce({
+				data: {
+					object: "list",
+					data: [
+						{
+							id: "zoo/mystery-model",
+							object: "model",
+							owned_by: "zoo",
+							name: "Mystery",
+							type: "language",
+							pricing: {},
+						},
+					],
+				},
+			})
+
+			const models = await getVercelAiGatewayModels()
+
+			expect(consoleErrorSpy).not.toHaveBeenCalled()
+			expect(models["zoo/mystery-model"]).toMatchObject({
+				contextWindow: 200_000,
+				maxTokens: 8_192,
+			})
 			consoleErrorSpy.mockRestore()
 		})
 	})

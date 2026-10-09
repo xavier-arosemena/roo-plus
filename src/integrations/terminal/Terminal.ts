@@ -40,7 +40,7 @@ export class Terminal extends BaseTerminal {
 					options.shellArgs = profileShell.shellArgs
 				}
 
-				console.info(
+				console.debug(
 					`[Terminal] Creating terminal with profile "${Terminal.getTerminalProfile()}" -> ${profileShell.shellPath}`,
 				)
 
@@ -130,7 +130,9 @@ export class Terminal extends BaseTerminal {
 						process.run(command)
 					})
 					.catch(() => {
-						console.log(`[Terminal ${this.id}] Shell integration not available. Command execution aborted.`)
+						console.debug(
+							`[Terminal ${this.id}] Shell integration not available. Command execution aborted.`,
+						)
 
 						// Clean up temporary directory if shell integration is not available
 						ShellIntegrationManager.zshCleanupTmpDir(this.id)

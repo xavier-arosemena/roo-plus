@@ -29,7 +29,8 @@
 		"alwaysAllow": "Toujours autoriser",
 		"deny": "Refuser",
 		"semblePurpose": "recherche et indexation de code dans votre espace de travail",
-		"dcgPurpose": "contrôles de sécurité avant les commandes destructives (facultatif)"
+		"dcgPurpose": "contrôles de sécurité avant les commandes destructives (facultatif)",
+		"esbuildPurpose": "transpiler et empaqueter des outils personnalisés TypeScript"
 	},
 	"errors": {
 		"invalid_data_uri": "Format d'URI de données invalide",
