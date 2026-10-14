@@ -1,6 +1,6 @@
 {
 	"input": {
-		"task_prompt": "O que você quer que o Zoo faça?",
+		"task_prompt": "O que você quer que o Roo+ faça?",
 		"task_placeholder": "Digite sua tarefa aqui"
 	},
 	"extension": {
@@ -167,7 +167,7 @@
 	"warnings": {
 		"no_terminal_content": "Nenhum conteúdo do terminal selecionado",
 		"missing_task_files": "Os arquivos desta tarefa estão faltando. Deseja removê-la da lista de tarefas?",
-		"auto_import_failed": "Falha ao importar automaticamente as configurações do ZooCode: {{error}}",
+		"auto_import_failed": "Falha ao importar automaticamente as configurações do Roo+: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "Nenhum histórico de tarefas do Roo Code encontrado para importar de {{domain}}.",
 			"alreadyImported_one": "O histórico de {{count}} tarefa do Roo Code já foi importado para o Roo+.",
@@ -181,7 +181,7 @@
 		"custom_storage_path_set": "Caminho de armazenamento personalizado definido: {{path}}",
 		"default_storage_path": "Retornado ao caminho de armazenamento padrão",
 		"settings_imported": "Configurações importadas com sucesso.",
-		"auto_import_success": "Configurações do ZooCode importadas automaticamente de {{filename}}",
+		"auto_import_success": "Configurações do Roo+ importadas automaticamente de {{filename}}",
 		"share_link_copied": "Link de compartilhamento copiado para a área de transferência",
 		"image_copied_to_clipboard": "URI de dados da imagem copiada para a área de transferência",
 		"image_saved": "Imagem salva em {{path}}",
@@ -218,8 +218,8 @@
 	},
 	"storage": {
 		"prompt_custom_path": "Digite o caminho de armazenamento personalizado para o histórico de conversas, deixe em branco para usar o local padrão",
-		"path_placeholder": "D:\\ZooCodeStorage",
-		"enter_absolute_path": "Por favor, digite um caminho absoluto (ex: D:\\ZooCodeStorage ou /home/user/storage)",
+		"path_placeholder": "D:\\RooPlusStorage",
+		"enter_absolute_path": "Por favor, digite um caminho absoluto (ex: D:\\RooPlusStorage ou /home/user/storage)",
 		"enter_valid_path": "Por favor, digite um caminho válido"
 	},
 	"settings": {
@@ -277,28 +277,7 @@
 	},
 	"docsLink": {
 		"label": "Docs",
-		"url": "https://docs.zoocode.dev"
-	},
-	"zooAuth": {
-		"errors": {
-			"invalid_token_received": "Roo+: Token de autenticação inválido recebido.",
-			"token_verification_failed": "Roo+: Falha na verificação do token.",
-			"invalid_token": "Roo+: Token inválido.",
-			"could_not_verify_token": "Roo+: Não foi possível verificar o token.",
-			"session_expired": "Sessão do Roo+ expirada. Entre novamente para continuar usando o Zoo Gateway.",
-			"out_of_credits": "Zoo Gateway: créditos insuficientes. Adicione créditos para continuar.",
-			"account_unavailable": "Zoo Gateway: sua conta está indisponível no momento. Entre em contato com o suporte.",
-			"budget_exceeded": "Zoo Gateway: orçamento de uso atingido. Aguarde o reset ou recarregue."
-		},
-		"info": {
-			"connected": "Roo+: Conectado com sucesso! Agora você pode usar o Roo+ como provedor de IA.",
-			"disconnected": "Roo+: Desconectado com sucesso."
-		},
-		"buttons": {
-			"sign_in": "Entrar",
-			"add_credits": "Adicionar créditos",
-			"contact_support": "Contatar suporte"
-		}
+		"url": "https://github.com/xavier-arosemena/roo-plus"
 	},
 	"codeActions": {
 		"explain": "Explicar com Roo+",

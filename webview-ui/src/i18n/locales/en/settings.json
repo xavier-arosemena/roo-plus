@@ -42,7 +42,7 @@
 		"ui": "UI",
 		"experimental": "Experimental",
 		"language": "Language",
-		"about": "About Roo+ Code"
+		"about": "About Roo+"
 	},
 	"about": {
 		"bugReport": {
@@ -57,7 +57,7 @@
 			"label": "Discovered a vulnerability?",
 			"link": "Follow our disclosure process"
 		},
-		"community": "Want tips or to just hang out with other Roo+ users? Join <redditLink>reddit.com/r/ZooCode</redditLink> or <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
+		"community": "Want tips or to just hang out with other Roo+ users? Join us on <githubLink>GitHub Discussions</githubLink>",
 		"contactAndCommunity": "Contact & Community",
 		"manageSettings": "Manage Settings",
 		"debugMode": {
@@ -67,7 +67,7 @@
 		"rooHistoryImport": {
 			"settingLabel": "Import history from Roo Code",
 			"cardTitle": "Roo Code history",
-			"cardDescription": "Copy saved Roo Code conversations into Roo+ Code.",
+			"cardDescription": "Copy saved Roo Code conversations into Roo+.",
 			"statusImporting": "Importing history",
 			"statusFailed": "Import failed",
 			"statusComplete": "Import complete",
@@ -237,7 +237,7 @@
 		},
 		"autoCloseZooOpenedFilesAfterUserEdited": {
 			"label": "Auto-close even after user interaction",
-			"description": "When enabled, Zoo-opened tabs are closed even if the user clicked or typed inside the file or diff during the edit session. Has no effect when 'Auto-close files Roo+ opened' is disabled."
+			"description": "When enabled, Roo+-opened tabs are closed even if the user clicked or typed inside the file or diff during the edit session. Has no effect when 'Auto-close files Roo+ opened' is disabled."
 		},
 		"autoCloseZooOpenedNewFiles": {
 			"label": "Auto-close newly created files",
@@ -412,7 +412,7 @@
 			"description": "Automatically execute allowed terminal commands without requiring approval",
 			"destructiveCommandGuard": {
 				"label": "Enable destructive command guard",
-				"description": "Download and use Destructive Command Guard (DCG) for this platform. Commands allowed by DCG run automatically. Commands blocked by DCG require your approval. Zoo's command lists are disabled while this is enabled. The downloaded executable is retained if you turn this off."
+				"description": "Download and use Destructive Command Guard (DCG) for this platform. Commands allowed by DCG run automatically. Commands blocked by DCG require your approval. Roo+'s command lists are disabled while this is enabled. The downloaded executable is retained if you turn this off."
 			},
 			"allowedCommands": "Allowed Auto-Execute Commands",
 			"allowedCommandsDescription": "Command prefixes that can be auto-executed when \"Always approve execute operations\" is enabled. Add * to allow all commands (use with caution).",
@@ -678,13 +678,6 @@
 				"learnMore": "Learn more about provider routing"
 			}
 		},
-		"zooGateway": {
-			"account": "Roo+ Account",
-			"signInButton": "Sign in to Roo+ Code",
-			"signInDescription": "Sign in to use Roo+ Gateway with your account",
-			"authenticated": "Authenticated",
-			"authenticatedAs": "Authenticated as {{name}}"
-		},
 		"customModel": {
 			"capabilities": "Configure the capabilities and pricing for your custom OpenAI-compatible model. Be careful when specifying the model capabilities, as they can affect how Roo+ performs.",
 			"maxTokens": {
@@ -733,7 +726,7 @@
 		},
 		"consecutiveMistakeLimit": {
 			"label": "Error & Repetition Limit",
-			"description": "Number of consecutive errors or repeated actions before showing 'Zoo is having trouble' dialog. Set to 0 to disable this safety mechanism (it will never trigger).",
+			"description": "Number of consecutive errors or repeated actions before showing 'Roo+ is having trouble' dialog. Set to 0 to disable this safety mechanism (it will never trigger).",
 			"unlimitedDescription": "Unlimited retries enabled (auto-proceed). The dialog will never appear.",
 			"warning": "⚠️ Setting to 0 allows unlimited retries which may consume significant API usage"
 		},
@@ -825,7 +818,7 @@
 		},
 		"maxReadFile": {
 			"label": "File read auto-truncate threshold",
-			"description": "Zoo reads this number of lines when the model omits start/end values. If this number is less than the file's total, Roo+ generates a line number index of code definitions. Special cases: -1 instructs Roo+ to read the entire file (without indexing), and 0 instructs it to read no lines and provides line indexes only for minimal context. Lower values minimize initial context usage, enabling precise subsequent line-range reads. Explicit start/end requests are not limited by this setting.",
+			"description": "Roo+ reads this number of lines when the model omits start/end values. If this number is less than the file's total, Roo+ generates a line number index of code definitions. Special cases: -1 instructs Roo+ to read the entire file (without indexing), and 0 instructs it to read no lines and provides line indexes only for minimal context. Lower values minimize initial context usage, enabling precise subsequent line-range reads. Explicit start/end requests are not limited by this setting.",
 			"lines": "lines",
 			"always_full_read": "Always read entire file"
 		},
@@ -950,7 +943,7 @@
 			"description": "Turn this on to inherit environment variables from the parent VS Code process. <0>Learn more</0>"
 		},
 		"profile": {
-			"label": "Shell for Roo+ Code",
+			"label": "Shell for Roo+",
 			"followVscode": "Follow VS Code profile (recommended)",
 			"configureButton": "Choose default profile in VS Code",
 			"noProfiles": "(no path-based profiles found in terminal.integrated.profiles)",
@@ -1111,8 +1104,7 @@
 		"providerNotAllowed": "Provider '{{provider}}' is not allowed by your organization",
 		"modelNotAllowed": "Model '{{model}}' is not allowed for provider '{{provider}}' by your organization",
 		"profileInvalid": "This profile contains a provider or model that is not allowed by your organization",
-		"qwenCodeOauthPath": "You must provide a valid OAuth credentials path.",
-		"zooGatewaySignIn": "Sign in to Roo+ to use Roo+ Gateway."
+		"qwenCodeOauthPath": "You must provide a valid OAuth credentials path."
 	},
 	"placeholders": {
 		"apiKey": "Enter API Key...",

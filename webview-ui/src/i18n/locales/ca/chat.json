@@ -127,7 +127,7 @@
 		"title": "Modes",
 		"marketplace": "Marketplace de Modes",
 		"settings": "Configuració de Modes",
-		"description": "Personalitats especialitzades que adapten el comportament de Zoo.",
+		"description": "Personalitats especialitzades que adapten el comportament de Roo+.",
 		"searchPlaceholder": "Cerca modes...",
 		"noResults": "No s'han trobat resultats"
 	},
@@ -184,7 +184,7 @@
 		"current": "Actual"
 	},
 	"instructions": {
-		"wantsToFetch": "Zoo vol obtenir instruccions detallades per ajudar amb la tasca actual."
+		"wantsToFetch": "Roo+ vol obtenir instruccions detallades per ajudar amb la tasca actual."
 	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ vol llegir aquest fitxer",
@@ -199,7 +199,7 @@
 		"wantsToInsert": "Roo+ vol inserir contingut en aquest fitxer",
 		"wantsToInsertWithLineNumber": "Roo+ vol inserir contingut a la línia {{lineNumber}} d'aquest fitxer",
 		"wantsToInsertAtEnd": "Roo+ vol afegir contingut al final d'aquest fitxer",
-		"wantsToReadAndXMore": "En Zoo vol llegir aquest fitxer i {{count}} més",
+		"wantsToReadAndXMore": "En Roo+ vol llegir aquest fitxer i {{count}} més",
 		"wantsToReadMultiple": "Roo+ vol llegir diversos fitxers",
 		"wantsToApplyBatchChanges": "Roo+ vol aplicar canvis a múltiples fitxers",
 		"wantsToGenerateImage": "Roo+ vol generar una imatge",
@@ -244,7 +244,7 @@
 	"response": "Resposta",
 	"arguments": "Arguments",
 	"text": {
-		"rooSaid": "En Zoo ha dit"
+		"rooSaid": "En Roo+ ha dit"
 	},
 	"feedback": {
 		"youSaid": "Has dit"
@@ -286,7 +286,7 @@
 		"copyToClipboard": "Copiar al porta-retalls",
 		"copied": "Copiat!",
 		"diagnostics": "Obtenir informació d'error detallada",
-		"proxyProvider": "Sembla que estàs utilitzant un proveïdor basat en proxy. Assegura't de comprovar els seus registres i de garantir que no estàs reescrivint les sol·licituds de Zoo."
+		"proxyProvider": "Sembla que estàs utilitzant un proveïdor basat en proxy. Assegura't de comprovar els seus registres i de garantir que no estàs reescrivint les sol·licituds de Roo+."
 	},
 	"powershell": {
 		"issues": "Sembla que estàs tenint problemes amb Windows PowerShell, si us plau consulta aquesta documentació per a més informació."
@@ -329,8 +329,8 @@
 		}
 	},
 	"skill": {
-		"wantsToLoad": "En Zoo vol carregar una habilitat",
-		"didLoad": "En Zoo ha carregat una habilitat"
+		"wantsToLoad": "En Roo+ vol carregar una habilitat",
+		"didLoad": "En Roo+ ha carregat una habilitat"
 	},
 	"followUpSuggest": {
 		"copyToInput": "Copiar a l'entrada (o Shift + clic)",
@@ -419,7 +419,7 @@
 		"ariaLabel": "Versió {{version}} - Feu clic per veure les notes de llançament"
 	},
 	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud està evolucionant!",
+		"title": "Roo+ Cloud està evolucionant!",
 		"description": "Executa agents remots al núvol, accedeix a les teves tasques des de qualsevol lloc, col·labora amb altres i molt més.",
 		"joinWaitlist": "Registra't per rebre les últimes actualitzacions."
 	},

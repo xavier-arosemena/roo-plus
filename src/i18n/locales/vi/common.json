@@ -163,7 +163,7 @@
 	"warnings": {
 		"no_terminal_content": "Không có nội dung terminal được chọn",
 		"missing_task_files": "Các tệp của nhiệm vụ này bị thiếu. Bạn có muốn xóa nó khỏi danh sách nhiệm vụ không?",
-		"auto_import_failed": "Không thể tự động nhập cài đặt ZooCode: {{error}}",
+		"auto_import_failed": "Không thể tự động nhập cài đặt Roo+: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "Không tìm thấy lịch sử nhiệm vụ Roo Code nào để nhập từ {{domain}}.",
 			"alreadyImported_one": "{{count}} lịch sử nhiệm vụ Roo Code đã được nhập vào Roo+.",
@@ -177,7 +177,7 @@
 		"custom_storage_path_set": "Đã thiết lập đường dẫn lưu trữ tùy chỉnh: {{path}}",
 		"default_storage_path": "Đã quay lại sử dụng đường dẫn lưu trữ mặc định",
 		"settings_imported": "Cài đặt đã được nhập thành công.",
-		"auto_import_success": "Cài đặt ZooCode đã được tự động nhập từ {{filename}}",
+		"auto_import_success": "Cài đặt Roo+ đã được tự động nhập từ {{filename}}",
 		"share_link_copied": "Liên kết chia sẻ đã được sao chép vào clipboard",
 		"image_copied_to_clipboard": "URI dữ liệu hình ảnh đã được sao chép vào clipboard",
 		"image_saved": "Hình ảnh đã được lưu vào {{path}}",
@@ -214,12 +214,12 @@
 	},
 	"storage": {
 		"prompt_custom_path": "Nhập đường dẫn lưu trữ tùy chỉnh cho lịch sử hội thoại, để trống để sử dụng vị trí mặc định",
-		"path_placeholder": "D:\\ZooCodeStorage",
-		"enter_absolute_path": "Vui lòng nhập đường dẫn tuyệt đối (ví dụ: D:\\ZooCodeStorage hoặc /home/user/storage)",
+		"path_placeholder": "D:\\RooPlusStorage",
+		"enter_absolute_path": "Vui lòng nhập đường dẫn tuyệt đối (ví dụ: D:\\RooPlusStorage hoặc /home/user/storage)",
 		"enter_valid_path": "Vui lòng nhập đường dẫn hợp lệ"
 	},
 	"input": {
-		"task_prompt": "Bạn muốn Zoo làm gì?",
+		"task_prompt": "Bạn muốn Roo+ làm gì?",
 		"task_placeholder": "Nhập nhiệm vụ của bạn ở đây"
 	},
 	"settings": {
@@ -284,28 +284,7 @@
 	},
 	"docsLink": {
 		"label": "Docs",
-		"url": "https://docs.zoocode.dev"
-	},
-	"zooAuth": {
-		"errors": {
-			"invalid_token_received": "Roo+: Nhận được token xác thực không hợp lệ.",
-			"token_verification_failed": "Roo+: Xác minh token thất bại.",
-			"invalid_token": "Roo+: Token không hợp lệ.",
-			"could_not_verify_token": "Roo+: Không thể xác minh token.",
-			"session_expired": "Phiên Roo+ đã hết hạn. Vui lòng đăng nhập lại để tiếp tục sử dụng Zoo Gateway.",
-			"out_of_credits": "Zoo Gateway: không đủ tín dụng. Thêm tín dụng để tiếp tục.",
-			"account_unavailable": "Zoo Gateway: tài khoản của bạn hiện không khả dụng. Vui lòng liên hệ hỗ trợ.",
-			"budget_exceeded": "Zoo Gateway: đã đạt ngân sách sử dụng. Chờ đặt lại ngân sách hoặc nạp thêm."
-		},
-		"info": {
-			"connected": "Roo+: Kết nối thành công! Bạn có thể sử dụng Roo+ làm nhà cung cấp AI.",
-			"disconnected": "Roo+: Đã ngắt kết nối thành công."
-		},
-		"buttons": {
-			"sign_in": "Đăng nhập",
-			"add_credits": "Thêm tín dụng",
-			"contact_support": "Liên hệ hỗ trợ"
-		}
+		"url": "https://github.com/xavier-arosemena/roo-plus"
 	},
 	"codeActions": {
 		"explain": "Giải thích bằng Roo+",

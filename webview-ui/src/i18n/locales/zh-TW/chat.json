@@ -144,7 +144,7 @@
 		"title": "模式",
 		"marketplace": "模式市集",
 		"settings": "模式設定",
-		"description": "專門量身打造 Zoo 行為的角色。",
+		"description": "專門量身打造 Roo+ 行為的角色。",
 		"searchPlaceholder": "搜尋模式...",
 		"noResults": "找不到結果"
 	},
@@ -225,7 +225,7 @@
 		"didLoad": "Roo+ 載入了技能"
 	},
 	"instructions": {
-		"wantsToFetch": "Zoo 想要取得詳細指示以協助目前工作"
+		"wantsToFetch": "Roo+ 想要取得詳細指示以協助目前工作"
 	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ 想要讀取此檔案",
@@ -332,7 +332,7 @@
 		"copyToClipboard": "複製基本錯誤資訊",
 		"copied": "已複製！",
 		"diagnostics": "取得詳細錯誤資訊",
-		"proxyProvider": "似乎正在使用代理型供應商。請檢查記錄，並確保不會重寫 Zoo 的請求。"
+		"proxyProvider": "似乎正在使用代理型供應商。請檢查記錄，並確保不會重寫 Roo+ 的請求。"
 	},
 	"diffError": {
 		"title": "編輯失敗"

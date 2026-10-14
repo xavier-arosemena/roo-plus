@@ -1,6 +1,6 @@
 {
 	"input": {
-		"task_prompt": "Què vols que faci Zoo?",
+		"task_prompt": "Què vols que faci Roo+?",
 		"task_placeholder": "Escriu la teva tasca aquí"
 	},
 	"extension": {
@@ -167,7 +167,7 @@
 	"warnings": {
 		"no_terminal_content": "No s'ha seleccionat contingut de terminal",
 		"missing_task_files": "Els fitxers d'aquesta tasca falten. Vols eliminar-la de la llista de tasques?",
-		"auto_import_failed": "Ha fallat la importació automàtica de la configuració de ZooCode: {{error}}",
+		"auto_import_failed": "Ha fallat la importació automàtica de la configuració de Roo+: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "No s'ha trobat historial de tasques de Roo Code per importar de {{domain}}.",
 			"alreadyImported_one": "Tot l'historial de tasca de Roo Code ({{count}}) ja s'ha importat a Roo+.",
@@ -181,7 +181,7 @@
 		"custom_storage_path_set": "Ruta d'emmagatzematge personalitzada establerta: {{path}}",
 		"default_storage_path": "S'ha reprès l'ús de la ruta d'emmagatzematge predeterminada",
 		"settings_imported": "Configuració importada correctament.",
-		"auto_import_success": "Configuració de ZooCode importada automàticament des de {{filename}}",
+		"auto_import_success": "Configuració de Roo+ importada automàticament des de {{filename}}",
 		"share_link_copied": "Enllaç de compartició copiat al portapapers",
 		"image_copied_to_clipboard": "URI de dades de la imatge copiada al portapapers",
 		"image_saved": "Imatge desada a {{path}}",
@@ -218,8 +218,8 @@
 	},
 	"storage": {
 		"prompt_custom_path": "Introdueix una ruta d'emmagatzematge personalitzada per a l'historial de converses o deixa-ho buit per utilitzar la ubicació predeterminada",
-		"path_placeholder": "D:\\ZooCodeStorage",
-		"enter_absolute_path": "Introdueix una ruta completa (p. ex. D:\\ZooCodeStorage o /home/user/storage)",
+		"path_placeholder": "D:\\RooPlusStorage",
+		"enter_absolute_path": "Introdueix una ruta completa (p. ex. D:\\RooPlusStorage o /home/user/storage)",
 		"enter_valid_path": "Introdueix una ruta vàlida"
 	},
 	"settings": {
@@ -277,28 +277,7 @@
 	},
 	"docsLink": {
 		"label": "Docs",
-		"url": "https://docs.zoocode.dev"
-	},
-	"zooAuth": {
-		"errors": {
-			"invalid_token_received": "Roo+: S'ha rebut un token d'autenticació no vàlid.",
-			"token_verification_failed": "Roo+: Ha fallat la verificació del token.",
-			"invalid_token": "Roo+: Token no vàlid.",
-			"could_not_verify_token": "Roo+: No s'ha pogut verificar el token.",
-			"session_expired": "Sessió de Roo+ caducada. Torna a iniciar sessió per continuar utilitzant Zoo Gateway.",
-			"out_of_credits": "Zoo Gateway: crèdits insuficients. Afegeix crèdits per continuar.",
-			"account_unavailable": "Zoo Gateway: el teu compte no està disponible. Contacta amb el suport.",
-			"budget_exceeded": "Zoo Gateway: pressupost d'ús assolit. Espera que es restableixi o afegeix crèdits."
-		},
-		"info": {
-			"connected": "Roo+: Connectat correctament! Ara podeu utilitzar Roo+ com a proveïdor d'IA.",
-			"disconnected": "Roo+: Desconnectat correctament."
-		},
-		"buttons": {
-			"sign_in": "Inicia sessió",
-			"add_credits": "Afegeix crèdits",
-			"contact_support": "Contacta amb el suport"
-		}
+		"url": "https://github.com/xavier-arosemena/roo-plus"
 	},
 	"codeActions": {
 		"explain": "Explica amb Roo+",

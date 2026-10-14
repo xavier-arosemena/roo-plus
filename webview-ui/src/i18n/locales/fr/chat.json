@@ -127,7 +127,7 @@
 		"title": "Modes",
 		"marketplace": "Marketplace de Modes",
 		"settings": "Paramètres des Modes",
-		"description": "Personas spécialisés qui adaptent le comportement de Zoo.",
+		"description": "Personas spécialisés qui adaptent le comportement de Roo+.",
 		"searchPlaceholder": "Rechercher des modes...",
 		"noResults": "Aucun résultat trouvé"
 	},
@@ -205,7 +205,7 @@
 		"didGenerateImage": "Roo+ a généré une image"
 	},
 	"instructions": {
-		"wantsToFetch": "Zoo veut récupérer des instructions détaillées pour aider à la tâche actuelle"
+		"wantsToFetch": "Roo+ veut récupérer des instructions détaillées pour aider à la tâche actuelle"
 	},
 	"directoryOperations": {
 		"wantsToViewTopLevel": "Roo+ veut voir les fichiers de premier niveau dans ce répertoire",
@@ -286,7 +286,7 @@
 		"copyToClipboard": "Copier dans le presse-papiers",
 		"copied": "Copié !",
 		"diagnostics": "Obtenir les détails de l'erreur",
-		"proxyProvider": "Il semble que tu utilises un fournisseur basé sur un proxy. Assure-toi de vérifier ses journaux et de t'assurer qu'il ne réécrit pas les demandes de Zoo."
+		"proxyProvider": "Il semble que tu utilises un fournisseur basé sur un proxy. Assure-toi de vérifier ses journaux et de t'assurer qu'il ne réécrit pas les demandes de Roo+."
 	},
 	"powershell": {
 		"issues": "Il semble que vous rencontriez des problèmes avec Windows PowerShell, veuillez consulter ce"
@@ -419,7 +419,7 @@
 		"ariaLabel": "Version {{version}} - Cliquez pour voir les notes de version"
 	},
 	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud évolue !",
+		"title": "Roo+ Cloud évolue !",
 		"description": "Exécutez des agents distants dans le cloud, accédez à vos tâches de n'importe où, collaborez avec d'autres et bien plus encore.",
 		"joinWaitlist": "Inscrivez-vous pour recevoir les dernières mises à jour."
 	},

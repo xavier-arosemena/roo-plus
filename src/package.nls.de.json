@@ -34,9 +34,9 @@
 	"settings.vsCodeLmModelSelector.description": "Einstellungen für die VSCode-Sprachmodell-API",
 	"settings.vsCodeLmModelSelector.vendor.description": "Der Anbieter des Sprachmodells (z.B. copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "Die Familie des Sprachmodells (z.B. gpt-4)",
-	"settings.customStoragePath.description": "Benutzerdefinierter Speicherpfad. Leer lassen, um den Standardspeicherort zu verwenden. Unterstützt absolute Pfade (z.B. 'D:\\ZooCodeStorage')",
+	"settings.customStoragePath.description": "Benutzerdefinierter Speicherpfad. Leer lassen, um den Standardspeicherort zu verwenden. Unterstützt absolute Pfade (z.B. 'D:\\RooPlusStorage')",
 	"settings.enableCodeActions.description": "Roo+ Schnelle Problembehebung aktivieren.",
-	"settings.autoImportSettingsPath.description": "Pfad zu einer ZooCode-Konfigurationsdatei, die beim Start der Erweiterung automatisch importiert wird. Unterstützt absolute Pfade und Pfade relativ zum Home-Verzeichnis (z.B. '~/Documents/roo-code-settings.json'). Leer lassen, um den automatischen Import zu deaktivieren.",
+	"settings.autoImportSettingsPath.description": "Pfad zu einer Roo+-Konfigurationsdatei, die beim Start der Erweiterung automatisch importiert wird. Unterstützt absolute Pfade und Pfade relativ zum Home-Verzeichnis (z.B. '~/Documents/roo-code-settings.json'). Leer lassen, um den automatischen Import zu deaktivieren.",
 	"settings.maximumIndexedFilesForFileSearch.description": "Maximale Anzahl der zu indizierenden Dateien für die @-Dateisuchfunktion. Höhere Werte bieten bessere Suchergebnisse in großen Projekten, können aber mehr Speicher verbrauchen. Standard: 10.000.",
 	"settings.useAgentRules.description": "Aktiviert das Laden von AGENTS.md-Dateien für agentenspezifische Regeln (siehe https://agent-rules.org/)",
 	"settings.apiRequestTimeout.description": "API-Antwort-Timeout (Sekunden, Standard: 600, Bereich: 1–3600). Höhere Werte werden für lokale Anbieter empfohlen. Nicht unterstützte Anbieter: Amazon Bedrock, Google Gemini(directly or through the Vertex AI platform), Mistral, Moonshot, Ollama, Poe, VS Code LM API.",
@@ -46,7 +46,7 @@
 	"settings.debugProxy.enabled.description": "**Debug-Proxy aktivieren** — Leite alle ausgehenden Netzwerkanfragen über einen Proxy für MITM-Debugging. Nur aktiv, wenn du im Debug-Modus (F5) läufst.",
 	"settings.debugProxy.serverUrl.description": "Proxy-URL (z. B. `http://127.0.0.1:8888`). Wird nur verwendet, wenn der **Debug-Proxy** aktiviert ist.",
 	"settings.debugProxy.tlsInsecure.description": "Akzeptiere selbstsignierte Zertifikate vom Proxy. **Erforderlich für MITM-Inspektion.** ⚠️ Unsicher – verwende das nur für lokales Debugging.",
-	"settings.workspace.rootResolution.description": "Wie Zoo das Workspace-Stammverzeichnis in einem Multi-Root-Workspace auflöst. Das Stammverzeichnis wird verwendet, um `.roomodes`, `.roo/mcp.json`, `.roo/rules/` und andere projektbezogene Konfiguration zu finden. Eine Änderung dieser Einstellung wirkt sich nur auf zukünftige Suchen aus; laufende Aufgaben behalten ihr ursprüngliches Stammverzeichnis.",
+	"settings.workspace.rootResolution.description": "Wie Roo+ das Workspace-Stammverzeichnis in einem Multi-Root-Workspace auflöst. Das Stammverzeichnis wird verwendet, um `.roomodes`, `.roo/mcp.json`, `.roo/rules/` und andere projektbezogene Konfiguration zu finden. Eine Änderung dieser Einstellung wirkt sich nur auf zukünftige Suchen aus; laufende Aufgaben behalten ihr ursprüngliches Stammverzeichnis.",
 	"settings.workspace.rootResolution.activeEditor.description": "Verwende den Workspace-Ordner, der den aktiven Editor enthält; greife auf den ersten Workspace-Ordner zurück. (Standard – behält das bisherige Verhalten bei.)",
 	"settings.workspace.rootResolution.firstFolder.description": "Verwende immer den ersten Workspace-Ordner (workspaceFolders[0]). Deterministisch – unabhängig davon, welche Datei gerade fokussiert ist."
 }

@@ -56,8 +56,8 @@ Wspomnij o dostosowaniu do tych obszarów w swoich PR-ach.
 
 ### 3. Dołącz do społeczności Roo+
 
-- **Discord:** Dołącz do naszego [Discorda](https://discord.gg/VxfP4Vx3gX).
-- **Reddit:** Dołącz do naszego [Reddita](https://www.reddit.com/r/ZooCode/).
+- **GitHub Discussions:** Dołącz do naszych [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions).
+- **GitHub Issues:** Zgłaszaj błędy i proponuj funkcje w [GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues).
 
 ## Znajdowanie i planowanie swojego wkładu
 
@@ -75,7 +75,7 @@ Wszystkie wkłady zaczynają się od zgłoszenia na GitHubie przy użyciu naszyc
 - **Utwórz zgłoszenie**, używając:
     - **Ulepszenia:** szablon „Prośba o ulepszenie” (prosty język skoncentrowany na korzyściach dla użytkownika).
     - **Błędy:** szablon „Zgłoszenie błędu” (minimalna reprodukcja + oczekiwane a rzeczywiste + wersja).
-- **Chcesz nad tym popracować?** Skomentuj „Zgłaszam się” w zgłoszeniu i wyślij wiadomość prywatną do głównego zespołu na [Discordzie](https://discord.gg/VxfP4Vx3gX), aby zostać przypisanym. Przypisanie zostanie potwierdzone w wątku.
+- **Chcesz nad tym popracować?** Skomentuj „Zgłaszam się” w zgłoszeniu i zapytaj na [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions), aby zostać przypisanym. Przypisanie zostanie potwierdzone w wątku.
 - **PR-y muszą być połączone ze zgłoszeniem.** Niepołączone PR-y mogą zostać zamknięte.
 
 ### Decydowanie, nad czym pracować
@@ -128,7 +128,7 @@ pnpm install
 
 ### Polityka dotycząca żądań ściągnięcia
 
-- Musi odnosić się do przypisanego zgłoszenia na GitHubie. Aby zostać przypisanym: skomentuj „Zgłaszam się” w zgłoszeniu i wyślij wiadomość prywatną do głównego zespołu na [Discordzie](https://discord.gg/VxfP4Vx3gX). Przypisanie zostanie potwierdzone w wątku.
+- Musi odnosić się do przypisanego zgłoszenia na GitHubie. Aby zostać przypisanym: skomentuj „Zgłaszam się” w zgłoszeniu i zapytaj na [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions). Przypisanie zostanie potwierdzone w wątku.
 - Niepołączone PR-y mogą zostać zamknięte.
 - PR-y muszą przejść testy CI, być zgodne z mapą drogową i mieć przejrzystą dokumentację.
 

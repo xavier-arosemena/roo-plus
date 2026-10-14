@@ -3228,7 +3228,7 @@ export class ClineProvider
 				`  messageCount: ${task.clineMessages.length}\n` +
 				`  stackDepth:   ${this.taskRegistry.length}\n` +
 				`  timestamp:    ${new Date().toISOString()}\n` +
-				`If the panel appears gray after this, share this log with support@zoocode.dev`,
+				`If the panel appears gray after this, report it at https://github.com/xavier-arosemena/roo-plus/issues`,
 		)
 	}
 

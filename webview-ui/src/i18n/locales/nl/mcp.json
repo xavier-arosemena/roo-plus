@@ -2,11 +2,11 @@
 	"title": "MCP-servers",
 	"done": "Gereed",
 	"marketplace": "MCP-marktplaats",
-	"description": "Het <0>Model Context Protocol</0> maakt communicatie mogelijk met lokaal draaiende MCP-servers die extra tools en bronnen bieden om Zoo's mogelijkheden uit te breiden. Je kunt <1>community-servers</1> gebruiken of Zoo vragen om nieuwe tools te maken die specifiek zijn voor jouw workflow (bijv. 'voeg een tool toe die de nieuwste npm-documentatie ophaalt').",
+	"description": "Het <0>Model Context Protocol</0> maakt communicatie mogelijk met lokaal draaiende MCP-servers die extra tools en bronnen bieden om Roo+'s mogelijkheden uit te breiden. Je kunt <1>community-servers</1> gebruiken of Roo+ vragen om nieuwe tools te maken die specifiek zijn voor jouw workflow (bijv. 'voeg een tool toe die de nieuwste npm-documentatie ophaalt').",
 	"instructions": "Instructies",
 	"enableToggle": {
 		"title": "MCP-servers inschakelen",
-		"description": "Indien ingeschakeld, kan Zoo communiceren met MCP-servers voor geavanceerde functionaliteit. Gebruik je geen MCP, dan kun je dit uitschakelen om het tokengebruik te verminderen."
+		"description": "Indien ingeschakeld, kan Roo+ communiceren met MCP-servers voor geavanceerde functionaliteit. Gebruik je geen MCP, dan kun je dit uitschakelen om het tokengebruik te verminderen."
 	},
 	"editGlobalMCP": "Globale MCP bewerken",
 	"editProjectMCP": "Project-MCP bewerken",

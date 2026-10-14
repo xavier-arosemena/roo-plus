@@ -40,7 +40,7 @@
 		"ui": "UI",
 		"experimental": "Experimental",
 		"language": "Idioma",
-		"about": "Sobre Roo+ Code",
+		"about": "Sobre Roo+",
 		"skills": "Skills",
 		"rules": "Regles"
 	},
@@ -57,7 +57,7 @@
 			"label": "Has descobert una vulnerabilitat?",
 			"link": "Segueix el nostre procés de divulgació"
 		},
-		"community": "Vols consells o simplement passar l'estona amb altres usuaris de Roo+ Code? Uneix-te a <redditLink>reddit.com/r/ZooCode</redditLink> o <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
+		"community": "Vols consells o simplement passar l'estona amb altres usuaris de Roo+? Uneix-te a nosaltres a <githubLink>GitHub Discussions</githubLink>",
 		"contactAndCommunity": "Contacte i Comunitat",
 		"manageSettings": "Gestionar Configuració",
 		"debugMode": {
@@ -67,7 +67,7 @@
 		"rooHistoryImport": {
 			"settingLabel": "Importa l'historial des de Roo Code",
 			"cardTitle": "Historial de Roo Code",
-			"cardDescription": "Copia les converses desades de Roo Code a Roo+ Code.",
+			"cardDescription": "Copia les converses desades de Roo Code a Roo+.",
 			"statusImporting": "Important l'historial",
 			"statusFailed": "La importació ha fallat",
 			"statusComplete": "Importació completada",
@@ -287,7 +287,7 @@
 	},
 	"autoApprove": {
 		"toggleShortcut": "Pots configurar una drecera global per a aquesta configuració <SettingsLink>a les preferències del teu IDE</SettingsLink>.",
-		"description": "Permet que Zoo realitzi operacions automàticament sense requerir aprovació. Activeu aquesta configuració només si confieu plenament en la IA i enteneu els riscos de seguretat associats.",
+		"description": "Permet que Roo+ realitzi operacions automàticament sense requerir aprovació. Activeu aquesta configuració només si confieu plenament en la IA i enteneu els riscos de seguretat associats.",
 		"enabled": "Auto-aprovació activada",
 		"toggleAriaLabel": "Commuta l'aprovació automàtica",
 		"disabledAriaLabel": "Aprovació automàtica desactivada: seleccioneu primer les opcions",
@@ -334,7 +334,7 @@
 			"description": "Executar automàticament comandes de terminal permeses sense requerir aprovació",
 			"destructiveCommandGuard": {
 				"label": "Activa la protecció contra ordres destructives",
-				"description": "Baixa i utilitza Destructive Command Guard (DCG) per a aquesta plataforma. Les ordres permeses per DCG s'executen automàticament. Les ordres bloquejades per DCG requereixen la teva aprovació. Les llistes d'ordres de Zoo es desactiven mentre aquesta opció està activa. L'executable baixat es conserva si la desactives."
+				"description": "Baixa i utilitza Destructive Command Guard (DCG) per a aquesta plataforma. Les ordres permeses per DCG s'executen automàticament. Les ordres bloquejades per DCG requereixen la teva aprovació. Les llistes d'ordres de Roo+ es desactiven mentre aquesta opció està activa. L'executable baixat es conserva si la desactives."
 			},
 			"allowedCommands": "Comandes d'auto-execució permeses",
 			"allowedCommandsDescription": "Prefixos de comandes que poden ser executats automàticament quan \"Aprovar sempre operacions d'execució\" està habilitat. Afegeix * per permetre totes les comandes (usar amb precaució).",
@@ -599,7 +599,7 @@
 			}
 		},
 		"customModel": {
-			"capabilities": "Configureu les capacitats i preus per al vostre model personalitzat compatible amb OpenAI. Tingueu cura en especificar les capacitats del model, ja que poden afectar com funciona Roo+ Code.",
+			"capabilities": "Configureu les capacitats i preus per al vostre model personalitzat compatible amb OpenAI. Tingueu cura en especificar les capacitats del model, ja que poden afectar com funciona Roo+.",
 			"maxTokens": {
 				"label": "Màxim de tokens de sortida",
 				"description": "El nombre màxim de tokens que el model pot generar en una resposta. (Establiu -1 per permetre que el servidor estableixi el màxim de tokens.)"
@@ -674,13 +674,6 @@
 			"placeholder": "Per defecte: claude",
 			"maxTokensLabel": "Tokens màxims de sortida",
 			"maxTokensDescription": "Nombre màxim de tokens de sortida per a les respostes de Claude Code. El valor per defecte és 8000."
-		},
-		"zooGateway": {
-			"account": "Compte de Roo+ Code",
-			"signInButton": "Iniciar sessió a Roo+ Code",
-			"signInDescription": "Inicia sessió per utilitzar Roo+ Gateway amb el teu compte",
-			"authenticated": "Autenticat",
-			"authenticatedAs": "Autenticat com a {{name}}"
 		}
 	},
 	"checkpoints": {
@@ -741,7 +734,7 @@
 		},
 		"maxReadFile": {
 			"label": "Llindar d'auto-truncament de lectura de fitxers",
-			"description": "Zoo llegeix aquest nombre de línies quan el model omet els valors d'inici/final. Si aquest nombre és menor que el total del fitxer, Roo+ genera un índex de números de línia de les definicions de codi. Casos especials: -1 indica a Roo+ que llegeixi tot el fitxer (sense indexació), i 0 indica que no llegeixi cap línia i proporcioni només índexs de línia per a un context mínim. Valors més baixos minimitzen l'ús inicial de context, permetent lectures posteriors de rangs de línies precisos. Les sol·licituds amb inici/final explícits no estan limitades per aquesta configuració.",
+			"description": "Roo+ llegeix aquest nombre de línies quan el model omet els valors d'inici/final. Si aquest nombre és menor que el total del fitxer, Roo+ genera un índex de números de línia de les definicions de codi. Casos especials: -1 indica a Roo+ que llegeixi tot el fitxer (sense indexació), i 0 indica que no llegeixi cap línia i proporcioni només índexs de línia per a un context mínim. Valors més baixos minimitzen l'ús inicial de context, permetent lectures posteriors de rangs de línies precisos. Les sol·licituds amb inici/final explícits no estan limitades per aquesta configuració.",
 			"lines": "línies",
 			"always_full_read": "Llegeix sempre el fitxer sencer"
 		},
@@ -870,7 +863,7 @@
 			"description": "Activa per heretar variables d'entorn del procés pare de VS Code. <0>Aprèn-ne més</0>"
 		},
 		"profile": {
-			"label": "Perfil de terminal de Roo+ Code",
+			"label": "Perfil de terminal de Roo+",
 			"followVscode": "Seguint el perfil de VS Code (recomanat)",
 			"description": "Per defecte, Roo+ utilitza la shell que VS Code té configurada. Seleccioneu un perfil de la llista per triar un perfil de shell amb ruta explícita exposat per VS Code. Els perfils de només font (p. ex., l'entrada integrada de PowerShell) no es poden llistar aquí. <0>Més informació</0>",
 			"configureButton": "Trieu el perfil predeterminat a VS Code",
@@ -1031,8 +1024,7 @@
 		"providerNotAllowed": "El proveïdor '{{provider}}' no està permès per la vostra organització",
 		"modelNotAllowed": "El model '{{model}}' no està permès per al proveïdor '{{provider}}' per la vostra organització",
 		"profileInvalid": "Aquest perfil conté un proveïdor o model que no està permès per la vostra organització",
-		"qwenCodeOauthPath": "Has de proporcionar una ruta vàlida de credencials OAuth",
-		"zooGatewaySignIn": "Inicia sessió a Roo+ per utilitzar Roo+ Gateway."
+		"qwenCodeOauthPath": "Has de proporcionar una ruta vàlida de credencials OAuth"
 	},
 	"placeholders": {
 		"apiKey": "Introduïu la clau API...",
@@ -1103,16 +1095,16 @@
 		},
 		"chatFontSize": {
 			"label": "Mida de lletra del xat",
-			"description": "Defineix la mida de la lletra (en píxels) del xat de Roo+ Code. Deixa-ho al valor per defecte per coincidir amb la mida de lletra del VS Code.",
+			"description": "Defineix la mida de la lletra (en píxels) del xat de Roo+. Deixa-ho al valor per defecte per coincidir amb la mida de lletra del VS Code.",
 			"reset": "Utilitza el valor per defecte del VS Code"
 		},
 		"autoCloseZooOpenedFiles": {
-			"label": "Tanca automaticament els fitxers oberts per Zoo",
+			"label": "Tanca automaticament els fitxers oberts per Roo+",
 			"description": "Quan esta activat, les pestanyes de l'editor que Roo+ ha obert temporalment per a un diff es tanquen automaticament despres d'acceptar o rebutjar el canvi. Les pestanyes que l'usuari ja tenia obertes abans de l'edicio mai no es tanquen automaticament."
 		},
 		"autoCloseZooOpenedFilesAfterUserEdited": {
 			"label": "Tanca automaticament fins i tot despres de la interaccio de l'usuari",
-			"description": "Quan esta activat, les pestanyes obertes per Roo+ es tanquen fins i tot si l'usuari ha fet clic o ha escrit al fitxer o al diff durant la sessio d'edicio. No te cap efecte si 'Tanca automaticament els fitxers oberts per Zoo' esta desactivat."
+			"description": "Quan esta activat, les pestanyes obertes per Roo+ es tanquen fins i tot si l'usuari ha fet clic o ha escrit al fitxer o al diff durant la sessio d'edicio. No te cap efecte si 'Tanca automaticament els fitxers oberts per Roo+' esta desactivat."
 		},
 		"autoCloseZooOpenedNewFiles": {
 			"label": "Tanca automaticament els fitxers nous creats",

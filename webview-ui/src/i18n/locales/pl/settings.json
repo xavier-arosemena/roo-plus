@@ -40,7 +40,7 @@
 		"ui": "UI",
 		"experimental": "Eksperymentalne",
 		"language": "Język",
-		"about": "O Roo+ Code",
+		"about": "O Roo+",
 		"skills": "Skills",
 		"rules": "Reguły"
 	},
@@ -57,7 +57,7 @@
 			"label": "Odkryłeś lukę w zabezpieczeniach?",
 			"link": "Postępuj zgodnie z naszym procesem ujawniania"
 		},
-		"community": "Chcesz wskazówek lub po prostu porozmawiać z innymi użytkownikami Roo+ Code? Dołącz do <redditLink>reddit.com/r/ZooCode</redditLink> lub <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
+		"community": "Chcesz wskazówek lub po prostu porozmawiać z innymi użytkownikami Roo+? Dołącz do nas na <githubLink>GitHub Discussions</githubLink>",
 		"contactAndCommunity": "Kontakt i Społeczność",
 		"manageSettings": "Zarządzaj Ustawieniami",
 		"debugMode": {
@@ -67,7 +67,7 @@
 		"rooHistoryImport": {
 			"settingLabel": "Importuj historię z Roo Code",
 			"cardTitle": "Historia Roo Code",
-			"cardDescription": "Skopiuj zapisane rozmowy Roo Code do Roo+ Code.",
+			"cardDescription": "Skopiuj zapisane rozmowy Roo Code do Roo+.",
 			"statusImporting": "Importowanie historii",
 			"statusFailed": "Import nie powiódł się",
 			"statusComplete": "Import zakończony",
@@ -287,7 +287,7 @@
 	},
 	"autoApprove": {
 		"toggleShortcut": "Możesz skonfigurować globalny skrót dla tego ustawienia <SettingsLink>w preferencjach swojego IDE</SettingsLink>.",
-		"description": "Pozwól Zoo na automatyczne wykonywanie operacji bez wymagania zatwierdzenia. Włącz te ustawienia tylko jeśli w pełni ufasz AI i rozumiesz związane z tym zagrożenia bezpieczeństwa.",
+		"description": "Pozwól Roo+ na automatyczne wykonywanie operacji bez wymagania zatwierdzenia. Włącz te ustawienia tylko jeśli w pełni ufasz AI i rozumiesz związane z tym zagrożenia bezpieczeństwa.",
 		"enabled": "Auto-zatwierdzanie włączone",
 		"toggleAriaLabel": "Przełącz automatyczne zatwierdzanie",
 		"disabledAriaLabel": "Automatyczne zatwierdzanie wyłączone - najpierw wybierz opcje",
@@ -334,7 +334,7 @@
 			"description": "Automatycznie wykonuj dozwolone polecenia terminala bez konieczności zatwierdzania",
 			"destructiveCommandGuard": {
 				"label": "Włącz ochronę przed destrukcyjnymi poleceniami",
-				"description": "Pobiera i używa Destructive Command Guard (DCG) dla tej platformy. Polecenia dozwolone przez DCG są wykonywane automatycznie. Polecenia zablokowane przez DCG wymagają twojej zgody. Listy poleceń Zoo są wyłączone, gdy ta opcja jest aktywna. Pobrany plik wykonywalny pozostaje na dysku po wyłączeniu opcji."
+				"description": "Pobiera i używa Destructive Command Guard (DCG) dla tej platformy. Polecenia dozwolone przez DCG są wykonywane automatycznie. Polecenia zablokowane przez DCG wymagają twojej zgody. Listy poleceń Roo+ są wyłączone, gdy ta opcja jest aktywna. Pobrany plik wykonywalny pozostaje na dysku po wyłączeniu opcji."
 			},
 			"allowedCommands": "Dozwolone polecenia auto-wykonania",
 			"allowedCommandsDescription": "Prefiksy poleceń, które mogą być automatycznie wykonywane, gdy \"Zawsze zatwierdzaj operacje wykonania\" jest włączone. Dodaj * aby zezwolić na wszystkie polecenia (używaj z ostrożnością).",
@@ -599,7 +599,7 @@
 			}
 		},
 		"customModel": {
-			"capabilities": "Skonfiguruj możliwości i ceny swojego niestandardowego modelu zgodnego z OpenAI. Zachowaj ostrożność podczas określania możliwości modelu, ponieważ mogą one wpływać na wydajność Roo+ Code.",
+			"capabilities": "Skonfiguruj możliwości i ceny swojego niestandardowego modelu zgodnego z OpenAI. Zachowaj ostrożność podczas określania możliwości modelu, ponieważ mogą one wpływać na wydajność Roo+.",
 			"maxTokens": {
 				"label": "Maksymalna liczba tokenów wyjściowych",
 				"description": "Maksymalna liczba tokenów, które model może wygenerować w odpowiedzi. (Określ -1, aby pozwolić serwerowi ustawić maksymalną liczbę tokenów.)"
@@ -646,7 +646,7 @@
 		},
 		"consecutiveMistakeLimit": {
 			"label": "Limit błędów i powtórzeń",
-			"description": "Liczba kolejnych błędów lub powtórzonych akcji przed wyświetleniem okna dialogowego 'Zoo ma problemy'. Ustaw na 0, aby wyłączyć ten mechanizm bezpieczeństwa (nigdy się nie uruchomi).",
+			"description": "Liczba kolejnych błędów lub powtórzonych akcji przed wyświetleniem okna dialogowego 'Roo+ ma problemy'. Ustaw na 0, aby wyłączyć ten mechanizm bezpieczeństwa (nigdy się nie uruchomi).",
 			"unlimitedDescription": "Włączono nieograniczone próby (automatyczne kontynuowanie). Okno dialogowe nigdy się nie pojawi.",
 			"warning": "⚠️ Ustawienie na 0 pozwala na nieograniczone próby, co może zużyć znaczną ilość API"
 		},
@@ -674,13 +674,6 @@
 			"placeholder": "Domyślnie: claude",
 			"maxTokensLabel": "Maksymalna liczba tokenów wyjściowych",
 			"maxTokensDescription": "Maksymalna liczba tokenów wyjściowych dla odpowiedzi Claude Code. Domyślnie 8000."
-		},
-		"zooGateway": {
-			"account": "Konto Roo+ Code",
-			"signInButton": "Zaloguj się do Roo+ Code",
-			"signInDescription": "Zaloguj się, aby korzystać z Roo+ Gateway ze swoim kontem",
-			"authenticated": "Uwierzytelniono",
-			"authenticatedAs": "Uwierzytelniono jako {{name}}"
 		}
 	},
 	"checkpoints": {
@@ -870,7 +863,7 @@
 			"description": "Włącz, aby dziedziczyć zmienne środowiskowe z procesu nadrzędnego VS Code. <0>Dowiedz się więcej</0>"
 		},
 		"profile": {
-			"label": "Profil terminala Roo+ Code",
+			"label": "Profil terminala Roo+",
 			"followVscode": "Podążanie za profilem VS Code (zalecane)",
 			"description": "Domyślnie Roo+ używa powłoki skonfigurowanej w VS Code. Wybierz profil powłoki z listy, aby użyć profilu ze ścieżką udostępnionego przez VS Code. Profile tylko ze źródłem (np. wbudowany wpis PowerShell) nie mogą być tutaj wyświetlone. <0>Dowiedz się więcej</0>",
 			"configureButton": "Wybierz domyślny profil w VS Code",
@@ -1031,8 +1024,7 @@
 		"providerNotAllowed": "Dostawca '{{provider}}' nie jest dozwolony przez Twoją organizację",
 		"modelNotAllowed": "Model '{{model}}' nie jest dozwolony dla dostawcy '{{provider}}' przez Twoją organizację",
 		"profileInvalid": "Ten profil zawiera dostawcę lub model, który nie jest dozwolony przez Twoją organizację",
-		"qwenCodeOauthPath": "Musisz podać prawidłową ścieżkę do poświadczeń OAuth",
-		"zooGatewaySignIn": "Zaloguj się do Roo+ Code, aby korzystać z Roo+ Gateway."
+		"qwenCodeOauthPath": "Musisz podać prawidłową ścieżkę do poświadczeń OAuth"
 	},
 	"placeholders": {
 		"apiKey": "Wprowadź klucz API...",
@@ -1103,16 +1095,16 @@
 		},
 		"chatFontSize": {
 			"label": "Rozmiar czcionki czatu",
-			"description": "Ustaw rozmiar czcionki (w pikselach) dla czatu Roo+ Code. Pozostaw wartość domyślną, aby dopasować ją do rozmiaru czcionki VS Code.",
+			"description": "Ustaw rozmiar czcionki (w pikselach) dla czatu Roo+. Pozostaw wartość domyślną, aby dopasować ją do rozmiaru czcionki VS Code.",
 			"reset": "Użyj wartości domyślnej VS Code"
 		},
 		"autoCloseZooOpenedFiles": {
-			"label": "Automatycznie zamykaj pliki otwarte przez Zoo",
+			"label": "Automatycznie zamykaj pliki otwarte przez Roo+",
 			"description": "Gdy wlaczone, karty edytora, ktore Roo+ otworzylo tymczasowo dla diffa, sa automatycznie zamykane po zaakceptowaniu lub odrzuceniu zmiany. Karty, ktore uzytkownik mial juz otwarte przed edycja, nigdy nie sa automatycznie zamykane."
 		},
 		"autoCloseZooOpenedFilesAfterUserEdited": {
 			"label": "Automatycznie zamykaj rowniez po interakcji uzytkownika",
-			"description": "Gdy wlaczone, karty otwarte przez Roo+ sa zamykane nawet jesli uzytkownik kliknal lub pisal w pliku lub diffie podczas sesji edycji. Nie ma efektu, jesli 'Automatycznie zamykaj pliki otwarte przez Zoo' jest wylaczone."
+			"description": "Gdy wlaczone, karty otwarte przez Roo+ sa zamykane nawet jesli uzytkownik kliknal lub pisal w pliku lub diffie podczas sesji edycji. Nie ma efektu, jesli 'Automatycznie zamykaj pliki otwarte przez Roo+' jest wylaczone."
 		},
 		"autoCloseZooOpenedNewFiles": {
 			"label": "Automatycznie zamykaj nowo utworzone pliki",

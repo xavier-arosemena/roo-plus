@@ -163,7 +163,7 @@
 	"warnings": {
 		"no_terminal_content": "Seçili terminal içeriği yok",
 		"missing_task_files": "Bu görevin dosyaları eksik. Görev listesinden kaldırmak istiyor musunuz?",
-		"auto_import_failed": "ZooCode ayarları otomatik olarak içe aktarılamadı: {{error}}",
+		"auto_import_failed": "Roo+ ayarları otomatik olarak içe aktarılamadı: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "{{domain}} kaynağından içe aktarılacak Roo Code görev geçmişi bulunamadı.",
 			"alreadyImported_one": "{{count}} Roo Code görev geçmişinin tamamı zaten Roo+'a aktarılmış.",
@@ -177,7 +177,7 @@
 		"custom_storage_path_set": "Özel depolama yolu ayarlandı: {{path}}",
 		"default_storage_path": "Varsayılan depolama yoluna geri dönüldü",
 		"settings_imported": "Ayarlar başarıyla içe aktarıldı.",
-		"auto_import_success": "ZooCode ayarları {{filename}} dosyasından otomatik olarak içe aktarıldı",
+		"auto_import_success": "Roo+ ayarları {{filename}} dosyasından otomatik olarak içe aktarıldı",
 		"share_link_copied": "Paylaşım bağlantısı panoya kopyalandı",
 		"image_copied_to_clipboard": "Resim veri URI'si panoya kopyalandı",
 		"image_saved": "Resim {{path}} konumuna kaydedildi",
@@ -214,12 +214,12 @@
 	},
 	"storage": {
 		"prompt_custom_path": "Konuşma geçmişi için özel depolama yolunu girin, varsayılan konumu kullanmak için boş bırakın",
-		"path_placeholder": "D:\\ZooCodeStorage",
-		"enter_absolute_path": "Lütfen mutlak bir yol girin (örn. D:\\ZooCodeStorage veya /home/user/storage)",
+		"path_placeholder": "D:\\RooPlusStorage",
+		"enter_absolute_path": "Lütfen mutlak bir yol girin (örn. D:\\RooPlusStorage veya /home/user/storage)",
 		"enter_valid_path": "Lütfen geçerli bir yol girin"
 	},
 	"input": {
-		"task_prompt": "Zoo ne yapsın?",
+		"task_prompt": "Roo+ ne yapsın?",
 		"task_placeholder": "Görevini buraya yaz"
 	},
 	"settings": {
@@ -277,28 +277,7 @@
 	},
 	"docsLink": {
 		"label": "Docs",
-		"url": "https://docs.zoocode.dev"
-	},
-	"zooAuth": {
-		"errors": {
-			"invalid_token_received": "Roo+: Geçersiz kimlik doğrulama token'ı alındı.",
-			"token_verification_failed": "Roo+: Token doğrulaması başarısız oldu.",
-			"invalid_token": "Roo+: Geçersiz token.",
-			"could_not_verify_token": "Roo+: Token doğrulanamadı.",
-			"session_expired": "Roo+ oturumunun süresi doldu. Zoo Gateway'i kullanmaya devam etmek için lütfen tekrar giriş yapın.",
-			"out_of_credits": "Zoo Gateway: yetersiz kredi. Devam etmek için kredi ekleyin.",
-			"account_unavailable": "Zoo Gateway: hesabınız şu anda kullanılamıyor. Lütfen destek ile iletişime geçin.",
-			"budget_exceeded": "Zoo Gateway: kullanım bütçesine ulaşıldı. Sıfırlanmasını bekleyin veya kredi ekleyin."
-		},
-		"info": {
-			"connected": "Roo+: Başarıyla bağlandı! Artık Roo+'u AI sağlayıcısı olarak kullanabilirsin.",
-			"disconnected": "Roo+: Başarıyla bağlantı kesildi."
-		},
-		"buttons": {
-			"sign_in": "Giriş Yap",
-			"add_credits": "Kredi Ekle",
-			"contact_support": "Destek ile İletişim"
-		}
+		"url": "https://github.com/xavier-arosemena/roo-plus"
 	},
 	"codeActions": {
 		"explain": "Roo+ ile açıkla",

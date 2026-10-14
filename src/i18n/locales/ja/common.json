@@ -163,7 +163,7 @@
 	"warnings": {
 		"no_terminal_content": "選択されたターミナルコンテンツがありません",
 		"missing_task_files": "このタスクのファイルが見つかりません。タスクリストから削除しますか？",
-		"auto_import_failed": "ZooCode設定の自動インポートに失敗しました：{{error}}",
+		"auto_import_failed": "Roo+設定の自動インポートに失敗しました：{{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "{{domain}}からインポートするRoo Codeのタスク履歴が見つかりませんでした。",
 			"alreadyImported_one": "{{count}}件のRoo Codeタスク履歴はすでにRoo+にインポート済みです。",
@@ -177,7 +177,7 @@
 		"custom_storage_path_set": "カスタムストレージパスが設定されました：{{path}}",
 		"default_storage_path": "デフォルトのストレージパスに戻りました",
 		"settings_imported": "設定が正常にインポートされました。",
-		"auto_import_success": "ZooCode設定が{{filename}}から自動インポートされました",
+		"auto_import_success": "Roo+設定が{{filename}}から自動インポートされました",
 		"share_link_copied": "共有リンクがクリップボードにコピーされました",
 		"image_copied_to_clipboard": "画像データURIがクリップボードにコピーされました",
 		"image_saved": "画像を{{path}}に保存しました",
@@ -214,12 +214,12 @@
 	},
 	"storage": {
 		"prompt_custom_path": "会話履歴のカスタムストレージパスを入力してください。デフォルトの場所を使用する場合は空のままにしてください",
-		"path_placeholder": "D:\\ZooCodeStorage",
-		"enter_absolute_path": "絶対パスを入力してください（例：D:\\ZooCodeStorage または /home/user/storage）",
+		"path_placeholder": "D:\\RooPlusStorage",
+		"enter_absolute_path": "絶対パスを入力してください（例：D:\\RooPlusStorage または /home/user/storage）",
 		"enter_valid_path": "有効なパスを入力してください"
 	},
 	"input": {
-		"task_prompt": "Zooにどんなことをさせますか？",
+		"task_prompt": "Roo+にどんなことをさせますか？",
 		"task_placeholder": "タスクをここに入力してください"
 	},
 	"settings": {
@@ -277,28 +277,7 @@
 	},
 	"docsLink": {
 		"label": "Docs",
-		"url": "https://docs.zoocode.dev"
-	},
-	"zooAuth": {
-		"errors": {
-			"invalid_token_received": "Roo+: 無効な認証 token を受信しました。",
-			"token_verification_failed": "Roo+: Token の検証に失敗しました。",
-			"invalid_token": "Roo+: 無効な token です。",
-			"could_not_verify_token": "Roo+: Token を検証できませんでした。",
-			"session_expired": "Roo+のセッションの有効期限が切れました。Zoo Gatewayを引き続き使用するには、再度サインインしてください。",
-			"out_of_credits": "Zoo Gateway: クレジットが不足しています。続行するにはクレジットを追加してください。",
-			"account_unavailable": "Zoo Gateway: 現在アカウントを利用できません。サポートまでお問い合わせください。",
-			"budget_exceeded": "Zoo Gateway: 利用予算に達しました。リセットを待つかチャージしてください。"
-		},
-		"info": {
-			"connected": "Roo+: 接続に成功しました！Roo+ を AI プロバイダーとして使用できます。",
-			"disconnected": "Roo+: 正常に切断されました。"
-		},
-		"buttons": {
-			"sign_in": "サインイン",
-			"add_credits": "クレジットを追加",
-			"contact_support": "サポートに連絡"
-		}
+		"url": "https://github.com/xavier-arosemena/roo-plus"
 	},
 	"codeActions": {
 		"explain": "Roo+で説明",

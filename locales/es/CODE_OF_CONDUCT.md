@@ -67,7 +67,7 @@ definida y aclarada aún más por los mantenedores del proyecto.
 ## Aplicación
 
 Los casos de comportamiento abusivo, acosador o de otro modo inaceptable pueden ser
-reportados contactando al equipo del proyecto en support@zoocode.dev. Todas las quejas
+reportados abriendo un issue en https://github.com/xavier-arosemena/roo-plus/issues. Todas las quejas
 serán revisadas e investigadas y resultarán en una respuesta que
 se considera necesaria y apropiada a las circunstancias. El equipo del proyecto está
 obligado a mantener la confidencialidad con respecto al informante de un incidente.

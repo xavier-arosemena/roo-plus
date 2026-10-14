@@ -88,7 +88,7 @@ describe("ChatRow - rate limit wait", () => {
 		expect(screen.getByText("Unknown API error. Please report this on GitHub.")).toBeInTheDocument()
 		expect(screen.getByRole("link", { name: /Docs/ })).toHaveAttribute(
 			"href",
-			"mailto:support@roo.plus?subject=Unknown API Error&body=[Please include full error details]",
+			"https://github.com/xavier-arosemena/roo-plus/issues",
 		)
 	})
 })

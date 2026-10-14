@@ -40,7 +40,7 @@
 		"ui": "UI",
 		"experimental": "实验性",
 		"language": "语言",
-		"about": "关于 Roo+ Code",
+		"about": "关于 Roo+",
 		"skills": "Skills",
 		"rules": "规则"
 	},
@@ -57,7 +57,7 @@
 			"label": "发现安全漏洞？",
 			"link": "遵循我们的披露流程"
 		},
-		"community": "想要获取使用技巧或与其他 Roo+ 用户交流？加入 <redditLink>reddit.com/r/ZooCode</redditLink> 或 <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
+		"community": "想要获取使用技巧或与其他 Roo+ 用户交流？加入我们的 <githubLink>GitHub Discussions</githubLink>",
 		"contactAndCommunity": "联系与社区",
 		"manageSettings": "管理设置",
 		"debugMode": {
@@ -287,13 +287,13 @@
 	},
 	"autoApprove": {
 		"toggleShortcut": "您可以<SettingsLink>在 IDE 首选项中</SettingsLink>为此设置配置全局快捷方式。",
-		"description": "允许 Zoo 自动执行操作而无需批准。只有在您完全信任 AI 并了解相关安全风险的情况下才启用这些设置。",
+		"description": "允许 Roo+ 自动执行操作而无需批准。只有在您完全信任 AI 并了解相关安全风险的情况下才启用这些设置。",
 		"enabled": "自动批准已启用",
 		"toggleAriaLabel": "切换自动批准",
 		"disabledAriaLabel": "自动批准已禁用 - 请先选择选项",
 		"readOnly": {
 			"label": "读取",
-			"description": "启用后，Zoo 将自动浏览目录和读取文件内容，无需人工确认。",
+			"description": "启用后，Roo+ 将自动浏览目录和读取文件内容，无需人工确认。",
 			"outsideWorkspace": {
 				"label": "包含工作区外的文件",
 				"description": "允许 Roo+ 读取当前工作区外的文件，无需批准。"
@@ -334,7 +334,7 @@
 			"description": "自动执行白名单中的命令而无需批准",
 			"destructiveCommandGuard": {
 				"label": "启用破坏性命令防护",
-				"description": "下载并使用适用于此平台的 Destructive Command Guard（DCG）。DCG 允许的命令会自动执行。被 DCG 拦截的命令需要你批准后才能执行。启用后，Zoo 的命令列表将被禁用。关闭此选项时，已下载的可执行文件会保留。"
+				"description": "下载并使用适用于此平台的 Destructive Command Guard（DCG）。DCG 允许的命令会自动执行。被 DCG 拦截的命令需要你批准后才能执行。启用后，Roo+ 的命令列表将被禁用。关闭此选项时，已下载的可执行文件会保留。"
 			},
 			"allowedCommands": "命令白名单",
 			"allowedCommandsDescription": "当\"自动批准命令行操作\"启用时可以自动执行的命令前缀。添加 * 以允许所有命令（谨慎使用）。",
@@ -646,7 +646,7 @@
 		},
 		"consecutiveMistakeLimit": {
 			"label": "错误和重复限制",
-			"description": "在显示“Zoo遇到问题”对话框前允许的连续错误或重复操作次数。设置为 0 可禁用此安全机制（它将永远不会触发）。",
+			"description": "在显示“Roo+遇到问题”对话框前允许的连续错误或重复操作次数。设置为 0 可禁用此安全机制（它将永远不会触发）。",
 			"unlimitedDescription": "已启用无限重试（自动继续）。对话框将永远不会出现。",
 			"warning": "⚠️ 设置为 0 允许无限重试，这可能会消耗大量 API 使用量"
 		},
@@ -674,13 +674,6 @@
 			"placeholder": "默认：claude",
 			"maxTokensLabel": "最大输出 Token",
 			"maxTokensDescription": "Claude Code 响应的最大输出 Token 数量。默认为 8000。"
-		},
-		"zooGateway": {
-			"account": "Roo+ 账户",
-			"signInButton": "登录 Roo+ Code",
-			"signInDescription": "登录以使用您的账户访问 Roo+ Gateway",
-			"authenticated": "已认证",
-			"authenticatedAs": "已认证为 {{name}}"
 		}
 	},
 	"checkpoints": {
@@ -696,12 +689,12 @@
 	"notifications": {
 		"sound": {
 			"label": "启用声音通知",
-			"description": "启用后，Zoo 将为通知和事件播放音效。",
+			"description": "启用后，Roo+ 将为通知和事件播放音效。",
 			"volumeLabel": "音量"
 		},
 		"tts": {
 			"label": "启用文本转语音",
-			"description": "启用后，Zoo 将使用文本转语音功能朗读其响应。",
+			"description": "启用后，Roo+ 将使用文本转语音功能朗读其响应。",
 			"speedLabel": "速度"
 		}
 	},
@@ -709,7 +702,7 @@
 		"description": "管理AI上下文信息（影响token用量和回答质量）",
 		"autoCondenseContextPercent": {
 			"label": "触发智能上下文压缩的阈值",
-			"description": "当上下文窗口达到此阈值时，Zoo 将自动压缩它。"
+			"description": "当上下文窗口达到此阈值时，Roo+ 将自动压缩它。"
 		},
 		"condensingApiConfiguration": {
 			"label": "上下文压缩的API配置",
@@ -725,7 +718,7 @@
 		},
 		"autoCondenseContext": {
 			"name": "自动触发智能上下文压缩",
-			"description": "启用时，Zoo 将在达到阈值时自动压缩上下文。禁用时，您仍可以手动触发上下文压缩。"
+			"description": "启用时，Roo+ 将在达到阈值时自动压缩上下文。禁用时，您仍可以手动触发上下文压缩。"
 		},
 		"openTabs": {
 			"label": "标签页数量限制",
@@ -818,7 +811,7 @@
 		},
 		"outputLineLimit": {
 			"label": "终端输出限制",
-			"description": "保留首尾行并丢弃中间行以保持在限制内。降低可节省 token；提高可为 Roo+ 提供更多中间细节。Zoo 看到内容被跳过的占位符。<0>了解更多</0>"
+			"description": "保留首尾行并丢弃中间行以保持在限制内。降低可节省 token；提高可为 Roo+ 提供更多中间细节。Roo+ 看到内容被跳过的占位符。<0>了解更多</0>"
 		},
 		"outputCharacterLimit": {
 			"label": "终端字符限制",
@@ -839,7 +832,7 @@
 		},
 		"shellIntegrationDisabled": {
 			"label": "使用内联终端（推荐）",
-			"description": "在内联终端（聊天）中运行命令以绕过 shell 配置文件/集成，实现更快、更可靠的运行。禁用时，Zoo 使用 VS Code 终端及您的 shell 配置文件、提示和插件。<0>了解更多</0>"
+			"description": "在内联终端（聊天）中运行命令以绕过 shell 配置文件/集成，实现更快、更可靠的运行。禁用时，Roo+ 使用 VS Code 终端及您的 shell 配置文件、提示和插件。<0>了解更多</0>"
 		},
 		"commandDelay": {
 			"label": "终端命令延迟",
@@ -883,7 +876,7 @@
 	"advanced": {
 		"diff": {
 			"label": "启用diff更新",
-			"description": "启用后，Zoo 将能够通过差异算法写入，避免模型输出完整文件，以降低Token消耗",
+			"description": "启用后，Roo+ 将能够通过差异算法写入，避免模型输出完整文件，以降低Token消耗",
 			"strategy": {
 				"label": "Diff 策略",
 				"options": {
@@ -900,7 +893,7 @@
 		},
 		"todoList": {
 			"label": "启用任务清单工具",
-			"description": "启用后，Zoo 可以创建和管理任务清单来跟踪任务进度。这有助于将复杂任务组织成可管理的步骤。"
+			"description": "启用后，Roo+ 可以创建和管理任务清单来跟踪任务进度。这有助于将复杂任务组织成可管理的步骤。"
 		}
 	},
 	"experimental": {
@@ -914,11 +907,11 @@
 		},
 		"MULTI_SEARCH_AND_REPLACE": {
 			"name": "允许批量搜索和替换",
-			"description": "启用后，Zoo 将尝试在一个请求中进行批量搜索和替换。"
+			"description": "启用后，Roo+ 将尝试在一个请求中进行批量搜索和替换。"
 		},
 		"CONCURRENT_FILE_READS": {
 			"name": "启用并发文件读取",
-			"description": "启用后，Zoo 可以在单个请求中读取多个文件。禁用后，Zoo 必须逐个读取文件。在使用能力较弱的模型或希望对文件访问有更多控制时，禁用此功能可能会有所帮助。"
+			"description": "启用后，Roo+ 可以在单个请求中读取多个文件。禁用后，Roo+ 必须逐个读取文件。在使用能力较弱的模型或希望对文件访问有更多控制时，禁用此功能可能会有所帮助。"
 		},
 		"MARKETPLACE": {
 			"name": "启用 Marketplace",
@@ -940,7 +933,7 @@
 			"providerLabel": "提供商",
 			"providerDescription": "选择用于图像生成的提供商。",
 			"name": "启用 AI 图像生成",
-			"description": "启用后，Zoo 可以使用 OpenRouter 的图像生成模型从文本提示生成图像。需要配置 OpenRouter API 密钥。",
+			"description": "启用后，Roo+ 可以使用 OpenRouter 的图像生成模型从文本提示生成图像。需要配置 OpenRouter API 密钥。",
 			"openRouterApiKeyLabel": "OpenRouter API 密钥",
 			"openRouterApiKeyPlaceholder": "输入您的 OpenRouter API 密钥",
 			"getApiKeyText": "获取您的 API 密钥",
@@ -967,7 +960,7 @@
 	},
 	"promptCaching": {
 		"label": "禁用提示词缓存",
-		"description": "选中后，Zoo 将不会为此模型使用提示词缓存。"
+		"description": "选中后，Roo+ 将不会为此模型使用提示词缓存。"
 	},
 	"temperature": {
 		"useCustom": "使用自定义温度",
@@ -1031,8 +1024,7 @@
 		"providerNotAllowed": "提供商 '{{provider}}' 不允许用于您的组织",
 		"modelNotAllowed": "模型 '{{model}}' 不允许用于提供商 '{{provider}}'，您的组织不允许",
 		"profileInvalid": "此配置文件包含您的组织不允许的提供商或模型",
-		"qwenCodeOauthPath": "您必须提供有效的 OAuth 凭证路径",
-		"zooGatewaySignIn": "请登录 Roo+ 以使用 Roo+ Gateway。"
+		"qwenCodeOauthPath": "您必须提供有效的 OAuth 凭证路径"
 	},
 	"placeholders": {
 		"apiKey": "请输入 API 密钥...",
@@ -1108,15 +1100,15 @@
 		},
 		"autoCloseZooOpenedFiles": {
 			"label": "自动关闭 Roo+ 打开的文件",
-			"description": "启用后，Zoo 为 diff 临时打开的编辑器标签页将在接受或拒绝更改后自动关闭。用户在编辑前已打开的标签页不会被自动关闭。"
+			"description": "启用后，Roo+ 为 diff 临时打开的编辑器标签页将在接受或拒绝更改后自动关闭。用户在编辑前已打开的标签页不会被自动关闭。"
 		},
 		"autoCloseZooOpenedFilesAfterUserEdited": {
 			"label": "用户操作后也自动关闭",
-			"description": "启用后，即使用户在编辑会话中点击或输入了文件或 diff，Zoo 打开的标签页也会被关闭。若「自动关闭 Roo+ 打开的文件」已禁用，则此选项无效。"
+			"description": "启用后，即使用户在编辑会话中点击或输入了文件或 diff，Roo+ 打开的标签页也会被关闭。若「自动关闭 Roo+ 打开的文件」已禁用，则此选项无效。"
 		},
 		"autoCloseZooOpenedNewFiles": {
 			"label": "自动关闭新建的文件",
-			"description": "启用后，Zoo 新建（而非修改）的文件标签页在接受更改后也会自动关闭。"
+			"description": "启用后，Roo+ 新建（而非修改）的文件标签页在接受更改后也会自动关闭。"
 		}
 	},
 	"skills": {

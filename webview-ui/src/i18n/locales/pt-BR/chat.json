@@ -127,7 +127,7 @@
 		"title": "Modos",
 		"marketplace": "Marketplace de Modos",
 		"settings": "Configurações de Modos",
-		"description": "Personas especializadas que adaptam o comportamento do Zoo.",
+		"description": "Personas especializadas que adaptam o comportamento do Roo+.",
 		"searchPlaceholder": "Pesquisar modos...",
 		"noResults": "Nenhum resultado encontrado"
 	},
@@ -184,7 +184,7 @@
 		"current": "Atual"
 	},
 	"instructions": {
-		"wantsToFetch": "Zoo quer buscar instruções detalhadas para ajudar com a tarefa atual"
+		"wantsToFetch": "Roo+ quer buscar instruções detalhadas para ajudar com a tarefa atual"
 	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ quer ler este arquivo",
@@ -286,7 +286,7 @@
 		"copyToClipboard": "Copiar para área de transferência",
 		"copied": "Copiado!",
 		"diagnostics": "Obter informações detalhadas do erro",
-		"proxyProvider": "Parece que você está usando um provedor baseado em proxy. Certifique-se de verificar seus registros e garantir que não está reescrevendo as solicitações do Zoo."
+		"proxyProvider": "Parece que você está usando um provedor baseado em proxy. Certifique-se de verificar seus registros e garantir que não está reescrevendo as solicitações do Roo+."
 	},
 	"powershell": {
 		"issues": "Parece que você está tendo problemas com o Windows PowerShell, por favor veja este"
@@ -419,7 +419,7 @@
 		"ariaLabel": "Versão {{version}} - Clique para ver as notas de lançamento"
 	},
 	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud está evoluindo!",
+		"title": "Roo+ Cloud está evoluindo!",
 		"description": "Execute agentes remotos na nuvem, acesse suas tarefas de qualquer lugar, colabore com outros e muito mais.",
 		"joinWaitlist": "Cadastre-se para receber as últimas atualizações."
 	},

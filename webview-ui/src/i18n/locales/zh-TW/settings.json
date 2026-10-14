@@ -57,7 +57,7 @@
 			"label": "發現安全漏洞？",
 			"link": "遵循我們的揭露流程"
 		},
-		"community": "想要取得使用技巧或與其他 Roo+ 使用者交流？加入 <redditLink>reddit.com/r/ZooCode</redditLink> 或 <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
+		"community": "想要取得使用技巧或與其他 Roo+ 使用者交流？加入我們的 <githubLink>GitHub Discussions</githubLink>",
 		"contactAndCommunity": "聯絡與社群",
 		"manageSettings": "管理設定",
 		"debugMode": {
@@ -184,7 +184,7 @@
 		},
 		"autoCloseZooOpenedFilesAfterUserEdited": {
 			"label": "使用者操作後也自動關閉",
-			"description": "啟用後，即使使用者在編輯工作階段中點擊或輸入了檔案或 diff，Zoo 開啟的分頁也會被關閉。若「自動關閉 Roo+ 開啟的檔案」已停用，則此選項無效。"
+			"description": "啟用後，即使使用者在編輯工作階段中點擊或輸入了檔案或 diff，Roo+ 開啟的分頁也會被關閉。若「自動關閉 Roo+ 開啟的檔案」已停用，則此選項無效。"
 		},
 		"autoCloseZooOpenedNewFiles": {
 			"label": "自動關閉新建立的檔案",
@@ -359,7 +359,7 @@
 			"description": "無需核准即可自動執行允許的終端機命令",
 			"destructiveCommandGuard": {
 				"label": "啟用破壞性命令防護",
-				"description": "下載並使用適用於此平台的 Destructive Command Guard（DCG）。DCG 允許的命令會自動執行。被 DCG 阻擋的命令需要你核准後才能執行。啟用後，Zoo 的命令清單將停用。關閉此選項時，已下載的執行檔會保留。"
+				"description": "下載並使用適用於此平台的 Destructive Command Guard（DCG）。DCG 允許的命令會自動執行。被 DCG 阻擋的命令需要你核准後才能執行。啟用後，Roo+ 的命令清單將停用。關閉此選項時，已下載的執行檔會保留。"
 			},
 			"allowedCommands": "允許自動執行的命令",
 			"allowedCommandsDescription": "啟用「始終核准執行」時，可自動執行的命令前綴。新增 * 可允許所有命令（請謹慎使用）。",
@@ -701,13 +701,6 @@
 			"placeholder": "預設：claude",
 			"maxTokensLabel": "最大輸出 Token",
 			"maxTokensDescription": "Claude Code 回應的最大輸出 Token 數量。預設為 8000。"
-		},
-		"zooGateway": {
-			"account": "Roo+ 帳戶",
-			"signInButton": "登入 Roo+",
-			"signInDescription": "登入以使用您的帳戶存取 Roo+ Gateway",
-			"authenticated": "已認證",
-			"authenticatedAs": "已認證為 {{name}}"
 		}
 	},
 	"checkpoints": {
@@ -752,7 +745,7 @@
 		},
 		"autoCondenseContext": {
 			"name": "自動觸發智慧上下文壓縮",
-			"description": "啟用時，Zoo 會在達到閾值時自動壓縮上下文。停用時，您仍可手動觸發上下文壓縮。"
+			"description": "啟用時，Roo+ 會在達到閾值時自動壓縮上下文。停用時，您仍可手動觸發上下文壓縮。"
 		},
 		"openTabs": {
 			"label": "開啟分頁的上下文限制",
@@ -772,7 +765,7 @@
 		},
 		"maxReadFile": {
 			"label": "檔案讀取自動截斷閾值",
-			"description": "當模型未指定起始/結束值時，Zoo 讀取的行數。如果此數值小於檔案總行數，Roo+ 將產生程式碼定義的行號索引。特殊情況：-1 指示 Roo+ 讀取整個檔案（不建立索引），0 指示不讀取任何行並僅提供行索引以取得最小上下文。較低的值可最小化初始上下文使用，允許後續精確的行範圍讀取。明確指定起始/結束的請求不受此設定限制。 <0>了解更多</0>",
+			"description": "當模型未指定起始/結束值時，Roo+ 讀取的行數。如果此數值小於檔案總行數，Roo+ 將產生程式碼定義的行號索引。特殊情況：-1 指示 Roo+ 讀取整個檔案（不建立索引），0 指示不讀取任何行並僅提供行索引以取得最小上下文。較低的值可最小化初始上下文使用，允許後續精確的行範圍讀取。明確指定起始/結束的請求不受此設定限制。 <0>了解更多</0>",
 			"lines": "行",
 			"always_full_read": "始終讀取整個檔案"
 		},
@@ -845,7 +838,7 @@
 		},
 		"outputLineLimit": {
 			"label": "終端機輸出限制",
-			"description": "保留首尾行並丟棄中間行以保持在限制內。降低可節省 Token；提高可為 Roo+ 提供更多中間細節。Zoo 看到內容被跳過的佔位符。<0>了解更多</0>"
+			"description": "保留首尾行並丟棄中間行以保持在限制內。降低可節省 Token；提高可為 Roo+ 提供更多中間細節。Roo+ 看到內容被跳過的佔位符。<0>了解更多</0>"
 		},
 		"outputCharacterLimit": {
 			"label": "終端機字元限制",
@@ -866,7 +859,7 @@
 		},
 		"shellIntegrationDisabled": {
 			"label": "使用內嵌終端機（建議）",
-			"description": "在內嵌終端機（聊天）中執行命令以繞過 shell 設定檔/整合，實現更快、更可靠的執行。停用時，Zoo 使用 VS Code 終端機及您的 shell 設定檔、提示和外掛程式。<0>了解更多</0>"
+			"description": "在內嵌終端機（聊天）中執行命令以繞過 shell 設定檔/整合，實現更快、更可靠的執行。停用時，Roo+ 使用 VS Code 終端機及您的 shell 設定檔、提示和外掛程式。<0>了解更多</0>"
 		},
 		"commandDelay": {
 			"label": "終端機命令延遲",
@@ -910,7 +903,7 @@
 	"advanced": {
 		"diff": {
 			"label": "透過差異比對編輯",
-			"description": "啟用後，Zoo 可更快速地編輯檔案，並自動拒絕不完整的整檔覆寫",
+			"description": "啟用後，Roo+ 可更快速地編輯檔案，並自動拒絕不完整的整檔覆寫",
 			"strategy": {
 				"label": "差異比對策略",
 				"options": {
@@ -927,7 +920,7 @@
 		},
 		"todoList": {
 			"label": "啟用待辦事項清單工具",
-			"description": "啟用後，Zoo 可以建立和管理待辦事項清單來追蹤任務進度。這有助於將複雜任務組織成可管理的步驟。"
+			"description": "啟用後，Roo+ 可以建立和管理待辦事項清單來追蹤任務進度。這有助於將複雜任務組織成可管理的步驟。"
 		}
 	},
 	"experimental": {
@@ -941,7 +934,7 @@
 		},
 		"CONCURRENT_FILE_READS": {
 			"name": "啟用並行檔案讀取",
-			"description": "啟用後，Zoo 可以在單一請求中讀取多個檔案。停用後，Zoo 必須逐一讀取檔案。在使用能力較弱的模型或希望對檔案存取有更多控制時，停用此功能可能會有所幫助。"
+			"description": "啟用後，Roo+ 可以在單一請求中讀取多個檔案。停用後，Roo+ 必須逐一讀取檔案。在使用能力較弱的模型或希望對檔案存取有更多控制時，停用此功能可能會有所幫助。"
 		},
 		"MULTI_SEARCH_AND_REPLACE": {
 			"name": "使用實驗性多區塊差異比對工具",
@@ -965,7 +958,7 @@
 		},
 		"IMAGE_GENERATION": {
 			"name": "啟用 AI 影像生成",
-			"description": "啟用後，Zoo 可以使用 OpenRouter 的影像生成模型，從文字提示產生影像。需要設定 OpenRouter API 金鑰。",
+			"description": "啟用後，Roo+ 可以使用 OpenRouter 的影像生成模型，從文字提示產生影像。需要設定 OpenRouter API 金鑰。",
 			"providerLabel": "供應商",
 			"providerDescription": "選擇用於影像生成的供應商。",
 			"openRouterApiKeyLabel": "OpenRouter API 金鑰",
@@ -978,11 +971,11 @@
 		},
 		"RUN_SLASH_COMMAND": {
 			"name": "啟用模型啟動的斜線命令",
-			"description": "啟用時，Zoo 可以執行您的斜線命令來執行工作流程。"
+			"description": "啟用時，Roo+ 可以執行您的斜線命令來執行工作流程。"
 		},
 		"CUSTOM_TOOLS": {
 			"name": "啟用自訂工具",
-			"description": "啟用後，Zoo 可以從專案中的 .roo/tools 目錄或全域工具目錄 ~/.roo/tools 載入並使用自訂 TypeScript/JavaScript 工具。注意：這些工具將自動獲得核准。",
+			"description": "啟用後，Roo+ 可以從專案中的 .roo/tools 目錄或全域工具目錄 ~/.roo/tools 載入並使用自訂 TypeScript/JavaScript 工具。注意：這些工具將自動獲得核准。",
 			"toolsHeader": "可用自訂工具",
 			"noTools": "未載入自訂工具。請向專案的 .roo/tools 目錄或全域工具目錄 ~/.roo/tools 新增 .ts 或 .js 檔案。",
 			"refreshButton": "重新整理",
@@ -1058,8 +1051,7 @@
 		"providerNotAllowed": "供應商 '{{provider}}' 不允許用於您的組織。",
 		"modelNotAllowed": "模型 '{{model}}' 不允許用於供應商 '{{provider}}'，此設定已被組織禁止",
 		"profileInvalid": "此設定檔包含您的組織不允許的供應商或模型",
-		"qwenCodeOauthPath": "您必須提供有效的 OAuth 憑證路徑",
-		"zooGatewaySignIn": "請登入 Roo+ 以使用 Roo+ Gateway。"
+		"qwenCodeOauthPath": "您必須提供有效的 OAuth 憑證路徑"
 	},
 	"placeholders": {
 		"apiKey": "請輸入 API 金鑰...",

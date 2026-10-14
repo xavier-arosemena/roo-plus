@@ -56,8 +56,8 @@ Roo+ 是一個由社群驅動的專案，我們非常重視每一份貢獻。為
 
 ### 3. 加入 Roo+ 社群
 
-- **Discord：**加入我們的 [Discord](https://discord.gg/VxfP4Vx3gX)。
-- **Reddit：**加入我們的 [Reddit](https://www.reddit.com/r/ZooCode/)。
+- **GitHub Discussions：**加入我們的 [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions)。
+- **GitHub Issues：**在 [GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues) 中回報錯誤並請求功能。
 
 ## 尋找和規劃您的貢獻
 
@@ -75,7 +75,7 @@ Roo+ 是一個由社群驅動的專案，我們非常重視每一份貢獻。為
 - **使用以下範本建立 Issue**：
     - **增強功能：** 「Enhancement Request」範本（著重於使用者利益的淺顯描述）。
     - **錯誤** 「Bug Report」範本（最少的重現步驟 + 預期與實際結果 + 版本）。
-- **想參與其中嗎？** 在 Issue 上留言「Claiming」，並在 [Discord](https://discord.gg/VxfP4Vx3gX) 上聯繫核心團隊以獲得分配。分配結果將在討論串中確認。
+- **想參與其中嗎？** 在 Issue 上留言「Claiming」，並在 [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions) 上提問以獲得分配。分配結果將在討論串中確認。
 - **PR 必須連結到 Issue。** 未連結的 PR 可能會被關閉。
 
 ### 決定做什麼
@@ -128,7 +128,7 @@ pnpm install
 
 ### Pull Request 政策
 
-- 必須引用一個已指派的 GitHub Issue。如要被指派：請在 Issue 上留言「Claiming」，並在 [Discord](https://discord.gg/VxfP4Vx3gX) 上聯繫核心團隊。指派結果將可在討論串中確認。
+- 必須引用一個已指派的 GitHub Issue。如要被指派：請在 Issue 上留言「Claiming」，並在 [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions) 上提問。指派結果將可在討論串中確認。
 - 未連結 Issue 的 PR 可能會被關閉。
 - PR 必須通過 CI 測試，與路線圖保持一致，並有清晰的文件。
 

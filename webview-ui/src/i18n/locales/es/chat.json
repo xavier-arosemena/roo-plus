@@ -127,7 +127,7 @@
 		"title": "Modos",
 		"marketplace": "Marketplace de Modos",
 		"settings": "Configuración de Modos",
-		"description": "Personalidades especializadas que adaptan el comportamiento de Zoo.",
+		"description": "Personalidades especializadas que adaptan el comportamiento de Roo+.",
 		"searchPlaceholder": "Buscar modos...",
 		"noResults": "No se encontraron resultados"
 	},
@@ -184,7 +184,7 @@
 		"current": "Actual"
 	},
 	"instructions": {
-		"wantsToFetch": "Zoo quiere obtener instrucciones detalladas para ayudar con la tarea actual"
+		"wantsToFetch": "Roo+ quiere obtener instrucciones detalladas para ayudar con la tarea actual"
 	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ quiere leer este archivo",
@@ -286,7 +286,7 @@
 		"copyToClipboard": "Copiar al portapapeles",
 		"copied": "¡Copiado!",
 		"diagnostics": "Obtener información de error detallada",
-		"proxyProvider": "Parece que estás usando un proveedor basado en proxy. Asegúrate de revisar sus registros y de que no está reescribiendo las solicitudes de Zoo."
+		"proxyProvider": "Parece que estás usando un proveedor basado en proxy. Asegúrate de revisar sus registros y de que no está reescribiendo las solicitudes de Roo+."
 	},
 	"powershell": {
 		"issues": "Parece que estás teniendo problemas con Windows PowerShell, por favor consulta esta"

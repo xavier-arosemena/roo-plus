@@ -127,7 +127,7 @@
 		"title": "Chế độ",
 		"marketplace": "Chợ Chế độ",
 		"settings": "Cài đặt Chế độ",
-		"description": "Các nhân cách chuyên biệt điều chỉnh hành vi của Zoo.",
+		"description": "Các nhân cách chuyên biệt điều chỉnh hành vi của Roo+.",
 		"searchPlaceholder": "Tìm kiếm chế độ...",
 		"noResults": "Không tìm thấy kết quả nào"
 	},
@@ -184,7 +184,7 @@
 		"current": "Hiện tại"
 	},
 	"instructions": {
-		"wantsToFetch": "Zoo muốn lấy hướng dẫn chi tiết để hỗ trợ nhiệm vụ hiện tại"
+		"wantsToFetch": "Roo+ muốn lấy hướng dẫn chi tiết để hỗ trợ nhiệm vụ hiện tại"
 	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ muốn đọc tệp này",
@@ -287,7 +287,7 @@
 		"copyToClipboard": "Sao chép vào clipboard",
 		"copied": "Đã sao chép!",
 		"diagnostics": "Nhận thông tin lỗi chi tiết",
-		"proxyProvider": "Có vẻ bạn đang sử dụng nhà cung cấp dựa trên proxy. Hãy chắc chắn kiểm tra các nhật ký của nó và đảm bảo nó không viết lại các yêu cầu của Zoo."
+		"proxyProvider": "Có vẻ bạn đang sử dụng nhà cung cấp dựa trên proxy. Hãy chắc chắn kiểm tra các nhật ký của nó và đảm bảo nó không viết lại các yêu cầu của Roo+."
 	},
 	"powershell": {
 		"issues": "Có vẻ như bạn đang gặp vấn đề với Windows PowerShell, vui lòng xem"
@@ -420,7 +420,7 @@
 		"ariaLabel": "Phiên bản {{version}} - Nhấp để xem ghi chú phát hành"
 	},
 	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud đang phát triển!",
+		"title": "Roo+ Cloud đang phát triển!",
 		"description": "Chạy các agent từ xa trên cloud, truy cập các tác vụ của bạn từ mọi nơi, cộng tác với người khác và nhiều hơn nữa.",
 		"joinWaitlist": "Đăng ký để nhận các cập nhật mới nhất."
 	},

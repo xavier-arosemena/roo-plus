@@ -118,7 +118,7 @@
 		"title": "Modi",
 		"marketplace": "Modus Marktplaats",
 		"settings": "Modus Instellingen",
-		"description": "Gespecialiseerde persona's die het gedrag van Zoo aanpassen.",
+		"description": "Gespecialiseerde persona's die het gedrag van Roo+ aanpassen.",
 		"searchPlaceholder": "Zoek modi...",
 		"noResults": "Geen resultaten gevonden"
 	},
@@ -179,7 +179,7 @@
 		"current": "Huidig"
 	},
 	"instructions": {
-		"wantsToFetch": "Zoo wil gedetailleerde instructies ophalen om te helpen met de huidige taak"
+		"wantsToFetch": "Roo+ wil gedetailleerde instructies ophalen om te helpen met de huidige taak"
 	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ wil dit bestand lezen",
@@ -286,7 +286,7 @@
 		"copyToClipboard": "Naar klembord kopiëren",
 		"copied": "Gekopieerd!",
 		"diagnostics": "Gedetailleerde foutinformatie ophalen",
-		"proxyProvider": "Je lijkt een proxy-gebaseerde provider te gebruiken. Zorg ervoor dat je de logs controleert en dat het geen Zoo-verzoeken herschrijft."
+		"proxyProvider": "Je lijkt een proxy-gebaseerde provider te gebruiken. Zorg ervoor dat je de logs controleert en dat het geen Roo+-verzoeken herschrijft."
 	},
 	"powershell": {
 		"issues": "Het lijkt erop dat je problemen hebt met Windows PowerShell, zie deze"
@@ -419,7 +419,7 @@
 		"ariaLabel": "Versie {{version}} - Klik om release notes te bekijken"
 	},
 	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud evolueert!",
+		"title": "Roo+ Cloud evolueert!",
 		"description": "Voer externe agenten uit in de cloud, krijg overal toegang tot je taken, werk samen met anderen en nog veel meer.",
 		"joinWaitlist": "Meld je aan om de laatste updates te ontvangen."
 	},

@@ -89,7 +89,7 @@ describe("generateErrorDiagnostics", () => {
 		// taskId.slice(0, 8) = "test-tas" from "test-task-id"
 		expect(String(writtenPath)).toContain("zoo-diagnostics-test-tas")
 		expect(String(writtenContent)).toContain(
-			"// Please share this file with Roo+ support (support@zoocode.dev) to diagnose the issue faster",
+			"// Please share this file with Roo+ support at https://github.com/xavier-arosemena/roo-plus/issues to diagnose the issue faster",
 		)
 		expect(String(writtenContent)).toContain('"error":')
 		expect(String(writtenContent)).toContain('"history":')

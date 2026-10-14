@@ -1,5 +1,5 @@
 {
-	"greeting": "Roo+ Code へようこそ！",
+	"greeting": "Roo+ へようこそ！",
 	"task": {
 		"title": "タスク",
 		"expand": "タスクを展開",
@@ -127,7 +127,7 @@
 		"title": "モード",
 		"marketplace": "モードマーケットプレイス",
 		"settings": "モード設定",
-		"description": "Zooの動作をカスタマイズする専門的なペルソナ。",
+		"description": "Roo+の動作をカスタマイズする専門的なペルソナ。",
 		"searchPlaceholder": "モードを検索...",
 		"noResults": "結果が見つかりません"
 	},
@@ -141,7 +141,7 @@
 	"diffError": {
 		"title": "編集に失敗しました"
 	},
-	"troubleMessage": "Zooに問題が発生しています...",
+	"troubleMessage": "Roo+に問題が発生しています...",
 	"apiRequest": {
 		"title": "APIリクエスト",
 		"failed": "APIリクエスト失敗",
@@ -184,7 +184,7 @@
 		"current": "現在"
 	},
 	"instructions": {
-		"wantsToFetch": "Zooは現在のタスクを支援するための詳細な指示を取得したい"
+		"wantsToFetch": "Roo+は現在のタスクを支援するための詳細な指示を取得したい"
 	},
 	"fileOperations": {
 		"wantsToRead": "Rooはこのファイルを読みたい",
@@ -244,24 +244,24 @@
 	"response": "応答",
 	"arguments": "引数",
 	"text": {
-		"rooSaid": "Zooの発言"
+		"rooSaid": "Roo+の発言"
 	},
 	"feedback": {
 		"youSaid": "あなたの発言"
 	},
 	"mcp": {
-		"wantsToUseTool": "ZooはMCPサーバー{{serverName}}でツールを使用したい",
-		"wantsToAccessResource": "ZooはMCPサーバー{{serverName}}のリソースにアクセスしたい"
+		"wantsToUseTool": "Roo+はMCPサーバー{{serverName}}でツールを使用したい",
+		"wantsToAccessResource": "Roo+はMCPサーバー{{serverName}}のリソースにアクセスしたい"
 	},
 	"modes": {
-		"wantsToSwitch": "Zooは<code>{{mode}}</code>モードに切り替えたい",
-		"wantsToSwitchWithReason": "Zooは次の理由で<code>{{mode}}</code>モードに切り替えたい: {{reason}}",
-		"didSwitch": "Zooは<code>{{mode}}</code>モードに切り替えました",
-		"didSwitchWithReason": "Zooは次の理由で<code>{{mode}}</code>モードに切り替えました: {{reason}}"
+		"wantsToSwitch": "Roo+は<code>{{mode}}</code>モードに切り替えたい",
+		"wantsToSwitchWithReason": "Roo+は次の理由で<code>{{mode}}</code>モードに切り替えたい: {{reason}}",
+		"didSwitch": "Roo+は<code>{{mode}}</code>モードに切り替えました",
+		"didSwitchWithReason": "Roo+は次の理由で<code>{{mode}}</code>モードに切り替えました: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Zooは<code>{{mode}}</code>モードで新しいサブタスクを作成したい",
-		"wantsToFinish": "Zooはこのサブタスクを終了したい",
+		"wantsToCreate": "Roo+は<code>{{mode}}</code>モードで新しいサブタスクを作成したい",
+		"wantsToFinish": "Roo+はこのサブタスクを終了したい",
 		"newTaskContent": "サブタスク指示",
 		"completionContent": "サブタスク完了",
 		"resultContent": "サブタスク結果",
@@ -270,7 +270,7 @@
 		"goToSubtask": "タスクを表示"
 	},
 	"questions": {
-		"hasQuestion": "Zooは質問があります"
+		"hasQuestion": "Roo+は質問があります"
 	},
 	"taskCompleted": "タスク完了",
 	"modelResponseIncomplete": "モデルの応答が不完全",
@@ -286,7 +286,7 @@
 		"copyToClipboard": "クリップボードにコピー",
 		"copied": "コピーしました！",
 		"diagnostics": "詳細なエラー情報を取得",
-		"proxyProvider": "プロキシベースのプロバイダーを使用しているようです。ログを確認し、Zooのリクエストを書き換えていないことを確認してください。"
+		"proxyProvider": "プロキシベースのプロバイダーを使用しているようです。ログを確認し、Roo+のリクエストを書き換えていないことを確認してください。"
 	},
 	"powershell": {
 		"issues": "Windows PowerShellに問題があるようです。こちらを参照してください"
@@ -329,8 +329,8 @@
 		}
 	},
 	"skill": {
-		"wantsToLoad": "Zooはスキルを読み込もうとしています",
-		"didLoad": "Zooはスキルを読み込みました"
+		"wantsToLoad": "Roo+はスキルを読み込もうとしています",
+		"didLoad": "Roo+はスキルを読み込みました"
 	},
 	"followUpSuggest": {
 		"copyToInput": "入力欄にコピー（またはShift + クリック）",
@@ -367,18 +367,18 @@
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "自動承認リクエスト制限に達しました",
-			"description": "Zooは{{count}}件のAPI自動承認リクエスト制限に達しました。カウントをリセットしてタスクを続行しますか？",
+			"description": "Roo+は{{count}}件のAPI自動承認リクエスト制限に達しました。カウントをリセットしてタスクを続行しますか？",
 			"button": "リセットして続行"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "自動承認コスト制限に達しました",
-			"description": "Zooは自動承認されたコスト制限の${{count}}に達しました。コストをリセットしてタスクを続行しますか？",
+			"description": "Roo+は自動承認されたコスト制限の${{count}}に達しました。コストをリセットしてタスクを続行しますか？",
 			"button": "リセットして続ける"
 		}
 	},
 	"codebaseSearch": {
-		"wantsToSearch": "Zooはコードベースで <code>{{query}}</code> を検索したい",
-		"wantsToSearchWithPath": "Zooは <code>{{path}}</code> 内のコードベースで <code>{{query}}</code> を検索したい",
+		"wantsToSearch": "Roo+はコードベースで <code>{{query}}</code> を検索したい",
+		"wantsToSearchWithPath": "Roo+は <code>{{path}}</code> 内のコードベースで <code>{{query}}</code> を検索したい",
 		"didSearch_one": "1件の結果が見つかりました",
 		"didSearch_other": "{{count}}件の結果が見つかりました",
 		"resultTooltip": "類似度スコア: {{score}} (クリックしてファイルを開く)"
@@ -419,7 +419,7 @@
 		"ariaLabel": "バージョン {{version}} - クリックしてリリースノートを表示"
 	},
 	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud が進化中！",
+		"title": "Roo+ Cloud が進化中！",
 		"description": "クラウドでリモートエージェントを実行し、どこからでもタスクにアクセスし、他の人と協力し、その他多くの機能を利用できます。",
 		"joinWaitlist": "最新のアップデートを受け取るためにサインアップしてください。"
 	},
@@ -460,8 +460,8 @@
 		"clickToEdit": "クリックしてメッセージを編集"
 	},
 	"slashCommand": {
-		"wantsToRun": "Zooはスラッシュコマンドを実行したい",
-		"didRun": "Zooはスラッシュコマンドを実行しました"
+		"wantsToRun": "Roo+はスラッシュコマンドを実行したい",
+		"didRun": "Roo+はスラッシュコマンドを実行しました"
 	},
 	"todo": {
 		"partial": "{{total}}件中{{completed}}件のTo-Doが完了",
@@ -480,7 +480,7 @@
 		"openMcpSettings": "MCP 設定を開く"
 	},
 	"readCommandOutput": {
-		"title": "Zooがコマンド出力を読み込みました"
+		"title": "Roo+がコマンド出力を読み込みました"
 	},
 	"retiredProvider": {
 		"title": "プロバイダーのサポート終了",

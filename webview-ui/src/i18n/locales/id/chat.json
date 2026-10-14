@@ -148,7 +148,7 @@
 		"title": "Mode",
 		"marketplace": "Marketplace Mode",
 		"settings": "Pengaturan Mode",
-		"description": "Persona khusus yang menyesuaikan perilaku Zoo.",
+		"description": "Persona khusus yang menyesuaikan perilaku Roo+.",
 		"searchPlaceholder": "Cari mode...",
 		"noResults": "Tidak ada hasil yang ditemukan"
 	},
@@ -228,7 +228,7 @@
 		"didLoad": "Roo+ telah memuat keterampilan"
 	},
 	"instructions": {
-		"wantsToFetch": "Zoo ingin mengambil instruksi detail untuk membantu tugas saat ini"
+		"wantsToFetch": "Roo+ ingin mengambil instruksi detail untuk membantu tugas saat ini"
 	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ ingin membaca file ini",
@@ -342,7 +342,7 @@
 		"copyToClipboard": "Salin ke Clipboard",
 		"copied": "Disalin!",
 		"diagnostics": "Dapatkan informasi kesalahan terperinci",
-		"proxyProvider": "Tampaknya kamu menggunakan penyedia berbasis proxy. Pastikan untuk memeriksa log-nya dan memastikan tidak menulis ulang permintaan Zoo."
+		"proxyProvider": "Tampaknya kamu menggunakan penyedia berbasis proxy. Pastikan untuk memeriksa log-nya dan memastikan tidak menulis ulang permintaan Roo+."
 	},
 	"powershell": {
 		"issues": "Sepertinya kamu mengalami masalah Windows PowerShell, silakan lihat ini"
@@ -425,7 +425,7 @@
 		"ariaLabel": "Versi {{version}} - Klik untuk melihat catatan rilis"
 	},
 	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud sedang berkembang!",
+		"title": "Roo+ Cloud sedang berkembang!",
 		"description": "Jalankan agen jarak jauh di cloud, akses tugas Anda dari mana saja, berkolaborasi dengan orang lain, dan banyak lagi.",
 		"joinWaitlist": "Daftar untuk mendapatkan pembaruan terbaru."
 	},

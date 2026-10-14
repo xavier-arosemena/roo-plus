@@ -34,9 +34,9 @@
 	"settings.vsCodeLmModelSelector.description": "VSCode 語言模型 API 的設定",
 	"settings.vsCodeLmModelSelector.vendor.description": "語言模型供應商（例如：copilot）",
 	"settings.vsCodeLmModelSelector.family.description": "語言模型系列（例如：gpt-4）",
-	"settings.customStoragePath.description": "自訂儲存路徑。留空以使用預設位置。支援絕對路徑（例如：'D:\\ZooCodeStorage'）",
+	"settings.customStoragePath.description": "自訂儲存路徑。留空以使用預設位置。支援絕對路徑（例如：'D:\\RooPlusStorage'）",
 	"settings.enableCodeActions.description": "啟用 Roo+ 快速修復。",
-	"settings.autoImportSettingsPath.description": "ZooCode 設定檔案的路徑，用於在擴充功能啟動時自動匯入。支援絕對路徑和相對於主目錄的路徑（例如 '~/Documents/roo-code-settings.json'）。留空以停用自動匯入。",
+	"settings.autoImportSettingsPath.description": "Roo+ 設定檔案的路徑，用於在擴充功能啟動時自動匯入。支援絕對路徑和相對於主目錄的路徑（例如 '~/Documents/roo-code-settings.json'）。留空以停用自動匯入。",
 	"settings.maximumIndexedFilesForFileSearch.description": "為 @ 檔案搜尋功能建立索引時要索引的最大檔案數。較大的值在大型專案中提供更好的搜尋結果，但可能佔用更多記憶體。預設值：10,000。",
 	"settings.useAgentRules.description": "為特定於代理的規則啟用 AGENTS.md 檔案的載入（請參閱 https://agent-rules.org/）",
 	"settings.apiRequestTimeout.description": "API 回應逾時（秒，預設值：600，範圍：1–3600）。建議本地提供商使用更高的值。不適用的提供商：Amazon Bedrock、Google Gemini(directly or through the Vertex AI platform)、Mistral、Moonshot、Ollama、Poe、VS Code LM API。",
@@ -46,7 +46,7 @@
 	"settings.debugProxy.enabled.description": "**啟用 Debug Proxy** — 將所有出站網路要求透過代理進行路由，以進行 MITM 偵錯。只有在除錯模式 (F5) 執行時才會啟用。",
 	"settings.debugProxy.serverUrl.description": "代理 URL（例如 `http://127.0.0.1:8888`）。只有在啟用 **Debug Proxy** 時才會使用。",
 	"settings.debugProxy.tlsInsecure.description": "接受來自代理的 self-signed 憑證。**MITM 檢查所必需。** ⚠️ 不安全——只在本機偵錯時使用。",
-	"settings.workspace.rootResolution.description": "Zoo 在多根工作區中如何解析工作區根目錄。根目錄用於定位 `.roomodes`、`.roo/mcp.json`、`.roo/rules/` 以及其他專案範圍的設定。變更此設定僅影響後續查找；正在執行的工作會保留其原始根目錄。",
+	"settings.workspace.rootResolution.description": "Roo+ 在多根工作區中如何解析工作區根目錄。根目錄用於定位 `.roomodes`、`.roo/mcp.json`、`.roo/rules/` 以及其他專案範圍的設定。變更此設定僅影響後續查找；正在執行的工作會保留其原始根目錄。",
 	"settings.workspace.rootResolution.activeEditor.description": "使用包含使用中編輯器的工作區資料夾；回退到第一個工作區資料夾。（預設——保留舊行為。）",
 	"settings.workspace.rootResolution.firstFolder.description": "一律使用第一個工作區資料夾（workspaceFolders[0]）。具決定性——與目前聚焦的檔案無關。"
 }

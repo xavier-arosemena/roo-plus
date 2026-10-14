@@ -1,5 +1,5 @@
 {
-	"greeting": "Roo+ Code'a hoş geldin!",
+	"greeting": "Roo+'a hoş geldin!",
 	"task": {
 		"title": "Görev",
 		"expand": "Görevi genişlet",
@@ -127,7 +127,7 @@
 		"title": "Modlar",
 		"marketplace": "Mod Pazaryeri",
 		"settings": "Mod Ayarları",
-		"description": "Zoo'nun davranışını özelleştiren uzmanlaşmış kişilikler.",
+		"description": "Roo+'nun davranışını özelleştiren uzmanlaşmış kişilikler.",
 		"searchPlaceholder": "Modları ara...",
 		"noResults": "Sonuç bulunamadı"
 	},
@@ -184,7 +184,7 @@
 		"current": "Mevcut"
 	},
 	"instructions": {
-		"wantsToFetch": "Zoo mevcut göreve yardımcı olmak için ayrıntılı talimatlar almak istiyor"
+		"wantsToFetch": "Roo+ mevcut göreve yardımcı olmak için ayrıntılı talimatlar almak istiyor"
 	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ bu dosyayı okumak istiyor",
@@ -271,7 +271,7 @@
 		"goToSubtask": "Görevi görüntüle"
 	},
 	"questions": {
-		"hasQuestion": "Zoo'nun bir sorusu var"
+		"hasQuestion": "Roo+'nun bir sorusu var"
 	},
 	"taskCompleted": "Görev Tamamlandı",
 	"modelResponseIncomplete": "Model yanıtı eksik",
@@ -287,7 +287,7 @@
 		"copyToClipboard": "Panoya Kopyala",
 		"copied": "Kopyalandı!",
 		"diagnostics": "Ayrıntılı hata bilgisi al",
-		"proxyProvider": "Proxy tabanlı bir sağlayıcı kullanıyor gibi görünüyorsun. Günlüklerini kontrol ettiğinden ve Zoo'nun isteklerini yeniden yazmadığından emin ol."
+		"proxyProvider": "Proxy tabanlı bir sağlayıcı kullanıyor gibi görünüyorsun. Günlüklerini kontrol ettiğinden ve Roo+'nun isteklerini yeniden yazmadığından emin ol."
 	},
 	"powershell": {
 		"issues": "Windows PowerShell ile ilgili sorunlar yaşıyor gibi görünüyorsunuz, lütfen şu konuya bakın"
@@ -368,7 +368,7 @@
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Otomatik Onaylanan İstek Limiti Aşıldı",
-			"description": "Zoo, {{count}} API isteği/istekleri için otomatik onaylanan limite ulaştı. Sayacı sıfırlamak ve göreve devam etmek istiyor musunuz?",
+			"description": "Roo+, {{count}} API isteği/istekleri için otomatik onaylanan limite ulaştı. Sayacı sıfırlamak ve göreve devam etmek istiyor musunuz?",
 			"button": "Sıfırla ve Devam Et"
 		},
 		"autoApprovedCostLimitReached": {
@@ -420,7 +420,7 @@
 		"ariaLabel": "Sürüm {{version}} - Sürüm notlarını görüntülemek için tıklayın"
 	},
 	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud gelişiyor!",
+		"title": "Roo+ Cloud gelişiyor!",
 		"description": "Bulutta uzak ajanlar çalıştırın, görevlerinize her yerden erişin, başkalarıyla işbirliği yapın ve daha fazlası.",
 		"joinWaitlist": "En son güncellemeleri almak için kaydolun."
 	},

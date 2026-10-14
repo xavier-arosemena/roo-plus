@@ -34,9 +34,9 @@
 	"settings.vsCodeLmModelSelector.description": "Cài đặt cho API mô hình ngôn ngữ VSCode",
 	"settings.vsCodeLmModelSelector.vendor.description": "Nhà cung cấp mô hình ngôn ngữ (ví dụ: copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "Họ mô hình ngôn ngữ (ví dụ: gpt-4)",
-	"settings.customStoragePath.description": "Đường dẫn lưu trữ tùy chỉnh. Để trống để sử dụng vị trí mặc định. Hỗ trợ đường dẫn tuyệt đối (ví dụ: 'D:\\ZooCodeStorage')",
+	"settings.customStoragePath.description": "Đường dẫn lưu trữ tùy chỉnh. Để trống để sử dụng vị trí mặc định. Hỗ trợ đường dẫn tuyệt đối (ví dụ: 'D:\\RooPlusStorage')",
 	"settings.enableCodeActions.description": "Bật sửa lỗi nhanh Roo+.",
-	"settings.autoImportSettingsPath.description": "Đường dẫn đến tệp cấu hình ZooCode để tự động nhập khi khởi động tiện ích mở rộng. Hỗ trợ đường dẫn tuyệt đối và đường dẫn tương đối đến thư mục chính (ví dụ: '~/Documents/roo-code-settings.json'). Để trống để tắt tính năng tự động nhập.",
+	"settings.autoImportSettingsPath.description": "Đường dẫn đến tệp cấu hình Roo+ để tự động nhập khi khởi động tiện ích mở rộng. Hỗ trợ đường dẫn tuyệt đối và đường dẫn tương đối đến thư mục chính (ví dụ: '~/Documents/roo-code-settings.json'). Để trống để tắt tính năng tự động nhập.",
 	"settings.maximumIndexedFilesForFileSearch.description": "Số lượng tệp tối đa để lập chỉ mục cho tính năng tìm kiếm tệp @. Giá trị cao hơn cung cấp kết quả tìm kiếm tốt hơn trong các dự án lớn nhưng có thể sử dụng nhiều bộ nhớ hơn. Mặc định: 10.000.",
 	"settings.useAgentRules.description": "Bật tải tệp AGENTS.md cho các quy tắc dành riêng cho tác nhân (xem https://agent-rules.org/)",
 	"settings.apiRequestTimeout.description": "Thời gian chờ phản hồi API (giây, mặc định: 600, phạm vi: 1–3600). Nên dùng giá trị cao hơn cho các nhà cung cấp cục bộ. Nhà cung cấp không được hỗ trợ: Amazon Bedrock, Google Gemini(directly or through the Vertex AI platform), Mistral, Moonshot, Ollama, Poe, VS Code LM API.",
@@ -46,7 +46,7 @@
 	"settings.debugProxy.enabled.description": "**Bật Debug Proxy** — Chuyển hướng tất cả yêu cầu mạng đi ra qua một proxy để debug MITM. Chỉ hoạt động khi bạn chạy ở chế độ gỡ lỗi (F5).",
 	"settings.debugProxy.serverUrl.description": "Proxy URL (vd: `http://127.0.0.1:8888`). Chỉ được dùng khi **Debug Proxy** được bật.",
 	"settings.debugProxy.tlsInsecure.description": "Chấp nhận chứng chỉ self-signed từ proxy. **Bắt buộc cho việc kiểm tra MITM.** ⚠️ Không an toàn — chỉ dùng cho debug cục bộ.",
-	"settings.workspace.rootResolution.description": "Cách Zoo xác định gốc workspace trong một workspace nhiều gốc. Gốc được dùng để tìm `.roomodes`, `.roo/mcp.json`, `.roo/rules/` và các cấu hình khác ở phạm vi dự án. Thay đổi cài đặt này chỉ ảnh hưởng đến các lần tra cứu về sau; các tác vụ đang chạy vẫn giữ gốc ban đầu của chúng.",
+	"settings.workspace.rootResolution.description": "Cách Roo+ xác định gốc workspace trong một workspace nhiều gốc. Gốc được dùng để tìm `.roomodes`, `.roo/mcp.json`, `.roo/rules/` và các cấu hình khác ở phạm vi dự án. Thay đổi cài đặt này chỉ ảnh hưởng đến các lần tra cứu về sau; các tác vụ đang chạy vẫn giữ gốc ban đầu của chúng.",
 	"settings.workspace.rootResolution.activeEditor.description": "Dùng thư mục workspace chứa trình soạn thảo đang hoạt động; quay lại thư mục workspace đầu tiên. (Mặc định — giữ nguyên hành vi cũ.)",
 	"settings.workspace.rootResolution.firstFolder.description": "Luôn dùng thư mục workspace đầu tiên (workspaceFolders[0]). Mang tính xác định — không phụ thuộc vào tệp nào đang được focus."
 }
