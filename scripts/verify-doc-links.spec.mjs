@@ -32,10 +32,12 @@ import { fileURLToPath } from "node:url"
 import {
 	collectCallSites,
 	collectHelpSlugs,
+	extractLinkTargets,
 	headingSlugs,
 	normaliseSlug,
 	parseMapKeys,
 	slugifyHeading,
+	verifyCrossLinks,
 	verifyDocLinks,
 } from "./verify-doc-links.mjs"
 import {
@@ -388,5 +390,132 @@ test("the CURRENT repo keeps every released slug (plan §4.6)", () => {
 	const present = new Set(buildEntries(REPO_HELP_ROOT).map((entry) => entry.slug))
 	for (const slug of released) {
 		assert.ok(present.has(slug), `released slug "${slug}" has no docs/help page`)
+	}
+})
+
+// ---------------------------------------------------------------------------
+// F5: hardened gate — non-literal args, scan roots, fence-aware headings,
+// github-slugger parity, and cross-link anchors.
+// ---------------------------------------------------------------------------
+
+test("slugifyHeading keeps Unicode letters and drops punctuation (github-slugger parity)", () => {
+	assert.equal(slugifyHeading("Café Zürich"), "café-zürich")
+	assert.equal(slugifyHeading("Foo: Bar (Baz)!"), "foo-bar-baz")
+	assert.equal(slugifyHeading("Use inline terminal (recommended)"), "use-inline-terminal-recommended")
+})
+
+test("headingSlugs ignores fenced code and dedupes repeated headings like GitHub", () => {
+	const slugs = headingSlugs(["# Foo", "```", "# Not a heading", "```", "## Foo", "## Foo"].join("\n"))
+	assert.ok(slugs.has("foo"))
+	assert.ok(slugs.has("foo-1"))
+	assert.ok(slugs.has("foo-2"))
+	assert.ok(!slugs.has("not-a-heading"))
+
+	const tilde = headingSlugs(["~~~", "# Nope", "~~~", "# Yes"].join("\n"))
+	assert.ok(tilde.has("yes"))
+	assert.ok(!tilde.has("nope"))
+})
+
+test("collectCallSites records a non-literal first argument instead of skipping it", () => {
+	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "doc-links-nonlit-"))
+	try {
+		fs.writeFileSync(
+			path.join(tmp, "Foo.ts"),
+			[
+				"export function buildDocLink(path: string, campaign: string): string {", // declaration — not a call site
+				"\treturn path",
+				"}",
+				'const a = buildDocLink("features/skills", "c1")',
+				'const b = buildDocLink(someSlug, "c2")',
+			].join("\n"),
+		)
+		const sites = collectCallSites(tmp)
+		assert.equal(sites.length, 2)
+		const nonLiteral = sites.find((s) => s.nonLiteral !== null && s.nonLiteral !== undefined)
+		assert.ok(nonLiteral, "the dynamic call must be recorded, not dropped")
+		assert.equal(nonLiteral.nonLiteral, "someSlug")
+		// The declaration's `path: string` argument must never be treated as a call site.
+		assert.ok(!sites.some((s) => s.nonLiteral === "path: string"))
+	} finally {
+		fs.rmSync(tmp, { recursive: true, force: true })
+	}
+})
+
+test("verifyDocLinks fails closed on a non-literal buildDocLink argument", async () => {
+	await withFixture(
+		{
+			mutators: {
+				afterWrite: async ({ srcRoot }) =>
+					fs.promises.writeFile(path.join(srcRoot, "Dynamic.tsx"), 'buildDocLink(theSlug, "c")'),
+			},
+		},
+		async ({ helpRoot, srcRoot, mapPath }) => {
+			const result = verifyDocLinks({ helpRoot, mapPath, srcRoot })
+			assert.equal(result.ok, false)
+			assert.ok(
+				result.errors.some(
+					(e) => e.includes("non-literal buildDocLink() first argument") && e.includes("theSlug"),
+				),
+				result.errors.join("\n"),
+			)
+		},
+	)
+})
+
+test("verifyDocLinks scans extraRoots for call sites", async () => {
+	await withFixture(
+		{
+			mutators: {
+				afterWrite: async ({ root }) => {
+					const extra = path.join(root, "apps", "web")
+					await fs.promises.mkdir(extra, { recursive: true })
+					await fs.promises.writeFile(path.join(extra, "Extra.tsx"), 'buildDocLink("missing-page", "c")')
+				},
+			},
+		},
+		async ({ root, helpRoot, srcRoot, mapPath }) => {
+			const result = verifyDocLinks({ helpRoot, mapPath, srcRoot, extraRoots: [path.join(root, "apps")] })
+			assert.equal(result.ok, false)
+			assert.ok(result.errors.some((e) => e.includes('missing help page for slug "missing-page"')))
+		},
+	)
+})
+
+test("extractLinkTargets ignores fenced code and handles titled/bare links", () => {
+	const md = ["[a](#one)", '[b](two.md "title")', "```", "[c](#fenced)", "```", "![img](x.png)"].join("\n")
+	assert.deepEqual(extractLinkTargets(md), ["#one", "two.md", "x.png"])
+})
+
+test("verifyCrossLinks resolves in-page and cross-page anchors and flags breakage", () => {
+	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "doc-links-xref-"))
+	try {
+		fs.mkdirSync(path.join(tmp, "a"), { recursive: true })
+		fs.mkdirSync(path.join(tmp, "b"), { recursive: true })
+		fs.writeFileSync(
+			path.join(tmp, "a", "one.md"),
+			["# One", "## Target", "", "[ok](#target)", "[peer](../b/two.md#other)"].join("\n"),
+		)
+		fs.writeFileSync(
+			path.join(tmp, "b", "two.md"),
+			["# Two", "## Other", "```", "[ignored](#nope)", "```"].join("\n"),
+		)
+
+		const good = verifyCrossLinks(tmp)
+		assert.equal(good.errors.length, 0, good.errors.join("\n"))
+		assert.equal(good.checked, 2) // the fenced link is not counted
+
+		// A heading only present inside a code fence must not satisfy an anchor.
+		fs.writeFileSync(
+			path.join(tmp, "a", "one.md"),
+			["# One", "```", "## target", "```", "[bad](#target)"].join("\n"),
+		)
+		const bad = verifyCrossLinks(tmp)
+		assert.equal(bad.checked, 1)
+		assert.ok(
+			bad.errors.some((e) => e.includes("#target") && e.includes("a/one.md")),
+			bad.errors.join("\n"),
+		)
+	} finally {
+		fs.rmSync(tmp, { recursive: true, force: true })
 	}
 })
