@@ -406,6 +406,36 @@ authored page. Required headings (verbatim text) per anchor:
 Phase 2 must author these headings (or the anchors silently land at the top of the page). The CI
 check (§5) should verify heading presence on a best-effort basis.
 
+### 4.6 Slug stability policy — never rename or delete a released slug
+
+Base URLs are `blob/master` deep links (§4.2), so a help slug is effectively a **published
+interface**: once a build ships, the URL
+`https://github.com/xavier-arosemena/roo-plus/blob/master/docs/help/<slug>.md` is hard-coded inside
+that extension version. Users on older builds cannot be updated retroactively, so renaming or
+deleting the file turns every such link into a GitHub **404 permanently** — there is no server-side
+redirect to fix it after the fact.
+
+Policy:
+
+- **A released slug is immutable.** Never rename and never delete `docs/help/<slug>.md` once the
+  slug has shipped in a released build.
+- **Deprecate with a "moved" redirect stub.** To retire a page, keep the **original filename** and
+  replace its body with a short redirect stub that points at the replacement page (a "This page has
+  moved to …" pointer). The stub preserves the old deep link, so the old slug stays resolvable
+  forever.
+- **Headings are part of the contract.** The immutability rule extends to any heading referenced by
+  a call-site anchor (§4.5): reword by _adding_ the new heading and keeping the old one in place,
+  never by editing the heading text that an existing anchor slugs from.
+- **Released-slug history is enforced by the generator.** `docs/help/released-slugs.json` records
+  every slug that has ever shipped. `scripts/generate-doc-link-map.mjs` appends newly authored slugs
+  on a write run, and `--check` (run in CI — §5) **fails** if a recorded released slug no longer has
+  a matching `docs/help/<slug>.md`. A deleted or renamed released page is therefore a hard CI
+  failure, not a silent link break. (The check is skipped when the history file is absent, so
+  fixtures and checkouts without it are unaffected.)
+- **Interaction with §5.** Redirect stubs are ordinary pages to the tooling: they appear in the
+  generated map and, because no call site references them, they are reported by the (warning-only)
+  "unreferenced page" check. That warning is expected for a stub and is not a failure.
+
 ---
 
 ## 5. CI check spec — `scripts/verify-doc-links.mjs`

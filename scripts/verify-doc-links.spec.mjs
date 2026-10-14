@@ -38,7 +38,15 @@ import {
 	slugifyHeading,
 	verifyDocLinks,
 } from "./verify-doc-links.mjs"
-import { buildEntries, checkDocLinkMap, renderMapModule, writeProviderPages } from "./generate-doc-link-map.mjs"
+import {
+	buildEntries,
+	checkDocLinkMap,
+	RELEASED_SLUGS_FILE,
+	readReleasedSlugs,
+	renderMapModule,
+	writeProviderPages,
+	writeReleasedSlugs,
+} from "./generate-doc-link-map.mjs"
 import { PROVIDER_DOC_SLUGS, PROVIDER_PAGES } from "./lib/help-pages.mjs"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -335,4 +343,50 @@ test("checkDocLinkMap fails when a provider page is missing", () => {
 		assert.equal(result.ok, false)
 		assert.ok(result.problems.some((p) => p.includes("missing provider page")))
 	})
+})
+
+// ---------------------------------------------------------------------------
+// F4: released-slug stability (plan §4.6)
+// ---------------------------------------------------------------------------
+
+test("checkDocLinkMap fails when a recorded released slug no longer has a page", () => {
+	withGeneratedMap(({ helpRoot, mapPath }) => {
+		// A tree with no history file is accepted (enforcement skipped).
+		assert.equal(readReleasedSlugs(helpRoot), null)
+		assert.equal(checkDocLinkMap({ helpRoot, mapPath }).ok, true)
+
+		// Record a slug that is not present — the rename/delete failure F4 forbids.
+		fs.writeFileSync(
+			path.join(helpRoot, RELEASED_SLUGS_FILE),
+			JSON.stringify({ releasedSlugs: ["features/skills"] }),
+			"utf-8",
+		)
+		const result = checkDocLinkMap({ helpRoot, mapPath })
+		assert.equal(result.ok, false)
+		assert.ok(
+			result.problems.some((p) => p.includes('released slug "features/skills"') && p.includes("§4.6")),
+			result.problems.join("\n"),
+		)
+	})
+})
+
+test("writeReleasedSlugs records, sorts, and is idempotent", () => {
+	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "released-slugs-"))
+	try {
+		assert.deepEqual(writeReleasedSlugs(tmp, ["b/page", "a/page"]), ["a/page", "b/page"])
+		// Second run adds only the genuinely new slug — no churn.
+		assert.deepEqual(writeReleasedSlugs(tmp, ["b/page", "c/page"]), ["c/page"])
+		assert.deepEqual([...readReleasedSlugs(tmp)], ["a/page", "b/page", "c/page"])
+	} finally {
+		fs.rmSync(tmp, { recursive: true, force: true })
+	}
+})
+
+test("the CURRENT repo keeps every released slug (plan §4.6)", () => {
+	const released = readReleasedSlugs(REPO_HELP_ROOT)
+	assert.ok(released && released.size > 0, "docs/help/released-slugs.json must exist")
+	const present = new Set(buildEntries(REPO_HELP_ROOT).map((entry) => entry.slug))
+	for (const slug of released) {
+		assert.ok(present.has(slug), `released slug "${slug}" has no docs/help page`)
+	}
 })

@@ -53,6 +53,14 @@ const DEFAULT_HELP_ROOT = path.join(ROOT, "docs", "help")
 const DEFAULT_MAP_PATH = path.join(ROOT, "webview-ui", "src", "utils", "docLinkMap.generated.ts")
 
 /**
+ * History of every help slug that has ever shipped, stored under `docs/help/`.
+ * A released slug is immutable (plan §4.6): `--check` fails if a recorded slug
+ * no longer has a `docs/help/<slug>.md`, so a rename/delete is caught in CI
+ * instead of silently 404-ing the `blob/master` links baked into older builds.
+ */
+export const RELEASED_SLUGS_FILE = "released-slugs.json"
+
+/**
  * Recursively collects every `*.md` file under `dir`, returning paths relative
  * to `dir` with forward slashes.
  * @param {string} dir
@@ -143,6 +151,49 @@ export function writeProviderPages(helpRoot, force = false) {
 }
 
 /**
+ * Reads the released-slug history (`docs/help/released-slugs.json`). Returns
+ * `null` when the file is absent so callers can skip enforcement on fresh
+ * checkouts and temp fixtures that do not carry a history file.
+ * @param {string} helpRoot
+ * @returns {Set<string> | null} normalised slugs, or null when unavailable.
+ */
+export function readReleasedSlugs(helpRoot) {
+	const file = path.join(helpRoot, RELEASED_SLUGS_FILE)
+	if (!fs.existsSync(file)) return null
+	try {
+		const parsed = JSON.parse(fs.readFileSync(file, "utf-8"))
+		const list = Array.isArray(parsed) ? parsed : parsed.releasedSlugs
+		if (!Array.isArray(list)) return null
+		return new Set(list.map((slug) => String(slug).trim().toLowerCase()))
+	} catch {
+		return null
+	}
+}
+
+/**
+ * Merges `slugs` into the released-slug history (creating the file when absent)
+ * and writes it back in a stable, sorted form. Env-free and idempotent so the
+ * write path can be re-run without churn.
+ * @param {string} helpRoot
+ * @param {string[]} slugs
+ * @returns {string[]} the slugs that were newly added to the history.
+ */
+export function writeReleasedSlugs(helpRoot, slugs) {
+	const existing = readReleasedSlugs(helpRoot) ?? new Set()
+	const added = []
+	for (const slug of slugs) {
+		const normalised = slug.trim().toLowerCase()
+		if (existing.has(normalised)) continue
+		existing.add(normalised)
+		added.push(normalised)
+	}
+	const file = path.join(helpRoot, RELEASED_SLUGS_FILE)
+	fs.mkdirSync(path.dirname(file), { recursive: true })
+	fs.writeFileSync(file, `${JSON.stringify({ releasedSlugs: [...existing].sort() }, null, "\t")}\n`, "utf-8")
+	return added.sort()
+}
+
+/**
  * Pure verdict: is the map on disk in sync with the help-page tree?
  * @param {{ helpRoot: string; mapPath: string; force?: boolean }} opts
  * @returns {{ ok: boolean; expected: string; actual: string; entries: number; problems: string[] }}
@@ -179,6 +230,22 @@ export function checkDocLinkMap({ helpRoot, mapPath, force = false }) {
 	if (actual && actual !== expected) {
 		problems.push("docLinkMap.generated.ts is out of sync with docs/help/** (regenerate it)")
 	}
+
+	// F4 / plan §4.6: a released slug is immutable. When the history file exists,
+	// every recorded slug must still have a page — a rename/delete is a hard
+	// failure, never a silent 404 for the `blob/master` links baked into older
+	// builds. Absent history (fresh checkout / fixture) skips enforcement.
+	const released = readReleasedSlugs(helpRoot)
+	if (released) {
+		const present = new Set(entries.map((entry) => entry.slug))
+		for (const slug of [...released].sort()) {
+			if (present.has(slug)) continue
+			problems.push(
+				`released slug "${slug}" no longer has docs/help/${slug}.md — never rename or delete a released slug; restore it as a "moved" redirect stub (see docs/help-pages-plan.md §4.6)`,
+			)
+		}
+	}
+
 	void force
 	return { ok: problems.length === 0, expected, actual, entries: entries.length, problems }
 }
@@ -217,6 +284,14 @@ async function main() {
 	fs.mkdirSync(path.dirname(mapPath), { recursive: true })
 	fs.writeFileSync(mapPath, renderMapModule(entries), "utf-8")
 	logOk(TAG, `wrote ${entries.length} entries to ${path.relative(ROOT, mapPath)}`)
+
+	// Record every authored slug as released (plan §4.6) so a later rename/delete
+	// is caught by `--check` rather than silently breaking shipped deep links.
+	const added = writeReleasedSlugs(
+		helpRoot,
+		entries.map((entry) => entry.slug),
+	)
+	if (added.length > 0) logOk(TAG, `recorded ${added.length} new released slug(s) in ${RELEASED_SLUGS_FILE}`)
 
 	logEndGroup()
 	logSuccess(TAG, "Provider help pages and doc-link map generated.")
