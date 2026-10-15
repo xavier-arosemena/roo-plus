@@ -222,9 +222,6 @@
 		"task_prompt": "Apa yang harus Roo+ lakukan?",
 		"task_placeholder": "Ketik tugas kamu di sini"
 	},
-	"settings": {
-		"providers": {}
-	},
 	"customModes": {
 		"errors": {
 			"yamlParseError": "YAML tidak valid dalam file .roomodes pada baris {{line}}. Silakan periksa:\n• Indentasi yang benar (gunakan spasi, bukan tab)\n• Tanda kutip dan kurung yang cocok\n• Sintaks YAML yang valid",
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "Organisasi kamu memerlukan autentikasi Roo+ Cloud. Silakan masuk untuk melanjutkan.",
 			"organization_mismatch": "Kamu harus diautentikasi dengan akun Roo+ Cloud organisasi kamu.",
-			"manual_url_empty": "Silakan masukkan URL callback yang valid",
-			"manual_url_no_query": "URL callback tidak valid: parameter query hilang",
-			"manual_url_missing_params": "URL callback tidak valid: parameter yang diperlukan hilang (code dan state)",
-			"manual_url_auth_failed": "Autentikasi URL manual gagal",
-			"manual_url_auth_error": "Autentikasi gagal",
 			"verification_failed": "Tidak dapat memverifikasi autentikasi organisasi."
 		},
 		"info": {

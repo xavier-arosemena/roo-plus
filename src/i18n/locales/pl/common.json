@@ -222,9 +222,6 @@
 		"task_prompt": "Co ma zrobić Roo+?",
 		"task_placeholder": "Wpisz swoje zadanie tutaj"
 	},
-	"settings": {
-		"providers": {}
-	},
 	"customModes": {
 		"errors": {
 			"yamlParseError": "Nieprawidłowy YAML w pliku .roomodes w linii {{line}}. Sprawdź:\n• Prawidłowe wcięcia (używaj spacji, nie tabulatorów)\n• Pasujące cudzysłowy i nawiasy\n• Prawidłową składnię YAML",
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "Twoja organizacja wymaga uwierzytelnienia Roo+ Cloud. Zaloguj się, aby kontynuować.",
 			"organization_mismatch": "Musisz być uwierzytelniony kontem Roo+ Cloud swojej organizacji.",
-			"manual_url_empty": "Wprowadź prawidłowy URL callback",
-			"manual_url_no_query": "Nieprawidłowy URL callback: brak parametrów zapytania",
-			"manual_url_missing_params": "Nieprawidłowy URL callback: brak wymaganych parametrów (code i state)",
-			"manual_url_auth_failed": "Ręczne uwierzytelnienie URL nie powiodło się",
-			"manual_url_auth_error": "Uwierzytelnienie nie powiodło się",
 			"verification_failed": "Nie można zweryfikować uwierzytelnienia organizacji."
 		},
 		"info": {

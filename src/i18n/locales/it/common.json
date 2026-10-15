@@ -222,9 +222,6 @@
 		"task_prompt": "Cosa deve fare Roo+?",
 		"task_placeholder": "Scrivi il tuo compito qui"
 	},
-	"settings": {
-		"providers": {}
-	},
 	"customModes": {
 		"errors": {
 			"yamlParseError": "YAML non valido nel file .roomodes alla riga {{line}}. Controlla:\n• Indentazione corretta (usa spazi, non tab)\n• Virgolette e parentesi corrispondenti\n• Sintassi YAML valida",
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "La tua organizzazione richiede l'autenticazione Roo+ Cloud. Accedi per continuare.",
 			"organization_mismatch": "Devi essere autenticato con l'account Roo+ Cloud della tua organizzazione.",
-			"manual_url_empty": "Inserisci un URL di callback valido",
-			"manual_url_no_query": "URL di callback non valido: parametri di query mancanti",
-			"manual_url_missing_params": "URL di callback non valido: parametri richiesti mancanti (code e state)",
-			"manual_url_auth_failed": "Autenticazione manuale tramite URL fallita",
-			"manual_url_auth_error": "Autenticazione fallita",
 			"verification_failed": "Impossibile verificare l'autenticazione dell'organizzazione."
 		},
 		"info": {

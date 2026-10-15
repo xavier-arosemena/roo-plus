@@ -222,9 +222,6 @@
 		"task_prompt": "Roo+에게 무엇을 시킬까요?",
 		"task_placeholder": "여기에 작업을 입력하세요"
 	},
-	"settings": {
-		"providers": {}
-	},
 	"customModes": {
 		"errors": {
 			"yamlParseError": ".roomodes 파일의 {{line}}번째 줄에서 유효하지 않은 YAML입니다. 다음을 확인하세요:\n• 올바른 들여쓰기 (탭이 아닌 공백 사용)\n• 일치하는 따옴표와 괄호\n• 유효한 YAML 구문",
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "조직에서 Roo+ Cloud 인증이 필요합니다. 계속하려면 로그인하세요.",
 			"organization_mismatch": "조직의 Roo+ Cloud 계정으로 인증해야 합니다.",
-			"manual_url_empty": "유효한 콜백 URL을 입력하세요",
-			"manual_url_no_query": "유효하지 않은 콜백 URL: 쿼리 매개변수 누락",
-			"manual_url_missing_params": "유효하지 않은 콜백 URL: 필요한 매개변수 누락 (code와 state)",
-			"manual_url_auth_failed": "수동 URL 인증 실패",
-			"manual_url_auth_error": "인증 실패",
 			"verification_failed": "조직 인증을 확인할 수 없습니다."
 		},
 		"info": {

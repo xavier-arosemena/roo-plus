@@ -183,9 +183,6 @@
 		},
 		"current": "Actual"
 	},
-	"instructions": {
-		"wantsToFetch": "Roo+ vol obtenir instruccions detallades per ajudar amb la tasca actual."
-	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ vol llegir aquest fitxer",
 		"wantsToReadOutsideWorkspace": "Roo+ vol llegir aquest fitxer fora de l'espai de treball",
@@ -194,8 +191,6 @@
 		"wantsToEditOutsideWorkspace": "Roo+ vol editar aquest fitxer fora de l'espai de treball",
 		"wantsToEditProtected": "Roo+ vol editar un fitxer de configuració protegit",
 		"wantsToCreate": "Roo+ vol crear un nou fitxer",
-		"wantsToSearchReplace": "Roo vol realitzar cerca i substitució en aquest fitxer",
-		"didSearchReplace": "Roo ha realitzat cerca i substitució en aquest fitxer",
 		"wantsToInsert": "Roo+ vol inserir contingut en aquest fitxer",
 		"wantsToInsertWithLineNumber": "Roo+ vol inserir contingut a la línia {{lineNumber}} d'aquest fitxer",
 		"wantsToInsertAtEnd": "Roo+ vol afegir contingut al final d'aquest fitxer",
@@ -254,16 +249,15 @@
 		"wantsToAccessResource": "Roo+ vol accedir a un recurs al servidor MCP {{serverName}}"
 	},
 	"modes": {
-		"wantsToSwitch": "Roo+ vol canviar a mode <code>{{mode}}</code>",
-		"wantsToSwitchWithReason": "Roo+ vol canviar a mode <code>{{mode}}</code> perquè: {{reason}}",
-		"didSwitch": "Roo+ ha canviat a mode <code>{{mode}}</code>",
-		"didSwitchWithReason": "Roo+ ha canviat a mode <code>{{mode}}</code> perquè: {{reason}}"
+		"wantsToSwitch": "Roo+ vol canviar a mode {{mode}}",
+		"wantsToSwitchWithReason": "Roo+ vol canviar a mode {{mode}} perquè: {{reason}}",
+		"didSwitch": "Roo+ ha canviat a mode {{mode}}",
+		"didSwitchWithReason": "Roo+ ha canviat a mode {{mode}} perquè: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Roo+ vol crear una nova subtasca en mode <code>{{mode}}</code>",
+		"wantsToCreate": "Roo+ vol crear una nova subtasca en mode {{mode}}",
 		"wantsToFinish": "Roo+ vol finalitzar aquesta subtasca",
 		"newTaskContent": "Instruccions de la subtasca",
-		"completionContent": "Subtasca completada",
 		"resultContent": "Resultats de la subtasca",
 		"defaultResult": "Si us plau, continua amb la següent tasca.",
 		"completionInstructions": "Subtasca completada! Pots revisar els resultats i suggerir correccions o següents passos. Si tot sembla correcte, confirma per tornar el resultat a la tasca principal.",
@@ -295,7 +289,6 @@
 		"tooltipManage": "Gestiona la configuració d'aprovació automàtica",
 		"tooltipStatus": "Aprovació automàtica activada per a: {{toggles}}",
 		"title": "Aprovació automàtica",
-		"toggle": "Commuta l'aprovació automàtica",
 		"all": "Tot",
 		"none": "Cap",
 		"description": "Executa aquestes accions sense demanar permís. Activa-ho només per a accions de confiança.",
@@ -417,11 +410,6 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Versió {{version}} - Feu clic per veure les notes de llançament"
-	},
-	"rooCloudCTA": {
-		"title": "Roo+ Cloud està evolucionant!",
-		"description": "Executa agents remots al núvol, accedeix a les teves tasques des de qualsevol lloc, col·labora amb altres i molt més.",
-		"joinWaitlist": "Registra't per rebre les últimes actualitzacions."
 	},
 	"editMessage": {
 		"placeholder": "Edita el teu missatge..."

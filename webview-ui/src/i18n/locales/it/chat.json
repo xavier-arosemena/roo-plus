@@ -137,9 +137,6 @@
 	"edit": "Modifica...",
 	"forNextMode": "per la prossima modalità",
 	"forPreviousMode": "per la modalità precedente",
-	"instructions": {
-		"wantsToFetch": "Roo+ vuole recuperare istruzioni dettagliate per aiutare con l'attività corrente"
-	},
 	"error": "Errore",
 	"diffError": {
 		"title": "Modifica non riuscita"
@@ -194,8 +191,6 @@
 		"wantsToEditOutsideWorkspace": "Roo+ vuole modificare questo file al di fuori dell'area di lavoro",
 		"wantsToEditProtected": "Roo+ vuole modificare un file di configurazione protetto",
 		"wantsToCreate": "Roo+ vuole creare un nuovo file",
-		"wantsToSearchReplace": "Roo vuole eseguire ricerca e sostituzione in questo file",
-		"didSearchReplace": "Roo ha eseguito ricerca e sostituzione in questo file",
 		"wantsToInsert": "Roo+ vuole inserire contenuto in questo file",
 		"wantsToInsertWithLineNumber": "Roo+ vuole inserire contenuto in questo file alla riga {{lineNumber}}",
 		"wantsToInsertAtEnd": "Roo+ vuole aggiungere contenuto alla fine di questo file",
@@ -254,16 +249,15 @@
 		"wantsToAccessResource": "Roo+ vuole accedere a una risorsa sul server MCP {{serverName}}"
 	},
 	"modes": {
-		"wantsToSwitch": "Roo+ vuole passare alla modalità <code>{{mode}}</code>",
-		"wantsToSwitchWithReason": "Roo+ vuole passare alla modalità <code>{{mode}}</code> perché: {{reason}}",
-		"didSwitch": "Roo+ è passato alla modalità <code>{{mode}}</code>",
-		"didSwitchWithReason": "Roo+ è passato alla modalità <code>{{mode}}</code> perché: {{reason}}"
+		"wantsToSwitch": "Roo+ vuole passare alla modalità {{mode}}",
+		"wantsToSwitchWithReason": "Roo+ vuole passare alla modalità {{mode}} perché: {{reason}}",
+		"didSwitch": "Roo+ è passato alla modalità {{mode}}",
+		"didSwitchWithReason": "Roo+ è passato alla modalità {{mode}} perché: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Roo+ vuole creare una nuova sottoattività in modalità <code>{{mode}}</code>",
+		"wantsToCreate": "Roo+ vuole creare una nuova sottoattività in modalità {{mode}}",
 		"wantsToFinish": "Roo+ vuole completare questa sottoattività",
 		"newTaskContent": "Istruzioni sottoattività",
-		"completionContent": "Sottoattività completata",
 		"resultContent": "Risultati sottoattività",
 		"defaultResult": "Per favore continua con la prossima attività.",
 		"completionInstructions": "Sottoattività completata! Puoi rivedere i risultati e suggerire correzioni o prossimi passi. Se tutto sembra a posto, conferma per restituire il risultato all'attività principale.",
@@ -295,7 +289,6 @@
 		"tooltipManage": "Gestisci impostazioni di approvazione automatica",
 		"tooltipStatus": "Approvazione automatica abilitata per: {{toggles}}",
 		"title": "Approvazione Automatica",
-		"toggle": "Attiva/disattiva approvazione automatica",
 		"all": "Tutti",
 		"none": "Nessuno",
 		"description": "Esegui queste azioni senza chiedere il permesso. Abilita solo per azioni di cui ti fidi completamente.",
@@ -417,11 +410,6 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Versione {{version}} - Clicca per visualizzare le note di rilascio"
-	},
-	"rooCloudCTA": {
-		"title": "Roo+ Cloud si sta evolvendo!",
-		"description": "Esegui agenti remoti nel cloud, accedi alle tue attività da qualsiasi luogo, collabora con altri e molto altro.",
-		"joinWaitlist": "Registrati per ricevere gli ultimi aggiornamenti."
 	},
 	"editMessage": {
 		"placeholder": "Modifica il tuo messaggio..."

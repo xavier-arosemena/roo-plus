@@ -53,8 +53,7 @@
 	},
 	"exportMode": {
 		"title": "Xuất chế độ",
-		"description": "Xuất chế độ này sang tệp YAML với tất cả các quy tắc được bao gồm để dễ dàng chia sẻ với người khác.",
-		"export": "Xuất chế độ",
+		"description": "Xuất chế độ này cùng với các quy tắc trong thư mục .roo/rules-{{slug}}/ vào một tệp YAML để dễ dàng chia sẻ với người khác.",
 		"exporting": "Đang xuất..."
 	},
 	"globalCustomInstructions": {

@@ -53,8 +53,7 @@
 	},
 	"exportMode": {
 		"title": "Ekspor Mode",
-		"description": "Ekspor mode ini ke file YAML dengan semua aturan yang disertakan untuk berbagi dengan mudah dengan orang lain.",
-		"export": "Ekspor Mode",
+		"description": "Ekspor mode ini bersama aturan dari folder .roo/rules-{{slug}}/ ke dalam file YAML agar mudah dibagikan kepada orang lain.",
 		"exporting": "Mengekspor..."
 	},
 	"importMode": {

@@ -183,9 +183,6 @@
 		},
 		"current": "現在"
 	},
-	"instructions": {
-		"wantsToFetch": "Roo+は現在のタスクを支援するための詳細な指示を取得したい"
-	},
 	"fileOperations": {
 		"wantsToRead": "Rooはこのファイルを読みたい",
 		"wantsToReadOutsideWorkspace": "Rooはワークスペース外のこのファイルを読みたい",
@@ -194,8 +191,6 @@
 		"wantsToEditOutsideWorkspace": "Rooはワークスペース外のこのファイルを編集したい",
 		"wantsToEditProtected": "Rooは保護された設定ファイルを編集したい",
 		"wantsToCreate": "Rooは新しいファイルを作成したい",
-		"wantsToSearchReplace": "Rooはこのファイルで検索と置換を行う",
-		"didSearchReplace": "Rooはこのファイルで検索と置換を実行しました",
 		"wantsToInsert": "Rooはこのファイルにコンテンツを挿入したい",
 		"wantsToInsertWithLineNumber": "Rooはこのファイルの{{lineNumber}}行目にコンテンツを挿入したい",
 		"wantsToInsertAtEnd": "Rooはこのファイルの末尾にコンテンツを追加したい",
@@ -254,16 +249,15 @@
 		"wantsToAccessResource": "Roo+はMCPサーバー{{serverName}}のリソースにアクセスしたい"
 	},
 	"modes": {
-		"wantsToSwitch": "Roo+は<code>{{mode}}</code>モードに切り替えたい",
-		"wantsToSwitchWithReason": "Roo+は次の理由で<code>{{mode}}</code>モードに切り替えたい: {{reason}}",
-		"didSwitch": "Roo+は<code>{{mode}}</code>モードに切り替えました",
-		"didSwitchWithReason": "Roo+は次の理由で<code>{{mode}}</code>モードに切り替えました: {{reason}}"
+		"wantsToSwitch": "Roo+は{{mode}}モードに切り替えたい",
+		"wantsToSwitchWithReason": "Roo+は次の理由で{{mode}}モードに切り替えたい: {{reason}}",
+		"didSwitch": "Roo+は{{mode}}モードに切り替えました",
+		"didSwitchWithReason": "Roo+は次の理由で{{mode}}モードに切り替えました: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Roo+は<code>{{mode}}</code>モードで新しいサブタスクを作成したい",
+		"wantsToCreate": "Roo+は{{mode}}モードで新しいサブタスクを作成したい",
 		"wantsToFinish": "Roo+はこのサブタスクを終了したい",
 		"newTaskContent": "サブタスク指示",
-		"completionContent": "サブタスク完了",
 		"resultContent": "サブタスク結果",
 		"defaultResult": "次のタスクに進んでください。",
 		"completionInstructions": "サブタスク完了！結果を確認し、修正や次のステップを提案できます。問題なければ、親タスクに結果を返すために確認してください。",
@@ -295,7 +289,6 @@
 		"tooltipManage": "自動承認設定を管理する",
 		"tooltipStatus": "自動承認が有効です: {{toggles}}",
 		"title": "自動承認",
-		"toggle": "自動承認を切り替える",
 		"all": "すべて",
 		"none": "なし",
 		"description": "許可を求めずにこれらのアクションを実行します。完全に信頼するアクションに対してのみ有効にしてください。",
@@ -417,11 +410,6 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "バージョン {{version}} - クリックしてリリースノートを表示"
-	},
-	"rooCloudCTA": {
-		"title": "Roo+ Cloud が進化中！",
-		"description": "クラウドでリモートエージェントを実行し、どこからでもタスクにアクセスし、他の人と協力し、その他多くの機能を利用できます。",
-		"joinWaitlist": "最新のアップデートを受け取るためにサインアップしてください。"
 	},
 	"editMessage": {
 		"placeholder": "メッセージを編集..."

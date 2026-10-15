@@ -80,9 +80,7 @@
 			"installed": "Installé",
 			"removeProjectTooltip": "Supprimer du projet actuel",
 			"removeGlobalTooltip": "Supprimer de la configuration globale",
-			"actionsMenuLabel": "Plus d'actions",
-			"official": "Officiel",
-			"verified": "Vérifié"
+			"actionsMenuLabel": "Plus d'actions"
 		},
 		"removeFailed": "Échec de la suppression de l'élément : {{error}}",
 		"unknownError": "Une erreur inconnue est survenue"

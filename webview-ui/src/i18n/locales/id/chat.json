@@ -21,9 +21,6 @@
 		"waitingOnSubtask": "Menunggu subtugas",
 		"goToSubtask": "Pergi ke subtugas"
 	},
-	"history": {
-		"title": "Riwayat"
-	},
 	"unpin": "Lepas Pin",
 	"pin": "Pin",
 	"fileChangesInConversation": {
@@ -44,9 +41,6 @@
 	"restoreChanges": {
 		"title": "Pulihkan Perubahan",
 		"tooltip": "Pulihkan file dan status tugas ke prompt terakhirmu"
-	},
-	"reportBug": {
-		"title": "Laporkan Bug"
 	},
 	"proceedAnyways": {
 		"title": "Lanjutkan Saja",
@@ -227,9 +221,6 @@
 		"wantsToLoad": "Roo+ ingin memuat keterampilan",
 		"didLoad": "Roo+ telah memuat keterampilan"
 	},
-	"instructions": {
-		"wantsToFetch": "Roo+ ingin mengambil instruksi detail untuk membantu tugas saat ini"
-	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ ingin membaca file ini",
 		"wantsToReadMultiple": "Roo+ ingin membaca beberapa file",
@@ -245,8 +236,6 @@
 		"wantsToGenerateImageProtected": "Roo+ ingin menghasilkan gambar di lokasi yang dilindungi",
 		"didGenerateImage": "Roo+ telah menghasilkan gambar",
 		"wantsToCreate": "Roo+ ingin membuat file baru",
-		"wantsToSearchReplace": "Roo ingin mencari dan mengganti di file ini",
-		"didSearchReplace": "Roo melakukan pencarian dan penggantian pada file ini",
 		"wantsToInsert": "Roo+ ingin menyisipkan konten ke file ini",
 		"wantsToInsertWithLineNumber": "Roo+ ingin menyisipkan konten ke file ini di baris {{lineNumber}}",
 		"wantsToInsertAtEnd": "Roo+ ingin menambahkan konten ke akhir file ini"
@@ -314,7 +303,6 @@
 		"wantsToCreate": "Roo+ ingin membuat subtugas baru dalam mode {{mode}}",
 		"wantsToFinish": "Roo+ ingin menyelesaikan subtugas ini",
 		"newTaskContent": "Instruksi Subtugas",
-		"completionContent": "Subtugas Selesai",
 		"resultContent": "Hasil Subtugas",
 		"defaultResult": "Silakan lanjutkan ke tugas berikutnya.",
 		"completionInstructions": "Subtugas selesai! Kamu bisa meninjau hasilnya dan menyarankan koreksi atau langkah selanjutnya. Jika semuanya terlihat baik, konfirmasi untuk mengembalikan hasil ke tugas induk.",
@@ -351,7 +339,6 @@
 		"tooltipManage": "Kelola pengaturan persetujuan otomatis",
 		"tooltipStatus": "Persetujuan otomatis diaktifkan untuk: {{toggles}}",
 		"title": "Setujui Otomatis",
-		"toggle": "Beralih persetujuan otomatis",
 		"all": "Semua",
 		"none": "Tidak ada",
 		"description": "Jalankan tindakan ini tanpa meminta izin. Hanya aktifkan untuk tindakan yang Anda percayai sepenuhnya.",
@@ -423,11 +410,6 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Versi {{version}} - Klik untuk melihat catatan rilis"
-	},
-	"rooCloudCTA": {
-		"title": "Roo+ Cloud sedang berkembang!",
-		"description": "Jalankan agen jarak jauh di cloud, akses tugas Anda dari mana saja, berkolaborasi dengan orang lain, dan banyak lagi.",
-		"joinWaitlist": "Daftar untuk mendapatkan pembaruan terbaru."
 	},
 	"editMessage": {
 		"placeholder": "Edit pesan Anda..."

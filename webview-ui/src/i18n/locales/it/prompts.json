@@ -53,8 +53,7 @@
 	},
 	"exportMode": {
 		"title": "Esporta modalità",
-		"description": "Esporta questa modalità in un file YAML con tutte le regole incluse per una facile condivisione con altri.",
-		"export": "Esporta modalità",
+		"description": "Esporta questa modalità con le regole della cartella .roo/rules-{{slug}}/ riunite in un file YAML facile da condividere con gli altri.",
 		"exporting": "Esportazione..."
 	},
 	"importMode": {

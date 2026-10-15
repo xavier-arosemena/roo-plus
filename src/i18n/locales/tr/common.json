@@ -222,9 +222,6 @@
 		"task_prompt": "Roo+ ne yapsın?",
 		"task_placeholder": "Görevini buraya yaz"
 	},
-	"settings": {
-		"providers": {}
-	},
 	"customModes": {
 		"errors": {
 			"yamlParseError": ".roomodes dosyasının {{line}}. satırında geçersiz YAML. Kontrol et:\n• Doğru girinti (tab değil boşluk kullan)\n• Eşleşen tırnak işaretleri ve parantezler\n• Geçerli YAML sözdizimi",
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "Kuruluşunuz Roo+ Cloud kimlik doğrulaması gerektiriyor. Devam etmek için giriş yapın.",
 			"organization_mismatch": "Kuruluşunuzun Roo+ Cloud hesabıyla kimlik doğrulaması yapmalısınız.",
-			"manual_url_empty": "Lütfen geçerli bir callback URL'si girin",
-			"manual_url_no_query": "Geçersiz callback URL'si: sorgu parametreleri eksik",
-			"manual_url_missing_params": "Geçersiz callback URL'si: gerekli parametreler eksik (code ve state)",
-			"manual_url_auth_failed": "Manuel URL kimlik doğrulama başarısız",
-			"manual_url_auth_error": "Kimlik doğrulama başarısız",
 			"verification_failed": "Kuruluş kimlik doğrulaması doğrulanamıyor."
 		},
 		"info": {

@@ -53,8 +53,7 @@
 	},
 	"exportMode": {
 		"title": "Modus exporteren",
-		"description": "Exporteer deze modus naar een YAML-bestand met alle regels inbegrepen voor eenvoudig delen met anderen.",
-		"export": "Modus exporteren",
+		"description": "Exporteer deze modus met de regels uit de map .roo/rules-{{slug}}/ naar een YAML-bestand dat eenvoudig met anderen te delen is.",
 		"exporting": "Exporteren..."
 	},
 	"importMode": {

@@ -53,8 +53,7 @@
 	},
 	"exportMode": {
 		"title": "导出模式",
-		"description": "将此模式导出为包含所有规则的 YAML 文件，以便与他人轻松共享。",
-		"export": "导出模式",
+		"description": "将此模式连同 .roo/rules-{{slug}}/ 文件夹中的规则一起导出为便于与他人共享的 YAML 文件。",
 		"exporting": "正在导出..."
 	},
 	"importMode": {

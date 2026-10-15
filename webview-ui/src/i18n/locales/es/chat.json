@@ -183,9 +183,6 @@
 		},
 		"current": "Actual"
 	},
-	"instructions": {
-		"wantsToFetch": "Roo+ quiere obtener instrucciones detalladas para ayudar con la tarea actual"
-	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ quiere leer este archivo",
 		"wantsToReadOutsideWorkspace": "Roo+ quiere leer este archivo fuera del espacio de trabajo",
@@ -194,8 +191,6 @@
 		"wantsToEditOutsideWorkspace": "Roo+ quiere editar este archivo fuera del espacio de trabajo",
 		"wantsToEditProtected": "Roo+ quiere editar un archivo de configuración protegido",
 		"wantsToCreate": "Roo+ quiere crear un nuevo archivo",
-		"wantsToSearchReplace": "Roo quiere realizar búsqueda y reemplazo en este archivo",
-		"didSearchReplace": "Roo realizó búsqueda y reemplazo en este archivo",
 		"wantsToInsert": "Roo+ quiere insertar contenido en este archivo",
 		"wantsToInsertWithLineNumber": "Roo+ quiere insertar contenido en este archivo en la línea {{lineNumber}}",
 		"wantsToInsertAtEnd": "Roo+ quiere añadir contenido al final de este archivo",
@@ -254,16 +249,15 @@
 		"wantsToAccessResource": "Roo+ quiere acceder a un recurso en el servidor MCP {{serverName}}"
 	},
 	"modes": {
-		"wantsToSwitch": "Roo+ quiere cambiar a modo <code>{{mode}}</code>",
-		"wantsToSwitchWithReason": "Roo+ quiere cambiar a modo <code>{{mode}}</code> porque: {{reason}}",
-		"didSwitch": "Roo+ cambió a modo <code>{{mode}}</code>",
-		"didSwitchWithReason": "Roo+ cambió a modo <code>{{mode}}</code> porque: {{reason}}"
+		"wantsToSwitch": "Roo+ quiere cambiar a modo {{mode}}",
+		"wantsToSwitchWithReason": "Roo+ quiere cambiar a modo {{mode}} porque: {{reason}}",
+		"didSwitch": "Roo+ cambió a modo {{mode}}",
+		"didSwitchWithReason": "Roo+ cambió a modo {{mode}} porque: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Roo+ quiere crear una nueva subtarea en modo <code>{{mode}}</code>",
+		"wantsToCreate": "Roo+ quiere crear una nueva subtarea en modo {{mode}}",
 		"wantsToFinish": "Roo+ quiere finalizar esta subtarea",
 		"newTaskContent": "Instrucciones de la subtarea",
-		"completionContent": "Subtarea completada",
 		"resultContent": "Resultados de la subtarea",
 		"defaultResult": "Por favor, continúa con la siguiente tarea.",
 		"completionInstructions": "¡Subtarea completada! Puedes revisar los resultados y sugerir correcciones o próximos pasos. Si todo se ve bien, confirma para devolver el resultado a la tarea principal.",
@@ -295,7 +289,6 @@
 		"tooltipManage": "Administrar la configuración de aprobación automática",
 		"tooltipStatus": "Aprobación automática habilitada para: {{toggles}}",
 		"title": "Aprobación automática",
-		"toggle": "Alternar aprobación automática",
 		"all": "Todo",
 		"none": "Ninguno",
 		"description": "Ejecuta estas acciones sin pedir permiso. Habilita esto solo para acciones en las que confíes plenamente.",
@@ -417,11 +410,6 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Versión {{version}} - Haz clic para ver las notas de la versión"
-	},
-	"rooCloudCTA": {
-		"title": "¡Roo+ Cloud está evolucionando!",
-		"description": "Ejecuta agentes remotos en la nube, accede a tus tareas desde cualquier lugar, colabora con otros y mucho más.",
-		"joinWaitlist": "Regístrate para recibir las últimas actualizaciones."
 	},
 	"editMessage": {
 		"placeholder": "Edita tu mensaje..."

@@ -222,9 +222,6 @@
 		"enter_absolute_path": "Por favor, digite um caminho absoluto (ex: D:\\RooPlusStorage ou /home/user/storage)",
 		"enter_valid_path": "Por favor, digite um caminho válido"
 	},
-	"settings": {
-		"providers": {}
-	},
 	"customModes": {
 		"errors": {
 			"yamlParseError": "YAML inválido no arquivo .roomodes na linha {{line}}. Verifique:\n• Indentação correta (use espaços, não tabs)\n• Aspas e colchetes correspondentes\n• Sintaxe YAML válida",
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "Sua organização requer autenticação do Roo+ Cloud. Faça login para continuar.",
 			"organization_mismatch": "Você deve estar autenticado com a conta Roo+ Cloud da sua organização.",
-			"manual_url_empty": "Por favor, insira uma URL de callback válida",
-			"manual_url_no_query": "URL de callback inválida: parâmetros de consulta ausentes",
-			"manual_url_missing_params": "URL de callback inválida: parâmetros obrigatórios ausentes (code e state)",
-			"manual_url_auth_failed": "Autenticação manual por URL falhou",
-			"manual_url_auth_error": "Falha na autenticação",
 			"verification_failed": "Não foi possível verificar a autenticação da organização."
 		},
 		"info": {

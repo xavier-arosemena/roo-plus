@@ -222,9 +222,6 @@
 		"task_prompt": "Bạn muốn Roo+ làm gì?",
 		"task_placeholder": "Nhập nhiệm vụ của bạn ở đây"
 	},
-	"settings": {
-		"providers": {}
-	},
 	"customModes": {
 		"errors": {
 			"yamlParseError": "YAML không hợp lệ trong tệp .roomodes tại dòng {{line}}. Vui lòng kiểm tra:\n• Thụt lề đúng (dùng dấu cách, không dùng tab)\n• Dấu ngoặc kép và ngoặc đơn khớp nhau\n• Cú pháp YAML hợp lệ",
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "Tổ chức của bạn yêu cầu xác thực Roo+ Cloud. Vui lòng đăng nhập để tiếp tục.",
 			"organization_mismatch": "Bạn phải được xác thực bằng tài khoản Roo+ Cloud của tổ chức.",
-			"manual_url_empty": "Vui lòng nhập URL callback hợp lệ",
-			"manual_url_no_query": "URL callback không hợp lệ: thiếu tham số truy vấn",
-			"manual_url_missing_params": "URL callback không hợp lệ: thiếu tham số bắt buộc (code và state)",
-			"manual_url_auth_failed": "Xác thực URL thủ công thất bại",
-			"manual_url_auth_error": "Xác thực thất bại",
 			"verification_failed": "Không thể xác minh xác thực tổ chức."
 		},
 		"info": {
@@ -266,13 +258,6 @@
 		"deleteMode": {
 			"title": "Xóa chế độ tùy chỉnh",
 			"description": "Bạn có chắc chắn muốn xóa chế độ {{scope}} này không? Thao tác này cũng θα xóa thư mục quy tắc liên quan tại {{rulesFolderPath}}",
-			"translations": {
-				"title": "Xóa chế độ",
-				"description": "Bạn có chắc chắn muốn xóa chế độ này không?",
-				"deleteMessage": "Chỉ chế độ này",
-				"rulesFolderMessage": "Thư mục quy tắc cũng sẽ bị xóa nếu tồn tại.",
-				"deleteConfirmation": "Chắc chắn xóa chế độ này?"
-			},
 			"descriptionNoRules": "Bạn có chắc chắn muốn xóa chế độ tùy chỉnh này không?",
 			"confirm": "Xóa"
 		}

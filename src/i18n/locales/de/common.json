@@ -222,9 +222,6 @@
 		"task_prompt": "Was soll Roo+ tun?",
 		"task_placeholder": "Gib deine Aufgabe hier ein"
 	},
-	"settings": {
-		"providers": {}
-	},
 	"customModes": {
 		"errors": {
 			"yamlParseError": "Ungültiges YAML in .roomodes-Datei in Zeile {{line}}. Bitte überprüfe:\n• Korrekte Einrückung (verwende Leerzeichen, keine Tabs)\n• Passende Anführungszeichen und Klammern\n• Gültige YAML-Syntax",
