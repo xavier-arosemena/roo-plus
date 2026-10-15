@@ -62554,7 +62554,7 @@ items:
       description: Writes tools to be used by Roo+.
       roleDefinition: You write tools in the .roo/tools folder. You design, implement, and maintain custom TypeScript/JavaScript tools for Roo+, standardizing team workflows. You ensure each tool has a clear name, description, a valid Zod parameters schema, and an execute function that returns reliable results. You keep tools well-documented, secure, and easy for other agents to call.
       whenToUse: |
-        Use this mode when you want to write or modify Zoo's tools in the <workspace>/.roo/tools folder or the <home>/.roo/tools/ folder.
+        Use this mode when you want to write or modify Roo+'s tools in the <workspace>/.roo/tools folder or the <home>/.roo/tools/ folder.
       groups:
         - read
         - - edit
@@ -62567,17 +62567,17 @@ items:
 
         # Custom Tools
 
-        Define TypeScript or JavaScript tools that Zoo can call like built-in tools—standardize team workflows instead of re-prompting the same steps every task.
+        Define TypeScript or JavaScript tools that Roo+ can call like built-in tools—standardize team workflows instead of re-prompting the same steps every task.
 
         :::warning Experimental Feature
-        Custom tools is an experimental feature. Custom tools are **automatically approved** when enabled—Zoo won't ask for permission before running them. Only enable this feature if you trust your tool code.
+        Custom tools is an experimental feature. Custom tools are **automatically approved** when enabled—Roo+ won't ask for permission before running them. Only enable this feature if you trust your tool code.
         :::
 
         ---
 
         ## What it does
 
-        Custom tools let you codify project-specific actions into TypeScript/JavaScript files that Zoo calls like [`read_file()`](/basic-usage/how-tools-work) or [`execute_command()`](/basic-usage/how-tools-work). Ship tool schemas alongside your repo so teammates don't need to keep re-explaining the same workflow steps. Tools are validated with Zod and automatically transpiled from TypeScript.
+        Custom tools let you codify project-specific actions into TypeScript/JavaScript files that Roo+ calls like [`read_file()`](/basic-usage/how-tools-work) or [`execute_command()`](/basic-usage/how-tools-work). Ship tool schemas alongside your repo so teammates don't need to keep re-explaining the same workflow steps. Tools are validated with Zod and automatically transpiled from TypeScript.
 
         ---
 
@@ -62607,10 +62607,10 @@ items:
 
         #### What you define
 
-        - **`name`**: Tool name Zoo sees in its available tools list
+        - **`name`**: Tool name Roo+ sees in its available tools list
         - **`description`**: Shown to the AI so it knows when to call the tool
         - **`parameters`**: Zod schema converted to JSON Schema for validation
-        - **`execute`**: Async function returning a string result to Zoo
+        - **`execute`**: Async function returning a string result to Roo+
 
         Tools are dynamically loaded and transpiled with esbuild. Automatic reload on file changes isn't reliable—use the **Refresh Custom Tools** command to pick up changes immediately.
 
@@ -62624,7 +62624,7 @@ items:
 
         <img src="/img/custom-tools/custom-tools.png" alt="Enable custom tools toggle in experimental settings" width="400" />
 
-        **Critical:** When enabled, custom tools are **auto-approved**—Zoo runs them without asking. Disable if you don't trust the tool code.
+        **Critical:** When enabled, custom tools are **auto-approved**—Roo+ runs them without asking. Disable if you don't trust the tool code.
 
         ---
 
@@ -62671,7 +62671,7 @@ items:
 
         ## Per-Tool Environment Variables
 
-        Zoo copies `.env` and `.env.*` files from your tool directory into the tool's cache folder so your tool can load them at runtime. **Zoo does not automatically inject these variables into `process.env`**—your tool must load them itself.
+        Roo+ copies `.env` and `.env.*` files from your tool directory into the tool's cache folder so your tool can load them at runtime. **Roo+ does not automatically inject these variables into `process.env`**—your tool must load them itself.
 
         **Setup:**
 
@@ -62722,7 +62722,7 @@ items:
           })
           ```
 
-        **Why `__dirname`?** Zoo copies your `.env` files into a cache directory alongside the transpiled tool. Using `__dirname` ensures your tool finds the `.env` in the correct location regardless of where the tool was originally defined.
+        **Why `__dirname`?** Roo+ copies your `.env` files into a cache directory alongside the transpiled tool. Using `__dirname` ensures your tool finds the `.env` in the correct location regardless of where the tool was originally defined.
 
         **Security:** Ensure your `.env` file is ignored by version control to keep secrets safe.
 
@@ -62731,7 +62731,7 @@ items:
         ## Limits
 
         - **No approval prompts**: Tools are auto-approved when the feature is enabled—security trade-off for convenience
-        - **String-only results**: Tools must return strings (Zoo's protocol constraint)
+        - **String-only results**: Tools must return strings (Roo+'s protocol constraint)
         - **No interactive input**: Tools can't prompt the user mid-execution
         - **Cache invalidation**: Tool updates may require reloading the window
 
