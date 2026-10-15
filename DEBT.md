@@ -238,7 +238,7 @@ decision and coverage reporting.
 
 **Suggested Fix**: Change the webview build defines (and the CT config) to `"Roo+"` / `"Roo+-Nightly"`, keeping the single `"Roo+"` default in [`src/shared/package.ts`](src/shared/package.ts:13).
 
-**Status (2026-10-14)**: Fixed. Every build-time define now emits the single Roo+ brand — [`webview-ui/vite.config.ts`](webview-ui/vite.config.ts:66) and [`webview-ui/playwright-ct.config.ts`](webview-ui/playwright-ct.config.ts:70) define `"Roo+"`, the nightly branch in [`webview-ui/vite.config.ts`](webview-ui/vite.config.ts:82) defines `"Roo+ Nightly"`, and [`apps/vscode-nightly/esbuild.mjs`](apps/vscode-nightly/esbuild.mjs:38) defines `"Roo+ Nightly"`. The single runtime default in [`src/shared/package.ts`](src/shared/package.ts:13) is unchanged. No build config emits the stale upstream `"Zoo-Code"` / `"Zoo-Code-Nightly"` name anymore.
+**Status (2026-10-14)**: Fixed. Every build-time define now emits the single Roo+ brand — [`webview-ui/vite.config.ts`](webview-ui/vite.config.ts:66) and [`webview-ui/playwright-ct.config.ts`](webview-ui/playwright-ct.config.ts:70) define `"Roo+"`, and [`apps/vscode-nightly/esbuild.mjs`](apps/vscode-nightly/esbuild.mjs:38) defines the pre-release output channel as `"Roo+ Pre-release"`. The single runtime default in [`src/shared/package.ts`](src/shared/package.ts:13) is unchanged. No build config emits the stale upstream `"Zoo-Code"` / `"Zoo-Code-Nightly"` name anymore.
 
 ---
 

@@ -16,7 +16,7 @@
 	"bugs": {
 		"url": "https://github.com/xavier-arosemena/roo-plus/issues"
 	},
-	"homepage": "https://zoocode.dev",
-	"keywords": ["zoo", "zoo-code", "ai"],
+	"homepage": "https://github.com/xavier-arosemena/roo-plus",
+	"keywords": ["ai"],
 	"files": ["dist"]
 }

@@ -35,7 +35,7 @@ async function main() {
 		define: {
 			"process.env.PKG_NAME": '"zoo-code-nightly"',
 			"process.env.PKG_VERSION": `"${overrideJson.version}"`,
-			"process.env.PKG_OUTPUT_CHANNEL": '"Roo+ Nightly"',
+			"process.env.PKG_OUTPUT_CHANNEL": '"Roo+ Pre-release"',
 			"process.env.PKG_RELEASE_CHANNEL": '"prerelease"',
 			...(gitSha ? { "process.env.PKG_SHA": `"${gitSha}"` } : {}),
 		},
