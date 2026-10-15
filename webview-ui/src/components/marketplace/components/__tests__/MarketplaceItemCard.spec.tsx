@@ -1,4 +1,4 @@
-import { act } from "@testing-library/react"
+import { act, waitFor } from "@testing-library/react"
 import { render, screen } from "@/utils/test-utils"
 import userEvent from "@testing-library/user-event"
 
@@ -28,10 +28,16 @@ vi.mock("@/i18n/TranslationContext", () => ({
 			if (key === "marketplace:items.card.by") {
 				return `by ${params.author}`
 			}
+			// The per-tag remove tooltip is a dedicated key (split from the bulk
+			// "clear" button key), so mirror its `{{count}}` interpolation here.
+			if (key === "marketplace:filters.tags.remove" && params?.count !== undefined) {
+				return `Remove ${params.count} from filters`
+			}
 			const translations: Record<string, any> = {
 				"marketplace:filters.type.mode": "Mode",
 				"marketplace:filters.type.mcpServer": "MCP Server",
-				"marketplace:filters.tags.clear": "Remove filter",
+				"marketplace:filters.tags.clear": "Clear tags",
+				"marketplace:filters.tags.remove": "Remove filter",
 				"marketplace:filters.tags.clickToFilter": "Add filter",
 				"marketplace:items.components": "Components", // This should be a string for the title prop
 				"marketplace:items.card.install": "Install",
@@ -117,6 +123,23 @@ describe("MarketplaceItemCard", () => {
 		await user.click(tagButton)
 
 		expect(setFilters).toHaveBeenCalledWith({ tags: ["test"] })
+	})
+
+	it("uses the dedicated per-tag remove tooltip key (not the bulk clear key)", async () => {
+		const user = userEvent.setup()
+
+		renderWithProviders(
+			<MarketplaceItemCard {...defaultProps} filters={{ ...defaultProps.filters, tags: ["test"] }} />,
+		)
+
+		await user.hover(screen.getByText("test"))
+
+		await waitFor(
+			() => {
+				expect(screen.getAllByText("Remove test from filters").length).toBeGreaterThan(0)
+			},
+			{ timeout: 3000 },
+		)
 	})
 
 	it("handles author link click", async () => {

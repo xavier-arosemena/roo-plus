@@ -34,6 +34,7 @@
 		"tags": {
 			"label": "Filter berdasarkan tag:",
 			"clear": "Hapus tag",
+			"remove": "Hapus {{count}} dari filter",
 			"placeholder": "Ketik untuk mencari dan memilih tag...",
 			"noResults": "Tidak ada tag yang cocok",
 			"selected": "Menampilkan item dengan tag yang dipilih",
