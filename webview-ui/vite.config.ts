@@ -79,7 +79,7 @@ export default defineConfig(({ mode }) => {
 
 		define["process.env.PKG_NAME"] = JSON.stringify(nightlyPkg.name)
 		define["process.env.PKG_VERSION"] = JSON.stringify(nightlyPkg.version)
-		define["process.env.PKG_OUTPUT_CHANNEL"] = JSON.stringify("Roo+ Nightly")
+		define["process.env.PKG_OUTPUT_CHANNEL"] = JSON.stringify("Roo+ Pre-release")
 		define["process.env.PKG_RELEASE_CHANNEL"] = JSON.stringify("prerelease")
 	}
 
