@@ -9,7 +9,7 @@
 		"editModesConfig": "模式设置",
 		"editGlobalModes": "修改全局模式",
 		"editProjectModes": "编辑项目模式 (.roomodes)",
-		"createModeHelpText": "模式是Zoo的专属角色，用于定制其行为。<0>了解如何使用模式</0>或<1>自定义模式。</1>",
+		"createModeHelpText": "模式是Roo+的专属角色，用于定制其行为。<0>了解如何使用模式</0>或<1>自定义模式。</1>",
 		"selectMode": "搜索模式"
 	},
 	"apiConfiguration": {
@@ -53,8 +53,7 @@
 	},
 	"exportMode": {
 		"title": "导出模式",
-		"description": "将此模式导出为包含所有规则的 YAML 文件，以便与他人轻松共享。",
-		"export": "导出模式",
+		"description": "将此模式连同 .roo/rules-{{slug}}/ 文件夹中的规则一起导出为便于与他人共享的 YAML 文件。",
 		"exporting": "正在导出..."
 	},
 	"importMode": {

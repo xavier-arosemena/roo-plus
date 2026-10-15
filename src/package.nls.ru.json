@@ -34,9 +34,9 @@
 	"settings.vsCodeLmModelSelector.description": "Настройки для VSCode Language Model API",
 	"settings.vsCodeLmModelSelector.vendor.description": "Поставщик языковой модели (например, copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "Семейство языковой модели (например, gpt-4)",
-	"settings.customStoragePath.description": "Пользовательский путь хранения. Оставьте пустым для использования пути по умолчанию. Поддерживает абсолютные пути (например, 'D:\\ZooCodeStorage')",
+	"settings.customStoragePath.description": "Пользовательский путь хранения. Оставьте пустым для использования пути по умолчанию. Поддерживает абсолютные пути (например, 'D:\\RooPlusStorage')",
 	"settings.enableCodeActions.description": "Включить быстрые исправления Roo+.",
-	"settings.autoImportSettingsPath.description": "Путь к файлу конфигурации ZooCode для автоматического импорта при запуске расширения. Поддерживает абсолютные пути и пути относительно домашнего каталога (например, '~/Documents/roo-code-settings.json'). Оставьте пустым, чтобы отключить автоматический импорт.",
+	"settings.autoImportSettingsPath.description": "Путь к файлу конфигурации Roo+ для автоматического импорта при запуске расширения. Поддерживает абсолютные пути и пути относительно домашнего каталога (например, '~/Documents/roo-code-settings.json'). Оставьте пустым, чтобы отключить автоматический импорт.",
 	"settings.maximumIndexedFilesForFileSearch.description": "Максимальное количество файлов для индексации при поиске файлов @. Большие значения обеспечивают лучшие результаты поиска в крупных проектах, но могут потреблять больше памяти. По умолчанию: 10 000.",
 	"settings.useAgentRules.description": "Включить загрузку файлов AGENTS.md для специфичных для агента правил (см. https://agent-rules.org/)",
 	"settings.apiRequestTimeout.description": "Тайм-аут ответа API (секунды, по умолчанию: 600, диапазон: 1–3600). Более высокие значения рекомендуются для локальных провайдеров. Неподдерживаемые провайдеры: Amazon Bedrock, Google Gemini(directly or through the Vertex AI platform), Mistral, Moonshot, Ollama, Poe, VS Code LM API.",
@@ -46,7 +46,7 @@
 	"settings.debugProxy.enabled.description": "**Включить Debug Proxy** — направлять все исходящие сетевые запросы через прокси для MITM-отладки. Активен только когда ты запускаешь расширение в режиме отладки (F5).",
 	"settings.debugProxy.serverUrl.description": "URL прокси (например, `http://127.0.0.1:8888`). Используется только если **Debug Proxy** включён.",
 	"settings.debugProxy.tlsInsecure.description": "Принимать self-signed сертификаты от прокси. **Требуется для MITM-инспекции.** ⚠️ Небезопасно — используй только для локальной отладки.",
-	"settings.workspace.rootResolution.description": "Как Zoo определяет корень рабочей области в рабочей области с несколькими корнями. Корень используется для поиска `.roomodes`, `.roo/mcp.json`, `.roo/rules/` и другой конфигурации уровня проекта. Изменение этой настройки влияет только на последующие поиски; выполняющиеся задачи сохраняют свой исходный корень.",
+	"settings.workspace.rootResolution.description": "Как Roo+ определяет корень рабочей области в рабочей области с несколькими корнями. Корень используется для поиска `.roomodes`, `.roo/mcp.json`, `.roo/rules/` и другой конфигурации уровня проекта. Изменение этой настройки влияет только на последующие поиски; выполняющиеся задачи сохраняют свой исходный корень.",
 	"settings.workspace.rootResolution.activeEditor.description": "Использовать папку рабочей области, содержащую активный редактор; при необходимости вернуться к первой папке рабочей области. (По умолчанию — сохраняет прежнее поведение.)",
 	"settings.workspace.rootResolution.firstFolder.description": "Всегда использовать первую папку рабочей области (workspaceFolders[0]). Детерминированно — не зависит от того, какой файл сейчас в фокусе."
 }

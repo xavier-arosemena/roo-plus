@@ -163,7 +163,7 @@
 	"warnings": {
 		"no_terminal_content": "Не выбрано содержимое терминала",
 		"missing_task_files": "Файлы этой задачи отсутствуют. Хотите удалить её из списка задач?",
-		"auto_import_failed": "Не удалось автоматически импортировать настройки ZooCode: {{error}}",
+		"auto_import_failed": "Не удалось автоматически импортировать настройки Roo+: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "История задач Roo Code для импорта из {{domain}} не найдена.",
 			"alreadyImported_one": "{{count}} история задач Roo Code уже импортирована в Roo+.",
@@ -177,7 +177,7 @@
 		"custom_storage_path_set": "Установлен пользовательский путь хранения: {{path}}",
 		"default_storage_path": "Возвращено использование пути хранения по умолчанию",
 		"settings_imported": "Настройки успешно импортированы.",
-		"auto_import_success": "Настройки ZooCode автоматически импортированы из {{filename}}",
+		"auto_import_success": "Настройки Roo+ автоматически импортированы из {{filename}}",
 		"share_link_copied": "Ссылка для совместного использования скопирована в буфер обмена",
 		"image_copied_to_clipboard": "URI данных изображения скопирован в буфер обмена",
 		"image_saved": "Изображение сохранено в {{path}}",
@@ -214,16 +214,13 @@
 	},
 	"storage": {
 		"prompt_custom_path": "Введите пользовательский путь хранения истории разговоров, оставьте пустым для использования расположения по умолчанию",
-		"path_placeholder": "D:\\ZooCodeStorage",
-		"enter_absolute_path": "Пожалуйста, введите абсолютный путь (например, D:\\ZooCodeStorage или /home/user/storage)",
+		"path_placeholder": "D:\\RooPlusStorage",
+		"enter_absolute_path": "Пожалуйста, введите абсолютный путь (например, D:\\RooPlusStorage или /home/user/storage)",
 		"enter_valid_path": "Пожалуйста, введите корректный путь"
 	},
 	"input": {
-		"task_prompt": "Что должен сделать Zoo?",
+		"task_prompt": "Что должен сделать Roo+?",
 		"task_placeholder": "Введите вашу задачу здесь"
-	},
-	"settings": {
-		"providers": {}
 	},
 	"customModes": {
 		"errors": {
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "Ваша организация требует аутентификации Roo+ Cloud. Войдите в систему, чтобы продолжить.",
 			"organization_mismatch": "Вы должны быть аутентифицированы с учетной записью Roo+ Cloud вашей организации.",
-			"manual_url_empty": "Введи действительный URL обратного вызова",
-			"manual_url_no_query": "Недействительный URL обратного вызова: отсутствуют параметры запроса",
-			"manual_url_missing_params": "Недействительный URL обратного вызова: отсутствуют обязательные параметры (code и state)",
-			"manual_url_auth_failed": "Ручная аутентификация по URL не удалась",
-			"manual_url_auth_error": "Аутентификация не удалась",
 			"verification_failed": "Не удается проверить аутентификацию организации."
 		},
 		"info": {
@@ -277,28 +269,7 @@
 	},
 	"docsLink": {
 		"label": "Docs",
-		"url": "https://docs.zoocode.dev"
-	},
-	"zooAuth": {
-		"errors": {
-			"invalid_token_received": "Roo+: Получен недействительный token аутентификации.",
-			"token_verification_failed": "Roo+: Не удалось проверить token.",
-			"invalid_token": "Roo+: Недействительный token.",
-			"could_not_verify_token": "Roo+: Не удалось проверить token.",
-			"session_expired": "Сессия Roo+ истекла. Войдите снова, чтобы продолжить использовать Zoo Gateway.",
-			"out_of_credits": "Zoo Gateway: недостаточно кредитов. Добавьте кредиты, чтобы продолжить.",
-			"account_unavailable": "Zoo Gateway: ваша учётная запись сейчас недоступна. Обратитесь в поддержку.",
-			"budget_exceeded": "Zoo Gateway: лимит использования достигнут. Дождитесь сброса или пополните счёт."
-		},
-		"info": {
-			"connected": "Roo+: Успешно подключено! Теперь ты можешь использовать Roo+ в качестве AI-провайдера.",
-			"disconnected": "Roo+: Успешно отключено."
-		},
-		"buttons": {
-			"sign_in": "Войти",
-			"add_credits": "Добавить кредиты",
-			"contact_support": "Связаться с поддержкой"
-		}
+		"url": "https://github.com/xavier-arosemena/roo-plus"
 	},
 	"codeActions": {
 		"explain": "Объяснить с Roo+",

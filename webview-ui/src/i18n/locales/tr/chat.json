@@ -1,5 +1,5 @@
 {
-	"greeting": "Roo+ Code'a hoş geldin!",
+	"greeting": "Roo+'a hoş geldin!",
 	"task": {
 		"title": "Görev",
 		"expand": "Görevi genişlet",
@@ -127,7 +127,7 @@
 		"title": "Modlar",
 		"marketplace": "Mod Pazaryeri",
 		"settings": "Mod Ayarları",
-		"description": "Zoo'nun davranışını özelleştiren uzmanlaşmış kişilikler.",
+		"description": "Roo+'nun davranışını özelleştiren uzmanlaşmış kişilikler.",
 		"searchPlaceholder": "Modları ara...",
 		"noResults": "Sonuç bulunamadı"
 	},
@@ -183,9 +183,6 @@
 		},
 		"current": "Mevcut"
 	},
-	"instructions": {
-		"wantsToFetch": "Zoo mevcut göreve yardımcı olmak için ayrıntılı talimatlar almak istiyor"
-	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ bu dosyayı okumak istiyor",
 		"wantsToReadOutsideWorkspace": "Roo+ çalışma alanı dışındaki bu dosyayı okumak istiyor",
@@ -194,8 +191,6 @@
 		"wantsToEditOutsideWorkspace": "Roo+ çalışma alanı dışındaki bu dosyayı düzenlemek istiyor",
 		"wantsToEditProtected": "Roo+ korumalı bir yapılandırma dosyasını düzenlemek istiyor",
 		"wantsToCreate": "Roo+ yeni bir dosya oluşturmak istiyor",
-		"wantsToSearchReplace": "Roo bu dosyada arama ve değiştirme yapmak istiyor",
-		"didSearchReplace": "Roo bu dosyada arama ve değiştirme yaptı",
 		"wantsToInsert": "Roo+ bu dosyaya içerik eklemek istiyor",
 		"wantsToInsertWithLineNumber": "Roo+ bu dosyanın {{lineNumber}}. satırına içerik eklemek istiyor",
 		"wantsToInsertAtEnd": "Roo+ bu dosyanın sonuna içerik eklemek istiyor",
@@ -231,7 +226,6 @@
 		"malformedCommand": "Hatalı komut: shell sozdizimi hatasi",
 		"manageCommands": "Komut İzinlerini Yönet",
 		"denied": "Komut reddedildi",
-		"commandManagementDescription": "Komut izinlerini yönetin: Otomatik yürütmeye izin vermek için ✓'e, yürütmeyi reddetmek için ✗'e tıklayın. Desenler açılıp kapatılabilir veya listelerden kaldırılabilir. <settingsLink>Tüm ayarları görüntüle</settingsLink>",
 		"addToAllowed": "İzin verilenler listesine ekle",
 		"removeFromAllowed": "İzin verilenler listesinden kaldır",
 		"addToDenied": "Reddedilenler listesine ekle",
@@ -255,23 +249,22 @@
 		"wantsToAccessResource": "Roo+ {{serverName}} MCP sunucusundaki bir kaynağa erişmek istiyor"
 	},
 	"modes": {
-		"wantsToSwitch": "Roo+ <code>{{mode}}</code> moduna geçmek istiyor",
-		"wantsToSwitchWithReason": "Roo+ <code>{{mode}}</code> moduna geçmek istiyor çünkü: {{reason}}",
-		"didSwitch": "Roo+ <code>{{mode}}</code> moduna geçti",
-		"didSwitchWithReason": "Roo+ <code>{{mode}}</code> moduna geçti çünkü: {{reason}}"
+		"wantsToSwitch": "Roo+ {{mode}} moduna geçmek istiyor",
+		"wantsToSwitchWithReason": "Roo+ {{mode}} moduna geçmek istiyor çünkü: {{reason}}",
+		"didSwitch": "Roo+ {{mode}} moduna geçti",
+		"didSwitchWithReason": "Roo+ {{mode}} moduna geçti çünkü: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Roo+ <code>{{mode}}</code> modunda yeni bir alt görev oluşturmak istiyor",
+		"wantsToCreate": "Roo+ {{mode}} modunda yeni bir alt görev oluşturmak istiyor",
 		"wantsToFinish": "Roo+ bu alt görevi bitirmek istiyor",
 		"newTaskContent": "Alt Görev Talimatları",
-		"completionContent": "Alt Görev Tamamlandı",
 		"resultContent": "Alt Görev Sonuçları",
 		"defaultResult": "Lütfen sonraki göreve devam edin.",
 		"completionInstructions": "Alt görev tamamlandı! Sonuçları inceleyebilir ve düzeltmeler veya sonraki adımlar önerebilirsiniz. Her şey iyi görünüyorsa, sonucu üst göreve döndürmek için onaylayın.",
 		"goToSubtask": "Görevi görüntüle"
 	},
 	"questions": {
-		"hasQuestion": "Zoo'nun bir sorusu var"
+		"hasQuestion": "Roo+'nun bir sorusu var"
 	},
 	"taskCompleted": "Görev Tamamlandı",
 	"modelResponseIncomplete": "Model yanıtı eksik",
@@ -287,7 +280,7 @@
 		"copyToClipboard": "Panoya Kopyala",
 		"copied": "Kopyalandı!",
 		"diagnostics": "Ayrıntılı hata bilgisi al",
-		"proxyProvider": "Proxy tabanlı bir sağlayıcı kullanıyor gibi görünüyorsun. Günlüklerini kontrol ettiğinden ve Zoo'nun isteklerini yeniden yazmadığından emin ol."
+		"proxyProvider": "Proxy tabanlı bir sağlayıcı kullanıyor gibi görünüyorsun. Günlüklerini kontrol ettiğinden ve Roo+'nun isteklerini yeniden yazmadığından emin ol."
 	},
 	"powershell": {
 		"issues": "Windows PowerShell ile ilgili sorunlar yaşıyor gibi görünüyorsunuz, lütfen şu konuya bakın"
@@ -296,7 +289,6 @@
 		"tooltipManage": "Otomatik onay ayarlarını yönet",
 		"tooltipStatus": "Otomatik onay şunlar için etkinleştirildi: {{toggles}}",
 		"title": "Otomatik onayla",
-		"toggle": "Otomatik onayı aç/kapat",
 		"all": "Tümü",
 		"none": "Hiçbiri",
 		"description": "İzin istemeden bu eylemleri gerçekleştirin. Bunu yalnızca tamamen güvendiğiniz eylemler için etkinleştirin.",
@@ -368,7 +360,7 @@
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Otomatik Onaylanan İstek Limiti Aşıldı",
-			"description": "Zoo, {{count}} API isteği/istekleri için otomatik onaylanan limite ulaştı. Sayacı sıfırlamak ve göreve devam etmek istiyor musunuz?",
+			"description": "Roo+, {{count}} API isteği/istekleri için otomatik onaylanan limite ulaştı. Sayacı sıfırlamak ve göreve devam etmek istiyor musunuz?",
 			"button": "Sıfırla ve Devam Et"
 		},
 		"autoApprovedCostLimitReached": {
@@ -418,11 +410,6 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Sürüm {{version}} - Sürüm notlarını görüntülemek için tıklayın"
-	},
-	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud gelişiyor!",
-		"description": "Bulutta uzak ajanlar çalıştırın, görevlerinize her yerden erişin, başkalarıyla işbirliği yapın ve daha fazlası.",
-		"joinWaitlist": "En son güncellemeleri almak için kaydolun."
 	},
 	"editMessage": {
 		"placeholder": "Mesajını düzenle..."

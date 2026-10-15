@@ -1,7 +1,7 @@
 {
-	"extension.displayName": "Roo+ Nightly",
-	"views.contextMenu.label": "Roo+ Nightly",
-	"views.terminalMenu.label": "Roo+ Nightly",
-	"views.activitybar.title": "Roo+ Nightly",
-	"configuration.title": "Roo+ Nightly"
+	"extension.displayName": "Roo+ Pre-release",
+	"views.contextMenu.label": "Roo+ Pre-release",
+	"views.terminalMenu.label": "Roo+ Pre-release",
+	"views.activitybar.title": "Roo+ Pre-release",
+	"configuration.title": "Roo+ Pre-release"
 }

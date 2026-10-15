@@ -56,8 +56,8 @@ Mencione o alinhamento com essas áreas em seus PRs.
 
 ### 3. Junte-se à comunidade do Roo+
 
-- **Discord:** Entre no nosso [Discord](https://discord.gg/VxfP4Vx3gX).
-- **Reddit:** Entre no nosso [Reddit](https://www.reddit.com/r/ZooCode/).
+- **GitHub Discussions:** Entre nas nossas [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions).
+- **GitHub Issues:** Relate bugs e solicite recursos em [GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues).
 
 ## Encontrando e planejando sua contribuição
 
@@ -75,7 +75,7 @@ Todas as contribuições começam com uma Issue do GitHub usando nossos modelos 
 - **Crie uma issue** usando:
     - **Melhorias:** modelo "Solicitação de melhoria" (linguagem simples focada no benefício do usuário).
     - **Bugs:** modelo "Relatório de bug" (reprodução mínima + esperado vs. real + versão).
-- **Quer trabalhar nisso?** Comente "Reivindicando" na issue e envie uma DM para a equipe principal no [Discord](https://discord.gg/VxfP4Vx3gX) para ser atribuído. A atribuição será confirmada no tópico.
+- **Quer trabalhar nisso?** Comente "Reivindicando" na issue e pergunte nas [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions) para ser atribuído. A atribuição será confirmada no tópico.
 - **Os PRs devem ser vinculados à issue.** PRs não vinculados podem ser fechados.
 
 ### Decidindo no que trabalhar
@@ -128,7 +128,7 @@ pnpm install
 
 ### Política de Pull Request
 
-- Deve fazer referência a uma Issue do GitHub atribuída. Para ser atribuído: comente "Reivindicando" na issue e envie uma DM para a equipe principal no [Discord](https://discord.gg/VxfP4Vx3gX). A atribuição será confirmada no tópico.
+- Deve fazer referência a uma Issue do GitHub atribuída. Para ser atribuído: comente "Reivindicando" na issue e pergunte nas [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions). A atribuição será confirmada no tópico.
 - PRs não vinculados podem ser fechados.
 - Os PRs devem passar nos testes de CI, estar alinhados com o roteiro e ter documentação clara.
 

@@ -33,11 +33,6 @@
 		"esbuildPurpose": "转译和打包 TypeScript 自定义工具"
 	},
 	"errors": {
-		"invalid_mcp_config": "项目MCP配置格式无效",
-		"invalid_mcp_settings_format": "MCP设置JSON格式无效。请确保您的设置遵循正确的JSON格式。",
-		"invalid_mcp_settings_syntax": "MCP设置JSON格式无效。请检查您的设置文件是否有语法错误。",
-		"invalid_mcp_settings_validation": "MCP设置格式无效：{{errorMessages}}",
-		"failed_initialize_project_mcp": "初始化项目MCP服务器失败：{{error}}",
 		"invalid_data_uri": "数据 URI 格式无效",
 		"error_copying_image": "复制图片时出错：{{errorMessage}}",
 		"error_saving_image": "保存图片时出错：{{errorMessage}}",
@@ -168,7 +163,7 @@
 	"warnings": {
 		"no_terminal_content": "没有选择终端内容",
 		"missing_task_files": "此任务的文件丢失。您想从任务列表中删除它吗？",
-		"auto_import_failed": "自动导入 ZooCode 设置失败：{{error}}",
+		"auto_import_failed": "自动导入 Roo+ 设置失败：{{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "未找到可从 {{domain}} 导入的 Roo Code 任务历史记录。",
 			"alreadyImported_one": "全部 {{count}} 条 Roo Code 任务历史记录已导入 Roo+。",
@@ -182,7 +177,7 @@
 		"custom_storage_path_set": "自定义存储路径已设置：{{path}}",
 		"default_storage_path": "已恢复使用默认存储路径",
 		"settings_imported": "设置已成功导入。",
-		"auto_import_success": "已自动导入 ZooCode 设置：{{filename}}",
+		"auto_import_success": "已自动导入 Roo+ 设置：{{filename}}",
 		"share_link_copied": "分享链接已复制到剪贴板",
 		"image_copied_to_clipboard": "图片数据 URI 已复制到剪贴板",
 		"image_saved": "图片已保存到 {{path}}",
@@ -219,16 +214,13 @@
 	},
 	"storage": {
 		"prompt_custom_path": "输入自定义会话历史存储路径，留空以使用默认位置",
-		"path_placeholder": "D:\\ZooCodeStorage",
-		"enter_absolute_path": "请输入绝对路径（例如 D:\\ZooCodeStorage 或 /home/user/storage）",
+		"path_placeholder": "D:\\RooPlusStorage",
+		"enter_absolute_path": "请输入绝对路径（例如 D:\\RooPlusStorage 或 /home/user/storage）",
 		"enter_valid_path": "请输入有效的路径"
 	},
 	"input": {
-		"task_prompt": "让Zoo做什么？",
+		"task_prompt": "让Roo+做什么？",
 		"task_placeholder": "在这里输入任务"
-	},
-	"settings": {
-		"providers": {}
 	},
 	"customModes": {
 		"errors": {
@@ -256,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "您的组织需要 Roo+ Cloud 身份验证。请登录以继续。",
 			"organization_mismatch": "您必须使用组织的 Roo+ Cloud 账户进行身份验证。",
-			"manual_url_empty": "请输入有效的回调 URL",
-			"manual_url_no_query": "无效的回调 URL：缺少查询参数",
-			"manual_url_missing_params": "无效的回调 URL：缺少必需参数（code 和 state）",
-			"manual_url_auth_failed": "手动 URL 身份验证失败",
-			"manual_url_auth_error": "身份验证失败",
 			"verification_failed": "无法验证组织身份验证。"
 		},
 		"info": {
@@ -282,28 +269,7 @@
 	},
 	"docsLink": {
 		"label": "Docs",
-		"url": "https://docs.zoocode.dev"
-	},
-	"zooAuth": {
-		"errors": {
-			"invalid_token_received": "Roo+: 收到无效的认证 token。",
-			"token_verification_failed": "Roo+: Token 验证失败。",
-			"invalid_token": "Roo+: 无效的 token。",
-			"could_not_verify_token": "Roo+: 无法验证 token。",
-			"session_expired": "Roo+ 会话已过期。请重新登录以继续使用 Zoo Gateway。",
-			"out_of_credits": "Zoo Gateway：积分不足。请添加积分以继续。",
-			"account_unavailable": "Zoo Gateway：你的账户当前不可用。请联系支持。",
-			"budget_exceeded": "Zoo Gateway：已达到使用预算。请等待预算重置或充值。"
-		},
-		"info": {
-			"connected": "Roo+: 连接成功！你现在可以使用 Roo+ 作为 AI 提供商。",
-			"disconnected": "Roo+: 已成功断开连接。"
-		},
-		"buttons": {
-			"sign_in": "登录",
-			"add_credits": "添加积分",
-			"contact_support": "联系支持"
-		}
+		"url": "https://github.com/xavier-arosemena/roo-plus"
 	},
 	"codeActions": {
 		"explain": "使用 Roo+ 解释",

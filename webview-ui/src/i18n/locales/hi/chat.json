@@ -1,5 +1,5 @@
 {
-	"greeting": "Roo+ Code में आपका स्वागत है!",
+	"greeting": "Roo+ में आपका स्वागत है!",
 	"task": {
 		"title": "कार्य",
 		"expand": "कार्य विस्तृत करें",
@@ -127,7 +127,7 @@
 		"title": "मोड्स",
 		"marketplace": "मोड मार्केटप्लेस",
 		"settings": "मोड सेटिंग्स",
-		"description": "विशेष व्यक्तित्व जो Zoo के व्यवहार को अनुकूलित करते हैं।",
+		"description": "विशेष व्यक्तित्व जो Roo+ के व्यवहार को अनुकूलित करते हैं।",
 		"searchPlaceholder": "मोड खोजें...",
 		"noResults": "कोई परिणाम नहीं मिला"
 	},
@@ -183,9 +183,6 @@
 		},
 		"current": "वर्तमान"
 	},
-	"instructions": {
-		"wantsToFetch": "Zoo को वर्तमान कार्य में सहायता के लिए विस्तृत निर्देश प्राप्त करना है"
-	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ इस फ़ाइल को पढ़ना चाहता है",
 		"wantsToReadOutsideWorkspace": "Roo+ कार्यक्षेत्र के बाहर इस फ़ाइल को पढ़ना चाहता है",
@@ -194,8 +191,6 @@
 		"wantsToEditOutsideWorkspace": "Roo+ कार्यक्षेत्र के बाहर इस फ़ाइल को संपादित करना चाहता है",
 		"wantsToEditProtected": "Roo+ एक सुरक्षित कॉन्फ़िगरेशन फ़ाइल को संपादित करना चाहता है",
 		"wantsToCreate": "Roo+ एक नई फ़ाइल बनाना चाहता है",
-		"wantsToSearchReplace": "Roo इस फ़ाइल में खोज और प्रतिस्थापन करना चाहता है",
-		"didSearchReplace": "Roo ने इस फ़ाइल में खोज और प्रतिस्थापन किया",
 		"wantsToInsert": "Roo+ इस फ़ाइल में सामग्री डालना चाहता है",
 		"wantsToInsertWithLineNumber": "Roo+ इस फ़ाइल की {{lineNumber}} लाइन पर सामग्री डालना चाहता है",
 		"wantsToInsertAtEnd": "Roo+ इस फ़ाइल के अंत में सामग्री जोड़ना चाहता है",
@@ -244,7 +239,7 @@
 	"response": "प्रतिक्रिया",
 	"arguments": "आर्ग्युमेंट्स",
 	"text": {
-		"rooSaid": "Zoo ने कहा"
+		"rooSaid": "Roo+ ने कहा"
 	},
 	"feedback": {
 		"youSaid": "आपने कहा"
@@ -254,16 +249,15 @@
 		"wantsToAccessResource": "Roo+ {{serverName}} MCP सर्वर पर एक संसाधन का उपयोग करना चाहता है"
 	},
 	"modes": {
-		"wantsToSwitch": "Roo+ <code>{{mode}}</code> मोड में स्विच करना चाहता है",
-		"wantsToSwitchWithReason": "Roo+ <code>{{mode}}</code> मोड में स्विच करना चाहता है क्योंकि: {{reason}}",
-		"didSwitch": "Roo+ <code>{{mode}}</code> मोड में स्विच कर गया",
-		"didSwitchWithReason": "Roo+ <code>{{mode}}</code> मोड में स्विच कर गया क्योंकि: {{reason}}"
+		"wantsToSwitch": "Roo+ {{mode}} मोड में स्विच करना चाहता है",
+		"wantsToSwitchWithReason": "Roo+ {{mode}} मोड में स्विच करना चाहता है क्योंकि: {{reason}}",
+		"didSwitch": "Roo+ {{mode}} मोड में स्विच कर गया",
+		"didSwitchWithReason": "Roo+ {{mode}} मोड में स्विच कर गया क्योंकि: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Roo+ <code>{{mode}}</code> मोड में एक नया उपकार्य बनाना चाहता है",
+		"wantsToCreate": "Roo+ {{mode}} मोड में एक नया उपकार्य बनाना चाहता है",
 		"wantsToFinish": "Roo+ इस उपकार्य को समाप्त करना चाहता है",
 		"newTaskContent": "उपकार्य निर्देश",
-		"completionContent": "उपकार्य पूर्ण",
 		"resultContent": "उपकार्य परिणाम",
 		"defaultResult": "कृपया अगले कार्य पर जारी रखें।",
 		"completionInstructions": "उपकार्य पूर्ण! आप परिणामों की समीक्षा कर सकते हैं और सुधार या अगले चरण सुझा सकते हैं। यदि सब कुछ ठीक लगता है, तो मुख्य कार्य को परिणाम वापस करने के लिए पुष्टि करें।",
@@ -286,7 +280,7 @@
 		"copyToClipboard": "क्लिपबोर्ड पर कॉपी करें",
 		"copied": "कॉपी किया गया!",
 		"diagnostics": "विस्तृत त्रुटि जानकारी प्राप्त करें",
-		"proxyProvider": "ऐसा लगता है कि आप एक प्रॉक्सी-आधारित प्रदाता का उपयोग कर रहे हैं। इसके लॉग की जांच करना सुनिश्चित करें और सुनिश्चित करें कि यह Zoo के अनुरोधों को नहीं फिर से लिख रहा है।"
+		"proxyProvider": "ऐसा लगता है कि आप एक प्रॉक्सी-आधारित प्रदाता का उपयोग कर रहे हैं। इसके लॉग की जांच करना सुनिश्चित करें और सुनिश्चित करें कि यह Roo+ के अनुरोधों को नहीं फिर से लिख रहा है।"
 	},
 	"powershell": {
 		"issues": "ऐसा लगता है कि आपको Windows PowerShell के साथ समस्याएँ हो रही हैं, कृपया इसे देखें"
@@ -295,7 +289,6 @@
 		"tooltipManage": "स्वतः-अनुमोदन सेटिंग्स प्रबंधित करें",
 		"tooltipStatus": "स्वतः-अनुमोदन इनके लिए सक्षम है: {{toggles}}",
 		"title": "स्वतः-अनुमोदन",
-		"toggle": "स्वतः-अनुमोदन टॉगल करें",
 		"all": "सभी",
 		"none": "कोई नहीं",
 		"description": "अनुमति मांगे बिना इन क्रियाओं को चलाएं। इसे केवल उन क्रियाओं के लिए सक्षम करें जिन पर आपको पूरा भरोसा है।",
@@ -417,11 +410,6 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "संस्करण {{version}} - रिलीज़ नोट्स देखने के लिए क्लिक करें"
-	},
-	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud विकसित हो रहा है!",
-		"description": "क्लाउड में रिमोट एजेंट चलाएं, कहीं से भी अपने कार्यों तक पहुंचें, दूसरों के साथ सहयोग करें, और बहुत कुछ।",
-		"joinWaitlist": "नवीनतम अपडेट प्राप्त करने के लिए साइन अप करें।"
 	},
 	"editMessage": {
 		"placeholder": "अपना संदेश संपादित करें..."

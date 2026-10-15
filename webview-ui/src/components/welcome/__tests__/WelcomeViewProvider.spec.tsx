@@ -84,7 +84,8 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 
 // Mock buildDocLink
 vi.mock("@/utils/docLinks", () => ({
-	buildDocLink: (path: string, source: string) => `https://docs.roo.plus/${path}?utm_source=${source}`,
+	buildDocLink: (_path: string, source: string) =>
+		`https://github.com/xavier-arosemena/roo-plus?utm_source=${source}`,
 }))
 
 const renderWelcomeViewProvider = (extensionState = {}) => {

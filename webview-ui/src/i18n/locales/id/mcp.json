@@ -2,11 +2,11 @@
 	"title": "Server MCP",
 	"done": "Selesai",
 	"marketplace": "Marketplace MCP",
-	"description": "<0>Model Context Protocol</0> memungkinkan komunikasi dengan server MCP yang berjalan secara lokal yang menyediakan tools dan resources tambahan untuk memperluas kemampuan Roo+. Anda dapat menggunakan <1>server buatan komunitas</1> atau meminta Zoo membuat tools baru yang spesifik untuk workflow Anda (misalnya, \"tambahkan tool yang mendapatkan dokumentasi npm terbaru\").",
+	"description": "<0>Model Context Protocol</0> memungkinkan komunikasi dengan server MCP yang berjalan secara lokal yang menyediakan tools dan resources tambahan untuk memperluas kemampuan Roo+. Anda dapat menggunakan <1>server buatan komunitas</1> atau meminta Roo+ membuat tools baru yang spesifik untuk workflow Anda (misalnya, \"tambahkan tool yang mendapatkan dokumentasi npm terbaru\").",
 	"instructions": "Instruksi",
 	"enableToggle": {
 		"title": "Aktifkan Server MCP",
-		"description": "Nyalakan ini untuk membiarkan Zoo menggunakan tools dari server MCP yang terhubung. Ini memberikan Zoo lebih banyak kemampuan. Jika Anda tidak berencana menggunakan tools tambahan ini, matikan untuk membantu mengurangi biaya token API."
+		"description": "Nyalakan ini untuk membiarkan Roo+ menggunakan tools dari server MCP yang terhubung. Ini memberikan Roo+ lebih banyak kemampuan. Jika Anda tidak berencana menggunakan tools tambahan ini, matikan untuk membantu mengurangi biaya token API."
 	},
 	"editGlobalMCP": "Edit MCP Global",
 	"editProjectMCP": "Edit MCP Proyek",

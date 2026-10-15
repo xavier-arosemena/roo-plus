@@ -163,7 +163,7 @@
 	"warnings": {
 		"no_terminal_content": "Nie wybrano zawartości terminala",
 		"missing_task_files": "Pliki tego zadania są brakujące. Czy chcesz usunąć je z listy zadań?",
-		"auto_import_failed": "Nie udało się automatycznie zaimportować ustawień ZooCode: {{error}}",
+		"auto_import_failed": "Nie udało się automatycznie zaimportować ustawień Roo+: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "Nie znaleziono historii zadań Roo Code do zaimportowania z {{domain}}.",
 			"alreadyImported_one": "Cała {{count}} historia zadań Roo Code została już zaimportowana do Roo+.",
@@ -177,7 +177,7 @@
 		"custom_storage_path_set": "Ustawiono niestandardową ścieżkę przechowywania: {{path}}",
 		"default_storage_path": "Wznowiono używanie domyślnej ścieżki przechowywania",
 		"settings_imported": "Ustawienia zaimportowane pomyślnie.",
-		"auto_import_success": "Ustawienia ZooCode zostały automatycznie zaimportowane z {{filename}}",
+		"auto_import_success": "Ustawienia Roo+ zostały automatycznie zaimportowane z {{filename}}",
 		"share_link_copied": "Link udostępniania skopiowany do schowka",
 		"image_copied_to_clipboard": "URI danych obrazu skopiowane do schowka",
 		"image_saved": "Obraz zapisany w {{path}}",
@@ -214,16 +214,13 @@
 	},
 	"storage": {
 		"prompt_custom_path": "Wprowadź niestandardową ścieżkę przechowywania dla historii konwersacji lub pozostaw puste, aby użyć lokalizacji domyślnej",
-		"path_placeholder": "D:\\ZooCodeStorage",
-		"enter_absolute_path": "Wprowadź pełną ścieżkę (np. D:\\ZooCodeStorage lub /home/user/storage)",
+		"path_placeholder": "D:\\RooPlusStorage",
+		"enter_absolute_path": "Wprowadź pełną ścieżkę (np. D:\\RooPlusStorage lub /home/user/storage)",
 		"enter_valid_path": "Wprowadź prawidłową ścieżkę"
 	},
 	"input": {
-		"task_prompt": "Co ma zrobić Zoo?",
+		"task_prompt": "Co ma zrobić Roo+?",
 		"task_placeholder": "Wpisz swoje zadanie tutaj"
-	},
-	"settings": {
-		"providers": {}
 	},
 	"customModes": {
 		"errors": {
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "Twoja organizacja wymaga uwierzytelnienia Roo+ Cloud. Zaloguj się, aby kontynuować.",
 			"organization_mismatch": "Musisz być uwierzytelniony kontem Roo+ Cloud swojej organizacji.",
-			"manual_url_empty": "Wprowadź prawidłowy URL callback",
-			"manual_url_no_query": "Nieprawidłowy URL callback: brak parametrów zapytania",
-			"manual_url_missing_params": "Nieprawidłowy URL callback: brak wymaganych parametrów (code i state)",
-			"manual_url_auth_failed": "Ręczne uwierzytelnienie URL nie powiodło się",
-			"manual_url_auth_error": "Uwierzytelnienie nie powiodło się",
 			"verification_failed": "Nie można zweryfikować uwierzytelnienia organizacji."
 		},
 		"info": {
@@ -277,28 +269,7 @@
 	},
 	"docsLink": {
 		"label": "Docs",
-		"url": "https://docs.zoocode.dev"
-	},
-	"zooAuth": {
-		"errors": {
-			"invalid_token_received": "Roo+: Otrzymano nieprawidłowy token uwierzytelniania.",
-			"token_verification_failed": "Roo+: Weryfikacja tokenu nie powiodła się.",
-			"invalid_token": "Roo+: Nieprawidłowy token.",
-			"could_not_verify_token": "Roo+: Nie udało się zweryfikować tokenu.",
-			"session_expired": "Sesja Roo+ wygasła. Zaloguj się ponownie, aby kontynuować korzystanie z Zoo Gateway.",
-			"out_of_credits": "Zoo Gateway: niewystarczające środki. Doładuj, aby kontynuować.",
-			"account_unavailable": "Zoo Gateway: Twoje konto jest obecnie niedostępne. Skontaktuj się z pomocą techniczną.",
-			"budget_exceeded": "Zoo Gateway: osiągnięto budżet użycia. Poczekaj na reset lub doładuj."
-		},
-		"info": {
-			"connected": "Roo+: Połączono pomyślnie! Możesz teraz używać Roo+ jako dostawcy AI.",
-			"disconnected": "Roo+: Rozłączono pomyślnie."
-		},
-		"buttons": {
-			"sign_in": "Zaloguj się",
-			"add_credits": "Doładuj",
-			"contact_support": "Kontakt z pomocą"
-		}
+		"url": "https://github.com/xavier-arosemena/roo-plus"
 	},
 	"codeActions": {
 		"explain": "Wyjaśnij z Roo+",

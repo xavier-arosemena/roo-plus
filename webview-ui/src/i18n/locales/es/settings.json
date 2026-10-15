@@ -40,7 +40,7 @@
 		"ui": "UI",
 		"experimental": "Experimental",
 		"language": "Idioma",
-		"about": "Acerca de Roo+ Code",
+		"about": "Acerca de Roo+",
 		"skills": "Skills",
 		"rules": "Reglas"
 	},
@@ -57,7 +57,7 @@
 			"label": "¿Descubriste una vulnerabilidad?",
 			"link": "Sigue nuestro proceso de divulgación"
 		},
-		"community": "¿Quieres consejos o simplemente pasar el rato con otros usuarios de Roo+ Code? Únete a <redditLink>reddit.com/r/ZooCode</redditLink> o <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
+		"community": "¿Quieres consejos o simplemente pasar el rato con otros usuarios de Roo+? Únete a nosotros en <githubLink>GitHub Discussions</githubLink>",
 		"contactAndCommunity": "Contacto y Comunidad",
 		"manageSettings": "Gestionar Configuración",
 		"debugMode": {
@@ -67,7 +67,7 @@
 		"rooHistoryImport": {
 			"settingLabel": "Importar historial desde Roo Code",
 			"cardTitle": "Historial de Roo Code",
-			"cardDescription": "Copia las conversaciones guardadas de Roo Code a Roo+ Code.",
+			"cardDescription": "Copia las conversaciones guardadas de Roo Code a Roo+.",
 			"statusImporting": "Importando historial",
 			"statusFailed": "Importación fallida",
 			"statusComplete": "Importación completada",
@@ -287,7 +287,7 @@
 	},
 	"autoApprove": {
 		"toggleShortcut": "Puedes configurar un atajo global para esta configuración <SettingsLink>en las preferencias de tu IDE</SettingsLink>.",
-		"description": "Permitir que Zoo realice operaciones automáticamente sin requerir aprobación. Habilite esta configuración solo si confía plenamente en la IA y comprende los riesgos de seguridad asociados.",
+		"description": "Permitir que Roo+ realice operaciones automáticamente sin requerir aprobación. Habilite esta configuración solo si confía plenamente en la IA y comprende los riesgos de seguridad asociados.",
 		"enabled": "Auto-aprobación habilitada",
 		"toggleAriaLabel": "Alternar aprobación automática",
 		"disabledAriaLabel": "Aprobación automática desactivada: seleccione primero las opciones",
@@ -334,7 +334,7 @@
 			"description": "Ejecutar automáticamente comandos de terminal permitidos sin requerir aprobación",
 			"destructiveCommandGuard": {
 				"label": "Activar la protección contra comandos destructivos",
-				"description": "Descarga y usa Destructive Command Guard (DCG) para esta plataforma. Los comandos permitidos por DCG se ejecutan automáticamente. Los comandos bloqueados por DCG requieren tu aprobación. Las listas de comandos de Zoo se desactivan mientras esta opción está habilitada. El ejecutable descargado se conserva si la desactivas."
+				"description": "Descarga y usa Destructive Command Guard (DCG) para esta plataforma. Los comandos permitidos por DCG se ejecutan automáticamente. Los comandos bloqueados por DCG requieren tu aprobación. Las listas de comandos de Roo+ se desactivan mientras esta opción está habilitada. El ejecutable descargado se conserva si la desactivas."
 			},
 			"allowedCommands": "Comandos de auto-ejecución permitidos",
 			"allowedCommandsDescription": "Prefijos de comandos que pueden ser ejecutados automáticamente cuando \"Aprobar siempre operaciones de ejecución\" está habilitado. Añade * para permitir todos los comandos (usar con precaución).",
@@ -599,7 +599,7 @@
 			}
 		},
 		"customModel": {
-			"capabilities": "Configure las capacidades y precios para su modelo personalizado compatible con OpenAI. Tenga cuidado al especificar las capacidades del modelo, ya que pueden afectar cómo funciona Roo+ Code.",
+			"capabilities": "Configure las capacidades y precios para su modelo personalizado compatible con OpenAI. Tenga cuidado al especificar las capacidades del modelo, ya que pueden afectar cómo funciona Roo+.",
 			"maxTokens": {
 				"label": "Tokens máximos de salida",
 				"description": "Número máximo de tokens que el modelo puede generar en una respuesta. (Especifique -1 para permitir que el servidor establezca los tokens máximos.)"
@@ -646,7 +646,7 @@
 		},
 		"consecutiveMistakeLimit": {
 			"label": "Límite de errores y repeticiones",
-			"description": "Número de errores consecutivos o acciones repetidas antes de mostrar el diálogo 'Zoo está teniendo problemas'. Establecer en 0 para desactivar este mecanismo de seguridad (nunca se activará).",
+			"description": "Número de errores consecutivos o acciones repetidas antes de mostrar el diálogo 'Roo+ está teniendo problemas'. Establecer en 0 para desactivar este mecanismo de seguridad (nunca se activará).",
 			"unlimitedDescription": "Reintentos ilimitados habilitados (proceder automáticamente). El diálogo nunca aparecerá.",
 			"warning": "⚠️ Establecer en 0 permite reintentos ilimitados que pueden consumir un uso significativo de la API"
 		},
@@ -674,13 +674,6 @@
 			"placeholder": "Por defecto: claude",
 			"maxTokensLabel": "Tokens máximos de salida",
 			"maxTokensDescription": "Número máximo de tokens de salida para las respuestas de Claude Code. El valor predeterminado es 8000."
-		},
-		"zooGateway": {
-			"account": "Cuenta de Roo+ Code",
-			"signInButton": "Iniciar sesión en Roo+ Code",
-			"signInDescription": "Inicia sesión para usar Roo+ Gateway con tu cuenta",
-			"authenticated": "Autenticado",
-			"authenticatedAs": "Autenticado como {{name}}"
 		}
 	},
 	"checkpoints": {
@@ -741,7 +734,7 @@
 		},
 		"maxReadFile": {
 			"label": "Umbral de auto-truncado de lectura de archivos",
-			"description": "Zoo lee este número de líneas cuando el modelo omite valores de inicio/fin. Si este número es menor que el total del archivo, Roo+ genera un índice de números de línea de las definiciones de código. Casos especiales: -1 indica a Roo+ que lea el archivo completo (sin indexación), y 0 indica que no lea líneas y proporcione solo índices de línea para un contexto mínimo. Valores más bajos minimizan el uso inicial de contexto, permitiendo lecturas posteriores de rangos de líneas precisos. Las solicitudes con inicio/fin explícitos no están limitadas por esta configuración.",
+			"description": "Roo+ lee este número de líneas cuando el modelo omite valores de inicio/fin. Si este número es menor que el total del archivo, Roo+ genera un índice de números de línea de las definiciones de código. Casos especiales: -1 indica a Roo+ que lea el archivo completo (sin indexación), y 0 indica que no lea líneas y proporcione solo índices de línea para un contexto mínimo. Valores más bajos minimizan el uso inicial de contexto, permitiendo lecturas posteriores de rangos de líneas precisos. Las solicitudes con inicio/fin explícitos no están limitadas por esta configuración.",
 			"lines": "líneas",
 			"always_full_read": "Siempre leer el archivo completo"
 		},
@@ -870,7 +863,7 @@
 			"description": "Activa para heredar variables de entorno del proceso padre de VS Code. <0>Más información</0>"
 		},
 		"profile": {
-			"label": "Perfil de terminal de Roo+ Code",
+			"label": "Perfil de terminal de Roo+",
 			"followVscode": "Siguiendo el perfil de VS Code (recomendado)",
 			"description": "De forma predeterminada, Roo+ usa la shell que VS Code tiene configurada. Selecciona un perfil de shell de la lista para elegir un perfil de shell con ruta expuesto por VS Code. Los perfiles solo de fuente (p. ej., la entrada integrada de PowerShell) no se pueden listar aquí. <0>Más información</0>",
 			"configureButton": "Elegir perfil predeterminado en VS Code",
@@ -1031,8 +1024,7 @@
 		"providerNotAllowed": "El proveedor '{{provider}}' no está permitido por su organización",
 		"modelNotAllowed": "El modelo '{{model}}' no está permitido para el proveedor '{{provider}}' por su organización",
 		"profileInvalid": "Este perfil contiene un proveedor o modelo que no está permitido por su organización",
-		"qwenCodeOauthPath": "Debes proporcionar una ruta válida de credenciales OAuth",
-		"zooGatewaySignIn": "Inicia sesión en Roo+ para usar Roo+ Gateway."
+		"qwenCodeOauthPath": "Debes proporcionar una ruta válida de credenciales OAuth"
 	},
 	"placeholders": {
 		"apiKey": "Ingrese clave API...",
@@ -1103,16 +1095,16 @@
 		},
 		"chatFontSize": {
 			"label": "Tamaño de fuente del chat",
-			"description": "Establece el tamaño de fuente (en píxeles) del chat de Roo+ Code. Déjalo en el valor predeterminado para que coincida con el tamaño de fuente de VS Code.",
+			"description": "Establece el tamaño de fuente (en píxeles) del chat de Roo+. Déjalo en el valor predeterminado para que coincida con el tamaño de fuente de VS Code.",
 			"reset": "Usar el valor predeterminado de VS Code"
 		},
 		"autoCloseZooOpenedFiles": {
-			"label": "Cerrar automaticamente los archivos abiertos por Zoo",
+			"label": "Cerrar automaticamente los archivos abiertos por Roo+",
 			"description": "Cuando esta opcion esta activada, las pestanas del editor que Roo+ abrio temporalmente para un diff se cierran automaticamente despues de aceptar o rechazar la modificacion. Las pestanas que el usuario ya tenia abiertas antes de la edicion nunca se cierran automaticamente."
 		},
 		"autoCloseZooOpenedFilesAfterUserEdited": {
 			"label": "Cerrar automaticamente incluso tras interaccion del usuario",
-			"description": "Cuando esta opcion esta activada, las pestanas abiertas por Roo+ se cierran incluso si el usuario hizo clic o escribio en el archivo o el diff durante la sesion de edicion. No tiene efecto si 'Cerrar automaticamente los archivos abiertos por Zoo' esta desactivado."
+			"description": "Cuando esta opcion esta activada, las pestanas abiertas por Roo+ se cierran incluso si el usuario hizo clic o escribio en el archivo o el diff durante la sesion de edicion. No tiene efecto si 'Cerrar automaticamente los archivos abiertos por Roo+' esta desactivado."
 		},
 		"autoCloseZooOpenedNewFiles": {
 			"label": "Cerrar automaticamente los archivos nuevos creados",

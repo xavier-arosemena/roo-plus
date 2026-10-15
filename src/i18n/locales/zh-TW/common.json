@@ -163,7 +163,7 @@
 	"warnings": {
 		"no_terminal_content": "沒有選擇終端機內容",
 		"missing_task_files": "此工作的檔案遺失。您想從工作列表中刪除它嗎？",
-		"auto_import_failed": "自動匯入 ZooCode 設定失敗：{{error}}",
+		"auto_import_failed": "自動匯入 Roo+ 設定失敗：{{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "未找到可從 {{domain}} 匯入的 Roo Code 工作歷史記錄。",
 			"alreadyImported_one": "全部 {{count}} 筆 Roo Code 工作歷史記錄已匯入 Roo+。",
@@ -177,7 +177,7 @@
 		"custom_storage_path_set": "自訂儲存路徑已設定：{{path}}",
 		"default_storage_path": "已恢復使用預設儲存路徑",
 		"settings_imported": "設定已成功匯入。",
-		"auto_import_success": "已自動匯入 ZooCode 設定：{{filename}}",
+		"auto_import_success": "已自動匯入 Roo+ 設定：{{filename}}",
 		"share_link_copied": "分享連結已複製到剪貼簿",
 		"image_copied_to_clipboard": "圖片資料 URI 已複製到剪貼簿",
 		"image_saved": "圖片已儲存至 {{path}}",
@@ -214,16 +214,13 @@
 	},
 	"storage": {
 		"prompt_custom_path": "輸入自訂會話歷史儲存路徑，留空以使用預設位置",
-		"path_placeholder": "D:\\ZooCodeStorage",
-		"enter_absolute_path": "請輸入絕對路徑（例如 D:\\ZooCodeStorage 或 /home/user/storage）",
+		"path_placeholder": "D:\\RooPlusStorage",
+		"enter_absolute_path": "請輸入絕對路徑（例如 D:\\RooPlusStorage 或 /home/user/storage）",
 		"enter_valid_path": "請輸入有效的路徑"
 	},
 	"input": {
-		"task_prompt": "讓 Zoo 做什麼？",
+		"task_prompt": "讓 Roo+ 做什麼？",
 		"task_placeholder": "在這裡輸入工作"
-	},
-	"settings": {
-		"providers": {}
 	},
 	"customModes": {
 		"errors": {
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "您的組織需要 Roo+ Cloud 身份驗證。請登入以繼續。",
 			"organization_mismatch": "您必須使用組織的 Roo+ Cloud 帳戶進行身份驗證。",
-			"manual_url_empty": "請輸入有效的回呼 URL",
-			"manual_url_no_query": "無效的回呼 URL：缺少查詢參數",
-			"manual_url_missing_params": "無效的回呼 URL：缺少必要參數（code 和 state）",
-			"manual_url_auth_failed": "手動 URL 身份驗證失敗",
-			"manual_url_auth_error": "身份驗證失敗",
 			"verification_failed": "無法驗證組織身份驗證。"
 		},
 		"info": {
@@ -277,28 +269,7 @@
 	},
 	"docsLink": {
 		"label": "Docs",
-		"url": "https://docs.zoocode.dev"
-	},
-	"zooAuth": {
-		"errors": {
-			"invalid_token_received": "Roo+: 收到無效的認證 token。",
-			"token_verification_failed": "Roo+: Token 驗證失敗。",
-			"invalid_token": "Roo+: 無效的 token。",
-			"could_not_verify_token": "Roo+: 無法驗證 token。",
-			"session_expired": "Roo+ 工作階段已過期。請重新登入以繼續使用 Zoo Gateway。",
-			"out_of_credits": "Zoo Gateway：點數不足。請新增點數以繼續。",
-			"account_unavailable": "Zoo Gateway：您的帳戶目前無法使用。請聯絡支援。",
-			"budget_exceeded": "Zoo Gateway：已達使用預算。請等待預算重置或加值。"
-		},
-		"info": {
-			"connected": "Roo+: 連線成功！你現在可以使用 Roo+ 作為 AI 提供商。",
-			"disconnected": "Roo+: 已成功中斷連線。"
-		},
-		"buttons": {
-			"sign_in": "登入",
-			"add_credits": "新增點數",
-			"contact_support": "聯絡支援"
-		}
+		"url": "https://github.com/xavier-arosemena/roo-plus"
 	},
 	"codeActions": {
 		"explain": "使用 Roo+ 解釋",

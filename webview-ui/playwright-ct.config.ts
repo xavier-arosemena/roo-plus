@@ -67,7 +67,7 @@ export default defineConfig({
 				"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? "test"),
 				"process.env.PKG_NAME": JSON.stringify("zoo-code"),
 				"process.env.PKG_VERSION": JSON.stringify("0.0.0-test"),
-				"process.env.PKG_OUTPUT_CHANNEL": JSON.stringify("Zoo-Code"),
+				"process.env.PKG_OUTPUT_CHANNEL": JSON.stringify("Roo+"),
 				"process.env.PKG_RELEASE_CHANNEL": JSON.stringify("stable"),
 			},
 			optimizeDeps: {

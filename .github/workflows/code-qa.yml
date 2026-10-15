@@ -74,6 +74,28 @@ jobs:
                   node scripts/verify-docs-no-public-ip.mjs
                   echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:DOCS-IPV4] no non-localhost IPv4 literals found under docs/"
                   echo "::endgroup::"
+            # In-app "learn more" help links: every buildDocLink call site must
+            # resolve to a docs/help page, the generated docLinkMap must be in
+            # sync with the docs/help tree, and every call-site anchor must match
+            # a heading in its target page (docs/help-pages-plan.md §5).
+            - name: Verify in-app help doc links resolve
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:DOC-LINKS] Verifying buildDocLink slugs + generated map"
+                  node scripts/generate-doc-link-map.mjs --check
+                  node scripts/verify-doc-links.mjs
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:DOC-LINKS] doc links resolve and the map is in sync"
+                  echo "::endgroup::"
+            # Branding guard: the fork is "Roo+"; the upstream whole-word "Zoo"
+            # and the mistaken double brand "Roo+ Code" must never leak into the
+            # user-facing i18n surfaces (webview-ui/src/i18n, src/i18n,
+            # src/package.nls*.json) — tests and intentionally-upstream files are
+            # excluded (see scripts/verify-branding.mjs).
+            - name: Guard i18n against branding regressions
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:BRANDING] Verifying i18n surfaces for upstream branding"
+                  node scripts/verify-branding.mjs
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:BRANDING] no upstream / double-brand strings in i18n surfaces"
+                  echo "::endgroup::"
             - name: Verify custom-modes submodule pin & committed artifact sync
               run: |
                   echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:SUBMODULE] Verifying submodule pin + .roomodes sync"

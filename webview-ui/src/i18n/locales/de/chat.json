@@ -127,7 +127,7 @@
 		"title": "Modi",
 		"marketplace": "Modus-Marketplace",
 		"settings": "Modus-Einstellungen",
-		"description": "Spezialisierte Personas, die Zoos Verhalten anpassen.",
+		"description": "Spezialisierte Personas, die Roo+s Verhalten anpassen.",
 		"searchPlaceholder": "Modi suchen...",
 		"noResults": "Keine Ergebnisse gefunden"
 	},
@@ -183,9 +183,6 @@
 		},
 		"current": "Aktuell"
 	},
-	"instructions": {
-		"wantsToFetch": "Zoo möchte detaillierte Anweisungen abrufen, um bei der aktuellen Aufgabe zu helfen"
-	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ möchte diese Datei lesen",
 		"wantsToReadAndXMore": "Roo+ möchte diese Datei und {{count}} weitere lesen",
@@ -195,8 +192,6 @@
 		"wantsToEditOutsideWorkspace": "Roo+ möchte diese Datei außerhalb des Arbeitsbereichs bearbeiten",
 		"wantsToEditProtected": "Roo+ möchte eine geschützte Konfigurationsdatei bearbeiten",
 		"wantsToCreate": "Roo+ möchte eine neue Datei erstellen",
-		"wantsToSearchReplace": "Roo möchte in dieser Datei suchen und ersetzen",
-		"didSearchReplace": "Roo hat Suchen und Ersetzen in dieser Datei durchgeführt",
 		"wantsToInsert": "Roo+ möchte Inhalte in diese Datei einfügen",
 		"wantsToInsertWithLineNumber": "Roo+ möchte Inhalte in diese Datei in Zeile {{lineNumber}} einfügen",
 		"wantsToInsertAtEnd": "Roo+ möchte Inhalte am Ende dieser Datei anhängen",
@@ -254,16 +249,15 @@
 		"wantsToAccessResource": "Roo+ möchte auf eine Ressource auf dem {{serverName}} MCP-Server zugreifen"
 	},
 	"modes": {
-		"wantsToSwitch": "Roo+ möchte zum <code>{{mode}}</code>-Modus wechseln",
-		"wantsToSwitchWithReason": "Roo+ möchte zum <code>{{mode}}</code>-Modus wechseln, weil: {{reason}}",
-		"didSwitch": "Roo+ hat zum <code>{{mode}}</code>-Modus gewechselt",
-		"didSwitchWithReason": "Roo+ hat zum <code>{{mode}}</code>-Modus gewechselt, weil: {{reason}}"
+		"wantsToSwitch": "Roo+ möchte zum {{mode}}-Modus wechseln",
+		"wantsToSwitchWithReason": "Roo+ möchte zum {{mode}}-Modus wechseln, weil: {{reason}}",
+		"didSwitch": "Roo+ hat zum {{mode}}-Modus gewechselt",
+		"didSwitchWithReason": "Roo+ hat zum {{mode}}-Modus gewechselt, weil: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Roo+ möchte eine neue Teilaufgabe im <code>{{mode}}</code>-Modus erstellen",
+		"wantsToCreate": "Roo+ möchte eine neue Teilaufgabe im {{mode}}-Modus erstellen",
 		"wantsToFinish": "Roo+ möchte diese Teilaufgabe abschließen",
 		"newTaskContent": "Teilaufgabenanweisungen",
-		"completionContent": "Teilaufgabe abgeschlossen",
 		"resultContent": "Teilaufgabenergebnisse",
 		"defaultResult": "Bitte fahre mit der nächsten Aufgabe fort.",
 		"completionInstructions": "Teilaufgabe abgeschlossen! Du kannst die Ergebnisse überprüfen und Korrekturen oder nächste Schritte vorschlagen. Wenn alles gut aussieht, bestätige, um das Ergebnis an die übergeordnete Aufgabe zurückzugeben.",
@@ -286,7 +280,7 @@
 		"copyToClipboard": "In Zwischenablage kopieren",
 		"copied": "Kopiert!",
 		"diagnostics": "Detaillierte Fehlerinformationen abrufen",
-		"proxyProvider": "Du scheinst einen Proxy-basierten Anbieter zu verwenden. Überprüfe unbedingt seine Protokolle und stelle sicher, dass er Zoos Anfragen nicht umschreibt."
+		"proxyProvider": "Du scheinst einen Proxy-basierten Anbieter zu verwenden. Überprüfe unbedingt seine Protokolle und stelle sicher, dass er Roo+s Anfragen nicht umschreibt."
 	},
 	"powershell": {
 		"issues": "Es scheint, dass du Probleme mit Windows PowerShell hast, bitte sieh dir dies an"
@@ -295,7 +289,6 @@
 		"tooltipManage": "Einstellungen für die automatische Genehmigung verwalten",
 		"tooltipStatus": "Automatische Genehmigung aktiviert für: {{toggles}}",
 		"title": "Automatische Genehmigung",
-		"toggle": "Automatische Genehmigung umschalten",
 		"all": "Alle",
 		"none": "Keine",
 		"description": "Führe diese Aktionen aus, ohne um Erlaubnis zu fragen. Aktiviere dies nur für Aktionen, denen du voll vertraust.",
@@ -417,11 +410,6 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Version {{version}} - Klicken Sie, um die Versionshinweise anzuzeigen"
-	},
-	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud entwickelt sich weiter!",
-		"description": "Führe Remote-Agenten in der Cloud aus, greife von überall auf deine Aufgaben zu, arbeite mit anderen zusammen und vieles mehr.",
-		"joinWaitlist": "Melde dich an, um die neuesten Updates zu erhalten."
 	},
 	"command": {
 		"triggerDescription": "Starte den {{name}} Befehl"

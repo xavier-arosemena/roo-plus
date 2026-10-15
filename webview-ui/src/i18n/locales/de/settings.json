@@ -40,7 +40,7 @@
 		"ui": "UI",
 		"experimental": "Experimentell",
 		"language": "Sprache",
-		"about": "Über Roo+ Code",
+		"about": "Über Roo+",
 		"skills": "Skills",
 		"rules": "Regeln"
 	},
@@ -57,7 +57,7 @@
 			"label": "Sicherheitslücke entdeckt?",
 			"link": "Folge unserem Offenlegungsprozess"
 		},
-		"community": "Möchtest du Tipps oder dich einfach mit anderen Roo+ Code-Nutzern austauschen? Tritt <redditLink>reddit.com/r/ZooCode</redditLink> oder <discordLink>discord.gg/VxfP4Vx3gX</discordLink> bei",
+		"community": "Möchtest du Tipps oder dich einfach mit anderen Roo+ Nutzern austauschen? Triff uns auf <githubLink>GitHub Discussions</githubLink>",
 		"contactAndCommunity": "Kontakt & Community",
 		"manageSettings": "Einstellungen verwalten",
 		"debugMode": {
@@ -119,7 +119,7 @@
 		"footer": "Nutze Slash-Befehle, um schnell auf häufig verwendete Prompts und Workflows zuzugreifen."
 	},
 	"rules": {
-		"description": "Verwalte Roo+ Code-Regeldateien aus globalen und Workspace-.roo/rules-Verzeichnissen. Erstelle allgemeine oder modusspezifische Regeln, ohne manuell durch Konfigurationsordner zu navigieren.",
+		"description": "Verwalte Roo+-Regeldateien aus globalen und Workspace-.roo/rules-Verzeichnissen. Erstelle allgemeine oder modusspezifische Regeln, ohne manuell durch Konfigurationsordner zu navigieren.",
 		"workspaceRules": "Workspace-Regeln",
 		"globalRules": "Globale Regeln",
 		"noWorkspaceRules": "Noch keine Regeln in diesem Projekt.",
@@ -287,7 +287,7 @@
 	},
 	"autoApprove": {
 		"toggleShortcut": "Du kannst <SettingsLink>in deinen IDE-Einstellungen</SettingsLink> einen globalen Shortcut für diese Einstellung konfigurieren.",
-		"description": "Erlaubt Zoo, Operationen automatisch ohne Genehmigung durchzuführen. Aktiviere diese Einstellungen nur, wenn du der KI vollständig vertraust und die damit verbundenen Sicherheitsrisiken verstehst.",
+		"description": "Erlaubt Roo+, Operationen automatisch ohne Genehmigung durchzuführen. Aktiviere diese Einstellungen nur, wenn du der KI vollständig vertraust und die damit verbundenen Sicherheitsrisiken verstehst.",
 		"enabled": "Auto-Genehmigung aktiviert",
 		"toggleAriaLabel": "Automatische Genehmigung umschalten",
 		"disabledAriaLabel": "Automatische Genehmigung deaktiviert - zuerst Optionen auswählen",
@@ -334,7 +334,7 @@
 			"description": "Erlaubte Terminal-Befehle automatisch ohne Genehmigung ausführen",
 			"destructiveCommandGuard": {
 				"label": "Schutz vor destruktiven Befehlen aktivieren",
-				"description": "Lädt Destructive Command Guard (DCG) für diese Plattform herunter und verwendet es. Von DCG erlaubte Befehle werden automatisch ausgeführt. Von DCG blockierte Befehle benötigen deine Zustimmung. Die Befehlslisten von Zoo sind währenddessen deaktiviert. Die heruntergeladene ausführbare Datei bleibt erhalten, wenn du die Option ausschaltest."
+				"description": "Lädt Destructive Command Guard (DCG) für diese Plattform herunter und verwendet es. Von DCG erlaubte Befehle werden automatisch ausgeführt. Von DCG blockierte Befehle benötigen deine Zustimmung. Die Befehlslisten von Roo+ sind währenddessen deaktiviert. Die heruntergeladene ausführbare Datei bleibt erhalten, wenn du die Option ausschaltest."
 			},
 			"allowedCommands": "Erlaubte Auto-Ausführungsbefehle",
 			"allowedCommandsDescription": "Befehlspräfixe, die automatisch ausgeführt werden können, wenn 'Ausführungsoperationen immer genehmigen' aktiviert ist. Fügen Sie * hinzu, um alle Befehle zu erlauben (mit Vorsicht verwenden).",
@@ -646,7 +646,7 @@
 		},
 		"consecutiveMistakeLimit": {
 			"label": "Fehler- & Wiederholungslimit",
-			"description": "Anzahl aufeinanderfolgender Fehler oder wiederholter Aktionen, bevor der Dialog 'Zoo hat Probleme' angezeigt wird. Auf 0 setzen, um diesen Sicherheitsmechanismus zu deaktivieren (er wird niemals ausgelöst).",
+			"description": "Anzahl aufeinanderfolgender Fehler oder wiederholter Aktionen, bevor der Dialog 'Roo+ hat Probleme' angezeigt wird. Auf 0 setzen, um diesen Sicherheitsmechanismus zu deaktivieren (er wird niemals ausgelöst).",
 			"unlimitedDescription": "Unbegrenzte Wiederholungen aktiviert (automatisches Fortfahren). Der Dialog wird niemals angezeigt.",
 			"warning": "⚠️ Das Setzen auf 0 erlaubt unbegrenzte Wiederholungen, was zu erheblichem API-Verbrauch führen kann"
 		},
@@ -674,13 +674,6 @@
 			"placeholder": "Standard: claude",
 			"maxTokensLabel": "Maximale Ausgabe-Tokens",
 			"maxTokensDescription": "Maximale Anzahl an Ausgabe-Tokens für Claude Code-Antworten. Standard ist 8000."
-		},
-		"zooGateway": {
-			"account": "Roo+ Konto",
-			"signInButton": "Bei Roo+ anmelden",
-			"signInDescription": "Melde dich an, um Roo+ Gateway mit deinem Konto zu nutzen",
-			"authenticated": "Authentifiziert",
-			"authenticatedAs": "Authentifiziert als {{name}}"
 		}
 	},
 	"checkpoints": {
@@ -818,7 +811,7 @@
 		},
 		"outputLineLimit": {
 			"label": "Terminal-Ausgabelimit",
-			"description": "Behält erste und letzte Zeilen und verwirft die mittleren, um unter dem Limit zu bleiben. Niedriger für Token-Ersparnis; höher für mehr Details aus der Mitte für Zoo. Roo+ sieht einen Platzhalter, wo Inhalt übersprungen wird.<0>Mehr erfahren</0>"
+			"description": "Behält erste und letzte Zeilen und verwirft die mittleren, um unter dem Limit zu bleiben. Niedriger für Token-Ersparnis; höher für mehr Details aus der Mitte für Roo+. Roo+ sieht einen Platzhalter, wo Inhalt übersprungen wird.<0>Mehr erfahren</0>"
 		},
 		"outputCharacterLimit": {
 			"label": "Terminal-Zeichenlimit",
@@ -870,7 +863,7 @@
 			"description": "Schalte dies ein, um Umgebungsvariablen vom übergeordneten VS Code-Prozess zu erben. <0>Mehr erfahren</0>"
 		},
 		"profile": {
-			"label": "Shell für Roo+ Code",
+			"label": "Shell für Roo+",
 			"followVscode": "VS Code-Profil folgen (empfohlen)",
 			"description": "Standardmäßig verwendet Roo+ die in VS Code konfigurierte Shell. Wähle ein Shell-Profil aus der Liste, um ein pfadbasiertes Shell-Profil zu verwenden, das VS Code bereitstellt. Quellenbasierte Profile (z. B. der integrierte PowerShell-Eintrag) können hier nicht aufgelistet werden. <0>Mehr erfahren</0>",
 			"configureButton": "Standardprofil in VS Code auswählen",
@@ -1031,8 +1024,7 @@
 		"providerNotAllowed": "Anbieter '{{provider}}' ist von deiner Organisation nicht erlaubt",
 		"modelNotAllowed": "Modell '{{model}}' ist für Anbieter '{{provider}}' von deiner Organisation nicht erlaubt",
 		"profileInvalid": "Dieses Profil enthält einen Anbieter oder ein Modell, das von deiner Organisation nicht erlaubt ist",
-		"qwenCodeOauthPath": "Du musst einen gültigen OAuth-Anmeldedaten-Pfad angeben",
-		"zooGatewaySignIn": "Melde dich bei Roo+ an, um Roo+ Gateway zu verwenden."
+		"qwenCodeOauthPath": "Du musst einen gültigen OAuth-Anmeldedaten-Pfad angeben"
 	},
 	"placeholders": {
 		"apiKey": "API-Schlüssel eingeben...",
@@ -1103,7 +1095,7 @@
 		},
 		"chatFontSize": {
 			"label": "Chat-Schriftgröße",
-			"description": "Lege die Schriftgröße (in Pixeln) für den Roo+ Code-Chat fest. Belasse den Standardwert, um die Schriftgröße von VS Code zu übernehmen.",
+			"description": "Lege die Schriftgröße (in Pixeln) für den Roo+-Chat fest. Belasse den Standardwert, um die Schriftgröße von VS Code zu übernehmen.",
 			"reset": "VS Code-Standard verwenden"
 		},
 		"autoCloseZooOpenedFiles": {

@@ -34,9 +34,9 @@
 	"settings.vsCodeLmModelSelector.description": "Impostazioni per l'API del modello linguistico VSCode",
 	"settings.vsCodeLmModelSelector.vendor.description": "Il fornitore del modello linguistico (es. copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "La famiglia del modello linguistico (es. gpt-4)",
-	"settings.customStoragePath.description": "Percorso di archiviazione personalizzato. Lasciare vuoto per utilizzare la posizione predefinita. Supporta percorsi assoluti (es. 'D:\\ZooCodeStorage')",
+	"settings.customStoragePath.description": "Percorso di archiviazione personalizzato. Lasciare vuoto per utilizzare la posizione predefinita. Supporta percorsi assoluti (es. 'D:\\RooPlusStorage')",
 	"settings.enableCodeActions.description": "Abilita correzioni rapide di Roo+.",
-	"settings.autoImportSettingsPath.description": "Percorso di un file di configurazione di ZooCode da importare automaticamente all'avvio dell'estensione. Supporta percorsi assoluti e percorsi relativi alla directory home (ad es. '~/Documents/roo-code-settings.json'). Lasciare vuoto per disabilitare l'importazione automatica.",
+	"settings.autoImportSettingsPath.description": "Percorso di un file di configurazione di Roo+ da importare automaticamente all'avvio dell'estensione. Supporta percorsi assoluti e percorsi relativi alla directory home (ad es. '~/Documents/roo-code-settings.json'). Lasciare vuoto per disabilitare l'importazione automatica.",
 	"settings.maximumIndexedFilesForFileSearch.description": "Numero massimo di file da indicizzare per la funzionalità di ricerca file @. Valori più alti forniscono migliori risultati di ricerca in progetti grandi ma possono consumare più memoria. Predefinito: 10.000.",
 	"settings.useAgentRules.description": "Abilita il caricamento dei file AGENTS.md per regole specifiche dell'agente (vedi https://agent-rules.org/)",
 	"settings.apiRequestTimeout.description": "Timeout risposta API (secondi, predefinito: 600, intervallo: 1–3600). Valori più alti sono consigliati per provider locali. Provider non supportati: Amazon Bedrock, Google Gemini(directly or through the Vertex AI platform), Mistral, Moonshot, Ollama, Poe, VS Code LM API.",
@@ -46,7 +46,7 @@
 	"settings.debugProxy.enabled.description": "**Abilita Debug Proxy** — Instrada tutte le richieste di rete in uscita tramite un proxy per il debugging MITM. Attivo solo quando esegui in modalità debug (F5).",
 	"settings.debugProxy.serverUrl.description": "URL del proxy (ad es. `http://127.0.0.1:8888`). Usato solo quando **Debug Proxy** è abilitato.",
 	"settings.debugProxy.tlsInsecure.description": "Accetta certificati autofirmati dal proxy. **Necessario per l'ispezione MITM.** ⚠️ Non sicuro — usalo solo per il debugging locale.",
-	"settings.workspace.rootResolution.description": "Come Zoo determina la radice del workspace in un workspace multi-radice. La radice viene usata per individuare `.roomodes`, `.roo/mcp.json`, `.roo/rules/` e altra configurazione a livello di progetto. Modificare questa impostazione influisce solo sulle ricerche future; i task in esecuzione mantengono la loro radice originale.",
+	"settings.workspace.rootResolution.description": "Come Roo+ determina la radice del workspace in un workspace multi-radice. La radice viene usata per individuare `.roomodes`, `.roo/mcp.json`, `.roo/rules/` e altra configurazione a livello di progetto. Modificare questa impostazione influisce solo sulle ricerche future; i task in esecuzione mantengono la loro radice originale.",
 	"settings.workspace.rootResolution.activeEditor.description": "Usa la cartella del workspace che contiene l'editor attivo; ripiega sulla prima cartella del workspace. (Predefinito — mantiene il comportamento legacy.)",
 	"settings.workspace.rootResolution.firstFolder.description": "Usa sempre la prima cartella del workspace (workspaceFolders[0]). Deterministico — indipendente dal file attualmente attivo."
 }

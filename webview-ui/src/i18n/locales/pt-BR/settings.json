@@ -57,7 +57,7 @@
 			"label": "Descobriu uma vulnerabilidade?",
 			"link": "Siga nosso processo de divulgação"
 		},
-		"community": "Quer dicas ou apenas conversar com outros usuários do Roo+ Code? Junte-se a <redditLink>reddit.com/r/ZooCode</redditLink> ou <discordLink>discord.gg/VxfP4Vx3gX</discordLink>",
+		"community": "Quer dicas ou apenas conversar com outros usuários do Roo+? Junte-se a nós no <githubLink>GitHub Discussions</githubLink>",
 		"contactAndCommunity": "Contato e Comunidade",
 		"manageSettings": "Gerenciar Configurações",
 		"debugMode": {
@@ -67,7 +67,7 @@
 		"rooHistoryImport": {
 			"settingLabel": "Importar histórico do Roo Code",
 			"cardTitle": "Histórico do Roo Code",
-			"cardDescription": "Copiar conversas salvas do Roo Code para o Roo+ Code.",
+			"cardDescription": "Copiar conversas salvas do Roo Code para o Roo+.",
 			"statusImporting": "Importando histórico",
 			"statusFailed": "Falha na importação",
 			"statusComplete": "Importação concluída",
@@ -287,7 +287,7 @@
 	},
 	"autoApprove": {
 		"toggleShortcut": "Você pode configurar um atalho global para esta configuração <SettingsLink>nas preferências do seu IDE</SettingsLink>.",
-		"description": "Permitir que o Zoo realize operações automaticamente sem exigir aprovação. Ative essas configurações apenas se confiar totalmente na IA e compreender os riscos de segurança associados.",
+		"description": "Permitir que o Roo+ realize operações automaticamente sem exigir aprovação. Ative essas configurações apenas se confiar totalmente na IA e compreender os riscos de segurança associados.",
 		"enabled": "Aprovação automática habilitada",
 		"toggleAriaLabel": "Alternar aprovação automática",
 		"disabledAriaLabel": "Aprovação automática desativada - selecione as opções primeiro",
@@ -334,7 +334,7 @@
 			"description": "Executar automaticamente comandos de terminal permitidos sem exigir aprovação",
 			"destructiveCommandGuard": {
 				"label": "Ativar a proteção contra comandos destrutivos",
-				"description": "Baixa e usa o Destructive Command Guard (DCG) para esta plataforma. Comandos permitidos pelo DCG são executados automaticamente. Comandos bloqueados pelo DCG precisam da sua aprovação. As listas de comandos do Zoo ficam desativadas enquanto esta opção estiver ativa. O executável baixado é mantido se você desativá-la."
+				"description": "Baixa e usa o Destructive Command Guard (DCG) para esta plataforma. Comandos permitidos pelo DCG são executados automaticamente. Comandos bloqueados pelo DCG precisam da sua aprovação. As listas de comandos do Roo+ ficam desativadas enquanto esta opção estiver ativa. O executável baixado é mantido se você desativá-la."
 			},
 			"allowedCommands": "Comandos de auto-execução permitidos",
 			"allowedCommandsDescription": "Prefixos de comando que podem ser auto-executados quando \"Aprovar sempre operações de execução\" está ativado. Adicione * para permitir todos os comandos (use com cautela).",
@@ -646,7 +646,7 @@
 		},
 		"consecutiveMistakeLimit": {
 			"label": "Limite de Erros e Repetições",
-			"description": "Número de erros consecutivos ou ações repetidas antes de exibir o diálogo 'Zoo está com problemas'. Defina como 0 para desativar este mecanismo de segurança (ele nunca será acionado).",
+			"description": "Número de erros consecutivos ou ações repetidas antes de exibir o diálogo 'Roo+ está com problemas'. Defina como 0 para desativar este mecanismo de segurança (ele nunca será acionado).",
 			"unlimitedDescription": "Tentativas ilimitadas ativadas (prosseguimento automático). O diálogo nunca aparecerá.",
 			"warning": "⚠️ Definir como 0 permite tentativas ilimitadas, o que pode consumir um uso significativo da API"
 		},
@@ -674,13 +674,6 @@
 			"placeholder": "Padrão: claude",
 			"maxTokensLabel": "Tokens de saída máximos",
 			"maxTokensDescription": "Número máximo de tokens de saída para respostas do Claude Code. O padrão é 8000."
-		},
-		"zooGateway": {
-			"account": "Conta Roo+ Code",
-			"signInButton": "Entrar no Roo+ Code",
-			"signInDescription": "Entre para usar o Roo+ Gateway com sua conta",
-			"authenticated": "Autenticado",
-			"authenticatedAs": "Autenticado como {{name}}"
 		}
 	},
 	"checkpoints": {
@@ -870,7 +863,7 @@
 			"description": "Ative isso para herdar variáveis de ambiente do processo pai do VS Code. <0>Saiba mais</0>"
 		},
 		"profile": {
-			"label": "Perfil de terminal do Roo+ Code",
+			"label": "Perfil de terminal do Roo+",
 			"followVscode": "Seguindo o perfil do VS Code (recomendado)",
 			"description": "Por padrão, o Roo+ usa o shell configurado no VS Code. Selecione um perfil de shell na lista para escolher um perfil de shell com caminho exposto pelo VS Code. Perfis somente de fonte (ex.: a entrada integrada do PowerShell) não podem ser listados aqui. <0>Saiba mais</0>",
 			"configureButton": "Escolher perfil padrão no VS Code",
@@ -1031,8 +1024,7 @@
 		"providerNotAllowed": "O provedor '{{provider}}' não é permitido pela sua organização",
 		"modelNotAllowed": "O modelo '{{model}}' não é permitido para o provedor '{{provider}}' pela sua organização",
 		"profileInvalid": "Este perfil contém um provedor ou modelo que não é permitido pela sua organização",
-		"qwenCodeOauthPath": "Você deve fornecer um caminho válido de credenciais OAuth",
-		"zooGatewaySignIn": "Faça login no Roo+ para usar o Roo+ Gateway."
+		"qwenCodeOauthPath": "Você deve fornecer um caminho válido de credenciais OAuth"
 	},
 	"placeholders": {
 		"apiKey": "Digite a chave API...",
@@ -1103,16 +1095,16 @@
 		},
 		"chatFontSize": {
 			"label": "Tamanho da fonte do chat",
-			"description": "Defina o tamanho da fonte (em pixels) do chat do Roo+ Code. Deixe no padrão para corresponder ao tamanho da fonte do VS Code.",
+			"description": "Defina o tamanho da fonte (em pixels) do chat do Roo+. Deixe no padrão para corresponder ao tamanho da fonte do VS Code.",
 			"reset": "Usar o padrão do VS Code"
 		},
 		"autoCloseZooOpenedFiles": {
-			"label": "Fechar automaticamente arquivos abertos pelo Zoo",
+			"label": "Fechar automaticamente arquivos abertos pelo Roo+",
 			"description": "Quando ativada, as abas do editor que o Roo+ abriu temporariamente para um diff sao fechadas automaticamente apos aceitar ou rejeitar a modificacao. As abas que o usuario ja tinha abertas antes da edicao nunca sao fechadas automaticamente."
 		},
 		"autoCloseZooOpenedFilesAfterUserEdited": {
 			"label": "Fechar automaticamente mesmo apos interacao do usuario",
-			"description": "Quando ativada, as abas abertas pelo Roo+ sao fechadas mesmo que o usuario tenha clicado ou digitado no arquivo ou diff durante a sessao de edicao. Nao tem efeito se 'Fechar automaticamente arquivos abertos pelo Zoo' estiver desativada."
+			"description": "Quando ativada, as abas abertas pelo Roo+ sao fechadas mesmo que o usuario tenha clicado ou digitado no arquivo ou diff durante a sessao de edicao. Nao tem efeito se 'Fechar automaticamente arquivos abertos pelo Roo+' estiver desativada."
 		},
 		"autoCloseZooOpenedNewFiles": {
 			"label": "Fechar automaticamente novos arquivos criados",

@@ -395,6 +395,22 @@ jobs:
           EOF
           echo "::endgroup::"
 
+      - name: Verify in-app help doc links before packaging
+        # F2: the packaging step (`vsce package --no-dependencies`) bypasses the
+        # prevsix / prebundle / prevscode:prepublish hook chain, so the doc-link
+        # gates that chain would otherwise run are re-asserted here against the
+        # COMMITTED bytes, BEFORE any build/package step:
+        #   · generate-doc-link-map --check → the map is in sync AND every
+        #     rendered provider page matches the committed file byte-for-byte (M1);
+        #   · verify-doc-links → every buildDocLink slug/anchor resolves.
+        if: steps.release-check.outputs.skip != 'true'
+        run: |
+          echo "::group::[CI:PRERELEASE:DOC-LINKS] Verifying in-app help doc links"
+          node scripts/generate-doc-link-map.mjs --check
+          node scripts/verify-doc-links.mjs
+          echo "::notice::[CI:PRERELEASE:DOC-LINKS] doc-link gates passed"
+          echo "::endgroup::"
+
       - name: Build workspace packages
         if: steps.release-check.outputs.skip != 'true'
         env:

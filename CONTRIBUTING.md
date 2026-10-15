@@ -57,8 +57,8 @@ Mention alignment with these areas in your PRs.
 
 ### 3. Join the Roo+ Community
 
-- **Discord:** Join our [Discord](https://discord.gg/VxfP4Vx3gX).
-- **Reddit:** Join our [Reddit](https://www.reddit.com/r/ZooCode/).
+- **GitHub Discussions:** Join our [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions).
+- **GitHub Issues:** Report bugs and request features in [GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues).
 
 ## Finding & Planning Your Contribution
 
@@ -76,7 +76,7 @@ All contributions start with a GitHub Issue using our skinny templates.
 - **Create an issue** using:
     - **Enhancements:** "Enhancement Request" template (plain language focused on user benefit).
     - **Bugs:** "Bug Report" template (minimal repro + expected vs actual + version).
-- **Want to work on it?** Comment "Claiming" on the issue and reach out to the core team on [Discord](https://discord.gg/VxfP4Vx3gX) to get assigned. Assignment will be confirmed in the thread.
+- **Want to work on it?** Comment "Claiming" on the issue and ask in [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions) to get assigned. Assignment will be confirmed in the thread.
 - **PRs must link to the issue.** Unlinked PRs may be closed.
 
 ### Deciding What to Work On
@@ -129,7 +129,7 @@ pnpm install
 
 ### Pull Request Policy
 
-- Must reference an assigned GitHub Issue. To get assigned: comment "Claiming" on the issue and reach out to the core team on [Discord](https://discord.gg/VxfP4Vx3gX). Assignment will be confirmed in the thread.
+- Must reference an assigned GitHub Issue. To get assigned: comment "Claiming" on the issue and ask in [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions). Assignment will be confirmed in the thread.
 - Unlinked PRs may be closed.
 - PRs should pass CI tests, align with the roadmap, and have clear documentation.
 

@@ -56,8 +56,8 @@ Hãy đề cập đến sự phù hợp với các lĩnh vực này trong PR c�
 
 ### 3. Tham gia cộng đồng Roo+
 
-- **Discord:** Tham gia [Discord](https://discord.gg/VxfP4Vx3gX) của chúng tôi.
-- **Reddit:** Tham gia [Reddit](https://www.reddit.com/r/ZooCode/) của chúng tôi.
+- **GitHub Discussions:** Tham gia [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions) của chúng tôi.
+- **GitHub Issues:** Báo cáo lỗi và yêu cầu tính năng tại [GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues).
 
 ## Tìm kiếm và lập kế hoạch đóng góp của bạn
 
@@ -75,7 +75,7 @@ Tất cả các đóng góp đều bắt đầu bằng một Vấn đề trên G
 - **Tạo một vấn đề** bằng cách sử dụng:
     - **Cải tiến:** mẫu "Yêu cầu cải tiến" (ngôn ngữ đơn giản tập trung vào lợi ích của người dùng).
     - **Lỗi:** mẫu "Báo cáo lỗi" (tái tạo tối thiểu + mong đợi so với thực tế + phiên bản).
-- **Bạn muốn làm việc với nó?** Bình luận "Nhận" trên vấn đề và nhắn tin trực tiếp cho nhóm cốt lõi trên [Discord](https://discord.gg/VxfP4Vx3gX) để được giao. Việc giao nhiệm vụ sẽ được xác nhận trong chuỗi.
+- **Bạn muốn làm việc với nó?** Bình luận "Nhận" trên vấn đề và hỏi trong [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions) để được giao. Việc giao nhiệm vụ sẽ được xác nhận trong chuỗi.
 - **PR phải liên kết đến vấn đề.** Các PR không được liên kết có thể bị đóng.
 
 ### Quyết định nên làm gì
@@ -128,7 +128,7 @@ pnpm install
 
 ### Chính sách yêu cầu kéo
 
-- Phải tham chiếu đến một Vấn đề GitHub đã được giao. Để được giao: bình luận "Nhận" trên vấn đề và nhắn tin trực tiếp cho nhóm cốt lõi trên [Discord](https://discord.gg/VxfP4Vx3gX). Việc giao nhiệm vụ sẽ được xác nhận trong chuỗi.
+- Phải tham chiếu đến một Vấn đề GitHub đã được giao. Để được giao: bình luận "Nhận" trên vấn đề và hỏi trong [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions). Việc giao nhiệm vụ sẽ được xác nhận trong chuỗi.
 - Các PR không được liên kết có thể bị đóng.
 - Các PR phải vượt qua các bài kiểm tra CI, phù hợp với lộ trình và có tài liệu rõ ràng.
 

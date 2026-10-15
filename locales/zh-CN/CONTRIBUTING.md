@@ -56,8 +56,8 @@ Roo+ 是一个由社区驱动的项目，我们非常重视每一份贡献。为
 
 ### 3. 加入 Roo+ 社区
 
-- **Discord：**加入我们的 [Discord](https://discord.gg/VxfP4Vx3gX)。
-- **Reddit：**加入我们的 [Reddit](https://www.reddit.com/r/ZooCode/)。
+- **GitHub Discussions：**加入我们的 [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions)。
+- **GitHub Issues：**在 [GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues) 中报告错误和请求功能。
 
 ## 寻找和规划您的贡献
 
@@ -75,7 +75,7 @@ Roo+ 是一个由社区驱动的项目，我们非常重视每一份贡献。为
 - **使用以下模板创建问题**：
     - **增强功能：** “增强请求”模板（侧重于用户利益的简单语言）。
     - **错误：** “错误报告”模板（最少的复现步骤 + 预期与实际 + 版本）。
-- **想参与其中吗？** 在问题上评论“领取”，并在[Discord](https://discord.gg/VxfP4Vx3gX)上联系核心团队以获得分配。分配将在帖子中确认。
+- **想参与其中吗？** 在问题上评论“领取”，并在 [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions) 上提问以获得分配。分配将在帖子中确认。
 - **PR 必须链接到问题。** 未链接的 PR 可能会被关闭。
 
 ### 决定做什么
@@ -128,7 +128,7 @@ pnpm install
 
 ### 拉取请求政策
 
-- 必须引用一个已分配的 GitHub 问题。要获得分配：在问题上评论“领取”，并在[Discord](https://discord.gg/VxfP4Vx3gX)上联系核心团队。分配将在帖子中确认。
+- 必须引用一个已分配的 GitHub 问题。要获得分配：在问题上评论“领取”，并在 [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions) 上提问。分配将在帖子中确认。
 - 未链接的 PR 可能会被关闭。
 - PR 必须通过 CI 测试，与路线图保持一致，并有清晰的文档。
 

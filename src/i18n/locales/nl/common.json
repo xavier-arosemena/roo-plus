@@ -163,7 +163,7 @@
 	"warnings": {
 		"no_terminal_content": "Geen terminalinhoud geselecteerd",
 		"missing_task_files": "De bestanden van deze taak ontbreken. Wil je deze uit de takenlijst verwijderen?",
-		"auto_import_failed": "Automatisch importeren van ZooCode-instellingen mislukt: {{error}}",
+		"auto_import_failed": "Automatisch importeren van Roo+-instellingen mislukt: {{error}}",
 		"rooHistoryImport": {
 			"nothingFound": "Geen Roo Code-taakgeschiedenis gevonden om te importeren van {{domain}}.",
 			"alreadyImported_one": "De {{count}} Roo Code-taakgeschiedenis is al geïmporteerd in Roo+.",
@@ -177,7 +177,7 @@
 		"custom_storage_path_set": "Aangepast opslagpad ingesteld: {{path}}",
 		"default_storage_path": "Terug naar standaard opslagpad",
 		"settings_imported": "Instellingen succesvol geïmporteerd.",
-		"auto_import_success": "ZooCode-instellingen automatisch geïmporteerd van {{filename}}",
+		"auto_import_success": "Roo+-instellingen automatisch geïmporteerd van {{filename}}",
 		"share_link_copied": "Deellink gekopieerd naar klembord",
 		"image_copied_to_clipboard": "Afbeelding data-URI gekopieerd naar klembord",
 		"image_saved": "Afbeelding opgeslagen naar {{path}}",
@@ -214,16 +214,13 @@
 	},
 	"storage": {
 		"prompt_custom_path": "Voer een aangepast opslagpad voor gespreksgeschiedenis in, laat leeg voor standaardlocatie",
-		"path_placeholder": "D:\\ZooCodeStorage",
-		"enter_absolute_path": "Voer een absoluut pad in (bijv. D:\\ZooCodeStorage of /home/user/storage)",
+		"path_placeholder": "D:\\RooPlusStorage",
+		"enter_absolute_path": "Voer een absoluut pad in (bijv. D:\\RooPlusStorage of /home/user/storage)",
 		"enter_valid_path": "Voer een geldig pad in"
 	},
 	"input": {
-		"task_prompt": "Wat moet Zoo doen?",
+		"task_prompt": "Wat moet Roo+ doen?",
 		"task_placeholder": "Typ hier je taak"
-	},
-	"settings": {
-		"providers": {}
 	},
 	"customModes": {
 		"errors": {
@@ -251,11 +248,6 @@
 		"errors": {
 			"cloud_auth_required": "Je organisatie vereist Roo+ Cloud-authenticatie. Log in om door te gaan.",
 			"organization_mismatch": "Je moet geauthenticeerd zijn met het Roo+ Cloud-account van je organisatie.",
-			"manual_url_empty": "Voer een geldige callback-URL in",
-			"manual_url_no_query": "Ongeldige callback-URL: query-parameters ontbreken",
-			"manual_url_missing_params": "Ongeldige callback-URL: vereiste parameters ontbreken (code en state)",
-			"manual_url_auth_failed": "Handmatige URL-authenticatie mislukt",
-			"manual_url_auth_error": "Authenticatie mislukt",
 			"verification_failed": "Kan organisatie-authenticatie niet verifiëren."
 		},
 		"info": {
@@ -277,28 +269,7 @@
 	},
 	"docsLink": {
 		"label": "Docs",
-		"url": "https://docs.zoocode.dev"
-	},
-	"zooAuth": {
-		"errors": {
-			"invalid_token_received": "Roo+: Ongeldig authenticatietoken ontvangen.",
-			"token_verification_failed": "Roo+: Tokenverificatie mislukt.",
-			"invalid_token": "Roo+: Ongeldig token.",
-			"could_not_verify_token": "Roo+: Token kon niet worden geverifieerd.",
-			"session_expired": "Roo+-sessie verlopen. Meld je opnieuw aan om Zoo Gateway te blijven gebruiken.",
-			"out_of_credits": "Zoo Gateway: onvoldoende tegoed. Voeg tegoed toe om door te gaan.",
-			"account_unavailable": "Zoo Gateway: je account is momenteel niet beschikbaar. Neem contact op met support.",
-			"budget_exceeded": "Zoo Gateway: gebruiksbudget bereikt. Wacht op de reset of laad bij."
-		},
-		"info": {
-			"connected": "Roo+: Succesvol verbonden! Je kunt Roo+ nu gebruiken als AI-provider.",
-			"disconnected": "Roo+: Succesvol losgekoppeld."
-		},
-		"buttons": {
-			"sign_in": "Aanmelden",
-			"add_credits": "Tegoed toevoegen",
-			"contact_support": "Contact opnemen"
-		}
+		"url": "https://github.com/xavier-arosemena/roo-plus"
 	},
 	"codeActions": {
 		"explain": "Uitleggen met Roo+",

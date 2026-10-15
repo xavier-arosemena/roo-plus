@@ -34,9 +34,9 @@
 	"settings.vsCodeLmModelSelector.description": "Paramètres pour l'API du modèle de langage VSCode",
 	"settings.vsCodeLmModelSelector.vendor.description": "Le fournisseur du modèle de langage (ex: copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "La famille du modèle de langage (ex: gpt-4)",
-	"settings.customStoragePath.description": "Chemin de stockage personnalisé. Laisser vide pour utiliser l'emplacement par défaut. Prend en charge les chemins absolus (ex: 'D:\\ZooCodeStorage')",
+	"settings.customStoragePath.description": "Chemin de stockage personnalisé. Laisser vide pour utiliser l'emplacement par défaut. Prend en charge les chemins absolus (ex: 'D:\\RooPlusStorage')",
 	"settings.enableCodeActions.description": "Activer les correctifs rapides de Roo+.",
-	"settings.autoImportSettingsPath.description": "Chemin d'accès à un fichier de configuration ZooCode à importer automatiquement au démarrage de l'extension. Prend en charge les chemins absolus et les chemins relatifs au répertoire de base (par exemple, '~/Documents/roo-code-settings.json'). Laisser vide pour désactiver l'importation automatique.",
+	"settings.autoImportSettingsPath.description": "Chemin d'accès à un fichier de configuration Roo+ à importer automatiquement au démarrage de l'extension. Prend en charge les chemins absolus et les chemins relatifs au répertoire de base (par exemple, '~/Documents/roo-code-settings.json'). Laisser vide pour désactiver l'importation automatique.",
 	"settings.maximumIndexedFilesForFileSearch.description": "Nombre maximum de fichiers à indexer pour la fonctionnalité de recherche de fichiers @. Des valeurs plus élevées offrent de meilleurs résultats de recherche dans les grands projets mais peuvent consommer plus de mémoire. Par défaut : 10 000.",
 	"settings.useAgentRules.description": "Activer le chargement des fichiers AGENTS.md pour les règles spécifiques à l'agent (voir https://agent-rules.org/)",
 	"settings.apiRequestTimeout.description": "Délai d'attente des réponses API (secondes, défaut : 600, plage : 1–3600). Des valeurs plus élevées sont recommandées pour les fournisseurs locaux. Fournisseurs non pris en charge : Amazon Bedrock, Google Gemini(directly or through the Vertex AI platform), Mistral, Moonshot, Ollama, Poe, VS Code LM API.",
@@ -46,7 +46,7 @@
 	"settings.debugProxy.enabled.description": "**Activer le Debug Proxy** — Redirige toutes les requêtes réseau sortantes via un proxy pour le debug MITM. Actif uniquement quand tu es en mode debug (F5).",
 	"settings.debugProxy.serverUrl.description": "URL du proxy (par ex. `http://127.0.0.1:8888`). Utilisée uniquement quand le **Debug Proxy** est activé.",
 	"settings.debugProxy.tlsInsecure.description": "Accepter les certificats auto-signés du proxy. **Requis pour l'inspection MITM.** ⚠️ Non sécurisé — à utiliser uniquement pour le debug local.",
-	"settings.workspace.rootResolution.description": "Comment Zoo résout la racine de l'espace de travail dans un espace de travail multi-racine. La racine sert à localiser `.roomodes`, `.roo/mcp.json`, `.roo/rules/` et d'autres configurations propres au projet. Modifier ce paramètre n'affecte que les recherches futures ; les tâches en cours conservent leur racine d'origine.",
+	"settings.workspace.rootResolution.description": "Comment Roo+ résout la racine de l'espace de travail dans un espace de travail multi-racine. La racine sert à localiser `.roomodes`, `.roo/mcp.json`, `.roo/rules/` et d'autres configurations propres au projet. Modifier ce paramètre n'affecte que les recherches futures ; les tâches en cours conservent leur racine d'origine.",
 	"settings.workspace.rootResolution.activeEditor.description": "Utilise le dossier de l'espace de travail contenant l'éditeur actif ; revient au premier dossier de l'espace de travail. (Par défaut — conserve le comportement hérité.)",
 	"settings.workspace.rootResolution.firstFolder.description": "Utilise toujours le premier dossier de l'espace de travail (workspaceFolders[0]). Déterministe — indépendant du fichier actuellement ciblé."
 }

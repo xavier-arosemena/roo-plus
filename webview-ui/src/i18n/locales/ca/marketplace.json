@@ -80,9 +80,7 @@
 			"installed": "Instal·lat",
 			"removeProjectTooltip": "Eliminar del projecte actual",
 			"removeGlobalTooltip": "Eliminar de la configuració global",
-			"actionsMenuLabel": "Més accions",
-			"official": "Oficial",
-			"verified": "Verificat"
+			"actionsMenuLabel": "Més accions"
 		},
 		"removeFailed": "No s'ha pogut eliminar l'element: {{error}}",
 		"unknownError": "S'ha produït un error desconegut"

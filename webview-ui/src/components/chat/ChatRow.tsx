@@ -24,6 +24,8 @@ import { findMatchingResourceOrTemplate } from "@src/utils/mcp"
 import { isTrustedMessage } from "@src/utils/trustedMessages"
 import { vscode } from "@src/utils/vscode"
 import { formatPathTooltip } from "@src/utils/formatPathTooltip"
+import { EXTERNAL_LINKS } from "@src/constants/externalLinks"
+import { buildDocLink } from "@src/utils/docLinks"
 
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
 import UpdateTodoListToolBlock from "./UpdateTodoListToolBlock"
@@ -1115,7 +1117,7 @@ export const ChatRowContent = ({
 									message={apiRequestFailedMessage || apiReqStreamingFailedMessage || ""}
 									docsURL={
 										apiRequestFailedMessage?.toLowerCase().includes("powershell")
-											? "https://github.com/cline/cline/wiki/TroubleShooting-%E2%80%90-%22PowerShell-is-not-recognized-as-an-internal-or-external-command%22"
+											? buildDocLink("troubleshooting/shell-integration", "error_powershell")
 											: undefined
 									}
 									errorDetails={apiReqStreamingFailedMessage}
@@ -1144,8 +1146,7 @@ export const ChatRowContent = ({
 							} else {
 								// Non-HTTP-status-code error message - store full text as errorDetails
 								body = t("chat:apiRequest.errorMessage.unknown")
-								docsURL =
-									"mailto:support@roo.plus?subject=Unknown API Error&body=[Please include full error details]"
+								docsURL = EXTERNAL_LINKS.GITHUB_ISSUES
 							}
 						}
 

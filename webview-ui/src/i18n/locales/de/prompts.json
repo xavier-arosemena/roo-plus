@@ -9,7 +9,7 @@
 		"editModesConfig": "Moduskonfiguration bearbeiten",
 		"editGlobalModes": "Globale Modi bearbeiten",
 		"editProjectModes": "Projektmodi bearbeiten (.roomodes)",
-		"createModeHelpText": "Modi sind spezialisierte Personas, die Zoos Verhalten anpassen. <0>Erfahre mehr über die Verwendung von Modi</0> oder <1>die Anpassung von Modi.</1>",
+		"createModeHelpText": "Modi sind spezialisierte Personas, die Roo+s Verhalten anpassen. <0>Erfahre mehr über die Verwendung von Modi</0> oder <1>die Anpassung von Modi.</1>",
 		"selectMode": "Modi suchen"
 	},
 	"apiConfiguration": {
@@ -33,7 +33,7 @@
 	"roleDefinition": {
 		"title": "Rollendefinition",
 		"resetToDefault": "Auf Standardwerte zurücksetzen",
-		"description": "Definiere Zoos Expertise und Persönlichkeit für diesen Modus. Diese Beschreibung prägt, wie Zoo sich präsentiert und an Aufgaben herangeht."
+		"description": "Definiere Roo+s Expertise und Persönlichkeit für diesen Modus. Diese Beschreibung prägt, wie Roo+ sich präsentiert und an Aufgaben herangeht."
 	},
 	"description": {
 		"title": "Kurzbeschreibung (für Menschen)",
@@ -53,8 +53,7 @@
 	},
 	"exportMode": {
 		"title": "Modus exportieren",
-		"description": "Exportiert diesen Modus in eine YAML-Datei mit allen enthaltenen Regeln zum einfachen Teilen mit anderen.",
-		"export": "Modus exportieren",
+		"description": "Exportiert diesen Modus mit den Regeln aus dem Ordner .roo/rules-{{slug}}/ in eine YAML-Datei, die sich einfach mit anderen teilen lässt.",
 		"exporting": "Exportieren..."
 	},
 	"importMode": {
@@ -102,7 +101,7 @@
 		"types": {
 			"ENHANCE": {
 				"label": "Prompt verbessern",
-				"description": "Verwenden Sie die Prompt-Verbesserung, um maßgeschneiderte Vorschläge oder Verbesserungen für Ihre Eingaben zu erhalten. Dies stellt sicher, dass Zoo Ihre Absicht versteht und die bestmöglichen Antworten liefert. Verfügbar über das ✨-Symbol im Chat."
+				"description": "Verwenden Sie die Prompt-Verbesserung, um maßgeschneiderte Vorschläge oder Verbesserungen für Ihre Eingaben zu erhalten. Dies stellt sicher, dass Roo+ Ihre Absicht versteht und die bestmöglichen Antworten liefert. Verfügbar über das ✨-Symbol im Chat."
 			},
 			"CONDENSE": {
 				"label": "Kontextverdichtung",
@@ -167,7 +166,7 @@
 		},
 		"roleDefinition": {
 			"label": "Rollendefinition",
-			"description": "Definiere Zoos Expertise und Persönlichkeit für diesen Modus."
+			"description": "Definiere Roo+s Expertise und Persönlichkeit für diesen Modus."
 		},
 		"whenToUse": {
 			"label": "Wann zu verwenden (optional)",

@@ -80,9 +80,7 @@
 			"installed": "Installiert",
 			"removeProjectTooltip": "Aus aktuellem Projekt entfernen",
 			"removeGlobalTooltip": "Aus globaler Konfiguration entfernen",
-			"actionsMenuLabel": "Weitere Aktionen",
-			"official": "Offiziell",
-			"verified": "Verifiziert"
+			"actionsMenuLabel": "Weitere Aktionen"
 		},
 		"removeFailed": "Element konnte nicht entfernt werden: {{error}}",
 		"unknownError": "Unbekannter Fehler aufgetreten"

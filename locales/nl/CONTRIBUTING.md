@@ -56,8 +56,8 @@ Vermeld de afstemming met deze gebieden in je PR's.
 
 ### 3. Word lid van de Roo+-community
 
-- **Discord:** Word lid van onze [Discord](https://discord.gg/VxfP4Vx3gX).
-- **Reddit:** Word lid van onze [Reddit](https://www.reddit.com/r/ZooCode/).
+- **GitHub Discussions:** Word lid van onze [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions).
+- **GitHub Issues:** Meld bugs en vraag functies aan in [GitHub Issues](https://github.com/xavier-arosemena/roo-plus/issues).
 
 ## Je bijdrage vinden en plannen
 
@@ -75,7 +75,7 @@ Alle bijdragen beginnen met een GitHub Issue met behulp van onze slanke sjablone
 - **Maak een issue** aan met:
     - **Verbeteringen:** sjabloon "Verbeteringsverzoek" (eenvoudige taal gericht op gebruikersvoordeel).
     - **Bugs:** sjabloon "Bugrapport" (minimale repro + verwacht vs. feitelijk + versie).
-- **Wil je eraan werken?** Reageer met "Claiming" op de issue en stuur een DM naar het kernteam op [Discord](https://discord.gg/VxfP4Vx3gX) om toegewezen te worden. De toewijzing wordt in de thread bevestigd.
+- **Wil je eraan werken?** Reageer met "Claiming" op de issue en vraag het in de [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions) om toegewezen te worden. De toewijzing wordt in de thread bevestigd.
 - **PR's moeten naar de issue linken.** Niet-gekoppelde PR's kunnen worden gesloten.
 
 ### Beslissen waaraan je wilt werken
@@ -128,7 +128,7 @@ pnpm install
 
 ### Pull Request-beleid
 
-- Moet verwijzen naar een toegewezen GitHub Issue. Om toegewezen te worden: reageer met "Claiming" op de issue en stuur een DM naar het kernteam op [Discord](https://discord.gg/VxfP4Vx3gX). De toewijzing wordt in de thread bevestigd.
+- Moet verwijzen naar een toegewezen GitHub Issue. Om toegewezen te worden: reageer met "Claiming" op de issue en vraag het in de [GitHub Discussions](https://github.com/xavier-arosemena/roo-plus/discussions). De toewijzing wordt in de thread bevestigd.
 - Niet-gekoppelde PR's kunnen worden gesloten.
 - PR's moeten slagen voor CI-tests, in lijn zijn met de roadmap en duidelijke documentatie hebben.
 

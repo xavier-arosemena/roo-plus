@@ -1013,12 +1013,12 @@ function sum(a, b) {
 
 		it("should match content with smart quotes", async () => {
 			const originalContent =
-				"**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can't wait to see what you build. If you have questions or feature ideas, drop by our [Reddit community](https://www.reddit.com/r/RooCode/) or [Discord](https://discord.gg/VxfP4Vx3gX). Happy coding!"
+				"**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can't wait to see what you build. If you have questions or feature ideas, drop by the [Roo+ community](https://github.com/xavier-arosemena/roo-plus/discussions). Happy coding!"
 			const diffContent = `test.ts
 <<<<<<< SEARCH
-**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can't wait to see what you build. If you have questions or feature ideas, drop by our [Reddit community](https://www.reddit.com/r/RooCode/) or [Discord](https://discord.gg/VxfP4Vx3gX). Happy coding!
+**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can't wait to see what you build. If you have questions or feature ideas, drop by the [Roo+ community](https://github.com/xavier-arosemena/roo-plus/discussions). Happy coding!
 =======
-**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can't wait to see what you build. If you have questions or feature ideas, drop by our [Reddit community](https://www.reddit.com/r/RooCode/) or [Discord](https://discord.gg/VxfP4Vx3gX). Happy coding!
+**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can't wait to see what you build. If you have questions or feature ideas, drop by the [Roo+ community](https://github.com/xavier-arosemena/roo-plus/discussions). Happy coding!
 
 You're still here?
 >>>>>>> REPLACE`
@@ -1027,7 +1027,7 @@ You're still here?
 			expect(result.success).toBe(true)
 			if (result.success) {
 				expect(result.content).toBe(
-					"**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can't wait to see what you build. If you have questions or feature ideas, drop by our [Reddit community](https://www.reddit.com/r/RooCode/) or [Discord](https://discord.gg/VxfP4Vx3gX). Happy coding!\n\nYou're still here?",
+					"**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can't wait to see what you build. If you have questions or feature ideas, drop by the [Roo+ community](https://github.com/xavier-arosemena/roo-plus/discussions). Happy coding!\n\nYou're still here?",
 				)
 			}
 		})

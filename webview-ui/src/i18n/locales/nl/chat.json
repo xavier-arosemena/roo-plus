@@ -118,7 +118,7 @@
 		"title": "Modi",
 		"marketplace": "Modus Marktplaats",
 		"settings": "Modus Instellingen",
-		"description": "Gespecialiseerde persona's die het gedrag van Zoo aanpassen.",
+		"description": "Gespecialiseerde persona's die het gedrag van Roo+ aanpassen.",
 		"searchPlaceholder": "Zoek modi...",
 		"noResults": "Geen resultaten gevonden"
 	},
@@ -178,9 +178,6 @@
 		},
 		"current": "Huidig"
 	},
-	"instructions": {
-		"wantsToFetch": "Zoo wil gedetailleerde instructies ophalen om te helpen met de huidige taak"
-	},
 	"fileOperations": {
 		"wantsToRead": "Roo+ wil dit bestand lezen",
 		"wantsToReadOutsideWorkspace": "Roo+ wil dit bestand buiten de werkruimte lezen",
@@ -189,8 +186,6 @@
 		"wantsToEditOutsideWorkspace": "Roo+ wil dit bestand buiten de werkruimte bewerken",
 		"wantsToEditProtected": "Roo+ wil een beveiligd configuratiebestand bewerken",
 		"wantsToCreate": "Roo+ wil een nieuw bestand aanmaken",
-		"wantsToSearchReplace": "Roo wil zoeken en vervangen in dit bestand",
-		"didSearchReplace": "Roo heeft zoeken en vervangen uitgevoerd op dit bestand",
 		"wantsToInsert": "Roo+ wil inhoud invoegen in dit bestand",
 		"wantsToInsertWithLineNumber": "Roo+ wil inhoud invoegen in dit bestand op regel {{lineNumber}}",
 		"wantsToInsertAtEnd": "Roo+ wil inhoud toevoegen aan het einde van dit bestand",
@@ -258,7 +253,6 @@
 		"wantsToCreate": "Roo+ wil een nieuwe subtaak aanmaken in {{mode}} modus",
 		"wantsToFinish": "Roo+ wil deze subtaak voltooien",
 		"newTaskContent": "Subtaak-instructies",
-		"completionContent": "Subtaak voltooid",
 		"resultContent": "Subtaakresultaten",
 		"defaultResult": "Ga verder met de volgende taak.",
 		"completionInstructions": "Subtaak voltooid! Je kunt de resultaten bekijken en eventuele correcties of volgende stappen voorstellen. Als alles goed is, bevestig dan om het resultaat terug te sturen naar de hoofdtaak.",
@@ -286,7 +280,7 @@
 		"copyToClipboard": "Naar klembord kopiëren",
 		"copied": "Gekopieerd!",
 		"diagnostics": "Gedetailleerde foutinformatie ophalen",
-		"proxyProvider": "Je lijkt een proxy-gebaseerde provider te gebruiken. Zorg ervoor dat je de logs controleert en dat het geen Zoo-verzoeken herschrijft."
+		"proxyProvider": "Je lijkt een proxy-gebaseerde provider te gebruiken. Zorg ervoor dat je de logs controleert en dat het geen Roo+-verzoeken herschrijft."
 	},
 	"powershell": {
 		"issues": "Het lijkt erop dat je problemen hebt met Windows PowerShell, zie deze"
@@ -295,7 +289,6 @@
 		"tooltipManage": "Beheer instellingen voor automatische goedkeuring",
 		"tooltipStatus": "Automatische goedkeuring ingeschakeld voor: {{toggles}}",
 		"title": "Automatisch goedkeuren",
-		"toggle": "Automatisch goedkeuren in-/uitschakelen",
 		"all": "Alles",
 		"none": "Geen",
 		"description": "Voer deze acties uit zonder om toestemming te vragen. Schakel dit alleen in voor acties die je volledig vertrouwt.",
@@ -417,11 +410,6 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Versie {{version}} - Klik om release notes te bekijken"
-	},
-	"rooCloudCTA": {
-		"title": "Roo+ Code Cloud evolueert!",
-		"description": "Voer externe agenten uit in de cloud, krijg overal toegang tot je taken, werk samen met anderen en nog veel meer.",
-		"joinWaitlist": "Meld je aan om de laatste updates te ontvangen."
 	},
 	"editMessage": {
 		"placeholder": "Bewerk je bericht..."
