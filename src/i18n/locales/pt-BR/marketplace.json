@@ -16,36 +16,6 @@
 		"view": "Visualizar",
 		"source": "Fonte"
 	},
-	"filters": {
-		"search": {
-			"placeholder": "Pesquisar marketplace..."
-		},
-		"type": {
-			"label": "Tipo",
-			"all": "Todos os tipos",
-			"mode": "Modo",
-			"mcpServer": "Servidor MCP"
-		},
-		"sort": {
-			"label": "Ordenar por",
-			"name": "Nome",
-			"lastUpdated": "Última atualização"
-		},
-		"tags": {
-			"label": "Tags",
-			"clear": "Limpar tags",
-			"placeholder": "Pesquisar tags...",
-			"noResults": "Nenhuma tag encontrada.",
-			"selected": "Mostrando itens com qualquer uma das tags selecionadas"
-		},
-		"installed": {
-			"label": "Filtrar por status",
-			"all": "Todos os itens",
-			"installed": "Instalados",
-			"notInstalled": "Não instalados"
-		},
-		"title": "Marketplace"
-	},
 	"done": "Concluído",
 	"tabs": {
 		"installed": "Instalado",

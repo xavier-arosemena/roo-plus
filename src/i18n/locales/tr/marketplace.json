@@ -16,36 +16,6 @@
 		"view": "Görüntüle",
 		"source": "Kaynak"
 	},
-	"filters": {
-		"search": {
-			"placeholder": "Marketplace'te ara..."
-		},
-		"type": {
-			"label": "Tür",
-			"all": "Tüm Türler",
-			"mode": "Mod",
-			"mcpServer": "MCP Sunucusu"
-		},
-		"sort": {
-			"label": "Sırala",
-			"name": "İsim",
-			"lastUpdated": "Son Güncelleme"
-		},
-		"tags": {
-			"label": "Etiketler",
-			"clear": "Etiketleri temizle",
-			"placeholder": "Etiket ara...",
-			"noResults": "Etiket bulunamadı.",
-			"selected": "Seçilen etiketlerden herhangi birine sahip öğeleri göster"
-		},
-		"installed": {
-			"label": "Duruma göre filtrele",
-			"all": "Tüm Öğeler",
-			"installed": "Yüklü",
-			"notInstalled": "Yüklü Değil"
-		},
-		"title": "Marketplace"
-	},
 	"done": "Tamam",
 	"tabs": {
 		"installed": "Yüklü",

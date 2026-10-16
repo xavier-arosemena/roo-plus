@@ -16,36 +16,6 @@
 		"view": "檢視",
 		"source": "來源"
 	},
-	"filters": {
-		"search": {
-			"placeholder": "搜尋 Marketplace..."
-		},
-		"type": {
-			"label": "類型",
-			"all": "所有類型",
-			"mode": "模式",
-			"mcpServer": "MCP 伺服器"
-		},
-		"sort": {
-			"label": "排序方式",
-			"name": "名稱",
-			"lastUpdated": "最後更新"
-		},
-		"tags": {
-			"label": "標籤",
-			"clear": "清除標籤",
-			"placeholder": "搜尋標籤...",
-			"noResults": "找不到標籤。",
-			"selected": "顯示包含任一選取標籤的項目"
-		},
-		"installed": {
-			"label": "按狀態篩選",
-			"all": "所有項目",
-			"installed": "已安裝",
-			"notInstalled": "未安裝"
-		},
-		"title": "Marketplace"
-	},
 	"done": "完成",
 	"tabs": {
 		"installed": "已安裝",
