@@ -34,7 +34,7 @@
 		"tags": {
 			"label": "Etiketlere göre filtrele:",
 			"clear": "Etiketleri temizle",
-			"remove": "{{count}} öğesini filtrelerden kaldır",
+			"remove": "{{tag}} etiketini filtrelerden kaldır",
 			"placeholder": "Etiket aramak ve seçmek için yazın...",
 			"noResults": "Eşleşen etiket bulunamadı",
 			"selected": "Seçilen etiketlerden herhangi birine sahip öğeler gösteriliyor",

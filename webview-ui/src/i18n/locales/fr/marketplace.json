@@ -34,7 +34,7 @@
 		"tags": {
 			"label": "Filtrer par étiquettes :",
 			"clear": "Effacer les étiquettes",
-			"remove": "Supprimer « {{count}} » des filtres",
+			"remove": "Supprimer « {{tag}} » des filtres",
 			"placeholder": "Tapez pour rechercher et sélectionner des étiquettes...",
 			"noResults": "Aucune étiquette correspondante trouvée",
 			"selected": "Affichage des éléments avec l'une des étiquettes sélectionnées",
