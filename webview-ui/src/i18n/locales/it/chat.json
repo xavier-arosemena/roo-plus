@@ -286,6 +286,8 @@
 		"issues": "Sembra che tu stia avendo problemi con Windows PowerShell, consulta questa"
 	},
 	"autoApprove": {
+		"selectAll": "Seleziona tutto",
+		"selectNone": "Non selezionare nulla",
 		"tooltipManage": "Gestisci impostazioni di approvazione automatica",
 		"tooltipStatus": "Approvazione automatica abilitata per: {{toggles}}",
 		"title": "Approvazione Automatica",

@@ -386,6 +386,10 @@
 		"selectOptionsFirst": "請先選取下方至少一個選項以啟用自動核准"
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "登入 OpenAI Codex",
+			"signOutButton": "登出"
+		},
 		"providerDocumentation": "{{provider}} 說明文件",
 		"configProfile": "設定檔",
 		"description": "儲存不同的 API 設定以快速切換供應商和設定。",
@@ -481,6 +485,7 @@
 		"getUnboundApiKey": "取得 Unbound API 金鑰",
 		"requestyApiKey": "Requesty API 金鑰",
 		"refreshModels": {
+			"missingConfig": "無法重新整理模型：缺少設定。請檢查你的設定。",
 			"label": "重新整理模型",
 			"hint": "請重新開啟設定以查看最新模型。",
 			"loading": "正在重新整理模型列表...",

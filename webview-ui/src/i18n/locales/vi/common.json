@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Tài liệu"
+	},
+	"dismiss": "Bỏ qua",
+	"dismissAndDontShowAgain": "Bỏ qua và không hiển thị lại",
 	"errorBoundary": {
 		"title": "Đã xảy ra lỗi",
 		"reportText": "Vui lòng giúp chúng tôi cải thiện bằng cách báo cáo lỗi này trên",

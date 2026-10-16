@@ -33,6 +33,7 @@
 		"esbuildPurpose": "TypeScript özel araçlarını dönüştürme ve paketleme"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "Bu turda önceki bir araç çağrısı başarısız olduğu için attempt_completion çalıştırılamıyor. Tamamlamayı denemeden önce araç hatasını gider.",
 		"invalid_data_uri": "Geçersiz veri URI formatı",
 		"error_copying_image": "Resim kopyalanırken hata oluştu: {{errorMessage}}",
 		"error_saving_image": "Resim kaydedilirken hata oluştu: {{errorMessage}}",
@@ -170,7 +171,11 @@
 			"alreadyImported_other": "{{count}} Roo Code görev geçmişinin tamamı zaten Roo+'a aktarılmış."
 		}
 	},
+	"gemini": {
+		"sources": "Kaynaklar:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "Yol panoya kopyalandı",
 		"no_changes": "Değişiklik bulunamadı.",
 		"clipboard_copy": "Sistem istemi panoya başarıyla kopyalandı",
 		"history_cleanup": "Geçmişten eksik dosyaları olan {{count}} görev temizlendi.",

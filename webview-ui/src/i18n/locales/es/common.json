@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Documentación"
+	},
+	"dismiss": "Descartar",
+	"dismissAndDontShowAgain": "Descartar y no volver a mostrar",
 	"errorBoundary": {
 		"title": "Algo salió mal",
 		"reportText": "Ayúdanos a mejorar informando de este error en",

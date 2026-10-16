@@ -359,6 +359,10 @@
 		}
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "Đăng nhập vào OpenAI Codex",
+			"signOutButton": "Đăng xuất"
+		},
 		"providerDocumentation": "Tài liệu {{provider}}",
 		"configProfile": "Hồ sơ cấu hình",
 		"description": "Lưu các cấu hình API khác nhau để nhanh chóng chuyển đổi giữa các nhà cung cấp và cài đặt.",
@@ -454,6 +458,7 @@
 		"getUnboundApiKey": "Lấy khóa API Unbound",
 		"requestyApiKey": "Khóa API Requesty",
 		"refreshModels": {
+			"missingConfig": "Không thể làm mới danh sách model: thiếu cấu hình. Hãy kiểm tra cài đặt của bạn.",
 			"label": "Làm mới mô hình",
 			"hint": "Vui lòng mở lại cài đặt để xem các mô hình mới nhất.",
 			"loading": "Đang làm mới danh sách mô hình...",

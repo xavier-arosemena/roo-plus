@@ -286,6 +286,8 @@
 		"issues": "Windows PowerShell에 문제가 있는 것 같습니다. 다음을 참조하세요"
 	},
 	"autoApprove": {
+		"selectAll": "모두 선택",
+		"selectNone": "아무것도 선택 안 함",
 		"tooltipManage": "자동 승인 설정 관리",
 		"tooltipStatus": "자동 승인 활성화됨: {{toggles}}",
 		"title": "자동 승인",

@@ -439,6 +439,10 @@
 		"selectOptionsFirst": "Select at least one option below to enable auto-approval"
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "Sign in to OpenAI Codex",
+			"signOutButton": "Sign Out"
+		},
 		"providerDocumentation": "{{provider}} documentation",
 		"configProfile": "Configuration Profile",
 		"description": "Save different API configurations to quickly switch between providers and settings.",
@@ -534,6 +538,7 @@
 		"getUnboundApiKey": "Get Unbound API Key",
 		"requestyApiKey": "Requesty API Key",
 		"refreshModels": {
+			"missingConfig": "Cannot refresh models: missing configuration. Please check your settings.",
 			"label": "Refresh Models",
 			"hint": "Please reopen the settings to see the latest models.",
 			"loading": "Refreshing models list...",

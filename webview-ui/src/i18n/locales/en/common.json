@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Docs"
+	},
+	"dismiss": "Dismiss",
+	"dismissAndDontShowAgain": "Dismiss and don't show again",
 	"errorBoundary": {
 		"title": "Something went wrong",
 		"reportText": "Please help us improve by reporting this error on",

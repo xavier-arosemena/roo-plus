@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "인덱스 {{index}}의 텍스트는 쿼리 접두사를 추가하면 최대 토큰 한도를 초과합니다 ({{estimatedTokens}} > {{maxTokens}}). 접두사를 건너뜁니다.",
+	"openai": {
+		"invalidResponseFormat": "OpenAI의 응답 형식이 잘못되었습니다"
+	},
 	"unknownError": "알 수 없는 오류",
 	"authenticationFailed": "임베딩 생성 실패: 인증에 실패했습니다. API 키를 확인하세요.",
 	"failedWithStatus": "{{attempts}}번 시도 후 임베딩 생성 실패: HTTP {{statusCode}} - {{errorMessage}}",

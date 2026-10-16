@@ -359,6 +359,10 @@
 		}
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "Inicia sessió a OpenAI Codex",
+			"signOutButton": "Tanca la sessió"
+		},
 		"providerDocumentation": "Documentació de {{provider}}",
 		"configProfile": "Perfil de configuració",
 		"description": "Deseu diferents configuracions d'API per canviar ràpidament entre proveïdors i configuracions.",
@@ -454,6 +458,7 @@
 		"getUnboundApiKey": "Obtenir clau API de Unbound",
 		"requestyApiKey": "Clau API de Requesty",
 		"refreshModels": {
+			"missingConfig": "No es poden actualitzar els models: falta la configuració. Comprova la configuració.",
 			"label": "Actualitzar models",
 			"hint": "Si us plau, torneu a obrir la configuració per veure els models més recents.",
 			"loading": "Actualitzant la llista de models...",

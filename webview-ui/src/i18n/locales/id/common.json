@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Dokumentasi"
+	},
+	"dismiss": "Tutup",
+	"dismissAndDontShowAgain": "Tutup dan jangan tampilkan lagi",
 	"errorBoundary": {
 		"title": "Terjadi kesalahan",
 		"reportText": "Bantu kami meningkatkan dengan melaporkan kesalahan ini di",

@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "Văn bản tại chỉ mục {{index}} sẽ vượt quá giới hạn token tối đa sau khi thêm tiền tố truy vấn ({{estimatedTokens}} > {{maxTokens}}). Bỏ qua tiền tố.",
+	"openai": {
+		"invalidResponseFormat": "Định dạng phản hồi không hợp lệ từ OpenAI"
+	},
 	"unknownError": "Lỗi không xác định",
 	"authenticationFailed": "Không thể tạo nhúng: Xác thực không thành công. Vui lòng kiểm tra khóa API của bạn.",
 	"failedWithStatus": "Không thể tạo nhúng sau {{attempts}} lần thử: HTTP {{statusCode}} - {{errorMessage}}",

@@ -359,6 +359,10 @@
 		}
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "OpenAI Codex'e giriş yap",
+			"signOutButton": "Çıkış yap"
+		},
 		"providerDocumentation": "{{provider}} Dokümantasyonu",
 		"configProfile": "Yapılandırma Profili",
 		"description": "Sağlayıcılar ve ayarlar arasında hızlıca geçiş yapmak için farklı API yapılandırmalarını kaydedin.",
@@ -454,6 +458,7 @@
 		"getUnboundApiKey": "Unbound API Anahtarı Al",
 		"requestyApiKey": "Requesty API Anahtarı",
 		"refreshModels": {
+			"missingConfig": "Modeller yenilenemedi: yapılandırma eksik. Ayarlarını kontrol et.",
 			"label": "Modelleri Yenile",
 			"hint": "En son modelleri görmek için lütfen ayarları yeniden açın.",
 			"loading": "Model listesi yenileniyor...",

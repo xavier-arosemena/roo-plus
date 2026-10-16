@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "ドキュメント"
+	},
+	"dismiss": "閉じる",
+	"dismissAndDontShowAgain": "閉じて今後表示しない",
 	"errorBoundary": {
 		"title": "問題が発生しました",
 		"reportText": "このエラーを報告して改善にご協力ください",

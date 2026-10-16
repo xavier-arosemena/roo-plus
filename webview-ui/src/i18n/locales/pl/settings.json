@@ -359,6 +359,10 @@
 		}
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "Zaloguj się do OpenAI Codex",
+			"signOutButton": "Wyloguj się"
+		},
 		"providerDocumentation": "Dokumentacja {{provider}}",
 		"configProfile": "Profil konfiguracji",
 		"description": "Zapisz różne konfiguracje API, aby szybko przełączać się między dostawcami i ustawieniami.",
@@ -454,6 +458,7 @@
 		"getUnboundApiKey": "Uzyskaj klucz API Unbound",
 		"requestyApiKey": "Klucz API Requesty",
 		"refreshModels": {
+			"missingConfig": "Nie można odświeżyć modeli: brak konfiguracji. Sprawdź swoje ustawienia.",
 			"label": "Odśwież modele",
 			"hint": "Proszę ponownie otworzyć ustawienia, aby zobaczyć najnowsze modele.",
 			"loading": "Odświeżanie listy modeli...",

@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "Teks pada indeks {{index}} akan melebihi batas token maksimum setelah menambahkan prefiks kueri ({{estimatedTokens}} > {{maxTokens}}). Prefiks dilewati.",
+	"openai": {
+		"invalidResponseFormat": "Format respons tidak valid dari OpenAI"
+	},
 	"unknownError": "Error tidak dikenal",
 	"authenticationFailed": "Gagal membuat embeddings: Autentikasi gagal. Silakan periksa API key Anda.",
 	"failedWithStatus": "Gagal membuat embeddings setelah {{attempts}} percobaan: HTTP {{statusCode}} - {{errorMessage}}",

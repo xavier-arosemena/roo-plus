@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Dokumentation"
+	},
+	"dismiss": "Schließen",
+	"dismissAndDontShowAgain": "Schließen und nicht erneut anzeigen",
 	"errorBoundary": {
 		"title": "Etwas ist schiefgelaufen",
 		"reportText": "Bitte hilf uns, besser zu werden, indem du diesen Fehler meldest auf",

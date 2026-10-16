@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Documentazione"
+	},
+	"dismiss": "Chiudi",
+	"dismissAndDontShowAgain": "Chiudi e non mostrare più",
 	"errorBoundary": {
 		"title": "Qualcosa è andato storto",
 		"reportText": "Aiutaci a migliorare segnalando questo errore su",

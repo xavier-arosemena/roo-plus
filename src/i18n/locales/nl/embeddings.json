@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "De tekst op index {{index}} zou na het toevoegen van het queryvoorvoegsel het maximale tokenlimiet overschrijden ({{estimatedTokens}} > {{maxTokens}}). Voorvoegsel wordt overgeslagen.",
+	"openai": {
+		"invalidResponseFormat": "Ongeldig antwoordformaat van OpenAI"
+	},
 	"unknownError": "Onbekende fout",
 	"authenticationFailed": "Insluitingen maken mislukt: Authenticatie mislukt. Controleer je API-sleutel.",
 	"failedWithStatus": "Insluitingen maken mislukt na {{attempts}} pogingen: HTTP {{statusCode}} - {{errorMessage}}",

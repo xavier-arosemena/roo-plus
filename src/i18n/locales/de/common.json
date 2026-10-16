@@ -33,6 +33,7 @@
 		"esbuildPurpose": "Transpilieren und Bündeln von TypeScript-Custom-Tools"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "attempt_completion kann nicht ausgeführt werden, da ein vorheriger Tool-Aufruf in diesem Durchgang fehlgeschlagen ist. Behebe den Tool-Fehler, bevor du den Abschluss versuchst.",
 		"invalid_data_uri": "Ungültiges Daten-URI-Format",
 		"error_copying_image": "Fehler beim Kopieren des Bildes: {{errorMessage}}",
 		"error_saving_image": "Fehler beim Speichern des Bildes: {{errorMessage}}",
@@ -170,7 +171,11 @@
 			"alreadyImported_other": "Alle {{count}} Roo Code-Aufgabenverläufe wurden bereits in Roo+ importiert."
 		}
 	},
+	"gemini": {
+		"sources": "Quellen:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "Pfad in die Zwischenablage kopiert",
 		"no_changes": "Keine Änderungen gefunden.",
 		"clipboard_copy": "Systemnachricht erfolgreich in die Zwischenablage kopiert",
 		"history_cleanup": "{{count}} Aufgabe(n) mit fehlenden Dateien aus dem Verlauf bereinigt.",
