@@ -16,36 +16,6 @@
 		"view": "Voir",
 		"source": "Source"
 	},
-	"filters": {
-		"search": {
-			"placeholder": "Rechercher dans le marketplace..."
-		},
-		"type": {
-			"label": "Type",
-			"all": "Tous les types",
-			"mode": "Mode",
-			"mcpServer": "Serveur MCP"
-		},
-		"sort": {
-			"label": "Trier par",
-			"name": "Nom",
-			"lastUpdated": "Dernière mise à jour"
-		},
-		"tags": {
-			"label": "Étiquettes",
-			"clear": "Effacer les étiquettes",
-			"placeholder": "Rechercher des étiquettes...",
-			"noResults": "Aucune étiquette trouvée.",
-			"selected": "Affichage des éléments avec l'une des étiquettes sélectionnées"
-		},
-		"installed": {
-			"label": "Filtrer par statut",
-			"all": "Tous les articles",
-			"installed": "Installés",
-			"notInstalled": "Non installés"
-		},
-		"title": "Marketplace"
-	},
 	"done": "Terminé",
 	"tabs": {
 		"installed": "Installé",

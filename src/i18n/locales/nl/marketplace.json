@@ -16,36 +16,6 @@
 		"view": "Bekijken",
 		"source": "Bron"
 	},
-	"filters": {
-		"search": {
-			"placeholder": "Marketplace doorzoeken..."
-		},
-		"type": {
-			"label": "Type",
-			"all": "Alle types",
-			"mode": "Modus",
-			"mcpServer": "MCP Server"
-		},
-		"sort": {
-			"label": "Sorteren op",
-			"name": "Naam",
-			"lastUpdated": "Laatst bijgewerkt"
-		},
-		"tags": {
-			"label": "Tags",
-			"clear": "Tags wissen",
-			"placeholder": "Tags zoeken...",
-			"noResults": "Geen tags gevonden.",
-			"selected": "Items tonen met een van de geselecteerde tags"
-		},
-		"installed": {
-			"label": "Filteren op status",
-			"all": "Alle items",
-			"installed": "Geïnstalleerd",
-			"notInstalled": "Niet geïnstalleerd"
-		},
-		"title": "Marketplace"
-	},
 	"done": "Klaar",
 	"tabs": {
 		"installed": "Geïnstalleerd",
