@@ -33,6 +33,7 @@
 		"esbuildPurpose": "biên dịch và đóng gói các công cụ tùy chỉnh TypeScript"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "Không thể thực thi attempt_completion vì một lệnh gọi công cụ trước đó đã thất bại trong lượt này. Hãy khắc phục lỗi công cụ trước khi thử hoàn thành.",
 		"invalid_data_uri": "Định dạng URI dữ liệu không hợp lệ",
 		"error_copying_image": "Lỗi khi sao chép hình ảnh: {{errorMessage}}",
 		"error_saving_image": "Lỗi khi lưu hình ảnh: {{errorMessage}}",
@@ -170,7 +171,11 @@
 			"alreadyImported_other": "Tất cả {{count}} lịch sử nhiệm vụ Roo Code đã được nhập vào Roo+."
 		}
 	},
+	"gemini": {
+		"sources": "Nguồn:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "Đã sao chép đường dẫn vào clipboard",
 		"no_changes": "Không tìm thấy thay đổi nào.",
 		"clipboard_copy": "Lời nhắc hệ thống đã được sao chép thành công vào clipboard",
 		"history_cleanup": "Đã dọn dẹp {{count}} nhiệm vụ có tệp bị thiếu khỏi lịch sử.",

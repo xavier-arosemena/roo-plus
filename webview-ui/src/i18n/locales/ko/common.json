@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "문서"
+	},
+	"dismiss": "닫기",
+	"dismissAndDontShowAgain": "닫고 다시 표시하지 않음",
 	"errorBoundary": {
 		"title": "문제가 발생했습니다",
 		"reportText": "이 오류를 보고하여 개선에 도움을 주세요",

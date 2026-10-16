@@ -359,6 +359,10 @@
 		}
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "登录 OpenAI Codex",
+			"signOutButton": "退出登录"
+		},
 		"providerDocumentation": "{{provider}} 文档",
 		"configProfile": "配置文件",
 		"description": "保存多组API配置便于快速切换",
@@ -454,6 +458,7 @@
 		"getUnboundApiKey": "获取 Unbound API 密钥",
 		"requestyApiKey": "Requesty API 密钥",
 		"refreshModels": {
+			"missingConfig": "无法刷新模型：缺少配置。请检查你的设置。",
 			"label": "刷新模型",
 			"hint": "请重新打开设置以查看最新模型。",
 			"loading": "正在刷新模型列表...",

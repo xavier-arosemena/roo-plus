@@ -286,6 +286,8 @@
 		"issues": "ऐसा लगता है कि आपको Windows PowerShell के साथ समस्याएँ हो रही हैं, कृपया इसे देखें"
 	},
 	"autoApprove": {
+		"selectAll": "सभी चुनें",
+		"selectNone": "कुछ भी न चुनें",
 		"tooltipManage": "स्वतः-अनुमोदन सेटिंग्स प्रबंधित करें",
 		"tooltipStatus": "स्वतः-अनुमोदन इनके लिए सक्षम है: {{toggles}}",
 		"title": "स्वतः-अनुमोदन",

@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "添加查询前缀后，索引 {{index}} 处的文本将超过最大 token 限制（{{estimatedTokens}} > {{maxTokens}}）。跳过前缀。",
+	"openai": {
+		"invalidResponseFormat": "来自 OpenAI 的响应格式无效"
+	},
 	"unknownError": "未知错误",
 	"authenticationFailed": "创建嵌入失败：身份验证失败。请检查您的 API 密钥。",
 	"failedWithStatus": "尝试 {{attempts}} 次后创建嵌入失败：HTTP {{statusCode}} - {{errorMessage}}",

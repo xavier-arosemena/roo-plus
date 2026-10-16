@@ -359,6 +359,10 @@
 		}
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "OpenAI Codex にサインイン",
+			"signOutButton": "サインアウト"
+		},
 		"providerDocumentation": "{{provider}}のドキュメント",
 		"configProfile": "設定プロファイル",
 		"description": "異なるAPI設定を保存して、プロバイダーと設定をすばやく切り替えることができます。",
@@ -454,6 +458,7 @@
 		"getUnboundApiKey": "Unbound APIキーを取得",
 		"requestyApiKey": "Requesty APIキー",
 		"refreshModels": {
+			"missingConfig": "モデルを更新できません: 設定が不足しています。設定を確認してください。",
 			"label": "モデルを更新",
 			"hint": "最新のモデルを表示するには設定を再度開いてください。",
 			"loading": "モデルリストを更新中...",

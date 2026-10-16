@@ -359,6 +359,10 @@
 		}
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "Entrar no OpenAI Codex",
+			"signOutButton": "Sair"
+		},
 		"providerDocumentation": "Documentação do {{provider}}",
 		"configProfile": "Perfil de configuração",
 		"description": "Salve diferentes configurações de API para alternar rapidamente entre provedores e configurações.",
@@ -454,6 +458,7 @@
 		"getUnboundApiKey": "Obter chave de API Unbound",
 		"requestyApiKey": "Chave de API Requesty",
 		"refreshModels": {
+			"missingConfig": "Não foi possível atualizar os modelos: configuração ausente. Verifique suas configurações.",
 			"label": "Atualizar modelos",
 			"hint": "Por favor, reabra as configurações para ver os modelos mais recentes.",
 			"loading": "Atualizando lista de modelos...",

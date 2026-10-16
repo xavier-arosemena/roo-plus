@@ -33,6 +33,7 @@
 		"esbuildPurpose": "mentranspilasi dan mem-bundel custom tool TypeScript"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "Tidak dapat menjalankan attempt_completion karena panggilan tool sebelumnya gagal pada giliran ini. Perbaiki kegagalan tool sebelum mencoba penyelesaian.",
 		"invalid_data_uri": "Format data URI tidak valid",
 		"error_copying_image": "Error menyalin gambar: {{errorMessage}}",
 		"error_opening_image": "Error membuka gambar: {{error}}",
@@ -170,7 +171,11 @@
 			"alreadyImported_other": "Semua {{count}} riwayat tugas Roo Code sudah diimpor ke Roo+."
 		}
 	},
+	"gemini": {
+		"sources": "Sumber:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "Path disalin ke clipboard",
 		"no_changes": "Tidak ada perubahan ditemukan.",
 		"clipboard_copy": "System prompt berhasil disalin ke clipboard",
 		"history_cleanup": "Membersihkan {{count}} tugas dengan file yang hilang dari riwayat.",

@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "O texto no índice {{index}} excederia o limite máximo de tokens após adicionar o prefixo de consulta ({{estimatedTokens}} > {{maxTokens}}). Prefixo ignorado.",
+	"openai": {
+		"invalidResponseFormat": "Formato de resposta inválido da OpenAI"
+	},
 	"unknownError": "Erro desconhecido",
 	"authenticationFailed": "Falha ao criar embeddings: Falha na autenticação. Verifique sua chave de API.",
 	"failedWithStatus": "Falha ao criar embeddings após {{attempts}} tentativas: HTTP {{statusCode}} - {{errorMessage}}",

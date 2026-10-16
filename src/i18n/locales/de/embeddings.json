@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "Der Text bei Index {{index}} würde nach dem Hinzufügen des Abfragepräfixes das maximale Token-Limit überschreiten ({{estimatedTokens}} > {{maxTokens}}). Präfix wird übersprungen.",
+	"openai": {
+		"invalidResponseFormat": "Ungültiges Antwortformat von OpenAI"
+	},
 	"unknownError": "Unbekannter Fehler",
 	"authenticationFailed": "Erstellung von Einbettungen fehlgeschlagen: Authentifizierung fehlgeschlagen. Bitte überprüfe deinen API-Schlüssel.",
 	"failedWithStatus": "Erstellung von Einbettungen nach {{attempts}} Versuchen fehlgeschlagen: HTTP {{statusCode}} - {{errorMessage}}",

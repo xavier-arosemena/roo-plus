@@ -359,6 +359,10 @@
 		}
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "Войти в OpenAI Codex",
+			"signOutButton": "Выйти"
+		},
 		"providerDocumentation": "Документация {{provider}}",
 		"configProfile": "Профиль конфигурации",
 		"description": "Сохраняйте различные конфигурации API для быстрого переключения между провайдерами и настройками.",
@@ -454,6 +458,7 @@
 		"getUnboundApiKey": "Получить Unbound API-ключ",
 		"requestyApiKey": "Requesty API-ключ",
 		"refreshModels": {
+			"missingConfig": "Не удалось обновить модели: отсутствует конфигурация. Проверьте свои настройки.",
 			"label": "Обновить модели",
 			"hint": "Пожалуйста, откройте настройки заново, чтобы увидеть последние модели.",
 			"loading": "Обновление списка моделей...",

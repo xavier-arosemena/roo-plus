@@ -359,6 +359,10 @@
 		}
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "Aanmelden bij OpenAI Codex",
+			"signOutButton": "Afmelden"
+		},
 		"providerDocumentation": "{{provider}} documentatie",
 		"configProfile": "Configuratieprofiel",
 		"description": "Sla verschillende API-configuraties op om snel te wisselen tussen providers en instellingen.",
@@ -454,6 +458,7 @@
 		"getUnboundApiKey": "Unbound API-sleutel ophalen",
 		"requestyApiKey": "Requesty API-sleutel",
 		"refreshModels": {
+			"missingConfig": "Modellen kunnen niet worden vernieuwd: configuratie ontbreekt. Controleer je instellingen.",
 			"label": "Modellen verversen",
 			"hint": "Open de instellingen opnieuw om de nieuwste modellen te zien.",
 			"loading": "Modellenlijst wordt vernieuwd...",

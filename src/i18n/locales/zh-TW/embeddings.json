@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "新增查詢前綴後，索引 {{index}} 處的文字將超過最大 token 限制（{{estimatedTokens}} > {{maxTokens}}）。略過前綴。",
+	"openai": {
+		"invalidResponseFormat": "來自 OpenAI 的回應格式無效"
+	},
 	"unknownError": "未知錯誤",
 	"authenticationFailed": "建立內嵌失敗：驗證失敗。請檢查您的 API 金鑰。",
 	"failedWithStatus": "嘗試 {{attempts}} 次後建立內嵌失敗：HTTP {{statusCode}} - {{errorMessage}}",

@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "文件"
+	},
+	"dismiss": "關閉",
+	"dismissAndDontShowAgain": "關閉並不再顯示",
 	"errorBoundary": {
 		"title": "發生錯誤",
 		"reportText": "請協助我們回報此錯誤，以利產品改善：",

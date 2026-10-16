@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "Tekst pod indeksem {{index}} przekroczyłby maksymalny limit tokenów po dodaniu prefiksu zapytania ({{estimatedTokens}} > {{maxTokens}}). Prefiks zostanie pominięty.",
+	"openai": {
+		"invalidResponseFormat": "Nieprawidłowy format odpowiedzi z OpenAI"
+	},
 	"unknownError": "Nieznany błąd",
 	"authenticationFailed": "Nie udało się utworzyć osadzeń: Uwierzytelnianie nie powiodło się. Sprawdź swój klucz API.",
 	"failedWithStatus": "Nie udało się utworzyć osadzeń po {{attempts}} próbach: HTTP {{statusCode}} - {{errorMessage}}",

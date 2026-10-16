@@ -37,6 +37,7 @@
 		"esbuildPurpose": "transpilació i empaquetatge d'eines personalitzades de TypeScript"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "No es pot executar attempt_completion perquè una crida d'eina anterior ha fallat en aquest torn. Soluciona l'error de l'eina abans d'intentar la finalització.",
 		"invalid_data_uri": "Format d'URI de dades no vàlid",
 		"error_copying_image": "Error copiant la imatge: {{errorMessage}}",
 		"error_saving_image": "Error desant la imatge: {{errorMessage}}",
@@ -174,7 +175,11 @@
 			"alreadyImported_other": "Tots els {{count}} historials de tasques de Roo Code ja s'han importat a Roo+."
 		}
 	},
+	"gemini": {
+		"sources": "Fonts:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "Ruta copiada al porta-retalls",
 		"no_changes": "No s'han trobat canvis.",
 		"clipboard_copy": "Missatge del sistema copiat correctament al portapapers",
 		"history_cleanup": "S'han netejat {{count}} tasques amb fitxers que falten de l'historial.",

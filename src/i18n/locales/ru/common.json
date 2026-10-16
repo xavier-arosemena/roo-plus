@@ -33,6 +33,7 @@
 		"esbuildPurpose": "транспиляция и сборка пользовательских инструментов TypeScript"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "Невозможно выполнить attempt_completion, так как предыдущий вызов инструмента в этом ходе завершился ошибкой. Устраните ошибку инструмента, прежде чем пытаться завершить задачу.",
 		"invalid_data_uri": "Неверный формат URI данных",
 		"error_copying_image": "Ошибка копирования изображения: {{errorMessage}}",
 		"error_saving_image": "Ошибка сохранения изображения: {{errorMessage}}",
@@ -170,7 +171,11 @@
 			"alreadyImported_other": "Все {{count}} истории задач Roo Code уже импортированы в Roo+."
 		}
 	},
+	"gemini": {
+		"sources": "Источники:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "Путь скопирован в буфер обмена",
 		"no_changes": "Изменения не найдены.",
 		"clipboard_copy": "Системный промпт успешно скопирован в буфер обмена",
 		"history_cleanup": "Очищено {{count}} задач(и) с отсутствующими файлами из истории.",

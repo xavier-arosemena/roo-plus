@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "दस्तावेज़"
+	},
+	"dismiss": "बंद करें",
+	"dismissAndDontShowAgain": "बंद करें और दोबारा न दिखाएँ",
 	"errorBoundary": {
 		"title": "कुछ गलत हो गया",
 		"reportText": "कृपया इस त्रुटि की रिपोर्ट करके हमें सुधारने में मदद करें",

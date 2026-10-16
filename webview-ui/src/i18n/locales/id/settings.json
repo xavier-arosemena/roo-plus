@@ -359,6 +359,10 @@
 		}
 	},
 	"providers": {
+		"openAiCodex": {
+			"signInButton": "Masuk ke OpenAI Codex",
+			"signOutButton": "Keluar"
+		},
 		"providerDocumentation": "Dokumentasi {{provider}}",
 		"configProfile": "Profil Konfigurasi",
 		"description": "Simpan konfigurasi API yang berbeda untuk beralih dengan cepat antara provider dan pengaturan.",
@@ -454,6 +458,7 @@
 		"getUnboundApiKey": "Dapatkan Unbound API Key",
 		"requestyApiKey": "Requesty API Key",
 		"refreshModels": {
+			"missingConfig": "Tidak dapat menyegarkan model: konfigurasi tidak ada. Periksa pengaturanmu.",
 			"label": "Refresh Model",
 			"hint": "Silakan buka kembali pengaturan untuk melihat model terbaru.",
 			"loading": "Merefresh daftar model...",

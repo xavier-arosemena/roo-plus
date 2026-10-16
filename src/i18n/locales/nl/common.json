@@ -33,6 +33,7 @@
 		"esbuildPurpose": "het transpileren en bundelen van TypeScript-aangepaste tools"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "Kan attempt_completion niet uitvoeren omdat een eerdere toolaanroep in deze beurt is mislukt. Los de toolfout op voordat je het voltooien probeert.",
 		"invalid_data_uri": "Ongeldig data-URI-formaat",
 		"error_copying_image": "Fout bij kopiëren van afbeelding: {{errorMessage}}",
 		"error_saving_image": "Fout bij opslaan van afbeelding: {{errorMessage}}",
@@ -170,7 +171,11 @@
 			"alreadyImported_other": "Alle {{count}} Roo Code-taakgeschiedenissen zijn al geïmporteerd in Roo+."
 		}
 	},
+	"gemini": {
+		"sources": "Bronnen:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "Pad gekopieerd naar klembord",
 		"no_changes": "Geen wijzigingen gevonden.",
 		"clipboard_copy": "Systeemprompt succesvol gekopieerd naar klembord",
 		"history_cleanup": "{{count}} taak/taken met ontbrekende bestanden uit geschiedenis verwijderd.",

@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "क्वेरी प्रीफ़िक्स जोड़ने के बाद इंडेक्स {{index}} का टेक्स्ट अधिकतम टोकन सीमा से अधिक हो जाएगा ({{estimatedTokens}} > {{maxTokens}})। प्रीफ़िक्स छोड़ा जा रहा है।",
+	"openai": {
+		"invalidResponseFormat": "OpenAI से अमान्य प्रतिक्रिया प्रारूप"
+	},
 	"unknownError": "अज्ञात त्रुटि",
 	"authenticationFailed": "एम्बेडिंग बनाने में विफल: प्रमाणीकरण विफल। कृपया अपनी एपीआई कुंजी जांचें।",
 	"failedWithStatus": "{{attempts}} प्रयासों के बाद एम्बेडिंग बनाने में विफल: HTTP {{statusCode}} - {{errorMessage}}",

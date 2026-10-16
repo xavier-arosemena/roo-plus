@@ -339,6 +339,8 @@
 		"issues": "似乎遇到 Windows PowerShell 問題，請參閱此說明文件"
 	},
 	"autoApprove": {
+		"selectAll": "全選",
+		"selectNone": "全不選",
 		"tooltipManage": "管理自動核准設定",
 		"tooltipStatus": "自動核准已啟用：{{toggles}}",
 		"title": "自動核准",

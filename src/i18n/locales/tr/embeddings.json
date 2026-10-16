@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "{{index}} indeksindeki metin, sorgu öneki eklendikten sonra maksimum token sınırını aşar ({{estimatedTokens}} > {{maxTokens}}). Önek atlanıyor.",
+	"openai": {
+		"invalidResponseFormat": "OpenAI'dan geçersiz yanıt biçimi"
+	},
 	"unknownError": "Bilinmeyen hata",
 	"authenticationFailed": "Gömülmeler oluşturulamadı: Kimlik doğrulama başarısız oldu. Lütfen API anahtarınızı kontrol edin.",
 	"failedWithStatus": "{{attempts}} denemeden sonra gömülmeler oluşturulamadı: HTTP {{statusCode}} - {{errorMessage}}",

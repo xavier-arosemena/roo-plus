@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "El texto en el índice {{index}} superaría el límite máximo de tokens tras añadir el prefijo de consulta ({{estimatedTokens}} > {{maxTokens}}). Se omite el prefijo.",
+	"openai": {
+		"invalidResponseFormat": "Formato de respuesta no válido de OpenAI"
+	},
 	"unknownError": "Error desconocido",
 	"authenticationFailed": "No se pudieron crear las incrustaciones: Error de autenticación. Comprueba tu clave de API.",
 	"failedWithStatus": "No se pudieron crear las incrustaciones después de {{attempts}} intentos: HTTP {{statusCode}} - {{errorMessage}}",
