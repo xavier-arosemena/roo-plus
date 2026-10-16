@@ -29,9 +29,9 @@ vi.mock("@/i18n/TranslationContext", () => ({
 				return `by ${params.author}`
 			}
 			// The per-tag remove tooltip is a dedicated key (split from the bulk
-			// "clear" button key), so mirror its `{{count}}` interpolation here.
-			if (key === "marketplace:filters.tags.remove" && params?.count !== undefined) {
-				return `Remove ${params.count} from filters`
+			// "clear" button key), so mirror its `{{tag}}` interpolation here.
+			if (key === "marketplace:filters.tags.remove" && params?.tag !== undefined) {
+				return `Remove ${params.tag} from filters`
 			}
 			const translations: Record<string, any> = {
 				"marketplace:filters.type.mode": "Mode",
@@ -136,7 +136,13 @@ describe("MarketplaceItemCard", () => {
 
 		await waitFor(
 			() => {
-				expect(screen.getAllByText("Remove test from filters").length).toBeGreaterThan(0)
+				// Assert on the specific rendered tooltip node rather than any
+				// element that happens to carry the text: the tooltip content is
+				// portalled with a stable `data-slot`, so this pins the copy to
+				// the tooltip surface and not an incidental duplicate.
+				const tooltip = document.querySelector('[data-slot="tooltip-content"]')
+				expect(tooltip).not.toBeNull()
+				expect(tooltip).toHaveTextContent("Remove test from filters")
 			},
 			{ timeout: 3000 },
 		)

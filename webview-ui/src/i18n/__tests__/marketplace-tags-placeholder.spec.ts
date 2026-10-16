@@ -9,10 +9,11 @@ import { fileURLToPath } from "node:url"
  * `filters.tags` namespace but require opposite placeholder shapes:
  *
  *   - `filters.tags.clear`  MUST be token-free. It is rendered verbatim, so a
- *     stray `{{count}}` breaks the button — this is exactly what shipped in
+ *     stray placeholder breaks the button — this is exactly what shipped in
  *     `fr` and motivated splitting the key.
- *   - `filters.tags.remove` MUST keep exactly ONE `{{count}}` (the tooltip
- *     interpolates the number of selected tags).
+ *   - `filters.tags.remove` MUST keep exactly ONE `{{tag}}` (the tooltip
+ *     interpolates the tag label) and MUST NOT carry `{{count}}` (`count` is
+ *     i18next's reserved plural variable and would trigger plural resolution).
  *
  * i18next renders a missing or extra placeholder without complaint, so a
  * translation PR can silently regress either invariant. These assertions read
@@ -91,7 +92,7 @@ describe("marketplace tag placeholder shape", () => {
 		expect(offenders).toEqual([])
 	})
 
-	it("keeps exactly one {{count}} in filters.tags.remove in every locale", () => {
+	it("keeps exactly one {{tag}} and zero {{count}} in filters.tags.remove in every locale", () => {
 		const offenders = locales.flatMap((locale) => {
 			const remove = readMarketplaceTags(locale).remove
 
@@ -99,11 +100,14 @@ describe("marketplace tag placeholder shape", () => {
 				return [`${locale}: filters.tags.remove is missing or not a string`]
 			}
 
+			const tag = countOccurrences(remove, "{{tag}}")
 			const count = countOccurrences(remove, "{{count}}")
 
-			return count === 1
+			return tag === 1 && count === 0
 				? []
-				: [`${locale}: filters.tags.remove has ${count} "{{count}}" occurrence(s) in "${remove}"`]
+				: [
+						`${locale}: filters.tags.remove has ${tag} "{{tag}}" occurrence(s) and ${count} "{{count}}" occurrence(s) in "${remove}"`,
+					]
 		})
 
 		expect(offenders).toEqual([])

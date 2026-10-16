@@ -34,7 +34,7 @@
 		"tags": {
 			"label": "Nach Tags filtern:",
 			"clear": "Tags löschen",
-			"remove": "{{count}} aus den Filtern entfernen",
+			"remove": "{{tag}} aus den Filtern entfernen",
 			"placeholder": "Zum Suchen und Auswählen von Tags eingeben...",
 			"noResults": "Keine passenden Tags gefunden",
 			"selected": "Zeige Elemente mit einem der ausgewählten Tags",
