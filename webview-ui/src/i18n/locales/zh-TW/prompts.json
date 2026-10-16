@@ -2,6 +2,11 @@
 	"title": "模式",
 	"done": "完成",
 	"modes": {
+		"learnAboutUsingModes": "了解如何使用模式",
+		"learnAboutCustomizingModes": "了解如何自訂模式",
+		"learnAboutGlobalCustomInstructionsForModes": "了解模式的全局自訂指示",
+		"learnMoreAboutGlobalCustomInstructions": "深入了解全局自訂指示",
+		"learnAboutSettingUpGlobalCustomInstructions": "了解如何設定全局自訂指示",
 		"title": "模式",
 		"createNewMode": "建立新模式",
 		"importMode": "匯入模式",

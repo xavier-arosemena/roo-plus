@@ -10,6 +10,7 @@
 		"remove": "Удалить"
 	},
 	"search": {
+		"clear": "Очистить поиск",
 		"placeholder": "Поиск параметров...",
 		"noResults": "Параметры не найдены"
 	},
@@ -359,6 +360,7 @@
 		}
 	},
 	"providers": {
+		"openRouterBaseUrlPlaceholder": "По умолчанию: https://openrouter.ai/api/v1",
 		"openAiCodex": {
 			"signInButton": "Войти в OpenAI Codex",
 			"signOutButton": "Выйти"
@@ -585,6 +587,7 @@
 			"description": "LM Studio позволяет запускать модели локально на вашем компьютере. Для начала ознакомьтесь с <a>кратким руководством</a>. Также необходимо включить <b>локальный сервер</b> LM Studio для работы с этим расширением. <span>Примечание:</span> Roo+ использует сложные подсказки и лучше всего работает с моделями Claude. Менее мощные модели могут работать некорректно."
 		},
 		"ollama": {
+			"numCtxPlaceholder": "напр. 4096",
 			"baseUrl": "Базовый URL (опционально)",
 			"modelId": "ID модели",
 			"apiKey": "API-ключ Ollama",

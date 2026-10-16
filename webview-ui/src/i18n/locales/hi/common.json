@@ -25,6 +25,7 @@
 		"billion_suffix": "b"
 	},
 	"ui": {
+		"search_ariaLabel": "खोजें",
 		"search_placeholder": "खोजें...",
 		"no_results": "कोई परिणाम नहीं मिला"
 	},

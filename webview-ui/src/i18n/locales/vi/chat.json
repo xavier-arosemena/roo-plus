@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Biểu tượng lệnh bị từ chối",
+			"terminal": "Biểu tượng terminal",
+			"question": "Biểu tượng câu hỏi",
+			"batchDiff": "Biểu tượng diff theo lô",
+			"viewFiles": "Biểu tượng xem tệp",
+			"readFile": "Biểu tượng đọc tệp",
+			"listFiles": "Biểu tượng danh sách tệp",
+			"folderTree": "Biểu tượng cây thư mục",
+			"switchMode": "Biểu tượng đổi chế độ",
+			"speechBubble": "Biểu tượng bong bóng hội thoại",
+			"user": "Biểu tượng người dùng",
+			"editMessage": "Biểu tượng sửa tin nhắn",
+			"deleteMessage": "Biểu tượng xóa tin nhắn",
+			"readCommandOutput": "Biểu tượng đọc kết quả lệnh"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Nhập mục cần làm",
+		"addPlaceholder": "Nhập mục cần làm, nhấn Enter để thêm",
+		"removeTitle": "Xóa"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Mở markdown trong bản xem trước"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Nhấp để sửa mẫu"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Cấu hình đã ghim",
+		"allConfigurations": "Tất cả cấu hình"
+	},
+
 	"greeting": "Chào mừng đến với Roo+!",
 	"task": {
 		"title": "Nhiệm vụ",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "giữ shift để kéo tệp/hình ảnh",
 	"enhancePromptDescription": "Nút 'Nâng cao yêu cầu' giúp cải thiện yêu cầu của bạn bằng cách cung cấp ngữ cảnh bổ sung, làm rõ hoặc diễn đạt lại. Hãy thử nhập yêu cầu tại đây và nhấp vào nút một lần nữa để xem cách thức hoạt động.",
 	"modeSelector": {
+		"searchAriaLabel": "Tìm chế độ",
 		"title": "Chế độ",
 		"marketplace": "Chợ Chế độ",
 		"settings": "Cài đặt Chế độ",

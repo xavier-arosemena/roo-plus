@@ -757,11 +757,11 @@ const ModesView = () => {
 							<VSCodeLink
 								href={buildDocLink("basic-usage/using-modes", "prompts_view_modes")}
 								style={{ display: "inline" }}
-								aria-label="Learn about using modes"></VSCodeLink>
+								aria-label={t("prompts:modes.learnAboutUsingModes")}></VSCodeLink>
 							<VSCodeLink
 								href={buildDocLink("features/custom-modes", "prompts_view_modes")}
 								style={{ display: "inline" }}
-								aria-label="Learn about customizing modes"></VSCodeLink>
+								aria-label={t("prompts:modes.learnAboutCustomizingModes")}></VSCodeLink>
 						</Trans>
 					</div>
 
@@ -1377,7 +1377,7 @@ const ModesView = () => {
 											"prompts_mode_specific_global_rules",
 										)}
 										style={{ display: "inline" }}
-										aria-label="Learn about global custom instructions for modes"
+										aria-label={t("prompts:modes.learnAboutGlobalCustomInstructionsForModes")}
 									/>
 								),
 							}}
@@ -1432,7 +1432,7 @@ const ModesView = () => {
 									"prompts_global_custom_instructions",
 								)}
 								style={{ display: "inline" }}
-								aria-label="Learn more about global custom instructions"></VSCodeLink>
+								aria-label={t("prompts:modes.learnMoreAboutGlobalCustomInstructions")}></VSCodeLink>
 						</Trans>
 					</div>
 					<VSCodeTextArea
@@ -1478,7 +1478,7 @@ const ModesView = () => {
 											"prompts_global_rules",
 										)}
 										style={{ display: "inline" }}
-										aria-label="Learn about setting up global custom instructions"
+										aria-label={t("prompts:modes.learnAboutSettingUpGlobalCustomInstructions")}
 									/>
 								),
 							}}

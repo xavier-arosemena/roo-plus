@@ -10,6 +10,7 @@
 		"remove": "Xóa"
 	},
 	"search": {
+		"clear": "Xóa tìm kiếm",
 		"placeholder": "Tìm kiếm cài đặt...",
 		"noResults": "Không tìm thấy cài đặt"
 	},
@@ -359,6 +360,7 @@
 		}
 	},
 	"providers": {
+		"openRouterBaseUrlPlaceholder": "Mặc định: https://openrouter.ai/api/v1",
 		"openAiCodex": {
 			"signInButton": "Đăng nhập vào OpenAI Codex",
 			"signOutButton": "Đăng xuất"
@@ -585,6 +587,7 @@
 			"description": "LM Studio cho phép bạn chạy các mô hình cục bộ trên máy tính của bạn. Để biết hướng dẫn về cách bắt đầu, xem <a>hướng dẫn nhanh</a> của họ. Bạn cũng sẽ cần khởi động tính năng <b>máy chủ cục bộ</b> của LM Studio để sử dụng nó với tiện ích mở rộng này. <span>Lưu ý:</span> Roo+ sử dụng các lời nhắc phức tạp và hoạt động tốt nhất với các mô hình Claude. Các mô hình kém mạnh hơn có thể không hoạt động như mong đợi."
 		},
 		"ollama": {
+			"numCtxPlaceholder": "ví dụ: 4096",
 			"baseUrl": "URL cơ sở (tùy chọn)",
 			"modelId": "ID mô hình",
 			"apiKey": "Khóa API Ollama",

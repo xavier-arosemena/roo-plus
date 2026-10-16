@@ -300,7 +300,7 @@ export const ChatRowContent = ({
 						<OctagonX
 							key="denied-icon"
 							className="size-4 text-vscode-errorForeground"
-							aria-label="Denied command icon"
+							aria-label={t("chat:chatRow.icons.deniedCommand")}
 						/>,
 						<span key="denied-title" className="font-bold text-vscode-errorForeground">
 							{t("chat:commandExecution.denied")}
@@ -311,7 +311,7 @@ export const ChatRowContent = ({
 					isCommandExecuting ? (
 						<ProgressIndicator />
 					) : (
-						<SquareTerminal className="size-4" aria-label="Terminal icon" />
+						<SquareTerminal className="size-4" aria-label={t("chat:chatRow.icons.terminal")} />
 					),
 					<span style={{ color: normalColor, fontWeight: "bold" }}>
 						{t("chat:commandExecution.running")}
@@ -399,7 +399,10 @@ export const ChatRowContent = ({
 				]
 			case "followup":
 				return [
-					<MessageCircleQuestionMark className="w-4 shrink-0" aria-label="Question icon" />,
+					<MessageCircleQuestionMark
+						className="w-4 shrink-0"
+						aria-label={t("chat:chatRow.icons.question")}
+					/>,
 					<span style={{ color: normalColor, fontWeight: "bold" }}>{t("chat:questions.hasQuestion")}</span>,
 				]
 			default:
@@ -475,7 +478,7 @@ export const ChatRowContent = ({
 					return (
 						<>
 							<div style={headerStyle}>
-								<FileDiff className="w-4 shrink-0" aria-label="Batch diff icon" />
+								<FileDiff className="w-4 shrink-0" aria-label={t("chat:chatRow.icons.batchDiff")} />
 								<span style={{ fontWeight: "bold" }}>
 									{t("chat:fileOperations.wantsToApplyBatchChanges")}
 								</span>
@@ -595,7 +598,7 @@ export const ChatRowContent = ({
 					return (
 						<>
 							<div style={headerStyle}>
-								<Eye className="w-4 shrink-0" aria-label="View files icon" />
+								<Eye className="w-4 shrink-0" aria-label={t("chat:chatRow.icons.viewFiles")} />
 								<span style={{ fontWeight: "bold" }}>
 									{t("chat:fileOperations.wantsToReadMultiple")}
 								</span>
@@ -615,7 +618,7 @@ export const ChatRowContent = ({
 				return (
 					<>
 						<div style={headerStyle}>
-							<FileCode2 className="w-4 shrink-0" aria-label="Read file icon" />
+							<FileCode2 className="w-4 shrink-0" aria-label={t("chat:chatRow.icons.readFile")} />
 							<span style={{ fontWeight: "bold" }}>
 								{message.type === "ask"
 									? tool.isOutsideWorkspace
@@ -728,7 +731,7 @@ export const ChatRowContent = ({
 				return (
 					<>
 						<div style={headerStyle}>
-							<ListTree className="w-4 shrink-0" aria-label="List files icon" />
+							<ListTree className="w-4 shrink-0" aria-label={t("chat:chatRow.icons.listFiles")} />
 							<span style={{ fontWeight: "bold" }}>
 								{message.type === "ask"
 									? tool.isOutsideWorkspace
@@ -754,7 +757,7 @@ export const ChatRowContent = ({
 				return (
 					<>
 						<div style={headerStyle}>
-							<FolderTree className="w-4 shrink-0" aria-label="Folder tree icon" />
+							<FolderTree className="w-4 shrink-0" aria-label={t("chat:chatRow.icons.folderTree")} />
 							<span style={{ fontWeight: "bold" }}>
 								{message.type === "ask"
 									? tool.isOutsideWorkspace
@@ -820,7 +823,7 @@ export const ChatRowContent = ({
 				return (
 					<>
 						<div style={headerStyle}>
-							<PocketKnife className="w-4 shrink-0" aria-label="Switch mode icon" />
+							<PocketKnife className="w-4 shrink-0" aria-label={t("chat:chatRow.icons.switchMode")} />
 							<span style={{ fontWeight: "bold" }}>
 								{message.type === "ask" ? (
 									<>
@@ -1212,7 +1215,10 @@ export const ChatRowContent = ({
 					return (
 						<div className="group">
 							<div style={headerStyle}>
-								<MessageCircle className="w-4 shrink-0" aria-label="Speech bubble icon" />
+								<MessageCircle
+									className="w-4 shrink-0"
+									aria-label={t("chat:chatRow.icons.speechBubble")}
+								/>
 								<span style={{ fontWeight: "bold" }}>{t("chat:text.rooSaid")}</span>
 								<div style={{ flexGrow: 1 }} />
 								<OpenMarkdownPreviewButton markdown={message.text} />
@@ -1233,7 +1239,7 @@ export const ChatRowContent = ({
 					return (
 						<div className="group">
 							<div style={headerStyle}>
-								<User className="w-4 shrink-0" aria-label="User icon" />
+								<User className="w-4 shrink-0" aria-label={t("chat:chatRow.icons.user")} />
 								<span style={{ fontWeight: "bold" }}>{t("chat:feedback.youSaid")}</span>
 							</div>
 							<div
@@ -1284,7 +1290,10 @@ export const ChatRowContent = ({
 													e.stopPropagation()
 													handleEditClick()
 												}}>
-												<Edit className="w-4 shrink-0" aria-label="Edit message icon" />
+												<Edit
+													className="w-4 shrink-0"
+													aria-label={t("chat:chatRow.icons.editMessage")}
+												/>
 											</div>
 											<div
 												className="cursor-pointer shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1293,7 +1302,10 @@ export const ChatRowContent = ({
 													e.stopPropagation()
 													vscode.postMessage({ type: "deleteMessage", value: message.ts })
 												}}>
-												<Trash2 className="w-4 shrink-0" aria-label="Delete message icon" />
+												<Trash2
+													className="w-4 shrink-0"
+													aria-label={t("chat:chatRow.icons.deleteMessage")}
+												/>
 											</div>
 										</div>
 									</div>
@@ -1540,7 +1552,10 @@ export const ChatRowContent = ({
 
 							return (
 								<div style={headerStyle}>
-									<FileCode2 className="w-4 shrink-0" aria-label="Read command output icon" />
+									<FileCode2
+										className="w-4 shrink-0"
+										aria-label={t("chat:chatRow.icons.readCommandOutput")}
+									/>
 									<span style={{ fontWeight: "bold" }}>{t("chat:readCommandOutput.title")}</span>
 									{infoText && (
 										<span

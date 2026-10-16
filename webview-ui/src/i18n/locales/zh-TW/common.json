@@ -25,6 +25,7 @@
 		"billion_suffix": "b"
 	},
 	"ui": {
+		"search_ariaLabel": "搜尋",
 		"search_placeholder": "搜尋...",
 		"no_results": "找不到結果"
 	},

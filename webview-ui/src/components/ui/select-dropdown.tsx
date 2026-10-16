@@ -218,7 +218,7 @@ export const SelectDropdown = React.memo(
 							{!disableSearch && (
 								<div className="relative p-2 border-b border-vscode-dropdown-border">
 									<input
-										aria-label="Search"
+										aria-label={t("common:ui.search_ariaLabel")}
 										ref={searchInputRef}
 										value={searchValue}
 										onChange={(e) => setSearchValue(e.target.value)}

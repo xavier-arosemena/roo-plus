@@ -25,6 +25,7 @@
 		"billion_suffix": "m"
 	},
 	"ui": {
+		"search_ariaLabel": "Cari",
 		"search_placeholder": "Cari...",
 		"no_results": "Tidak ada hasil yang ditemukan"
 	},

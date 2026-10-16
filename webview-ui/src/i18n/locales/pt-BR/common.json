@@ -25,6 +25,7 @@
 		"keep": "Manter"
 	},
 	"ui": {
+		"search_ariaLabel": "Pesquisar",
 		"search_placeholder": "Pesquisar...",
 		"no_results": "Nenhum resultado encontrado"
 	},

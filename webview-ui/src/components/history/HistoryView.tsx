@@ -193,7 +193,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 						{searchQuery && (
 							<div
 								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"
-								aria-label="Clear search"
+								aria-label={t("history:clearSearch")}
 								onClick={() => setSearchQuery("")}
 								slot="end"
 							/>

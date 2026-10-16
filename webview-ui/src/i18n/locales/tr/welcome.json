@@ -1,4 +1,7 @@
 {
+	"rooHero": {
+		"logoLabel": "Roo+ logosu"
+	},
 	"landing": {
 		"greeting": "Roo+'a Hoş Geldin!",
 		"introduction": "Yerleşik ve genişletilebilir Modlar yelpazesiyle Roo+, daha önce hiç olmadığı gibi planlama, mimari tasarım, kodlama, hata ayıklama ve üretkenliğini artırmanı sağlar.",

@@ -10,6 +10,7 @@
 		"remove": "削除"
 	},
 	"search": {
+		"clear": "検索をクリア",
 		"placeholder": "設定を検索...",
 		"noResults": "設定が見つかりません"
 	},
@@ -359,6 +360,7 @@
 		}
 	},
 	"providers": {
+		"openRouterBaseUrlPlaceholder": "デフォルト: https://openrouter.ai/api/v1",
 		"openAiCodex": {
 			"signInButton": "OpenAI Codex にサインイン",
 			"signOutButton": "サインアウト"
@@ -585,6 +587,7 @@
 			"description": "LM Studioを使用すると、ローカルコンピューターでモデルを実行できます。始め方については、<a>クイックスタートガイド</a>をご覧ください。また、この拡張機能で使用するには、LM Studioの<b>ローカルサーバー</b>機能を起動する必要があります。<span>注意：</span>Roo+は複雑なプロンプトを使用し、Claudeモデルで最適に動作します。能力の低いモデルは期待通りに動作しない場合があります。"
 		},
 		"ollama": {
+			"numCtxPlaceholder": "例: 4096",
 			"baseUrl": "ベースURL（オプション）",
 			"modelId": "モデルID",
 			"apiKey": "Ollama APIキー",

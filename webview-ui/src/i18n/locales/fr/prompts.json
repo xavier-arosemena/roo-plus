@@ -2,6 +2,11 @@
 	"title": "Modes",
 	"done": "Terminé",
 	"modes": {
+		"learnAboutUsingModes": "En savoir plus sur l'utilisation des modes",
+		"learnAboutCustomizingModes": "En savoir plus sur la personnalisation des modes",
+		"learnAboutGlobalCustomInstructionsForModes": "En savoir plus sur les instructions personnalisées globales pour les modes",
+		"learnMoreAboutGlobalCustomInstructions": "En savoir plus sur les instructions personnalisées globales",
+		"learnAboutSettingUpGlobalCustomInstructions": "En savoir plus sur la configuration des instructions personnalisées globales",
 		"title": "Modes",
 		"createNewMode": "Créer un nouveau mode",
 		"importMode": "Importer le mode",

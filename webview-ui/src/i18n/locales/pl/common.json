@@ -25,6 +25,7 @@
 		"keep": "Zachowaj"
 	},
 	"ui": {
+		"search_ariaLabel": "Szukaj",
 		"search_placeholder": "Szukaj...",
 		"no_results": "Nie znaleziono wyników"
 	},

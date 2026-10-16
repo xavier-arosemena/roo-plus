@@ -2,6 +2,11 @@
 	"title": "Modi",
 	"done": "Fertig",
 	"modes": {
+		"learnAboutUsingModes": "Mehr über die Verwendung von Modi",
+		"learnAboutCustomizingModes": "Mehr über das Anpassen von Modi",
+		"learnAboutGlobalCustomInstructionsForModes": "Mehr über globale benutzerdefinierte Anweisungen für Modi",
+		"learnMoreAboutGlobalCustomInstructions": "Mehr über globale benutzerdefinierte Anweisungen",
+		"learnAboutSettingUpGlobalCustomInstructions": "Mehr über das Einrichten globaler benutzerdefinierter Anweisungen",
 		"title": "Modi",
 		"createNewMode": "Neuen Modus erstellen",
 		"importMode": "Modus importieren",

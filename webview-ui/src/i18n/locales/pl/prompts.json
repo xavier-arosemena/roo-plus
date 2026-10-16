@@ -2,6 +2,11 @@
 	"title": "Tryby",
 	"done": "Gotowe",
 	"modes": {
+		"learnAboutUsingModes": "Dowiedz się, jak używać trybów",
+		"learnAboutCustomizingModes": "Dowiedz się, jak dostosować tryby",
+		"learnAboutGlobalCustomInstructionsForModes": "Dowiedz się o globalnych instrukcjach niestandardowych dla trybów",
+		"learnMoreAboutGlobalCustomInstructions": "Dowiedz się więcej o globalnych instrukcjach niestandardowych",
+		"learnAboutSettingUpGlobalCustomInstructions": "Dowiedz się, jak skonfigurować globalne instrukcje niestandardowe",
 		"title": "Tryby",
 		"createNewMode": "Utwórz nowy tryb",
 		"importMode": "Importuj tryb",

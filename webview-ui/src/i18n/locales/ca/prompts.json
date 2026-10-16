@@ -2,6 +2,11 @@
 	"title": "Modes",
 	"done": "Fet",
 	"modes": {
+		"learnAboutUsingModes": "Aprèn a usar els modes",
+		"learnAboutCustomizingModes": "Aprèn a personalitzar els modes",
+		"learnAboutGlobalCustomInstructionsForModes": "Aprèn sobre les instruccions personalitzades globals per als modes",
+		"learnMoreAboutGlobalCustomInstructions": "Més informació sobre les instruccions personalitzades globals",
+		"learnAboutSettingUpGlobalCustomInstructions": "Aprèn a configurar les instruccions personalitzades globals",
 		"title": "Modes",
 		"createNewMode": "Crear nou mode",
 		"importMode": "Importar mode",
