@@ -1,4 +1,7 @@
 {
+	"rooHero": {
+		"logoLabel": "Logo Roo+"
+	},
 	"landing": {
 		"greeting": "Witaj w Roo+!",
 		"introduction": "Dzięki szerokiej gamie wbudowanych i rozszerzalnych Trybów, Roo+ pozwala planować, projektować architekturę, kodować, debugować i zwiększać produktywność jak nigdy dotąd.",

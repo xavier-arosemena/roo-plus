@@ -25,6 +25,7 @@
 		"billion_suffix": "b"
 	},
 	"ui": {
+		"search_ariaLabel": "Rechercher",
 		"search_placeholder": "Rechercher...",
 		"no_results": "Aucun résultat trouvé"
 	},

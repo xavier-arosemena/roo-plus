@@ -2,6 +2,11 @@
 	"title": "モード",
 	"done": "完了",
 	"modes": {
+		"learnAboutUsingModes": "モードの使い方を学ぶ",
+		"learnAboutCustomizingModes": "モードのカスタマイズを学ぶ",
+		"learnAboutGlobalCustomInstructionsForModes": "モードのグローバルカスタム指示について学ぶ",
+		"learnMoreAboutGlobalCustomInstructions": "グローバルカスタム指示の詳細",
+		"learnAboutSettingUpGlobalCustomInstructions": "グローバルカスタム指示の設定方法を学ぶ",
 		"title": "モード",
 		"createNewMode": "新しいモードを作成",
 		"importMode": "モードをインポート",

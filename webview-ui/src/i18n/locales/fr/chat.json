@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Icône de commande refusée",
+			"terminal": "Icône de terminal",
+			"question": "Icône de question",
+			"batchDiff": "Icône de diff groupé",
+			"viewFiles": "Icône d'affichage des fichiers",
+			"readFile": "Icône de lecture de fichier",
+			"listFiles": "Icône de liste des fichiers",
+			"folderTree": "Icône d'arborescence des dossiers",
+			"switchMode": "Icône de changement de mode",
+			"speechBubble": "Icône de bulle de dialogue",
+			"user": "Icône d'utilisateur",
+			"editMessage": "Icône de modification du message",
+			"deleteMessage": "Icône de suppression du message",
+			"readCommandOutput": "Icône de lecture de la sortie de commande"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Saisir une tâche",
+		"addPlaceholder": "Saisir une tâche, appuyer sur Entrée pour l'ajouter",
+		"removeTitle": "Supprimer"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Ouvrir le markdown dans l'aperçu"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Cliquer pour modifier le motif"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Configurations épinglées",
+		"allConfigurations": "Toutes les configurations"
+	},
+
 	"greeting": "Bienvenue sur Roo+ !",
 	"task": {
 		"title": "Tâche",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "maintenir Maj pour glisser des fichiers/images",
 	"enhancePromptDescription": "Le bouton 'Améliorer la requête' aide à améliorer votre demande en fournissant un contexte supplémentaire, des clarifications ou des reformulations. Essayez de taper une demande ici et cliquez à nouveau sur le bouton pour voir comment cela fonctionne.",
 	"modeSelector": {
+		"searchAriaLabel": "Rechercher des modes",
 		"title": "Modes",
 		"marketplace": "Marketplace de Modes",
 		"settings": "Paramètres des Modes",

@@ -5,6 +5,8 @@
 // of the second) and each carries a small circle "(_)" in the middle; the "+"
 // is a fancy form with a top cap. Rendered in the theme foreground color, so it
 // adapts to dark and light themes without a separate light-mode artwork.
+import { useTranslation } from "react-i18next"
+
 const ROO_PLUS_ASCII = [
 	" ____                         ",
 	"|  _ \\ ___  ___    _   ",
@@ -14,11 +16,13 @@ const ROO_PLUS_ASCII = [
 ].join("\n")
 
 const RooHero = () => {
+	const { t } = useTranslation("welcome")
+
 	return (
 		<div className="relative flex flex-col items-start">
 			<pre
 				role="img"
-				aria-label="Roo+ logo"
+				aria-label={t("rooHero.logoLabel")}
 				className="m-0 font-mono text-vscode-foreground text-[13px] leading-tight select-none whitespace-pre bg-transparent"
 				style={{
 					fontVariantLigatures: "none",

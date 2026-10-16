@@ -236,7 +236,7 @@ export const ModeSelector = ({
 					{showSearch ? (
 						<div className="relative p-2 border-b border-vscode-dropdown-border">
 							<input
-								aria-label="Search modes"
+								aria-label={t("chat:modeSelector.searchAriaLabel")}
 								ref={searchInputRef}
 								value={searchValue}
 								onChange={(e) => setSearchValue(e.target.value)}

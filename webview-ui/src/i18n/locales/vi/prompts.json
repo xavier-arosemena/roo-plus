@@ -2,6 +2,11 @@
 	"title": "Chế độ",
 	"done": "Hoàn thành",
 	"modes": {
+		"learnAboutUsingModes": "Tìm hiểu cách dùng chế độ",
+		"learnAboutCustomizingModes": "Tìm hiểu cách tùy chỉnh chế độ",
+		"learnAboutGlobalCustomInstructionsForModes": "Tìm hiểu về hướng dẫn tùy chỉnh toàn cục cho chế độ",
+		"learnMoreAboutGlobalCustomInstructions": "Tìm hiểu thêm về hướng dẫn tùy chỉnh toàn cục",
+		"learnAboutSettingUpGlobalCustomInstructions": "Tìm hiểu cách thiết lập hướng dẫn tùy chỉnh toàn cục",
 		"title": "Chế độ",
 		"createNewMode": "Tạo chế độ mới",
 		"importMode": "Nhập chế độ",

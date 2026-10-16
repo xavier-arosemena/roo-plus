@@ -1,4 +1,7 @@
 {
+	"rooHero": {
+		"logoLabel": "Logo Roo+"
+	},
 	"landing": {
 		"greeting": "Chào mừng đến với Roo+!",
 		"introduction": "Với nhiều Chế độ tích hợp và có thể mở rộng, Roo+ cho phép bạn lập kế hoạch, thiết kế kiến trúc, viết mã, gỡ lỗi và tăng năng suất như chưa từng có trước đây.",

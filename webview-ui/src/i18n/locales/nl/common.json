@@ -25,6 +25,7 @@
 		"billion_suffix": "mrd"
 	},
 	"ui": {
+		"search_ariaLabel": "Zoeken",
 		"search_placeholder": "Zoeken...",
 		"no_results": "Geen resultaten gevonden"
 	},

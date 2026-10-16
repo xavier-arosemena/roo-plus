@@ -25,6 +25,7 @@
 		"billion_suffix": "b"
 	},
 	"ui": {
+		"search_ariaLabel": "Ara",
 		"search_placeholder": "Ara...",
 		"no_results": "Sonuç bulunamadı"
 	},

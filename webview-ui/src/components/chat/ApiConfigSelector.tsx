@@ -209,14 +209,14 @@ export const ApiConfigSelector = ({
 										"sticky top-0 z-10 bg-vscode-dropdown-background py-1",
 										unpinnedConfigs.length > 0 && "border-b border-vscode-dropdown-foreground/10",
 									)}
-									aria-label="Pinned configurations">
+									aria-label={t("chat:apiConfigSelector.pinnedConfigurations")}>
 									{pinnedConfigs.map((config) => renderConfigItem(config, true))}
 								</div>
 							)}
 
 							{/* Unpinned configs */}
 							{unpinnedConfigs.length > 0 && (
-								<div className="py-1" aria-label="All configurations">
+								<div className="py-1" aria-label={t("chat:apiConfigSelector.allConfigurations")}>
 									{unpinnedConfigs.map((config) => renderConfigItem(config, false))}
 								</div>
 							)}

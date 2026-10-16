@@ -2,6 +2,11 @@
 	"title": "Modos",
 	"done": "Concluído",
 	"modes": {
+		"learnAboutUsingModes": "Saiba como usar os modos",
+		"learnAboutCustomizingModes": "Saiba como personalizar os modos",
+		"learnAboutGlobalCustomInstructionsForModes": "Saiba sobre as instruções personalizadas globais para os modos",
+		"learnMoreAboutGlobalCustomInstructions": "Saiba mais sobre as instruções personalizadas globais",
+		"learnAboutSettingUpGlobalCustomInstructions": "Saiba como configurar as instruções personalizadas globais",
 		"title": "Modos",
 		"createNewMode": "Criar novo modo",
 		"importMode": "Importar modo",

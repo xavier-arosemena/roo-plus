@@ -2,6 +2,11 @@
 	"title": "Modes",
 	"done": "Done",
 	"modes": {
+		"learnAboutUsingModes": "Learn about using modes",
+		"learnAboutCustomizingModes": "Learn about customizing modes",
+		"learnAboutGlobalCustomInstructionsForModes": "Learn about global custom instructions for modes",
+		"learnMoreAboutGlobalCustomInstructions": "Learn more about global custom instructions",
+		"learnAboutSettingUpGlobalCustomInstructions": "Learn about setting up global custom instructions",
 		"title": "Modes",
 		"createNewMode": "Create new mode",
 		"importMode": "Import Mode",

@@ -1,4 +1,7 @@
 {
+	"rooHero": {
+		"logoLabel": "Roo+ logo"
+	},
 	"landing": {
 		"greeting": "Welcome to Roo+!",
 		"introduction": "With a range of built-in and extensible Modes, Roo+ lets you plan, architect, code, debug and boost your productivity like never before.",

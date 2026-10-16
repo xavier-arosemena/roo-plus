@@ -2,6 +2,11 @@
 	"title": "Modi",
 	"done": "Gereed",
 	"modes": {
+		"learnAboutUsingModes": "Meer over het gebruik van modi",
+		"learnAboutCustomizingModes": "Meer over het aanpassen van modi",
+		"learnAboutGlobalCustomInstructionsForModes": "Meer over globale aangepaste instructies voor modi",
+		"learnMoreAboutGlobalCustomInstructions": "Meer over globale aangepaste instructies",
+		"learnAboutSettingUpGlobalCustomInstructions": "Meer over het instellen van globale aangepaste instructies",
 		"title": "Modi",
 		"createNewMode": "Nieuwe modus aanmaken",
 		"importMode": "Modus importeren",

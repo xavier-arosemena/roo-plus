@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Denied command icon",
+			"terminal": "Terminal icon",
+			"question": "Question icon",
+			"batchDiff": "Batch diff icon",
+			"viewFiles": "View files icon",
+			"readFile": "Read file icon",
+			"listFiles": "List files icon",
+			"folderTree": "Folder tree icon",
+			"switchMode": "Switch mode icon",
+			"speechBubble": "Speech bubble icon",
+			"user": "User icon",
+			"editMessage": "Edit message icon",
+			"deleteMessage": "Delete message icon",
+			"readCommandOutput": "Read command output icon"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Enter todo item",
+		"addPlaceholder": "Enter todo item, press Enter to add",
+		"removeTitle": "Remove"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Open markdown in preview"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Click to edit pattern"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Pinned configurations",
+		"allConfigurations": "All configurations"
+	},
+
 	"greeting": "Welcome to Roo+!",
 	"task": {
 		"title": "Task",
@@ -141,6 +175,7 @@
 	"unlockApiConfigAcrossModes": "API configuration is locked across all modes in this workspace (click to unlock)",
 	"enhancePrompt": "Enhance prompt with additional context",
 	"modeSelector": {
+		"searchAriaLabel": "Search modes",
 		"title": "Modes",
 		"marketplace": "Mode Marketplace",
 		"settings": "Mode Settings",

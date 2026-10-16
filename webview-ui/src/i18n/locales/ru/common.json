@@ -25,6 +25,7 @@
 		"keep": "Оставить"
 	},
 	"ui": {
+		"search_ariaLabel": "Поиск",
 		"search_placeholder": "Поиск...",
 		"no_results": "Результатов не найдено"
 	},
