@@ -489,6 +489,9 @@ jobs:
         id: publish-vsce
         if: steps.release-check.outputs.skip != 'true' && env.VSCE_PAT != ''
         continue-on-error: true
+        # A hung Marketplace request must not hold the job open and starve the
+        # Open VSX publish below — continue-on-error does not cover a hang.
+        timeout-minutes: 15
         run: |
           echo "::group::[CI:PRERELEASE:PUBLISH:VSCE] Publishing pre-release to VS Code Marketplace"
           package_version=$(jq -r .version src/package.json)
@@ -515,8 +518,13 @@ jobs:
       # pre-releases on its line. This is transient per release cycle and mirrors
       # how Marketplace pre-release users track the newest published version — an
       # accepted trade-off.
+      # INVARIANT: this step must never be gated on the outcome of the VS Code
+      # Marketplace. It has no `needs`, no dependency on `steps.publish-vsce`, and
+      # the VS step above is continue-on-error WITH a timeout, so an outright
+      # failure and a hang are both survivable.
       - name: Publish pre-release to Open VSX Registry
         if: steps.release-check.outputs.skip != 'true' && env.OVSX_PAT != ''
+        timeout-minutes: 20
         run: |
           echo "::group::[CI:PRERELEASE:PUBLISH:OVSX] Publishing pre-release to Open VSX Registry"
           package_version=$(jq -r .version src/package.json)
@@ -527,6 +535,27 @@ jobs:
           else
             echo "::notice::[CI:PRERELEASE:PUBLISH:OVSX] Published xavier-arosemena.roo-plus ${package_version} as an Open VSX pre-release"
           fi
+          echo "::endgroup::"
+
+      # Post-publish visibility check. `vsce publish` returning success is NOT
+      # proof of publication: during the 2026-10 Marketplace incident the upload
+      # reported success while every /vspackage URL returned 404 and the publisher
+      # console returned `429 - Woah, that's a lot of requests`
+      # (RequestBlockedException, resource 'Concurrency', namespace 'VSID').
+      # Deliberately placed AFTER the Open VSX publish so a Marketplace probe can
+      # never delay or block the registry that actually ships, and deliberately
+      # advisory (`--advisory` exits 0) so it cannot fail the run either. It emits
+      # ::error:: annotations, which is where the visibility is expected.
+      - name: Verify the pre-release is visible in the VS Code Marketplace
+        if: steps.release-check.outputs.skip != 'true' && env.VSCE_PAT != ''
+        continue-on-error: true
+        timeout-minutes: 10
+        env:
+          MARKETPLACE_PUBLISHER: xavier-arosemena
+        run: |
+          echo "::group::[CI:PRERELEASE:PRESENCE] Verifying Marketplace visibility"
+          node scripts/verify-marketplace-presence.mjs --advisory --wait 300
+          echo "::notice::[CI:PRERELEASE:PRESENCE] visibility check finished (advisory — Open VSX is unaffected)"
           echo "::endgroup::"
 
       - name: Upload pre-release VSIX artifact

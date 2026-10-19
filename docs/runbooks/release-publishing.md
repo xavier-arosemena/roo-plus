@@ -88,6 +88,11 @@ Incident that motivated the guards:
 > manually with
 > `npx @vscode/vsce publish --packagePath bin/roo-plus-<version>.vsix` (or add a
 > dedicated dispatch input) once the Marketplace accepts publishes again.
+>
+> ⚠️ **If the listing itself was deleted** (2026-10 incident), the backfill target
+> no longer exists: re-create it with the same command under a **fresh** patch
+> number, then confirm visibility with
+> [`scripts/verify-marketplace-presence.mjs`](../../scripts/verify-marketplace-presence.mjs:1).
 
 > ⚠️ **`fetch-depth: 0` on the pre-release checkout is load-bearing.** Removing it
 > reintroduces the shallow-history blind spot; the fail-closed guard turns that
@@ -143,6 +148,120 @@ gh release view v<version> --json tagName,isPrerelease,assets --jq '"\(.tagName)
 Both registries are **CDN-cached** — allow several minutes before concluding a
 publish failed (a `--skip-duplicate` publish of an already-present version is a
 no-op, not an error).
+
+## Automation: the presence gate
+
+`vsce publish` reporting success is **not** proof of publication. Between
+2026-09-25 and 2026-10-06 the listing `xavier-arosemena.roo-plus` disappeared from
+the public gallery while CI stayed green: every `/vspackage` URL returned 404 and
+the publisher console returned
+`429 - Woah, that's a lot of requests` (`RequestBlockedException`, resource
+`Concurrency`, namespace `VSID`).
+
+[`scripts/verify-marketplace-presence.mjs`](../../scripts/verify-marketplace-presence.mjs:1)
+automates the probe that found it:
+
+- **What** — `extensionquery` for `xavier-arosemena.roo-plus`, then the committed
+  version inside `.versions[]`.
+- **Where** — after every Marketplace publish (both channels) and in
+  [`release-validation.yml`](../../.github/workflows/release-validation.yml:144)
+  as `--presence-only` (a PR legitimately carries an unpublished version).
+- **Semantics** — `present` → exit 0 · `absent` / `version-missing` → exit 1 ·
+  `unreachable` → exit 0 + `::warning::`.
+- **Why every call site passes `--advisory`** — it downgrades a definitive failure
+  to an `::error::` annotation with a zero exit. The Marketplace must never block
+  or delay Open VSX; the gate reports, it does not gate the release.
+
+**Invariant:** the Open VSX publish step must never depend on the VS Code
+Marketplace — the VS step is `continue-on-error` **and** carries
+`timeout-minutes` (a hang is not covered by `continue-on-error`), and the stable
+channel publishes Open VSX **first**. Re-verify after touching either workflow:
+
+```bash
+sed -n '/Publish pre-release to Open VSX/,/run: |/p' .github/workflows/pre-release-publish.yml | grep -c 'publish-vsce'   # expect 0
+```
+
+Local: `pnpm verify:marketplace-presence` (strict) · `--advisory` ·
+`--wait 300` (CDN polling). Tests:
+`node --test scripts/verify-marketplace-presence.spec.mjs`.
+
+## Credential triage — `verify-pat` before every publish
+
+`npx @vscode/vsce verify-pat xavier-arosemena` is the cheapest gate there is: run
+it before any publish attempt and **never publish when it fails**. Read the error
+literally, because two very different problems look alike:
+
+| Error                                                                          | Meaning                                                                                                                                                                                                     | Action                                                                     |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `TF400813: The user 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' is not authorized…` | That GUID is Azure DevOps' **Anonymous** identity — no user was resolved at all. The token was rejected outright: expired, revoked, mistyped, or created for an organization the caller does not belong to. | Create a fresh PAT (`Marketplace → Manage`, _Show all scopes_) and retry.  |
+| `TF400813` naming **your** real user id                                        | Token is valid; the identity is not authorized for this publisher                                                                                                                                           | Publisher membership — escalate (`vsmarketplace@microsoft.com`).           |
+| `401` / `Access Denied`                                                        | Token invalid, expired, or missing `Marketplace → Manage`                                                                                                                                                   | Recreate the token.                                                        |
+| JSON `429` with `Retry-After`                                                  | Write throttle (`RequestBlockedException`, resource `Concurrency`, namespace `VSID`)                                                                                                                        | Wait the header out; do not retry in a loop.                               |
+| Console page `429 - Woah, that's a lot of requests`                            | Front-door rate limit on the browser session / IP — **not** a publisher verdict                                                                                                                             | Stop reloading the console; verify the credential through the API instead. |
+
+> **Assert the token length before drawing any conclusion.** Modern Azure DevOps
+> PATs are **84 characters** (the older format was 52). An **11-character** value
+> is the literal shell placeholder `<new token>`. A garbage value and a revoked
+> token produce the _same_ `TF400813 … 'aaaa…'` (Anonymous) response, so a
+> mis-pasted token will read as a publisher problem for as long as you let it.
+
+> **Confirmed 2026-10-19 — the publisher endpoint throttles reads too.** With a
+> valid 84-character `Marketplace: Manage` token, `GET /_apis/gallery/publishers/xavier-arosemena/vsextensions`
+> returns `HTTP 429` with `x-tfs-serviceerror: Request was blocked due to exceeding
+usage of resource 'Concurrency' in namespace 'VSID'` and **no `Retry-After`**
+> header — so there is no advertised reset window to wait out. The same error has
+> blocked `vsce verify-pat` and `vsce publish` since 2026-09-15.
+
+Confirm the token against Azure DevOps directly, bypassing both `vsce` and the
+Marketplace console:
+
+```bash
+# who does this PAT resolve to? (empty=Anonymous, 401=dead token)
+curl -s -u ":$VSCE_PAT" \
+  "https://app.vssps.visualstudio.com/_apis/profile/profiles/me?api-version=7.1-preview.3" \
+  | jq -r '.displayName // .emailAddress // "ANONYMOUS"'
+
+# can it reach the organization at all?
+curl -s -o /dev/null -w "%{http_code}\n" -u ":$VSCE_PAT" \
+  "https://dev.azure.com/<org>/_apis/projects?api-version=7.1"
+```
+
+> **A least-privilege token cannot be probed anywhere except the gallery.**
+> `/_apis/profile/profiles/me` requires `vso.profile` and `/_apis/projects`
+> requires `vso.project`, so a `Marketplace: Manage`-only token returns 401/203
+> from both **by design** — that is not evidence the token is dead, and piping the
+> response into `jq` yields a parse error instead of a verdict. To test liveness in
+> isolation, mint a throwaway token with `User Profile: Read` **plus**
+> `Marketplace: Manage`, run the probes, then revoke it. Never widen the token that
+> CI stores.
+
+> ⚠️ **Never let `vsce` persist the token.** A headless host logs
+> `Failed to open credential store. Falling back to storing secrets clear-text in:
+/root/.vsce` and writes the PAT in the clear. Prefer the `VSCE_PAT` environment
+> variable for one-shot commands, and `rm -rf ~/.vsce` after; rotate any token that
+> was ever stored that way.
+
+### Credential register
+
+| Field             | Value                                                                                                                                                                                                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Token name        | `vsce-roo-plus-marketplace-manage-20261019`                                                                                                                                                                                                                                                           |
+| Organization      | `arosemenaxavier` (the previously used `xavier-arosemena` slug now returns 404 from `dev.azure.com`; either the org was renamed, in which case its ID — and the publisher binding — is preserved, or a new org exists and the publisher is orphaned. Confirm the org ID before trusting the binding.) |
+| Scope             | Custom defined → `Marketplace` → **Manage** only. Nothing else ticked: no `Full access`, no Code/Build, no separate `Marketplace: Publish`/`Acquire`/`Read`.                                                                                                                                          |
+| Expires           | **2027-10-18** (365 days — the maximum)                                                                                                                                                                                                                                                               |
+| Stored in         | GitHub environments `marketplace-prerelease` and `marketplace-production` → secret `VSCE_PAT`                                                                                                                                                                                                         |
+| Rotation reminder | **2027-10-04** (two weeks before expiry)                                                                                                                                                                                                                                                              |
+
+Two dated constraints bind **before** the expiry does:
+
+- **2026-12-01** — global PATs stop working. An organization-scoped token survives
+  this date; a token scoped to _All accessible organizations_ does not, whatever its
+  2027 expiry says.
+- **Before 2026-11-15** — migrate to Microsoft Entra ID
+  (`vsce publish --azure-credential`) and delete `VSCE_PAT` entirely.
+
+Do not let the 2027 expiry date create false comfort: the retirement is the earlier
+deadline, and a global token's printed expiry is meaningless after 2026-12-01.
 
 ## Recovery: a version was consumed by mistake
 
