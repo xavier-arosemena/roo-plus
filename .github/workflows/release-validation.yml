@@ -129,8 +129,24 @@ jobs:
 
                   artifact_name=$(unzip -p "$vsix_path" extension/package.json | jq -r '.name')
                   artifact_publisher=$(unzip -p "$vsix_path" extension/package.json | jq -r '.publisher')
-               
+
                   test "$artifact_name" = "roo-plus"
                   test "$artifact_publisher" = "xavier-arosemena"
                   echo "::notice::[CI:RELEASE-VALIDATION:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher"
+                  echo "::endgroup::"
+
+            # Presence assertion (advisory). The 2026-09-25 -> 2026-10-06 window in
+            # which xavier-arosemena.roo-plus silently disappeared from the public
+            # Marketplace was only discovered by hand-probing the gallery API; this
+            # makes that probe automatic. `--presence-only` because a PR legitimately
+            # carries a version that is not published yet, and `--advisory` because a
+            # Marketplace state must never fail validation.
+            - name: Assert the extension still exists in the public Marketplace
+              continue-on-error: true
+              timeout-minutes: 5
+              env:
+                  MARKETPLACE_PUBLISHER: xavier-arosemena
+              run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:PRESENCE] Asserting Marketplace presence"
+                  node scripts/verify-marketplace-presence.mjs --presence-only --advisory
                   echo "::endgroup::"
