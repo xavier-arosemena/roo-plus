@@ -1098,15 +1098,15 @@
 			"description": "Defina o tamanho da fonte (em pixels) do chat do Roo+. Deixe no padrão para corresponder ao tamanho da fonte do VS Code.",
 			"reset": "Usar o padrão do VS Code"
 		},
-		"autoCloseZooOpenedFiles": {
+		"autoCloseRooOpenedFiles": {
 			"label": "Fechar automaticamente arquivos abertos pelo Roo+",
 			"description": "Quando ativada, as abas do editor que o Roo+ abriu temporariamente para um diff sao fechadas automaticamente apos aceitar ou rejeitar a modificacao. As abas que o usuario ja tinha abertas antes da edicao nunca sao fechadas automaticamente."
 		},
-		"autoCloseZooOpenedFilesAfterUserEdited": {
+		"autoCloseRooOpenedFilesAfterUserEdited": {
 			"label": "Fechar automaticamente mesmo apos interacao do usuario",
 			"description": "Quando ativada, as abas abertas pelo Roo+ sao fechadas mesmo que o usuario tenha clicado ou digitado no arquivo ou diff durante a sessao de edicao. Nao tem efeito se 'Fechar automaticamente arquivos abertos pelo Roo+' estiver desativada."
 		},
-		"autoCloseZooOpenedNewFiles": {
+		"autoCloseRooOpenedNewFiles": {
 			"label": "Fechar automaticamente novos arquivos criados",
 			"description": "Quando ativada, as abas de arquivos que o Roo+ criou (em vez de modificar) tambem sao fechadas automaticamente apos aceitar a modificacao."
 		}

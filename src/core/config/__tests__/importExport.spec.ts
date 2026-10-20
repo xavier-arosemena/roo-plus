@@ -14,6 +14,7 @@ import { importSettings, importSettingsFromFile, importSettingsWithFeedback, exp
 import { ProviderSettingsManager } from "../ProviderSettingsManager"
 import { ContextProxy } from "../ContextProxy"
 import { CustomModesManager } from "../CustomModesManager"
+import { LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS } from "../legacySettingMigrations"
 import { safeWriteJson } from "../../../utils/safeWriteJson"
 
 import type { Mock } from "vitest"
@@ -1249,6 +1250,55 @@ describe("importExport", () => {
 				})
 			})
 
+			it("should warn and skip a genuinely unknown global setting key", async () => {
+				;(vscode.window.showOpenDialog as Mock).mockResolvedValue([{ fsPath: "/mock/path/settings.json" }])
+
+				const mockFileContent = JSON.stringify({
+					providerProfiles: {
+						currentApiConfigName: "valid-profile",
+						apiConfigs: {
+							"valid-profile": {
+								apiProvider: "openai" as ProviderName,
+								apiKey: "test-key",
+								id: "valid-id",
+							},
+						},
+					},
+					globalSettings: {
+						customInstructions: "Keep this setting",
+						totallyUnknownZooKey: true,
+					},
+				})
+
+				;(fs.readFile as Mock).mockResolvedValue(mockFileContent)
+				mockProviderSettingsManager.export.mockResolvedValue({
+					currentApiConfigName: "default",
+					apiConfigs: { default: { apiProvider: "anthropic" as ProviderName, id: "default-id" } },
+				})
+				mockProviderSettingsManager.listConfig.mockResolvedValue([
+					{ name: "valid-profile", id: "valid-id", apiProvider: "openai" as ProviderName },
+				])
+
+				const result = await importSettings({
+					providerSettingsManager: mockProviderSettingsManager,
+					contextProxy: mockContextProxy,
+					customModesManager: mockCustomModesManager,
+				})
+
+				expect(result.success).toBe(true)
+				expect((result as { warnings?: string[] }).warnings).toEqual(
+					expect.arrayContaining([
+						expect.stringContaining(
+							'Setting "globalSettings.totallyUnknownZooKey" was skipped: Unknown setting.',
+						),
+					]),
+				)
+
+				const importedGlobalSettings = mockContextProxy.setValues.mock.calls[0][0]
+				expect(importedGlobalSettings).toEqual({ customInstructions: "Keep this setting" })
+				expect(importedGlobalSettings).not.toHaveProperty("totallyUnknownZooKey")
+			})
+
 			it("should skip invalid customModes without aborting unrelated settings import", async () => {
 				;(vscode.window.showOpenDialog as Mock).mockResolvedValue([{ fsPath: "/mock/path/settings.json" }])
 
@@ -1358,6 +1408,85 @@ describe("importExport", () => {
 
 				showWarningMessageSpy.mockRestore()
 				consoleWarnSpy.mockRestore()
+			})
+		})
+
+		describe("legacy auto-close settings import migration", () => {
+			async function importGlobalSettings(globalSettings: Record<string, unknown>) {
+				;(vscode.window.showOpenDialog as Mock).mockResolvedValue([{ fsPath: "/mock/path/settings.json" }])
+				;(fs.readFile as Mock).mockResolvedValue(
+					JSON.stringify({
+						providerProfiles: {
+							currentApiConfigName: "valid-profile",
+							apiConfigs: {
+								"valid-profile": {
+									apiProvider: "openai" as ProviderName,
+									apiKey: "test-key",
+									id: "valid-id",
+								},
+							},
+						},
+						globalSettings,
+					}),
+				)
+				mockProviderSettingsManager.export.mockResolvedValue({
+					currentApiConfigName: "default",
+					apiConfigs: { default: { apiProvider: "anthropic" as ProviderName, id: "default-id" } },
+				})
+				mockProviderSettingsManager.listConfig.mockResolvedValue([
+					{ name: "valid-profile", id: "valid-id", apiProvider: "openai" as ProviderName },
+				])
+
+				return importSettings({
+					providerSettingsManager: mockProviderSettingsManager,
+					contextProxy: mockContextProxy,
+					customModesManager: mockCustomModesManager,
+				})
+			}
+
+			it("stores legacy-only auto-close settings under the renamed keys without unknown-setting warnings", async () => {
+				const legacyGlobalSettings = Object.fromEntries(
+					LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS.map(({ legacyKey }) => [legacyKey, true]),
+				)
+
+				const result = await importGlobalSettings(legacyGlobalSettings)
+
+				expect(result.success).toBe(true)
+				expect((result as { warnings?: string[] }).warnings ?? []).not.toEqual(
+					expect.arrayContaining([expect.stringContaining("Unknown setting")]),
+				)
+				expect(mockContextProxy.setValues).toHaveBeenCalledWith(
+					Object.fromEntries(LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS.map(({ newKey }) => [newKey, true])),
+				)
+			})
+
+			it("prefers the current key when both legacy and renamed keys are imported", async () => {
+				const entry = LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS.find(
+					({ newKey }) => newKey === "autoCloseRooOpenedFiles",
+				)
+
+				if (!entry) {
+					throw new Error("Missing autoCloseRooOpenedFiles migration entry")
+				}
+
+				await importGlobalSettings({
+					[entry.legacyKey]: true,
+					[entry.newKey]: false,
+				})
+
+				expect(mockContextProxy.setValues).toHaveBeenCalledWith({ [entry.newKey]: false })
+			})
+
+			it("preserves a legacy false value when migrating", async () => {
+				const legacyGlobalSettings = Object.fromEntries(
+					LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS.map(({ legacyKey }) => [legacyKey, false]),
+				)
+
+				await importGlobalSettings(legacyGlobalSettings)
+
+				expect(mockContextProxy.setValues).toHaveBeenCalledWith(
+					Object.fromEntries(LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS.map(({ newKey }) => [newKey, false])),
+				)
 			})
 		})
 	})

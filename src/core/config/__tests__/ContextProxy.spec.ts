@@ -8,6 +8,7 @@ import { clearAllMocks } from "../../../test-utils/reset"
 import { makeExtensionContext, makeUri } from "../../../test-utils/vscode"
 
 import { ContextProxy } from "../ContextProxy"
+import { LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS } from "../legacySettingMigrations"
 
 vi.mock("vscode", () => ({
 	Uri: {
@@ -79,7 +80,10 @@ describe("ContextProxy", () => {
 			// 1. openRouterImageGenerationSettings
 			// 2. customCondensingPrompt
 			// 3. customSupportPrompts (for migrateOldDefaultCondensingPrompt)
-			expect(mockGlobalState.get).toHaveBeenCalledTimes(GLOBAL_STATE_KEYS.length + 3)
+			// + one get per legacy auto-close setting migration entry.
+			expect(mockGlobalState.get).toHaveBeenCalledTimes(
+				GLOBAL_STATE_KEYS.length + 3 + LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS.length,
+			)
 			for (const key of GLOBAL_STATE_KEYS) {
 				expect(mockGlobalState.get).toHaveBeenCalledWith(key)
 			}
@@ -109,8 +113,11 @@ describe("ContextProxy", () => {
 			const result = proxy.getGlobalState("apiProvider")
 			expect(result).toBe("deepseek")
 
-			// Original context should be called once during updateGlobalState (+3 for migration checks)
-			expect(mockGlobalState.get).toHaveBeenCalledTimes(GLOBAL_STATE_KEYS.length + 3) // From initialization + migration checks
+			// Original context should be called once during updateGlobalState (+3 for migration checks
+			// and one per legacy auto-close setting migration entry).
+			expect(mockGlobalState.get).toHaveBeenCalledTimes(
+				GLOBAL_STATE_KEYS.length + 3 + LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS.length,
+			)
 		})
 
 		it("should handle default values correctly", async () => {
@@ -346,6 +353,19 @@ describe("ContextProxy", () => {
 			expect(exported?.customModes).toBeUndefined()
 		})
 
+		it("exports the renamed auto-close settings and never the legacy keys", async () => {
+			for (const { newKey } of LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS) {
+				await proxy.setValue(newKey, true)
+			}
+
+			const exported = await proxy.export()
+
+			for (const { legacyKey, newKey } of LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS) {
+				expect(exported?.[newKey]).toBe(true)
+				expect(exported).not.toHaveProperty(legacyKey)
+			}
+		})
+
 		it("setValue('customModes', undefined) clears both cache and Memento", async () => {
 			// The startup legacy-mirror clear routes through setValue so the
 			// in-memory snapshot is dropped together with the persisted blob.
@@ -471,8 +491,18 @@ describe("ContextProxy", () => {
 				expect(mockGlobalState.update).toHaveBeenCalledWith(key, undefined)
 			}
 
-			// Total calls should include initial setup + reset operations
-			const expectedUpdateCalls = 2 + GLOBAL_STATE_KEYS.length
+			// Reset also explicitly clears the legacy auto-close keys so the
+			// re-initialization migration cannot resurrect their values.
+			for (const { legacyKey } of LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS) {
+				expect(mockGlobalState.update).toHaveBeenCalledWith(legacyKey, undefined)
+			}
+
+			for (const { newKey } of LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS) {
+				expect(proxy.getGlobalState(newKey)).toBeUndefined()
+			}
+
+			// Total calls should include initial setup + reset operations.
+			const expectedUpdateCalls = 2 + GLOBAL_STATE_KEYS.length + LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS.length
 			expect(mockGlobalState.update).toHaveBeenCalledTimes(expectedUpdateCalls)
 		})
 
@@ -505,6 +535,154 @@ describe("ContextProxy", () => {
 
 			// Should reinitialize caches
 			expect(initializeSpy).toHaveBeenCalledTimes(1)
+		})
+
+		it("should clear legacy auto-close keys on reset so values are not resurrected", async () => {
+			clearAllMocks()
+
+			const storage = new Map<string, unknown>()
+			for (const { legacyKey } of LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS) {
+				storage.set(legacyKey, true)
+			}
+
+			mockGlobalState.get.mockImplementation((key: string) => storage.get(key))
+			mockGlobalState.update.mockImplementation((key: string, value: unknown) => {
+				if (value === undefined) {
+					storage.delete(key)
+				} else {
+					storage.set(key, value)
+				}
+				return Promise.resolve()
+			})
+
+			const storageProxy = new ContextProxy(mockContext)
+			await storageProxy.initialize()
+
+			for (const { newKey } of LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS) {
+				expect(storageProxy.getGlobalState(newKey)).toBe(true)
+			}
+
+			await storageProxy.resetAllState()
+
+			for (const { legacyKey, newKey } of LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS) {
+				expect(mockGlobalState.update).toHaveBeenCalledWith(legacyKey, undefined)
+				expect(storageProxy.getGlobalState(newKey)).toBeUndefined()
+			}
+		})
+	})
+
+	describe("legacy auto-close settings migration", () => {
+		const migrationEntries = LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS
+		const newKeys = new Set<string>(migrationEntries.map(({ newKey }) => newKey))
+
+		const migrationUpdateCalls = () =>
+			mockGlobalState.update.mock.calls.filter(([key]: unknown[]) => newKeys.has(key as string))
+
+		it("migrates legacy true values to the renamed keys", async () => {
+			clearAllMocks()
+			const legacyKeys = new Set(migrationEntries.map(({ legacyKey }) => legacyKey))
+			mockGlobalState.get.mockImplementation((key: string) => (legacyKeys.has(key) ? true : undefined))
+
+			const migratedProxy = new ContextProxy(mockContext)
+			await migratedProxy.initialize()
+
+			for (const { newKey } of migrationEntries) {
+				expect(mockGlobalState.update).toHaveBeenCalledWith(newKey, true)
+				expect(migratedProxy.getGlobalState(newKey)).toBe(true)
+			}
+		})
+
+		it("preserves a legacy false value", async () => {
+			clearAllMocks()
+			const legacyKeys = new Set(migrationEntries.map(({ legacyKey }) => legacyKey))
+			mockGlobalState.get.mockImplementation((key: string) => (legacyKeys.has(key) ? false : undefined))
+
+			const migratedProxy = new ContextProxy(mockContext)
+			await migratedProxy.initialize()
+
+			for (const { newKey } of migrationEntries) {
+				expect(mockGlobalState.update).toHaveBeenCalledWith(newKey, false)
+				expect(migratedProxy.getGlobalState(newKey)).toBe(false)
+			}
+		})
+
+		it("keeps a current key value when both legacy and new keys are present", async () => {
+			clearAllMocks()
+			const entry = migrationEntries.find(({ newKey }) => newKey === "autoCloseRooOpenedFiles")
+
+			if (!entry) {
+				throw new Error("Missing autoCloseRooOpenedFiles migration entry")
+			}
+
+			mockGlobalState.get.mockImplementation((key: string) => {
+				if (key === entry.legacyKey) {
+					return true
+				}
+				if (key === entry.newKey) {
+					return false
+				}
+				return undefined
+			})
+
+			const migratedProxy = new ContextProxy(mockContext)
+			await migratedProxy.initialize()
+
+			expect(migratedProxy.getGlobalState(entry.newKey)).toBe(false)
+			expect(mockGlobalState.update).not.toHaveBeenCalledWith(entry.newKey, true)
+			expect(mockGlobalState.get).not.toHaveBeenCalledWith(entry.legacyKey)
+		})
+
+		it("does not migrate non-boolean legacy values", async () => {
+			clearAllMocks()
+			const legacyKeys = new Set(migrationEntries.map(({ legacyKey }) => legacyKey))
+			mockGlobalState.get.mockImplementation((key: string) => (legacyKeys.has(key) ? "not-a-boolean" : undefined))
+
+			const migratedProxy = new ContextProxy(mockContext)
+			await migratedProxy.initialize()
+
+			for (const { newKey } of migrationEntries) {
+				expect(mockGlobalState.update).not.toHaveBeenCalledWith(newKey, "not-a-boolean")
+				expect(migratedProxy.getGlobalState(newKey)).toBeUndefined()
+			}
+		})
+
+		it("does not delete legacy keys during migration", async () => {
+			clearAllMocks()
+			const legacyKeys = new Set(migrationEntries.map(({ legacyKey }) => legacyKey))
+			mockGlobalState.get.mockImplementation((key: string) => (legacyKeys.has(key) ? true : undefined))
+
+			const migratedProxy = new ContextProxy(mockContext)
+			await migratedProxy.initialize()
+
+			for (const { legacyKey } of migrationEntries) {
+				expect(mockGlobalState.update).not.toHaveBeenCalledWith(legacyKey, undefined)
+			}
+		})
+
+		it("is idempotent across repeated initialization", async () => {
+			clearAllMocks()
+
+			const storage = new Map<string, unknown>()
+			for (const { legacyKey } of migrationEntries) {
+				storage.set(legacyKey, true)
+			}
+
+			mockGlobalState.get.mockImplementation((key: string) => storage.get(key))
+			mockGlobalState.update.mockImplementation((key: string, value: unknown) => {
+				if (value === undefined) {
+					storage.delete(key)
+				} else {
+					storage.set(key, value)
+				}
+				return Promise.resolve()
+			})
+
+			const migratedProxy = new ContextProxy(mockContext)
+			await migratedProxy.initialize()
+			expect(migrationUpdateCalls()).toHaveLength(migrationEntries.length)
+
+			await migratedProxy.initialize()
+			expect(migrationUpdateCalls()).toHaveLength(migrationEntries.length)
 		})
 	})
 

@@ -18,6 +18,7 @@ import { ProviderSettingsManager, providerProfilesSchema } from "./ProviderSetti
 import { ContextProxy } from "./ContextProxy"
 import { CustomModesManager } from "./CustomModesManager"
 import { downgradeLegacyRooConfig, ROUTER_REMOVAL_IMPORT_WARNING } from "./routerRemoval"
+import { LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS } from "./legacySettingMigrations"
 import { resolveDefaultSaveUri, saveLastExportPath } from "../../utils/export"
 import { t } from "../../i18n"
 
@@ -80,6 +81,8 @@ function sanitizeProviderConfig(configName: string, apiConfig: unknown): { confi
 
 const globalSettingsShape = globalSettingsSchema.shape as Record<keyof GlobalSettings, z.ZodTypeAny>
 
+type LegacyAutoCloseSettingKey = (typeof LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS)[number]["newKey"]
+
 function formatZodIssues(error: ZodError): string {
 	return error.issues.map((issue) => `[${issue.path.join(".") || "value"}]: ${issue.message}`).join(", ")
 }
@@ -102,25 +105,37 @@ function sanitizeGlobalSettings(rawGlobalSettings: unknown): {
 		return { sanitizedGlobalSettings: sanitizedGlobalSettings as GlobalSettings, warnings }
 	}
 
+	const rawKeys = new Set(Object.keys(rawGlobalSettings))
+	const legacyKeyToCurrentKey = new Map<string, LegacyAutoCloseSettingKey>(
+		LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS.map(({ legacyKey, newKey }) => [legacyKey, newKey]),
+	)
+
 	for (const [key, rawValue] of Object.entries(rawGlobalSettings)) {
 		const path = `globalSettings.${key}`
-		const schema = globalSettingsShape[key as keyof GlobalSettings]
+		const legacyMigratedKey = legacyKeyToCurrentKey.get(key)
+		const currentKey = legacyMigratedKey ?? (key as keyof GlobalSettings)
+		const schema = globalSettingsShape[currentKey]
 
 		if (!schema) {
 			warnings.push(`Setting "${path}" was skipped: Unknown setting.`)
 			continue
 		}
 
+		// When both the legacy and renamed keys are present, the current key wins.
+		if (legacyMigratedKey && rawKeys.has(legacyMigratedKey)) {
+			continue
+		}
+
 		let valueToValidate = rawValue
 
-		if (key === "imageGenerationProvider" && rawValue === "roo") {
+		if (currentKey === "imageGenerationProvider" && rawValue === "roo") {
 			warnings.push(`Setting "${path}" used unsupported value "roo" and was cleared during import.`)
 			valueToValidate = undefined
 		}
 
 		const result = schema.safeParse(valueToValidate)
 		if (result.success) {
-			sanitizedGlobalSettings[key] = result.data
+			sanitizedGlobalSettings[currentKey] = result.data
 		} else {
 			warnings.push(`Setting "${path}" was skipped: ${formatZodIssues(result.error)}`)
 		}

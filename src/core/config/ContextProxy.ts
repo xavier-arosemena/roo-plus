@@ -23,6 +23,7 @@ import {
 import { logger } from "../../utils/logging"
 import { supportPrompt } from "../../shared/support-prompt"
 import { downgradeLegacyRooConfig } from "./routerRemoval"
+import { LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS } from "./legacySettingMigrations"
 
 type GlobalStateKey = keyof GlobalState
 type SecretStateKey = keyof SecretState
@@ -104,6 +105,9 @@ export class ContextProxy {
 		// Migration: Clear old default condensing prompt so users get the improved v2 default
 		await this.migrateOldDefaultCondensingPrompt()
 
+		// Migration: Move legacy auto-close setting values to their renamed keys
+		await this.migrateLegacyAutoCloseSettings()
+
 		this._isInitialized = true
 	}
 
@@ -180,6 +184,40 @@ export class ContextProxy {
 		} catch (error) {
 			logger.error(
 				`Error during old default condensing prompt migration: ${error instanceof Error ? error.message : String(error)}`,
+			)
+		}
+	}
+
+	/**
+	 * Migrates the legacy auto-close settings to their renamed
+	 * `autoCloseRooOpened*` keys.
+	 *
+	 * Only boolean values are migrated so a persisted `false` is preserved
+	 * (never rely on truthiness here). Legacy keys are intentionally NOT deleted:
+	 * keeping them allows a rollback to an older build without data loss.
+	 */
+	private async migrateLegacyAutoCloseSettings() {
+		try {
+			for (const { legacyKey, newKey } of LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS) {
+				// The current key wins when a value already exists.
+				if (this.stateCache[newKey] !== undefined) {
+					continue
+				}
+
+				const legacyValue = this.originalContext.globalState.get<unknown>(legacyKey)
+
+				if (typeof legacyValue !== "boolean") {
+					continue
+				}
+
+				await this.updateGlobalState(newKey, legacyValue)
+				logger.debug(`[ContextProxy] Migrated legacy setting "${legacyKey}" to "${newKey}"`)
+			}
+		} catch (error) {
+			logger.error(
+				`Error during legacy auto-close settings migration: ${
+					error instanceof Error ? error.message : String(error)
+				}`,
 			)
 		}
 	}
@@ -593,6 +631,13 @@ export class ContextProxy {
 
 		await Promise.all([
 			...GLOBAL_STATE_KEYS.map((key) => this.originalContext.globalState.update(key, undefined)),
+			// This is an explicit user reset, not migration deletion. The activation
+			// migration deliberately leaves legacy keys in place for rollback safety,
+			// so a reset must also clear them to prevent `initialize()` from
+			// resurrecting their values into the renamed keys.
+			...LEGACY_AUTO_CLOSE_SETTING_KEY_MIGRATIONS.map(({ legacyKey }) =>
+				this.originalContext.globalState.update(legacyKey, undefined),
+			),
 			...SECRET_STATE_KEYS.map((key) => this.originalContext.secrets.delete(key)),
 			...GLOBAL_SECRET_KEYS.map((key) => this.originalContext.secrets.delete(key)),
 		])

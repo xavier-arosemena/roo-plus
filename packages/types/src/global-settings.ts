@@ -22,18 +22,18 @@ import { languagesSchema } from "./vscode.js"
 export const DEFAULT_WRITE_DELAY_MS = 1000
 
 /**
- * Default values for the "auto-close files Zoo opened" settings.
+ * Default values for the "auto-close files Roo+ opened" settings.
  *
  * These are defined once here and consumed by every site that reads the setting
  * (DiffViewProvider save/revert, ClineProvider state serialization, and the
  * UISettings checkboxes) so there is a single source of truth for the default
- * behavior. Auto-closing edited tabs is opt-in: by default, files Zoo edits stay
+ * behavior. Auto-closing edited tabs is opt-in: by default, files Roo+ edits stay
  * open in the editor (the long-standing behavior). Users who want to save
  * context tokens by closing the edited tab after each edit can enable it.
  */
-export const DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES = false
-export const DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED = false
-export const DEFAULT_AUTO_CLOSE_ZOO_OPENED_NEW_FILES = false
+export const DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES = false
+export const DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES_AFTER_USER_EDITED = false
+export const DEFAULT_AUTO_CLOSE_ROO_OPENED_NEW_FILES = false
 
 /**
  * Default fuzzy matching threshold for the multi-search-replace diff strategy.
@@ -211,9 +211,9 @@ export const globalSettingsSchema = z.object({
 	execaShellPath: z.string().optional(),
 
 	diagnosticsEnabled: z.boolean().optional(),
-	autoCloseZooOpenedFiles: z.boolean().optional(),
-	autoCloseZooOpenedFilesAfterUserEdited: z.boolean().optional(),
-	autoCloseZooOpenedNewFiles: z.boolean().optional(),
+	autoCloseRooOpenedFiles: z.boolean().optional(),
+	autoCloseRooOpenedFilesAfterUserEdited: z.boolean().optional(),
+	autoCloseRooOpenedNewFiles: z.boolean().optional(),
 
 	rateLimitSeconds: z.number().optional(),
 	experiments: experimentsSchema.optional(),

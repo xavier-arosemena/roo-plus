@@ -1098,15 +1098,15 @@
 			"description": "Defineix la mida de la lletra (en píxels) del xat de Roo+. Deixa-ho al valor per defecte per coincidir amb la mida de lletra del VS Code.",
 			"reset": "Utilitza el valor per defecte del VS Code"
 		},
-		"autoCloseZooOpenedFiles": {
+		"autoCloseRooOpenedFiles": {
 			"label": "Tanca automaticament els fitxers oberts per Roo+",
 			"description": "Quan esta activat, les pestanyes de l'editor que Roo+ ha obert temporalment per a un diff es tanquen automaticament despres d'acceptar o rebutjar el canvi. Les pestanyes que l'usuari ja tenia obertes abans de l'edicio mai no es tanquen automaticament."
 		},
-		"autoCloseZooOpenedFilesAfterUserEdited": {
+		"autoCloseRooOpenedFilesAfterUserEdited": {
 			"label": "Tanca automaticament fins i tot despres de la interaccio de l'usuari",
 			"description": "Quan esta activat, les pestanyes obertes per Roo+ es tanquen fins i tot si l'usuari ha fet clic o ha escrit al fitxer o al diff durant la sessio d'edicio. No te cap efecte si 'Tanca automaticament els fitxers oberts per Roo+' esta desactivat."
 		},
-		"autoCloseZooOpenedNewFiles": {
+		"autoCloseRooOpenedNewFiles": {
 			"label": "Tanca automaticament els fitxers nous creats",
 			"description": "Quan esta activat, les pestanyes dels fitxers que Roo+ ha creat (en lloc de modificar) tambe es tanquen automaticament despres d'acceptar el canvi."
 		}
