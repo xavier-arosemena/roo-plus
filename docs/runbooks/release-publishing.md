@@ -28,6 +28,14 @@ What this changes for this repository:
 - **`verify-marketplace-presence` now reports a tombstone, not a regression.** `absent`
   is the expected, permanent state; the check is retained so an unexpected reappearance
   (or restoration) is noticed.
+- **`VSCE_PAT` was deleted from the `marketplace-prerelease` environment.** The
+  pre-release channel is Open VSX-only by construction: the `env.VSCE_PAT != ''` gates
+  skip the VS publish, the presence probe, and the re-surface step, so a pre-release
+  run cannot go red (or stall) on a registry that no longer exists. The
+  `marketplace-production` secret is untouched for the stable channel; re-add the
+  prerelease secret with
+  `gh secret set VSCE_PAT --env marketplace-prerelease` only if a Marketplace target
+  ever comes back.
 
 Evidence kept for the record: `extensionquery` returns `TotalCount 0` against a healthy
 control; every `/vspackage` URL returns 404; `/publishers/xavier-arosemena` returns `200`
