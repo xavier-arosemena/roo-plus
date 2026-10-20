@@ -6,6 +6,34 @@ the guard chain that stops them hijacking each other. Versioning policy:
 Incident that motivated the guards:
 [`docs/incidents/2026-09-25-prerelease-guard-bypass-3.88.10.md`](../incidents/2026-09-25-prerelease-guard-bypass-3.88.10.md).
 
+## ⛔ Status: the Marketplace listing was removed by enforcement (2026-10-20)
+
+The VS Code Marketplace listing `xavier-arosemena.roo-plus` **no longer exists**, and
+publisher `xavier-arosemena` is blocked. VS Marketplace Support confirmed on 2026-10-20
+that this was done "in accordance with the Visual Studio Marketplace Publisher Agreement
+and the Terms of Use", and that they "will not be reinstating" (representative
+`733be9c8`).
+
+What this changes for this repository:
+
+- **The Marketplace is not a publish target any more.** It is not "temporarily
+  unavailable"; there is nothing to wait out, backfill, or re-create. The
+  `429 / VSID Concurrency` block seen from 2026-09-15 onward was the enforcement action
+  presenting as a rate limit.
+- **Open VSX is the only registry.** It carries every version through `3.89.0`, and both
+  publish workflows already treat the Marketplace as best-effort.
+- **Never re-publish under another publisher to work around the decision.** Publishing
+  the same extension from a new publisher after an enforcement action is circumvention
+  and can escalate a publisher-level block into an account-level one.
+- **`verify-marketplace-presence` now reports a tombstone, not a regression.** `absent`
+  is the expected, permanent state; the check is retained so an unexpected reappearance
+  (or restoration) is noticed.
+
+Evidence kept for the record: `extensionquery` returns `TotalCount 0` against a healthy
+control; every `/vspackage` URL returns 404; `/publishers/xavier-arosemena` returns `200`
+with `"extensions":[]`. Pre-enforcement last known good: `3.88.10` → HTTP 200 on
+2026-09-25.
+
 ## Channels and triggers
 
 | Channel     | Workflow                                                                       | Trigger                                    | Ref gate                        |
@@ -89,10 +117,10 @@ Incident that motivated the guards:
 > `npx @vscode/vsce publish --packagePath bin/roo-plus-<version>.vsix` (or add a
 > dedicated dispatch input) once the Marketplace accepts publishes again.
 >
-> ⚠️ **If the listing itself was deleted** (2026-10 incident), the backfill target
-> no longer exists: re-create it with the same command under a **fresh** patch
-> number, then confirm visibility with
-> [`scripts/verify-marketplace-presence.mjs`](../../scripts/verify-marketplace-presence.mjs:1).
+> ⚠️ **The listing was removed by enforcement on 2026-10-20** (see the status section at
+> the top of this runbook). There is no backfill target and no re-publish path: the
+> publisher is blocked and Support has confirmed no reinstatement. Do not attempt to
+> re-create the listing under another publisher.
 
 > ⚠️ **`fetch-depth: 0` on the pre-release checkout is load-bearing.** Removing it
 > reintroduces the shallow-history blind spot; the fail-closed guard turns that

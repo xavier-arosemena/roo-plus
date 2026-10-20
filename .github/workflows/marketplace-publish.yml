@@ -390,7 +390,7 @@ jobs:
         if: steps.verify-vsce-presence.outputs.verified == 'false'
         run: |
           package_version=$(node -p "require('./src/package.json').version")
-          echo "::warning::[CI:MARKETPLACE:SUMMARY] xavier-arosemena.roo-plus ${package_version} is NOT visible in the public Marketplace (status: ${{ steps.verify-vsce-presence.outputs.status }}). Open VSX is unaffected and this release is still DELIVERED; the Marketplace listing needs re-creation (npx @vscode/vsce publish) once the publisher is unblocked."
+          echo "::warning::[CI:MARKETPLACE:SUMMARY] xavier-arosemena.roo-plus ${package_version} is NOT visible in the public Marketplace (status: ${{ steps.verify-vsce-presence.outputs.status }}). This is EXPECTED: the listing was removed by enforcement on 2026-10-20 and will not be reinstated. Open VSX is unaffected and this release is still DELIVERED — see docs/runbooks/release-publishing.md §Status."
           {
             echo ""
             echo "| VS Code Marketplace | ⚠️ not visible in the public gallery |"
@@ -406,12 +406,12 @@ jobs:
         if: steps.publish-vsce.outcome == 'failure'
         run: |
           package_version=$(node -p "require('./src/package.json').version")
-          echo "::warning::[CI:MARKETPLACE:SUMMARY] xavier-arosemena.roo-plus ${package_version} was published to Open VSX but NOT to the VS Code Marketplace (the Marketplace is currently unavailable). The stable release is considered DELIVERED on Open VSX; re-run this workflow once VS Marketplace publishes succeed again."
+          echo "::warning::[CI:MARKETPLACE:SUMMARY] xavier-arosemena.roo-plus ${package_version} was published to Open VSX but NOT to the VS Code Marketplace (the listing was removed by enforcement and will not be reinstated). The stable release is considered DELIVERED on Open VSX; see docs/runbooks/release-publishing.md §Status."
           {
             echo "## Stable publish summary — \`${package_version}\`"
             echo ""
             echo "| Registry | Result |"
             echo "| --- | --- |"
             echo "| Open VSX | ✅ published |"
-            echo "| VS Code Marketplace | ⚠️ failed (Marketplace currently unavailable) |"
+            echo "| VS Code Marketplace | ⛔ unavailable (listing removed by enforcement 2026-10-20) |"
           } >> "$GITHUB_STEP_SUMMARY"

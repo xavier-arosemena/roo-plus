@@ -306,7 +306,7 @@ async function main() {
     logError(TAG, detail)
     logError(
       TAG,
-      "The Marketplace is advisory in this workflow — Open VSX is unaffected. Re-create the listing with `npx @vscode/vsce publish` once the publisher is unblocked (docs/runbooks/release-publishing.md).",
+      "The Marketplace is advisory in this workflow — Open VSX is unaffected. The listing was removed by enforcement on 2026-10-20 and will not be reinstated; see docs/runbooks/release-publishing.md §Status. Do not re-publish under another publisher.",
     )
     return 0
   }
@@ -314,7 +314,7 @@ async function main() {
   logError(TAG, detail)
   logError(
     TAG,
-    "Run `npx @vscode/vsce verify-pat <publisher>` then `npx @vscode/vsce publish` and re-check `docs/runbooks/release-publishing.md`.",
+    "If this is the enforced removal of 2026-10-20 there is nothing to fix here — see `docs/runbooks/release-publishing.md` §Status.",
   )
   return 1
 }
