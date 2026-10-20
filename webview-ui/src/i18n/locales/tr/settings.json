@@ -1098,15 +1098,15 @@
 			"description": "Roo+ sohbeti için yazı tipi boyutunu (piksel cinsinden) ayarlayın. VS Code yazı tipi boyutuyla eşleşmesi için varsayılan değerde bırakın.",
 			"reset": "VS Code varsayılanını kullan"
 		},
-		"autoCloseZooOpenedFiles": {
+		"autoCloseRooOpenedFiles": {
 			"label": "Roo+ tarafindan acilan dosyalari otomatik kapat",
 			"description": "Etkinlestirildiginde, Roo+'nun bir diff icin gecici olarak actigi duzenleyici sekmeleri, degisiklik kabul edildikten veya reddedildikten sonra otomatik olarak kapatilir. Kullanicinin duzenleme oncesinde zaten acik oldugu sekmeler hicbir zaman otomatik olarak kapatilmaz."
 		},
-		"autoCloseZooOpenedFilesAfterUserEdited": {
+		"autoCloseRooOpenedFilesAfterUserEdited": {
 			"label": "Kullanici etkilesiminden sonra da otomatik kapat",
 			"description": "Etkinlestirildiginde, kullanici duzenleme oturumu sirasinda dosyaya veya diff'e tiklasa ya da yazsa bile Roo+ tarafindan acilan sekmeler kapatilir. 'Roo+ tarafindan acilan dosyalari otomatik kapat' devre disi ise etkisi yoktur."
 		},
-		"autoCloseZooOpenedNewFiles": {
+		"autoCloseRooOpenedNewFiles": {
 			"label": "Yeni olusturulan dosyalari otomatik kapat",
 			"description": "Etkinlestirildiginde, Roo+'nun olusturdugu (degistirmedigi) dosyalarin sekmeleri de degisiklik kabul edildikten sonra otomatik olarak kapatilir."
 		}

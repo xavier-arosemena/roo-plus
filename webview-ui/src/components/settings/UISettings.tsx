@@ -2,9 +2,9 @@ import { HTMLAttributes, useMemo } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import {
-	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES,
-	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED,
-	DEFAULT_AUTO_CLOSE_ZOO_OPENED_NEW_FILES,
+	DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES,
+	DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES_AFTER_USER_EDITED,
+	DEFAULT_AUTO_CLOSE_ROO_OPENED_NEW_FILES,
 } from "@roo-code/types"
 
 import { SetCachedStateField } from "./types"
@@ -22,9 +22,9 @@ interface UISettingsProps extends HTMLAttributes<HTMLDivElement> {
 	reasoningBlockCollapsed: boolean
 	enterBehavior: "send" | "newline"
 	chatFontSize?: number
-	autoCloseZooOpenedFiles?: boolean
-	autoCloseZooOpenedFilesAfterUserEdited?: boolean
-	autoCloseZooOpenedNewFiles?: boolean
+	autoCloseRooOpenedFiles?: boolean
+	autoCloseRooOpenedFilesAfterUserEdited?: boolean
+	autoCloseRooOpenedNewFiles?: boolean
 	setCachedStateField: SetCachedStateField<keyof ExtensionStateContextType>
 }
 
@@ -32,9 +32,9 @@ export const UISettings = ({
 	reasoningBlockCollapsed,
 	enterBehavior,
 	chatFontSize,
-	autoCloseZooOpenedFiles,
-	autoCloseZooOpenedFilesAfterUserEdited,
-	autoCloseZooOpenedNewFiles,
+	autoCloseRooOpenedFiles,
+	autoCloseRooOpenedFilesAfterUserEdited,
+	autoCloseRooOpenedNewFiles,
 	setCachedStateField,
 	...props
 }: UISettingsProps) => {
@@ -139,65 +139,65 @@ export const UISettings = ({
 						</div>
 					</SearchableSetting>
 
-					{/* Auto-close Zoo opened files */}
+					{/* Auto-close Roo opened files */}
 					<SearchableSetting
-						settingId="ui-auto-close-zoo-opened-files"
+						settingId="ui-auto-close-roo-opened-files"
 						section="ui"
-						label={t("settings:ui.autoCloseZooOpenedFiles.label")}>
+						label={t("settings:ui.autoCloseRooOpenedFiles.label")}>
 						<div className="flex flex-col gap-1">
 							<VSCodeCheckbox
-								checked={autoCloseZooOpenedFiles ?? DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES}
-								onChange={(e: any) => setCachedStateField("autoCloseZooOpenedFiles", e.target.checked)}
-								data-testid="auto-close-zoo-opened-files-checkbox">
-								<span className="font-medium">{t("settings:ui.autoCloseZooOpenedFiles.label")}</span>
+								checked={autoCloseRooOpenedFiles ?? DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES}
+								onChange={(e: any) => setCachedStateField("autoCloseRooOpenedFiles", e.target.checked)}
+								data-testid="auto-close-roo-opened-files-checkbox">
+								<span className="font-medium">{t("settings:ui.autoCloseRooOpenedFiles.label")}</span>
 							</VSCodeCheckbox>
 							<div className="text-vscode-descriptionForeground text-sm ml-5 mt-1">
-								{t("settings:ui.autoCloseZooOpenedFiles.description")}
+								{t("settings:ui.autoCloseRooOpenedFiles.description")}
 							</div>
 						</div>
 					</SearchableSetting>
 
-					{/* Auto-close Zoo opened files after user interaction */}
+					{/* Auto-close Roo opened files after user interaction */}
 					<SearchableSetting
-						settingId="ui-auto-close-zoo-opened-files-after-user-edited"
+						settingId="ui-auto-close-roo-opened-files-after-user-edited"
 						section="ui"
-						label={t("settings:ui.autoCloseZooOpenedFilesAfterUserEdited.label")}>
+						label={t("settings:ui.autoCloseRooOpenedFilesAfterUserEdited.label")}>
 						<div className="flex flex-col gap-1">
 							<VSCodeCheckbox
 								checked={
-									autoCloseZooOpenedFilesAfterUserEdited ??
-									DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED
+									autoCloseRooOpenedFilesAfterUserEdited ??
+									DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES_AFTER_USER_EDITED
 								}
 								onChange={(e: any) =>
-									setCachedStateField("autoCloseZooOpenedFilesAfterUserEdited", e.target.checked)
+									setCachedStateField("autoCloseRooOpenedFilesAfterUserEdited", e.target.checked)
 								}
-								data-testid="auto-close-zoo-opened-files-after-user-edited-checkbox">
+								data-testid="auto-close-roo-opened-files-after-user-edited-checkbox">
 								<span className="font-medium">
-									{t("settings:ui.autoCloseZooOpenedFilesAfterUserEdited.label")}
+									{t("settings:ui.autoCloseRooOpenedFilesAfterUserEdited.label")}
 								</span>
 							</VSCodeCheckbox>
 							<div className="text-vscode-descriptionForeground text-sm ml-5 mt-1">
-								{t("settings:ui.autoCloseZooOpenedFilesAfterUserEdited.description")}
+								{t("settings:ui.autoCloseRooOpenedFilesAfterUserEdited.description")}
 							</div>
 						</div>
 					</SearchableSetting>
 
-					{/* Auto-close Zoo opened new files */}
+					{/* Auto-close Roo opened new files */}
 					<SearchableSetting
-						settingId="ui-auto-close-zoo-opened-new-files"
+						settingId="ui-auto-close-roo-opened-new-files"
 						section="ui"
-						label={t("settings:ui.autoCloseZooOpenedNewFiles.label")}>
+						label={t("settings:ui.autoCloseRooOpenedNewFiles.label")}>
 						<div className="flex flex-col gap-1">
 							<VSCodeCheckbox
-								checked={autoCloseZooOpenedNewFiles ?? DEFAULT_AUTO_CLOSE_ZOO_OPENED_NEW_FILES}
+								checked={autoCloseRooOpenedNewFiles ?? DEFAULT_AUTO_CLOSE_ROO_OPENED_NEW_FILES}
 								onChange={(e: any) =>
-									setCachedStateField("autoCloseZooOpenedNewFiles", e.target.checked)
+									setCachedStateField("autoCloseRooOpenedNewFiles", e.target.checked)
 								}
-								data-testid="auto-close-zoo-opened-new-files-checkbox">
-								<span className="font-medium">{t("settings:ui.autoCloseZooOpenedNewFiles.label")}</span>
+								data-testid="auto-close-roo-opened-new-files-checkbox">
+								<span className="font-medium">{t("settings:ui.autoCloseRooOpenedNewFiles.label")}</span>
 							</VSCodeCheckbox>
 							<div className="text-vscode-descriptionForeground text-sm ml-5 mt-1">
-								{t("settings:ui.autoCloseZooOpenedNewFiles.description")}
+								{t("settings:ui.autoCloseRooOpenedNewFiles.description")}
 							</div>
 						</div>
 					</SearchableSetting>

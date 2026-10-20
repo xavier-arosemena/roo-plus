@@ -7,9 +7,9 @@ import delay from "delay"
 
 import {
 	type ClineSayTool,
-	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES,
-	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED,
-	DEFAULT_AUTO_CLOSE_ZOO_OPENED_NEW_FILES,
+	DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES,
+	DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES_AFTER_USER_EDITED,
+	DEFAULT_AUTO_CLOSE_ROO_OPENED_NEW_FILES,
 	DEFAULT_WRITE_DELAY_MS,
 } from "@roo-code/types"
 
@@ -358,9 +358,9 @@ export class DiffViewProvider {
 		await this.keepOrCloseEditedFile(
 			absolutePath,
 			this.userTouchedDiffEditor,
-			saveState?.autoCloseZooOpenedFiles ?? DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES,
-			saveState?.autoCloseZooOpenedFilesAfterUserEdited ?? DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED,
-			saveState?.autoCloseZooOpenedNewFiles ?? DEFAULT_AUTO_CLOSE_ZOO_OPENED_NEW_FILES,
+			saveState?.autoCloseRooOpenedFiles ?? DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES,
+			saveState?.autoCloseRooOpenedFilesAfterUserEdited ?? DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES_AFTER_USER_EDITED,
+			saveState?.autoCloseRooOpenedNewFiles ?? DEFAULT_AUTO_CLOSE_ROO_OPENED_NEW_FILES,
 		)
 
 		// Restore any preview tabs the diff evicted, reconstructing the user's
@@ -569,10 +569,10 @@ export class DiffViewProvider {
 			await this.keepOrCloseEditedFile(
 				absolutePath,
 				false,
-				revertState?.autoCloseZooOpenedFiles ?? DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES,
-				revertState?.autoCloseZooOpenedFilesAfterUserEdited ??
-					DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED,
-				revertState?.autoCloseZooOpenedNewFiles ?? DEFAULT_AUTO_CLOSE_ZOO_OPENED_NEW_FILES,
+				revertState?.autoCloseRooOpenedFiles ?? DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES,
+				revertState?.autoCloseRooOpenedFilesAfterUserEdited ??
+					DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES_AFTER_USER_EDITED,
+				revertState?.autoCloseRooOpenedNewFiles ?? DEFAULT_AUTO_CLOSE_ROO_OPENED_NEW_FILES,
 			)
 		}
 
@@ -647,16 +647,16 @@ export class DiffViewProvider {
 	// Decision table (evaluated in order; first match wins):
 	//   1. File was already open before the edit -> always keep (closing it would
 	//      be destructive; user-opened tabs are never auto-closed).
-	//   2. editType==="create" AND autoCloseZooOpenedNewFiles -> close the new file's tab.
+	//   2. editType==="create" AND autoCloseRooOpenedNewFiles -> close the new file's tab.
 	//   3. userTouchedDocument OR keepIfTouchedDiff -> the "keep if touched" guard
-	//      applies; it is overridden (close) only when BOTH autoCloseZooOpenedFiles
-	//      and autoCloseZooOpenedFilesAfterUserEdited are enabled. The override is a
+	//      applies; it is overridden (close) only when BOTH autoCloseRooOpenedFiles
+	//      and autoCloseRooOpenedFilesAfterUserEdited are enabled. The override is a
 	//      refinement of the base auto-close, so it has no effect when the base
 	//      setting is off.
-	//   4. autoCloseZooOpenedFiles=false -> keep the transiently-opened tab.
-	//   5. autoCloseZooOpenedFiles=true -> close the transiently-opened tab.
+	//   4. autoCloseRooOpenedFiles=false -> keep the transiently-opened tab.
+	//   5. autoCloseRooOpenedFiles=true -> close the transiently-opened tab.
 	//
-	// The default value of autoCloseZooOpenedFiles is false (opt-in), so by default
+	// The default value of autoCloseRooOpenedFiles is false (opt-in), so by default
 	// branch 4 applies and the edited file stays open. See DEFAULT_AUTO_CLOSE_* in
 	// @roo-code/types for the single source of truth for these defaults.
 	//
@@ -665,9 +665,9 @@ export class DiffViewProvider {
 	private async keepOrCloseEditedFile(
 		absolutePath: string,
 		keepIfTouchedDiff = false,
-		autoCloseZooOpenedFiles = DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES,
-		autoCloseZooOpenedFilesAfterUserEdited = DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED,
-		autoCloseZooOpenedNewFiles = DEFAULT_AUTO_CLOSE_ZOO_OPENED_NEW_FILES,
+		autoCloseRooOpenedFiles = DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES,
+		autoCloseRooOpenedFilesAfterUserEdited = DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES_AFTER_USER_EDITED,
+		autoCloseRooOpenedNewFiles = DEFAULT_AUTO_CLOSE_ROO_OPENED_NEW_FILES,
 	): Promise<void> {
 		// Files the user already had open are never auto-closed.
 		if (this.documentWasOpen) {
@@ -675,8 +675,8 @@ export class DiffViewProvider {
 			return
 		}
 
-		// New files on the accept path: close when autoCloseZooOpenedNewFiles is enabled.
-		if (this.editType === "create" && autoCloseZooOpenedNewFiles) {
+		// New files on the accept path: close when autoCloseRooOpenedNewFiles is enabled.
+		if (this.editType === "create" && autoCloseRooOpenedNewFiles) {
 			await this.closeFileTab(absolutePath)
 			return
 		}
@@ -685,7 +685,7 @@ export class DiffViewProvider {
 		if (userInteracted) {
 			// Override the "keep if touched" guard only when the base auto-close is
 			// also enabled; the override is a refinement, not an independent toggle.
-			if (autoCloseZooOpenedFiles && autoCloseZooOpenedFilesAfterUserEdited) {
+			if (autoCloseRooOpenedFiles && autoCloseRooOpenedFilesAfterUserEdited) {
 				await this.closeFileTab(absolutePath)
 			} else {
 				await this.showEditedFileWithoutDisruptingFocus(absolutePath)
@@ -693,9 +693,9 @@ export class DiffViewProvider {
 			return
 		}
 
-		// Transient tab opened by Zoo: close only when auto-close is enabled (opt-in);
+		// Transient tab opened by Roo+: close only when auto-close is enabled (opt-in);
 		// keep and re-show it otherwise (the default).
-		if (autoCloseZooOpenedFiles) {
+		if (autoCloseRooOpenedFiles) {
 			await this.closeFileTab(absolutePath)
 		} else {
 			await this.showEditedFileWithoutDisruptingFocus(absolutePath)

@@ -34,9 +34,9 @@ import {
 import {
 	type ProviderSettings,
 	type ExperimentId,
-	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES,
-	DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED,
-	DEFAULT_AUTO_CLOSE_ZOO_OPENED_NEW_FILES,
+	DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES,
+	DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES_AFTER_USER_EDITED,
+	DEFAULT_AUTO_CLOSE_ROO_OPENED_NEW_FILES,
 	DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 	ImageGenerationProvider,
 } from "@roo-code/types"
@@ -213,9 +213,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		includeCurrentTime,
 		includeCurrentCost,
 		maxGitStatusFiles,
-		autoCloseZooOpenedFiles,
-		autoCloseZooOpenedFilesAfterUserEdited,
-		autoCloseZooOpenedNewFiles,
+		autoCloseRooOpenedFiles,
+		autoCloseRooOpenedFilesAfterUserEdited,
+		autoCloseRooOpenedNewFiles,
 	} = cachedState
 
 	const apiConfiguration = useMemo(() => cachedState.apiConfiguration ?? {}, [cachedState.apiConfiguration])
@@ -426,10 +426,10 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					includeCurrentTime: includeCurrentTime ?? true,
 					includeCurrentCost: includeCurrentCost ?? true,
 					maxGitStatusFiles: maxGitStatusFiles ?? 0,
-					autoCloseZooOpenedFiles: autoCloseZooOpenedFiles ?? DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES,
-					autoCloseZooOpenedFilesAfterUserEdited:
-						autoCloseZooOpenedFilesAfterUserEdited ?? DEFAULT_AUTO_CLOSE_ZOO_OPENED_FILES_AFTER_USER_EDITED,
-					autoCloseZooOpenedNewFiles: autoCloseZooOpenedNewFiles ?? DEFAULT_AUTO_CLOSE_ZOO_OPENED_NEW_FILES,
+					autoCloseRooOpenedFiles: autoCloseRooOpenedFiles ?? DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES,
+					autoCloseRooOpenedFilesAfterUserEdited:
+						autoCloseRooOpenedFilesAfterUserEdited ?? DEFAULT_AUTO_CLOSE_ROO_OPENED_FILES_AFTER_USER_EDITED,
+					autoCloseRooOpenedNewFiles: autoCloseRooOpenedNewFiles ?? DEFAULT_AUTO_CLOSE_ROO_OPENED_NEW_FILES,
 					profileThresholds,
 					imageGenerationProvider,
 					openRouterImageApiKey,
@@ -920,9 +920,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 								reasoningBlockCollapsed={reasoningBlockCollapsed ?? true}
 								enterBehavior={enterBehavior ?? "send"}
 								chatFontSize={chatFontSize ?? undefined}
-								autoCloseZooOpenedFiles={autoCloseZooOpenedFiles}
-								autoCloseZooOpenedFilesAfterUserEdited={autoCloseZooOpenedFilesAfterUserEdited}
-								autoCloseZooOpenedNewFiles={autoCloseZooOpenedNewFiles}
+								autoCloseRooOpenedFiles={autoCloseRooOpenedFiles}
+								autoCloseRooOpenedFilesAfterUserEdited={autoCloseRooOpenedFilesAfterUserEdited}
+								autoCloseRooOpenedNewFiles={autoCloseRooOpenedNewFiles}
 								setCachedStateField={setCachedStateField}
 							/>
 						)}

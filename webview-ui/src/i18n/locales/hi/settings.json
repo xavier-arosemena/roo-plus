@@ -1098,15 +1098,15 @@
 			"description": "Roo+ चैट के लिए फ़ॉन्ट आकार (पिक्सेल में) सेट करें। VS Code के फ़ॉन्ट आकार से मेल खाने के लिए डिफ़ॉल्ट पर छोड़ दें।",
 			"reset": "VS Code डिफ़ॉल्ट का उपयोग करें"
 		},
-		"autoCloseZooOpenedFiles": {
+		"autoCloseRooOpenedFiles": {
 			"label": "Roo+ dvara kholi gayi files ko svachalit band karo",
 			"description": "Saksham hone par, Roo+ dvara diff ke liye aasthayi roop se kholi gayi editor tabs ko parivartan svikaar ya asviikaar hone ke baad svachalit roop se band kar diya jaata hai. Sampadak ke pehle se hi khule tabs ko kabhi svachalit roop se band nahin kiya jaata."
 		},
-		"autoCloseZooOpenedFilesAfterUserEdited": {
+		"autoCloseRooOpenedFilesAfterUserEdited": {
 			"label": "Upayogkarta ki interaction ke baad bhi svachalit band karo",
 			"description": "Saksham hone par, Roo+ dvara kholi gayi tabs tab bhi band ho jaati hain jab upayogkarta ne sampadak satra mein file ya diff mein click ya type kiya ho. Iska koi prabhav nahin hota agar 'Roo+ dvara kholi gayi files ko svachalit band karo' aksham hai."
 		},
-		"autoCloseZooOpenedNewFiles": {
+		"autoCloseRooOpenedNewFiles": {
 			"label": "Nai banayi gayi files ko svachalit band karo",
 			"description": "Saksham hone par, Roo+ dvara banaayi gayi (sanshodhit nahin) files ki tabs ko bhi parivartan svikaar hone ke baad svachalit roop se band kar diya jaata hai."
 		}

@@ -1098,15 +1098,15 @@
 			"description": "Ustaw rozmiar czcionki (w pikselach) dla czatu Roo+. Pozostaw wartość domyślną, aby dopasować ją do rozmiaru czcionki VS Code.",
 			"reset": "Użyj wartości domyślnej VS Code"
 		},
-		"autoCloseZooOpenedFiles": {
+		"autoCloseRooOpenedFiles": {
 			"label": "Automatycznie zamykaj pliki otwarte przez Roo+",
 			"description": "Gdy wlaczone, karty edytora, ktore Roo+ otworzylo tymczasowo dla diffa, sa automatycznie zamykane po zaakceptowaniu lub odrzuceniu zmiany. Karty, ktore uzytkownik mial juz otwarte przed edycja, nigdy nie sa automatycznie zamykane."
 		},
-		"autoCloseZooOpenedFilesAfterUserEdited": {
+		"autoCloseRooOpenedFilesAfterUserEdited": {
 			"label": "Automatycznie zamykaj rowniez po interakcji uzytkownika",
 			"description": "Gdy wlaczone, karty otwarte przez Roo+ sa zamykane nawet jesli uzytkownik kliknal lub pisal w pliku lub diffie podczas sesji edycji. Nie ma efektu, jesli 'Automatycznie zamykaj pliki otwarte przez Roo+' jest wylaczone."
 		},
-		"autoCloseZooOpenedNewFiles": {
+		"autoCloseRooOpenedNewFiles": {
 			"label": "Automatycznie zamykaj nowo utworzone pliki",
 			"description": "Gdy wlaczone, karty plikow, ktore Roo+ utworzylo (zamiast zmodyfikowalo), sa rowniez automatycznie zamykane po zaakceptowaniu zmiany."
 		}

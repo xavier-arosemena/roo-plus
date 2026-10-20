@@ -440,9 +440,9 @@ describe("SettingsView - Change Detection Fix", () => {
 		openRouterImageApiKey: undefined,
 		openRouterImageGenerationSelectedModel: undefined,
 		reasoningBlockCollapsed: true,
-		autoCloseZooOpenedFiles: true,
-		autoCloseZooOpenedFilesAfterUserEdited: false,
-		autoCloseZooOpenedNewFiles: false,
+		autoCloseRooOpenedFiles: true,
+		autoCloseRooOpenedFilesAfterUserEdited: false,
+		autoCloseRooOpenedNewFiles: false,
 		mode: "code",
 		...overrides,
 	})

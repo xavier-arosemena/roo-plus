@@ -178,15 +178,15 @@
 			"description": "設定 Roo+ 聊天的字型大小（以像素為單位）。保留預設值以符合 VS Code 的字型大小。",
 			"reset": "使用 VS Code 預設值"
 		},
-		"autoCloseZooOpenedFiles": {
+		"autoCloseRooOpenedFiles": {
 			"label": "自動關閉 Roo+ 開啟的檔案",
 			"description": "啟用後，Roo+ 為 diff 暫時開啟的編輯器分頁將在接受或拒絕變更後自動關閉。使用者在編輯前已開啟的分頁不會被自動關閉。"
 		},
-		"autoCloseZooOpenedFilesAfterUserEdited": {
+		"autoCloseRooOpenedFilesAfterUserEdited": {
 			"label": "使用者操作後也自動關閉",
 			"description": "啟用後，即使使用者在編輯工作階段中點擊或輸入了檔案或 diff，Roo+ 開啟的分頁也會被關閉。若「自動關閉 Roo+ 開啟的檔案」已停用，則此選項無效。"
 		},
-		"autoCloseZooOpenedNewFiles": {
+		"autoCloseRooOpenedNewFiles": {
 			"label": "自動關閉新建立的檔案",
 			"description": "啟用後，Roo+ 新建（而非修改）的檔案分頁在接受變更後也會自動關閉。"
 		}

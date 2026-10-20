@@ -1098,15 +1098,15 @@
 			"description": "Roo+ チャットのフォントサイズ（ピクセル単位）を設定します。VS Code のフォントサイズに合わせるには既定値のままにしてください。",
 			"reset": "VS Code の既定値を使用"
 		},
-		"autoCloseZooOpenedFiles": {
+		"autoCloseRooOpenedFiles": {
 			"label": "Roo+が開いたファイルを自動的に閉じる",
 			"description": "有効にすると、Roo+がdiffのために一時的に開いたエディタタブが、変更を承認または拒否した後に自動的に閉じられます。編集前にユーザーがすでに開いていたタブは、自動的に閉じられることはありません。"
 		},
-		"autoCloseZooOpenedFilesAfterUserEdited": {
+		"autoCloseRooOpenedFilesAfterUserEdited": {
 			"label": "ユーザー操作後も自動的に閉じる",
 			"description": "有効にすると、ユーザーが編集セッション中にファイルまたはdiffをクリックまたは入力した場合でも、Roo+が開いたタブが閉じられます。「Roo+が開いたファイルを自動的に閉じる」が無効の場合は効果がありません。"
 		},
-		"autoCloseZooOpenedNewFiles": {
+		"autoCloseRooOpenedNewFiles": {
 			"label": "新しく作成されたファイルを自動的に閉じる",
 			"description": "有効にすると、Roo+が作成した（変更ではなく）ファイルのタブも、変更を承認した後に自動的に閉じられます。"
 		}

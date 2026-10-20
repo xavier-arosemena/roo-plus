@@ -1098,15 +1098,15 @@
 			"description": "Atur ukuran font (dalam piksel) untuk obrolan Roo+. Biarkan pada nilai default agar sesuai dengan ukuran font VS Code.",
 			"reset": "Gunakan default VS Code"
 		},
-		"autoCloseZooOpenedFiles": {
+		"autoCloseRooOpenedFiles": {
 			"label": "Tutup otomatis file yang dibuka Roo+",
 			"description": "Saat diaktifkan, tab editor yang dibuka Roo+ untuk sementara waktu untuk diff akan ditutup secara otomatis setelah perubahan diterima atau ditolak. Tab yang sudah dibuka pengguna sebelum pengeditan tidak pernah ditutup secara otomatis."
 		},
-		"autoCloseZooOpenedFilesAfterUserEdited": {
+		"autoCloseRooOpenedFilesAfterUserEdited": {
 			"label": "Tutup otomatis meski setelah interaksi pengguna",
 			"description": "Saat diaktifkan, tab yang dibuka Roo+ tetap ditutup meski pengguna mengklik atau mengetik di file atau diff selama sesi pengeditan. Tidak berpengaruh jika 'Tutup otomatis file yang dibuka Roo+' dinonaktifkan."
 		},
-		"autoCloseZooOpenedNewFiles": {
+		"autoCloseRooOpenedNewFiles": {
 			"label": "Tutup otomatis file baru yang dibuat",
 			"description": "Saat diaktifkan, tab untuk file yang dibuat Roo+ (bukan dimodifikasi) juga ditutup secara otomatis setelah perubahan diterima."
 		}

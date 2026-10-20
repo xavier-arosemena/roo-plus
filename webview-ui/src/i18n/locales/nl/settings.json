@@ -1098,15 +1098,15 @@
 			"description": "Stel de lettergrootte (in pixels) in voor de Roo+-chat. Laat op de standaardwaarde staan om overeen te komen met de lettergrootte van VS Code.",
 			"reset": "VS Code-standaard gebruiken"
 		},
-		"autoCloseZooOpenedFiles": {
+		"autoCloseRooOpenedFiles": {
 			"label": "Automatisch sluiten van door Roo+ geopende bestanden",
 			"description": "Wanneer ingeschakeld, worden editor-tabbladen die Roo+ tijdelijk heeft geopend voor een diff automatisch gesloten nadat de wijziging is geaccepteerd of geweigerd. Tabbladen die de gebruiker al had geopend voor de bewerking worden nooit automatisch gesloten."
 		},
-		"autoCloseZooOpenedFilesAfterUserEdited": {
+		"autoCloseRooOpenedFilesAfterUserEdited": {
 			"label": "Automatisch sluiten ook na gebruikersinteractie",
 			"description": "Wanneer ingeschakeld, worden door Roo+ geopende tabbladen gesloten, zelfs als de gebruiker tijdens de bewerkingssessie in het bestand of de diff heeft geklikt of getypt. Heeft geen effect als 'Automatisch sluiten van door Roo+ geopende bestanden' is uitgeschakeld."
 		},
-		"autoCloseZooOpenedNewFiles": {
+		"autoCloseRooOpenedNewFiles": {
 			"label": "Automatisch sluiten van nieuw gemaakte bestanden",
 			"description": "Wanneer ingeschakeld, worden tabbladen van bestanden die Roo+ heeft aangemaakt (in plaats van gewijzigd) ook automatisch gesloten nadat de wijziging is geaccepteerd."
 		}
