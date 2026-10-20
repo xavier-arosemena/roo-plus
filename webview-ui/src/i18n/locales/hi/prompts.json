@@ -2,6 +2,11 @@
 	"title": "मोड्स",
 	"done": "हो गया",
 	"modes": {
+		"learnAboutUsingModes": "मोड का उपयोग करना सीखें",
+		"learnAboutCustomizingModes": "मोड अनुकूलित करना सीखें",
+		"learnAboutGlobalCustomInstructionsForModes": "मोड के लिए वैश्विक कस्टम निर्देशों के बारे में जानें",
+		"learnMoreAboutGlobalCustomInstructions": "वैश्विक कस्टम निर्देशों के बारे में और जानें",
+		"learnAboutSettingUpGlobalCustomInstructions": "वैश्विक कस्टम निर्देश सेट करना सीखें",
 		"title": "मोड्स",
 		"createNewMode": "नया मोड बनाएँ",
 		"importMode": "मोड आयात करें",

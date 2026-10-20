@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "Text at index {{index}} would exceed the maximum token limit after adding the query prefix ({{estimatedTokens}} > {{maxTokens}}). Skipping prefix.",
+	"openai": {
+		"invalidResponseFormat": "Invalid response format from OpenAI"
+	},
 	"unknownError": "Unknown error",
 	"authenticationFailed": "Failed to create embeddings: Authentication failed. Please check your API key.",
 	"failedWithStatus": "Failed to create embeddings after {{attempts}} attempts: HTTP {{statusCode}} - {{errorMessage}}",

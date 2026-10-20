@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Ícone de comando negado",
+			"terminal": "Ícone de terminal",
+			"question": "Ícone de pergunta",
+			"batchDiff": "Ícone de diff em lote",
+			"viewFiles": "Ícone de visualizar arquivos",
+			"readFile": "Ícone de ler arquivo",
+			"listFiles": "Ícone de listar arquivos",
+			"folderTree": "Ícone de árvore de pastas",
+			"switchMode": "Ícone de trocar modo",
+			"speechBubble": "Ícone de balão de fala",
+			"user": "Ícone de usuário",
+			"editMessage": "Ícone de editar mensagem",
+			"deleteMessage": "Ícone de excluir mensagem",
+			"readCommandOutput": "Ícone de ler saída do comando"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Digite um item de tarefa",
+		"addPlaceholder": "Digite um item de tarefa e pressione Enter para adicionar",
+		"removeTitle": "Remover"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Abrir markdown na visualização"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Clique para editar o padrão"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Configurações fixadas",
+		"allConfigurations": "Todas as configurações"
+	},
+
 	"greeting": "Bem-vindo ao Roo+!",
 	"task": {
 		"title": "Tarefa",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "segure shift para arrastar arquivos/imagens",
 	"enhancePromptDescription": "O botão 'Aprimorar prompt' ajuda a melhorar seu pedido fornecendo contexto adicional, esclarecimentos ou reformulações. Tente digitar um pedido aqui e clique no botão novamente para ver como funciona.",
 	"modeSelector": {
+		"searchAriaLabel": "Pesquisar modos",
 		"title": "Modos",
 		"marketplace": "Marketplace de Modos",
 		"settings": "Configurações de Modos",
@@ -286,6 +321,8 @@
 		"issues": "Parece que você está tendo problemas com o Windows PowerShell, por favor veja este"
 	},
 	"autoApprove": {
+		"selectAll": "Selecionar tudo",
+		"selectNone": "Não selecionar nada",
 		"tooltipManage": "Gerenciar configurações de aprovação automática",
 		"tooltipStatus": "Aprovação automática habilitada para: {{toggles}}",
 		"title": "Aprovação automática",

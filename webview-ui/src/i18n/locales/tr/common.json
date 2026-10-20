@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Belgeler"
+	},
+	"dismiss": "Kapat",
+	"dismissAndDontShowAgain": "Kapat ve bir daha gösterme",
 	"errorBoundary": {
 		"title": "Bir şeyler yanlış gitti",
 		"reportText": "Bu hatayı bildirerek iyileştirmemize yardımcı olun",
@@ -20,6 +25,7 @@
 		"billion_suffix": "b"
 	},
 	"ui": {
+		"search_ariaLabel": "Ara",
 		"search_placeholder": "Ara...",
 		"no_results": "Sonuç bulunamadı"
 	},

@@ -10,6 +10,7 @@
 		"remove": "移除"
 	},
 	"search": {
+		"clear": "清除搜索",
 		"placeholder": "搜索设置...",
 		"noResults": "未找到设置"
 	},
@@ -359,6 +360,11 @@
 		}
 	},
 	"providers": {
+		"openRouterBaseUrlPlaceholder": "默认：https://openrouter.ai/api/v1",
+		"openAiCodex": {
+			"signInButton": "登录 OpenAI Codex",
+			"signOutButton": "退出登录"
+		},
 		"providerDocumentation": "{{provider}} 文档",
 		"configProfile": "配置文件",
 		"description": "保存多组API配置便于快速切换",
@@ -454,6 +460,7 @@
 		"getUnboundApiKey": "获取 Unbound API 密钥",
 		"requestyApiKey": "Requesty API 密钥",
 		"refreshModels": {
+			"missingConfig": "无法刷新模型：缺少配置。请检查你的设置。",
 			"label": "刷新模型",
 			"hint": "请重新打开设置以查看最新模型。",
 			"loading": "正在刷新模型列表...",
@@ -580,6 +587,7 @@
 			"description": "LM Studio 允许您在本地计算机上运行模型。要了解如何开始，请参阅他们的 <a>快速入门指南</a>。您还需要启动 LM Studio 的 <b>本地服务器</b> 功能，以便与此扩展一起使用。<span>注意：</span>Roo+ 使用复杂的提示，并且在 Claude 模型上效果最佳。功能较弱的模型可能无法正常工作。"
 		},
 		"ollama": {
+			"numCtxPlaceholder": "例如 4096",
 			"baseUrl": "基础 URL（可选）",
 			"modelId": "模型 ID",
 			"apiKey": "Ollama API 密钥",

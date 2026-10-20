@@ -1,4 +1,7 @@
 {
+	"rooHero": {
+		"logoLabel": "Logotipo do Roo+"
+	},
 	"landing": {
 		"greeting": "Bem-vindo ao Roo+!",
 		"introduction": "Com uma variedade de Modos integrados e extensíveis, o Roo+ permite que você planeje, arquitete, codifique, depure e aumente sua produtividade como nunca antes.",

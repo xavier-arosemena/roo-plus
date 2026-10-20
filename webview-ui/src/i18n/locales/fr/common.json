@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Documentation"
+	},
+	"dismiss": "Ignorer",
+	"dismissAndDontShowAgain": "Ignorer et ne plus afficher",
 	"errorBoundary": {
 		"title": "Une erreur s'est produite",
 		"reportText": "Aidez-nous à nous améliorer en signalant cette erreur sur",
@@ -20,6 +25,7 @@
 		"billion_suffix": "b"
 	},
 	"ui": {
+		"search_ariaLabel": "Rechercher",
 		"search_placeholder": "Rechercher...",
 		"no_results": "Aucun résultat trouvé"
 	},

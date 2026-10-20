@@ -16,36 +16,6 @@
 		"view": "Xem",
 		"source": "Nguồn"
 	},
-	"filters": {
-		"search": {
-			"placeholder": "Tìm kiếm marketplace..."
-		},
-		"type": {
-			"label": "Loại",
-			"all": "Tất cả loại",
-			"mode": "Chế độ",
-			"mcpServer": "Máy chủ MCP"
-		},
-		"sort": {
-			"label": "Sắp xếp theo",
-			"name": "Tên",
-			"lastUpdated": "Cập nhật lần cuối"
-		},
-		"tags": {
-			"label": "Thẻ",
-			"clear": "Xóa thẻ",
-			"placeholder": "Tìm thẻ...",
-			"noResults": "Không tìm thấy thẻ nào.",
-			"selected": "Hiển thị các mục có bất kỳ thẻ nào được chọn"
-		},
-		"installed": {
-			"label": "Lọc theo trạng thái",
-			"all": "Tất cả các mục",
-			"installed": "Đã cài đặt",
-			"notInstalled": "Chưa cài đặt"
-		},
-		"title": "Marketplace"
-	},
 	"done": "Hoàn thành",
 	"tabs": {
 		"installed": "Đã cài đặt",

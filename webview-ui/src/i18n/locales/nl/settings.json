@@ -10,6 +10,7 @@
 		"remove": "Verwijderen"
 	},
 	"search": {
+		"clear": "Zoekopdracht wissen",
 		"placeholder": "Instellingen zoeken...",
 		"noResults": "Geen instellingen gevonden"
 	},
@@ -359,6 +360,11 @@
 		}
 	},
 	"providers": {
+		"openRouterBaseUrlPlaceholder": "Standaard: https://openrouter.ai/api/v1",
+		"openAiCodex": {
+			"signInButton": "Aanmelden bij OpenAI Codex",
+			"signOutButton": "Afmelden"
+		},
 		"providerDocumentation": "{{provider}} documentatie",
 		"configProfile": "Configuratieprofiel",
 		"description": "Sla verschillende API-configuraties op om snel te wisselen tussen providers en instellingen.",
@@ -454,6 +460,7 @@
 		"getUnboundApiKey": "Unbound API-sleutel ophalen",
 		"requestyApiKey": "Requesty API-sleutel",
 		"refreshModels": {
+			"missingConfig": "Modellen kunnen niet worden vernieuwd: configuratie ontbreekt. Controleer je instellingen.",
 			"label": "Modellen verversen",
 			"hint": "Open de instellingen opnieuw om de nieuwste modellen te zien.",
 			"loading": "Modellenlijst wordt vernieuwd...",
@@ -580,6 +587,7 @@
 			"description": "LM Studio laat je modellen lokaal op je computer draaien. Zie hun <a>quickstart-gids</a> voor instructies. Je moet ook de <b>lokale server</b>-functie van LM Studio starten om het met deze extensie te gebruiken. <span>Let op:</span> Roo+ gebruikt complexe prompts en werkt het beste met Claude-modellen. Minder krachtige modellen werken mogelijk niet zoals verwacht."
 		},
 		"ollama": {
+			"numCtxPlaceholder": "bijv. 4096",
 			"baseUrl": "Basis-URL (optioneel)",
 			"modelId": "Model-ID",
 			"apiKey": "Ollama API-sleutel",

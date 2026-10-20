@@ -1,4 +1,7 @@
 {
+	"rooHero": {
+		"logoLabel": "Logo Roo+"
+	},
 	"landing": {
 		"greeting": "Selamat datang di Roo+!",
 		"introduction": "Dengan berbagai Mode bawaan dan dapat diperluas, Roo+ memungkinkan Anda merencanakan, merancang, coding, debug, dan meningkatkan produktivitas seperti yang belum pernah terjadi sebelumnya.",

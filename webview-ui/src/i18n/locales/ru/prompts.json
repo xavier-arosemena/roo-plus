@@ -2,6 +2,11 @@
 	"title": "Режимы",
 	"done": "Готово",
 	"modes": {
+		"learnAboutUsingModes": "Узнайте об использовании режимов",
+		"learnAboutCustomizingModes": "Узнайте о настройке режимов",
+		"learnAboutGlobalCustomInstructionsForModes": "Узнайте о глобальных пользовательских инструкциях для режимов",
+		"learnMoreAboutGlobalCustomInstructions": "Подробнее о глобальных пользовательских инструкциях",
+		"learnAboutSettingUpGlobalCustomInstructions": "Узнайте о настройке глобальных пользовательских инструкций",
 		"title": "Режимы",
 		"createNewMode": "Создать новый режим",
 		"importMode": "Импортировать режим",

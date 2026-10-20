@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Документация"
+	},
+	"dismiss": "Закрыть",
+	"dismissAndDontShowAgain": "Закрыть и больше не показывать",
 	"errorBoundary": {
 		"title": "Что-то пошло не так",
 		"reportText": "Пожалуйста, помогите нам улучшить приложение, сообщив об этой ошибке на",
@@ -20,6 +25,7 @@
 		"keep": "Оставить"
 	},
 	"ui": {
+		"search_ariaLabel": "Поиск",
 		"search_placeholder": "Поиск...",
 		"no_results": "Результатов не найдено"
 	},

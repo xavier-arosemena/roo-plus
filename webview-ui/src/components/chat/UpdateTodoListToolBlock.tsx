@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { usePrimitiveSync } from "@src/hooks/usePrimitiveSync"
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
 import MarkdownBlock from "../common/MarkdownBlock"
@@ -54,6 +55,8 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 	editable = true,
 	userEdited = false,
 }) => {
+	const { t } = useTranslation("chat")
+
 	const [editTodos, setEditTodos] = useState<TodoItem[]>(
 		todos.length > 0 ? todos.map((todo) => ({ ...todo, id: todo.id || genId() })) : [],
 	)
@@ -274,7 +277,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 											<input
 												type="text"
 												value={todo.content}
-												placeholder="Enter todo item"
+												placeholder={t("todoList.itemPlaceholder")}
 												onChange={(e) => handleContentChange(todo.id!, e.target.value)}
 												style={{
 													flex: 1,
@@ -348,7 +351,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 													padding: 0,
 													lineHeight: 1,
 												}}
-												title="Remove">
+												title={t("todoList.removeTitle")}>
 												×
 											</button>
 										)}
@@ -362,7 +365,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 										ref={newInputRef}
 										type="text"
 										value={newContent}
-										placeholder="Enter todo item, press Enter to add"
+										placeholder={t("todoList.addPlaceholder")}
 										onChange={(e) => setNewContent(e.target.value)}
 										onKeyDown={handleNewInputKeyDown}
 										style={{

@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "被拒绝的命令图标",
+			"terminal": "终端图标",
+			"question": "问题图标",
+			"batchDiff": "批量差异图标",
+			"viewFiles": "查看文件图标",
+			"readFile": "读取文件图标",
+			"listFiles": "列出文件图标",
+			"folderTree": "文件夹树图标",
+			"switchMode": "切换模式图标",
+			"speechBubble": "对话气泡图标",
+			"user": "用户图标",
+			"editMessage": "编辑消息图标",
+			"deleteMessage": "删除消息图标",
+			"readCommandOutput": "读取命令输出图标"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "输入待办事项",
+		"addPlaceholder": "输入待办事项，按 Enter 添加",
+		"removeTitle": "移除"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "在预览中打开 markdown"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "点击编辑模式"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "已固定的配置",
+		"allConfigurations": "所有配置"
+	},
+
 	"greeting": "欢迎使用 Roo+！",
 	"task": {
 		"title": "任务",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "Shift+拖拽文件/图片",
 	"enhancePromptDescription": "'增强提示'按钮通过提供额外上下文、澄清或重新表述来帮助改进您的请求。尝试在此处输入请求，然后再次点击按钮查看其工作原理。",
 	"modeSelector": {
+		"searchAriaLabel": "搜索模式",
 		"title": "模式",
 		"marketplace": "模式市场",
 		"settings": "模式设置",
@@ -286,6 +321,8 @@
 		"issues": "看起来您遇到了Windows PowerShell问题，请参阅此"
 	},
 	"autoApprove": {
+		"selectAll": "全选",
+		"selectNone": "全不选",
 		"tooltipManage": "管理自动批准设置",
 		"tooltipStatus": "自动批准已启用：{{toggles}}",
 		"title": "自动批准",

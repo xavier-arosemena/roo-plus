@@ -2,6 +2,11 @@
 	"title": "Mode",
 	"done": "Selesai",
 	"modes": {
+		"learnAboutUsingModes": "Pelajari cara menggunakan mode",
+		"learnAboutCustomizingModes": "Pelajari cara menyesuaikan mode",
+		"learnAboutGlobalCustomInstructionsForModes": "Pelajari tentang instruksi kustom global untuk mode",
+		"learnMoreAboutGlobalCustomInstructions": "Pelajari lebih lanjut tentang instruksi kustom global",
+		"learnAboutSettingUpGlobalCustomInstructions": "Pelajari cara menyiapkan instruksi kustom global",
 		"title": "Mode",
 		"createNewMode": "Buat mode baru",
 		"importMode": "Impor mode",

@@ -33,6 +33,7 @@
 		"esbuildPurpose": "TypeScript कस्टम टूल का ट्रांसपाइल और बंडल करना"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "attempt_completion निष्पादित नहीं किया जा सकता क्योंकि इस टर्न में पिछली टूल कॉल विफल रही। कृपया पूर्णता का प्रयास करने से पहले टूल विफलता को ठीक करें।",
 		"invalid_data_uri": "अमान्य डेटा URI फॉर्मेट",
 		"error_copying_image": "छवि कॉपी करने में त्रुटि: {{errorMessage}}",
 		"error_saving_image": "छवि सहेजने में त्रुटि: {{errorMessage}}",
@@ -170,7 +171,11 @@
 			"alreadyImported_other": "सभी {{count}} Roo Code कार्य इतिहास पहले से ही Roo+ में आयात किए जा चुके हैं।"
 		}
 	},
+	"gemini": {
+		"sources": "स्रोत:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "पाथ क्लिपबोर्ड पर कॉपी किया गया",
 		"no_changes": "कोई परिवर्तन नहीं मिला।",
 		"clipboard_copy": "सिस्टम प्रॉम्प्ट क्लिपबोर्ड पर सफलतापूर्वक कॉपी किया गया",
 		"history_cleanup": "इतिहास से गायब फाइलों वाले {{count}} टास्क साफ किए गए।",

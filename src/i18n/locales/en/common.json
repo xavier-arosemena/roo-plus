@@ -33,6 +33,7 @@
 		"esbuildPurpose": "transpiling and bundling TypeScript custom tools"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "Cannot execute attempt_completion because a previous tool call failed in this turn. Please address the tool failure before attempting completion.",
 		"invalid_data_uri": "Invalid data URI format",
 		"error_copying_image": "Error copying image: {{errorMessage}}",
 		"error_opening_image": "Error opening image: {{error}}",
@@ -170,7 +171,11 @@
 			"alreadyImported_other": "All {{count}} Roo Code task histories have already been imported into Roo+."
 		}
 	},
+	"gemini": {
+		"sources": "Sources:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "Path copied to clipboard",
 		"no_changes": "No changes found.",
 		"clipboard_copy": "System prompt successfully copied to clipboard",
 		"history_cleanup": "Cleaned up {{count}} task(s) with missing files from history.",

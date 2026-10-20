@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Reddedilen komut simgesi",
+			"terminal": "Terminal simgesi",
+			"question": "Soru simgesi",
+			"batchDiff": "Toplu diff simgesi",
+			"viewFiles": "Dosyaları görüntüle simgesi",
+			"readFile": "Dosya okuma simgesi",
+			"listFiles": "Dosya listesi simgesi",
+			"folderTree": "Klasör ağacı simgesi",
+			"switchMode": "Mod değiştirme simgesi",
+			"speechBubble": "Konuşma balonu simgesi",
+			"user": "Kullanıcı simgesi",
+			"editMessage": "Mesajı düzenle simgesi",
+			"deleteMessage": "Mesajı sil simgesi",
+			"readCommandOutput": "Komut çıktısını oku simgesi"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Yapılacak öğe gir",
+		"addPlaceholder": "Yapılacak öğe gir, eklemek için Enter'a bas",
+		"removeTitle": "Kaldır"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Markdown'ı önizlemede aç"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Deseni düzenlemek için tıkla"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Sabitlenmiş yapılandırmalar",
+		"allConfigurations": "Tüm yapılandırmalar"
+	},
+
 	"greeting": "Roo+'a hoş geldin!",
 	"task": {
 		"title": "Görev",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "dosyaları/resimleri sürüklemek için shift tuşuna basılı tutun",
 	"enhancePromptDescription": "'İstemi geliştir' düğmesi, ek bağlam, açıklama veya yeniden ifade sağlayarak isteğinizi iyileştirmeye yardımcı olur. Buraya bir istek yazıp düğmeye tekrar tıklayarak nasıl çalıştığını görebilirsiniz.",
 	"modeSelector": {
+		"searchAriaLabel": "Modları ara",
 		"title": "Modlar",
 		"marketplace": "Mod Pazaryeri",
 		"settings": "Mod Ayarları",
@@ -286,6 +321,8 @@
 		"issues": "Windows PowerShell ile ilgili sorunlar yaşıyor gibi görünüyorsunuz, lütfen şu konuya bakın"
 	},
 	"autoApprove": {
+		"selectAll": "Tümünü seç",
+		"selectNone": "Hiçbirini seçme",
 		"tooltipManage": "Otomatik onay ayarlarını yönet",
 		"tooltipStatus": "Otomatik onay şunlar için etkinleştirildi: {{toggles}}",
 		"title": "Otomatik onayla",

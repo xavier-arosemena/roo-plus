@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Значок отклонённой команды",
+			"terminal": "Значок терминала",
+			"question": "Значок вопроса",
+			"batchDiff": "Значок группового diff",
+			"viewFiles": "Значок просмотра файлов",
+			"readFile": "Значок чтения файла",
+			"listFiles": "Значок списка файлов",
+			"folderTree": "Значок дерева папок",
+			"switchMode": "Значок смены режима",
+			"speechBubble": "Значок речевого облака",
+			"user": "Значок пользователя",
+			"editMessage": "Значок редактирования сообщения",
+			"deleteMessage": "Значок удаления сообщения",
+			"readCommandOutput": "Значок чтения вывода команды"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Введите задачу",
+		"addPlaceholder": "Введите задачу и нажмите Enter, чтобы добавить",
+		"removeTitle": "Удалить"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Открыть markdown в предпросмотре"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Нажмите, чтобы изменить шаблон"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Закреплённые конфигурации",
+		"allConfigurations": "Все конфигурации"
+	},
+
 	"greeting": "Добро пожаловать в Roo+!",
 	"task": {
 		"title": "Задача",
@@ -115,6 +149,7 @@
 	"enhancePrompt": "Улучшить запрос с дополнительным контекстом",
 	"enhancePromptDescription": "Кнопка 'Улучшить запрос' помогает сделать ваш запрос лучше, предоставляя дополнительный контекст, уточнения или переформулировку. Попробуйте ввести запрос и снова нажать кнопку, чтобы увидеть, как это работает.",
 	"modeSelector": {
+		"searchAriaLabel": "Поиск режимов",
 		"title": "Режимы",
 		"marketplace": "Маркетплейс режимов",
 		"settings": "Настройки режимов",
@@ -286,6 +321,8 @@
 		"issues": "Похоже, у вас проблемы с Windows PowerShell, пожалуйста, ознакомьтесь с этим"
 	},
 	"autoApprove": {
+		"selectAll": "Выбрать все",
+		"selectNone": "Ничего не выбирать",
 		"tooltipManage": "Управление настройками автоматического одобрения",
 		"tooltipStatus": "Авто-одобрение включено для: {{toggles}}",
 		"title": "Авто-одобрение",

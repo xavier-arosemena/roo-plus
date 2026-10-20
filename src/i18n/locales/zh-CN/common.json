@@ -33,6 +33,7 @@
 		"esbuildPurpose": "转译和打包 TypeScript 自定义工具"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "无法执行 attempt_completion，因为本轮中先前的工具调用失败。请先解决工具失败问题，再尝试完成。",
 		"invalid_data_uri": "数据 URI 格式无效",
 		"error_copying_image": "复制图片时出错：{{errorMessage}}",
 		"error_saving_image": "保存图片时出错：{{errorMessage}}",
@@ -170,7 +171,11 @@
 			"alreadyImported_other": "全部 {{count}} 条 Roo Code 任务历史记录已导入 Roo+。"
 		}
 	},
+	"gemini": {
+		"sources": "来源："
+	},
 	"info": {
+		"path_copied_to_clipboard": "路径已复制到剪贴板",
 		"no_changes": "未找到更改。",
 		"clipboard_copy": "系统消息已成功复制到剪贴板",
 		"history_cleanup": "已从历史记录中清理{{count}}个缺少文件的任务。",

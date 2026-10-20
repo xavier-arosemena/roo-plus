@@ -307,12 +307,37 @@ jobs:
         # publish target and must never abort a release Open VSX has already
         # received. The outcome is reported by the summary step at the end.
         continue-on-error: true
+        # A hung Marketplace request must not hold the job open — Open VSX has
+        # already been published at this point, and continue-on-error does not
+        # cover a hang.
+        timeout-minutes: 15
         if: env.VSCE_PAT != ''
         run: |
           echo "::group::[CI:MARKETPLACE:PUBLISH:VSCE] Publishing to VS Code Marketplace"
           package_version=$(node -p "require('./src/package.json').version")
           npx @vscode/vsce publish --packagePath "bin/roo-plus-${package_version}.vsix"
           echo "::notice::[CI:MARKETPLACE:PUBLISH:VSCE] Published xavier-arosemena.roo-plus ${package_version} to VS Code Marketplace"
+          echo "::endgroup::"
+
+      # Post-publish visibility check. `vsce publish` returning success is NOT
+      # proof of publication: during the 2026-10 Marketplace incident the upload
+      # reported success while every /vspackage URL returned 404 and the publisher
+      # console returned `429 - Woah, that's a lot of requests`
+      # (RequestBlockedException, resource 'Concurrency', namespace 'VSID').
+      # `always()` so it also runs when the publish step failed — that is exactly
+      # when the answer matters. Advisory (`--advisory` exits 0) so the Marketplace
+      # can never fail a stable release that Open VSX has already delivered.
+      - name: Verify the stable is visible in the VS Code Marketplace
+        id: verify-vsce-presence
+        if: always() && env.VSCE_PAT != ''
+        continue-on-error: true
+        timeout-minutes: 10
+        env:
+          MARKETPLACE_PUBLISHER: xavier-arosemena
+        run: |
+          echo "::group::[CI:MARKETPLACE:PRESENCE] Verifying Marketplace visibility"
+          node scripts/verify-marketplace-presence.mjs --advisory --wait 300
+          echo "::notice::[CI:MARKETPLACE:PRESENCE] visibility check finished (advisory — Open VSX is unaffected)"
           echo "::endgroup::"
 
       # Keep the packaged artifact attached to the run for audit and manual
@@ -358,6 +383,18 @@ jobs:
               --target "$GITHUB_SHA" \
               "$vsix_path"
           fi
+
+      # The publish step can report success while nothing landed (phantom success,
+      # 2026-10). Report that distinctly from an outright publish failure.
+      - name: Publish summary — warn when the Marketplace listing is not visible
+        if: steps.verify-vsce-presence.outputs.verified == 'false'
+        run: |
+          package_version=$(node -p "require('./src/package.json').version")
+          echo "::warning::[CI:MARKETPLACE:SUMMARY] xavier-arosemena.roo-plus ${package_version} is NOT visible in the public Marketplace (status: ${{ steps.verify-vsce-presence.outputs.status }}). Open VSX is unaffected and this release is still DELIVERED; the Marketplace listing needs re-creation (npx @vscode/vsce publish) once the publisher is unblocked."
+          {
+            echo ""
+            echo "| VS Code Marketplace | ⚠️ not visible in the public gallery |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish summary — warn (do not fail) when only the VS Marketplace failed
         # The VS Code Marketplace is currently unavailable as a publish target.

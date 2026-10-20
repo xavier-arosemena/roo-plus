@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "अस्वीकृत कमांड आइकन",
+			"terminal": "टर्मिनल आइकन",
+			"question": "प्रश्न आइकन",
+			"batchDiff": "बैच diff आइकन",
+			"viewFiles": "फ़ाइलें देखने का आइकन",
+			"readFile": "फ़ाइल पढ़ने का आइकन",
+			"listFiles": "फ़ाइल सूची आइकन",
+			"folderTree": "फ़ोल्डर ट्री आइकन",
+			"switchMode": "मोड बदलने का आइकन",
+			"speechBubble": "स्पीच बबल आइकन",
+			"user": "उपयोगकर्ता आइकन",
+			"editMessage": "संदेश संपादित करने का आइकन",
+			"deleteMessage": "संदेश हटाने का आइकन",
+			"readCommandOutput": "कमांड आउटपुट पढ़ने का आइकन"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "टू-डू आइटम दर्ज करें",
+		"addPlaceholder": "टू-डू आइटम दर्ज करें, जोड़ने के लिए Enter दबाएँ",
+		"removeTitle": "हटाएँ"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "markdown को पूर्वावलोकन में खोलें"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "पैटर्न संपादित करने के लिए क्लिक करें"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "पिन की गई कॉन्फ़िगरेशन",
+		"allConfigurations": "सभी कॉन्फ़िगरेशन"
+	},
+
 	"greeting": "Roo+ में आपका स्वागत है!",
 	"task": {
 		"title": "कार्य",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "फ़ाइलें/चित्र खींचने के लिए shift दबाकर रखें",
 	"enhancePromptDescription": "'प्रॉम्प्ट बढ़ाएँ' बटन अतिरिक्त संदर्भ, स्पष्टीकरण या पुनर्विचार प्रदान करके आपके अनुरोध को बेहतर बनाने में मदद करता है। यहां अनुरोध लिखकर देखें और यह कैसे काम करता है यह देखने के लिए बटन पर फिर से क्लिक करें।",
 	"modeSelector": {
+		"searchAriaLabel": "मोड खोजें",
 		"title": "मोड्स",
 		"marketplace": "मोड मार्केटप्लेस",
 		"settings": "मोड सेटिंग्स",
@@ -286,6 +321,8 @@
 		"issues": "ऐसा लगता है कि आपको Windows PowerShell के साथ समस्याएँ हो रही हैं, कृपया इसे देखें"
 	},
 	"autoApprove": {
+		"selectAll": "सभी चुनें",
+		"selectNone": "कुछ भी न चुनें",
 		"tooltipManage": "स्वतः-अनुमोदन सेटिंग्स प्रबंधित करें",
 		"tooltipStatus": "स्वतः-अनुमोदन इनके लिए सक्षम है: {{toggles}}",
 		"title": "स्वतः-अनुमोदन",

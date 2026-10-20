@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Pictogram van geweigerde opdracht",
+			"terminal": "Terminalpictogram",
+			"question": "Vraagpictogram",
+			"batchDiff": "Pictogram van batch-diff",
+			"viewFiles": "Pictogram van bestanden bekijken",
+			"readFile": "Pictogram van bestand lezen",
+			"listFiles": "Pictogram van bestandenlijst",
+			"folderTree": "Pictogram van mappenstructuur",
+			"switchMode": "Pictogram van modus wisselen",
+			"speechBubble": "Pictogram van tekstballon",
+			"user": "Gebruikerspictogram",
+			"editMessage": "Pictogram van bericht bewerken",
+			"deleteMessage": "Pictogram van bericht verwijderen",
+			"readCommandOutput": "Pictogram van opdrachtuitvoer lezen"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Voer een to-dotaak in",
+		"addPlaceholder": "Voer een to-dotaak in, druk op Enter om toe te voegen",
+		"removeTitle": "Verwijderen"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Markdown openen in voorbeeld"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Klik om het patroon te bewerken"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Vastgemaakte configuraties",
+		"allConfigurations": "Alle configuraties"
+	},
+
 	"greeting": "Welkom bij Roo+!",
 	"task": {
 		"title": "Taak",
@@ -115,6 +149,7 @@
 	"enhancePrompt": "Prompt verbeteren met extra context",
 	"enhancePromptDescription": "De knop 'Prompt verbeteren' helpt je prompt te verbeteren door extra context, verduidelijking of herformulering te bieden. Probeer hier een prompt te typen en klik opnieuw op de knop om te zien hoe het werkt.",
 	"modeSelector": {
+		"searchAriaLabel": "Modi zoeken",
 		"title": "Modi",
 		"marketplace": "Modus Marktplaats",
 		"settings": "Modus Instellingen",
@@ -286,6 +321,8 @@
 		"issues": "Het lijkt erop dat je problemen hebt met Windows PowerShell, zie deze"
 	},
 	"autoApprove": {
+		"selectAll": "Alles selecteren",
+		"selectNone": "Niets selecteren",
 		"tooltipManage": "Beheer instellingen voor automatische goedkeuring",
 		"tooltipStatus": "Automatische goedkeuring ingeschakeld voor: {{toggles}}",
 		"title": "Automatisch goedkeuren",

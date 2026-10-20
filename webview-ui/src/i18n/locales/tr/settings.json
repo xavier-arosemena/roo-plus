@@ -10,6 +10,7 @@
 		"remove": "Kaldır"
 	},
 	"search": {
+		"clear": "Aramayı temizle",
 		"placeholder": "Ayarları ara...",
 		"noResults": "Ayar bulunamadı"
 	},
@@ -359,6 +360,11 @@
 		}
 	},
 	"providers": {
+		"openRouterBaseUrlPlaceholder": "Varsayılan: https://openrouter.ai/api/v1",
+		"openAiCodex": {
+			"signInButton": "OpenAI Codex'e giriş yap",
+			"signOutButton": "Çıkış yap"
+		},
 		"providerDocumentation": "{{provider}} Dokümantasyonu",
 		"configProfile": "Yapılandırma Profili",
 		"description": "Sağlayıcılar ve ayarlar arasında hızlıca geçiş yapmak için farklı API yapılandırmalarını kaydedin.",
@@ -454,6 +460,7 @@
 		"getUnboundApiKey": "Unbound API Anahtarı Al",
 		"requestyApiKey": "Requesty API Anahtarı",
 		"refreshModels": {
+			"missingConfig": "Modeller yenilenemedi: yapılandırma eksik. Ayarlarını kontrol et.",
 			"label": "Modelleri Yenile",
 			"hint": "En son modelleri görmek için lütfen ayarları yeniden açın.",
 			"loading": "Model listesi yenileniyor...",
@@ -580,6 +587,7 @@
 			"description": "LM Studio, modelleri bilgisayarınızda yerel olarak çalıştırmanıza olanak tanır. Başlamak için <a>hızlı başlangıç kılavuzlarına</a> bakın. Bu uzantıyla kullanmak için LM Studio'nun <b>yerel sunucu</b> özelliğini de başlatmanız gerekecektir. <span>Not:</span> Roo+ karmaşık istemler kullanır ve Claude modelleriyle en iyi şekilde çalışır. Daha az yetenekli modeller beklendiği gibi çalışmayabilir."
 		},
 		"ollama": {
+			"numCtxPlaceholder": "örn. 4096",
 			"baseUrl": "Temel URL (İsteğe bağlı)",
 			"modelId": "Model Kimliği",
 			"apiKey": "Ollama API Anahtarı",

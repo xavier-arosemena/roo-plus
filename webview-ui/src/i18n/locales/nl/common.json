@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Documentatie"
+	},
+	"dismiss": "Sluiten",
+	"dismissAndDontShowAgain": "Sluiten en niet meer tonen",
 	"errorBoundary": {
 		"title": "Er is iets misgegaan",
 		"reportText": "Help ons te verbeteren door deze fout te melden op",
@@ -20,6 +25,7 @@
 		"billion_suffix": "mrd"
 	},
 	"ui": {
+		"search_ariaLabel": "Zoeken",
 		"search_placeholder": "Zoeken...",
 		"no_results": "Geen resultaten gevonden"
 	},

@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Ikon perintah ditolak",
+			"terminal": "Ikon terminal",
+			"question": "Ikon pertanyaan",
+			"batchDiff": "Ikon diff batch",
+			"viewFiles": "Ikon lihat file",
+			"readFile": "Ikon baca file",
+			"listFiles": "Ikon daftar file",
+			"folderTree": "Ikon pohon folder",
+			"switchMode": "Ikon ganti mode",
+			"speechBubble": "Ikon balon percakapan",
+			"user": "Ikon pengguna",
+			"editMessage": "Ikon edit pesan",
+			"deleteMessage": "Ikon hapus pesan",
+			"readCommandOutput": "Ikon baca output perintah"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Masukkan item to-do",
+		"addPlaceholder": "Masukkan item to-do, tekan Enter untuk menambahkan",
+		"removeTitle": "Hapus"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Buka markdown di pratinjau"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Klik untuk mengedit pola"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Konfigurasi yang disematkan",
+		"allConfigurations": "Semua konfigurasi"
+	},
+
 	"greeting": "Selamat datang di Roo+!",
 	"task": {
 		"title": "Tugas",
@@ -139,6 +173,7 @@
 	"enhancePrompt": "Tingkatkan prompt dengan konteks tambahan",
 	"enhancePromptDescription": "Tombol 'Tingkatkan Prompt' membantu memperbaiki prompt kamu dengan memberikan konteks tambahan, klarifikasi, atau penyusunan ulang. Coba ketik prompt di sini dan klik tombol lagi untuk melihat cara kerjanya.",
 	"modeSelector": {
+		"searchAriaLabel": "Cari mode",
 		"title": "Mode",
 		"marketplace": "Marketplace Mode",
 		"settings": "Pengaturan Mode",
@@ -336,6 +371,8 @@
 		"issues": "Sepertinya kamu mengalami masalah Windows PowerShell, silakan lihat ini"
 	},
 	"autoApprove": {
+		"selectAll": "Pilih semua",
+		"selectNone": "Jangan pilih apa pun",
 		"tooltipManage": "Kelola pengaturan persetujuan otomatis",
 		"tooltipStatus": "Persetujuan otomatis diaktifkan untuk: {{toggles}}",
 		"title": "Setujui Otomatis",

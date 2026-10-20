@@ -2,6 +2,11 @@
 	"title": "Modlar",
 	"done": "Tamamlandı",
 	"modes": {
+		"learnAboutUsingModes": "Modları kullanmayı öğren",
+		"learnAboutCustomizingModes": "Modları özelleştirmeyi öğren",
+		"learnAboutGlobalCustomInstructionsForModes": "Modlar için genel özel yönergeleri öğren",
+		"learnMoreAboutGlobalCustomInstructions": "Genel özel yönergeler hakkında daha fazla bilgi",
+		"learnAboutSettingUpGlobalCustomInstructions": "Genel özel yönergeleri ayarlamayı öğren",
 		"title": "Modlar",
 		"createNewMode": "Yeni mod oluştur",
 		"importMode": "Modu içe aktar",

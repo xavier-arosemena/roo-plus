@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Ikona odrzuconego polecenia",
+			"terminal": "Ikona terminala",
+			"question": "Ikona pytania",
+			"batchDiff": "Ikona diffu zbiorczego",
+			"viewFiles": "Ikona wyświetlania plików",
+			"readFile": "Ikona odczytu pliku",
+			"listFiles": "Ikona listy plików",
+			"folderTree": "Ikona drzewa folderów",
+			"switchMode": "Ikona zmiany trybu",
+			"speechBubble": "Ikona dymka",
+			"user": "Ikona użytkownika",
+			"editMessage": "Ikona edycji wiadomości",
+			"deleteMessage": "Ikona usuwania wiadomości",
+			"readCommandOutput": "Ikona odczytu danych wyjściowych polecenia"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Wpisz zadanie",
+		"addPlaceholder": "Wpisz zadanie i naciśnij Enter, aby dodać",
+		"removeTitle": "Usuń"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Otwórz markdown w podglądzie"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Kliknij, aby edytować wzorzec"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Przypięte konfiguracje",
+		"allConfigurations": "Wszystkie konfiguracje"
+	},
+
 	"greeting": "Witamy w Roo+!",
 	"task": {
 		"title": "Zadanie",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "przytrzymaj shift, aby przeciągnąć pliki/obrazy",
 	"enhancePromptDescription": "Przycisk 'Ulepsz podpowiedź' pomaga ulepszyć Twoją prośbę, dostarczając dodatkowy kontekst, wyjaśnienia lub przeformułowania. Spróbuj wpisać prośbę tutaj i kliknij przycisk ponownie, aby zobaczyć, jak to działa.",
 	"modeSelector": {
+		"searchAriaLabel": "Szukaj trybów",
 		"title": "Tryby",
 		"marketplace": "Marketplace Trybów",
 		"settings": "Ustawienia Trybów",
@@ -286,6 +321,8 @@
 		"issues": "Wygląda na to, że masz problemy z Windows PowerShell, proszę zapoznaj się z tym"
 	},
 	"autoApprove": {
+		"selectAll": "Zaznacz wszystko",
+		"selectNone": "Nie zaznaczaj niczego",
 		"tooltipManage": "Zarządzaj ustawieniami automatycznego zatwierdzania",
 		"tooltipStatus": "Automatyczne zatwierdzanie włączone dla: {{toggles}}",
 		"title": "Automatyczne zatwierdzanie",

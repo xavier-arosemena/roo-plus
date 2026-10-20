@@ -37,6 +37,7 @@
 		"esbuildPurpose": "transpilar e empacotar ferramentas personalizadas de TypeScript"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "Não é possível executar attempt_completion porque uma chamada de ferramenta anterior falhou neste turno. Resolva a falha da ferramenta antes de tentar a conclusão.",
 		"invalid_data_uri": "Formato de URI de dados inválido",
 		"error_copying_image": "Erro ao copiar imagem: {{errorMessage}}",
 		"error_saving_image": "Erro ao salvar imagem: {{errorMessage}}",
@@ -174,7 +175,11 @@
 			"alreadyImported_other": "Todos os {{count}} históricos de tarefas do Roo Code já foram importados para o Roo+."
 		}
 	},
+	"gemini": {
+		"sources": "Fontes:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "Caminho copiado para a área de transferência",
 		"no_changes": "Nenhuma alteração encontrada.",
 		"clipboard_copy": "Prompt do sistema copiado com sucesso para a área de transferência",
 		"history_cleanup": "{{count}} tarefa(s) com arquivos ausentes foram limpas do histórico.",

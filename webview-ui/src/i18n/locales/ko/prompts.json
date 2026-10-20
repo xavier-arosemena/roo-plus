@@ -2,6 +2,11 @@
 	"title": "모드",
 	"done": "완료",
 	"modes": {
+		"learnAboutUsingModes": "모드 사용법 알아보기",
+		"learnAboutCustomizingModes": "모드 사용자 지정 알아보기",
+		"learnAboutGlobalCustomInstructionsForModes": "모드용 전역 사용자 지정 지침 알아보기",
+		"learnMoreAboutGlobalCustomInstructions": "전역 사용자 지정 지침 자세히 알아보기",
+		"learnAboutSettingUpGlobalCustomInstructions": "전역 사용자 지정 지침 설정 알아보기",
 		"title": "모드",
 		"createNewMode": "새 모드 만들기",
 		"importMode": "모드 가져오기",

@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "被拒絕的命令圖示",
+			"terminal": "終端機圖示",
+			"question": "問題圖示",
+			"batchDiff": "批次差異圖示",
+			"viewFiles": "檢視檔案圖示",
+			"readFile": "讀取檔案圖示",
+			"listFiles": "列出檔案圖示",
+			"folderTree": "資料夾樹狀圖示",
+			"switchMode": "切換模式圖示",
+			"speechBubble": "對話泡泡圖示",
+			"user": "使用者圖示",
+			"editMessage": "編輯訊息圖示",
+			"deleteMessage": "刪除訊息圖示",
+			"readCommandOutput": "讀取命令輸出圖示"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "輸入待辦事項",
+		"addPlaceholder": "輸入待辦事項，按 Enter 新增",
+		"removeTitle": "移除"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "在預覽中開啟 markdown"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "點擊編輯模式"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "已釘选的設定",
+		"allConfigurations": "所有設定"
+	},
+
 	"greeting": "歡迎使用 Roo+！",
 	"task": {
 		"title": "工作",
@@ -141,6 +175,7 @@
 	"unlockApiConfigAcrossModes": "此工作區所有模式的 API 設定已鎖定（點擊解鎖）",
 	"enhancePrompt": "使用額外內容強化提示詞",
 	"modeSelector": {
+		"searchAriaLabel": "搜尋模式",
 		"title": "模式",
 		"marketplace": "模式市集",
 		"settings": "模式設定",
@@ -339,6 +374,8 @@
 		"issues": "似乎遇到 Windows PowerShell 問題，請參閱此說明文件"
 	},
 	"autoApprove": {
+		"selectAll": "全選",
+		"selectNone": "全不選",
 		"tooltipManage": "管理自動核准設定",
 		"tooltipStatus": "自動核准已啟用：{{toggles}}",
 		"title": "自動核准",

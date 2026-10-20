@@ -1,4 +1,8 @@
 {
+	"textWithPrefixExceedsTokenLimit": "El text a l'índex {{index}} superaria el límit màxim de tokens després d'afegir el prefix de consulta ({{estimatedTokens}} > {{maxTokens}}). S'omet el prefix.",
+	"openai": {
+		"invalidResponseFormat": "Format de resposta no vàlid d'OpenAI"
+	},
 	"unknownError": "Error desconegut",
 	"authenticationFailed": "No s'han pogut crear les incrustacions: ha fallat l'autenticació. Comproveu la vostra clau d'API.",
 	"failedWithStatus": "No s'han pogut crear les incrustacions després de {{attempts}} intents: HTTP {{statusCode}} - {{errorMessage}}",

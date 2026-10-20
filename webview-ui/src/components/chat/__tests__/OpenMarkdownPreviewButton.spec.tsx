@@ -15,6 +15,15 @@ vi.mock("@src/utils/vscode", () => ({
 	},
 }))
 
+// The component translates its aria-label/tooltip; return the key so the
+// assertions stay independent of the locale resources.
+vi.mock("react-i18next", () => ({
+	useTranslation: () => ({ t: (key: string) => key }),
+	initReactI18next: { type: "3rdParty", init: () => {} },
+}))
+
+const LABEL = "openMarkdownPreviewButton.label"
+
 describe("OpenMarkdownPreviewButton", () => {
 	const complex = "# One\n## Two"
 	const simple = "Just text"
@@ -29,7 +38,7 @@ describe("OpenMarkdownPreviewButton", () => {
 				<OpenMarkdownPreviewButton markdown={simple} />
 			</TooltipProvider>,
 		)
-		expect(screen.queryByLabelText("Open markdown in preview")).toBeNull()
+		expect(screen.queryByLabelText(LABEL)).toBeNull()
 	})
 
 	it("renders when markdown has 2+ headings", () => {
@@ -38,7 +47,7 @@ describe("OpenMarkdownPreviewButton", () => {
 				<OpenMarkdownPreviewButton markdown={complex} />
 			</TooltipProvider>,
 		)
-		expect(screen.getByLabelText("Open markdown in preview")).toBeInTheDocument()
+		expect(screen.getByLabelText(LABEL)).toBeInTheDocument()
 	})
 
 	it("posts message on click", () => {
@@ -47,7 +56,7 @@ describe("OpenMarkdownPreviewButton", () => {
 				<OpenMarkdownPreviewButton markdown={complex} />
 			</TooltipProvider>,
 		)
-		fireEvent.click(screen.getByLabelText("Open markdown in preview"))
+		fireEvent.click(screen.getByLabelText(LABEL))
 		expect(postMessageMock).toHaveBeenCalledWith({ type: "openMarkdownPreview", text: complex })
 	})
 })

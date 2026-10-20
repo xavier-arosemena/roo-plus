@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Dokumentasi"
+	},
+	"dismiss": "Tutup",
+	"dismissAndDontShowAgain": "Tutup dan jangan tampilkan lagi",
 	"errorBoundary": {
 		"title": "Terjadi kesalahan",
 		"reportText": "Bantu kami meningkatkan dengan melaporkan kesalahan ini di",
@@ -20,6 +25,7 @@
 		"billion_suffix": "m"
 	},
 	"ui": {
+		"search_ariaLabel": "Cari",
 		"search_placeholder": "Cari...",
 		"no_results": "Tidak ada hasil yang ditemukan"
 	},

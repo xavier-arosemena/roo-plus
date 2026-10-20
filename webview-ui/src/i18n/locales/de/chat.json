@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Symbol für abgelehnten Befehl",
+			"terminal": "Terminal-Symbol",
+			"question": "Frage-Symbol",
+			"batchDiff": "Symbol für Sammel-Diff",
+			"viewFiles": "Symbol für Dateien anzeigen",
+			"readFile": "Symbol für Datei lesen",
+			"listFiles": "Symbol für Dateiliste",
+			"folderTree": "Symbol für Ordnerbaum",
+			"switchMode": "Symbol für Moduswechsel",
+			"speechBubble": "Sprechblasen-Symbol",
+			"user": "Benutzer-Symbol",
+			"editMessage": "Symbol für Nachricht bearbeiten",
+			"deleteMessage": "Symbol für Nachricht löschen",
+			"readCommandOutput": "Symbol für Befehlsausgabe lesen"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "To-do eingeben",
+		"addPlaceholder": "To-do eingeben, Enter zum Hinzufügen drücken",
+		"removeTitle": "Entfernen"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Markdown in der Vorschau öffnen"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Klicken, um das Muster zu bearbeiten"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Angeheftete Konfigurationen",
+		"allConfigurations": "Alle Konfigurationen"
+	},
+
 	"greeting": "Willkommen bei Roo+!",
 	"task": {
 		"title": "Aufgabe",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "Shift halten, um Dateien/Bilder einzufügen",
 	"enhancePromptDescription": "Die Schaltfläche 'Prompt verbessern' hilft, deine Anfrage durch zusätzlichen Kontext, Klarstellungen oder Umformulierungen zu verbessern. Versuche, hier eine Anfrage einzugeben und klicke erneut auf die Schaltfläche, um zu sehen, wie es funktioniert.",
 	"modeSelector": {
+		"searchAriaLabel": "Modi durchsuchen",
 		"title": "Modi",
 		"marketplace": "Modus-Marketplace",
 		"settings": "Modus-Einstellungen",
@@ -286,6 +321,8 @@
 		"issues": "Es scheint, dass du Probleme mit Windows PowerShell hast, bitte sieh dir dies an"
 	},
 	"autoApprove": {
+		"selectAll": "Alle auswählen",
+		"selectNone": "Keine auswählen",
 		"tooltipManage": "Einstellungen für die automatische Genehmigung verwalten",
 		"tooltipStatus": "Automatische Genehmigung aktiviert für: {{toggles}}",
 		"title": "Automatische Genehmigung",

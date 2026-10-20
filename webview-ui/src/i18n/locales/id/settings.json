@@ -10,6 +10,7 @@
 		"remove": "Hapus"
 	},
 	"search": {
+		"clear": "Hapus pencarian",
 		"placeholder": "Cari pengaturan...",
 		"noResults": "Tidak ada pengaturan yang ditemukan"
 	},
@@ -359,6 +360,11 @@
 		}
 	},
 	"providers": {
+		"openRouterBaseUrlPlaceholder": "Default: https://openrouter.ai/api/v1",
+		"openAiCodex": {
+			"signInButton": "Masuk ke OpenAI Codex",
+			"signOutButton": "Keluar"
+		},
 		"providerDocumentation": "Dokumentasi {{provider}}",
 		"configProfile": "Profil Konfigurasi",
 		"description": "Simpan konfigurasi API yang berbeda untuk beralih dengan cepat antara provider dan pengaturan.",
@@ -454,6 +460,7 @@
 		"getUnboundApiKey": "Dapatkan Unbound API Key",
 		"requestyApiKey": "Requesty API Key",
 		"refreshModels": {
+			"missingConfig": "Tidak dapat menyegarkan model: konfigurasi tidak ada. Periksa pengaturanmu.",
 			"label": "Refresh Model",
 			"hint": "Silakan buka kembali pengaturan untuk melihat model terbaru.",
 			"loading": "Merefresh daftar model...",
@@ -580,6 +587,7 @@
 			"description": "LM Studio memungkinkan kamu menjalankan model secara lokal di komputer. Untuk instruksi cara memulai, lihat <a>panduan quickstart</a> mereka. Kamu juga perlu memulai fitur <b>local server</b> LM Studio untuk menggunakannya dengan ekstensi ini. <span>Catatan:</span> Roo+ menggunakan prompt kompleks dan bekerja terbaik dengan model Claude. Model yang kurang mampu mungkin tidak bekerja seperti yang diharapkan."
 		},
 		"ollama": {
+			"numCtxPlaceholder": "mis. 4096",
 			"baseUrl": "Base URL (opsional)",
 			"modelId": "Model ID",
 			"apiKey": "Ollama API Key",

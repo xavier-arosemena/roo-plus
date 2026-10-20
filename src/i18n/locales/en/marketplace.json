@@ -16,36 +16,6 @@
 		"view": "View",
 		"source": "Source"
 	},
-	"filters": {
-		"search": {
-			"placeholder": "Search marketplace..."
-		},
-		"type": {
-			"label": "Type",
-			"all": "All Types",
-			"mode": "Mode",
-			"mcpServer": "MCP Server"
-		},
-		"sort": {
-			"label": "Sort By",
-			"name": "Name",
-			"lastUpdated": "Last Updated"
-		},
-		"tags": {
-			"label": "Tags",
-			"clear": "Clear tags",
-			"placeholder": "Search tags...",
-			"noResults": "No tags found.",
-			"selected": "Showing items with any of the selected tags"
-		},
-		"installed": {
-			"label": "Filter by status",
-			"all": "All Items",
-			"installed": "Installed",
-			"notInstalled": "Not Installed"
-		},
-		"title": "Marketplace"
-	},
 	"done": "Done",
 	"tabs": {
 		"installed": "Installed",

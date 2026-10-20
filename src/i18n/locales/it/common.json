@@ -33,6 +33,7 @@
 		"esbuildPurpose": "transpilare e raggruppare strumenti personalizzati TypeScript"
 	},
 	"errors": {
+		"attempt_completion_tool_failed": "Impossibile eseguire attempt_completion perché una chiamata di strumento precedente non è riuscita in questo turno. Risolvi l'errore dello strumento prima di tentare il completamento.",
 		"invalid_data_uri": "Formato URI dati non valido",
 		"error_copying_image": "Errore durante la copia dell'immagine: {{errorMessage}}",
 		"error_saving_image": "Errore durante il salvataggio dell'immagine: {{errorMessage}}",
@@ -170,7 +171,11 @@
 			"alreadyImported_other": "Tutte le {{count}} cronologie di attività Roo Code sono già state importate in Roo+."
 		}
 	},
+	"gemini": {
+		"sources": "Fonti:"
+	},
 	"info": {
+		"path_copied_to_clipboard": "Percorso copiato negli appunti",
 		"no_changes": "Nessuna modifica trovata.",
 		"clipboard_copy": "Messaggio di sistema copiato con successo negli appunti",
 		"history_cleanup": "Pulite {{count}} attività con file mancanti dalla cronologia.",

@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "거부된 명령 아이콘",
+			"terminal": "터미널 아이콘",
+			"question": "질문 아이콘",
+			"batchDiff": "일괄 diff 아이콘",
+			"viewFiles": "파일 보기 아이콘",
+			"readFile": "파일 읽기 아이콘",
+			"listFiles": "파일 목록 아이콘",
+			"folderTree": "폴더 트리 아이콘",
+			"switchMode": "모드 전환 아이콘",
+			"speechBubble": "말풍선 아이콘",
+			"user": "사용자 아이콘",
+			"editMessage": "메시지 편집 아이콘",
+			"deleteMessage": "메시지 삭제 아이콘",
+			"readCommandOutput": "명령 출력 읽기 아이콘"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "할 일 항목 입력",
+		"addPlaceholder": "할 일 항목을 입력하고 Enter로 추가",
+		"removeTitle": "제거"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "markdown을 미리보기로 열기"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "클릭하여 패턴 편집"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "고정된 구성",
+		"allConfigurations": "모든 구성"
+	},
+
 	"greeting": "Roo+에 오신 것을 환영합니다!",
 	"task": {
 		"title": "작업",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "파일/이미지를 드래그하려면 shift 키 누르기",
 	"enhancePromptDescription": "'프롬프트 향상' 버튼은 추가 컨텍스트, 명확화 또는 재구성을 제공하여 요청을 개선합니다. 여기에 요청을 입력한 다음 버튼을 다시 클릭하여 작동 방식을 확인해보세요.",
 	"modeSelector": {
+		"searchAriaLabel": "모드 검색",
 		"title": "모드",
 		"marketplace": "모드 마켓플레이스",
 		"settings": "모드 설정",
@@ -286,6 +321,8 @@
 		"issues": "Windows PowerShell에 문제가 있는 것 같습니다. 다음을 참조하세요"
 	},
 	"autoApprove": {
+		"selectAll": "모두 선택",
+		"selectNone": "아무것도 선택 안 함",
 		"tooltipManage": "자동 승인 설정 관리",
 		"tooltipStatus": "자동 승인 활성화됨: {{toggles}}",
 		"title": "자동 승인",

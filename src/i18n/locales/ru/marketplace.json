@@ -16,36 +16,6 @@
 		"view": "Просмотр",
 		"source": "Источник"
 	},
-	"filters": {
-		"search": {
-			"placeholder": "Поиск в marketplace..."
-		},
-		"type": {
-			"label": "Тип",
-			"all": "Все типы",
-			"mode": "Режим",
-			"mcpServer": "MCP сервер"
-		},
-		"sort": {
-			"label": "Сортировать по",
-			"name": "Имя",
-			"lastUpdated": "Последнее обновление"
-		},
-		"tags": {
-			"label": "Теги",
-			"clear": "Очистить теги",
-			"placeholder": "Поиск тегов...",
-			"noResults": "Теги не найдены.",
-			"selected": "Показ элементов с любым из выбранных тегов"
-		},
-		"installed": {
-			"label": "Фильтр по статусу",
-			"all": "Все элементы",
-			"installed": "Установленные",
-			"notInstalled": "Не установленные"
-		},
-		"title": "Marketplace"
-	},
 	"done": "Готово",
 	"tabs": {
 		"installed": "Установлено",

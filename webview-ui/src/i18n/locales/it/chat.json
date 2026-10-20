@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Icona comando negato",
+			"terminal": "Icona terminale",
+			"question": "Icona domanda",
+			"batchDiff": "Icona diff in batch",
+			"viewFiles": "Icona visualizza file",
+			"readFile": "Icona lettura file",
+			"listFiles": "Icona elenco file",
+			"folderTree": "Icona albero cartelle",
+			"switchMode": "Icona cambio modalità",
+			"speechBubble": "Icona fumetto",
+			"user": "Icona utente",
+			"editMessage": "Icona modifica messaggio",
+			"deleteMessage": "Icona elimina messaggio",
+			"readCommandOutput": "Icona lettura output comando"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Inserisci attività",
+		"addPlaceholder": "Inserisci attività, premi Invio per aggiungere",
+		"removeTitle": "Rimuovi"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Apri markdown nell'anteprima"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Clicca per modificare il pattern"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Configurazioni fissate",
+		"allConfigurations": "Tutte le configurazioni"
+	},
+
 	"greeting": "Benvenuto in Roo+!",
 	"task": {
 		"title": "Attività",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "tieni premuto shift per trascinare file/immagini",
 	"enhancePromptDescription": "Il pulsante 'Migliora prompt' aiuta a migliorare la tua richiesta fornendo contesto aggiuntivo, chiarimenti o riformulazioni. Prova a digitare una richiesta qui e fai di nuovo clic sul pulsante per vedere come funziona.",
 	"modeSelector": {
+		"searchAriaLabel": "Cerca modalità",
 		"title": "Modalità",
 		"marketplace": "Marketplace delle Modalità",
 		"settings": "Impostazioni Modalità",
@@ -286,6 +321,8 @@
 		"issues": "Sembra che tu stia avendo problemi con Windows PowerShell, consulta questa"
 	},
 	"autoApprove": {
+		"selectAll": "Seleziona tutto",
+		"selectNone": "Non selezionare nulla",
 		"tooltipManage": "Gestisci impostazioni di approvazione automatica",
 		"tooltipStatus": "Approvazione automatica abilitata per: {{toggles}}",
 		"title": "Approvazione Automatica",

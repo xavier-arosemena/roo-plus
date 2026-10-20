@@ -378,7 +378,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 									option.type === ContextMenuOptionType.OpenedFile) && (
 									<img
 										src={getMaterialIconForOption(option)}
-										alt="Mode"
+										alt=""
 										style={{
 											marginRight: "6px",
 											flexShrink: 0,

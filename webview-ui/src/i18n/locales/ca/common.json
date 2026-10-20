@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Documentació"
+	},
+	"dismiss": "Descarta",
+	"dismissAndDontShowAgain": "Descarta i no ho tornis a mostrar",
 	"errorBoundary": {
 		"title": "Alguna cosa ha anat malament",
 		"reportText": "Si us plau, ajuda'ns a millorar informant d'aquest error a",
@@ -20,6 +25,7 @@
 		"billion_suffix": "b"
 	},
 	"ui": {
+		"search_ariaLabel": "Cerca",
 		"search_placeholder": "Cerca...",
 		"no_results": "No s'han trobat resultats"
 	},

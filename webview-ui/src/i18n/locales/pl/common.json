@@ -1,4 +1,9 @@
 {
+	"docsLink": {
+		"label": "Dokumentacja"
+	},
+	"dismiss": "Zamknij",
+	"dismissAndDontShowAgain": "Zamknij i nie pokazuj ponownie",
 	"errorBoundary": {
 		"title": "Coś poszło nie tak",
 		"reportText": "Pomóż nam ulepszyć aplikację, zgłaszając ten błąd na",
@@ -20,6 +25,7 @@
 		"keep": "Zachowaj"
 	},
 	"ui": {
+		"search_ariaLabel": "Szukaj",
 		"search_placeholder": "Szukaj...",
 		"no_results": "Nie znaleziono wyników"
 	},

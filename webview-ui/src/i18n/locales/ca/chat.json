@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "Icona de comanda denegada",
+			"terminal": "Icona de terminal",
+			"question": "Icona de pregunta",
+			"batchDiff": "Icona de diff per lots",
+			"viewFiles": "Icona de visualitzar fitxers",
+			"readFile": "Icona de lectura de fitxer",
+			"listFiles": "Icona de llista de fitxers",
+			"folderTree": "Icona d'arbre de carpetes",
+			"switchMode": "Icona de canvi de mode",
+			"speechBubble": "Icona de bombolla de text",
+			"user": "Icona d'usuari",
+			"editMessage": "Icona d'edició de missatge",
+			"deleteMessage": "Icona d'eliminació de missatge",
+			"readCommandOutput": "Icona de lectura de sortida de comanda"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "Introdueix una tasca",
+		"addPlaceholder": "Introdueix una tasca i prem Enter per afegir-la",
+		"removeTitle": "Elimina"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Obre el markdown a la previsualització"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "Fes clic per editar el patró"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "Configuracions fixades",
+		"allConfigurations": "Totes les configuracions"
+	},
+
 	"greeting": "Benvingut a Roo+!",
 	"task": {
 		"title": "Tasca",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "manté premut shift per arrossegar fitxers/imatges",
 	"enhancePromptDescription": "El botó 'Millora la sol·licitud' ajuda a millorar la teva sol·licitud proporcionant context addicional, aclariments o reformulacions. Prova d'escriure una sol·licitud aquí i fes clic al botó de nou per veure com funciona.",
 	"modeSelector": {
+		"searchAriaLabel": "Cerca modes",
 		"title": "Modes",
 		"marketplace": "Marketplace de Modes",
 		"settings": "Configuració de Modes",
@@ -286,6 +321,8 @@
 		"issues": "Sembla que estàs tenint problemes amb Windows PowerShell, si us plau consulta aquesta documentació per a més informació."
 	},
 	"autoApprove": {
+		"selectAll": "Selecciona-ho tot",
+		"selectNone": "No seleccionis res",
 		"tooltipManage": "Gestiona la configuració d'aprovació automàtica",
 		"tooltipStatus": "Aprovació automàtica activada per a: {{toggles}}",
 		"title": "Aprovació automàtica",

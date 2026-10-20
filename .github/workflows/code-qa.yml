@@ -96,6 +96,18 @@ jobs:
                   node scripts/verify-branding.mjs
                   echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:BRANDING] no upstream / double-brand strings in i18n surfaces"
                   echo "::endgroup::"
+            # Placeholder/tag parity guard: i18next renders a malformed string
+            # without complaint, so a translation that drops, adds, or duplicates
+            # a {{placeholder}} or <0>/<tag> token silently loses an interpolated
+            # value or a React component. Runs over every namespace in BOTH locale
+            # trees (webview-ui/src/i18n/locales and src/i18n/locales) against en.
+            # Reordering tokens is legitimate and explicitly allowed.
+            - name: Guard i18n placeholder/tag parity
+              run: |
+                  echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:I18N-PLACEHOLDERS] Verifying placeholder/tag parity across locale trees"
+                  node scripts/verify-i18n-placeholders.mjs
+                  echo "::notice::[CI:CODE-QA:STATIC-ANALYSIS:I18N-PLACEHOLDERS] placeholder/tag parity holds against en"
+                  echo "::endgroup::"
             - name: Verify custom-modes submodule pin & committed artifact sync
               run: |
                   echo "::group::[CI:CODE-QA:STATIC-ANALYSIS:SUBMODULE] Verifying submodule pin + .roomodes sync"

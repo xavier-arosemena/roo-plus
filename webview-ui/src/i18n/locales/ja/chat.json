@@ -1,4 +1,38 @@
 {
+	"chatRow": {
+		"icons": {
+			"deniedCommand": "拒否されたコマンドのアイコン",
+			"terminal": "ターミナルのアイコン",
+			"question": "質問のアイコン",
+			"batchDiff": "バッチ差分のアイコン",
+			"viewFiles": "ファイル表示のアイコン",
+			"readFile": "ファイル読み取りのアイコン",
+			"listFiles": "ファイル一覧のアイコン",
+			"folderTree": "フォルダーツリーのアイコン",
+			"switchMode": "モード切り替えのアイコン",
+			"speechBubble": "吹き出しのアイコン",
+			"user": "ユーザーのアイコン",
+			"editMessage": "メッセージ編集のアイコン",
+			"deleteMessage": "メッセージ削除のアイコン",
+			"readCommandOutput": "コマンド出力の読み取りアイコン"
+		}
+	},
+	"todoList": {
+		"itemPlaceholder": "ToDo 項目を入力",
+		"addPlaceholder": "ToDo 項目を入力し、Enter で追加",
+		"removeTitle": "削除"
+	},
+	"openMarkdownPreviewButton": {
+		"label": "Markdown をプレビューで開く"
+	},
+	"commandPatternSelector": {
+		"clickToEdit": "クリックしてパターンを編集"
+	},
+	"apiConfigSelector": {
+		"pinnedConfigurations": "ピン留めされた構成",
+		"allConfigurations": "すべての構成"
+	},
+
 	"greeting": "Roo+ へようこそ！",
 	"task": {
 		"title": "タスク",
@@ -124,6 +158,7 @@
 	"dragFilesImages": "ファイル/画像をドラッグするにはShiftキーを押したまま",
 	"enhancePromptDescription": "「プロンプトを強化」ボタンは、追加コンテキスト、説明、または言い換えを提供することで、リクエストを改善します。ここにリクエストを入力し、ボタンを再度クリックして動作を確認してください。",
 	"modeSelector": {
+		"searchAriaLabel": "モードを検索",
 		"title": "モード",
 		"marketplace": "モードマーケットプレイス",
 		"settings": "モード設定",
@@ -286,6 +321,8 @@
 		"issues": "Windows PowerShellに問題があるようです。こちらを参照してください"
 	},
 	"autoApprove": {
+		"selectAll": "すべて選択",
+		"selectNone": "何も選択しない",
 		"tooltipManage": "自動承認設定を管理する",
 		"tooltipStatus": "自動承認が有効です: {{toggles}}",
 		"title": "自動承認",

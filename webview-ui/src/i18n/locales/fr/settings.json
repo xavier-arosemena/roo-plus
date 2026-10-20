@@ -10,6 +10,7 @@
 		"remove": "Supprimer"
 	},
 	"search": {
+		"clear": "Effacer la recherche",
 		"placeholder": "Rechercher les paramètres...",
 		"noResults": "Aucun paramètre trouvé"
 	},
@@ -359,6 +360,11 @@
 		}
 	},
 	"providers": {
+		"openRouterBaseUrlPlaceholder": "Par défaut : https://openrouter.ai/api/v1",
+		"openAiCodex": {
+			"signInButton": "Se connecter à OpenAI Codex",
+			"signOutButton": "Se déconnecter"
+		},
 		"providerDocumentation": "Documentation {{provider}}",
 		"configProfile": "Profil de configuration",
 		"description": "Enregistrez différentes configurations d'API pour basculer rapidement entre les fournisseurs et les paramètres.",
@@ -454,6 +460,7 @@
 		"getUnboundApiKey": "Obtenir la clé API Unbound",
 		"requestyApiKey": "Clé API Requesty",
 		"refreshModels": {
+			"missingConfig": "Impossible d'actualiser les modèles : configuration manquante. Vérifie tes paramètres.",
 			"label": "Actualiser les modèles",
 			"hint": "Veuillez rouvrir les paramètres pour voir les modèles les plus récents.",
 			"loading": "Actualisation de la liste des modèles...",
@@ -580,6 +587,7 @@
 			"description": "LM Studio vous permet d'exécuter des modèles localement sur votre ordinateur. Pour obtenir des instructions sur la mise en route, consultez leur <a>guide de démarrage rapide</a>. Vous devrez également démarrer la fonction <b>serveur local</b> de LM Studio pour l'utiliser avec cette extension. <span>Remarque :</span> Roo+ utilise des prompts complexes et fonctionne mieux avec les modèles Claude. Les modèles moins performants peuvent ne pas fonctionner comme prévu."
 		},
 		"ollama": {
+			"numCtxPlaceholder": "ex. : 4096",
 			"baseUrl": "URL de base (optionnel)",
 			"modelId": "ID du modèle",
 			"apiKey": "Clé API Ollama",

@@ -10,6 +10,7 @@
 		"remove": "हटाएं"
 	},
 	"search": {
+		"clear": "खोज साफ़ करें",
 		"placeholder": "सेटिंग्स खोजें...",
 		"noResults": "कोई सेटिंग नहीं मिली"
 	},
@@ -359,6 +360,11 @@
 		}
 	},
 	"providers": {
+		"openRouterBaseUrlPlaceholder": "डिफ़ॉल्ट: https://openrouter.ai/api/v1",
+		"openAiCodex": {
+			"signInButton": "OpenAI Codex में साइन इन करें",
+			"signOutButton": "साइन आउट करें"
+		},
 		"providerDocumentation": "{{provider}} दस्तावेज़ीकरण",
 		"configProfile": "कॉन्फिगरेशन प्रोफाइल",
 		"description": "विभिन्न API कॉन्फ़िगरेशन सहेजें ताकि प्रदाताओं और सेटिंग्स के बीच त्वरित रूप से स्विच कर सकें।",
@@ -454,6 +460,7 @@
 		"getUnboundApiKey": "Unbound API कुंजी प्राप्त करें",
 		"requestyApiKey": "Requesty API कुंजी",
 		"refreshModels": {
+			"missingConfig": "मॉडल रीफ़्रेश नहीं किए जा सके: कॉन्फ़िगरेशन गुम है। कृपया अपनी सेटिंग्स जाँचें।",
 			"label": "मॉडल रिफ्रेश करें",
 			"hint": "नवीनतम मॉडल देखने के लिए कृपया सेटिंग्स को फिर से खोलें।",
 			"loading": "मॉडल सूची अपडेट हो रही है...",
@@ -580,6 +587,7 @@
 			"description": "LM Studio आपको अपने कंप्यूटर पर स्थानीय रूप से मॉडल चलाने की अनुमति देता है। आरंभ करने के निर्देशों के लिए, उनकी <a>क्विकस्टार्ट गाइड</a> देखें। आपको इस एक्सटेंशन के साथ उपयोग करने के लिए LM Studio की <b>स्थानीय सर्वर</b> सुविधा भी शुरू करनी होगी। <span>नोट:</span> Roo+ जटिल प्रॉम्प्ट्स का उपयोग करता है और Claude मॉडल के साथ सबसे अच्छा काम करता है। कम क्षमता वाले मॉडल अपेक्षित रूप से काम नहीं कर सकते हैं।"
 		},
 		"ollama": {
+			"numCtxPlaceholder": "जैसे, 4096",
 			"baseUrl": "बेस URL (वैकल्पिक)",
 			"modelId": "मॉडल ID",
 			"apiKey": "Ollama API Key",
