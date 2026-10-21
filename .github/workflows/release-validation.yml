@@ -15,9 +15,33 @@ on:
             - "webview-ui/src/components/chat/Announcement.tsx"
             - "releases/**"
             - ".github/workflows/release-validation.yml"
+            # This job is the only place that asserts the packaged artefact
+            # contains extension/THIRD-PARTY-NOTICES.md and the five
+            # extension/bin/dcg/* archives, so a DCG bump or a notices change
+            # MUST trigger it (review finding M10). Without these paths the very
+            # change that can break a bump never runs the checks for it.
+            - "THIRD-PARTY-NOTICES.md"
+            - "src/THIRD-PARTY-NOTICES.md"
+            - "src/bin/**"
+            - "src/.vscodeignore"
+            - "src/services/destructive-command-guard/**"
+            - "src/services/managed-binary/**"
+            - "src/services/binary-acquisition/**"
+            - "scripts/vsix-audit.mjs"
+            - "scripts/vsix-audit-register.json"
+            - "scripts/verify-third-party-notices.mjs"
+            - "scripts/verify-dcg-bundles.mjs"
 
 permissions:
     contents: read
+
+# THE single enforcement switch for the VSIX audit (DEBT #23). "false"
+# (default) = ADVISORY: the audit runs, findings are annotated, nothing fails.
+# "true" = ENFORCE: exit 1/2 fail the run and a missing result is a failure.
+# Flip to "true" only after the by-design register is regenerated from a current
+# artefact (docs/runbooks/release-publishing.md, "VSIX audit enforcement switch").
+env:
+    VSIX_AUDIT_ENFORCE: "false"
 
 jobs:
     validate-release:
@@ -118,6 +142,14 @@ jobs:
                   grep -q "extension/webview-ui/build/assets/index.js" /tmp/roo-plus-vsix-contents.txt
                   grep -q "extension/assets/codicons/codicon.ttf" /tmp/roo-plus-vsix-contents.txt
                   grep -q "extension/assets/vscode-material-icons/icons/3d.svg" /tmp/roo-plus-vsix-contents.txt
+                  # Attribution + bundled DCG archives must be in the artefact
+                  # (DCG 3a, 2026-10-21: the guard ships, it is never downloaded).
+                  grep -q "extension/THIRD-PARTY-NOTICES.md" /tmp/roo-plus-vsix-contents.txt
+                  for archive in dcg-x86_64-apple-darwin.tar.xz dcg-aarch64-apple-darwin.tar.xz \
+                      dcg-x86_64-unknown-linux-musl.tar.xz dcg-aarch64-unknown-linux-gnu.tar.xz \
+                      dcg-x86_64-pc-windows-msvc.zip; do
+                      grep -q "extension/bin/dcg/$archive" /tmp/roo-plus-vsix-contents.txt
+                  done
                   echo "::notice::[CI:RELEASE-VALIDATION:PACKAGE] VSIX packaged: $vsix_path"
                   echo "::endgroup::"
 
@@ -129,11 +161,126 @@ jobs:
 
                   artifact_name=$(unzip -p "$vsix_path" extension/package.json | jq -r '.name')
                   artifact_publisher=$(unzip -p "$vsix_path" extension/package.json | jq -r '.publisher')
+                  # The declared licence must survive packaging (Security & Trust
+                  # guidance: "Include license"; compliance finding C5).
+                  artifact_license=$(unzip -p "$vsix_path" extension/package.json | jq -r '.license')
 
                   test "$artifact_name" = "roo-plus"
                   test "$artifact_publisher" = "xavier-arosemena"
-                  echo "::notice::[CI:RELEASE-VALIDATION:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher"
+                  test "$artifact_license" = "Apache-2.0"
+                  echo "::notice::[CI:RELEASE-VALIDATION:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher / $artifact_license"
                   echo "::endgroup::"
+
+            # Attribution gate: every production dependency and every bundled
+            # binary component (DCG) must be described in THIRD-PARTY-NOTICES.md,
+            # the bundled archives must hash to the pinned values, and the copy
+            # under src/ must match the root file.
+            - name: Verify third-party notices (verify-third-party-notices.mjs)
+              run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:NOTICES] Verifying third-party attribution"
+                  node scripts/verify-third-party-notices.mjs
+                  echo "::notice::[CI:RELEASE-VALIDATION:NOTICES] notices complete (dependencies + shipped binaries + DCG pins)"
+                  echo "::endgroup::"
+
+            # Bundled-DCG hash gate (M8): the notices gate re-derives the ARCHIVE
+            # hash only, so a typo in a pinned `binarySha256` was undetectable
+            # until a user on that platform enabled the guard and the (correctly
+            # fail-closed) install rejected the executable forever. This extracts
+            # each committed archive and compares the executable too. Offline and
+            # deterministic — deliberately NOT part of any publish workflow.
+            - name: Verify bundled DCG archives and executables (verify-dcg-bundles.mjs)
+              run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:DCG-BUNDLES] Verifying bundled DCG archives + extracted binaries"
+                  node scripts/verify-dcg-bundles.mjs
+                  echo "::notice::[CI:RELEASE-VALIDATION:DCG-BUNDLES] all bundled DCG archives and executables match their pins"
+                  echo "::endgroup::"
+
+            # =============================================================
+            # VSIX AUDIT CLUSTER — ADVISORY BY DEFAULT.
+            #
+            # This workflow publishes nothing, so it deliberately does NOT fail on
+            # an audit outcome while the by-design register is still the 3.87.3
+            # snapshot: a permanently-red validation job is worse than no gate.
+            # Enforcement is gated by VSIX_AUDIT_ENFORCE (default "false"); the
+            # scanner install is non-fatal and bounded, so a registry outage
+            # degrades to "audit not run" (exit 2) instead of a job that dies in
+            # the toolchain. See docs/runbooks/release-publishing.md.
+            # =============================================================
+            - name: Install YARA-X v1.20.0 (full-coverage VSIX audit)
+              id: yara-x
+              # A GitHub outage must degrade to "audit not run", never to a job
+              # that fails in its own toolchain.
+              continue-on-error: true
+              timeout-minutes: 5
+              run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:AUDIT] Installing YARA-X v1.20.0"
+                  curl -sSfL --max-time 120 --retry 3 --retry-delay 5 -o /tmp/yara-x.tar.gz \
+                      "https://github.com/VirusTotal/yara-x/releases/download/v1.20.0/yara-x-v1.20.0-x86_64-unknown-linux-gnu.tar.gz"
+                  echo "cabb8df46492fff59c51261302c71ed9cb2cef393d3f0ca560801a34a8e24cbe  /tmp/yara-x.tar.gz" | sha256sum -c -
+                  tar -xzf /tmp/yara-x.tar.gz -C /tmp
+                  sudo install -m 0755 /tmp/yr /usr/local/bin/yr
+                  yr --version
+                  echo "::endgroup::"
+
+            - name: Audit packaged VSIX (node scripts/vsix-audit.mjs --publish)
+              id: vsix-audit
+              continue-on-error: true
+              timeout-minutes: 15
+              run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:AUDIT] Auditing the packaged VSIX"
+                  # FAIL-CLOSED SENTINEL: a cancelled or timed-out step leaves "2"
+                  # ("audit did not complete") instead of an empty result that
+                  # could read as a pass.
+                  echo "exit_code=2" >> "$GITHUB_OUTPUT"
+                  package_version=$(node -p "require('./src/package.json').version")
+                  vsix_path="bin/roo-plus-${package_version}.vsix"
+                  set +e
+                  node scripts/vsix-audit.mjs "$vsix_path" --publish
+                  audit_code=$?
+                  set -e
+                  echo "exit_code=${audit_code}" >> "$GITHUB_OUTPUT"
+                  case "$audit_code" in
+                      0) echo "::notice::[CI:RELEASE-VALIDATION:AUDIT] vsix-audit passed with full coverage" ;;
+                      1) echo "::warning::[CI:RELEASE-VALIDATION:AUDIT] unregistered or escalated findings — see the enforcement step for the verdict" ;;
+                      2) echo "::warning::[CI:RELEASE-VALIDATION:AUDIT] DEGRADED coverage (YARA-X unavailable) or audit tool failure — this is NOT a full audit" ;;
+                      *) echo "::warning::[CI:RELEASE-VALIDATION:AUDIT] unexpected vsix-audit exit code ${audit_code}" ;;
+                  esac
+                  echo "::endgroup::"
+                  exit 0
+
+            - name: Enforce VSIX audit gate (advisory unless VSIX_AUDIT_ENFORCE=true)
+              if: always()
+              env:
+                  AUDIT_EXIT_CODE: ${{ steps.vsix-audit.outputs.exit_code }}
+              run: |
+                  echo "::group::[CI:RELEASE-VALIDATION:AUDIT-GATE] VSIX audit gate"
+                  enforce="${VSIX_AUDIT_ENFORCE:-false}"
+                  code="${AUDIT_EXIT_CODE}"
+                  echo "[CI:RELEASE-VALIDATION:AUDIT-GATE] VSIX_AUDIT_ENFORCE=${enforce} audit_exit_code=${code:-<none>}"
+
+                  if [ "$enforce" != "true" ]; then
+                      echo "::notice::[CI:RELEASE-VALIDATION:AUDIT-GATE] ADVISORY (VSIX_AUDIT_ENFORCE=${enforce}): no audit outcome fails this job. This workflow publishes nothing."
+                      if [ -z "$code" ] || [ "$code" != "0" ]; then
+                          echo "::warning::[CI:RELEASE-VALIDATION:AUDIT-GATE] audit result: ${code:-no result (the audit did not run)}. Triage the findings and regenerate the by-design register only after reviewing each one (DEBT #23). Never widen the register to make a scan pass."
+                      fi
+                      echo "::endgroup::"
+                      exit 0
+                  fi
+
+                  # ENFORCING. A missing result is a FAILURE, not a pass (M4).
+                  if [ -z "$code" ]; then
+                      echo "::error::[CI:RELEASE-VALIDATION:AUDIT-GATE] no audit result: the audit step was skipped, cancelled, timed out or died before writing one. Treating as gate FAILURE, never as a pass."
+                      echo "::endgroup::"
+                      exit 1
+                  fi
+                  if [ "$code" = "0" ]; then
+                      echo "::notice::[CI:RELEASE-VALIDATION:AUDIT-GATE] full-coverage audit passed."
+                      echo "::endgroup::"
+                      exit 0
+                  fi
+                  echo "::error::[CI:RELEASE-VALIDATION:AUDIT-GATE] VSIX audit gate failed (exit ${code}). Triage the findings and regenerate the by-design register only after reviewing each one (DEBT #23). Never widen the register to make a scan pass."
+                  echo "::endgroup::"
+                  exit 1
 
             # Presence assertion (advisory). The 2026-09-25 -> 2026-10-06 window in
             # which xavier-arosemena.roo-plus silently disappeared from the public

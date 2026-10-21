@@ -1,23 +1,48 @@
 {
 	"schemaVersion": 1,
 	"id": "roo-plus-vsix-audit-register",
-	"description": "Triage register for @trailofbits/vsix-audit findings on the roo-plus VSIX. Every entry is a finding that a maintainer has characterized as by-design (content coincidence, bundled OSS, data/prose/source-map/grammar/WASM bytes, or declared capability). When run on demand (it is NOT wired into any publish pipeline), scripts/vsix-audit.mjs fails closed on any finding NOT listed here, on any severity/count escalation above the recorded baseline, and on degraded coverage (YARA-X unavailable) in a publish context. See SECURITY.md 'Optional on-demand VSIX audit' + DEBT #23.",
+	"description": "Triage register for @trailofbits/vsix-audit findings on the roo-plus VSIX. Every entry is a finding that a maintainer has characterized as by-design (content coincidence, bundled OSS, data/prose/source-map/grammar/WASM bytes, or declared capability). scripts/vsix-audit.mjs fails closed on any finding NOT listed here, on any severity/count escalation above the recorded baseline, and on degraded coverage (YARA-X unavailable) in a publish context; the release-validation and publish workflows run it as an ADVISORY step (VSIX_AUDIT_ENFORCE=false). See SECURITY.md 'Optional on-demand VSIX audit' + DEBT #23.",
 	"auditTool": "@trailofbits/vsix-audit",
 	"toolVersion": "0.3.0",
 	"scan": {
-		"artifact": "roo-plus-3.87.3.vsix",
-		"sha256": "d60a9adbeb3c107b6db3cea494c9a02cee45439766343f96d64392b5e424e514",
-		"scannedAt": "2026-09-08",
+		"artifact": "roo-plus-3.89.1.vsix",
+		"sha256": "3ef9fc5deeb4ad7e9bb62ecfacb05f9d7fc44218e71da80c90b88df437476a28",
+		"scannedAt": "2026-10-21",
 		"coverageDegraded": false,
 		"yaraXVersion": "1.20.0",
-		"note": "Full-coverage baseline (YARA-X present) of the 3.87.3 artifact. Not re-scanned by any pipeline; regenerate this file when a maintainer runs a deliberate on-demand pass and triages new or changed findings."
+		"stages": [
+			"@trailofbits/vsix-audit@0.3.0 (AST + YARA + metadata)",
+			"oversized-yara: pinned yr v1.20.0 + the tool's own zoo/signatures/yara/*.yar over every packaged file > 10 MiB"
+		],
+		"findingsTotal": 187,
+		"findingsByDesign": 187,
+		"findingsUnregisteredAtScan": 0,
+		"oversizedFiles": [
+			{
+				"file": "dist/extension.js",
+				"size": 15059325,
+				"stageFindings": 19,
+				"note": "The ONLY packaged file above 10 MiB. Stage 1 never YARA-scans it (`dist/scanner/checks/yara.js` skips buffer.length > 10 MiB); stage 2 does, and all 19 matches are individually triaged in this revision."
+			}
+		],
+		"note": "Full-coverage scan of the 3.89.1 artefact built from the current tree (1,286 files, 39.14 MB) with the pinned YARA-X v1.20.0 release asset (tarball sha256 cabb8df46492fff59c51261302c71ed9cb2cef393d3f0ca560801a34a8e24cbe verified before use). 187 findings across 21 files: 168 from stage 1 (all matched existing entries, including the 3.89.1 changelog.md and re-hashed mermaid triage) plus 19 from the new oversized-file stage on dist/extension.js. `coverage: full` for this entry means BOTH: stage 1 reported no degradation AND stage 2 had yr plus the rule set and scanned every oversized file. Supersedes the 3.87.3 baseline (d60a9adbeb3c107b6db3cea494c9a02cee45439766343f96d64392b5e424e514, 2026-09-08) and the 2026-10-21 stage-1-only scan (f22360f638f76aaafaadeae4fc925a4acc6883d84fd54bcb74c853a4695dedc6, 168 findings, 13 unregistered, coverage that did NOT include dist/extension.js)."
 	},
 	"remap": {
 		"performedAt": "2026-10-06",
 		"reason": "Issue #13 webview chunk consolidation renamed the hashed webview chunks (and Sub-task B Curated Shiki removed the common-lisp grammar).",
 		"method": "DETERMINISTIC REMAP (no re-scan). The register tool resolves (@trailofbits/vsix-audit@0.3.0 via npx) but YARA-X is not installed, so a full-coverage scan cannot be reproduced; regenerating would have produced degraded coverage. Each entry keyed to a hashed webview chunk was re-pointed to the current build file carrying the same module identity, resolved from the production source maps. Where several old chunks collapsed into one new chunk, their counts were summed (the gate only fails when findings EXCEED the recorded count, so a summed cap is conservative).",
 		"limitation": "Filename-level remap only: rules/severities are carried over unchanged from the last full-coverage scan (3.87.3), so this is NOT a re-verified scan. A maintainer must regenerate with YARA-X present before relying on it as a fresh baseline. The scan.* block still describes the original 3.87.3 full-coverage scan.",
-		"regeneration": "MUST be regenerated with @trailofbits/vsix-audit (pinned 0.3.0) WITH YARA-X (v1.20.0) present before this register is treated as a fresh baseline; a YARA-X-less run is degraded coverage and must never be recorded as a baseline (scripts/vsix-audit.mjs fails closed on that in a publish context). The register is FILENAME-KEYED: every entry's `file` must equal the scanner's reported path, so any webview rebuild that re-hashes chunk names (or adds/removes a chunk) invalidates the affected entries and the gate FAILS CLOSED until they are re-mapped or re-scanned. The `file` for the YARA_STEALER_JS_Credential_File_Exfil_Jan25 finding was corrected from `changelog.md` to the packaged `CHANGELOG.md` (the pack ships the uppercase name and the scanner preserves case). See SECURITY.md 'Optional on-demand VSIX audit' + DEBT #23.",
+		"regeneration": "MUST be regenerated with @trailofbits/vsix-audit (pinned 0.3.0) WITH YARA-X (v1.20.0) present before this register is treated as a fresh baseline; a YARA-X-less run is degraded coverage and must never be recorded as a baseline (scripts/vsix-audit.mjs fails closed on that in a publish context). The same run now also executes the oversized-file stage, so `yr` and the tool's rule set must be on the host or the coverage line reports the gap instead of saying `coverage: full`. REGISTER IDENTITY IS NORMALISED, NOT LITERAL: every entry still records the exact path that was triaged, but `classifyFindings` compares `normalizeFileKey(entry.file)` with `normalizeFileKey(finding.location.file)`, which replaces the TRAILING 1-2 content-hash segments of a `.js`/`.js.map` bundle with `-<hash>` (e.g. `mermaid~…~ganttDiagram-~gdd5p7yb-DHB4NmXe.js` -> `mermaid~…~ganttDiagram--<hash>.js`). A webview rebuild that re-hashes chunks therefore keeps matching its registered family instead of forcing a bulk re-accept; files with no hash suffix (`changelog.md`, `dist/extension.js`, `dist/workers/countTokens.js`, ...) are compared exactly, so exact matching remains the default. Within one family the caps combine strictly: the LOWEST registered severity and the LARGEST per-file count. A NEW family, a new rule inside a family, a raised severity or more hits than the baseline still fails the gate. The 2026-10-06 note that claimed this entry's `file` 'was corrected from `changelog.md` to the packaged `CHANGELOG.md` (the pack ships the uppercase name and the scanner preserves case)' was WRONG and is withdrawn: the packaged artefact ships the lowercase name and the entry is keyed to `changelog.md` as of the 2026-10-21 rescan (verification recorded in `rescan2026_10_21.pathCaseVerification`). See SECURITY.md 'Optional on-demand VSIX audit' + DEBT #23.",
+		"rescan2026_10_21": {
+			"artefact": "roo-plus-3.89.1.vsix (built from the current tree with `pnpm --filter ./src vsix`)",
+			"coverage": "full — YARA-X v1.20.0 on PATH, pinned release asset extracted and its tarball sha256 verified against the workflows' pin; scanner metadata reported degraded:false with no warnings",
+			"findings": "168 total; 155 matched existing entries; 13 unregistered (1 CRITICAL, 12 MEDIUM)",
+			"changes": "ADDED 12 individually justified entries for the re-hashed mermaid chunks (11 x YARA_SUSP_JS_Decimal_Byte_Array_Jan25, 1 x YARA_SUSP_JS_Hex_Escape_Chain_Jan25); CORRECTED the YARA_STEALER_JS_Credential_File_Exfil_Jan25 entry key from `CHANGELOG.md` to `changelog.md`. No rule class, severity cap or baseline count was widened.",
+			"pathCaseVerification": "Determined from the artefact, not from the scan result: `unzip -l bin/roo-plus-3.89.1.vsix | grep -i changelog` lists `388018  extension/changelog.md` and `extension/CHANGELOG.md` does not exist (0 matches). @trailofbits/vsix-audit@0.3.0 reports that entry verbatim as `changelog.md`. There is no case-normalising or remapping step in scripts/vsix-audit.mjs — classifyFindings compares `entry.file` to `finding.location.file` with strict equality — so the recorded path was a factually wrong string, not a symptom of a remap bug. No remap logic was changed.",
+			"retained": "Entries for chunk names the current build no longer emits (3.87.3-era hashed names and .js.map paths, and the withdrawn `CHANGELOG.md` key is gone) are retained as triage history; an entry that matches nothing neither widens nor narrows the gate.",
+			"rebuildStability": "Two consecutive `pnpm --filter ./src vsix` builds from the identical tree produced byte-DIFFERENT archives with IDENTICAL payloads: sha256 29c84ead492db1c27937d35e45e3b0009821945ee9e8d72a43eb49058d041b0a (build 1) and 3ef9fc5deeb4ad7e9bb62ecfacb05f9d7fc44218e71da80c90b88df437476a28 (build 2), both 1,286 entries / 115,160,730 uncompressed bytes with every entry CRC-32 and size identical; the only differing bytes are the DOS modification-time fields vsce stamps into each ZIP header (observed at offset 10-13 of the first local header). vsce packaging is therefore not byte-reproducible, so the gate is proven stable on CONTENT rather than on archive bytes. A THIRD artefact - the pre-existing bin/roo-plus-3.89.1.vsix from the same tree (f22360f638f76aaafaadeae4fc925a4acc6883d84fd54bcb74c853a4695dedc6) built with a differently-hashed webview output - also passes: its 12 re-hashed mermaid chunks and 2 re-named chunk families match their registered families through normalizeFileKey instead of turning the gate red. All three ran with exit 0, coverage: full, 187 findings, 187 by-design.",
+			"coverageLimitation": "RESOLVED (2026-10-21, second pass). Recorded originally as: @trailofbits/vsix-audit@0.3.0 skips files larger than 10 MiB for the YARA stage (`dist/scanner/checks/yara.js`: `if (buffer.length > 10 * 1024 * 1024) continue;`), so the 15,059,325-byte `dist/extension.js` received AST/other checks but no YARA rule evaluation, and `coverage: full` attested only that YARA-X was available. The wrapper now runs its own second stage (`runOversizedStage`): it enumerates every packaged file above the same 10 MiB threshold from the VSIX central directory, scans each with the pinned `yr` binary and the tool's own rule set, and maps matches into the tool's finding shape. All 19 matches on dist/extension.js (not 3 - a full `yr scan --print-strings` of the bundle matches 19 rules) are triaged above with quoted bytes and offsets. `coverage: full` now means stage 1 clean AND YARA-X present AND every oversized file scanned."
+		},
 		"droppedEntries": [
 			{
 				"file": "webview-ui/build/assets/common-lisp-Cv5bFMCO.js",
@@ -150,11 +175,11 @@
 		},
 		{
 			"rule": "YARA_STEALER_JS_Credential_File_Exfil_Jan25",
-			"file": "CHANGELOG.md",
+			"file": "changelog.md",
 			"severity": "critical",
 			"count": 1,
 			"verdict": "by-design",
-			"reason": "CHANGELOG.md prose mentions credentials/tokens; index.js co-occurrence of .npmrc/.ssh (labels/docs) + readFile/fetch tokens in webview; no credential exfiltration chain"
+			"reason": "Three-atom coincidence in release-notes PROSE on the packaged Markdown file, which executes nothing: $cred4 `.env` at byte 0x30903 (line 1500, 'Add support for npm packages and .env files to custom tools'), $read2 `readFile` at 0x55007 (line 3579, substring of 'readFileTool XML output format'), $net2 `axios` at 0x2cb8 and 5 further offsets (dependency-pinning notes such as '`axios` >= 1.20.0'). The rule requires only any one credential string, any one read string and any one network string anywhere in the file, so prose satisfies it by construction. The same rule on shipped executable code is registered separately under webview-ui/build/assets/index.js."
 		},
 		{
 			"rule": "YARA_STEALER_JS_Credential_File_Exfil_Jan25",
@@ -429,12 +454,108 @@
 			"reason": "decimal int arrays pervasive in minified diagram/layout code + source maps (Mermaid/canvas renderers) and YAML data; SUSP heuristic only"
 		},
 		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid~timeline-definition-Z64GVDOM~sankeyDiagram-W5VNT64P~requirementDiagram-LRYGKXZP~erD~l8bmok4i-B02gO65A.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "Match at byte 0x225e is mermaid's jison-generated LALR parse table in this chunk's parser prologue: `var e=c(function(e,t,n,r){...},`o`),t=[6,8,10,22,24,26,28,33,34,35,36,37,40,43,44,48,50,51,52],n=[1,10],r=[1,11]` — grammar state/production indices consumed by the parser machinery. 1,122 `,NN,` matches, 10 integer tables of 20+ members (longest 60) that are all ascending grammar indices. Nothing is decoded or transmitted."
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid~sequenceDiagram-SI44F4Z6~gitGraphDiagram-DS77QQ5N~diagram-7IWD3JNH-CEV_Ils6.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "First match at byte 0x1eff is a diagram STYLE constant, not data: `Pe={labelFontSize:`16px`,labelColor:`black`,lineColor:`black`,iconColor:`#546e7a`,...,highlightBg:`rgba(255, 193, 7, 0.15)`}` — the `, 193,`/`, 7,` literals are an RGBA triple. 716 scattered `,NN,` literals plus 8 jison parse tables of 20+ in the parser prologue satisfy a whole-file counting condition; no byte array is decoded."
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid~wardleyDiagram-T6FBY63Y~railroadDiagram-AXF67PYL~pieDiagram-7S7Q4E2Y~diagram-Q27KOJ~bnssy78u-lEUfrRJX.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "jison parse table in the parser prologue at byte 0x644: `ge=(function(){var e=s(...,`o`),t=[1,15],n=[1,7],r=[1,13],i=[1,14],a=[1,19],o=[1,16],c=[1,17],l=[1,18],u=[8,30],d=[8,10,21,28,29,30,31,39,43,46]` — generated grammar state indices. 244 `,NN,` matches and one 52-member table; no encoding, decoding or network primitive touches these values."
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid~index~journeyDiagram-NVQOT4AX~architectureDiagram-T3A2C74G-DWdtJOHm.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "No array of 20 or more comma-separated integers exists anywhere in this 49,998-byte chunk (verified by scanning for runs of 20+ comma-separated 1-3 digit integers: 0 hits), so the rule fires purely on its whole-file count of 104 scattered `,NN,` literals. The first, at byte 0x266c, is SVG icon path DATA in a template string: `d=\"m20,57.86c0,3.94,8.95,7.14,20,7.14s20-3.2,20-7.14\"`. Geometrical coordinates, not a payload."
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid~vennDiagram-T6HMQDX7~diagram-B4RE2ZJO~cose-bilkent-JH36ORCC~sizeCapture-X5ZJPWSS~c4~e37hzo3o-BvfU1FdZ.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "jison parse table at byte 0x60c: `...,P=[1,48],F=[1,50],I=[1,51],R=[1,53],z=[1,54],ee=[1,55],ie=[14,42],ae=[14,34,36,37,38,39,40,41,42,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74]` — monotonically ordered grammar state indices. 792 `,NN,` matches, 6 tables of 20+ (longest 66), all generated by the parser generator."
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid~stateDiagram-OKZ733FA~kanban-definition-27J2QSJJ~infoDiagram-6WML65LV~ganttDiagram-~gdd5p7yb-DHB4NmXe.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "jison parse table in the parser prologue at byte 0x15ca: `tt=(function(){var e=o(function(e,t,n,r){...},`o`),t=[6,8,10,12,13,14,15,16,17,18,20,21,22,23,24,25,26,27,28,29,30,31,33,35,36,38,40],n=[1,26]` — generated grammar state indices. 355 `,NN,` matches, 2 tables of 20+; static parser data only."
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid~quadrantDiagram-CIZ2JOQS~pegDiagram-VL7TDLO6~ishikawaDiagram-WSZJBQD7~cynefinDiagra~d32f34nx-CP23WWSi.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "The jison grammar is visible in the same expression as the match (byte 0x2a43): `K=(function(){var e=n(...,`o`),t=[1,4],r=[1,14],i=[1,12],a=[1,13],o=[6,7,8],...,h={trace:...,yy:{},symbols_:{error:2,start:3,ishika...` — so the integer arrays are unambiguously grammar symbol/state tables. 474 `,NN,` matches, 4 tables of 20+; no decoded payload."
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid~wardleyDiagram-T6FBY63Y~railroadDiagram-AXF67PYL~pieDiagram-7S7Q4E2Y~pegDiagram-VL7~e3ajj4bf-BV6P3BP-.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "No array of 20+ comma-separated integers exists in this 55,519-byte chunk (0 hits), so the 146 scattered `,NN,` literals alone satisfy the count condition. The first, at byte 0x53f8, is railroad-renderer geometry: `o.moveTo(0,u).arcTo(a,a,0,!1,d,a,u+(d?a:-a)).lineTo(a,n-(d?a:-a))` — arc/line coordinates for the drawn connectors."
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid~swimlanesDiagram-ULZ7WXOC~stateDiagram-v2-UEYNNEHI~stateDiagram-OKZ733FA~sequenceDi~mvptcnrt-CQfy3-Aa.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "jison parse table in the parser prologue at byte 0xc67: `t=[1,18],n=[1,19],r=[1,20],i=[1,41],...,j=[1,8,9,12,13,22,39,41,44,46,68,69,70,71,72,73,74,79,81]` — generated grammar state indices, one of the densest parser chunks. 2,369 `,NN,` matches and 25 tables of 20+ (longest 74), all ascending grammar indices; nothing decoded or transmitted."
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid-core-D5Oyv01y.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "No array of 20+ comma-separated integers exists in this 615,786-byte core chunk (0 hits). The rule is satisfied by its whole-file count: 13 `[NN,` openers and roughly 159 `,NN,` literals. The first match, byte 0x754c, is dayjs' zero-padding helper `_(r,2,`0`)` inside the duration formatter — numeric arguments to minified functions, not byte data."
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "webview-ui/build/assets/mermaid~xychartDiagram-ELKLHX3M~stateDiagram-v2-UEYNNEHI~stateDiagram-OKZ733FA~pie-RZYD4A2V~imnx1ysd-Bn4_jHAz.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "jison parse table at byte 0x53a: `[1,16],l=[1,17],u=[1,18],...,A=[1,4,5,16,17,19,21,22,24,25,26,27,28,29,33,35,37,38,41,45,48,51,52,53,54,57]` — generated grammar state indices. 753 `,NN,` matches, 12 tables of 20+ (longest 38); static parser data with no decode-to-payload chain."
+		},
+		{
 			"rule": "YARA_SUSP_JS_Hex_Escape_Chain_Jan25",
 			"file": "webview-ui/build/assets/index.js",
 			"severity": "medium",
 			"count": 1,
 			"verdict": "by-design",
 			"reason": "minified escaped strings in the UI bundle (KaTeX/locale escape sequences); SUSP heuristic only"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Hex_Escape_Chain_Jan25",
+			"file": "webview-ui/build/assets/mermaid-core-D5Oyv01y.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "The 5 matches the rule needs (byte 0x4ce05 onward) are all inside ONE js-yaml regex literal: `zd=/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F-\\x84\\x86-\\x9F\\uFFFE\\uFFFF]|[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])|.../`, which is js-yaml@4.3.2's `PATTERN_NON_PRINTABLE` (lib/loader.js:20) bundled through mermaid@11.16.1. The overlapping pairs `\\x08\\x0B`, `\\x0B\\x0C`, `\\x0C\\x0E`, `\\x1F\\x7F`, `\\x84\\x86` are a control-character and lone-surrogate VALIDATOR, not an obfuscated string; there is no decoder and no network use."
 		},
 		{
 			"rule": "YARA_SUSP_JS_Indirect_Eval_Jan25",
@@ -523,6 +644,158 @@
 			"count": 1,
 			"verdict": "by-design",
 			"reason": "YAML mode-catalog prose describing PowerShell '-ExecutionPolicy Bypass' in a security-mode definition (documentation), not an executed PS payload"
+		},
+		{
+			"rule": "YARA_C2_JS_WebSocket_Command_Exec_Jan25",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "Whole-file atoms live in unrelated modules: 'new WebSocket(' at 0x996694 is the AWS SDK ('@aws-sdk - ws connecting'), 'ws://' at 0xcb2d6e is the LM Studio default base URL ('ws://127.0.0.1:1234'), '.onmessage' at 0x1a9851 is a MessageChannel/setImmediate polyfill, and 'child_process' + '.exec('/'.spawn(' come from the agent's documented command tool; no message handler dispatches into a shell. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_LOADER_JS_Download_Write_Execute_Jan25",
+			"file": "dist/extension.js",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "The dropper shape is the DECLARED binary-acquisition path, not hidden behaviour: 'fetch(' at 0x68d2c downloads the pinned DCG/Semble archive, 'writeFile'/'chmod' (fs.chmodSync wrapped at 0x26f8ff) stage it inside the extension's own storage directory, and 'child_process' + '.spawn(' execute the checksum-verified binary — consent-gated, version-pinned, and never executing a decoded remote payload. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_RAT_JS_GlassWorm_Persistent_Backdoor_Jan25",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "Identifier coincidence with no persistence mechanism: 'persistent' at 0x74d27 is mode-catalogue prose ('iteratively fixing persistent bugs'), 'autoStart' at 0xaf8587 is an OpenAI SDK zod remap ('{auto_start:\"autoStart\",...}'), 'taskScheduler' at 0xe17127 is the extension's own delegation scheduler ('taskScheduler.schedule failed'), and 'tempFile' at 0x2b812a is ExcelJS's 'tempFileCleanupCallback'. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_RAT_JS_GlassWorm_SOCKS_Proxy_Jan25",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'sOCks' at 0x87d35b is a random-cased substring inside the base64 BPE tokenizer vocabulary ('sW7EsQ== IFNhbHpidXJn ...') and 'createServer' at 0xaa2e7b is the ws library's WebSocketServer ('\"server\", or \"noServer\" options must be specified'); nothing binds a SOCKS listener. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_RAT_JS_Reverse_Shell_Jan25",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "Satisfied by the rule's '.pipe(' branch only: 'net.Socket' at 0x1776cc is proxy-agent's CONNECT tunnel ('Creating `net.Socket`: %o'), 'net.connect' at 0x12cf48 is a guard message ('net.connect disabled'), and '/bin/sh' at 0xdc3f91 is one entry of a candidate-shell PATH LIST ('C:\\\\cygwin64\\\\bin\\\\bash.exe', '/bin/sh', '/usr/bin/sh', ...); no socket is wired to a shell. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_RAT_JS_WebSocket_Reverse_Shell_Jan25",
+			"file": "dist/extension.js",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'/bin/sh' at 0xdc3f91 is one entry in an array of candidate shells ('C:\\\\cygwin64\\\\bin\\\\bash.exe', '/bin/sh', '/usr/bin/sh', '/bin/bash', ...), the WebSocket atoms are the AWS SDK client ('new WebSocket(' at 0x996694), and 'stdin'/'stdout'/'.pipe(' are stream plumbing in bundled libraries; no socket is piped to a shell. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_STEALER_JS_Browser_Data_Theft_Jan25",
+			"file": "dist/extension.js",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'Chrome' at 0x1646b5 and 'Firefox' at 0x174d51 are provider/user-agent strings, 'user data' at 0xbd1e20 is Vercel OIDC's error ('Unable to find user data directory.'), the storage atom is a bare 'indexedDB' identifier at 0x9d5582 ('self.indexedDB.open(this.dbName,1)'), and 'readFileSync' at 0x11e8 reads extension data; no browser profile path is ever opened. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_STEALER_JS_Credential_File_Exfil_Jan25",
+			"file": "dist/extension.js",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "String coincidence across unrelated modules: '.env' at 0x3f2 is dotenvx's banner ('[\"\\u25C8 encrypted .env [www.dotenvx.com]\",...]'), 'credentials.json' at 0xa89dc2 is the Google ADC lookup with the path '.../application_default_credentials.json' at 0xa89dae, and the 'readFileSync'/'fetch('/'axios' atoms are other libraries' call sites — no credential file is opened and posted. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_STEALER_JS_Env_Token_Exfil_Jan25",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "Provider SDK env-var NAMES only: 'process.env.AWS_SECRET_ACCESS_KEY' at 0xa83860 and 'process.env.AWS_SESSION_TOKEN' at 0xa838e5 are the AWS SDK credential chain, 'process.env.VERCEL_OIDC_TOKEN' at 0xbd262f is the Vercel OIDC refresh writing its token into 'process.env', and 'fetch(' at 0x68d2c is an unrelated call site; no env value is carried to a network sink. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Child_Process_Variable_Jan25",
+			"file": "dist/extension.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'child_process' at 0xb5664 plus the '.exec('/'.spawn(' atoms are the agent's documented command-execution tool and bundled libraries' process wrappers; the rule needs only the module name and an exec method anywhere in a 15 MB file. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Decimal_Byte_Array_Jan25",
+			"file": "dist/extension.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "',204,'/',205,'/',304,' at 0x10fe4b are HTTP status-code sets in the bundled HTTP client ('[101,204,205,304]', '[301,302,303,307,308]'); the rule's whole-file count of scattered ',NN,' literals is satisfied, and no byte array is decoded. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Eval_Base64_Jan25",
+			"file": "dist/extension.js",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "Whole-file co-occurrence: 'eval(' at 0x18a884 is a typecheck helper ('function ic(){return typeof receiver.foo}return ic(),ic(),obj;eval(obj)') beside 'rident=/^[a-z$_][a-z$_0-9]*$/i', and 'atob(' at 0x3f44 decodes a JWT payload ('JSON.parse(atob(a))', testing '\"typ\"'); no base64 payload is evaluated. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Eval_Charcode_Jan25",
+			"file": "dist/extension.js",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "Whole-file co-occurrence: 'eval(' at 0x18a884 is the same typecheck helper quoted above, and 'String.fromCharCode' at 0xefbdc builds a base62 alphabet ('for(let t=65;t<=90;t++)en.ALPHA.push(String.fromCharCode(t))'); the two never meet in one expression. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Function_Constructor_Jan25",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'new Function(\"' at 0x1941d7 is Knockout's template evaluator ('s.canEvaluate, ... new Function(\"value\",\"holder\",' followed by a 'use strict' template body), the same bundled-OSS class already registered for the webview bundle; nothing is assembled from network data. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Hex_Escape_Chain_Jan25",
+			"file": "dist/extension.js",
+			"severity": "medium",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'\\xE4\\xE4' at 0x40915 is CLDR plural-rule data for Finnish ('{unit:\"\",subject:\"p\\\\xE4iv\\\\xE4m\\\\xE4\\\\xE4r\\\\xE4n\"}'), not an obfuscated string. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Indirect_Eval_Jan25",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'this.eval' at 0x33bdc3 is pdf.js's evaluator construction ('this._docId=c,...,this.evaluatorOptions=x'), an object property name rather than an indirect eval call. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_SUSP_JS_Obfuscation_Eval_Jan25",
+			"file": "dist/extension.js",
+			"severity": "critical",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'\\xF2\\xF2\\xF2\\xF2\\xF2\\xF2' at 0xc3fdad is simple-git's log field separator ('src/lib/parsers/parse-list-log-summary.ts') and 'String.fromCharCode' is the base62 alphabet builder; no obfuscated payload is evaluated. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_SUSP_JS_WebAssembly_Remote_Jan25",
+			"file": "dist/extension.js",
+			"severity": "low",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'WebAssembly.instantiate' at 0x11a04e compiles the 'tree-sitter-*.wasm' grammars shipped inside the VSIX; every 'fetch(' atom is an unrelated SDK call site, so nothing is compiled from a remote response. (Oversized-file stage: the tool never YARA-scanned this file.)"
+		},
+		{
+			"rule": "YARA_SUSP_PS_Encoded_Command_Jan25",
+			"file": "dist/extension.js",
+			"severity": "high",
+			"count": 1,
+			"verdict": "by-design",
+			"reason": "'-EncodedCommand' at 0xbdb8d8 is this project's own Windows archive extraction — 'asr(\"powershell\",[\"-NoProfile\",\"-NonInteractive\",\"-EncodedCommand\",q0l(t)])' in src/services/managed-binary/archive.ts — which base64-encodes a FIXED Expand-Archive script so a path cannot be interpolated into a shell string. (Oversized-file stage: the tool never YARA-scanned this file.)"
 		}
 	]
 }

@@ -226,31 +226,107 @@ Source maps, locale files, icons and WAsMs are intentionally included; `.env`,
 `node_modules/`, `coverage/`, tests, and TypeScript sources are excluded via
 [`src/.vscodeignore`](src/.vscodeignore).
 
-### Optional on-demand VSIX audit (DEBT #23 — not part of the publish pipeline)
+### VSIX audit gate (DEBT #23 — re-armed 2026-10-21)
 
 Trail of Bits' [`@trailofbits/vsix-audit`](https://github.com/trailofbits/vsix-audit)
-(**pinned `0.3.0`**) is available as an **optional, on-demand** command for a
-deliberate security pass. It is **NOT part of the publish pipeline**: no
-release, pre-release, or marketplace workflow runs it, installs YARA-X, or gates
-any publication on its output. Publications are single-command with zero audit
-gating or triage (see [DEBT #23](DEBT.md) for the full history and rationale).
+(**pinned `0.3.0`**) runs as an **advisory gate** in
+[`release-validation.yml`](.github/workflows/release-validation.yml), with
+**YARA-X `v1.20.0` installed** (pinned release archive, checksum-verified) so the
+scan has full detection coverage. The gate was removed on 2026-09-08 on the
+assumption that the Marketplace scanned for us; the publisher was blocked and the
+listing removed on 2026-10-20, which retired that assumption. The reversal and
+the register-regeneration procedure are recorded in [DEBT #23](DEBT.md).
+
+**The publish workflows do not run this gate.** Wiring it into
+`pre-release-publish.yml` and `marketplace-publish.yml` is **parked** on the
+`wip/publish-workflow-audit` branch and is deliberately absent from this tree:
+both publish workflows are unchanged until the delivery model is re-decided.
+Until that wiring lands, `VSIX_AUDIT_ENFORCE` exists only in
+`release-validation.yml`, and no publication is gated — or delayed — by an audit
+result.
+
+**Two scanning stages, one finding shape.** `@trailofbits/vsix-audit@0.3.0` skips
+every file larger than 10 MiB in its YARA check (`dist/scanner/checks/yara.js`:
+`if (buffer.length > 10 * 1024 * 1024) continue;`). The packaged
+`dist/extension.js` is 15,059,325 bytes, so stage 1 never YARA-scans the bundle
+that runs at activation. [`scripts/vsix-audit.mjs`](scripts/vsix-audit.mjs)
+therefore runs a **second stage**: it enumerates every packaged file above the
+same 10 MiB threshold straight out of the VSIX central directory, scans each with
+the **pinned `yr` binary (YARA-X v1.20.0)** and the rule set the tool itself
+ships (`@trailofbits/vsix-audit/zoo/signatures/yara/*.yar`), and maps matches into
+the tool's finding shape (`id: "YARA_<rule>"`, `category: "yara"`,
+`location.file`) so the register triage applies unchanged. Stage 2 deliberately
+does **not** inherit the tool's `dist/**` suppression table: `dist/` is where the
+blind file lives. It produces more findings, never fewer.
+
+**What `coverage: full` means.** It is printed **only** when stage 1 reported no
+degradation **and** YARA-X was present **and** every packaged file over 10 MiB was
+actually scanned. Anything else prints `coverage: DEGRADED` with the reason —
+`YARA-X unavailable`, `oversized-file stage unavailable: …`, `oversized files not
+scanned: …`, `oversized file scan failed: …`, or `oversized-file stage not run`.
+There is **no flag that skips stage 2**; a missing `yr` is a degraded-coverage
+failure, never a silent skip.
+
+**Register identity.** Entries record the exact path that was triaged, but
+matching normalises the **trailing 1–2 content-hash segments** of a `.js`/`.js.map`
+bundle on both sides (`mermaid~…~ganttDiagram-~gdd5p7yb-DHB4NmXe.js` →
+`mermaid~…~ganttDiagram--<hash>.js`). A webview rebuild that re-hashes chunks
+therefore keeps matching its reviewed family instead of forcing a bulk re-accept
+of a dozen entries. Files with no hash suffix (`changelog.md`, `dist/extension.js`,
+…) still match exactly. Caps combine strictly inside a family (lowest severity,
+largest per-file count), so normalisation can only _stabilise_ a cap, never widen
+it: a new file family, a new rule inside a family, a raised severity or more hits
+than the baseline still fails the gate.
+
+**Exit-code policy.** One contract, shared with the workflows: `0` pass with full
+coverage · `1` unregistered or escalated findings · `2` degraded coverage (YARA-X
+unavailable, or an oversized file not scanned) or tool failure · `3`
+usage/configuration error (bad arguments, missing VSIX, malformed register). Exit
+`2` is **reachable by design**: the workflows install YARA-X with
+`continue-on-error`, so a missing scanner produces a degraded scan and exit `2`
+rather than a job that dies in its own toolchain, and the report line always names
+the degradation (`coverage: DEGRADED (…)`) so it cannot disagree with the exit
+code.
+
+**Enforcement is one switch.** `VSIX_AUDIT_ENFORCE` is a workflow-level `env`
+value in all three workflows and defaults to `"false"` = **advisory**: the scan
+runs, findings annotate, and nothing fails because of it. It is flipped to
+`"true"` only after the by-design register has been regenerated from a current
+artefact; while enforcing, a _missing_ audit result (step skipped, cancelled,
+timed out) is a **failure, never a pass**. See
+[`docs/runbooks/release-publishing.md`](docs/runbooks/release-publishing.md)
+("VSIX audit enforcement switch").
+
+**No audit outcome may block an Open VSX publication**, and that is now
+structural rather than aspirational: in both publish workflows the entire audit
+cluster (YARA-X install, scan, enforcement) runs _after_ the Open VSX publish and
+_after_ the GitHub release/tag, the install and the scan are `continue-on-error`
+with per-step `timeout-minutes`, and the Marketplace leg stays
+`continue-on-error: true`.
 
 Run it manually from the repo root against any built `.vsix`:
 
 ```bash
-node scripts/vsix-audit.mjs bin/roo-plus-3.87.3.vsix
+pnpm --filter ./src vsix
+PATH=<pinned-yara-x>:$PATH node scripts/vsix-audit.mjs bin/roo-plus-<version>.vsix --publish
 ```
 
 [`scripts/vsix-audit.mjs`](scripts/vsix-audit.mjs) invokes
-`npx --yes @trailofbits/vsix-audit@0.3.0 scan <vsix> --output json`, reports
-structured findings, and checks them against the by-design register. **YARA-X
-availability**: full detection coverage requires the YARA-X `yr` binary to be
-installed and on `PATH`; none of the pipelines install it. Install YARA-X
-yourself for a full-coverage pass (the 2026-09-08 baseline used **v1.20.0**).
-Without it, the scan is **degraded** and the wrapper exits nonzero — pass
-`--allow-degraded` for a local inspection pass that only warns and exits `0`
-when there are no real findings. Exit codes: `0` pass · `1` real findings ·
-`2` degraded/tool error · `3` usage.
+`npx --yes @trailofbits/vsix-audit@0.3.0 scan <vsix> --output json` for stage 1,
+`yr scan` over every oversized file for stage 2, reports structured findings, and
+checks both against the by-design register. Convenience scripts:
+`pnpm verify:vsix-audit --publish <vsix>` (gate a built artefact) and
+`pnpm vsix:audit` (package, then audit the newest `.vsix`). Neither is wired into
+`prevsix`/`prebundle`, so a local build does not require YARA-X. **YARA-X
+availability**: full detection coverage requires the YARA-X `yr` binary on
+`PATH` — the CI workflows install **v1.20.0**; install it yourself for a
+full-coverage local pass. Without it the scan is **degraded** and the wrapper
+exits nonzero — pass `--allow-degraded` for a local inspection pass that only
+warns and exits `0` when there are no real findings. Exit codes: `0` pass ·
+`1` real findings · `2` degraded/tool error · `3` usage (including a malformed
+register). The register is schema-validated on load: every entry needs a
+non-empty `reason`, verdict `by-design`, a `low|medium|high|critical` severity cap
+and a positive integer `count`, so a bare entry cannot silence a finding.
 
 **By-design register**: [`scripts/vsix-audit-register.json`](scripts/vsix-audit-register.json)
 records the triage of every finding as by-design (rule + exact file + severity
@@ -288,25 +364,30 @@ automated release-time checks:
 (node:test, injected fake scan results; 24 cases) — run with
 `node --test scripts/vsix-audit.spec.mjs` or via `test:scripts`.
 
-### Runtime-acquired binaries are NOT part of the published source
+### Externally-authored binaries in and around the package
 
-Roo+ downloads and runs two **externally-authored** helper binaries at first
-use after an explicit, workspace-trusted consent prompt. They are not bundled
-in the VSIX and are not Roo+ source — full authorship/provenance:
+Roo+ runs two **externally-authored** helper executables. Neither is Roo+ source;
+both are disclosed in [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md), which
+ships inside the VSIX, and both only ever run in a trusted workspace after
+explicit user approval (see
+[`src/services/binary-acquisition/`](src/services/binary-acquisition)).
 
-- **Semble** (code search) — upstream [`MinishLab/semble`](https://github.com/MinishLab/semble)
-  (MIT, Thomas van Dongen); Roo+-controlled packaging repo
-  [`Audare-est-Facere/sembleexec`](https://github.com/Audare-est-Facere/sembleexec),
-  pinned `v0.5.2`, checksums + consent metadata — see
-  [`docs/SEMBLE-RELEASE-GOVERNANCE.md`](docs/SEMBLE-RELEASE-GOVERNANCE.md).
 - **DCG** (destructive command guard) — upstream
   [`Dicklesworthstone/destructive_command_guard`](https://github.com/Dicklesworthstone/destructive_command_guard)
-  ("MIT License with OpenAI/Anthropic Rider", Jeffrey Emanuel), pinned
-  `v0.7.7` — see [`docs/DCG-RELEASE-GOVERNANCE.md`](docs/DCG-RELEASE-GOVERNANCE.md).
+  ("MIT License with OpenAI/Anthropic Rider", Jeffrey Emanuel), pinned `v0.7.7`.
+  **Bundled** in the VSIX under `bin/dcg/` (unmodified upstream release archives,
+  five platforms); there is **no download path**. Both the archive and the
+  extracted executable are verified against pinned SHA-256 values before
+  execution. See [`docs/DCG-RELEASE-GOVERNANCE.md`](docs/DCG-RELEASE-GOVERNANCE.md).
+- **Semble** (code search) — upstream [`MinishLab/semble`](https://github.com/MinishLab/semble)
+  (MIT, Thomas van Dongen), pinned `v0.5.2`. Still **downloaded at first use**
+  (consent-gated, SHA-256 verified); decision 2a — detect and guide only, no
+  acquisition by Roo+ — is recorded and its code removal is tracked in
+  [`DEBT.md`](DEBT.md) #28. See
+  [`docs/SEMBLE-RELEASE-GOVERNANCE.md`](docs/SEMBLE-RELEASE-GOVERNANCE.md).
 
-Both are SHA-256 verified after download and only ever run in a trusted
-workspace after explicit user approval (see
-[`src/services/binary-acquisition/`](src/services/binary-acquisition)).
+Acquisition strategy and its rationale:
+[`docs/adr/adr-binary-acquisition-strategy.md`](docs/adr/adr-binary-acquisition-strategy.md).
 
 ## Questions
 
