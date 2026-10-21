@@ -42,6 +42,117 @@ control; every `/vspackage` URL returns 404; `/publishers/xavier-arosemena` retu
 with `"extensions":[]`. Pre-enforcement last known good: `3.88.10` → HTTP 200 on
 2026-09-25.
 
+## Release gates: audit + attribution (re-armed 2026-10-21)
+
+Two gates run before a release is considered clean. Both were added after the
+enforcement review ([`docs/compliance/marketplace-enforcement-review.md`](../compliance/marketplace-enforcement-review.md)
+C4/C5) and both are described in [DEBT #23](../../DEBT.md) / #30.
+
+| Gate                   | Command                                        | Fails on                                                                                                                                                                                                                                                                  | Never blocks                                                                                                                           |
+| ---------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **VSIX audit**         | `node scripts/vsix-audit.mjs <vsix> --publish` | **only when `VSIX_AUDIT_ENFORCE: "true"`** — exit `1` (unregistered / escalated findings) or exit `2` (degraded coverage — YARA-X absent, or an oversized file not scanned — or tool failure), and a _missing_ result. Default (`"false"`) is advisory: annotations only  | any audit outcome must leave the Open VSX publish **and** the GitHub release unblocked — enforced structurally by placement, see below |
+| **Attribution**        | `node scripts/verify-third-party-notices.mjs`  | a production dependency or shipped binary component missing from `THIRD-PARTY-NOTICES.md`, a stale row, an implausibly small dependency tree, a bundled DCG archive that no longer matches its pin, a drifted `src/` copy, or a missing `!THIRD-PARTY-NOTICES.md` include | — (offline and deterministic)                                                                                                          |
+| **Bundled DCG hashes** | `node scripts/verify-dcg-bundles.mjs`          | a bundled archive whose hash drifts, an archive that will not extract, or an extracted executable that does not match its pinned `binarySha256`                                                                                                                           | — (offline; release-validation only, never a publish path)                                                                             |
+
+### Ordering invariant: the audit can never block delivery
+
+In **both** publish workflows the entire audit cluster — YARA-X install, scan and
+enforcement — runs **after** the Open VSX publish **and** after the GitHub
+release/tag, so no audit outcome (registry outage, rate limit, timeout, hang,
+tool crash, finding) can prevent, delay or abort a publish:
+
+- the YARA-X install is `continue-on-error: true`, uses
+  `curl --max-time 120 --retry 3` and has `timeout-minutes: 5`: an outage
+  degrades to "audit not run" — the scan then reports **degraded coverage and
+  exits 2** — instead of failing the job in its own toolchain;
+- the scan is `continue-on-error: true`, has `timeout-minutes: 15`, and writes a
+  fail-closed sentinel (`exit_code=2`) _before_ it runs, so a step that is
+  cancelled, killed at the timeout or dies early can never be read as a pass;
+- the enforcement step is the last audit step, and the only place the cluster can
+  turn the run red.
+
+`release-validation.yml` publishes nothing, so it uses the same cluster shape
+(non-fatal install, timeouts, sentinel, advisory enforcement) and can never be
+red by default.
+
+### VSIX audit enforcement switch
+
+One switch, declared at workflow level in all three workflows:
+
+```yaml
+env:
+    VSIX_AUDIT_ENFORCE: "false"
+```
+
+- `"false"` (default, current): **advisory**. The scan runs, findings annotate,
+  and nothing fails because of it.
+- `"true"`: **enforced**. Exit `1` (unregistered/escalated findings) or exit `2`
+  (degraded coverage / tool failure) fail the run, and a **missing** result (step
+  skipped, cancelled, timed out) is treated as a failure, never as a pass.
+
+**Exact line to flip, and when.** Change the single line
+`VSIX_AUDIT_ENFORCE: "false"` to `VSIX_AUDIT_ENFORCE: "true"` in
+[`release-validation.yml`](../../.github/workflows/release-validation.yml) — and
+only **after** `scripts/vsix-audit-register.json` has been regenerated from a
+current artefact with YARA-X present and every finding triaged (DEBT #23). Flipping
+it against the 3.87.3 snapshot turns every release red on findings the register
+has never seen, which is worse than no gate.
+
+**The publish workflows are not part of this gate.** `pre-release-publish.yml` and
+`marketplace-publish.yml` do not run the audit and contain no `VSIX_AUDIT_ENFORCE`
+line: wiring the gate into them is parked on the `wip/publish-workflow-audit`
+branch. Until that wiring lands, no publication is gated by an audit result.
+
+**Exit-code contract** (one contract; `scripts/vsix-audit.mjs`,
+[`SECURITY.md`](../../SECURITY.md) and this table agree): `0` pass with full
+coverage · `1` real findings · `2` degraded coverage or tool failure · `3`
+usage/configuration error (bad arguments, missing VSIX, malformed register). Exit
+`2` is genuinely **reachable**: because the scanner install is non-fatal, a
+missing YARA-X produces a degraded scan and exit `2` — and the report line says
+`coverage: DEGRADED (…)` so it can never disagree with the exit code. The
+Marketplace leg stays `continue-on-error: true` and is untouched.
+
+**Coverage means two stages, not one.** `@trailofbits/vsix-audit@0.3.0` skips
+files larger than 10 MiB in its YARA check, so the 15,059,325-byte
+`dist/extension.js` was never YARA-scanned while the report said `coverage: full`.
+`scripts/vsix-audit.mjs` now runs a second stage over every packaged file above
+that threshold with the pinned `yr` binary and the tool's own rule set, and
+`coverage: full` is printed **only** when stage 1 was clean **and** YARA-X was
+present **and** every oversized file was scanned. Otherwise the line reads
+`coverage: DEGRADED (oversized files not scanned: …)` (or names the missing
+scanner) and a publish-context run exits `2`. There is no flag that skips stage 2.
+
+**YARA-X** is installed in each of those workflows from the pinned `v1.20.0`
+release archive (SHA-256 verified), so both stages run with full coverage. Local
+builds do **not** require it: `pnpm verify:vsix-audit --publish <vsix>` gates a
+built artefact, and `pnpm vsix:audit` packages and audits the newest `.vsix`;
+neither is wired into `prevsix`/`prebundle`.
+
+**Re-baselining (do this whenever the pack changes shape).** Full procedure is in
+[DEBT #23](../../DEBT.md). The short form, with both stages:
+
+```bash
+pnpm --filter ./src vsix                                        # build the artefact
+PATH=<pinned-yara-x>:$PATH node scripts/vsix-audit.mjs bin/roo-plus-<version>.vsix --publish
+node --test scripts/vsix-audit.spec.mjs scripts/vsix-audit-oversized.spec.mjs
+```
+
+Rebuild once more from the same tree and scan again: both runs must print
+`coverage: full` and exit `0`. **The `.vsix` bytes are not reproducible** — `vsce`
+stamps a DOS modification time into every ZIP header, so two builds of the same
+tree differ by a handful of bytes while every entry CRC-32 is identical. Stability
+is asserted on **content** (same entries, same CRCs), not on the archive hash, and
+the hashes of both builds are recorded in
+[`scripts/vsix-audit-register.json`](../../scripts/vsix-audit-register.json)
+(`remap.rescan2026_10_21.rebuildStability`).
+
+> ⚠️ **Never widen the register to make a scan pass.** Register identity is
+> normalised on the trailing 1–2 content-hash segments of `.js`/`.js.map` chunks,
+> so a webview rebuild no longer invalidates a reviewed entry — which removes the
+> main excuse for bulk re-accepting rows. A new rule, a new chunk family, a raised
+> severity or more hits than the baseline still fails the gate and needs a written
+> per-finding reason.
+
 ## Channels and triggers
 
 | Channel     | Workflow                                                                       | Trigger                                    | Ref gate                        |

@@ -17,8 +17,8 @@
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
     <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
   </a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus">
-    <img src="https://img.shields.io/badge/VS_Code_Marketplace-0078D4?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace">
+  <a href="https://github.com/xavier-arosemena/roo-plus/releases">
+    <img src="https://img.shields.io/badge/GitHub_Releases-181717?style=flat&logo=github&logoColor=white" alt="GitHub Releases">
   </a>
   <a href="https://github.com/xavier-arosemena/roo-plus/issues">
     <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
@@ -34,11 +34,16 @@ Roo+ adalah **fork dari Zoo Code**: asisten pengembangan AI dengan **90 mode kus
 3. Cari **"Roo+"**.
 4. Klik **Install**.
 
+Roo+ tidak lagi didistribusikan melalui VS Code Marketplace; instal dari Open VSX atau rilis GitHub.
+
 Atau instal langsung dari baris perintah:
 
 ```bash
-code --install-extension xavier-arosemena.roo-plus
+# Open VSX
 ovsx install xavier-arosemena/roo-plus
+
+# Rilis GitHub: unduh .vsix terlebih dahulu
+code --install-extension roo-plus-<version>.vsix
 ```
 
 Atau bangun dari sumber kode dengan mengikuti bagian [Panduan Memulai Cepat](../../README.md#quick-start) pada README bahasa Inggris.

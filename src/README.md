@@ -20,8 +20,8 @@
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
     <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
   </a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus">
-    <img src="https://img.shields.io/badge/VS_Code_Marketplace-0078D4?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace">
+  <a href="https://github.com/xavier-arosemena/roo-plus/releases">
+    <img src="https://img.shields.io/badge/GitHub_Releases-181717?style=flat&logo=github&logoColor=white" alt="GitHub Releases">
   </a>
   <a href="https://github.com/xavier-arosemena/roo-plus/issues">
     <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
@@ -48,21 +48,21 @@ no cloud, no lock-in, no silent regressions — powered by a curated 302-mode ca
 
 Roo+ is an agentic IDE extension that ships with **90 specialized modes** pre-loaded from a curated catalog of **302 modes**, plus the features and tailored configuration that modern development workflows demand. Everything runs on **your own models** — so your **AI spend stays legible**, your **knowledge stays portable**, and nothing happens silently behind your back.
 
-| Feature                        | Description                                                                                                                                    |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎯 **Custom Modes Library**    | **90 specialized modes** pre-loaded for every task                                                                                             |
-| 🤖 **AI Agent Team**           | Multiple AI agents working together in your editor                                                                                             |
-| 🔌 **MCP Support**             | Full Model Context Protocol integration                                                                                                        |
-| 🌍 **Multi-Provider**          | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                                                |
-| 📦 **Bulk Mode Install**       | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0)                     |
-| 🛠️ **Terminal Integration**    | Smart terminal with shell integration                                                                                                          |
-| 📁 **Tree-Sitter Code Index**  | Intelligent code understanding for 30+ languages with reliable Semble search, diagnostics, and release-governed binaries (v3.77.0, v3.77.1)    |
-| 🧮 **Accurate Context Window** | Trusted, real context-window metrics with no fabricated token counts in the task header (v3.77.0)                                              |
-| 🔒 **Atomic File Writing**     | Safe, crash-proof file operations                                                                                                              |
-| 🛡️ **Typed Message Protocol**  | All 232 webview↔extension message types schema-registered and runtime-validated at the boundary; fail-closed with zero `any` escapes (v3.78.0) |
+| Feature                        | Description                                                                                                                                                                                                                                   |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎯 **Custom Modes Library**    | **90 specialized modes** pre-loaded for every task                                                                                                                                                                                            |
+| 🤖 **AI Agent Team**           | Multiple AI agents working together in your editor                                                                                                                                                                                            |
+| 🔌 **MCP Support**             | Full Model Context Protocol integration                                                                                                                                                                                                       |
+| 🌍 **Multi-Provider**          | Works with Anthropic, OpenAI, Gemini, Ollama, and 25+ providers                                                                                                                                                                               |
+| 📦 **Bulk Mode Install**       | Install multiple modes at once from the Mode Marketplace with checkboxes, scope selection, and progress tracking (v3.75.0)                                                                                                                    |
+| 🛠️ **Terminal Integration**    | Smart terminal with shell integration                                                                                                                                                                                                         |
+| 📁 **Tree-Sitter Code Index**  | Intelligent code understanding for 30+ languages with reliable Semble search, diagnostics, and release-governed binaries (v3.77.0, v3.77.1)                                                                                                   |
+| 🧮 **Accurate Context Window** | Trusted, real context-window metrics with no fabricated token counts in the task header (v3.77.0)                                                                                                                                             |
+| 🔒 **Atomic File Writing**     | Safe, crash-proof file operations                                                                                                                                                                                                             |
+| 🛡️ **Typed Message Protocol**  | All 232 webview↔extension message types schema-registered and runtime-validated at the boundary; fail-closed with zero `any` escapes (v3.78.0)                                                                                                |
 | 🔐 **Privacy-first & Trust**   | Zero telemetry by design — no PostHog, no analytics; untrusted workspaces are gated and first-use binaries require explicit consent (v3.88.0). See the [Privacy Policy](https://github.com/xavier-arosemena/roo-plus/blob/master/PRIVACY.md). |
-| ⚡ **Webview Reliability**     | Bounded task-history (per-workspace), custom-modes, and chat-message payloads fix the gray frozen webview (v3.88.1–v3.88.9)                    |
-| 🌐 **Localization**            | Available in 18+ languages                                                                                                                     |
+| ⚡ **Webview Reliability**     | Bounded task-history (per-workspace), custom-modes, and chat-message payloads fix the gray frozen webview (v3.88.1–v3.88.9)                                                                                                                   |
+| 🌐 **Localization**            | Available in 18+ languages                                                                                                                                                                                                                    |
 
 <br/>
 
@@ -179,28 +179,40 @@ Copy the mode YAML content from its file in [`custom-modes/custom_modes.d/`](cus
 
 ## 🚀 Quick Start
 
-### Install from VS Code/Codium Marketplace
+### Install from Open VSX
 
-1. Open **VS Code** or **VS Codium**
+[Open VSX](https://open-vsx.org/extension/xavier-arosemena/roo-plus) is the registry used by **VSCodium**, **Cursor**, **Gitpod**, **Theia** and most VS Code forks, and extensions installed from it update automatically.
+
+1. Open **VSCodium**, **Cursor**, or another editor that uses the Open VSX registry
 2. Go to **Extensions** (`Ctrl+Shift+X` / `Cmd+Shift+X`)
 3. Search for **"Roo+"**
 4. Click **Install**
 
-#### Install the Pre-Release Version
-
-Want to test the newest build before it ships as stable? Use the marketplace's **"Install Pre-Release Version"** dropdown on the Roo+ extension page (VS Code Marketplace and Open VSX both expose it). Pre-release builds are generated from every push to `master`, so you always run the latest code — great for validating fixes and new features ahead of a stable release.
+Roo+ is no longer distributed through the VS Code Marketplace; install it from Open VSX or a GitHub release.
 
 Or install directly from the command line:
 
 ```bash
-# Via the VS Code Marketplace
-code --install-extension xavier-arosemena.roo-plus
-
 # Via the Open VSX CLI
 ovsx install xavier-arosemena/roo-plus
+
+# Via a GitHub release (download roo-plus-<version>.vsix from the releases page first)
+code --install-extension roo-plus-<version>.vsix
 ```
 
-### Install from VSIX
+#### Install the Pre-Release Version
+
+Want to test the newest build before it ships as stable? Use the **"Install Pre-Release Version"** dropdown on the Roo+ page on Open VSX. Pre-release builds are generated from every push to `master`, so you always run the latest code — great for validating fixes and new features ahead of a stable release.
+
+### Install from a GitHub release (VSIX)
+
+Download the latest `roo-plus-<version>.vsix` from [GitHub Releases](https://github.com/xavier-arosemena/roo-plus/releases), then install it:
+
+```bash
+code --install-extension roo-plus-<version>.vsix
+```
+
+#### Build the VSIX from source
 
 > **Prerequisite:** Node.js 22+ (`^22.22.2`, see [`.nvmrc`](.nvmrc)) and `pnpm`. Building the extension from source requires the Node.js v22 LTS toolchain (see the [Node.js v22 ADR](docs/adr/adr-nodejs-v22.md)).
 
@@ -223,6 +235,21 @@ pnpm vsix
 
 # The VSIX will be at: bin/roo-plus-<version>.vsix
 ```
+
+<br/>
+
+---
+
+## 📦 Third-Party Binaries: Bundled and Downloaded
+
+Roo+ runs two external executables. One **ships inside the VSIX**; the other is **downloaded at first use**:
+
+- **DCG** (`destructive_command_guard`) — blocks destructive shell commands. **Bundled**: the unmodified upstream release archives for all five supported platforms ship in `bin/dcg/` inside the VSIX, so DCG is never downloaded. It is opt-in (`roo-plus.destructiveCommandGuardEnabled`, off by default), and enabling it shows a **consent prompt** naming the component, pinned version and upstream source before anything runs. The archive and the extracted executable are both **verified by pinned SHA-256**, so a tampered VSIX is refused.
+- **Semble** — code search for the codebase index. Built from the upstream [`MinishLab/semble`](https://github.com/MinishLab/semble); the prebuilt release assets Roo+ installs are published under `Audare-est-Facere/sembleexec`, pinned to `v0.5.2`. It is **downloaded at first use** from those GitHub release assets, only after an **explicit consent** prompt that names the version, source and SHA-256; every archive is checksum-verified before it runs. Moving to a "detect an existing installation, never acquire" model is planned, not shipped.
+
+Declining either prompt disables that one feature rather than silently changing the behaviour of the other. No download is attempted in an untrusted workspace.
+
+Full attribution — every bundled binary, the DCG licence text (MIT with the OpenAI/Anthropic rider), and the complete generated list of bundled JavaScript dependencies by licence — is in [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Provenance records, pinned versions and per-platform checksums: [`docs/SEMBLE-RELEASE-GOVERNANCE.md`](docs/SEMBLE-RELEASE-GOVERNANCE.md) and [`docs/DCG-RELEASE-GOVERNANCE.md`](docs/DCG-RELEASE-GOVERNANCE.md).
 
 <br/>
 
