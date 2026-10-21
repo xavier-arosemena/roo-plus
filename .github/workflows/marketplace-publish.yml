@@ -8,6 +8,24 @@ on:
 permissions:
   contents: read
 
+# THE single enforcement switch for the VSIX audit (DEBT #23).
+#
+#   "false" (default) = ADVISORY. The audit still runs, every finding is
+#                       annotated, and NOTHING fails because of it.
+#   "true"            = ENFORCE. Exit 1 (unregistered/escalated findings) and
+#                       exit 2 (degraded coverage / tool failure) fail the run,
+#                       and a MISSING result is a failure rather than a pass.
+#
+# Flip it to "true" ONLY after `scripts/vsix-audit-register.json` has been
+# regenerated from a current artefact and every finding triaged. Exact line and
+# procedure: docs/runbooks/release-publishing.md, "VSIX audit enforcement switch".
+#
+# Independently of this switch, the whole audit cluster (YARA-X install, scan,
+# enforcement) runs AFTER the Open VSX publish and AFTER the GitHub release, so
+# no audit outcome can prevent, delay or abort delivery.
+env:
+  VSIX_AUDIT_ENFORCE: "false"
+
 # Never run two stable publishes concurrently — overlapping manual dispatches
 # must not race on the same marketplace version.
 concurrency:
@@ -278,6 +296,17 @@ jobs:
           echo "::notice::[CI:MARKETPLACE:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher"
           echo "::endgroup::"
 
+      # Attribution gate: every production dependency and every bundled binary
+      # component (DCG) is described in THIRD-PARTY-NOTICES.md, the bundled
+      # archives hash to the pinned values, and the src/ copy matches the root
+      # file. Deterministic and offline, so it is safe to block on.
+      - name: Verify third-party notices (verify-third-party-notices.mjs)
+        run: |
+          echo "::group::[CI:MARKETPLACE:NOTICES] Verifying third-party attribution"
+          node scripts/verify-third-party-notices.mjs
+          echo "::notice::[CI:MARKETPLACE:NOTICES] notices complete (dependencies + shipped binaries + DCG pins)"
+          echo "::endgroup::"
+
       # OPEN VSX FIRST. Open VSX is the registry this stable release targets and
       # must not be gated on the VS Code Marketplace, which is currently
       # unavailable. This step is deliberately NOT continue-on-error: a failure
@@ -383,6 +412,115 @@ jobs:
               --target "$GITHUB_SHA" \
               "$vsix_path"
           fi
+
+      # =====================================================================
+      # VSIX AUDIT CLUSTER — ADVISORY BY DEFAULT, AND DELIBERATELY LAST.
+      #
+      # PLACEMENT IS THE SAFETY PROPERTY: the YARA-X install, the scan and the
+      # enforcement step all run AFTER the Open VSX publish and AFTER the GitHub
+      # release/tag above. Nothing here is on the path to either deliverable, so
+      # no audit outcome — registry outage, timeout, hang, tool crash, finding —
+      # can prevent, delay or abort the publish. `continue-on-error` on the
+      # install and the scan plus per-step timeouts bound the worst case; the
+      # enforcement step is the ONLY place this cluster can turn the run red,
+      # and it can only do so once the artefact has already shipped.
+      #
+      # POLICY (DEBT #23): exit 1 = unregistered/escalated findings, exit 2 =
+      # degraded coverage or tool failure, exit 3 = usage. Enforcement is gated
+      # by the workflow-level VSIX_AUDIT_ENFORCE switch (default "false" =
+      # advisory). See docs/runbooks/release-publishing.md.
+      # =====================================================================
+      - name: Install YARA-X v1.20.0 (full-coverage VSIX audit)
+        id: yara-x
+        # A GitHub outage, rate limit, DNS failure or withdrawn asset degrades to
+        # "audit not run" — the scan then reports DEGRADED coverage (exit 2) —
+        # and never to "release aborted".
+        continue-on-error: true
+        # A hung download must not consume the 30-minute job budget.
+        timeout-minutes: 5
+        run: |
+          echo "::group::[CI:MARKETPLACE:AUDIT] Installing YARA-X v1.20.0"
+          # --max-time/--retry: bounded transfer, and a flapping endpoint gets
+          # three attempts instead of failing the audit's toolchain outright.
+          curl -sSfL --max-time 120 --retry 3 --retry-delay 5 -o /tmp/yara-x.tar.gz \
+            "https://github.com/VirusTotal/yara-x/releases/download/v1.20.0/yara-x-v1.20.0-x86_64-unknown-linux-gnu.tar.gz"
+          echo "cabb8df46492fff59c51261302c71ed9cb2cef393d3f0ca560801a34a8e24cbe  /tmp/yara-x.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/yara-x.tar.gz -C /tmp
+          sudo install -m 0755 /tmp/yr /usr/local/bin/yr
+          yr --version
+          echo "::endgroup::"
+
+      - name: Audit packaged VSIX (node scripts/vsix-audit.mjs --publish)
+        id: vsix-audit
+        continue-on-error: true
+        # The scanned artefact is 39 MB with a full extraction; 15 minutes is
+        # ample, and a wedge is bounded here rather than by the job timeout.
+        timeout-minutes: 15
+        run: |
+          echo "::group::[CI:MARKETPLACE:AUDIT] Auditing the packaged VSIX"
+          # FAIL-CLOSED SENTINEL. Outputs are appended to $GITHUB_OUTPUT as they
+          # are written, so this survives a cancellation or a kill at the timeout:
+          # if the scan never reports, the output stays "2" ("audit did not
+          # complete") instead of being empty. The enforcement step below treats
+          # both 2 and "" as gate FAILURES when enforcement is on — an empty
+          # result must never read as a pass.
+          echo "exit_code=2" >> "$GITHUB_OUTPUT"
+          package_version=$(node -p "require('./src/package.json').version")
+          vsix_path="bin/roo-plus-${package_version}.vsix"
+          set +e
+          node scripts/vsix-audit.mjs "$vsix_path" --publish
+          audit_code=$?
+          set -e
+          echo "exit_code=${audit_code}" >> "$GITHUB_OUTPUT"
+          case "$audit_code" in
+            0) echo "::notice::[CI:MARKETPLACE:AUDIT] vsix-audit passed with full coverage" ;;
+            1) echo "::warning::[CI:MARKETPLACE:AUDIT] unregistered or escalated findings. The artefact has ALREADY shipped; if enforcement is on, this run is reported as not release-clean." ;;
+            2) echo "::warning::[CI:MARKETPLACE:AUDIT] DEGRADED coverage (YARA-X missing) or audit tool failure — this is NOT a full audit." ;;
+            *) echo "::warning::[CI:MARKETPLACE:AUDIT] unexpected vsix-audit exit code ${audit_code}." ;;
+          esac
+          echo "::endgroup::"
+          exit 0
+
+      # Enforcement point for the VSIX audit gate. Deliberately LAST: the artefact
+      # has already reached Open VSX AND the GitHub release, so an audit failure
+      # here can never block or delay the only live registry — it can only mark
+      # the run as not release-clean.
+      - name: Enforce VSIX audit gate (advisory unless VSIX_AUDIT_ENFORCE=true)
+        if: always()
+        env:
+          # Passed through env (never interpolated into the script) so a missing
+          # output is an empty string the shell can test for explicitly.
+          AUDIT_EXIT_CODE: ${{ steps.vsix-audit.outputs.exit_code }}
+        run: |
+          echo "::group::[CI:MARKETPLACE:AUDIT-GATE] VSIX audit gate"
+          enforce="${VSIX_AUDIT_ENFORCE:-false}"
+          code="${AUDIT_EXIT_CODE}"
+          echo "[CI:MARKETPLACE:AUDIT-GATE] VSIX_AUDIT_ENFORCE=${enforce} audit_exit_code=${code:-<none>}"
+
+          if [ "$enforce" != "true" ]; then
+            echo "::notice::[CI:MARKETPLACE:AUDIT-GATE] ADVISORY (VSIX_AUDIT_ENFORCE=${enforce}): no audit outcome fails this run. Open VSX and the GitHub release are unaffected."
+            if [ -z "$code" ] || [ "$code" != "0" ]; then
+              echo "::warning::[CI:MARKETPLACE:AUDIT-GATE] audit result: ${code:-no result (the audit did not run)}. Triage the findings and regenerate the by-design register only after reviewing each one (DEBT #23). Never widen the register to make a scan pass."
+            fi
+            echo "::endgroup::"
+            exit 0
+          fi
+
+          # ENFORCING. A missing result is a FAILURE, not a pass (M4).
+          if [ -z "$code" ]; then
+            echo "::error::[CI:MARKETPLACE:AUDIT-GATE] no audit result: the audit step was skipped, cancelled, timed out or died before writing one. Treating as gate FAILURE, never as a pass."
+            echo "::endgroup::"
+            exit 1
+          fi
+          if [ "$code" = "0" ]; then
+            echo "::notice::[CI:MARKETPLACE:AUDIT-GATE] full-coverage audit passed."
+            echo "::endgroup::"
+            exit 0
+          fi
+          echo "::error::[CI:MARKETPLACE:AUDIT-GATE] VSIX audit gate failed (exit ${code}). Open VSX has already received this version and is unaffected — the registry is never blocked by this gate — but this stable is NOT release-clean."
+          echo "::error::[CI:MARKETPLACE:AUDIT-GATE] Triage the findings and regenerate the by-design register only after reviewing each one (DEBT #23). Never widen the register to make a scan pass."
+          echo "::endgroup::"
+          exit 1
 
       # The publish step can report success while nothing landed (phantom success,
       # 2026-10). Report that distinctly from an outright publish failure.

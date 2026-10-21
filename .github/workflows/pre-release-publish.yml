@@ -37,6 +37,21 @@ on:
 permissions:
   contents: read
 
+# THE single enforcement switch for the VSIX audit (DEBT #23), shared in name
+# and meaning with marketplace-publish.yml:
+#
+#   "false" (default) = ADVISORY. The audit runs and findings are annotated,
+#                       but nothing fails because of it.
+#   "true"            = ENFORCE. Exit 1 / 2 fail the run, and a MISSING result
+#                       is a failure rather than a pass.
+#
+# Flip to "true" only after scripts/vsix-audit-register.json is regenerated from
+# a current artefact (docs/runbooks/release-publishing.md, "VSIX audit
+# enforcement switch"). Independently of this switch the whole audit cluster runs
+# AFTER the Open VSX publish, so the registry is never gated on a scanner.
+env:
+  VSIX_AUDIT_ENFORCE: "false"
+
 concurrency:
   group: marketplace-prerelease
   cancel-in-progress: false
@@ -480,6 +495,18 @@ jobs:
           echo "::notice::[CI:PRERELEASE:MANIFEST] packaged manifest identity OK: $artifact_name / $artifact_publisher (pre-release marker: $artifact_prerelease)"
           echo "::endgroup::"
 
+      # Attribution gate: every production dependency and every bundled binary
+      # component (DCG) must be described in THIRD-PARTY-NOTICES.md, the bundled
+      # archives must hash to the pinned values, and the copy under src/ must
+      # match the root file.
+      - name: Verify third-party notices (verify-third-party-notices.mjs)
+        if: steps.release-check.outputs.skip != 'true'
+        run: |
+          echo "::group::[CI:PRERELEASE:NOTICES] Verifying third-party attribution"
+          node scripts/verify-third-party-notices.mjs
+          echo "::notice::[CI:PRERELEASE:NOTICES] notices complete (dependencies + shipped binaries + DCG pins)"
+          echo "::endgroup::"
+
       # continue-on-error so a VS Code Marketplace outage (or the outstanding
       # publisher-account issues) can never SKIP the Open VSX publish below —
       # Open VSX is the registry that historically succeeds for this extension.
@@ -537,6 +564,69 @@ jobs:
           fi
           echo "::endgroup::"
 
+      # =====================================================================
+      # VSIX AUDIT CLUSTER — ADVISORY BY DEFAULT, AND DELIBERATELY AFTER THE
+      # OPEN VSX PUBLISH ABOVE.
+      #
+      # Placement is the safety property: the YARA-X install, the scan and the
+      # enforcement step all run only once the artefact has reached Open VSX, so
+      # no audit outcome — registry outage, timeout, hang, tool crash, finding —
+      # can prevent, delay or abort the publish. `continue-on-error` on the
+      # install and the scan plus per-step timeouts bound the worst case; the
+      # enforcement step is the ONLY place this cluster can turn the run red.
+      #
+      # POLICY (DEBT #23): exit 1 = unregistered/escalated findings, exit 2 =
+      # degraded coverage or tool failure, exit 3 = usage. Enforcement is gated
+      # by the workflow-level VSIX_AUDIT_ENFORCE switch (default "false" =
+      # advisory). Exit 2 is now genuinely REACHABLE: a failed scanner install is
+      # non-fatal, so the scan reports degraded coverage instead of killing the
+      # job (see docs/runbooks/release-publishing.md).
+      # =====================================================================
+      - name: Install YARA-X v1.20.0 (full-coverage VSIX audit)
+        id: yara-x
+        if: steps.release-check.outputs.skip != 'true'
+        # A GitHub outage, rate limit, DNS failure or withdrawn asset degrades to
+        # "audit not run" — the scan then reports DEGRADED coverage (exit 2) —
+        # and never to "release aborted".
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          echo "::group::[CI:PRERELEASE:AUDIT] Installing YARA-X v1.20.0"
+          curl -sSfL --max-time 120 --retry 3 --retry-delay 5 -o /tmp/yara-x.tar.gz \
+            "https://github.com/VirusTotal/yara-x/releases/download/v1.20.0/yara-x-v1.20.0-x86_64-unknown-linux-gnu.tar.gz"
+          echo "cabb8df46492fff59c51261302c71ed9cb2cef393d3f0ca560801a34a8e24cbe  /tmp/yara-x.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/yara-x.tar.gz -C /tmp
+          sudo install -m 0755 /tmp/yr /usr/local/bin/yr
+          yr --version
+          echo "::endgroup::"
+
+      - name: Audit packaged VSIX (node scripts/vsix-audit.mjs --publish)
+        id: vsix-audit
+        if: steps.release-check.outputs.skip != 'true'
+        continue-on-error: true
+        timeout-minutes: 15
+        run: |
+          echo "::group::[CI:PRERELEASE:AUDIT] Auditing the packaged VSIX"
+          # FAIL-CLOSED SENTINEL: outputs are appended as they are written, so a
+          # cancelled or timed-out step leaves "2" ("audit did not complete")
+          # rather than an empty result that could read as a pass.
+          echo "exit_code=2" >> "$GITHUB_OUTPUT"
+          package_version=$(jq -r .version src/package.json)
+          vsix_path="bin/roo-plus-${package_version}.vsix"
+          set +e
+          node scripts/vsix-audit.mjs "$vsix_path" --publish
+          audit_code=$?
+          set -e
+          echo "exit_code=${audit_code}" >> "$GITHUB_OUTPUT"
+          case "$audit_code" in
+            0) echo "::notice::[CI:PRERELEASE:AUDIT] vsix-audit passed with full coverage" ;;
+            1) echo "::warning::[CI:PRERELEASE:AUDIT] unregistered or escalated findings. The artefact has ALREADY been published to Open VSX; if enforcement is on, this run is reported as not release-clean." ;;
+            2) echo "::warning::[CI:PRERELEASE:AUDIT] DEGRADED coverage (YARA-X unavailable) or audit tool failure — this is NOT a full audit." ;;
+            *) echo "::warning::[CI:PRERELEASE:AUDIT] unexpected vsix-audit exit code ${audit_code}." ;;
+          esac
+          echo "::endgroup::"
+          exit 0
+
       # Post-publish visibility check. `vsce publish` returning success is NOT
       # proof of publication: during the 2026-10 Marketplace incident the upload
       # reported success while every /vspackage URL returned 404 and the publisher
@@ -565,6 +655,47 @@ jobs:
           name: roo-plus-prerelease-${{ github.sha }}
           path: bin/roo-plus-*.vsix
           retention-days: 7
+
+      # Enforcement point for the VSIX audit gate. Deliberately last among the
+      # audit steps: the artefact has already reached Open VSX, so an audit
+      # failure here can never block or delay the registry — it can only mark the
+      # run as not release-clean.
+      - name: Enforce VSIX audit gate (advisory unless VSIX_AUDIT_ENFORCE=true)
+        if: always() && steps.release-check.outputs.skip != 'true'
+        env:
+          # Passed through env (never interpolated into the script) so a missing
+          # output is an empty string the shell can test for explicitly.
+          AUDIT_EXIT_CODE: ${{ steps.vsix-audit.outputs.exit_code }}
+        run: |
+          echo "::group::[CI:PRERELEASE:AUDIT-GATE] VSIX audit gate"
+          enforce="${VSIX_AUDIT_ENFORCE:-false}"
+          code="${AUDIT_EXIT_CODE}"
+          echo "[CI:PRERELEASE:AUDIT-GATE] VSIX_AUDIT_ENFORCE=${enforce} audit_exit_code=${code:-<none>}"
+
+          if [ "$enforce" != "true" ]; then
+            echo "::notice::[CI:PRERELEASE:AUDIT-GATE] ADVISORY (VSIX_AUDIT_ENFORCE=${enforce}): no audit outcome fails this run. The Open VSX publish is unaffected."
+            if [ -z "$code" ] || [ "$code" != "0" ]; then
+              echo "::warning::[CI:PRERELEASE:AUDIT-GATE] audit result: ${code:-no result (the audit did not run)}. Triage the findings and regenerate the by-design register only after reviewing each one (DEBT #23). Never widen the register to make a scan pass."
+            fi
+            echo "::endgroup::"
+            exit 0
+          fi
+
+          # ENFORCING. A missing result is a FAILURE, not a pass (M4).
+          if [ -z "$code" ]; then
+            echo "::error::[CI:PRERELEASE:AUDIT-GATE] no audit result: the audit step was skipped, cancelled, timed out or died before writing one. Treating as gate FAILURE, never as a pass."
+            echo "::endgroup::"
+            exit 1
+          fi
+          if [ "$code" = "0" ]; then
+            echo "::notice::[CI:PRERELEASE:AUDIT-GATE] full-coverage audit passed."
+            echo "::endgroup::"
+            exit 0
+          fi
+          echo "::error::[CI:PRERELEASE:AUDIT-GATE] VSIX audit gate failed (exit ${code}). Open VSX has already received this version and is unaffected — the registry is never blocked by this gate — but this pre-release is NOT release-clean."
+          echo "::error::[CI:PRERELEASE:AUDIT-GATE] Triage the findings and regenerate the by-design register only after reviewing each one (DEBT #23). Never widen the register to make a scan pass."
+          echo "::endgroup::"
+          exit 1
 
       # Re-surface a VS Code Marketplace failure AFTER Open VSX has published.
       # The VS publish above is continue-on-error so it can never block Open
