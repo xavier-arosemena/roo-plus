@@ -1325,10 +1325,14 @@ describe("webviewMessageHandler - destructiveCommandGuardEnabled", () => {
 			updatedSettings: { destructiveCommandGuardEnabled: true },
 		})
 
-		// The installer is given a download consent gate (Marketplace #305 D3/3A).
+		// The installer resolves the bundled archive from the extension package and
+		// is given an execution consent gate (Marketplace #305 D3/3A, DCG 3a).
 		expect(ensureDcgInstalled).toHaveBeenCalledWith(
 			"/mock/global/storage",
-			expect.objectContaining({ onBeforeDownload: expect.any(Function) }),
+			expect.objectContaining({
+				extensionPath: expect.any(String),
+				gate: expect.objectContaining({ onBeforeInstall: expect.any(Function) }),
+			}),
 		)
 		expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("destructiveCommandGuardEnabled", true)
 		expect(vscode.window.showErrorMessage).not.toHaveBeenCalled()

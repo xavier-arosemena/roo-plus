@@ -47,7 +47,7 @@ import { getOpenAiModels } from "../../../api/providers/openai"
 import { getVsCodeLmModels } from "../../../api/providers/vscode-lm"
 import { getRouterRemovalMessage } from "../../config/routerRemoval"
 import { ensureDcgInstalled } from "../../../services/destructive-command-guard"
-import { requestDcgDownloadApproval } from "../../../services/binary-acquisition/dcg"
+import { requestDcgExecutionApproval } from "../../../services/binary-acquisition/dcg"
 import { getModels, flushModels } from "../../../api/providers/fetchers/modelCache"
 import { getLMStudioModels } from "../../../api/providers/fetchers/lmstudio"
 import { getWorkspacePath } from "../../../utils/path"
@@ -143,12 +143,14 @@ export async function handleSettingsMessages(
 				// guard as active when it is not actually available.
 				if (m.updatedSettings.destructiveCommandGuardEnabled === true) {
 					try {
-						// First-time acquisition of the DCG binary requires explicit
-						// user consent (Marketplace notice #305, D3/3A). The gate
-						// fires only when a download is actually needed — if the
-						// user declines, installation fails and the setting reverts.
+						// The DCG binary ships inside the VSIX (decision DCG 3a), but
+						// executing it still requires explicit user consent
+						// (Marketplace notice #305, D3/3A). The gate fires only when
+						// an installation is actually needed — if the user declines,
+						// installation fails and the setting reverts.
 						const binaryPath = await ensureDcgInstalled(provider.context.globalStorageUri.fsPath, {
-							onBeforeDownload: () => requestDcgDownloadApproval(provider.context),
+							extensionPath: provider.context.extensionPath,
+							gate: { onBeforeInstall: () => requestDcgExecutionApproval(provider.context) },
 						})
 						if (!binaryPath) {
 							m.updatedSettings.destructiveCommandGuardEnabled = false

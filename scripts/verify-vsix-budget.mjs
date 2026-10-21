@@ -156,6 +156,10 @@ export const REQUIRED_EXACT = [
  */
 export const REQUIRED_PATTERNS = [
 	{ id: "package-nls-locales", re: /^package\.nls\.[^/]+\.json$/, min: 2 },
+	// Bundled DCG release archives (DCG 3a, 2026-10-21): the guard is distributed
+	// inside the VSIX and is never downloaded at runtime, so a pack that drops
+	// them would silently disable it. One archive per supported platform.
+	{ id: "dcg-bundled-archives", re: /^bin\/dcg\/dcg-[^/]+\.(?:tar\.xz|zip)$/, min: 5 },
 	{ id: "material-icons", re: /^assets\/vscode-material-icons\/icons\//, min: 1 },
 	{ id: "images", re: /^assets\/images\//, min: 1 },
 	{ id: "webview-audio", re: /^webview-ui\/audio\//, min: 1 },

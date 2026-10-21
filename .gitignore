@@ -16,6 +16,12 @@ mock/
 bin/
 *.vsix
 
+# Bundled DCG release archives (DCG 3a, 2026-10-21). These are distribution
+# inputs, not build output: they MUST be committed, otherwise a fresh clone
+# packages a VSIX without the guard. See docs/DCG-RELEASE-GOVERNANCE.md.
+!src/bin/
+!src/bin/dcg/
+
 # Local prompts and rules
 /local-prompts
 AGENTS.local.md

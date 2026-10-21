@@ -24,7 +24,7 @@ describe("managed binary installation", () => {
 			archiveName: "example.tar.gz",
 			binaryName: "example",
 			errorPrefix: "Failed to install example",
-			download: vi.fn(),
+			provisionArchive: vi.fn(),
 			verifyArchive: vi.fn(),
 			extractArchive: vi.fn(),
 			...overrides,
@@ -51,14 +51,14 @@ describe("managed binary installation", () => {
 		if (process.platform !== "win32") await chmod(paths.binaryPath, 0o600)
 
 		await expect(ensureManagedBinaryInstalled(options)).resolves.toBe(paths.binaryPath)
-		expect(options.download).not.toHaveBeenCalled()
+		expect(options.provisionArchive).not.toHaveBeenCalled()
 	})
 
 	it("deduplicates concurrent installations", async () => {
-		let finishDownload: (() => void) | undefined
-		const download = vi.fn(() => new Promise<void>((resolve) => (finishDownload = resolve)))
+		let finishProvision: (() => void) | undefined
+		const provisionArchive = vi.fn(() => new Promise<void>((resolve) => (finishProvision = resolve)))
 		const options = createOptions({
-			download,
+			provisionArchive,
 			extractArchive: async (_archivePath, stagingDir) => {
 				await writeFile(path.join(stagingDir, "example"), "binary")
 			},
@@ -66,20 +66,20 @@ describe("managed binary installation", () => {
 		const first = ensureManagedBinaryInstalled(options)
 		const second = ensureManagedBinaryInstalled(options)
 		expect(first).toBe(second)
-		await vi.waitFor(() => expect(download).toHaveBeenCalledOnce())
-		finishDownload?.()
+		await vi.waitFor(() => expect(provisionArchive).toHaveBeenCalledOnce())
+		finishProvision?.()
 		await expect(Promise.all([first, second])).resolves.toEqual([
 			getManagedBinaryPaths(options).binaryPath,
 			getManagedBinaryPaths(options).binaryPath,
 		])
-		expect(download).toHaveBeenCalledOnce()
+		expect(provisionArchive).toHaveBeenCalledOnce()
 	})
 
 	it("coordinates update, metadata promotion, and cleanup", async () => {
 		const calls: string[] = []
 		const options = createOptions({
-			download: async (archivePath) => {
-				calls.push("download")
+			provisionArchive: async (archivePath) => {
+				calls.push("provision")
 				await writeFile(archivePath, "archive")
 			},
 			verifyArchive: async () => {
@@ -96,7 +96,7 @@ describe("managed binary installation", () => {
 		const paths = getManagedBinaryPaths(options)
 
 		await expect(ensureManagedBinaryInstalled(options)).resolves.toBe(paths.binaryPath)
-		expect(calls).toEqual(["download", "verify", "extract", "validate"])
+		expect(calls).toEqual(["provision", "verify", "extract", "validate"])
 		expect(await readFile(paths.binaryPath, "utf8")).toBe("binary")
 		expect(await readFile(paths.versionPath, "utf8")).toBe(options.version)
 		await expect(access(paths.archivePath)).rejects.toThrow()
@@ -104,17 +104,17 @@ describe("managed binary installation", () => {
 		await expect(access(path.join(tempDir, ".example.install.lock"))).rejects.toThrow()
 	})
 
-	it("cleans up partial artifacts when downloading fails", async () => {
+	it("cleans up partial artifacts when provisioning fails", async () => {
 		const options = createOptions({
-			download: async (archivePath) => {
+			provisionArchive: async (archivePath) => {
 				await writeFile(archivePath, "partial")
-				throw new Error("network failure")
+				throw new Error("archive unavailable")
 			},
 		})
 		const paths = getManagedBinaryPaths(options)
 
 		await expect(ensureManagedBinaryInstalled(options)).rejects.toThrow(
-			"Failed to install example: network failure",
+			"Failed to install example: archive unavailable",
 		)
 		await expect(access(paths.archivePath)).rejects.toThrow()
 		await expect(access(paths.stagingDir)).rejects.toThrow()
@@ -123,7 +123,7 @@ describe("managed binary installation", () => {
 
 	it("removes stale versioned archives without touching unrelated files", async () => {
 		const options = createOptions({
-			download: async (archivePath) => writeFile(archivePath, "archive"),
+			provisionArchive: async (archivePath) => writeFile(archivePath, "archive"),
 			extractArchive: async (_archivePath, stagingDir) => {
 				await writeFile(path.join(stagingDir, "example"), "binary")
 			},

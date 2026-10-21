@@ -1,10 +1,14 @@
 # Exclude everything
 **
 
-# Include README.md, CHANGELOG.md and LICENSE
+# Include README.md, CHANGELOG.md, LICENSE and THIRD-PARTY-NOTICES.md
 !README.md
 !CHANGELOG.md
 !LICENSE
+# Third-party attribution: bundled binaries (DCG), the declared licence field and
+# the generated JavaScript dependency table. Required by
+# scripts/verify-third-party-notices.mjs and the release-validation workflow.
+!THIRD-PARTY-NOTICES.md
 
 # Include package.json
 !package.json
@@ -34,6 +38,12 @@
 !dist/i18n/**
 !dist/workers/*.js
 !dist/workers/*.wasm
+
+# Bundled third-party release archives (DCG 3a, 2026-10-21). DCG is distributed
+# inside the VSIX and is never downloaded at runtime; dropping these from the
+# pack silently disables the guard, so the VSIX budget gate also requires them
+# (see REQUIRED_PATTERNS in scripts/verify-vsix-budget.mjs).
+!bin/dcg/**
 
 # Include the built webview
 !webview-ui/audio
