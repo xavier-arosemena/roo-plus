@@ -112,8 +112,12 @@ overrides:
     # mdast-util-to-hast
     mdast-util-to-hast: "^13.2.1"
 
-    # markdown-it
-    markdown-it: "^14.2.0"
+    # markdown-it (HIGH + MODERATE in .>@vscode/vsce: patched >=14.3.2) — stay on
+    # the 14.x line; 15.x is a breaking major that vsce has not adopted.
+    markdown-it: "^14.3.2"
+
+    # follow-redirects (HIGH in .>ovsx: patched >=1.16.1)
+    follow-redirects: "^1.16.1"
 
     # uuid — path-specific; exceljs uses uuid@^8, @azure/msal-node uses uuid@^8
     "exceljs>uuid": "^11.1.1"

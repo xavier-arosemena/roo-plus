@@ -736,19 +736,30 @@ describe("validateRegister — ☑ rows must carry a fork SHA reachable from mas
 })
 
 describe("validateRegister — stale-in-progress (◐ rows already merged)", () => {
+	// `validateRegister` defaults `today` to the wall clock, and the shared
+	// `buildRegister` fixture records a FROZEN Upstream tip date (2026-09-16).
+	// Without pinning the reference date this suite is a time bomb: once the
+	// fixture is older than `REGISTER_STALE_DAYS`, the unrelated `register-age`
+	// advisory adds a warning to EVERY report and `hasWarnings` flips to true even
+	// though `stale-in-progress` is correctly silent. The assertions below are
+	// about the `◐` check only, so the date is pinned deterministically.
+	const FIXTURE_TODAY = "2026-09-20"
 	const stalenessRegister = (status) =>
 		buildRegister({
 			rows: [makeRow(PREFIX_A, "fix: a", { status }), makeRow(PREFIX_B, "fix: b"), makeRow(PREFIX_C, "fix: c")],
 			pendingCount: 3,
 		})
 	const probeWithReachable = (reachable) => makeProbe({ commits: [PREFIX_A, PREFIX_B, PREFIX_C], reachable })
+	const validateStaleness = (status, reachable) =>
+		validateRegister({
+			markdown: stalenessRegister(status),
+			pendingShas: HEALTHY_PENDING,
+			probe: probeWithReachable(reachable),
+			today: FIXTURE_TODAY,
+		})
 
 	it("warns (but does not fail) when a ◐ row's fork SHA is reachable from the fork ref", () => {
-		const report = validateRegister({
-			markdown: stalenessRegister("◐ deadbee11"),
-			pendingShas: HEALTHY_PENDING,
-			probe: probeWithReachable(["deadbee11"]),
-		})
+		const report = validateStaleness("◐ deadbee11", ["deadbee11"])
 		// Structurally consistent: correct row count, no duplicates — so the hard
 		// verdict stays green...
 		assert.equal(report.ok, true)
@@ -767,23 +778,23 @@ describe("validateRegister — stale-in-progress (◐ rows already merged)", () 
 	})
 
 	it("does NOT warn when a ◐ row's fork SHA is not reachable from the fork ref", () => {
-		const report = validateRegister({
-			markdown: stalenessRegister("◐ deadbee11"),
-			pendingShas: HEALTHY_PENDING,
-			probe: probeWithReachable([]),
-		})
+		const report = validateStaleness("◐ deadbee11", [])
 		assert.equal(report.ok, true)
 		assert.equal(report.hasWarnings, false)
 		assert.deepEqual(checkById(report, "stale-in-progress").warnings, [])
+		// Regression: the ONLY check allowed to speak here is `stale-in-progress`,
+		// and it must be silent. If a future change makes this test green by
+		// silencing the reported warnings (rather than by leaving the check
+		// quiet), this assertion still catches a resurrected stale warning.
+		assert.deepEqual(
+			report.checks.filter((check) => check.warnings.length > 0).map((check) => check.id),
+			[],
+		)
 		assert.deepEqual(report.staleInProgress, [])
 	})
 
 	it("does NOT warn for a bare ◐ with no SHA (the operator may be mid-pick)", () => {
-		const report = validateRegister({
-			markdown: stalenessRegister("◐"),
-			pendingShas: HEALTHY_PENDING,
-			probe: probeWithReachable(["deadbee11"]),
-		})
+		const report = validateStaleness("◐", ["deadbee11"])
 		assert.equal(report.ok, true)
 		assert.deepEqual(report.staleInProgress, [])
 		assert.deepEqual(checkById(report, "stale-in-progress").warnings, [])
@@ -791,11 +802,7 @@ describe("validateRegister — stale-in-progress (◐ rows already merged)", () 
 
 	it("ignores ☐ and ✖ rows entirely", () => {
 		for (const status of ["☐", "✖"]) {
-			const report = validateRegister({
-				markdown: stalenessRegister(status),
-				pendingShas: HEALTHY_PENDING,
-				probe: probeWithReachable(["deadbee11"]),
-			})
+			const report = validateStaleness(status, ["deadbee11"])
 			assert.deepEqual(report.staleInProgress, [], `status ${status} must not be treated as in-progress`)
 		}
 	})
