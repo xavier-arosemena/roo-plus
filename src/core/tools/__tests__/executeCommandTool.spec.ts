@@ -287,7 +287,7 @@ describe("executeCommandTool", () => {
 
 		it("installs or updates DCG before evaluating an enabled command", async () => {
 			const provider = await mockCline.providerRef.deref()
-			provider.context = { globalStorageUri: { fsPath: "/test/storage" } }
+			provider.context = { globalStorageUri: { fsPath: "/test/storage" }, extensionPath: "/test/extension" }
 			provider.contextProxy.getValue.mockReturnValue(true)
 			provider.getState.mockResolvedValue({
 				destructiveCommandGuardEnabled: true,
@@ -299,10 +299,14 @@ describe("executeCommandTool", () => {
 				pushToolResult: mockPushToolResult as unknown as PushToolResult,
 			})
 
-			// The installer is handed a download consent gate (Marketplace #305 D3/3A).
+			// The installer resolves the bundled archive from the extension package and
+			// is handed an execution consent gate (Marketplace #305 D3/3A, DCG 3a).
 			expect(mockEnsureDcgInstalled).toHaveBeenCalledWith(
 				"/test/storage",
-				expect.objectContaining({ onBeforeDownload: expect.any(Function) }),
+				expect.objectContaining({
+					extensionPath: "/test/extension",
+					gate: expect.objectContaining({ onBeforeInstall: expect.any(Function) }),
+				}),
 			)
 			expect(mockRunDcg).toHaveBeenCalledWith("/test/storage/dcg", "echo test", "/test/workspace")
 		})
@@ -332,7 +336,12 @@ describe("executeCommandTool", () => {
 			expect(executeCommandModule.executeCommandInTerminal).not.toHaveBeenCalled()
 		})
 
-		it("fails closed when DCG is unavailable for the current platform", async () => {
+		it("fails OPEN (runs the command unguarded) when DCG is unavailable for this host or platform", async () => {
+			// AVAILABILITY failure: no bundled archive for this package layout, or no
+			// prebuilt DCG for this OS/arch. `ensureDcgInstalled` resolves undefined
+			// and has already warned once for the session; the command must run
+			// exactly as if the guard were off — refusing every command was the
+			// CLI/headless regression (review finding M7).
 			const provider = await mockCline.providerRef.deref()
 			provider.context = { globalStorageUri: { fsPath: "/test/storage" } }
 			provider.contextProxy.getValue.mockReturnValue(true)
@@ -348,13 +357,12 @@ describe("executeCommandTool", () => {
 				pushToolResult: mockPushToolResult as unknown as PushToolResult,
 			})
 
-			expect(mockHandleError).toHaveBeenCalledWith(
-				"executing command",
-				expect.objectContaining({ message: "errors.destructiveCommandGuard.unavailable" }),
-			)
+			// Not refused: no error, the guard is simply skipped, and the command is
+			// presented for normal approval and its result is pushed back.
+			expect(mockHandleError).not.toHaveBeenCalled()
 			expect(mockRunDcg).not.toHaveBeenCalled()
-			expect(mockAskApproval).not.toHaveBeenCalled()
-			expect(executeCommandModule.executeCommandInTerminal).not.toHaveBeenCalled()
+			expect(mockAskApproval).toHaveBeenCalledWith("command", "echo test")
+			expect(mockPushToolResult).toHaveBeenCalled()
 		})
 
 		it("should handle missing command parameter", async () => {

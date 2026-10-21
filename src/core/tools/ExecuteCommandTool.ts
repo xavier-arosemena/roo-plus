@@ -26,7 +26,7 @@ import { Package } from "../../shared/package"
 import { t } from "../../i18n"
 import { getTaskDirectoryPath } from "../../utils/storage"
 import { ensureWorkspaceTrusted } from "../../utils/workspaceTrust"
-import { requestDcgDownloadApproval } from "../../services/binary-acquisition/dcg"
+import { requestDcgExecutionApproval } from "../../services/binary-acquisition/dcg"
 import { BaseTool, ToolCallbacks } from "./BaseTool"
 
 export { ShellIntegrationError } from "../../integrations/terminal/types"
@@ -136,25 +136,39 @@ export class ExecuteCommandTool extends BaseTool<"execute_command"> {
 			if (provider?.contextProxy.getValue("destructiveCommandGuardEnabled") === true) {
 				const { ensureDcgInstalled, runDcg } = await import("../../services/destructive-command-guard")
 				// Resolve through the managed installer on use so an extension update
-				// automatically installs the newly pinned and verified DCG version.
-				// The download gate enforces workspace trust + an explicit first-use
-				// consent; it only fires when a download is actually required, and a
-				// denial fails closed (the command is not run unguarded).
+				// automatically provisions the newly pinned and verified DCG version
+				// from the archive bundled in the VSIX (no network access).
+				// The consent gate enforces workspace trust + an explicit approval to
+				// execute the component; it only fires when an installation is
+				// actually required, and a denial fails closed (the command is not
+				// run unguarded).
+				//
+				// Two failure classes, two policies:
+				//   · INTEGRITY (checksum mismatch, tampered archive/binary, denied
+				//     consent) THROWS — the command is refused and the user is told
+				//     why. It is never run unguarded as if the check had passed.
+				//   · AVAILABILITY (no bundled DCG for this host or package layout,
+				//     unsupported platform) resolves `undefined`. The guard disables
+				//     itself — it has already warned once this session — and the
+				//     command proceeds exactly as if the feature were off. The
+				//     CLI/headless host, whose `extensionPath` is a build output
+				//     directory, depended on this: refusing every command there was a
+				//     regression, not a safety property.
 				const binaryPath = await ensureDcgInstalled(provider.context.globalStorageUri.fsPath, {
-					onBeforeDownload: () => requestDcgDownloadApproval(provider.context),
+					extensionPath: provider.context.extensionPath,
+					gate: { onBeforeInstall: () => requestDcgExecutionApproval(provider.context) },
 				})
-				if (!binaryPath) {
-					throw new Error(t("common:errors.destructiveCommandGuard.unavailable"))
-				}
-				const workingDirectory = customCwd
-					? path.isAbsolute(customCwd)
-						? customCwd
-						: path.resolve(task.cwd, customCwd)
-					: task.cwd
-				const dcgResult = await runDcg(binaryPath, canonicalCommand, workingDirectory)
-				dcgBlocked = dcgResult.decision === "deny"
-				if (dcgResult.decision === "deny") {
-					await task.say("error", formatDcgBlockedMessage(dcgResult.reason, dcgResult.ruleId))
+				if (binaryPath) {
+					const workingDirectory = customCwd
+						? path.isAbsolute(customCwd)
+							? customCwd
+							: path.resolve(task.cwd, customCwd)
+						: task.cwd
+					const dcgResult = await runDcg(binaryPath, canonicalCommand, workingDirectory)
+					dcgBlocked = dcgResult.decision === "deny"
+					if (dcgResult.decision === "deny") {
+						await task.say("error", formatDcgBlockedMessage(dcgResult.reason, dcgResult.ruleId))
+					}
 				}
 			}
 

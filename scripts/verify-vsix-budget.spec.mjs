@@ -42,6 +42,14 @@ function baseFixture() {
 	files.push("dist/i18n/locales/en/tools.json")
 	files.push("dist/tree-sitter.wasm")
 	files.push("dist/tree-sitter-c.wasm", "dist/tree-sitter-rust.wasm")
+	// Bundled DCG release archives (DCG 3a) — five supported platforms.
+	files.push(
+		"bin/dcg/dcg-x86_64-apple-darwin.tar.xz",
+		"bin/dcg/dcg-aarch64-apple-darwin.tar.xz",
+		"bin/dcg/dcg-x86_64-unknown-linux-musl.tar.xz",
+		"bin/dcg/dcg-aarch64-unknown-linux-gnu.tar.xz",
+		"bin/dcg/dcg-x86_64-pc-windows-msvc.zip",
+	)
 	return files
 }
 
@@ -188,6 +196,13 @@ describe("evaluateLayout", () => {
 		const verdict = evaluateLayout(files, { expectedTreeSitterWasms: EXPECTED_TS })
 		assert.equal(verdict.ok, false)
 		assert.ok(verdict.missing.some((m) => m.kind === "required-pattern" && m.id === "webview-audio"))
+	})
+
+	it("FAILS when the bundled DCG archives are missing from the pack (DCG 3a)", () => {
+		const files = baseFixture().filter((f) => !f.startsWith("bin/dcg/"))
+		const verdict = evaluateLayout(files, { expectedTreeSitterWasms: EXPECTED_TS })
+		assert.equal(verdict.ok, false)
+		assert.ok(verdict.missing.some((m) => m.kind === "required-pattern" && m.id === "dcg-bundled-archives"))
 	})
 
 	it("FAILS when a forbidden path is present", () => {

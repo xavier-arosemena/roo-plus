@@ -11,17 +11,24 @@ export interface ManagedBinaryInstallOptions {
 	versionFile: string
 	archiveName: string
 	binaryName: string
-	download: (archivePath: string) => Promise<void>
+	/**
+	 * Places the source archive at `archivePath`. The caller owns the acquisition
+	 * policy — DCG copies the archive bundled inside the extension package (since
+	 * 2026-10-21) and has no download path left; Semble does not use this
+	 * installer. A caller that throws here fails the install closed; a caller that
+	 * needs fail-open semantics must decide that before calling.
+	 */
+	provisionArchive: (archivePath: string) => Promise<void>
 	verifyArchive: (archivePath: string) => Promise<void>
 	extractArchive: (archivePath: string, stagingDir: string) => Promise<void>
 	validateBinary?: (stagedBinaryPath: string) => Promise<void>
 	/**
-	 * Optional consent gate invoked immediately before an actual download
+	 * Optional consent gate invoked immediately before an actual installation
 	 * starts (only when an install is required — never when an up-to-date
 	 * binary is already present). Return `false` to abort the install; no
-	 * network request is made in that case.
+	 * archive is provisioned in that case.
 	 */
-	onBeforeDownload?: () => Promise<boolean>
+	onBeforeProvision?: () => Promise<boolean>
 	errorPrefix: string
 }
 
@@ -104,13 +111,13 @@ async function installManagedBinary(options: ManagedBinaryInstallOptions): Promi
 	await fs.mkdir(paths.stagingDir, { recursive: true })
 
 	try {
-		if (options.onBeforeDownload) {
-			const approved = await options.onBeforeDownload()
+		if (options.onBeforeProvision) {
+			const approved = await options.onBeforeProvision()
 			if (!approved) {
-				throw new Error("download cancelled by user")
+				throw new Error("installation cancelled by user")
 			}
 		}
-		await options.download(paths.archivePath)
+		await options.provisionArchive(paths.archivePath)
 		await options.verifyArchive(paths.archivePath)
 		await options.extractArchive(paths.archivePath, paths.stagingDir)
 		await makeExecutable(paths.stagedBinaryPath)
