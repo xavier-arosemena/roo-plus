@@ -17,8 +17,8 @@
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
     <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
   </a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus">
-    <img src="https://img.shields.io/badge/VS_Code_Marketplace-0078D4?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace">
+  <a href="https://github.com/xavier-arosemena/roo-plus/releases">
+    <img src="https://img.shields.io/badge/GitHub_Releases-181717?style=flat&logo=github&logoColor=white" alt="GitHub Releases">
   </a>
   <a href="https://github.com/xavier-arosemena/roo-plus/issues">
     <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
@@ -34,11 +34,16 @@ Roo+, **Zoo Code'un bir fork'udur**: **301 modluk katalogdan 90 önceden yüklen
 3. **"Roo+"** ifadesini arayın.
 4. **Yükle** düğmesine tıklayın.
 
+Roo+ artık VS Code Marketplace üzerinden dağıtılmıyor; Open VSX'ten veya bir GitHub sürümünden yükleyin.
+
 Veya komut satırından doğrudan kurun:
 
 ```bash
-code --install-extension xavier-arosemena.roo-plus
+# Open VSX
 ovsx install xavier-arosemena/roo-plus
+
+# GitHub sürümü: önce .vsix dosyasını indirin
+code --install-extension roo-plus-<version>.vsix
 ```
 
 Veya İngilizce README'deki [Hızlı Başlangıç](../../README.md#quick-start) bölümünü izleyerek kaynak koddan derleyin.

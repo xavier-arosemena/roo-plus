@@ -17,8 +17,8 @@
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
     <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
   </a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus">
-    <img src="https://img.shields.io/badge/VS_Code_Marketplace-0078D4?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace">
+  <a href="https://github.com/xavier-arosemena/roo-plus/releases">
+    <img src="https://img.shields.io/badge/GitHub_Releases-181717?style=flat&logo=github&logoColor=white" alt="GitHub Releases">
   </a>
   <a href="https://github.com/xavier-arosemena/roo-plus/issues">
     <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
@@ -34,11 +34,16 @@ Roo+ là một **nhánh fork của Zoo Code**: trợ lý phát triển AI với 
 3. Tìm kiếm **"Roo+"**.
 4. Nhấp vào **Cài đặt**.
 
+Roo+ không còn được phân phối qua VS Code Marketplace; hãy cài đặt từ Open VSX hoặc từ một bản phát hành trên GitHub.
+
 Hoặc cài đặt trực tiếp từ dòng lệnh:
 
 ```bash
-code --install-extension xavier-arosemena.roo-plus
+# Open VSX
 ovsx install xavier-arosemena/roo-plus
+
+# Bản phát hành GitHub: tải .vsix trước
+code --install-extension roo-plus-<version>.vsix
 ```
 
 Hoặc biên dịch từ mã nguồn theo phần [Bắt đầu nhanh](../../README.md#quick-start) trong README tiếng Anh.

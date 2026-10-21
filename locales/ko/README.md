@@ -17,8 +17,8 @@
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
     <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
   </a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus">
-    <img src="https://img.shields.io/badge/VS_Code_Marketplace-0078D4?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace">
+  <a href="https://github.com/xavier-arosemena/roo-plus/releases">
+    <img src="https://img.shields.io/badge/GitHub_Releases-181717?style=flat&logo=github&logoColor=white" alt="GitHub Releases">
   </a>
   <a href="https://github.com/xavier-arosemena/roo-plus/issues">
     <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
@@ -34,11 +34,16 @@ Roo+는 **Zoo Code의 포크**입니다. **301개 모드 카탈로그**에서 **
 3. **"Roo+"**를 검색합니다.
 4. **설치**를 클릭합니다.
 
+Roo+는 더 이상 VS Code Marketplace를 통해 배포되지 않습니다. Open VSX 또는 GitHub 릴리스에서 설치하세요.
+
 또는 명령줄에서 직접 설치합니다:
 
 ```bash
-code --install-extension xavier-arosemena.roo-plus
+# Open VSX
 ovsx install xavier-arosemena/roo-plus
+
+# GitHub 릴리스: 먼저 .vsix를 다운로드합니다
+code --install-extension roo-plus-<version>.vsix
 ```
 
 또는 영어 README의 [빠른 시작](../../README.md#quick-start) 섹션을 따라 소스에서 빌드합니다.

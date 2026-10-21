@@ -17,8 +17,8 @@
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
     <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
   </a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus">
-    <img src="https://img.shields.io/badge/VS_Code_Marketplace-0078D4?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace">
+  <a href="https://github.com/xavier-arosemena/roo-plus/releases">
+    <img src="https://img.shields.io/badge/GitHub_Releases-181717?style=flat&logo=github&logoColor=white" alt="GitHub Releases">
   </a>
   <a href="https://github.com/xavier-arosemena/roo-plus/issues">
     <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
@@ -34,11 +34,16 @@ Roo+ 是 **Zoo Code 的一个分支**：一款 AI 开发助手，内置来自 **
 3. 搜索 **"Roo+"**。
 4. 点击 **安装**。
 
+Roo+ 不再通过 VS Code Marketplace 分发；请从 Open VSX 或 GitHub 发布版本安装。
+
 或者直接从命令行安装：
 
 ```bash
-code --install-extension xavier-arosemena.roo-plus
+# Open VSX
 ovsx install xavier-arosemena/roo-plus
+
+# GitHub 发布版本：请先下载 .vsix
+code --install-extension roo-plus-<version>.vsix
 ```
 
 或者按照英文 README 的[快速入门](../../README.md#quick-start)部分从源码构建。

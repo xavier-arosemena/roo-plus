@@ -17,8 +17,8 @@
   <a href="https://open-vsx.org/extension/xavier-arosemena/roo-plus">
     <img src="https://img.shields.io/badge/Open_VSX_Registry-007ACC?style=flat&logo=eclipse&logoColor=white" alt="Open VSX Registry">
   </a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus">
-    <img src="https://img.shields.io/badge/VS_Code_Marketplace-0078D4?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace">
+  <a href="https://github.com/xavier-arosemena/roo-plus/releases">
+    <img src="https://img.shields.io/badge/GitHub_Releases-181717?style=flat&logo=github&logoColor=white" alt="GitHub Releases">
   </a>
   <a href="https://github.com/xavier-arosemena/roo-plus/issues">
     <img src="https://img.shields.io/badge/Report_Bug-GitHub-181717?style=flat&logo=github&logoColor=white" alt="Report Bug">
@@ -34,11 +34,16 @@ Roo+ — это **форк Zoo Code**: ИИ-ассистент для разра
 3. Найдите **"Roo+"**.
 4. Нажмите **Установить**.
 
+Roo+ больше не распространяется через VS Code Marketplace; установите его из Open VSX или из релиза на GitHub.
+
 Или установите его напрямую из командной строки:
 
 ```bash
-code --install-extension xavier-arosemena.roo-plus
+# Open VSX
 ovsx install xavier-arosemena/roo-plus
+
+# Релиз GitHub: сначала скачайте .vsix
+code --install-extension roo-plus-<version>.vsix
 ```
 
 Или соберите его из исходного кода, следуя разделу [Быстрый старт](../../README.md#quick-start) в README на английском языке.

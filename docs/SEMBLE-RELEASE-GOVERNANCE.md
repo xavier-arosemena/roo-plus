@@ -59,7 +59,7 @@ Additional Semble release gates:
 
 - [`scripts/verify-semble-checksums.mjs`](../scripts/verify-semble-checksums.mjs) — the hardcoded `SEMBLE_SHA256` set stays internally consistent.
 - [`scripts/semble-smoke.mjs`](../scripts/semble-smoke.mjs) — live smoke test of the pinned binary against the CLI contract.
-- CI wiring described in [`plans/RELEASE-WORKFLOWS.md`](../plans/RELEASE-WORKFLOWS.md) (the `--strict` checksum gate before stable publish).
+- CI wiring described in [`docs/runbooks/release-publishing.md`](runbooks/release-publishing.md) (the `--strict` checksum gate runs before the stable publish).
 
 ### Pinned checksums at `v0.5.2` (in-repo source of truth)
 
@@ -113,6 +113,6 @@ Semble is **download-only** (see the [ADR](../docs/adr/adr-semble-binary-downloa
 - Decision to be download-only (and why bundling is ruled out): [`docs/adr/adr-semble-binary-download-only.md`](adr/adr-semble-binary-download-only.md)
 - Consent/workspace-trust gate for all acquired binaries: [`src/services/binary-acquisition/index.ts`](../src/services/binary-acquisition/index.ts:1)
 - DCG (the other consent-gated external binary): [`docs/DCG-RELEASE-GOVERNANCE.md`](DCG-RELEASE-GOVERNANCE.md)
-- Release workflow + Semble CI gates: [`plans/RELEASE-WORKFLOWS.md`](../plans/RELEASE-WORKFLOWS.md)
+- Release workflow + Semble CI gates: [`docs/runbooks/release-publishing.md`](runbooks/release-publishing.md)
 - Security posture & reproducing the VSIX: [`SECURITY.md`](../SECURITY.md)
-- Marketplaces notice tracking: [`docs/marketplace-305-remediation-plan.md`](marketplace-305-remediation-plan.md)
+- Marketplace notice tracking: [`docs/compliance/marketplace-305-remediation-plan.md`](compliance/marketplace-305-remediation-plan.md)

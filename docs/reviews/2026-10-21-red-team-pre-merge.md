@@ -1,0 +1,233 @@
+# Red-Team Pre-Merge Review — DCG bundling, licence, notices, audit gate
+
+**Reviews:** the uncommitted change set on `fix/code-qa-pre-existing-failures` (`git status --porcelain` = 52 paths)
+**Date:** 2026-10-21
+**Method:** independent reproduction on this host (Linux x64, Node/pnpm workspace), source reading, upstream verification against the GitHub API, and one full VSIX build + audit run. No source, test, workflow, script, manifest or doc was modified by this review.
+
+---
+
+## 1. Verdict
+
+**Not mergeable.** The DCG bundling, the licence field, the notices file and the notices gate are sound and independently verified, but the change set also re-arms a VSIX audit gate that the current artefact cannot pass (13 unregistered findings, one CRITICAL), places that gate's scaffolding on the critical path to the Open VSX publish, and ships an attribution document that asserts Semble is not downloaded when it still is.
+
+---
+
+## 2. Findings table
+
+| ID  | Severity | Finding                                                                                                                                                                                                                                                             | Location                                                                                                                                                        |
+| --- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B1  | BLOCKER  | The armed audit gate fails on the artefact this change set builds: 13 unregistered findings (1 CRITICAL, 12 MEDIUM). Every PR that touches `release-validation` paths and every stable publish now ends red.                                                        | [`release-validation.yml:175`](.github/workflows/release-validation.yml:175) · [`vsix-audit-register.json:153`](scripts/vsix-audit-register.json:153)           |
+| B2  | BLOCKER  | The register records the CRITICAL finding under `CHANGELOG.md`, but the pack ships `changelog.md`; the register's own "correction" note states the opposite of what the artefact contains, so the finding can never be registered without contradicting the record. | [`vsix-audit-register.json:20`](scripts/vsix-audit-register.json:20) · [`vsix-audit-register.json:153`](scripts/vsix-audit-register.json:153)                   |
+| M1  | MAJOR    | Shipped attribution file states Semble is "not bundled, not downloaded by Roo+" and that decision 2a is in force. The code still downloads Semble, and DEBT #28 says §2.1 is to be updated _with_ the code.                                                         | [`THIRD-PARTY-NOTICES.md:165`](THIRD-PARTY-NOTICES.md:165)                                                                                                      |
+| M2  | MAJOR    | The YARA-X install step runs before the Open VSX publish in all three workflows and is not `continue-on-error`. A GitHub outage, rate limit or upstream asset change fails the job **before** publishing.                                                           | [`marketplace-publish.yml:292`](.github/workflows/marketplace-publish.yml:292) · [`pre-release-publish.yml:502`](.github/workflows/pre-release-publish.yml:502) |
+| M3  | MAJOR    | No per-step `timeout-minutes` on the YARA-X install or the audit, and `curl` has no `--max-time`. A hang consumes the job budget and the Open VSX publish never runs.                                                                                               | [`marketplace-publish.yml:292`](.github/workflows/marketplace-publish.yml:292) · [`marketplace-publish.yml:310`](.github/workflows/marketplace-publish.yml:310) |
+| M4  | MAJOR    | The enforcement step is skipped when the audit output is empty (`exit_code != ''`), so a skipped, cancelled or early-failed audit produces a green gate.                                                                                                            | [`marketplace-publish.yml:442`](.github/workflows/marketplace-publish.yml:442)                                                                                  |
+| M5  | MAJOR    | The documented exit-2 policy ("degraded coverage") is unreachable: the mandatory YARA-X step fails the job first, so the exit-2 branch is dead code and the real degraded path blocks Open VSX.                                                                     | [`pre-release-publish.yml:532`](.github/workflows/pre-release-publish.yml:532) · [`marketplace-publish.yml:325`](.github/workflows/marketplace-publish.yml:325) |
+| M6  | MAJOR    | The notices gate passes vacuously on an empty dependency tree: 0 expected → 0 missing. Confirmed empirically.                                                                                                                                                       | [`verify-third-party-notices.mjs:362`](scripts/verify-third-party-notices.mjs:362)                                                                              |
+| M7  | MAJOR    | CLI/headless regression: the CLI extension host sets `extensionPath` to the bundle directory (`src/dist`), which contains no `bin/dcg`, so an enabled guard now refuses every command instead of downloading.                                                       | [`run.ts:223`](apps/cli/src/commands/cli/run.ts:223) · [`manager.ts:36`](src/services/destructive-command-guard/manager.ts:36)                                  |
+| M8  | MAJOR    | No gate ever verifies `binarySha256` against the bundled bytes; five of the ten pinned hashes are unverified in CI. A wrong pin bricks DCG on that platform at first use.                                                                                           | [`constants.ts:13`](src/services/destructive-command-guard/constants.ts:13) · [`verify-third-party-notices.mjs:24`](scripts/verify-third-party-notices.mjs:24)  |
+| M9  | MAJOR    | The register schema is not validated: `loadRegister` only checks `entries` is an array, so bare entries with no `reason`/`verdict` silence findings.                                                                                                                | [`vsix-audit.mjs:243`](scripts/vsix-audit.mjs:243)                                                                                                              |
+| M10 | MAJOR    | `release-validation` is path-filtered on files that do **not** include the new DCG inputs, so a future DCG bump or notices change never runs the job that asserts the archives and notices are in the VSIX.                                                         | [`release-validation.yml:6`](.github/workflows/release-validation.yml:6)                                                                                        |
+| M11 | MAJOR    | Two provenance links added by this change point at `plans/…`, which is gitignored — broken in every clone except the maintainer's.                                                                                                                                  | [`DCG-RELEASE-GOVERNANCE.md:95`](docs/DCG-RELEASE-GOVERNANCE.md:95) · [`SEMBLE-RELEASE-GOVERNANCE.md:118`](docs/SEMBLE-RELEASE-GOVERNANCE.md:118)               |
+| m1  | MINOR    | A source comment claims enforcement by a test file that does not exist.                                                                                                                                                                                             | [`constants.ts:59`](src/services/destructive-command-guard/constants.ts:59)                                                                                     |
+| m2  | MINOR    | `DCG_RELEASE_URL` is exported and unused — a live URL constant with no consumer.                                                                                                                                                                                    | [`constants.ts:63`](src/services/destructive-command-guard/constants.ts:63)                                                                                     |
+| m3  | MINOR    | `requestDcgExecutionApproval` returns `true` on unsupported platforms — an "approved" answer for something that cannot run.                                                                                                                                         | [`dcg.ts:76`](src/services/binary-acquisition/dcg.ts:76)                                                                                                        |
+| m4  | MINOR    | An already-installed `v0.7.7` short-circuits before the gate, so users migrating from the download flow never see the execution-consent prompt and their binary is not re-verified.                                                                                 | [`install.ts:97`](src/services/managed-binary/install.ts:97)                                                                                                    |
+| m5  | MINOR    | Notices §2.1 cites `MinishLab/semble` as the source but never names `Audare-est-Facere/sembleexec`, the repository the downloader actually uses.                                                                                                                    | [`THIRD-PARTY-NOTICES.md:172`](THIRD-PARTY-NOTICES.md:172)                                                                                                      |
+| m6  | MINOR    | The dependency check ignores _extra_ rows, so stale entries persist silently (only `missing` is reported).                                                                                                                                                          | [`verify-third-party-notices.mjs:362`](scripts/verify-third-party-notices.mjs:362)                                                                              |
+| m7  | MINOR    | VSIX budget headroom is 16 files (measured 1,284 against a 1,300 cap).                                                                                                                                                                                              | [`verify-vsix-budget.mjs:162`](scripts/verify-vsix-budget.mjs:162)                                                                                              |
+| n1  | NIT      | `extractZipArchive`'s non-Windows `unzip` branch is unreachable (the ZIP path is only used on `win32`).                                                                                                                                                             | [`archive.ts:80`](src/services/managed-binary/archive.ts:80)                                                                                                    |
+| n2  | NIT      | `managed-binary/install.ts` still describes a "checksum-verified network download" provider, of which no caller remains for DCG.                                                                                                                                    | [`install.ts:14`](src/services/managed-binary/install.ts:14)                                                                                                    |
+
+---
+
+## 3. Findings detail
+
+### B1 — The audit gate is armed against an artefact that cannot pass it
+
+**Evidence.** I installed the pinned YARA-X (`yr --version` → `yara-x-cli 1.20.0`), built a VSIX from this tree (`bin/roo-plus-3.89.1.vsix`, 1,286 entries, 39.13 MB), and ran the gate exactly as CI does:
+
+```
+node scripts/vsix-audit.mjs bin/roo-plus-3.89.1.vsix --publish
+  coverage: full
+  tool exit: 1 (0/1 = tool OK; JSON parsed)
+  by-design (registered): 155
+real (fail-closed):     13
+```
+
+The 13 unregistered findings are **1 CRITICAL** (`YARA_STEALER_JS_Credential_File_Exfil_Jan25 @ changelog.md`) and **12 MEDIUM** (`YARA_SUSP_JS_Decimal_Byte_Array_Jan25` ×11 and `YARA_SUSP_JS_Hex_Escape_Chain_Jan25` ×1, all in `webview-ui/build/assets/mermaid*` chunks). Exit code 2 was returned (the wrapper's `REAL_FINDINGS` path under `--publish`).
+
+**Why it matters.** The register is a 3.87.3 snapshot [`vsix-audit-register.json:10`](scripts/vsix-audit-register.json:10) and was never re-scanned; DEBT #23 and the runbook both say so. Re-arming the gate without regenerating the baseline means:
+
+- [`release-validation.yml:175`](.github/workflows/release-validation.yml:175) runs the audit **without** `continue-on-error`, so every PR touching `src/package.json`, `README.md`, `locales/*/README.md` or `CHANGELOG.md` turns red. This change set touches all four.
+- [`marketplace-publish.yml:441`](.github/workflows/marketplace-publish.yml:441) enforces after delivery, so every stable publish is red after Open VSX has already received the version.
+- The only ways out are the two the documentation forbids: widen the register, or disarm the gate again.
+
+A permanently-red gate is worse than no gate: reviewers learn to ignore it, and the next genuine finding is indistinguishable from the 13 known ones.
+
+**How to reproduce.** `pnpm --filter ./src exec vsce package --no-dependencies --out ../bin && node scripts/vsix-audit.mjs bin/roo-plus-<version>.vsix --publish` with `yr` on `PATH`.
+
+**Direction (not a patch).** Regenerate the register from this artefact with YARA-X present, re-triage every entry (the 12 mermaid hits are almost certainly the same decimal-byte-array content class already registered against other chunks), and record the new `scan.artifact`/`sha256`/`scannedAt`. If that cannot be done before merge, arm the gate in `release-validation` only (advisory, `continue-on-error`) and leave the publish workflows disarmed until the first clean full-coverage baseline exists — with the DEBT entry updated to say exactly that.
+
+### B2 — The register's `changelog.md` correction is inverted
+
+**Evidence.** The register says the `YARA_STEALER_JS_Credential_File_Exfil_Jan25` entry `file` "was corrected from `changelog.md` to the packaged `CHANGELOG.md` (the pack ships the uppercase name and the scanner preserves case)" [`vsix-audit-register.json:20`](scripts/vsix-audit-register.json:20), and the two entries use `CHANGELOG.md` [`vsix-audit-register.json:153`](scripts/vsix-audit-register.json:153). The built VSIX contains **no** `extension/CHANGELOG.md`; it contains `extension/changelog.md` (388,018 bytes), and the scanner reports exactly `changelog.md`.
+
+**Why it matters.** This is the single CRITICAL in the current finding set. Anyone regenerating the register will hit the same mismatch and may "fix" it by editing the note rather than the fact. A record that asserts a correction that did not happen is worse than no record.
+
+**How to reproduce.** `unzip -l bin/roo-plus-3.89.1.vsix | grep -i changelog` → `extension/changelog.md`; compare with [`vsix-audit-register.json:153`](scripts/vsix-audit-register.json:153).
+
+**Direction.** Treat the pack's actual, case-sensitive filename as the key. Note that the lowercase name comes from `vsce`'s manifest handling, not from the source tree, so the register must be keyed to what `vsce` emits.
+
+### M1 — `THIRD-PARTY-NOTICES.md` §2.1 contradicts the code it ships beside
+
+**Evidence.** [`THIRD-PARTY-NOTICES.md:165`](THIRD-PARTY-NOTICES.md:165) says of Semble: _"Not distributed. No Semble bytes are present in this repository or in the VSIX"_, and §2.1's title reads _"not bundled, not downloaded by Roo+"_. The code still downloads: [`semble-downloader.ts:65`](src/services/code-index/semble/semble-downloader.ts:65) holds `DOWNLOAD_BASE_URL` for `v0.5.2`, and the ADR itself is explicit that the download path "is still reachable" [`adr-binary-acquisition-strategy.md:70`](docs/adr/adr-binary-acquisition-strategy.md:70). DEBT #28 instructs that §2.1 be updated _in the same commit as the code removal_ [`DEBT.md:276`](DEBT.md:276).
+
+**Why it matters.** This file is the artefact that answers "what is in this box and under what licence". It is the document a Marketplace/Open VSX reviewer or a downstream redistributor reads. It is also the one document in the change set that the enforcement review was written to make accurate. An overclaim here is a compliance regression dressed as compliance work — and the rider in §1.1 makes the notices file a live licence obligation, not marketing copy.
+
+**How to reproduce.** Read §2.1 beside `grep -n "DOWNLOAD_BASE_URL" src/services/code-index/semble/semble-downloader.ts`.
+
+**Direction.** State the present fact (downloaded at first use, consent-gated, checksum-pinned, from `Audare-est-Facere/sembleexec`), and add the decision-2a note as _planned_, not _in force_. Keep the §2.1 wording change coupled to whatever commit actually removes the download.
+
+### M2 / M3 — The audit's scaffolding can block Open VSX
+
+**Evidence.** In [`marketplace-publish.yml`](.github/workflows/marketplace-publish.yml) the order is: `Install YARA-X v1.20.0` (line 292, **no** `continue-on-error`, no `timeout-minutes`, `curl -sSfL` with no `--max-time`) → `Audit packaged VSIX` (310, `continue-on-error: true`) → `Publish to Open VSX` (335) → `Create GitHub release` (402) → `Enforce VSIX audit gate` (441). The same shape appears in [`pre-release-publish.yml:502`](.github/workflows/pre-release-publish.yml:502) and [`release-validation.yml:164`](.github/workflows/release-validation.yml:164).
+
+The exit-code plumbing is correct (`set +e`, capture, `exit 0`, enforce later). What is not correct is everything around it:
+
+- If the YARA-X download fails (GitHub 5xx, rate limit, asset withdrawn, DNS), the job dies **before** the audit and before Open VSX. The stated invariant — "Open VSX must never be starved of a release by an audit outcome" [`marketplace-publish.yml:307`](.github/workflows/marketplace-publish.yml:307) — is false for the most likely failure mode of the audit's own toolchain.
+- If the audit hangs (large extraction, `yr` wedge, `npx` cold fetch), only the 30-minute job timeout bounds it [`marketplace-publish.yml:92`](.github/workflows/marketplace-publish.yml:92). The pre-release file's comment that "an outright failure and a hang are both survivable" [`pre-release-publish.yml:580`](.github/workflows/pre-release-publish.yml:580) is true of the `vsce` step (15-minute timeout) and false of the audit.
+
+**Why it matters.** The whole point of the post-publish enforcement design is that the only live registry is never gated on a scanner. The design achieves that for _findings_ and misses it for _infrastructure_.
+
+**Direction.** Wrap the YARA-X install in `continue-on-error: true` and record an install outcome, so a missing scanner reaches the audit as exit 2 (degraded) instead of killing the job; give both steps `timeout-minutes`; add `--max-time`/`--retry` to `curl`.
+
+### M4 — The enforcement step is skipped when the output is empty
+
+**Evidence.** `if: always() && steps.vsix-audit.outputs.exit_code != '' && steps.vsix-audit.outputs.exit_code != '0'` [`marketplace-publish.yml:442`](.github/workflows/marketplace-publish.yml:442). The output is written by the audit step itself [`marketplace-publish.yml:321`](.github/workflows/marketplace-publish.yml:321). If the audit step is skipped by an earlier `if`, cancelled, or fails before line 321 (for example `node -p "require('./src/package.json').version"` throws, or the step is killed at the job timeout), `exit_code` is empty and the gate reports success by omission.
+
+**Why it matters.** This is the exact failure shape the DEBT entry says the gate exists to prevent: a scan that did not happen being read as a scan that passed.
+
+**Direction.** Fail closed on absence: treat an empty `exit_code` as a failure unless the audit step's `outcome` is `success`, or initialise the output to a sentinel (`-1`) in an earlier step.
+
+### M5 — The exit-2 policy is unreachable
+
+**Evidence.** [`pre-release-publish.yml:532`](.github/workflows/pre-release-publish.yml:532) documents exit 2 as "DEGRADED coverage or audit tool failure … pre-release does not [block]". Exit 2 can only be produced by `vsix-audit.mjs` when the scanner reports degraded coverage — and the step that installs the scanner is immediately before it, without `continue-on-error`. Degraded coverage therefore manifests as a _failed run with no publish_, not as an exit-2 warning.
+
+**Why it matters.** Documentation, `SECURITY.md` ["Exit-code policy"](SECURITY.md:242) and the runbook table [`release-publishing.md:53`](docs/runbooks/release-publishing.md:53) all describe a three-state policy that the workflow can only express as two.
+
+**Direction.** Make the scanner install non-fatal (see M2) so exit 2 becomes reachable, or delete the exit-2 branch and document that a missing scanner is a hard stop everywhere.
+
+### M6 — The notices gate passes vacuously on an empty tree
+
+**Evidence.** `deriveExpectedDependencies({})` returns `[]`; `compareDependencies([], rows)` returns `missing: []`; `main()` only fails on `missing` [`verify-third-party-notices.mjs:362`](scripts/verify-third-party-notices.mjs:362). Measured directly:
+
+```
+expected from empty tree: 0
+missing when tree is empty: 0
+real expected: 425   missing vs stripped: 425
+```
+
+So removing a dependency from the table **is** caught (second line), but an empty or unrecognised `pnpm licenses list --prod --json` result (a pnpm major change, a renamed filter, a differently-shaped payload) produces a green gate against a notices file with an empty §3. `readDependencyTree` also swallows nothing — a _thrown_ error becomes exit 3 — but a structurally valid empty object does not.
+
+**Why it matters.** The gate is the only thing standing between the rider obligation and a silent regression. Its failure mode for "the dependency query stopped returning rows" is success.
+
+**Direction.** Assert a floor (`dependencies.length` must be > 0, and plausibly > 300), and fail on `extra` rows so stale entries cannot accumulate.
+
+### M7 — The guard no longer works in the CLI/headless path
+
+**Evidence.** The CLI extension host loads the bundle from `<extensionPath>/extension.js` [`extension-host.ts:376`](apps/cli/src/agent/extension-host.ts:376) and hands the same value to the VS Code shim as the extension context [`extension-host.ts:391`](apps/cli/src/agent/extension-host.ts:391); `run.ts` defaults it to the `src/dist` directory [`run.ts:223`](apps/cli/src/commands/cli/run.ts:223). `src/dist` contains `dist/bin/esbuild` and **no** `bin/dcg` (verified: `ls src/dist/bin/dcg` → not found). `ensureDcgInstalled` resolves the archive relative to that path [`manager.ts:36`](src/services/destructive-command-guard/manager.ts:36) and fails closed with "bundled archive is missing from the extension package" [`manager.ts:157`](src/services/destructive-command-guard/manager.ts:157).
+
+**Why it matters.** With `destructiveCommandGuardEnabled` shared across hosts, a user who enables the guard in the editor gets a CLI where every `execute_command` is refused. Before this change the download path worked in both hosts. This is a functional regression in a supported entry point, and it is invisible to the current tests because both mock `ensureDcgInstalled`.
+
+The narrower question — "a missing `extensionPath` must not silently disable the guard" — passes: `path.join(undefined, …)` throws before any install, so it fails closed, albeit with an opaque `TypeError`.
+
+**Direction.** Resolve the bundle relative to a host-provided "package root" rather than `ExtensionContext.extensionPath`, or make the CLI pass the VSIX/package root explicitly; add a test that exercises the resolver with `src/dist`-shaped layout.
+
+### M8 — Five of the ten pinned hashes are never verified
+
+**Evidence.** The notices gate hashes the archive against `sha256` but explicitly does not re-derive `binarySha256` [`verify-third-party-notices.mjs:22`](scripts/verify-third-party-notices.mjs:22). `manager.spec.ts` verifies binary hashes only against **synthetic** archives and mutated in-memory constants ([`manager.spec.ts:290`](src/services/destructive-command-guard/__tests__/manager.spec.ts:290), [`manager.spec.ts:324`](src/services/destructive-command-guard/__tests__/manager.spec.ts:324)). Nothing in CI ever extracts one of the five committed archives and compares the executable.
+
+I verified all ten by hand on this host: the five archive SHA-256 values match the GitHub release API digests exactly, and all five extracted binaries hash to the pinned `binarySha256`.
+
+**Why it matters.** A typo in `binarySha256` is undetectable until a user on that platform first enables the guard, at which point the install fails permanently (fail-closed, so no security loss, but a dead feature for every user on that OS/arch).
+
+**Direction.** Add an offline check to `verify-third-party-notices.mjs` (or a sibling script) that extracts each committed archive into a temp directory and compares the executable hash — `tar`/`unzip` are already dependencies of the runtime path.
+
+### M9 — The register cannot refuse an unjustified entry
+
+**Evidence.** `loadRegister` validates only `Array.isArray(register?.entries)` [`vsix-audit.mjs:243`](scripts/vsix-audit.mjs:243). `classifyFindings` reads `rule`, `file`, `severity` and `count` and ignores `verdict` and `reason` entirely [`vsix-audit.mjs:130`](scripts/vsix-audit.mjs:130).
+
+**Why it matters.** The policy ("never widen the register", "per-entry triage") lives in prose. A bulk edit that appends 13 bare `{rule, file, severity, count}` objects would pass the gate silently and look identical to a triaged register. The documentation does not _encourage_ this — [`DCG-RELEASE-GOVERNANCE.md:84`](docs/DCG-RELEASE-GOVERNANCE.md:84), [`release-publishing.md:75`](docs/runbooks/release-publishing.md:75) and [`marketplace-publish.yml:445`](.github/workflows/marketplace-publish.yml:445) all forbid it — but nothing enforces the prohibition.
+
+**Direction.** Validate each entry on load (`reason` non-empty, `verdict === "by-design"`, `severity` in the known set, `count` a positive integer) and fail with exit 3 on a malformed register.
+
+### M10 — The validation workflow never sees a DCG bump
+
+**Evidence.** `release-validation.yml` triggers on `pull_request` paths [`release-validation.yml:6`](.github/workflows/release-validation.yml:6): `CHANGELOG.md`, `README.md`, `locales/*/README.md`, `src/package.json`, `src/CHANGELOG.md`, `src/package.nls*.json`, `ClineProvider.ts`, `Announcement.tsx`, `releases/**`, and the workflow file itself. It does not include `src/bin/**`, `src/services/destructive-command-guard/**`, `THIRD-PARTY-NOTICES.md`, `scripts/vsix-audit-register.json`, or `scripts/verify-third-party-notices.mjs`. Yet this same job is the only place that asserts `extension/THIRD-PARTY-NOTICES.md` and the five `extension/bin/dcg/*` entries exist in the artefact [`release-validation.yml:121`](.github/workflows/release-validation.yml:121).
+
+**Why it matters.** The next DCG version bump — binaries plus `constants.ts`, exactly the change this review is about — will not run the checks that exist to catch a botched bump.
+
+**Direction.** Add the DCG inputs, the notices files and the register to the path filter.
+
+### M11 — Two provenance links are broken for everyone but the maintainer
+
+**Evidence.** [`DCG-RELEASE-GOVERNANCE.md:95`](docs/DCG-RELEASE-GOVERNANCE.md:95) and [`SEMBLE-RELEASE-GOVERNANCE.md:118`](docs/SEMBLE-RELEASE-GOVERNANCE.md:118) link to `../plans/marketplace-305-remediation-plan.md`. `.gitignore:61` ignores `plans/`, so the target exists only on this machine. `node scripts/verify-doc-links.mjs` passes because it does not resolve `docs/**` → `plans/**` links.
+
+**Why it matters.** These are the two provenance links the change deliberately retargeted. They resolve in the author's working tree and 404 in a fresh clone, a GitHub render, and any archive.
+
+**Direction.** Either commit the plan (it is the record that justifies the whole change set) or link to something durable — the ADR and `docs/compliance/marketplace-enforcement-review.md` already carry the substance. Extend `verify-doc-links` to fail on links into gitignored trees.
+
+---
+
+## 4. Claim-by-claim verdicts
+
+| #   | Claim                                                                           | Verdict                                         | One-line justification                                                                                                                                                                                                                                                                                                     |
+| --- | ------------------------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Archives byte-identical to upstream `v0.7.7`; constants match                   | **PASS**                                        | All five archive SHA-256 values equal the GitHub release API `digest` fields; all five extracted binaries equal the pinned `binarySha256`; `./dcg --version` → `0.7.7`.                                                                                                                                                    |
+| 2   | No remaining download path for DCG                                              | **PASS**                                        | No `https`/`fetch`/`downloadFile` in the DCG path; `https.get` is mocked and asserted unused; only the dead, unused `DCG_RELEASE_URL` constant remains (m2).                                                                                                                                                               |
+| 3   | `.vscodeignore`/`.gitignore` interaction correct; archives shipped              | **PASS**                                        | `git add --dry-run src/bin/dcg/` stages all five (negation works); built VSIX contains `extension/bin/dcg/` ×5 (22.51 MB) and `verify-vsix-budget` requires ≥5. Caveat: the archives are still **untracked** — the commit must include them.                                                                               |
+| 4   | Install path works on a clean machine, per platform                             | **PASS (linux-x64) / UNPROVEN (darwin, win32)** | Real archive copied, hashed, extracted with the production `tar` flags, binary hashed, `chmod`, and executed successfully here; the other four platform branches were read, not run.                                                                                                                                       |
+| 5   | Hash verification fails closed; tests genuinely exercise it                     | **PASS**                                        | `manager.spec.ts:268` (missing bundle), `:276` (tampered archive), `:290` (wrong extracted binary), `:251` (unsupported platform) assert rejections and absence of the installed binary — not merely that a mock was called. Caveat: all use synthetic archives (M8).                                                      |
+| 6   | Upgrade from the download-based flow does not crash                             | **PASS**                                        | Same storage layout and `.dcg-version` marker; an installed `v0.7.7` short-circuits to `makeExecutable` — no crash. See m4 for the gate consequence.                                                                                                                                                                       |
+| 7   | Consent change removed no gate                                                  | **PASS**                                        | Workspace trust still checked at [`ExecuteCommandTool.ts:98`](src/core/tools/ExecuteCommandTool.ts:98); per-version approval still goes through `requestBinaryAcquisitionApproval`. m4 is a pre-existing short-circuit, not a removal introduced here.                                                                     |
+| 8   | Every call site passes `extensionPath`; CLI path                                | **FAIL**                                        | Both in-process call sites pass it correctly (`ExecuteCommandTool.ts:146`, `settings.ts:152`); the CLI/headless host supplies the bundle directory, where no `bin/dcg` exists (M7). A literally missing `extensionPath` fails closed.                                                                                      |
+| 9   | `license` reaches the packaged manifest; matches root `LICENSE`                 | **PASS**                                        | `unzip -p … extension/package.json \| jq .license` → `Apache-2.0`; `extension.vsixmanifest` carries `<License>extension/LICENSE.txt</License>` and the asset; `LICENSE.txt` is Apache-2.0.                                                                                                                                 |
+| 10  | No contradictory licence metadata                                               | **PASS**                                        | Only `src/package.json` declares a licence; root and workspace `package.json` files declare none; README badge and `README.md:346` say Apache 2.0; no `.nls` licence strings.                                                                                                                                              |
+| 11  | Dependency table complete; classifications correct                              | **PASS**                                        | `pnpm --filter ./src licenses list --prod --json` → 425 package-versions; table lists 425, missing 0, extra 0, duplicates 0. Spot checks: `json-schema@0.4.0` (AFL-2.1 OR BSD-3-Clause), `pako@1.0.11` (MIT AND Zlib), `jszip@3.10.1` (MIT OR GPL-3.0-or-later) — all correct.                                             |
+| 12  | DCG rider verbatim                                                              | **PASS**                                        | `diff` of §1.1.1 against the upstream `v0.7.7` `LICENSE`: 73 lines each, zero differences.                                                                                                                                                                                                                                 |
+| 13  | Two copies byte-identical; gate enforces it                                     | **PASS**                                        | `cmp` → identical (26,264 bytes each); `verify-third-party-notices.mjs:412` fails on any drift.                                                                                                                                                                                                                            |
+| 14  | The notices gate fails when it should; cannot pass vacuously                    | **FAIL**                                        | Removing rows is caught (425 missing), but an empty dependency tree yields 0 expected → 0 missing → PASS (measured).                                                                                                                                                                                                       |
+| 15  | YAML valid; audit step cannot be skipped silently                               | **FAIL**                                        | All three workflows parse (`yaml.safe_load`, one job each); but the enforcement step is skipped when the audit output is absent (M4).                                                                                                                                                                                      |
+| 16  | Open VSX is genuinely unblockable by the audit                                  | **FAIL**                                        | Exit-code ordering is correct (enforce is last, after the registry publish and the GitHub release); a hung audit has no bound below the 30-minute job timeout, and a failed/corrupted YARA-X download kills the job before publishing (M2, M3).                                                                            |
+| 17  | Pinned YARA-X checksum is real; step fails closed                               | **PASS**                                        | Downloaded the asset: `cabb8df4…e24cbe` matches; `sha256sum -c` is the gate, and `yr --version` → 1.20.0. A corrupted download cannot be treated as coverage because the step fails.                                                                                                                                       |
+| 18  | Reported state reproducible; exact counts                                       | **PASS**                                        | Full coverage, 155 registered by-design, 13 real findings: 1 CRITICAL (`YARA_STEALER_JS_Credential_File_Exfil_Jan25 @ changelog.md`) + 12 MEDIUM (11 × `Decimal_Byte_Array`, 1 × `Hex_Escape_Chain`, all in mermaid chunks). The CRITICAL is really on the packaged `changelog.md` (and the register's key is wrong — B2). |
+| 19  | The gate cannot be satisfied by widening the register; schema requires a reason | **FAIL**                                        | No tooling or doc encourages bulk acceptance (three docs explicitly forbid it), but the schema does not require `reason`/`verdict` and the classifier ignores them (M9).                                                                                                                                                   |
+| 20  | Every user-facing statement matches the code                                    | **FAIL**                                        | `README.md` is correct (DCG bundled, Semble downloaded, nothing claims "installs nothing"); shipped `THIRD-PARTY-NOTICES.md` §2.1 is not (M1).                                                                                                                                                                             |
+| 21  | `PRIVACY.md` egress statements accurate                                         | **PASS**                                        | DCG: no network. Semble: `github.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com` — matches `DOWNLOAD_BASE_URL` + redirect handling; no other runtime egress found.                                                                                                                           |
+| 22  | Locale READMEs pass the gates and are not misleading                            | **PASS**                                        | `verify-locale-readmes` 17/17 and `verify-i18n-placeholders` (34,714 values) pass; spot-checked `ja`, `ru`, `zh-CN`: each states the Marketplace withdrawal and offers Open VSX or a GitHub release, with anchors intact.                                                                                                  |
+| 23  | No broken doc links, including the retargeted provenance links                  | **FAIL**                                        | `verify-doc-links` passes, but both new `plans/marketplace-305-remediation-plan.md` links point into a gitignored directory (M11).                                                                                                                                                                                         |
+| 24  | `pnpm test:scripts` and touched vitest suites pass                              | **PASS**                                        | `pnpm test:scripts`: 233 tests / 554 assertions, 0 failures. Vitest (7 files, including `manager.spec`, `install.spec`, `executeCommandTool.spec`, `webviewMessageHandler.spec`): 186 passed, 1 skipped.                                                                                                                   |
+| 25  | `eslint-suppressions.json` unchanged                                            | **PASS**                                        | No diff; no new suppression in the touched files.                                                                                                                                                                                                                                                                          |
+| 26  | No `.changeset`, no `CHANGELOG.md` edits                                        | **PASS**                                        | `git status` contains neither.                                                                                                                                                                                                                                                                                             |
+| 27  | No secrets, no unexpected large binaries                                        | **PASS**                                        | 52 paths, all accounted for; only the intended 23.6 MB of DCG archives; no `.env`, tokens, keys or maps.                                                                                                                                                                                                                   |
+| 28  | No network I/O at activation or on settings load                                | **PASS**                                        | `src/extension.ts` has no fetch/https; the settings-save path copies and extracts locally (`manager.ts:157`, `install.ts:118`); no downloader is reachable from activation.                                                                                                                                                |
+
+---
+
+## 5. What I could not verify, and why
+
+- **macOS and Windows install/execution.** This host is Linux x64. The `darwin-*` and `win32-x64` branches were read but not executed: `tar -xJf … --no-same-owner` under bsdtar, and `Expand-Archive -LiteralPath … -Force` under PowerShell. The `--no-same-owner` flag is not universal across older `tar` builds; `bsdtar` accepts it, but I did not run it. **UNPROVEN.**
+- **Windows ZIP layout.** `extractSingleBinary` uses whole-archive extraction and then expects `<staging>/dcg.exe`. I confirmed the archive's single entry by listing it, but not that `Expand-Archive` places it at that path on a real Windows host. **UNPROVEN.**
+- **Anything requiring the publisher account or the registries.** `vsce publish`, `ovsx publish`, the Open VSX duplicate-version guard, and the pre-release marker check were not executed (and `marketplace.visualstudio.com` was not contacted, per the review constraints).
+- **The register's provenance.** The claim that the register is a faithful triage of a 3.87.3 full-coverage scan (and the 2026-10-06 deterministic remap) cannot be re-derived without that artefact. I verified only that it does not match the current artefact.
+- **`release-validation` end-to-end.** I ran the same commands locally but not inside GitHub Actions, so the job-level 30-minute timeout, runner `tar`/`unzip` versions and `sudo install` behaviour are inferred, not observed.
+- **Real-world first-install UX.** The consent dialog, the "Always allow" persistence and the workspace-trust prompt were exercised only through unit tests and mocks; no VS Code instance was driven.
+
+---
+
+## 6. The three things I would fix first
+
+1. **Regenerate the audit baseline before arming the gate (B1, B2).** Produce the register from the artefact this branch builds, with YARA-X present, and key it to the filenames `vsce` actually emits. Until that exists, arming `release-validation` non-fatally and keeping the publish workflows disarmed is the only honest configuration.
+2. **Take the audit's toolchain off the critical path to Open VSX (M2, M3, M4, M5).** `continue-on-error` on the YARA-X install, per-step `timeout-minutes`, `curl --max-time`, and an enforcement condition that fails closed when the audit produced no output. That makes the "Open VSX is never starved" claim true rather than aspirational — and makes exit 2 reachable.
+3. **Make the shipped notices describe the software that ships (M1, M11).** §2.1 must say Semble is still downloaded at first use, and the two `plans/` links must point at something a reader of the repository can actually open. Both are one-commit corrections to the artefact that the whole change set exists to make defensible.
