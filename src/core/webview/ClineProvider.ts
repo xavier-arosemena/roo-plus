@@ -107,6 +107,7 @@ import { ContextProxy } from "../config/ContextProxy"
 import { ProviderSettingsManager } from "../config/ProviderSettingsManager"
 import { CustomModesManager } from "../config/CustomModesManager"
 import { Task } from "../task/Task"
+import { scheduleTask } from "../task/scheduleTask"
 
 import { webviewMessageHandler } from "./webviewMessageHandler"
 import type { ClineMessage, TodoItem } from "@roo-code/types"
@@ -127,38 +128,6 @@ import { WebviewLivenessProbe, isWebviewLivenessDebugEnabledFromEnv } from "./we
 
 export type ClineProviderEvents = {
 	clineCreated: [cline: Task]
-}
-
-function runDelegationTransition<T>(
-	locks: Map<string, Promise<void>>,
-	parentTaskId: string,
-	fn: () => Promise<T>,
-): Promise<T> {
-	const previous = locks.get(parentTaskId) ?? Promise.resolve()
-	// Fail-forward: run fn even if the previous transition rejected. A failed
-	// cancelTask must not permanently block a subsequent reopenParentFromDelegation.
-	// The cancelledDelegationChildIds guard inside each fn is the safety net.
-	const current = previous.then(fn, fn)
-	const tail = current.then(
-		() => {},
-		() => {},
-	)
-
-	locks.set(parentTaskId, tail)
-
-	void tail.finally(() => {
-		if (locks.get(parentTaskId) === tail) {
-			locks.delete(parentTaskId)
-		}
-	})
-
-	return current
-}
-
-function scheduleTask(scheduler: TaskScheduler, task: Task, source: string): void {
-	void scheduler
-		.schedule(task, () => task.run())
-		.catch((error) => console.error(`[${source}] taskScheduler.schedule failed:`, error))
 }
 
 type GetStateOptions = {

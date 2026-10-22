@@ -5,7 +5,7 @@ import { type ClineSayTool, DEFAULT_WRITE_DELAY_MS } from "@roo-code/types"
 
 import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
 import { fileExistsAtPath } from "../../utils/fs"
@@ -52,7 +52,7 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 		return undefined
 	}
 
-	async execute(params: ApplyPatchParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: ApplyPatchParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { patch } = params
 		const { askApproval, handleError, pushToolResult } = callbacks
 
@@ -141,7 +141,7 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 		change: ApplyPatchFileChange,
 		absolutePath: string,
 		relPath: string,
-		task: Task,
+		task: ToolExecutionContext,
 		callbacks: ToolCallbacks,
 		isWriteProtected: boolean,
 	): Promise<void> {
@@ -232,7 +232,7 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 	private async handleDeleteFile(
 		absolutePath: string,
 		relPath: string,
-		task: Task,
+		task: ToolExecutionContext,
 		callbacks: ToolCallbacks,
 		isWriteProtected: boolean,
 	): Promise<void> {
@@ -290,7 +290,7 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 		change: ApplyPatchFileChange,
 		absolutePath: string,
 		relPath: string,
-		task: Task,
+		task: ToolExecutionContext,
 		callbacks: ToolCallbacks,
 		isWriteProtected: boolean,
 	): Promise<void> {
@@ -449,7 +449,7 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 		task.processQueuedMessages()
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"apply_patch">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"apply_patch">): Promise<void> {
 		const patch: string | undefined = block.params.patch
 		const candidateRelPath = this.extractFirstPathFromPatch(patch)
 		const fallbackDisplayPath = path.basename(task.cwd) || "workspace"

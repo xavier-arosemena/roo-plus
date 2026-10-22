@@ -2,7 +2,7 @@ import * as path from "path"
 
 import { type ClineSayTool } from "@roo-code/types"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { listFiles } from "../../services/glob/list-files"
 import { getReadablePath } from "../../utils/path"
@@ -19,7 +19,7 @@ interface ListFilesParams {
 export class ListFilesTool extends BaseTool<"list_files"> {
 	readonly name = "list_files" as const
 
-	async execute(params: ListFilesParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: ListFilesParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { path: relDirPath, recursive } = params
 		const { askApproval, handleError, pushToolResult } = callbacks
 
@@ -68,7 +68,7 @@ export class ListFilesTool extends BaseTool<"list_files"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"list_files">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"list_files">): Promise<void> {
 		const relDirPath: string | undefined = block.params.path
 		const recursiveRaw: string | undefined = block.params.recursive
 		const recursive = recursiveRaw?.toLowerCase() === "true"

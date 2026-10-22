@@ -1,6 +1,6 @@
 import type { ClineAskUseMcpServer, McpExecutionStatus, McpResourceLink } from "@roo-code/types"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { t } from "../../i18n"
 import type { ToolUse } from "../../shared/tools"
@@ -39,7 +39,7 @@ type ValidationResult =
 export class UseMcpToolTool extends BaseTool<"use_mcp_tool"> {
 	readonly name = "use_mcp_tool" as const
 
-	async execute(params: UseMcpToolParams, task: Task, callbacks: UseMcpToolCallbacks): Promise<void> {
+	async execute(params: UseMcpToolParams, task: ToolExecutionContext, callbacks: UseMcpToolCallbacks): Promise<void> {
 		const { askApproval, handleError, pushToolResult, onValidated } = callbacks
 
 		try {
@@ -111,7 +111,7 @@ export class UseMcpToolTool extends BaseTool<"use_mcp_tool"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"use_mcp_tool">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"use_mcp_tool">): Promise<void> {
 		const params = block.params
 		const partialMessage = JSON.stringify({
 			type: "use_mcp_tool",
@@ -124,7 +124,7 @@ export class UseMcpToolTool extends BaseTool<"use_mcp_tool"> {
 	}
 
 	private async validateParams(
-		task: Task,
+		task: ToolExecutionContext,
 		params: UseMcpToolParams,
 		pushToolResult: (content: string) => void,
 	): Promise<ValidationResult> {
@@ -176,7 +176,7 @@ export class UseMcpToolTool extends BaseTool<"use_mcp_tool"> {
 	}
 
 	private async validateToolExists(
-		task: Task,
+		task: ToolExecutionContext,
 		serverName: string,
 		toolName: string,
 		pushToolResult: (content: string) => void,
@@ -285,7 +285,7 @@ export class UseMcpToolTool extends BaseTool<"use_mcp_tool"> {
 		}
 	}
 
-	private async sendExecutionStatus(task: Task, status: McpExecutionStatus): Promise<void> {
+	private async sendExecutionStatus(task: ToolExecutionContext, status: McpExecutionStatus): Promise<void> {
 		const clineProvider = await task.providerRef.deref()
 		clineProvider?.postMessageToWebview({
 			type: "mcpExecutionStatus",
@@ -333,7 +333,7 @@ export class UseMcpToolTool extends BaseTool<"use_mcp_tool"> {
 	}
 
 	private async executeToolAndProcessResult(
-		task: Task,
+		task: ToolExecutionContext,
 		serverName: string,
 		toolName: string,
 		parsedArguments: Record<string, unknown> | undefined,

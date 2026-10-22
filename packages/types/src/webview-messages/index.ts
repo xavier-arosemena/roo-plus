@@ -200,10 +200,10 @@ export type WebviewMessageType = WebviewMessage["type"]
 /**
  * Registry of zod schemas keyed by message type.
  *
- * A type only appears here once its payload is fully typed (see S1-M3 for the
- * migration of the remaining domains). The boundary (`parseWebviewMessage`)
- * validates registered types strictly and passes unregistered ones through
- * structurally.
+ * Every `WebviewMessageType` is registered. The boundary
+ * (`parseWebviewMessage`) is a hard allowlist: registered types are validated
+ * strictly, and unknown or unregistered types are **rejected**, never passed
+ * through. See `docs/adr/adr-typed-message-protocol.md` (Phase 3 closure).
  */
 export const webviewMessageSchemas: Partial<Record<WebviewMessageType, z.ZodType>> = {
 	checkpointDiff: checkpointDiffMessageSchema,

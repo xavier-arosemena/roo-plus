@@ -22,6 +22,7 @@ import { ProviderSettingsManager } from "../config/ProviderSettingsManager"
 import { Task } from "../task/Task"
 import { TaskRegistry } from "../task/TaskRegistry"
 import { TaskScheduler } from "../task/TaskScheduler"
+import { scheduleTask } from "../task/scheduleTask"
 import { type RateLimitClock } from "../task/RateLimitClock"
 import { type ApiMessage, assertValidTransition } from "../task-persistence"
 import { readTaskMessages } from "../task-persistence/taskMessages"
@@ -68,12 +69,6 @@ function runDelegationTransition<T>(
 	})
 
 	return current
-}
-
-function scheduleTask(scheduler: TaskScheduler, task: Task, source: string): void {
-	void scheduler
-		.schedule(task, () => task.run())
-		.catch((error) => console.error(`[${source}] taskScheduler.schedule failed:`, error))
 }
 
 /**

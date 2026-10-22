@@ -104,7 +104,10 @@ import { RooProtectedController } from "../protect/RooProtectedController"
 import { type AssistantMessageContent, presentAssistantMessage } from "../assistant-message"
 import { NativeToolCallParser } from "../assistant-message/NativeToolCallParser"
 import { manageContext, willManageContext } from "../context-management"
-import { ClineProvider } from "../webview/ClineProvider"
+// Type-only: `Task` must never hold a runtime reference to the provider that owns it.
+// A value import here re-creates the ClineProvider↔Task cycle at runtime (see
+// docs/architecture.md §19). Keep this `import type`.
+import type { ClineProvider } from "../webview/ClineProvider"
 import { MultiSearchReplaceDiffStrategy } from "../diff/strategies/multi-search-replace"
 import {
 	type ApiMessage,

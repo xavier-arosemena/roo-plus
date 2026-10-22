@@ -313,10 +313,11 @@ restrictions. Tools are assembled per mode by
 [`buildNativeToolsArrayWithRestrictions`](../src/core/task/build-tools.ts), which merges
 native, MCP, and custom tools and then filters by mode and disabled-tool settings.
 
-> **The tool contract is wider than it looks.** `BaseTool.execute(params, task: Task,
-callbacks)` receives the **entire `Task`**, not a narrow slice of it. Every tool therefore
-> has access to the whole agent loop, and every tool is coupled to `Task`'s shape. This is the
-> main structural obstacle to extracting cohesive services out of `Task` (section 19, row 1).
+> **The tool contract is deliberately narrow.** `BaseTool.execute` and `handlePartial` take a
+> [`ToolExecutionContext`](../src/core/tools/ToolExecutionContext.ts) — a `Pick<Task, …>` over
+> exactly the members the tool layer uses. Because it is a `Pick` rather than a hand-written
+> structural type, it cannot drift from `Task`: renaming or narrowing a member there breaks
+> compilation here. Widening it is a contract change, not a convenience edit (section 20).
 
 ### 6.3 Plumbing layer
 
@@ -557,9 +558,10 @@ common contract.
 2. **Validation.** `validateToolUse` rejects unknown tools, missing parameters, and
    mode-disallowed invocations before any side effect. Native tool-call parsing
    ([`NativeToolCallParser`](../src/core/assistant-message/NativeToolCallParser.ts)) is strict.
-3. **Execution.** Each tool implements `execute(params, task, callbacks)` against `BaseTool` —
-   with the whole `Task` in hand (see the warning in section 6.2) — and reports through
-   `callbacks` (`askApproval`, `handleError`, `pushToolResult`).
+3. **Execution.** Each tool implements `execute(params, task, callbacks)` against `BaseTool`,
+   receiving the narrowed [`ToolExecutionContext`](../src/core/tools/ToolExecutionContext.ts)
+   rather than the whole `Task` (section 6.2), and reports through `callbacks`
+   (`askApproval`, `handleError`, `pushToolResult`).
 4. **Feedback.** Results are truncated and formatted
    ([`toolResultFormatting`](../src/core/tools/helpers/toolResultFormatting.ts)) so one
    noisy output cannot consume the context window.
@@ -611,6 +613,11 @@ usage, that must surface as "unavailable", never as a fabricated number.
 The **storage root** defaults to VS Code's global storage and can be redirected with
 `customStoragePath`; an unusable custom path falls back to the default rather than failing
 activation ([`src/utils/storage.ts`](../src/utils/storage.ts)).
+
+**Retention and deletion are an operational contract**, not an assumption:
+[`docs/runbooks/data-retention.md`](runbooks/data-retention.md) lists every artefact, its
+location, its lifetime, what deletes it, and what uninstalling does _not_ remove. Add a row
+there when you add a persisted artefact.
 
 **Settings are a schema, not a bag of keys.** [`ContextProxy`](../src/core/config/ContextProxy.ts)
 validates against `globalSettingsSchema` and exports a _reduced_ schema for import/export
@@ -758,10 +765,25 @@ Five seams, ascending in power:
 The pattern is consistent: **extensions declare capabilities; the core decides whether and how
 to execute them.** No extension point bypasses approval, mode filtering, or validation.
 
-**Gap worth closing:** the _precedence_ between workspace-scoped and user-scoped rules,
-skills, and commands is not documented anywhere in the repository. Until it is, treat
-precedence as undefined behaviour and do not rely on it in new features (section 19, open
-questions).
+### 14.1 Precedence — documented from the loaders
+
+Precedence used to be folklore. It is now pinned to what the code actually does.
+
+**Rules** ([`src/services/rules/rules.ts`](../src/services/rules/rules.ts)): directories are
+scanned global-first, then project — `<roo>/rules` and `<roo>/rules-<mode>` for every mode, then
+the same pair under the project root. Results are keyed by rule `id` in a `Map`, so when a
+project rule and a global rule resolve to the same id, **the project rule wins**. Generic `rules/`
+and mode-specific `rules-<mode>/` are separate directories and both are included: a mode rule
+_adds to_ the generic rules rather than replacing them.
+
+**Skills** ([`src/services/skills/SkillsManager.ts`](../src/services/skills/SkillsManager.ts)):
+project beats global by source level; within one source level the scan order is
+`.agents/skills*(-<mode>)` first and `.roo/skills*(-<mode>)` second, and later directories replace
+earlier ones by name — so **`.roo` wins over `.agents`**, and a mode-specific skill beats a generic
+skill of the same name.
+
+**Rule of thumb: workspace beats user; specific beats generic; `.roo` beats `.agents`.** If you
+change any loader, change this subsection in the same commit.
 
 ---
 
@@ -796,6 +818,17 @@ flowchart LR
 - **Fork hygiene.** Upstream-owned code is diff-gated against the pinned upstream
   ([fork strategy](adr/adr-upstream-alignment-fork-strategy.md),
   [triage strategy](adr/adr-upstream-sync-triage-strategy.md)).
+
+### 15.1 Platform coverage of optional components
+
+| Component                           | Shipping model                                    | Platform note                                                                                                                |
+| ----------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **DCG** (destructive-command guard) | Bundled — five upstream archives under `bin/dcg/` | ~+22.5 MB in every VSIX; one archive is used per platform. Enforced by `verify:dcg-bundles`.                                 |
+| **Semble** (code index)             | Runtime download after consent                    | The downloader is platform-gated; an unsupported platform must fail closed with a clear message, never a half-working index. |
+| **Code index (core)**               | In-process, no binary                             | Vector store and embedders run in the host process.                                                                          |
+
+There is no support matrix beyond this table. When you add a platform-specific binary, add a row
+here **and** a test that asserts the unsupported path fails closed and says why.
 
 ---
 
@@ -857,20 +890,21 @@ should be able to answer without reading `Task.ts`.
 
 ## 18. Architectural decision register
 
-| Decision                                                                        | Status                           | Architectural effect                                                                              |
-| ------------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------- |
-| [Typed + runtime-validated message protocol](adr/adr-typed-message-protocol.md) | Accepted, migration complete     | Protocol is a schema registry; both boundaries fail closed. **Counts in the ADR text are stale.** |
-| [Domain-split webview handlers](adr/adr-webview-handler-decomposition.md)       | Accepted                         | Router + 15 domain modules instead of one `switch`.                                               |
-| [Shared `@roo-code/types`](adr/adr-shared-types-package.md)                     | Accepted                         | One package owns types and schemas; extension, CLI, webview consume it.                           |
-| [Upstream-alignment fork strategy](adr/adr-upstream-alignment-fork-strategy.md) | Accepted                         | Upstream code diff-gated; fork layers isolated.                                                   |
-| [Upstream sync triage](adr/adr-upstream-sync-triage-strategy.md)                | Accepted                         | Every upstream commit classified before porting.                                                  |
-| [Unified release versioning](adr/adr-release-versioning-policy.md)              | Accepted                         | Committed version == published version; line-keyed announcements.                                 |
-| [Binary acquisition strategy](adr/adr-binary-acquisition-strategy.md)           | Accepted, **revised 2026-10-21** | Semble downloads at first use; DCG is bundled and disclosed.                                      |
-| [Semble download-only distribution](adr/adr-semble-binary-download-only.md)     | Accepted                         | No redistribution of the external indexer.                                                        |
-| [Canonical custom-modes catalog](adr/adr-custom-modes-canonical-catalog.md)     | Accepted                         | One catalog generates all packaged mode artifacts.                                                |
-| [Cloud integration removal](adr/adr-cloud-removal.md)                           | Accepted                         | No backend control plane; local-first is structural.                                              |
-| [Node.js 22](adr/adr-nodejs-v22.md)                                             | Accepted                         | Engine floor for the workspace.                                                                   |
-| [Bulk install modes](adr/adr-bulk-install-modes.md)                             | Accepted                         | Marketplace batch operations.                                                                     |
+| Decision                                                                         | Status                           | Architectural effect                                                                                   |
+| -------------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| [CLI as a supported second implementation](adr/adr-cli-second-implementation.md) | Accepted                         | The CLI keeps its own loop over the shim; parity is enforced by a conformance test, not by convention. |
+| [Typed + runtime-validated message protocol](adr/adr-typed-message-protocol.md)  | Accepted, migration complete     | Protocol is a schema registry; both boundaries fail closed. **Counts in the ADR text are stale.**      |
+| [Domain-split webview handlers](adr/adr-webview-handler-decomposition.md)        | Accepted                         | Router + 15 domain modules instead of one `switch`.                                                    |
+| [Shared `@roo-code/types`](adr/adr-shared-types-package.md)                      | Accepted                         | One package owns types and schemas; extension, CLI, webview consume it.                                |
+| [Upstream-alignment fork strategy](adr/adr-upstream-alignment-fork-strategy.md)  | Accepted                         | Upstream code diff-gated; fork layers isolated.                                                        |
+| [Upstream sync triage](adr/adr-upstream-sync-triage-strategy.md)                 | Accepted                         | Every upstream commit classified before porting.                                                       |
+| [Unified release versioning](adr/adr-release-versioning-policy.md)               | Accepted                         | Committed version == published version; line-keyed announcements.                                      |
+| [Binary acquisition strategy](adr/adr-binary-acquisition-strategy.md)            | Accepted, **revised 2026-10-21** | Semble downloads at first use; DCG is bundled and disclosed.                                           |
+| [Semble download-only distribution](adr/adr-semble-binary-download-only.md)      | Accepted                         | No redistribution of the external indexer.                                                             |
+| [Canonical custom-modes catalog](adr/adr-custom-modes-canonical-catalog.md)      | Accepted                         | One catalog generates all packaged mode artifacts.                                                     |
+| [Cloud integration removal](adr/adr-cloud-removal.md)                            | Accepted                         | No backend control plane; local-first is structural.                                                   |
+| [Node.js 22](adr/adr-nodejs-v22.md)                                              | Accepted                         | Engine floor for the workspace.                                                                        |
+| [Bulk install modes](adr/adr-bulk-install-modes.md)                              | Accepted                         | Marketplace batch operations.                                                                          |
 
 Governance documents outside the ADR set: [branch hygiene](runbooks/branch-hygiene.md),
 [release publishing](runbooks/release-publishing.md),
@@ -886,38 +920,40 @@ Governance documents outside the ADR set: [branch hygiene](runbooks/branch-hygie
 An architecture document that only lists strengths is marketing. These are the verifiable weak
 points, ordered by consequence.
 
-| #   | Debt                                                                 | Evidence                                                                                                                                                                                                                            | Consequence                                                                                                                            | Direction                                                                                                                                                            |
-| --- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Oversized orchestrators.**                                         | `Task.ts` ≈ 4,830 lines; `ClineProvider.ts` ≈ 3,400; `TaskOrchestrator.ts` ≈ 1,490.                                                                                                                                                 | Review fatigue, merge conflicts, slow feedback, high regression risk in the core loop. Compounded by tools receiving the whole `Task`. | Continue the extract-service pattern (`TaskOrchestrator`, `TaskHistoryService`): pull approvals, streaming, and persistence out of `Task`; narrow the tool contract. |
-| 2   | **Duplicated transition helpers — one copy dead.**                   | `runDelegationTransition` is defined in `ClineProvider.ts` **and** `TaskOrchestrator.ts`; the `ClineProvider` copy has no call site (coverage reports it as never executed). `scheduleTask` is duplicated and both copies are live. | A fix applied to one copy silently misses the other; dead code misleads readers about the delegation path.                             | Delete the dead copy; extract the live one into a shared module.                                                                                                     |
-| 3   | **`ClineProvider` ↔ `Task` source-level cycle.**                     | `Task` imports `ClineProvider`; the orchestrator deliberately keeps a type-only import to avoid adding a runtime edge "to the existing ClineProvider↔Task cycle".                                                                   | TypeScript currently elides the runtime edge; nothing prevents it from becoming a real cycle.                                          | Make the import `import type`, depend on a narrow `TaskProvider` interface, and add a lint rule.                                                                     |
-| 4   | **CLI is a second implementation and a second validation boundary.** | `apps/cli` does not use `@roo-code/ipc`; it vendors its own host harness, client, and message processor.                                                                                                                            | Two loops and two protocol boundaries drift independently; bug fixes must land twice.                                                  | Decide: thin IPC client, or explicitly maintained second implementation with shared conformance tests.                                                               |
-| 5   | **Protocol numbers are quoted inconsistently.**                      | Registries: 158 inbound / 81 outbound. CI allowlists: 153 / 77 — a removal guard, not a census. ADR text: 155 / 77.                                                                                                                 | Readers cannot tell which number is authoritative; documentation that looks verified reproduces stale figures.                         | Report only generated numbers, and generate them into the ADR instead of hand-writing them.                                                                          |
-| 6   | **Documentation structure inconsistency.**                           | [`src/docs/README.md`](../src/docs/README.md) says ADRs live in `src/docs/`; they live in `docs/adr/`. [`ADR-INDEX.md`](adr/ADR-INDEX.md) links a local `README.md` and two `arch-review-*.md` files that do not exist.             | New contributors file decisions in the wrong place; the index misleads.                                                                | Make `docs/adr/` canonical, fix the protocol doc and index, add a link check over the ADR directory.                                                                 |
-| 7   | **`DEBT.md` is partly stale.**                                       | It references `packages/telemetry/CHANGELOG.md`; there is no `packages/telemetry` in the workspace.                                                                                                                                 | The register loses authority precisely because this document cites it.                                                                 | Prune resolved rows; add a CI check that every path in `DEBT.md` exists.                                                                                             |
-| 8   | **README duplication is unenforced.**                                | `README.md` and `src/README.md` are byte-identical today; nothing compares them ([`DEBT.md`](../DEBT.md)).                                                                                                                          | Silent divergence on the next single-sided edit.                                                                                       | Extend the locale-README gate to cover the `src/` copy.                                                                                                              |
-| 9   | **No enforced coverage threshold.**                                  | [`DEBT.md`](../DEBT.md).                                                                                                                                                                                                            | Test volume is visible; coverage can regress unseen.                                                                                   | Ratchet a per-package threshold rather than one global number.                                                                                                       |
-| 10  | **Concurrency is designed-in but unexercised.**                      | `TaskScheduler` ships at `maxConcurrency = 1`.                                                                                                                                                                                      | Fan-out claims are intent, not proven behaviour.                                                                                       | Keep the semaphore as the only gate; add a multi-task integration test before raising it.                                                                            |
-| 11  | **`apps/docs` is an empty scaffold.**                                | Directory contains only `node_modules`; no `package.json`.                                                                                                                                                                          | It appears in workspace globs and in reader expectations, but does nothing.                                                            | Remove it or make it real.                                                                                                                                           |
-| 12  | **Cost legibility depends on provider data.**                        | Usage is accumulated from stream chunks.                                                                                                                                                                                            | A provider that omits usage degrades the product's core promise.                                                                       | Explicit "usage unavailable" state; never fabricate.                                                                                                                 |
-| 13  | **The ADR index contradicts a revised ADR.**                         | `ADR-INDEX.md` row 1 still says Semble is "detect-and-guide only … never downloads"; the ADR body (revised 2026-10-21) and the downloader say it downloads at first use.                                                            | An auditor quoting the register gets the opposite compliance posture from the code.                                                    | Reconcile the index; treat index rows as pointers, never as summaries of a revised decision.                                                                         |
-| 14  | **Ratchet allowlists are not backfilled.**                           | 6 inbound and 4 outbound registered types are absent from `MESSAGE_SCHEMA_BASELINE` / `EXTENSION_MESSAGE_BASELINE`.                                                                                                                 | A newly added type can be removed without failing CI; the guard covers only types that existed when it was written.                    | Generate the baselines from the registry, or require a baseline entry in the same change that adds a type.                                                           |
-| 15  | **Stale docstrings describe a boundary that no longer exists.**      | `webview-messages/index.ts` and `extension-messages/index.ts` both still state that unregistered types "pass through structurally", while the parser rejects them.                                                                  | Readers believe there is a pass-through path; contributors may design around one that does not exist.                                  | Fix the docstrings — they are the first thing a contributor reads.                                                                                                   |
-| 16  | **No retention or erasure story.**                                   | Task history, checkpoints, and provider profiles are plaintext files under a configurable root.                                                                                                                                     | "Delete my data" is a manual filesystem operation with no documented contract.                                                         | Document retention and the delete path; consider a retention setting.                                                                                                |
+| #   | Open debt                                       | Evidence                                                                                                 | Consequence                                                                                      | Direction                                                                                            |
+| --- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| 1   | **Oversized orchestrators.**                    | `Task.ts` about 4.8k lines, `ClineProvider.ts` about 3.4k, `TaskOrchestrator.ts` about 1.5k (Appendix B) | Review fatigue, merge conflicts, slow feedback.                                                  | Continue extracting cohesive services; the narrowed `ToolExecutionContext` removed the main blocker. |
+| 2   | **Two loops until extraction lands.**           | [CLI ADR](adr/adr-cli-second-implementation.md). Parity is tested at the boundary, not behaviourally.    | The two loops can still diverge in how they drive tools.                                         | Extract the loop once `Task` is smaller; the conformance test holds the line meanwhile.              |
+| 3   | **No enforced coverage threshold.**             | [`DEBT.md`](../DEBT.md)                                                                                  | Test volume is visible; coverage can regress unseen.                                             | Ratchet a per-package threshold.                                                                     |
+| 4   | **Concurrency is designed-in but unexercised.** | `TaskScheduler` ships at `maxConcurrency = 1`.                                                           | Fan-out claims are intent, not proven behaviour.                                                 | Keep the semaphore as the only gate; add a multi-task integration test before raising it.            |
+| 5   | **Cost legibility depends on provider data.**   | Usage is accumulated from stream chunks.                                                                 | A provider that omits usage degrades the core promise.                                           | Explicit "usage unavailable" state; never fabricate (section 10).                                    |
+| 6   | **Upstream drift.**                             | 102 pending upstream commits per the [triage ADR](adr/adr-upstream-sync-triage-strategy.md).             | Security fixes arrive late; each sync is manual.                                                 | Keep the triage register current; small batched cherry-picks.                                        |
+| 7   | **No configurable retention policy.**           | [`runbooks/data-retention.md`](runbooks/data-retention.md) section 7                                     | Retention is manual and unlimited by default; changing `customStoragePath` orphans earlier data. | Consider a retention setting and a migration note.                                                   |
 
-### 19.1 Open questions worth an ADR
+### 19.1 Recently resolved (kept for traceability)
 
-1. **Rules/skills/commands precedence** between workspace and user scope is undocumented.
-2. **Should `Task` own approval state**, or should approvals move to the orchestrator so the
-   loop only queries a policy service?
-3. **Should the outbound `state` message become incremental patches** instead of full
-   snapshots? The payload bounds are a mitigation, not a fix.
-4. **What is the CLI's contract?** Thin client over IPC, or a supported second implementation
-   with conformance tests. Today it is the latter by accident.
-5. **Should MCP be per-provider-instance** rather than process-global, now that multiple
-   providers can exist in one window?
-6. **Which platforms are first-class?** DCG bundles five archives and Semble's acquisition is
-   platform-gated, but no published support matrix says what degrades where.
+| Was                                                                              | Resolution                                                                                                                 |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Dead duplicate `runDelegationTransition`; `scheduleTask` duplicated in two files | Dead copy deleted; `scheduleTask` extracted to [`src/core/task/scheduleTask.ts`](../src/core/task/scheduleTask.ts).        |
+| `ClineProvider` and `Task` import cycle                                          | `Task` uses `import type` for the provider, with a comment explaining why.                                                 |
+| Every tool held the whole `Task`                                                 | Narrowed to [`ToolExecutionContext`](../src/core/tools/ToolExecutionContext.ts), a compiler-checked `Pick<Task, ...>`.     |
+| ADR index contradicted the revised binary ADR                                    | Index corrected; dangling review links repointed to [`docs/reviews/`](reviews/).                                           |
+| Ratchet allowlists were not backfilled                                           | 6 inbound and 4 outbound types added; `pnpm verify:architecture-facts` fails on any unprotected type.                      |
+| Stale docstrings claimed a pass-through boundary                                 | Both registries now state the fail-closed behaviour.                                                                       |
+| Protocol counts were hand-copied and disagreed                                   | Generated by `pnpm architecture:facts`; `pnpm verify:architecture-facts` fails on staleness.                               |
+| ADR location contradicted the protocol doc                                       | `docs/adr/` is canonical, [`src/docs/README.md`](../src/docs/README.md) is a pointer, `pnpm verify:adr-index` enforces it. |
+| No retention or erasure story                                                    | [`runbooks/data-retention.md`](runbooks/data-retention.md).                                                                |
+| Rules and skills precedence was undocumented                                     | Section 14.1, derived from the loaders.                                                                                    |
+| The CLI contract was undefined                                                   | [ADR](adr/adr-cli-second-implementation.md) plus a boundary conformance test.                                              |
+| `DEBT.md` cited a package that no longer exists                                  | Corrected.                                                                                                                 |
+
+### 19.2 Open questions worth an ADR
+
+1. **Should `Task` own approval state**, or should approvals move to the orchestrator so the loop
+   only queries a policy service?
+2. **Should the outbound `state` message become incremental patches** instead of full snapshots?
+3. **Should MCP be per-provider-instance** rather than process-global, now that multiple providers
+   can exist in one window?
 
 ---
 
@@ -938,6 +974,12 @@ points, ordered by consequence.
 10. **Never change a setting's round trip partially.** See the checklist in section 11.
 11. **Never publish by mutating the version at build time.**
 12. **Never describe the protocol as compiler-enforced.** It is CI-reconciled (section 8.1).
+13. **Never widen `ToolExecutionContext` to convenience one tool.** It is a `Pick<Task, …>`, so
+    adding a member widens what _every_ tool may do (section 6.2).
+14. **Never hand-edit the numbers in Appendix B.** Run `pnpm architecture:facts`;
+    `pnpm verify:architecture-facts` fails on drift **and** on unprotected message types.
+15. **Never revise an accepted ADR without updating its index row in the same commit.** The index
+    is a pointer to the decision's current state; `pnpm verify:adr-index` enforces the rest.
 
 ---
 
@@ -986,24 +1028,36 @@ points, ordered by consequence.
 
 Snapshot: `master` @ `a86996d`, 2026-10-22. Re-derive before citing.
 
-Counts were computed from source, not copied from prose:
+**Do not hand-edit these numbers.** They are generated from source:
 
-- Inbound schema: 158 discriminated-union entries in `webviewMessageSchema` (lines 389–555 of
-  `packages/types/src/webview-messages/index.ts`); 159 keys in `webviewMessageSchemas`.
-- Outbound schema: 81 entries in `extensionMessageSchema`; 81 keys in
-  `extensionMessageSchemas`.
-- CI allowlists: `MESSAGE_SCHEMA_BASELINE` = 153 entries, `EXTENSION_MESSAGE_BASELINE` = 77
-  (`scripts/message-schema-analysis.mjs`). These are removal guards, not counts, and are not
-  backfilled — 6 inbound and 4 outbound registered types are absent from them.
-- Hand-written `ExtensionMessage["type"]` union: 77 members (which is why the outbound allowlist
-  has 77 entries). No figure is published for the inbound `WebviewMessage["type"]` union because
-  it cannot be counted reliably without a TypeScript parse — the schema counts are the ones to
-  quote.
-- Tools: 23 implementations in `src/core/tools/*Tool.ts`.
-- Handlers: 15 domain modules plus `shared.ts`.
-- Locales: 18 directories under `src/i18n/locales`.
-- Providers: 34 `case providerIdentifiers.*` arms in `src/api/index.ts`.
-- File sizes: `Task.ts` 4,829 lines, `ClineProvider.ts` 3,402, `TaskOrchestrator.ts` 1,490.
+<!-- architecture-facts:start -->
+
+| Fact                                                      | Value | Derived from                                     |
+| --------------------------------------------------------- | ----- | ------------------------------------------------ |
+| Inbound schema entries (`webviewMessageSchema`)           | 158   | `packages/types/src/webview-messages/index.ts`   |
+| Inbound registry keys (`webviewMessageSchemas`)           | 159   | same file                                        |
+| Inbound CI allowlist size (`MESSAGE_SCHEMA_BASELINE`)     | 159   | `scripts/message-schema-analysis.mjs`            |
+| Outbound schema entries (`extensionMessageSchema`)        | 81    | `packages/types/src/extension-messages/index.ts` |
+| Outbound registry keys (`extensionMessageSchemas`)        | 81    | same file                                        |
+| Outbound CI allowlist size (`EXTENSION_MESSAGE_BASELINE`) | 81    | `scripts/message-schema-analysis.mjs`            |
+| Allowlist types missing from a registry (must be 0)       | 0     | derived                                          |
+| Registered types missing from an allowlist (must be 0)    | 0     | derived                                          |
+| Tool implementations (`*Tool.ts`)                         | 23    | `src/core/tools/`                                |
+| Webview handler domain modules                            | 15    | `src/core/webview/handlers/`                     |
+| Host locales                                              | 18    | `src/i18n/locales/`                              |
+| Provider arms in `buildApiHandler`                        | 34    | `src/api/index.ts`                               |
+| `Task.ts` lines                                           | 4831  | `src/core/task/Task.ts`                          |
+| `ClineProvider.ts` lines                                  | 3370  | `src/core/webview/ClineProvider.ts`              |
+| `TaskOrchestrator.ts` lines                               | 1484  | `src/core/services/TaskOrchestrator.ts`          |
+
+<!-- architecture-facts:end -->
+
+- Regenerate with `pnpm architecture:facts`; `pnpm verify:architecture-facts` fails when the
+  block is stale **and** when a registered message type has no allowlist entry.
+- `pnpm verify:adr-index` guards the decision register (links, coverage, status vocabulary).
+- `pnpm verify:doc-links` guards in-app help links and anchors.
+- Every prose claim above links to the file that implements it; policy claims are labelled as
+  policy in the text.
 
 **Maintenance rule.** If a change alters a container boundary, a protocol, a trust control, a
 lifecycle ordering, or an invariant in section 20, update this document in the same change.

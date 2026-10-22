@@ -15,7 +15,7 @@ import { isBinaryFile } from "isbinaryfile"
 import type { ReadFileParams, ReadFileMode, ReadFileToolParams, FileEntry, LineRange } from "@roo-code/types"
 import { isLegacyReadFileParams, type ClineSayTool } from "@roo-code/types"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
@@ -71,7 +71,7 @@ interface FileResult {
 export class ReadFileTool extends BaseTool<"read_file"> {
 	readonly name = "read_file" as const
 
-	async execute(params: ReadFileToolParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: ReadFileToolParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		// Dispatch to legacy or new execution path based on format
 		if (isLegacyReadFileParams(params)) {
 			return this.executeLegacy(params.files, task, callbacks)
@@ -83,7 +83,11 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 	/**
 	 * Execute new single-file format with slice/indentation mode support.
 	 */
-	private async executeNew(params: ReadFileParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	private async executeNew(
+		params: ReadFileParams,
+		task: ToolExecutionContext,
+		callbacks: ToolCallbacks,
+	): Promise<void> {
 		const { pushToolResult } = callbacks
 		const modelInfo = task.api.getModel().info
 		const filePath = params.path
@@ -342,7 +346,7 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 	 * Handle binary file processing (images, PDF, DOCX, etc.).
 	 */
 	private async handleBinaryFile(
-		task: Task,
+		task: ToolExecutionContext,
 		relPath: string,
 		fullPath: string,
 		supportsImages: boolean,
@@ -434,7 +438,7 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 	 * Request user approval for file reads.
 	 */
 	private async requestApproval(
-		task: Task,
+		task: ToolExecutionContext,
 		filesToApprove: FileResult[],
 		updateFileResult: (path: string, updates: Partial<FileResult>) => void,
 	): Promise<void> {
@@ -578,7 +582,11 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 	/**
 	 * Build and push the final result to the tool output.
 	 */
-	private buildAndPushResult(task: Task, fileResults: FileResult[], pushToolResult: PushToolResult): void {
+	private buildAndPushResult(
+		task: ToolExecutionContext,
+		fileResults: FileResult[],
+		pushToolResult: PushToolResult,
+	): void {
 		const finalResult = fileResults
 			.filter((r) => r.nativeContent)
 			.map((r) => r.nativeContent)
@@ -644,7 +652,7 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 		return `[${blockName} with missing path]`
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"read_file">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"read_file">): Promise<void> {
 		// Handle both legacy and new format for partial display
 		let filePath = ""
 		if (block.nativeArgs) {
@@ -673,7 +681,11 @@ export class ReadFileTool extends BaseTool<"read_file"> {
 	 * Execute legacy multi-file format for backward compatibility.
 	 * This handles the old format: { files: [{ path: string, lineRanges?: [...] }] }
 	 */
-	private async executeLegacy(fileEntries: FileEntry[], task: Task, callbacks: ToolCallbacks): Promise<void> {
+	private async executeLegacy(
+		fileEntries: FileEntry[],
+		task: ToolExecutionContext,
+		callbacks: ToolCallbacks,
+	): Promise<void> {
 		const { pushToolResult } = callbacks
 		const modelInfo = task.api.getModel().info
 

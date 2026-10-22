@@ -7,7 +7,7 @@ import {
 	IMAGE_GENERATION_MODELS,
 	getImageGenerationProvider,
 } from "@roo-code/types"
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { fileExistsAtPath } from "../../utils/fs"
 import { getReadablePath } from "../../utils/path"
@@ -44,7 +44,7 @@ function isValidImageBuffer(buffer: Buffer): boolean {
 export class GenerateImageTool extends BaseTool<"generate_image"> {
 	readonly name = "generate_image" as const
 
-	async execute(params: GenerateImageParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: GenerateImageParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { prompt, path: relPath, image: inputImagePath } = params
 		const { handleError, pushToolResult, askApproval } = callbacks
 
@@ -289,7 +289,7 @@ export class GenerateImageTool extends BaseTool<"generate_image"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"generate_image">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"generate_image">): Promise<void> {
 		return
 	}
 }

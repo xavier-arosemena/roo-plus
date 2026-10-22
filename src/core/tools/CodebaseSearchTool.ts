@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 import path from "path"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { CodeIndexManager } from "../../services/code-index/manager"
 import { getWorkspacePath } from "../../utils/path"
 import { formatResponse } from "../prompts/responses"
@@ -18,7 +18,7 @@ interface CodebaseSearchParams {
 export class CodebaseSearchTool extends BaseTool<"codebase_search"> {
 	readonly name = "codebase_search" as const
 
-	async execute(params: CodebaseSearchParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: CodebaseSearchParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { askApproval, handleError, pushToolResult } = callbacks
 		const { query, path: directoryPrefix } = params
 
@@ -145,7 +145,7 @@ Code Chunk: ${result.codeChunk}
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"codebase_search">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"codebase_search">): Promise<void> {
 		const query: string | undefined = block.params.query
 		const directoryPrefix: string | undefined = block.params.path
 

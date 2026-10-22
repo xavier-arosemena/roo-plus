@@ -1,6 +1,6 @@
 import delay from "delay"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import { BaseTool, ToolCallbacks } from "./BaseTool"
@@ -14,7 +14,7 @@ interface SwitchModeParams {
 export class SwitchModeTool extends BaseTool<"switch_mode"> {
 	readonly name = "switch_mode" as const
 
-	async execute(params: SwitchModeParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: SwitchModeParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { mode_slug, reason } = params
 		const { askApproval, handleError, pushToolResult } = callbacks
 
@@ -70,7 +70,7 @@ export class SwitchModeTool extends BaseTool<"switch_mode"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"switch_mode">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"switch_mode">): Promise<void> {
 		const mode_slug: string | undefined = block.params.mode_slug
 		const reason: string | undefined = block.params.reason
 
