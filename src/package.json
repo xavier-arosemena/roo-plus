@@ -538,7 +538,7 @@
 		"strip-bom": "^5.0.0",
 		"tiktoken": "^1.0.21",
 		"tree-sitter-wasms": "^0.1.13",
-		"undici": "^6.28.0",
+		"undici": "^6.29.1",
 		"uuid": "^14.0.0",
 		"vscode-material-icons": "^0.1.1",
 		"web-tree-sitter": "^0.25.6",
