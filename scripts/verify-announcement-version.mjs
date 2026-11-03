@@ -53,6 +53,7 @@ import { logStep, logEndGroup, logInfo, logOk, logError, logSuccess } from "./li
 import {
 	CHANGELOG_PATH,
 	OUTPUT_PATH,
+	normalizeLineEndings,
 	parseChangelogSection,
 	renderAnnouncementsModule,
 	resolveLineVersion,
@@ -81,6 +82,15 @@ const TAG = "VERIFY:ANNOUNCEMENT-VERSION"
 export function assessAnnouncementVersion(version, changelogText, assetText) {
 	const reasons = []
 
+	// EOL-agnostic comparison. GitHub's Windows runners check out with
+	// `core.autocrlf=true`, so both files arrive on disk with CRLF while the
+	// committed asset is rendered with LF. Comparing raw bytes made a valid
+	// version look stale and made `roo-plus#bundle` red on Windows only
+	// (2026-11-03). Normalizing both sides keeps the gate platform-independent
+	// without weakening it: any real content difference still fails.
+	const normalizedChangelog = normalizeLineEndings(changelogText)
+	const normalizedAsset = normalizeLineEndings(assetText)
+
 	const lineBase = resolveLineVersion(version)
 	if (lineBase === undefined) {
 		return {
@@ -91,7 +101,7 @@ export function assessAnnouncementVersion(version, changelogText, assetText) {
 		}
 	}
 
-	const section = parseChangelogSection(changelogText, lineBase)
+	const section = parseChangelogSection(normalizedChangelog, lineBase)
 	if (!section) {
 		return {
 			ok: false,
@@ -108,7 +118,7 @@ export function assessAnnouncementVersion(version, changelogText, assetText) {
 	}
 
 	const expected = renderAnnouncementsModule(section)
-	if (assetText !== expected) {
+	if (normalizedAsset !== expected) {
 		reasons.push(
 			`${OUTPUT_PATH} is stale for version ${version} (line ${lineBase}) — regenerate it with \`pnpm generate:announcements\``,
 		)

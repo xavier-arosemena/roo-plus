@@ -82,6 +82,28 @@ function escapeRegExp(value) {
 }
 
 /**
+ * Normalizes CRLF (and lone CR) line endings to LF.
+ *
+ * The parsers below are line-anchored: `BOLD_BULLET_RE`/`PLAIN_BULLET_RE` end in
+ * `$`, which (without the `m` flag) means end-of-string, so a bullet read from a
+ * CRLF checkout ends in `\r` and matches neither pattern. The section-heading
+ * scan has the same problem at the section boundary. GitHub's Windows runners
+ * default to `core.autocrlf=true`, so the repository's LF changelog arrives on
+ * disk as CRLF and the gate reported "no release highlights" plus a stale asset
+ * for a version that was perfectly valid — a platform-only failure that made
+ * `roo-plus#bundle` red on `platform-unit-test (windows-latest)` (2026-11-03).
+ *
+ * Normalizing at the read boundary keeps the parser, the renderer and the
+ * byte-comparison in the verifier EOL-agnostic.
+ *
+ * @param {string} text - Raw file contents.
+ * @returns {string} - The same contents with `\r\n`/`\r` replaced by `\n`.
+ */
+export function normalizeLineEndings(text) {
+	return text.replace(/\r\n?/g, "\n")
+}
+
+/**
  * Strips markdown links and trailing issue/PR annotations from a changelog
  * bullet title so the popup shows a clean, concise excerpt.
  * @param {string} raw - The bold title (or raw bullet text) of a changelog line.
@@ -123,8 +145,10 @@ export function resolveLineVersion(version) {
  *   matching versioned section exists.
  */
 export function parseChangelogSection(changelogText, version) {
+	// EOL-agnostic: a CRLF checkout must parse exactly like an LF one.
+	const text = normalizeLineEndings(changelogText)
 	const headingRe = version ? new RegExp(`^##\\s*\\[${escapeRegExp(version)}\\]`, "m") : VERSION_HEADING_RE
-	const match = changelogText.match(headingRe)
+	const match = text.match(headingRe)
 	if (!match) {
 		return null
 	}
@@ -132,12 +156,12 @@ export function parseChangelogSection(changelogText, version) {
 	const sectionStart = match.index
 
 	NEXT_SECTION_RE.lastIndex = sectionStart + match[0].length
-	const next = NEXT_SECTION_RE.exec(changelogText)
-	const sectionEnd = next ? next.index : changelogText.length
+	const next = NEXT_SECTION_RE.exec(text)
+	const sectionEnd = next ? next.index : text.length
 
 	const highlights = []
 	const seen = new Set()
-	for (const line of changelogText.slice(sectionStart, sectionEnd).split("\n")) {
+	for (const line of text.slice(sectionStart, sectionEnd).split("\n")) {
 		if (!line.startsWith("- ")) {
 			continue
 		}
