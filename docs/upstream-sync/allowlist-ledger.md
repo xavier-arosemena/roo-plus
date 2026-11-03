@@ -65,3 +65,36 @@ would converge only if upstream itself removed its telemetry call sites — noth
 committed to today, and the fork would still not re-take consent/telemetry UI. So all
 seventeen rows are recorded as `divergent-forever` / `local-only`, which is the honest reading
 and the reason this ledger exists.
+
+## Resync log
+
+The gate compares the fork against **`upstream/main`**, which moves. A green run therefore decays
+on its own: `static-analysis` failed on 2026-11-03 against upstream content the fork had never
+seen, with no fork commit involved. Each entry below records a deliberate forward-port; the rows
+above are unchanged (the allow-list, its kinds and its dispositions did not move).
+
+### 2026-11-03 — resync to `3ee042d91e`
+
+- **Previous alignment point:** `842b37e76d` (used as the 3-way merge base).
+- **Drifted core files:** 11. Three were byte-identical to the previous alignment point and were
+  taken from upstream verbatim (`shared/validation-helpers.ts`, `interfaces/embedder.ts`,
+  `core/prompts/tools/filter-tools-for-mode.ts`). The other eight carried the fork's telemetry
+  purge and/or branding and were merged 3-way so the fork edits survive:
+  `orchestrator.ts`, `cache-manager.ts`, `processors/file-watcher.ts`, `embedders/bedrock.ts`,
+  `embedders/ollama.ts`, `embedders/openai-compatible.ts`, `embedders/openrouter.ts`,
+  `vector-store/qdrant-client.ts`.
+- **One conflict, resolved by hand:** `embedders/bedrock.ts`. Upstream dropped `HttpError` from the
+  `validation-helpers` import (no longer used) and upstream's telemetry imports had been purged by
+  the fork. Resolution: keep upstream's narrowed import, drop the now-unused `HttpError`, and do
+  not reintroduce the telemetry imports.
+- **Dependency synced with it:** `src/utils/networkProxy.ts` (+ its spec). Upstream's new bedrock
+  hunk uses `createProxyRoutingRequestHandler()`, which the fork's older copy of that module did
+  not export. Merged 3-way; the fork's SECURITY comment block around the debug-only TLS override
+  is preserved.
+- **Result:** `12 identical, 16 allow-listed branding/fork diff(s)`; ledger check still
+  `17 allow-list entries, 17 ledger rows, all satisfied`.
+- **Known limitation (not fixed here, decision needed):** because the gate fetches the latest
+  `upstream/main` when no local ref exists, CI can go red again the moment upstream moves — on
+  this same day CI saw 6 drifted files and a local run 20 minutes later saw 11. Pinning the
+  comparison (record an upstream SHA in this repo and compare against it, refreshing deliberately)
+  is the durable fix and is left as an explicit follow-up rather than smuggled into a resync.

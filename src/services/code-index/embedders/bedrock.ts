@@ -1,5 +1,6 @@
 import { BedrockRuntimeClient, InvokeModelCommand, InvokeModelCommandInput } from "@aws-sdk/client-bedrock-runtime"
 import { fromIni, fromNodeProviderChain } from "@aws-sdk/credential-providers"
+import { createProxyRoutingRequestHandler } from "../../../utils/networkProxy"
 import { IEmbedder, EmbeddingResponse, EmbedderInfo } from "../interfaces"
 import {
 	MAX_BATCH_TOKENS,
@@ -10,7 +11,7 @@ import {
 import { getDefaultModelId } from "../../../shared/embeddingModels"
 import { Package } from "../../../shared/package"
 import { t } from "../../../i18n"
-import { withValidationErrorHandling, formatEmbeddingError, HttpError } from "../shared/validation-helpers"
+import { withValidationErrorHandling, formatEmbeddingError } from "../shared/validation-helpers"
 
 /**
  * Amazon Bedrock implementation of the embedder interface with batching and rate limiting
@@ -38,10 +39,16 @@ export class BedrockEmbedder implements IEmbedder {
 		// If profile is specified, use it; otherwise use default credential chain
 		const credentials = this.profile ? fromIni({ profile: this.profile }) : fromNodeProviderChain()
 
+		// Behind a corporate proxy, Node resolves DNS locally and Bedrock endpoints fail with
+		// ENOTFOUND. The handler tunnels through the proxy with CONNECT so the proxy resolves
+		// the hostname, and connects directly to the destinations NO_PROXY excludes.
+		const requestHandler = createProxyRoutingRequestHandler()
+
 		this.bedrockClient = new BedrockRuntimeClient({
 			userAgentAppId: `RooPlus#${Package.version}`,
 			region: this.region,
 			credentials,
+			...(requestHandler && { requestHandler }),
 		})
 
 		this.defaultModelId = modelId || getDefaultModelId("bedrock")
