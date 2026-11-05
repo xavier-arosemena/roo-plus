@@ -2,6 +2,14 @@ name: Publish Stable Extension
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_vs_marketplace:
+        description: >
+          Also publish this stable to the VS Code Marketplace. Defaults to false:
+          the listing was removed by enforcement on 2026-10-20, so Open VSX is the
+          only supported stable target.
+        type: boolean
+        default: false
 
 # Least privilege: publish-stable escalates to contents: write via its own
 # job-level permissions block.
@@ -97,6 +105,9 @@ jobs:
     # with `if: env.* != ''` — GitHub Actions does NOT allow the `secrets`
     # context inside `if:` expressions (workflow parse error otherwise).
     env:
+      # Open VSX is the ONLY stable target by default. The VS Code Marketplace
+      # leg is opt-in via the `publish_vs_marketplace` dispatch input and stays
+      # continue-on-error so it can never gate an Open VSX release.
       VSCE_PAT: ${{ secrets.VSCE_PAT }}
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
@@ -311,7 +322,7 @@ jobs:
         # already been published at this point, and continue-on-error does not
         # cover a hang.
         timeout-minutes: 15
-        if: env.VSCE_PAT != ''
+        if: env.VSCE_PAT != '' && inputs.publish_vs_marketplace == true
         run: |
           echo "::group::[CI:MARKETPLACE:PUBLISH:VSCE] Publishing to VS Code Marketplace"
           package_version=$(node -p "require('./src/package.json').version")
@@ -329,7 +340,7 @@ jobs:
       # can never fail a stable release that Open VSX has already delivered.
       - name: Verify the stable is visible in the VS Code Marketplace
         id: verify-vsce-presence
-        if: always() && env.VSCE_PAT != ''
+        if: always() && env.VSCE_PAT != '' && inputs.publish_vs_marketplace == true
         continue-on-error: true
         timeout-minutes: 10
         env:
