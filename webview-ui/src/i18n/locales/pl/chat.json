@@ -135,6 +135,7 @@
 	"loadEarlierMessages": "Wczytaj wcześniejsze wiadomości",
 	"about": "Lokalne, bring-your-own-model agentowe rozszerzenie IDE — <br/>Poznaj swoje koszty, ufaj cache'owi, zachowaj swoją wiedzę.",
 	"support": {
+	"marketing": "Poświęć chwilę i daj nam <star/> na <githubLink>GitHub</githubLink>! (~20s)",
 		"reportIssue": "Zgłoś błąd lub zaproponuj funkcję",
 		"discussions": "Dołącz do dyskusji",
 		"starUs": "Daj nam gwiazdkę na GitHub",
@@ -371,6 +372,13 @@
 		"support": "Wesprzyj Roo+ na <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> i w <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Co nowego:",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ Ochrona poleceń jest wbudowana — ochrona przed destrukcyjnymi poleceniami jest dołączona dla 5 platform, zweryfikowana skrótem i bez pobierania przy starcie (#479)",
+					"h2": "📦 Instalacja lżejsza o ~14 MB — 1 932 → 1 278 pakowanych plików, bez source map, wyselekcjonowane motywy Shiki (#13)",
+					"h3": "🚀 Nowe modele — DeepSeek V4.1 Flash (opencode-go) i grok-build-0.1 (xAI)"
+				}
+			},
 			"highlight1": "🎉 Kamień milowy numer jeden za nami — stabilna wersja, ponad 300 trybów i jasna mapa drogowa na przyszłość. Nie możemy być bardziej podekscytowani tym, co przed nami.",
 			"highlight2": "🚀 Kamień milowy numer dwa zaczyna się teraz — kierując się Twoim feedbackiem, podwajamy wysiłki, aby zbudować lokalne, agentowe rozszerzenie IDE, które czyni Twoje wydatki na AI czytelnymi, a Twoją wiedzę przenośną.",
 			"highlight3": "❤️ Do naszych 7,6 tys. aktywnych użytkowników — dziękujemy za wybór Roo+ i wspólne świętowanie tego kamienia milowego. To dla nas zaszczyt mieć Was na pokładzie — i nie możemy się doczekać dalszej podróży."

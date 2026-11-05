@@ -135,6 +135,7 @@
 	"loadEarlierMessages": "Önceki mesajları yükle",
 	"about": "Yerel öncelikli, kendi modelini getir ajan tabanlı IDE uzantısı — <br/>Maliyetini bil, önbelleğine güven, bilgini koru.",
 	"support": {
+	"marketing": "Bir dakikanızı ayırıp <githubLink>GitHub</githubLink> üzerinde bize <star/> verin! (~20s)",
 		"reportIssue": "Hata bildir veya özellik iste",
 		"discussions": "Tartışmalara katıl",
 		"starUs": "GitHub'da bize yıldız ver",
@@ -371,6 +372,13 @@
 		"support": "Lütfen Roo+'u <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> ve <openVsxLink>Open VSX Registry</openVsxLink>'de destekle.",
 		"release": {
 			"heading": "Yenilikler:",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ Komut koruması artık dahili — yıkıcı komut koruması 5 platform için paketlendi, hash ile doğrulandı ve başlangıçta indirme yok (#479)",
+					"h2": "📦 ~14 MB daha hafif kurulum — 1.932 → 1.278 paket dosyası, source map yok, seçilmiş Shiki temaları (#13)",
+					"h3": "🚀 Yeni modeller — DeepSeek V4.1 Flash (opencode-go) ve grok-build-0.1 (xAI)"
+				}
+			},
 			"highlight1": "🎉 Birinci kilometre taşı tamamlandı — kararlı bir sürüm, 300'den fazla mod ve ilerideki yol için net bir yol haritası. Sırada ne olduğu için daha heyecanlı olamazdık.",
 			"highlight2": "🚀 İkinci kilometre taşı şimdi başlıyor — geri bildirimlerinizle, AI harcamanızı anlaşılır ve bilginizi taşınabilir kılan, yerel öncelikli (local-first), ajan tabanlı bir IDE uzantısı oluşturmaya odaklanıyoruz.",
 			"highlight3": "❤️ 7,6 bin aktif kullanıcımıza — Roo+'ı seçtiğiniz ve bu kilometre taşını bizimle paylaştığınız için teşekkür ederiz. Sizinle birlikte olduğumuz için onur duyuyoruz ve önümüzdeki yolculuk için sabırsızlanıyoruz."

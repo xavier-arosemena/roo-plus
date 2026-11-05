@@ -5,6 +5,8 @@ import { EXTERNAL_LINKS } from "@/constants/externalLinks"
 
 import Announcement from "../Announcement"
 
+const { lineOverrides } = vi.hoisted(() => ({ lineOverrides: {} as Record<string, string> }))
+
 vi.mock("@src/utils/vscode", () => ({
 	vscode: {
 		postMessage: vi.fn(),
@@ -24,10 +26,11 @@ vi.mock("@roo/package", () => ({
 // the patch to the line base — exactly the pre-release popup regression from
 // the old derived-version scheme.
 vi.mock("@roo/announcements", () => {
-	const announcements: Record<string, { version: string; highlights: string[] }> = {
+	const announcements: Record<string, { version: string; highlights: string[]; contentHash: string }> = {
 		"3.77.0": {
 			version: "3.77.0",
 			highlights: ["Generated highlight one", "Generated highlight two", "Generated highlight three"],
+			contentHash: "hash-one",
 		},
 	}
 
@@ -81,6 +84,15 @@ vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 
 vi.mock("react-i18next", () => ({
 	Trans: ({ i18nKey, components }: { i18nKey: string; components?: Record<string, React.ReactElement> }) => {
+		if (i18nKey === "chat:announcement.marketing" && components?.githubLink) {
+			return (
+				<span>
+					Please take a moment to give us a {components.star} on{" "}
+					{React.cloneElement(components.githubLink, undefined, "GitHub")}!
+				</span>
+			)
+		}
+
 		if (i18nKey === "chat:announcement.support" && components?.githubLink) {
 			return (
 				<>
@@ -97,7 +109,11 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("@src/i18n/TranslationContext", () => ({
 	useAppTranslation: () => ({
-		t: (key: string, options?: { version?: string }) => {
+		// Mirror i18next: a key only "exists" when the locale defines it, which is
+		// what the component uses to decide between a translation and the English
+		// canonical bullet.
+		i18n: { exists: (key: string) => lineOverrides[key] !== undefined },
+		t: (key: string, options?: { version?: string; defaultValue?: string }) => {
 			const translations: Record<string, string> = {
 				"chat:announcement.release.heading": "What's New:",
 				"chat:announcement.release.highlight1": I18N_HIGHLIGHTS[0],
@@ -109,7 +125,20 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 				return `Roo+ ${options?.version ?? ""} Released`
 			}
 
-			return translations[key] ?? key
+			if (lineOverrides[key] !== undefined) {
+				return lineOverrides[key]
+			}
+
+			if (translations[key] !== undefined) {
+				return translations[key]
+			}
+
+			// Per-bullet locale translation, else the English canonical bullet.
+			if (key.startsWith("chat:announcement.release.lines.")) {
+				return options?.defaultValue ?? key
+			}
+
+			return key
 		},
 	}),
 }))
@@ -118,7 +147,14 @@ describe("Announcement", () => {
 	beforeEach(() => {
 		// Reset the data source to the default "data present" state, keyed at the
 		// line base (Package.version is the patch 3.77.4 and resolves to it).
-		Announcements["3.77.0"] = { version: "3.77.0", highlights: [...GENERATED_HIGHLIGHTS] }
+		for (const key of Object.keys(lineOverrides)) {
+			delete lineOverrides[key]
+		}
+		Announcements["3.77.0"] = {
+			version: "3.77.0",
+			highlights: [...GENERATED_HIGHLIGHTS],
+			contentHash: "hash-one",
+		}
 	})
 
 	it("renders the announcement title with the current version", () => {
@@ -173,6 +209,30 @@ describe("Announcement", () => {
 		}
 		expect(screen.getAllByRole("listitem")).toHaveLength(3)
 		expect(screen.queryByText(GENERATED_HIGHLIGHTS[0])).not.toBeInTheDocument()
+	})
+
+	it("renders a locale-translated bullet instead of the English canonical one", () => {
+		// A locale that translated the line renders its own wording; the English
+		// bullet from the changelog is only the per-entry fallback.
+		lineOverrides["chat:announcement.release.lines.3_77_0.h1"] = "Bullet traduït"
+
+		render(<Announcement hideAnnouncement={vi.fn()} />)
+
+		expect(screen.getByText("Bullet traduït")).toBeInTheDocument()
+		expect(screen.queryByText(GENERATED_HIGHLIGHTS[0])).not.toBeInTheDocument()
+		// Untranslated bullets still fall back to English.
+		expect(screen.getByText(GENERATED_HIGHLIGHTS[1])).toBeInTheDocument()
+	})
+
+	it("renders the marketing CTA above the What's New heading", () => {
+		render(<Announcement hideAnnouncement={vi.fn()} />)
+
+		const text = document.body.textContent ?? ""
+		const ctaAt = text.indexOf("Please take a moment")
+		const headingAt = text.indexOf("What's New:")
+		expect(ctaAt).toBeGreaterThanOrEqual(0)
+		expect(headingAt).toBeGreaterThanOrEqual(0)
+		expect(ctaAt).toBeLessThan(headingAt)
 	})
 
 	it("links support users to the Roo+ GitHub repository", () => {

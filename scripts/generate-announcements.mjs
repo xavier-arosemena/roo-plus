@@ -51,6 +51,7 @@
  * exists for the current minor line.
  */
 
+import { createHash } from "node:crypto"
 import * as fs from "node:fs"
 import * as path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
@@ -158,7 +159,12 @@ export function parseChangelogSection(changelogText, version) {
 		}
 	}
 
-	return { version: foundVersion, highlights }
+	// Stable content fingerprint. The popup re-arms when this changes, so an
+	// edited "What's New" re-notifies users WITHOUT nagging them on version
+	// bumps that leave the highlights untouched (see latestAnnouncementHash).
+	const contentHash = createHash("sha256").update(JSON.stringify(highlights)).digest("hex").slice(0, 16)
+
+	return { version: foundVersion, highlights, contentHash }
 }
 
 /**
@@ -190,8 +196,10 @@ export function renderAnnouncementsModule(section) {
 /** Release highlights for a specific extension version (English-only). */
 export interface ReleaseAnnouncement {
 \tversion: string
-\t/** English-only, auto-generated from the current CHANGELOG section. */
+\t/** English-only canonical highlights; locales override via i18n using these as defaultValue. */
 \thighlights: string[]
+\t/** Stable fingerprint of the highlights — a change here re-arms the popup. */
+\tcontentHash: string
 }
 
 export const Announcements: Record<string, ReleaseAnnouncement> = {
@@ -200,6 +208,7 @@ export const Announcements: Record<string, ReleaseAnnouncement> = {
 \t\thighlights: [
 ${encoded}
 \t\t],
+\t\tcontentHash: ${JSON.stringify(section.contentHash)},
 \t},
 }
 

@@ -12,7 +12,6 @@ The 3.89 pre-release line, promoted to stable. This launch ships the destructive
 
 ### 📣 What's New
 
-- Please take a moment to give us a ⭐ in Github with the link below! (~20s)
 - 🛡️ Command guard ships built-in — destructive-command guard bundled for 5 platforms, hash-verified, no startup download (#479)
 - 📦 ~14 MB lighter install — 1,932 → 1,278 packaged files, source maps gone, curated Shiki themes (#13)
 - 🚀 New models — DeepSeek V4.1 Flash (opencode-go), grok-build-0.1 (xAI)

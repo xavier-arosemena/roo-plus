@@ -13,19 +13,21 @@
 /** Release highlights for a specific extension version (English-only). */
 export interface ReleaseAnnouncement {
 	version: string
-	/** English-only, auto-generated from the current CHANGELOG section. */
+	/** English-only canonical highlights; locales override via i18n using these as defaultValue. */
 	highlights: string[]
+	/** Stable fingerprint of the highlights — a change here re-arms the popup. */
+	contentHash: string
 }
 
 export const Announcements: Record<string, ReleaseAnnouncement> = {
 	"3.89.0": {
 		version: "3.89.0",
 		highlights: [
-			"Please take a moment to give us a ⭐ in Github with the link below! (~20s)",
 			"🛡️ Command guard ships built-in — destructive-command guard bundled for 5 platforms, hash-verified, no startup download (#479)",
 			"📦 ~14 MB lighter install — 1,932 → 1,278 packaged files, source maps gone, curated Shiki themes (#13)",
 			"🚀 New models — DeepSeek V4.1 Flash (opencode-go), grok-build-0.1 (xAI)",
 		],
+		contentHash: "085ab9cf997a9b91",
 	},
 }
 

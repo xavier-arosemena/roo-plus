@@ -452,6 +452,23 @@ describe("miscMessageHandler", () => {
 			expect(vi.mocked(provider.postStateToWebview)).toHaveBeenCalled()
 		})
 
+		it("persists the content fingerprint alongside the id (revised What's New re-arms)", async () => {
+			const provider = createMockProvider()
+			Object.assign(provider, {
+				latestAnnouncementId: "v3.83.0",
+				latestAnnouncementHash: "abc123:star-cta-v1",
+			})
+
+			await handleMiscMessages(provider, undefined, { type: "didShowAnnouncement" })
+
+			expect(updateGlobalState).toHaveBeenCalledWith(provider, "lastShownAnnouncementId", "v3.83.0")
+			expect(updateGlobalState).toHaveBeenCalledWith(
+				provider,
+				"lastShownAnnouncementHash",
+				"abc123:star-cta-v1",
+			)
+		})
+
 		it("uses the provider's current id so a version bump re-arms the popup once", async () => {
 			const provider = createMockProvider()
 			Object.assign(provider, { latestAnnouncementId: "v3.82.0" })

@@ -104,6 +104,7 @@ export async function handleMiscMessages(
 		| "webviewBootFailureNotifyTimer"
 		| "log"
 		| "latestAnnouncementId"
+		| "latestAnnouncementHash"
 		| "taskHistoryStore"
 		| "resetState"
 		| "getCurrentTask"
@@ -291,6 +292,9 @@ export async function handleMiscMessages(
 		}
 		case "didShowAnnouncement":
 			await updateGlobalState(provider, "lastShownAnnouncementId", provider.latestAnnouncementId)
+			// Persist the content fingerprint too, so a REVISED "What's New" re-arms
+			// the popup without re-showing identical content.
+			await updateGlobalState(provider, "lastShownAnnouncementHash", provider.latestAnnouncementHash)
 			await provider.postStateToWebview()
 			break
 		case "importRooHistory": {

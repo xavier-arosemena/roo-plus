@@ -135,6 +135,7 @@
 	"loadEarlierMessages": "Cargar mensajes anteriores",
 	"about": "La extensión de IDE agéntico local-first, con tu propio modelo — <br/>Conoce tus costos, confía en tu caché, conserva tu conocimiento.",
 	"support": {
+	"marketing": "Dedica un momento a darnos una <star/> en <githubLink>GitHub</githubLink>. (~20s)",
 		"reportIssue": "Informa de un error o solicita una función",
 		"discussions": "Únete a los debates",
 		"starUs": "Danos una estrella en GitHub",
@@ -371,6 +372,13 @@
 		"support": "Apoya a Roo+ en <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> y en el <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novedades:",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ El guardián de comandos viene incluido — el guardián de comandos destructivos se empaqueta para 5 plataformas, verificado por hash y sin descarga al iniciar (#479)",
+					"h2": "📦 Instalación ~14 MB más ligera — de 1.932 a 1.278 archivos empaquetados, sin source maps y con temas Shiki seleccionados (#13)",
+					"h3": "🚀 Nuevos modelos — DeepSeek V4.1 Flash (opencode-go) y grok-build-0.1 (xAI)"
+				}
+			},
 			"highlight1": "🎉 El hito uno está cerrado: una versión estable, más de 300 modos y una hoja de ruta clara para el camino que queda por delante. No podríamos estar más emocionados por lo que viene.",
 			"highlight2": "🚀 El hito dos comienza ahora: guiados por tus comentarios, redoblamos la apuesta por construir una extensión IDE agéntica y local-first que haga tu gasto de IA legible y tu conocimiento portable.",
 			"highlight3": "❤️ A nuestros 7,6 mil usuarios activos: gracias por elegir Roo+ y compartir este hito con nosotros. Es un honor tenerte a bordo, y no podemos esperar a la aventura que viene."

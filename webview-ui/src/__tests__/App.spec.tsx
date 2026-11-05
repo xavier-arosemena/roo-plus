@@ -547,7 +547,11 @@ describe("App", () => {
 		beforeEach(() => {
 			// Restore the data source for the current version so each test starts
 			// from the "data present" state.
-			Announcements["3.81.0"] = { version: "3.81.0", highlights: ["App-level generated highlight"] }
+			Announcements["3.81.0"] = {
+				version: "3.81.0",
+				highlights: ["App-level generated highlight"],
+				contentHash: "hash-3-81-0",
+			}
 		})
 
 		it("renders the changelog-derived per-version highlights (new content source)", () => {

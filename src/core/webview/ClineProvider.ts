@@ -55,6 +55,7 @@ import { aggregateTaskCostsRecursive, type AggregatedCosts } from "./aggregateTa
 
 import { Package } from "../../shared/package"
 import { getAnnouncementForVersion, hasAnnouncementForVersion } from "../../shared/announcements"
+import { MARKETING_REVISION } from "../../shared/announcementMarketing"
 import { findLast } from "../../shared/array"
 import { supportPrompt } from "../../shared/support-prompt"
 import { GlobalFileNames } from "../../shared/globalFileNames"
@@ -521,6 +522,26 @@ export class ClineProvider
 	public get latestAnnouncementId(): string {
 		const announcement = getAnnouncementForVersion(Package.version)
 		return `v${announcement ? announcement.version : Package.version}`
+	}
+	/**
+	 * CONTENT fingerprint for the "What's New" popup.
+	 *
+	 * The identity above is line-keyed so a stable and its pre-releases are
+	 * recognisably the same release line. Identity alone would arm the popup
+	 * exactly once per minor, so a REVISED "What's New" (or a reworded marketing
+	 * slot) would never be seen again by users who dismissed the old copy.
+	 *
+	 * Pairing identity with this fingerprint gives the intended cadence: the
+	 * popup re-arms on ANY publish — stable or pre-release — as soon as the
+	 * highlights or the marketing copy actually change, and stays quiet on
+	 * version bumps that carry the same content (no repeat nagging).
+	 */
+	public get latestAnnouncementHash(): string | undefined {
+		const announcement = getAnnouncementForVersion(Package.version)
+		if (!announcement) {
+			return undefined
+		}
+		return `${announcement.contentHash}:${MARKETING_REVISION}`
 	}
 	public readonly providerSettingsManager: ProviderSettingsManager
 	public readonly customModesManager: CustomModesManager
@@ -2597,6 +2618,7 @@ export class ClineProvider
 		const {
 			apiConfiguration,
 			lastShownAnnouncementId,
+			lastShownAnnouncementHash,
 			customInstructions,
 			alwaysAllowReadOnly,
 			alwaysAllowReadOnlyOutsideWorkspace,
@@ -2743,10 +2765,12 @@ export class ClineProvider
 			enableCheckpoints: enableCheckpoints ?? true,
 			checkpointTimeout: checkpointTimeout ?? DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 			shouldShowAnnouncement:
-				lastShownAnnouncementId !== this.latestAnnouncementId &&
-				// Noise mitigation: only re-arm the popup when the current version
-				// actually has announcement content (derived from the changelog).
-				hasAnnouncementForVersion(Package.version),
+				// Noise mitigation: never arm without content for the current line.
+				hasAnnouncementForVersion(Package.version) &&
+				// Re-arm when the release line changed OR when its content did
+				// (edited highlights / bumped marketing revision) — on any publish.
+				(lastShownAnnouncementId !== this.latestAnnouncementId ||
+					lastShownAnnouncementHash !== this.latestAnnouncementHash),
 			allowedCommands: mergedAllowedCommands,
 			deniedCommands: mergedDeniedCommands,
 			soundVolume: soundVolume ?? 0.5,
@@ -2912,6 +2936,7 @@ export class ClineProvider
 		return {
 			apiConfiguration: providerSettings,
 			lastShownAnnouncementId: stateValues.lastShownAnnouncementId,
+			lastShownAnnouncementHash: stateValues.lastShownAnnouncementHash,
 			customInstructions: stateValues.customInstructions,
 			apiModelId: stateValues.apiModelId,
 			alwaysAllowReadOnly: stateValues.alwaysAllowReadOnly ?? false,

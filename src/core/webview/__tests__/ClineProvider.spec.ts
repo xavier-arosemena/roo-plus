@@ -29,6 +29,7 @@ import { experimentDefault } from "../../../shared/experiments"
 import { Package } from "../../../shared/package"
 import * as announcementsModule from "../../../shared/announcements"
 import { resolveLineVersion } from "../../../shared/announcements"
+import { MARKETING_REVISION } from "../../../shared/announcementMarketing"
 import { setTtsEnabled } from "../../../utils/tts"
 import { ContextProxy } from "../../config/ContextProxy"
 import { Task, TaskOptions } from "../../task/Task"
@@ -1823,15 +1824,17 @@ describe("ClineProvider", () => {
 			vi.spyOn(announcementsModule, "getAnnouncementForVersion").mockReturnValue({
 				version: "3.86.0",
 				highlights: ["Generated"],
+				contentHash: "hash-3-86-0",
 			})
 
 			expect(provider.latestAnnouncementId).toBe("v3.86.0")
 			expect(announcementsModule.getAnnouncementForVersion).toHaveBeenCalledWith(Package.version)
 		})
 
-		test("shouldShowAnnouncement is false when the persisted id matches the current version", async () => {
+		test("shouldShowAnnouncement is false when both the persisted id and fingerprint match", async () => {
 			await provider.resolveWebviewView(mockWebviewView)
 			await provider.contextProxy.setValue("lastShownAnnouncementId", provider.latestAnnouncementId)
+			await provider.contextProxy.setValue("lastShownAnnouncementHash", provider.latestAnnouncementHash)
 
 			const state = await provider.getStateToPostToWebview()
 
@@ -1845,6 +1848,38 @@ describe("ClineProvider", () => {
 			const state = await provider.getStateToPostToWebview()
 
 			expect(state.shouldShowAnnouncement).toBe(true)
+		})
+
+		test("latestAnnouncementHash pairs the content fingerprint with the marketing revision", () => {
+			const hash = provider.latestAnnouncementHash
+			expect(hash).toBeDefined()
+			// The marketing slot must be part of the trigger, so a reworded CTA
+			// re-arms the popup without a changelog edit.
+			expect(hash).toContain(MARKETING_REVISION)
+		})
+
+		test("shouldShowAnnouncement re-arms when the content changed on the same line", async () => {
+			// Same line base (id equal) but a stale fingerprint — this is the
+			// "revised What's New" case that identity-only arming would miss.
+			await provider.resolveWebviewView(mockWebviewView)
+			await provider.contextProxy.setValue("lastShownAnnouncementId", provider.latestAnnouncementId)
+			await provider.contextProxy.setValue("lastShownAnnouncementHash", "stale-fingerprint")
+
+			const state = await provider.getStateToPostToWebview()
+
+			expect(state.shouldShowAnnouncement).toBe(true)
+		})
+
+		test("shouldShowAnnouncement stays quiet when a version bump carries identical content", async () => {
+			// Pre-release patches share the line identity AND the fingerprint, so a
+			// bump that does not touch the highlights must not nag.
+			await provider.resolveWebviewView(mockWebviewView)
+			await provider.contextProxy.setValue("lastShownAnnouncementId", provider.latestAnnouncementId)
+			await provider.contextProxy.setValue("lastShownAnnouncementHash", provider.latestAnnouncementHash)
+
+			const state = await provider.getStateToPostToWebview()
+
+			expect(state.shouldShowAnnouncement).toBe(false)
 		})
 
 		test("shouldShowAnnouncement stays false when the version has no announcement content (noise mitigation)", async () => {

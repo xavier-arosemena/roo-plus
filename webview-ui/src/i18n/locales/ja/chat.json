@@ -135,6 +135,7 @@
 	"loadEarlierMessages": "以前のメッセージを読み込む",
 	"about": "ローカルファースト、bring-your-own-model のエージェンティック IDE 拡張機能 — <br/>コストを把握し、キャッシュを信頼し、ナレッジを守りましょう。",
 	"support": {
+	"marketing": "ぜひ<githubLink>GitHub</githubLink>で<star/>をお願いします！（~20秒）",
 		"reportIssue": "バグを報告するか機能をリクエスト",
 		"discussions": "ディスカッションに参加",
 		"starUs": "GitHub でスターを付ける",
@@ -371,6 +372,13 @@
 		"support": "<githubLink>GitHub</githubLink>、<marketplaceLink>Visual Studio</marketplaceLink>、<openVsxLink>Open VSX Registry</openVsxLink>で Roo+ を応援してください。",
 		"release": {
 			"heading": "新機能:",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ コマンドガードを同梱 — 破壊的コマンドのガードを5プラットフォーム分バンドルし、ハッシュ検証済み。起動時のダウンロードは不要です (#479)",
+					"h2": "📦 インストールサイズを約14 MB削減 — パッケージファイルは1,932→1,278、source mapを削除し、Shikiテーマを厳選 (#13)",
+					"h3": "🚀 新しいモデル — DeepSeek V4.1 Flash（opencode-go）、grok-build-0.1（xAI）"
+				}
+			},
 			"highlight1": "🎉 マイルストーン 1 が完了しました。安定版リリース、300 以上のモード、そして今後の明確なロードマップ。私たちは次に何が来るのか、これ以上ないほどワクワクしています。",
 			"highlight2": "🚀 マイルストーン 2 が始まります。フィードバックに導かれ、AI の支出を把握しやすく、知識を持ち運べる、ローカルファーストのエージェント型 IDE 拡張機能の開発に一層注力します。",
 			"highlight3": "❤️ アクティブユーザー 7,600 人の皆さまへ。Roo+ を選び、このマイルストーンを一緒に祝ってくださりありがとうございます。皆さまとともに歩めることを誇りに思います。これからの旅が待ちきれません。"

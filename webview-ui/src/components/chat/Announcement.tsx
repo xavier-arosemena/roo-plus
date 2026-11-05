@@ -1,5 +1,6 @@
 import { memo, type ReactNode, useState } from "react"
 import { Trans } from "react-i18next"
+import { FaStar } from "react-icons/fa"
 import { SiGithub } from "react-icons/si"
 import { GoLinkExternal, GoPackage } from "react-icons/go"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
@@ -27,23 +28,41 @@ interface AnnouncementProps {
  * `getAnnouncementForVersion`, so a version bump needs NO manual announcement
  * edits for the English release channel.
  *
- * Localisation trade-off: the per-line highlights are auto-generated from the
- * English changelog (src/CHANGELOG.md → src/shared/announcements.ts) and are
- * therefore English-only. When the resolved line has generated highlights they
- * are shown to every locale. The translated
- * `chat:announcement.release.highlightN` keys are used only as a fallback when
- * no generated data exists for the current minor line.
+ * Localisation: the per-line highlights are auto-generated from the English
+ * changelog (src/CHANGELOG.md → src/shared/announcements.ts) and act as the
+ * CANONICAL source, but each bullet resolves through i18n first
+ * (`chat:announcement.release.lines.<line>.hN`) so a translated line renders in
+ * the user's language. `defaultValue` keeps the English bullet as a per-entry
+ * fallback, so a locale only translates the bullets it actually has. The
+ * `highlight1..3` keys remain the fallback when no generated data exists.
+ *
+ * The MARKETING slot (`chat:announcement.marketing`) sits ABOVE the "What's
+ * New" heading, is translatable, and may embed links. It is intentionally not
+ * a changelog bullet: rewriting marketing copy must not require a release, and
+ * it must not consume a highlight slot or leak into the GitHub release notes.
  */
 
 const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
-	const { t } = useAppTranslation()
+	const { t, i18n } = useAppTranslation()
 	const [open, setOpen] = useState(true)
 
-	// Per-line highlights derived from the changelog (English-only), resolved
-	// from Package.version to its line base <major>.<minor>.0; falls back to the
-	// translated i18n highlights when the current minor line has no generated
-	// data.
-	const generatedHighlights = getAnnouncementForVersion(Package.version)?.highlights
+	// Per-line highlights resolved from Package.version to its line base
+	// <major>.<minor>.0. The generated list is the canonical source; each entry is
+	// translated when the locale provides it, with the English bullet as the
+	// per-entry fallback. Falls back to the highlight1..3 keys when the current
+	// line has no generated data at all.
+	const announcement = getAnnouncementForVersion(Package.version)
+	// i18next uses "." as its key separator, so the dotted version cannot be used
+	// as a literal key segment.
+	const lineKey = announcement?.version.replace(/\./g, "_")
+	const generatedHighlights = announcement?.highlights.map((english, index) => {
+		const key = `chat:announcement.release.lines.${lineKey}.h${index + 1}`
+		// Only swap in a locale string when the key really exists. A missing
+		// translation must fall back to the English canonical bullet — never to
+		// the raw key id, which is what `t()` returns before i18n finishes
+		// loading (the popup can paint on the first state message).
+		return i18n?.exists?.(key) ? t(key) : english
+	})
 
 	return (
 		<Dialog
@@ -61,6 +80,16 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 				</DialogHeader>
 				<div>
 					<div className="mb-4">
+						{/* Standing marketing slot — translatable, may embed links. */}
+						<p className="mb-3">
+							<Trans
+								i18nKey="chat:announcement.marketing"
+								components={{
+									star: <FaStar className="inline-block w-3.5 h-3.5 align-text-bottom" aria-hidden />,
+									githubLink: <GitHubLink />,
+								}}
+							/>
+						</p>
 						<p className="mb-3">{t("chat:announcement.release.heading")}</p>
 						<ul className="list-disc list-inside text-sm space-y-1.5">
 							{generatedHighlights?.length ? (

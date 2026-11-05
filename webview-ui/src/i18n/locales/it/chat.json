@@ -135,6 +135,7 @@
 	"loadEarlierMessages": "Carica messaggi precedenti",
 	"about": "L'estensione IDE agentica local-first, porta il tuo modello — <br/>Conosci i tuoi costi, fidati della tua cache, conserva le tue conoscenze.",
 	"support": {
+	"marketing": "Prenditi un momento per darci una <star/> su <githubLink>GitHub</githubLink>! (~20s)",
 		"reportIssue": "Segnala un bug o richiedi una funzionalità",
 		"discussions": "Unisciti alle discussioni",
 		"starUs": "Lasciaci una stella su GitHub",
@@ -371,6 +372,13 @@
 		"support": "Sostieni Roo+ su <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> e sul <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novità:",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ La protezione dei comandi è integrata — la protezione dai comandi distruttivi è inclusa per 5 piattaforme, verificata tramite hash e senza download all'avvio (#479)",
+					"h2": "📦 Installazione ~14 MB più leggera — da 1.932 a 1.278 file impacchettati, source map rimossi e temi Shiki selezionati (#13)",
+					"h3": "🚀 Nuovi modelli — DeepSeek V4.1 Flash (opencode-go) e grok-build-0.1 (xAI)"
+				}
+			},
 			"highlight1": "🎉 Il traguardo uno è raggiunto: una versione stabile, oltre 300 modalità e una roadmap chiara per il cammino che ci attende. Non potremmo essere più entusiasti di ciò che verrà.",
 			"highlight2": "🚀 Il traguardo due inizia ora: guidati dal tuo feedback, raddoppiamo l'impegno per creare un'estensione IDE agente e local-first che renda la tua spesa IA leggibile e le tue conoscenze portabili.",
 			"highlight3": "❤️ Ai nostri 7,6k utenti attivi: grazie per aver scelto Roo+ e per aver condiviso questo traguardo con noi. È un onore averti a bordo — e non vediamo l'ora di intraprendere il viaggio che ci attende."

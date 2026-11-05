@@ -135,6 +135,7 @@
 	"loadEarlierMessages": "Charger les messages précédents",
 	"about": "L'extension d'IDE agentique local-first, avec votre propre modèle — <br/>Connaissez vos coûts, faites confiance à votre cache, gardez vos connaissances.",
 	"support": {
+	"marketing": "Prenez un instant pour nous donner une <star/> sur <githubLink>GitHub</githubLink> ! (~20s)",
 		"reportIssue": "Signaler un bug ou demander une fonctionnalité",
 		"discussions": "Rejoindre les discussions",
 		"starUs": "Mettez-nous une étoile sur GitHub",
@@ -371,6 +372,13 @@
 		"support": "Soutiens Roo+ sur <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> et sur le <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Nouveautés :",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ Le garde-fou des commandes est intégré — la protection contre les commandes destructrices est fournie pour 5 plateformes, vérifiée par empreinte et sans téléchargement au démarrage (#479)",
+					"h2": "📦 Installation ~14 Mo plus légère — de 1 932 à 1 278 fichiers empaquetés, plus de source maps et thèmes Shiki sélectionnés (#13)",
+					"h3": "🚀 Nouveaux modèles — DeepSeek V4.1 Flash (opencode-go) et grok-build-0.1 (xAI)"
+				}
+			},
 			"highlight1": "🎉 L'étape un est bouclée : une version stable, plus de 300 modes et une feuille de route claire pour la suite. Nous sommes plus qu'excités par ce qui vient.",
 			"highlight2": "🚀 L'étape deux commence maintenant : guidés par vos retours, nous redoublons d'efforts pour construire une extension IDE agentique et local-first, qui rend vos dépenses IA lisibles et vos connaissances portables.",
 			"highlight3": "❤️ À nos 7,6k utilisateurs actifs : merci d'avoir choisi Roo+ et de partager cette étape avec nous. C'est un honneur de vous avoir à bord — et nous avons hâte de vivre la suite avec vous."

@@ -135,6 +135,7 @@
 	"loadEarlierMessages": "Eerdere berichten laden",
 	"about": "De lokale, bring-your-own-model agentische IDE-extensie — <br/>Ken je kosten, vertrouw je cache, behoud je kennis.",
 	"support": {
+	"marketing": "Neem even de tijd om ons een <star/> te geven op <githubLink>GitHub</githubLink>! (~20s)",
 		"reportIssue": "Meld een bug of vraag een functie aan",
 		"discussions": "Doe mee met de discussies",
 		"starUs": "Geef ons een ster op GitHub",
@@ -344,6 +345,13 @@
 		"support": "Steun Roo+ op <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> en op de <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Wat is nieuw:",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ Opdrachtbeveiliging is ingebouwd — de bescherming tegen destructieve opdrachten is gebundeld voor 5 platforms, hash-geverifieerd en zonder download bij het opstarten (#479)",
+					"h2": "📦 ~14 MB kleinere installatie — 1.932 → 1.278 verpakte bestanden, geen source maps meer, geselecteerde Shiki-thema's (#13)",
+					"h3": "🚀 Nieuwe modellen — DeepSeek V4.1 Flash (opencode-go) en grok-build-0.1 (xAI)"
+				}
+			},
 			"highlight1": "🎉 Mijlpaal één zit erop: een stabiele release, 300+ modi en een duidelijke roadmap voor de weg vooruit. We kunnen niet enthousiaster zijn over wat er komt.",
 			"highlight2": "🚀 Mijlpaal twee begint nu — op basis van jullie feedback verdubbelen we onze inzet om een lokale, agentische IDE-extensie te bouwen die je AI-uitgaven inzichtelijk en je kennis draagbaar maakt.",
 			"highlight3": "❤️ Aan onze 7,6 duizend actieve gebruikers — bedankt dat jullie voor Roo+ hebben gekozen en deze mijlpaal met ons hebben gedeeld. We voelen ons vereerd dat jullie aan boord zijn — en we kijken uit naar de reis die voor ons ligt."

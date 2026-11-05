@@ -108,6 +108,8 @@ export const globalSettingsSchema = z.object({
 	pinnedApiConfigs: z.record(z.string(), z.boolean()).optional(),
 
 	lastShownAnnouncementId: z.string().optional(),
+	/** Fingerprint of the announcement content last shown; re-arms the popup when it changes. */
+	lastShownAnnouncementHash: z.string().optional(),
 	customInstructions: z.string().optional(),
 	taskHistory: z.array(historyItemSchema).optional(),
 	dismissedUpsells: z.array(z.string()).optional(),

@@ -135,6 +135,7 @@
 	"loadEarlierMessages": "Tải tin nhắn trước đó",
 	"about": "Tiện ích mở rộng IDE tác nhân local-first, tự mang mô hình của bạn — <br/>Biết chi phí của bạn, tin tưởng bộ nhớ cache của bạn, giữ kiến thức của bạn.",
 	"support": {
+	"marketing": "Hãy dành một chút thời gian để tặng chúng tôi một <star/> trên <githubLink>GitHub</githubLink>! (~20s)",
 		"reportIssue": "Báo lỗi hoặc yêu cầu tính năng",
 		"discussions": "Tham gia thảo luận",
 		"starUs": "Cho chúng tôi một sao trên GitHub",
@@ -371,6 +372,13 @@
 		"support": "Hãy ủng hộ Roo+ trên <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> và <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Có gì mới:",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ Trình bảo vệ lệnh được tích hợp sẵn — trình bảo vệ lệnh phá hoại được đóng gói cho 5 nền tảng, đã xác minh bằng hash và không tải xuống khi khởi động (#479)",
+					"h2": "📦 Cài đặt nhẹ hơn ~14 MB — 1.932 → 1.278 tệp đóng gói, bỏ source map, chọn lọc bộ giao diện Shiki (#13)",
+					"h3": "🚀 Mô hình mới — DeepSeek V4.1 Flash (opencode-go) và grok-build-0.1 (xAI)"
+				}
+			},
 			"highlight1": "🎉 Cột mốc một đã hoàn thành — một bản phát hành ổn định, hơn 300 chế độ và lộ trình rõ ràng cho chặng đường phía trước. Chúng tôi vô cùng hào hứng với những gì sắp tới.",
 			"highlight2": "🚀 Cột mốc hai bắt đầu ngay bây giờ — được dẫn dắt bởi phản hồi của bạn, chúng tôi dồn sức xây dựng một tiện ích mở rộng IDE agentic và local-first, giúp chi phí AI của bạn rõ ràng và kiến thức của bạn dễ dàng mang theo.",
 			"highlight3": "❤️ Gửi đến 7,6 nghìn người dùng tích cực của chúng tôi — cảm ơn bạn đã chọn Roo+ và chia sẻ cột mốc này với chúng tôi. Thật vinh dự khi có bạn đồng hành — và chúng tôi rất mong chờ hành trình phía trước."

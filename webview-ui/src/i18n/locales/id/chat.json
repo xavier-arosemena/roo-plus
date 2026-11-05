@@ -159,6 +159,7 @@
 	"loadEarlierMessages": "Muat pesan sebelumnya",
 	"about": "Ekstensi IDE agentik local-first, bawa modelmu sendiri — <br/>Ketahui biayamu, percayai cache-mu, simpan pengetahuammu.",
 	"support": {
+	"marketing": "Luangkan waktu sebentar untuk memberi kami <star/> di <githubLink>GitHub</githubLink>! (~20s)",
 		"reportIssue": "Laporkan bug atau minta fitur",
 		"discussions": "Ikuti diskusinya",
 		"starUs": "Beri kami bintang di GitHub",
@@ -394,6 +395,13 @@
 		"support": "Dukung Roo+ di <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink>, dan di <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Yang Baru:",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ Pelindung perintah kini terpasang — pelindung perintah berbahaya disertakan untuk 5 platform, terverifikasi hash, tanpa unduhan saat mulai (#479)",
+					"h2": "📦 Instalasi ~14 MB lebih ringan — 1.932 → 1.278 file terpaket, source map dihapus, tema Shiki pilihan (#13)",
+					"h3": "🚀 Model baru — DeepSeek V4.1 Flash (opencode-go) dan grok-build-0.1 (xAI)"
+				}
+			},
 			"highlight1": "🎉 Tonggak satu telah selesai — rilis stabil, 300+ mode, dan peta jalan yang jelas untuk langkah ke depan. Kami sangat antusias dengan apa yang akan datang.",
 			"highlight2": "🚀 Tonggak dua dimulai sekarang — dipandu oleh masukan Anda, kami semakin serius membangun ekstensi IDE agenik dan local-first yang membuat pengeluaran AI Anda transparan dan pengetahuan Anda portabel.",
 			"highlight3": "❤️ Untuk 7,6 ribu pengguna aktif kami — terima kasih telah memilih Roo+ dan berbagi tonggak ini bersama kami. Kami merasa terhormat memiliki Anda di sini — dan kami tidak sabar menanti perjalanan ke depan."

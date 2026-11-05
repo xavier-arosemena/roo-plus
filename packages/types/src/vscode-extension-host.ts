@@ -535,6 +535,7 @@ export type ExtensionState = Pick<
 	openRouterImageApiKey?: string
 	messageQueue?: QueuedMessage[]
 	lastShownAnnouncementId?: string
+	lastShownAnnouncementHash?: string
 	apiModelId?: string
 	mcpServers?: McpServer[]
 	mdmCompliant?: boolean

@@ -135,6 +135,7 @@
 	"loadEarlierMessages": "Ältere Nachrichten laden",
 	"about": "Die lokale, bring-your-own-model Agentic-IDE-Erweiterung — <br/>Kenne deine Kosten, vertraue deinem Cache, behalte dein Wissen.",
 	"support": {
+	"marketing": "Nimm dir einen Moment und gib uns einen <star/> auf <githubLink>GitHub</githubLink>! (~20s)",
 		"reportIssue": "Fehler melden oder Feature anfragen",
 		"discussions": "An den Diskussionen teilnehmen",
 		"starUs": "Gib uns einen Stern auf GitHub",
@@ -371,6 +372,13 @@
 		"support": "Bitte unterstütze Roo+ auf <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> und im <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Was ist neu:",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ Befehlsschutz ist eingebaut — der Schutz vor destruktiven Befehlen ist für 5 Plattformen gebündelt, hash-geprüft und ohne Download beim Start (#479)",
+					"h2": "📦 ~14 MB kleinere Installation — 1.932 → 1.278 gepackte Dateien, keine Source Maps mehr, kuratierte Shiki-Themes (#13)",
+					"h3": "🚀 Neue Modelle — DeepSeek V4.1 Flash (opencode-go) und grok-build-0.1 (xAI)"
+				}
+			},
 			"highlight1": "🎉 Meilenstein eins ist geschafft — eine stabile Version, 300+ Modi und ein klarer Fahrplan für das, was vor uns liegt. Wir könnten nicht gespannter auf das sein, was als Nächstes kommt.",
 			"highlight2": "🚀 Meilenstein zwei beginnt jetzt — auf der Grundlage eures Feedbacks verdoppeln wir unseren Einsatz für eine lokale, agentische IDE-Erweiterung, die eure KI-Ausgaben nachvollziehbar und euer Wissen portabel macht.",
 			"highlight3": "❤️ An unsere 7,6k aktiven Nutzer:innen — danke, dass ihr Roo+ gewählt und diesen Meilenstein mit uns geteilt habt. Es ist uns eine Ehre, euch an Bord zu haben — und wir können die Reise, die vor uns liegt, kaum erwarten."

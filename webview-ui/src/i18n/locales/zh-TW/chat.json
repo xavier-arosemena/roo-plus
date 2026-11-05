@@ -162,6 +162,7 @@
 	"loadEarlierMessages": "載入更早的訊息",
 	"about": "本地優先、自帶模型的智能體 IDE 擴充功能 — <br/>了解你的成本，信任你的快取，守護你的知識。",
 	"support": {
+	"marketing": "請花一點時間在 <githubLink>GitHub</githubLink> 上給我們一個 <star/>！（約 20 秒）",
 		"reportIssue": "回報錯誤或請求功能",
 		"discussions": "加入討論",
 		"starUs": "在 GitHub 上為我們按星",
@@ -397,6 +398,13 @@
 		"support": "請在 <githubLink>GitHub</githubLink>、<marketplaceLink>Visual Studio</marketplaceLink> 和 <openVsxLink>Open VSX Registry</openVsxLink> 上支持 Roo+。",
 		"release": {
 			"heading": "新增功能：",
+			"lines": {
+				"3_89_0": {
+					"h1": "🛡️ 指令防護已內建 — 危險指令防護已為 5 個平台打包，經雜湊校驗，啟動時無需下載 (#479)",
+					"h2": "📦 安裝體積減少約 14 MB — 打包檔案從 1,932 個降至 1,278 個，移除 source map，精選 Shiki 主題 (#13)",
+					"h3": "🚀 新增模型 — DeepSeek V4.1 Flash（opencode-go）、grok-build-0.1（xAI）"
+				}
+			},
 			"highlight1": "🎉 里程碑一圓滿收官——穩定版發布、300+ 模式，以及一條清晰的前進路線圖。我們對接下來的一切充滿期待。",
 			"highlight2": "🚀 里程碑二現在開啟——在您的回饋指引下，我們將加倍投入，打造一個本地優先、智慧體化的 IDE 擴充功能，讓您的 AI 開銷一目了然，讓您的知識隨身可攜。",
 			"highlight3": "❤️ 致我們 7.6k 活躍使用者——感謝您選擇 Roo+ 並與我們共同見證這項里程碑。能與您同行是我們的榮幸——我們已迫不及待迎接未來的旅程。"
