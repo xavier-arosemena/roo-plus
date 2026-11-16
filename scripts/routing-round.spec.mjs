@@ -20,6 +20,11 @@
  *      then appends each record after checking it against its predecessor (labels
  *      differ; no overlap in time). Drift throws at the offending call and leaves
  *      every earlier record on disk. Driven here with a fake runner, not a call.
+ *   5f. The runner's relative paths belong to the operator: the child inherits the
+ *      executor's working directory (never --out), a missing runner script stops
+ *      the batch at preflight with exit 2 and no results.jsonl, and the first
+ *      UNRUN call — or a failure rate above the registered 5% once the sample is
+ *      large enough — aborts the batch instead of paying for the selection.
  *   5e. A saturated cell (constant outcome sequence) renders as "no dependence
  *      test possible: saturated" — the runs test's null is a saturated cell, not
  *      a defect in the statistic.
@@ -78,7 +83,7 @@ import {
 	transcriptStats,
 	wilsonInterval,
 } from "./lib/routing-round.mjs"
-import { executeSelected } from "./run-routing-round.mjs"
+import { abortReason, executeSelected } from "./run-routing-round.mjs"
 
 const run = promisify(execFile)
 const ROOT = path.resolve(".")
@@ -1055,6 +1060,137 @@ describe("the executor (run-routing-round.mjs)", () => {
 				return true
 			},
 		)
+	})
+
+	/**
+		* The runner's relative paths belong to the operator, not to `--out`. The
+		* documented command names `scripts/lib/gemini-runner.mjs` relatively; the child
+		* used to inherit `--out` as its cwd, so that path did not exist and every call
+		* came back UNRUN. Here the executor is started from the directory holding the
+		* stub, with the stub named relatively for the same reason.
+		*/
+	it("resolves a relative runner path from the working directory, not from --out", async () => {
+		const dir = await fs.mkdtemp(path.join(os.tmpdir(), "routing-round-relative-"))
+		await writeStubRunner(dir)
+		const out = path.join(dir, "run")
+		const { stdout } = await run(
+			"node",
+			[
+				path.join(ROOT, "scripts/run-routing-round.mjs"),
+				"--run",
+				"--plan",
+				path.join(DIR, "plan.json"),
+				"--out",
+				out,
+				"--model",
+				"stub",
+				"--runner",
+				"node stub-runner.mjs %PROMPT_FILE% %OUT_FILE% %RUN_ID% %TRANSCRIPT_DIR%",
+				"--limit",
+				"2",
+			],
+			{ cwd: dir },
+		)
+		assert.match(stdout, /tally: RUN 2 \/ UNRUN 0 \/ INVALID 0/)
+		const records = (await fs.readFile(path.join(out, "results.jsonl"), "utf-8")).trim().split("\n").map(JSON.parse)
+		assert.equal(records.length, 2, "both calls ran through the relatively named runner")
+		assert.deepEqual(
+			records.map((record) => record.status),
+			["RUN", "RUN"],
+		)
+	})
+
+	it("fails at preflight with exit 2 and writes no results when the runner script is missing", async () => {
+		const out = await fs.mkdtemp(path.join(os.tmpdir(), "routing-round-preflight-"))
+		const missing = path.join("scripts", "lib", "no-such-runner.mjs")
+		await assert.rejects(
+			run(
+				"node",
+				[
+					"scripts/run-routing-round.mjs",
+					"--run",
+					"--out",
+					out,
+					"--model",
+					"stub",
+					"--runner",
+					`node ${missing} %PROMPT_FILE% %OUT_FILE%`,
+					"--limit",
+					"1",
+				],
+				{ cwd: ROOT },
+			),
+			(error) => {
+				assert.equal(error.code, 2)
+				assert.match(error.stderr, /is not an existing file/)
+				assert.ok(
+					error.stderr.includes(path.join(ROOT, missing)),
+					`the resolved path is named: ${error.stderr}`,
+				)
+				assert.ok(error.stderr.includes(ROOT), `the working directory is named: ${error.stderr}`)
+				return true
+			},
+		)
+		await assert.rejects(
+			fs.readFile(path.join(out, "results.jsonl"), "utf-8"),
+			"a failed preflight must not create results.jsonl",
+		)
+	})
+
+	it("aborts after the first call that produces no output, and keeps that single record", async () => {
+		const dir = await fs.mkdtemp(path.join(os.tmpdir(), "routing-round-firstfail-"))
+		const failing = path.join(dir, "failing-runner.mjs")
+		await fs.writeFile(
+			failing,
+			"process.stderr.write('simulated provider failure\\n'); process.exit(1)\n",
+			"utf-8",
+		)
+		const out = path.join(dir, "run")
+		await assert.rejects(
+			run(
+				"node",
+				[
+					"scripts/run-routing-round.mjs",
+					"--run",
+					"--out",
+					out,
+					"--model",
+					"stub",
+					"--runner",
+					`node ${JSON.stringify(failing)} %PROMPT_FILE% %OUT_FILE%`,
+					"--limit",
+					"5",
+				],
+				{ cwd: ROOT },
+			),
+			(error) => {
+				assert.equal(error.code, 1, "a batch that stopped itself is not a success")
+				assert.match(error.stderr, /aborted:/)
+				assert.match(error.stderr, /call #1/)
+				assert.match(error.stderr, /no output file was produced/)
+				return true
+			},
+		)
+		const records = (await fs.readFile(path.join(out, "results.jsonl"), "utf-8")).trim().split("\n").map(JSON.parse)
+		assert.equal(records.length, 1, "one call paid for, not the five selected")
+		assert.equal(records[0].status, "UNRUN")
+		assert.equal(records[0].exitCode, 1)
+	})
+
+	it("stops on a failure rate above 5% only once the sample is large enough", () => {
+		const record = (index, status) => ({
+			index,
+			runId: `R-${index}`,
+			status,
+			reason: status === "RUN" ? null : "no output file was produced (exit 1)",
+			exitCode: status === "RUN" ? 0 : 1,
+		})
+		assert.equal(abortReason([record(1, "INVALID")]), null, "one truncated answer is not a failed batch")
+		assert.match(abortReason([record(1, "UNRUN")]), /call #1 .* produced no output/, "the first call")
+		const fivePercent = Array.from({ length: 20 }, (_, index) => record(index + 1, index === 0 ? "UNRUN" : "RUN"))
+		assert.equal(abortReason(fivePercent), null, "1 in 20 is exactly 5%: reportable, not aborted")
+		const tenPercent = Array.from({ length: 20 }, (_, index) => record(index + 1, index < 2 ? "UNRUN" : "RUN"))
+		assert.match(abortReason(tenPercent), /2 of 20 calls \(10\.0%\)/)
 	})
 })
 

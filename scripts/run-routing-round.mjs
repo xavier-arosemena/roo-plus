@@ -70,10 +70,39 @@
  *   explicitly, together with `--runner` and `--model`; with neither flag the
  *   batch is built and written and nothing is executed.
  *
+ * THE RUNNER'S OWN PATHS ARE THE OPERATOR'S, NOT THE RUN DIRECTORY'S
+ *   The child inherits the operator's working directory (`process.cwd()`), never
+ *   `--out`. Nothing in the contract wanted the run directory: all three path
+ *   placeholders are already absolute, and the runner takes its usage directory
+ *   as an argument. The operator's template did want it, though — the documented
+ *   `node scripts/lib/gemini-runner.mjs …` resolved against the run directory and
+ *   did not exist, which produced 900 `UNRUN` records for calls that never ran.
+ *   The alternative — rewriting the template's leading script token to an
+ *   absolute path — fixes only the first relative token, needs shell parsing this
+ *   executor should not pretend to do, and leaves any other relative token in a
+ *   custom template broken. Inheriting the operator's working directory is the
+ *   smaller claim: a relative path in a template means what it means when the
+ *   operator types the command.
+ *
+ * A BATCH THAT CANNOT RUN STOPS, IT DOES NOT BILL
+ *   1. Preflight. The template is expanded with the first selected run, its
+ *      literal script token (`node <path>`, another known interpreter, or a
+ *      path-like first token) is resolved against the working directory, and a
+ *      missing file stops the batch with exit 2 and no `results.jsonl`. Forms the
+ *      executor cannot resolve (`sh -c '…'`, aliases, builtins) are skipped
+ *      rather than guessed at.
+ *   2. Abort. A first call that produces no output (`UNRUN`) ends the batch at
+ *      that call, and so does a failure rate above the registered 5% once at
+ *      least 20 calls have completed. The failing record stays on disk with its
+ *      `reason`; the calls after it are never paid for.
+ *
  * EXIT STATUS
  *   0  the batch completed (RUN / UNRUN / INVALID), or a dry-run wrote its material
+ *   1  the batch aborted: the first call produced no output, or the failure rate
+ *      exceeded 5% mid-batch (every completed record stays on disk)
  *   2  a precondition failed: bad arguments, an invalid plan, a plan that no longer
- *      matches the derivation, or a run directory that already holds results
+ *      matches the derivation, a run directory that already holds results, or a
+ *      runner script that does not exist at its resolved path
  *
  * No dependencies. Node 22 ESM.
  */
@@ -91,7 +120,7 @@ import {
 	experimentSpec,
 	labelArms,
 } from "./lib/e20.mjs"
-import { executeRun } from "./lib/framing-pretest-runner.mjs"
+import { executeRun, expandRunner } from "./lib/framing-pretest-runner.mjs"
 import { readTranscript } from "./lib/framing-pretest-results.mjs"
 import { sha256 } from "./lib/framing-pretest.mjs"
 import {
@@ -100,6 +129,7 @@ import {
 	CELLS,
 	DRAWS_PER_CELL,
 	DEFAULT_BLIND_SEED,
+	MAX_EXCLUSION_RATE,
 	PARSER_VERSION,
 	ROUTING_ROUND_DIR,
 	TEMPERATURE,
@@ -136,7 +166,8 @@ const USAGE = `Usage: node scripts/run-routing-round.mjs [options]
   --run                execute the selected runs through --runner; requires --runner and --model
   --runner <template>  shell command template (required with --run); placeholders:
                        %PROMPT_FILE% %OUT_FILE% %MODEL% %TEMPERATURE% %RUN_ID%
-                       %TRANSCRIPT_DIR%
+                       %TRANSCRIPT_DIR%. Relative paths in the template resolve
+                       from the directory you run this command in, not from --out
   --model <id>         model id passed to the runner and recorded (required with --run)
   --only <label>       execute only this blind label (CELL-n or ARM-n): a bounded trial
   --limit <n>          execute at most the first n selected plan entries: a smoke batch
@@ -724,6 +755,190 @@ export function assertRecordContinues(record, previous, { skipLabelCheck = false
 	}
 }
 
+/** Interpreters whose argument is a script the preflight can resolve and check. */
+const RUNNER_INTERPRETERS = new Set([
+	"node",
+	"nodejs",
+	"deno",
+	"bun",
+	"python",
+	"python2",
+	"python3",
+	"bash",
+	"sh",
+	"zsh",
+])
+
+/**
+ * Split a command template into tokens, remembering whether each token was
+ * quoted. This is not a shell: the preflight must never decide how the command
+ * runs, only recognise a literal script path the operator wrote. Whitespace
+ * separates tokens, single and double quotes group, and a backslash escapes the
+ * next character outside single quotes (which is exactly what `quoteForShell`
+ * emits for a substituted value containing `'`).
+ */
+export function tokenizeRunnerCommand(command) {
+	const tokens = []
+	let text = ""
+	let quote = null
+	let openedWith = null
+	let inToken = false
+
+	for (let index = 0; index < command.length; index++) {
+		const char = command[index]
+		if (quote === null && /\s/.test(char)) {
+			if (inToken) {
+				tokens.push({ text, quote: openedWith })
+				text = ""
+				openedWith = null
+				inToken = false
+			}
+			continue
+		}
+		if (quote === null) {
+			if (char === "'" || char === '"') {
+				if (openedWith === null) openedWith = char
+				quote = char
+				inToken = true
+				continue
+			}
+			if (char === "\\" && index + 1 < command.length) {
+				text += command[++index]
+				inToken = true
+				continue
+			}
+			text += char
+			inToken = true
+			continue
+		}
+		if (char === quote) {
+			quote = null
+			continue
+		}
+		if (quote === '"' && char === "\\" && index + 1 < command.length) {
+			text += command[++index]
+			continue
+		}
+		text += char
+	}
+
+	if (inToken) tokens.push({ text, quote: openedWith })
+	return tokens
+}
+
+/**
+ * The runner script a template names, or `null` when the template is not in a
+ * form the preflight can resolve.
+ *
+ * Only a LITERAL token is considered: every substituted placeholder is wrapped in
+ * single quotes by `expandRunner`, so a token that came from a placeholder is
+ * distinguishable from one the operator typed. Flags, and tokens still holding a
+ * `%…%` placeholder, are skipped. A bare word such as `env`, `npx` or `curl` is
+ * not a file to check; only `node <path>`, another known interpreter, or a
+ * path-like first token is resolved.
+ */
+export function runnerScriptPath(template, values = {}) {
+	const tokens = tokenizeRunnerCommand(expandRunner(template, values))
+	if (tokens.length === 0) return null
+
+	const literal = (token) => token.quote !== "'" && !token.text.startsWith("-") && !token.text.includes("%")
+	const pathLike = (text) => text.includes("/") || /\.(?:mjs|cjs|js|jsx|ts|tsx|sh|bash|py)$/.test(text)
+
+	const [first] = tokens
+	if (!literal(first)) return null
+	if (RUNNER_INTERPRETERS.has(path.basename(first.text))) {
+		const script = tokens.slice(1).find((token) => literal(token) && pathLike(token.text))
+		return script ? script.text : null
+	}
+	return pathLike(first.text) ? first.text : null
+}
+
+/** A precondition the batch refuses to run without; `main()` maps it to exit 2. */
+export class RunnerPreflightError extends Error {
+	constructor(message) {
+		super(message)
+		this.name = "RunnerPreflightError"
+	}
+}
+
+/**
+ * Fail fast, before the first paid call, when the template's script does not
+ * exist. `values` are the placeholder values of the first selected run, so the
+ * check runs against exactly the command that call would use.
+ *
+ * The paths are resolved against the working directory the executor was started
+ * from — the child inherits it — because that is where the operator typed the
+ * command, and a template's relative path means what it means to whoever copied
+ * it from the runbook.
+ */
+export async function preflightRunner({ runner, cwd = process.cwd(), values = {} }) {
+	if (typeof runner !== "string" || runner.trim() === "") return null
+	const named = runnerScriptPath(runner, values)
+	if (named === null) return null
+
+	const resolved = path.isAbsolute(named) ? named : path.resolve(cwd, named)
+	let stats = null
+	try {
+		stats = await fs.stat(resolved)
+	} catch {
+		stats = null
+	}
+	if (stats === null || !stats.isFile()) {
+		throw new RunnerPreflightError(
+			`the runner script ${resolved} is not an existing file (template token ${JSON.stringify(named)} ` +
+				`resolved against the working directory ${cwd}). The executor runs the runner from your working ` +
+				`directory, not from --out: run the documented command from the repository root, or name the ` +
+				`script by an absolute path.`,
+		)
+	}
+	return resolved
+}
+
+/**
+ * Enough completed calls before a failure *rate* can abort a batch. Below this,
+ * one legitimate `INVALID` (a truncated answer, which the report already handles
+ * per cell) would read as a 100% failure rate.
+ */
+export const MIN_ABORT_SAMPLE = 20
+
+/**
+ * Whether to stop paying for a batch that is not producing results.
+ *
+ *   1. The first call. A runner that cannot produce one output at call 1 will not
+ *      produce 900: the smoke test that found the cwd bug paid nine times for
+ *      nine `UNRUN`s, and the real plan would have paid 900 times.
+ *   2. A failure rate above the registered 5% (§A2.5 row 10), once the sample is
+ *      large enough to mean something. The report refuses the same rate, so the
+ *      remaining calls would buy a batch that cannot be reported.
+ *
+ * The record itself is always appended before this is asked, so the failing call
+ * stays on disk with its `reason` rather than vanishing.
+ */
+export function abortReason(records) {
+	const last = records[records.length - 1]
+	if (last === undefined) return null
+
+	if (records.length === 1 && last.status === "UNRUN") {
+		return (
+			`call #${last.index} (${last.runId}) produced no output, so every later call would fail the ` +
+			`same way: ${last.reason ?? "no reason reported"}`
+		)
+	}
+
+	if (records.length >= MIN_ABORT_SAMPLE) {
+		const failed = records.filter((record) => record.status !== "RUN").length
+		const rate = failed / records.length
+		if (rate > MAX_EXCLUSION_RATE) {
+			return (
+				`${failed} of ${records.length} calls (${(rate * 100).toFixed(1)}%) did not produce a RUN, above ` +
+				`the registered ${(MAX_EXCLUSION_RATE * 100).toFixed(0)}% exclusion rule`
+			)
+		}
+	}
+
+	return null
+}
+
 /**
  * `expectedRuns` is the number of calls the plan registers (`registeredTotal`).
  * It is passed in rather than read from a constant, because the two shapes
@@ -731,27 +946,55 @@ export function assertRecordContinues(record, previous, { skipLabelCheck = false
  * E20b. `null` — the default, so a caller driving a slice directly need not name
  * one — means "this batch claims no registered total", and the full-set proof is
  * skipped rather than run against a guess.
+ *
+ * The batch stops for two reasons before it finishes: a missing runner script
+ * (preflight, thrown before `results.jsonl` is touched) and a first call that
+ * produced nothing, or a failure rate above 5% (`aborted` on the returned tally,
+ * which `main()` maps to exit 1).
  */
 export async function executeSelected({ out, selected, opts, runOnce = executeRun, expectedRuns = null }) {
-	const resultsPath = path.join(out, "results.jsonl")
-	const transcriptDir = path.join(out, "transcripts")
-	const usageDirs = [...new Set([opts.usageDir || transcriptDir, path.join(out, "usage"), transcriptDir])]
+	const dir = path.resolve(out)
+	const resultsPath = path.join(dir, "results.jsonl")
+	const transcriptDir = path.join(dir, "transcripts")
+	const usageDirs = [...new Set([opts.usageDir || transcriptDir, path.join(dir, "usage"), transcriptDir])]
+	// The child inherits the operator's working directory; see the header for why
+	// nothing in the contract wanted the run directory here.
+	const runnerCwd = process.cwd()
 
 	const tally = { RUN: 0, UNRUN: 0, INVALID: 0 }
 	const perLabel = new Map()
 	const records = []
 	const caps = new Set()
 	let capConflict = false
+	let aborted = false
 
 	// A --only slice is same-label by construction, so the label-difference check is
 	// skipped for it; the timestamp-overlap check still applies. A --limit slice of
 	// the registered plan still alternates cells, so it keeps both checks.
 	const skipLabelCheck = opts.only !== null && opts.only !== undefined
 
+	// Preflight before `results.jsonl` is truncated and before the first call is
+	// paid for: a template whose script does not exist is a condition, not a run.
+	if (selected.length > 0) {
+		const first = selected[0]
+		await preflightRunner({
+			runner: opts.runner,
+			cwd: runnerCwd,
+			values: {
+				PROMPT_FILE: path.join(dir, "prompts", `${first.runId}.txt`),
+				OUT_FILE: path.join(transcriptDir, `${first.runId}.txt`),
+				MODEL: opts.model,
+				TEMPERATURE: String(TEMPERATURE),
+				RUN_ID: first.runId,
+				TRANSCRIPT_DIR: transcriptDir,
+			},
+		})
+	}
+
 	// Truncate exactly once, before the loop. From here on the file IS the record of
 	// every completed call: each record is appended before the next call starts, so
 	// a crash or Ctrl-C costs at most the call in flight, never the batch.
-	await fs.mkdir(out, { recursive: true })
+	await fs.mkdir(dir, { recursive: true })
 	await fs.writeFile(resultsPath, "", "utf-8")
 
 	let previous = null
@@ -759,11 +1002,11 @@ export async function executeSelected({ out, selected, opts, runOnce = executeRu
 		const outcome = await runOnce({
 			runner: opts.runner,
 			outFile: path.join(transcriptDir, `${run.runId}.txt`),
-			promptFile: path.join(out, "prompts", `${run.runId}.txt`),
+			promptFile: path.join(dir, "prompts", `${run.runId}.txt`),
 			runId: run.runId,
 			model: opts.model,
 			transcriptDir,
-			cwd: out,
+			cwd: runnerCwd,
 		})
 		const usage = await readUsage(usageDirs, run.runId)
 		const transcriptText = outcome.status === "RUN" ? await readTranscript(transcriptDir, run.runId) : null
@@ -794,6 +1037,16 @@ export async function executeSelected({ out, selected, opts, runOnce = executeRu
 		records.push(record)
 		previous = record
 		console.log(`#${String(run.index).padStart(3, "0")} ${pad(run.runId, 14)} ${record.status}`)
+
+		// Asked only after the record is on disk, so the call that stopped the batch
+		// is the one the operator can read, with its own reason.
+		const stop = abortReason(records)
+		if (stop !== null) {
+			console.error(`aborted: ${stop}`)
+			console.error(`  ${records.length} record(s) on disk: ${resultsPath}`)
+			aborted = true
+			break
+		}
 	}
 
 	// A complete batch must be interleaved, proved from the recorded timestamps
@@ -840,9 +1093,15 @@ export async function executeSelected({ out, selected, opts, runOnce = executeRu
 		}
 	}
 	console.log(`tally: RUN ${tally.RUN} / UNRUN ${tally.UNRUN} / INVALID ${tally.INVALID}`)
-	console.log(`results: ${resultsPath} (${selected.length} records)`)
+	console.log(`results: ${resultsPath} (${records.length} records)`)
+	if (aborted) {
+		console.log(
+			`aborted: ${records.length} of ${selected.length} selected call(s) completed; ` +
+				`the remaining ${selected.length - records.length} were never paid for.`,
+		)
+	}
 
-	return tally
+	return { ...tally, aborted }
 }
 
 async function main() {
@@ -940,8 +1199,16 @@ async function main() {
 		return 0
 	}
 
-	await executeSelected({ out, selected, opts, expectedRuns })
-	return 0
+	let tally
+	try {
+		tally = await executeSelected({ out, selected, opts, expectedRuns })
+	} catch (error) {
+		console.error(`error: ${error.message}`)
+		return 2
+	}
+	// A batch that stopped itself is not a completed batch: the caller, or a CI
+	// step, must be able to tell the difference without reading results.jsonl.
+	return tally.aborted ? 1 : 0
 }
 
 // Run only when invoked as a script, so the spec can import `executeSelected`

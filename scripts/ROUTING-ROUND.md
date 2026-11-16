@@ -117,8 +117,22 @@ node scripts/run-routing-round.mjs --run \
   --runner 'node scripts/lib/gemini-runner.mjs %PROMPT_FILE% %OUT_FILE% %MODEL% %TRANSCRIPT_DIR% %RUN_ID%'
 ```
 
+**The runner path is resolved from the operator's working directory** — the directory you run the
+command from, which is the repository root above — **not from `--out`**. Every substituted placeholder
+is already absolute, and the runner takes its usage directory as an argument, so the child inherits your
+working directory and nothing else changes. The command above is copy-pasteable as written.
+
 Bound it: `--only CELL-4` executes one blind label, `--limit 3` executes the first three plan entries
 (three different labels, because the plan is draw-major). Both compose with `--dry-run`.
+
+**A batch that cannot run stops instead of billing.** Before the first call the executor expands the
+template with the first selected run and checks that the script it names (`node <path>`, another known
+interpreter, or a path-like first token) exists; if it does not, it exits `2` naming the resolved path
+and the working directory and writes **no** `results.jsonl`. If the first call produces no output
+(`UNRUN`), the batch stops at that call; so does a failure rate above the registered 5% once at least
+20 calls have completed. Either way the failing record stays on disk with its `reason`, and the
+remaining calls are never paid for. Forms the preflight cannot resolve (`sh -c '…'`, aliases) are
+skipped rather than guessed at.
 
 The executor validates the plan before writing anything — 600 entries, 100 per label, six labels, six
 unique prompt hashes, draw-major interleaving, no cell identifier and no sealed answer-key field — and
@@ -243,11 +257,11 @@ the same rule again on read, so a hand-edited record cannot smuggle a truncation
 
 ## Exit status
 
-| Code | Meaning                                                                                                                                                                               |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `0`  | fixtures written; `--check` found the disk byte-identical; a dry-run wrote its material; a batch completed; or a report was emitted                                                   |
-| `1`  | `--check` found drift                                                                                                                                                                 |
-| `2`  | a precondition failed (bad arguments, an invalid plan, a plan that no longer matches the derivation, a run directory already holding results), or a cell's exclusion rate exceeded 5% |
+| Code | Meaning                                                                                                                                                                                                                             |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | fixtures written; `--check` found the disk byte-identical; a dry-run wrote its material; a batch completed; or a report was emitted                                                                                                 |
+| `1`  | `--check` found drift; or the executor aborted a batch (the first call produced no output, or more than 5% of completed calls failed) — every completed record stays on disk                                                        |
+| `2`  | a precondition failed (bad arguments, an invalid plan, a plan that no longer matches the derivation, a run directory already holding results, a runner script missing at its resolved path), or a cell's exclusion rate exceeded 5% |
 
 ## What this round may and may not conclude
 
@@ -274,5 +288,8 @@ CLI.
 It also exercises the executor end to end with a **stub runner** that writes a fixed transcript:
 `--dry-run` (600 prompts, a byte-identical plan copy, no `results.jsonl`), `--limit 3` (exactly three
 runs, in plan order), `--only` (one label, its first draws), a `RUN` whose sidecar says `MAX_TOKENS`
-(recorded as `INVALID` with `runnerStatus: "RUN"` and no `response`), the `--force` guard, and a plan
-that is not the 600-run plan. It needs no network and no key.
+(recorded as `INVALID` with `runnerStatus: "RUN"` and no `response`), the `--force` guard, a plan that
+is not the 600-run plan, a **relative** runner path resolved from the working directory (the runbook's
+form), a runner path that does not exist (exit `2`, no `results.jsonl`), and a runner that fails on
+every call (the batch aborts after one `UNRUN` record instead of paying for the whole selection). It
+needs no network and no key.
