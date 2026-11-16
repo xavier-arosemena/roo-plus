@@ -27,8 +27,19 @@
  * WHAT IT WRITES
  *   <out>/prompts/<runId>.txt        the selected prompts, byte-identical to the plan
  *   <out>/plan.json                  a byte-identical copy of the plan it validated
- *   <out>/results.jsonl              one record per executed run (not written by --dry-run)
+ *   <out>/results.jsonl              every completed run, appended as it completes
+ *                                    (not written by --dry-run)
  *   <out>/transcripts/<runId>.txt    whatever the runner wrote — never synthesised
+ *
+ * RESULTS STREAM, AND DRIFT IS CAUGHT WHERE IT HAPPENS
+ *   results.jsonl is truncated once before the loop and every record is appended as
+ *   its call completes, so a crash or Ctrl-C can never discard calls already paid
+ *   for. Immediately before each append the record is checked against the record
+ *   that precedes it: consecutive calls must carry different labels and must not
+ *   overlap in time. A violation throws at that call, naming its index, both labels
+ *   and both timestamps, and leaves every earlier record on disk. The full 600-call
+ *   assertInterleaved() proof still runs at the end of the registered round; the
+ *   per-record check is its early warning, not its replacement.
  *
  * `finishReason` IS ENFORCED HERE, NOT MERELY RECORDED (Guard 4 / R-2)
  *   The value comes from the runner's usage sidecar. Any value other than `STOP`
@@ -54,6 +65,7 @@
 import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import path from "node:path"
+import { pathToFileURL } from "node:url"
 
 import { executeRun } from "./lib/framing-pretest-runner.mjs"
 import { readTranscript } from "./lib/framing-pretest-results.mjs"
@@ -405,7 +417,52 @@ async function writeMaterial(out, runs, planRaw) {
 	await fs.writeFile(path.join(out, "plan.json"), planRaw, "utf-8")
 }
 
-async function executeSelected({ out, selected, opts }) {
+/**
+ * The per-record continuity invariant: the early warning that fires at the moment
+ * a batch drifts, not after the whole round has been paid for.
+ *
+ * Two things must hold between a call and the call immediately before it:
+ *   1. the labels differ — consecutive calls must be different cells;
+ *   2. `startedAt >= previous.endedAt` — calls must not overlap in time.
+ *
+ * `skipLabelCheck` is for a legitimate single-label slice (`--only <label>`): such
+ * a slice is same-label by construction, so the label test can never pass there
+ * and is meaningless rather than failed. The overlap test still applies to it,
+ * because a same-label slice can still drift into concurrent execution. A partial
+ * `--limit` slice of the registered plan keeps the label test, since it still
+ * alternates cells.
+ *
+ * The thrown error names the call index, both labels and both timestamps, so the
+ * operator can see exactly where the batch left the plan.
+ */
+export function assertRecordContinues(record, previous, { skipLabelCheck = false } = {}) {
+	const both =
+		`previous call #${previous.index} (${previous.runId}) [${previous.label} ${previous.startedAt} → ${previous.endedAt}]; ` +
+		`this call #${record.index} (${record.runId}) [${record.label} ${record.startedAt} → ${record.endedAt}]`
+
+	if (!skipLabelCheck && record.label === previous.label) {
+		throw new Error(
+			`the round drifted at call #${record.index}: consecutive calls repeat label ` +
+				`${JSON.stringify(record.label)} (${both}). Calls must alternate cells.`,
+		)
+	}
+
+	const started = Date.parse(record.startedAt)
+	const previousEnded = Date.parse(previous.endedAt)
+	if (!Number.isFinite(started) || !Number.isFinite(previousEnded)) {
+		throw new Error(
+			`call #${record.index} cannot be checked against its predecessor: a timestamp is unparseable (${both}).`,
+		)
+	}
+	if (started < previousEnded) {
+		throw new Error(
+			`the round drifted at call #${record.index}: this call starts before the previous call ends, ` +
+				`so calls overlap in time and maximum concurrency exceeds 1 (${both}).`,
+		)
+	}
+}
+
+export async function executeSelected({ out, selected, opts, runOnce = executeRun }) {
 	const resultsPath = path.join(out, "results.jsonl")
 	const transcriptDir = path.join(out, "transcripts")
 	const usageDirs = [...new Set([opts.usageDir || transcriptDir, path.join(out, "usage"), transcriptDir])]
@@ -416,8 +473,20 @@ async function executeSelected({ out, selected, opts }) {
 	const caps = new Set()
 	let capConflict = false
 
+	// A --only slice is same-label by construction, so the label-difference check is
+	// skipped for it; the timestamp-overlap check still applies. A --limit slice of
+	// the registered plan still alternates cells, so it keeps both checks.
+	const skipLabelCheck = opts.only !== null && opts.only !== undefined
+
+	// Truncate exactly once, before the loop. From here on the file IS the record of
+	// every completed call: each record is appended before the next call starts, so
+	// a crash or Ctrl-C costs at most the call in flight, never the batch.
+	await fs.mkdir(out, { recursive: true })
+	await fs.writeFile(resultsPath, "", "utf-8")
+
+	let previous = null
 	for (const run of selected) {
-		const outcome = await executeRun({
+		const outcome = await runOnce({
 			runner: opts.runner,
 			outFile: path.join(transcriptDir, `${run.runId}.txt`),
 			promptFile: path.join(out, "prompts", `${run.runId}.txt`),
@@ -437,6 +506,10 @@ async function executeSelected({ out, selected, opts }) {
 			transcriptText,
 		})
 
+		// Checked before the append, so a violation leaves every earlier record on
+		// disk and the violating record off it.
+		if (previous !== null) assertRecordContinues(record, previous, { skipLabelCheck })
+
 		tally[record.status]++
 		const counts = perLabel.get(run.label) ?? { RUN: 0, UNRUN: 0, INVALID: 0 }
 		counts[record.status]++
@@ -447,21 +520,21 @@ async function executeSelected({ out, selected, opts }) {
 			caps.add(usage.maxOutputTokens)
 		}
 
+		await fs.appendFile(resultsPath, `${JSON.stringify(record)}\n`, "utf-8")
 		records.push(record)
+		previous = record
 		console.log(`#${String(run.index).padStart(3, "0")} ${pad(run.runId, 14)} ${record.status}`)
 	}
 
 	// The registered round must be interleaved, proved from the recorded timestamps
-	// rather than from the plan file (log §16.1). This runs before results are
-	// written, so a batch that drifted to blocked or overlapping execution fails
-	// loudly and leaves no results file behind. A --only/--limit slice is not the
-	// registered round and is not expected to be interleaved by construction.
+	// rather than from the plan file (log §16.1). This is the registered proof — 599
+	// transitions across 600 calls — and the per-record check above is its early
+	// warning; both stay. A --only/--limit slice is not the registered round and is
+	// not expected to be interleaved by construction.
 	let interleaving = null
 	if (records.length === EXPECTED_RUNS) {
 		interleaving = assertInterleaved(records, (record) => record.label)
 	}
-
-	await fs.writeFile(resultsPath, records.map((record) => `${JSON.stringify(record)}\n`).join(""), "utf-8")
 
 	if (interleaving !== null) {
 		console.log(
@@ -578,9 +651,16 @@ async function main() {
 	return 0
 }
 
-main()
-	.then((code) => process.exit(code))
-	.catch((error) => {
-		console.error(`run-routing-round failed: ${error.message}`)
-		process.exit(2)
-	})
+// Run only when invoked as a script, so the spec can import `executeSelected`
+// and drive the per-record invariant with a fake runner instead of a paid call.
+const invokedDirectly =
+	typeof process.argv[1] === "string" && import.meta.url === pathToFileURL(process.argv[1]).href
+
+if (invokedDirectly) {
+	main()
+		.then((code) => process.exit(code))
+		.catch((error) => {
+			console.error(`run-routing-round failed: ${error.message}`)
+			process.exit(2)
+		})
+}

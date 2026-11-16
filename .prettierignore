@@ -3,3 +3,10 @@
 # makes `node scripts/verify-resolutions.mjs --batch SYNC-<n>` fail its range check.
 # Keep the records out of formatting so their paths stay literal.
 docs/upstream-sync/resolutions/
+
+# Sealed experiment artefacts. The fixture generator emits two-space JSON and its
+# `--check` compares byte-for-byte. On 2026-11-16 a lint-staged prettier pass rewrote
+# plan.json, answer-key.json and _label-map.json from two spaces to tabs (values
+# unchanged), which broke `--check` and altered the bytes of an answer key that was
+# sealed before the run. Formatting must never touch these again.
+test-fixtures/frames/routing-round/

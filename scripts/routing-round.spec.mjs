@@ -16,6 +16,13 @@
  *      rebuilds the prompts, honours --dry-run / --only / --limit / --force, and
  *      turns a non-STOP `finishReason` into INVALID. Exercised with a stub runner
  *      that writes a fixed transcript: no network, no key.
+ *   5d. Results stream to disk: `executeSelected` truncates results.jsonl once,
+ *      then appends each record after checking it against its predecessor (labels
+ *      differ; no overlap in time). Drift throws at the offending call and leaves
+ *      every earlier record on disk. Driven here with a fake runner, not a call.
+ *   5e. A saturated cell (constant outcome sequence) renders as "no dependence
+ *      test possible: saturated" — the runs test's null is a saturated cell, not
+ *      a defect in the statistic.
  *   5c. `scripts/lib/gemini-runner.mjs` caps output at 4096 tokens by default and
  *      states the cap in its usage text; a malformed value is refused.
  *   6. The abstention rule is mechanical: slug presence, never the request for
@@ -71,6 +78,7 @@ import {
 	transcriptStats,
 	wilsonInterval,
 } from "./lib/routing-round.mjs"
+import { executeSelected } from "./run-routing-round.mjs"
 
 const run = promisify(execFile)
 const ROOT = path.resolve(".")
@@ -672,6 +680,18 @@ describe("the report", () => {
 		assert.match(renderReport(report), /INTERVAL SUPPRESSED/)
 	})
 
+	it("renders a saturated cell as no dependence test possible, not degenerate", async () => {
+		// The boundary scenario puts C5 at 100 declarations and 0 asks, so its
+		// outcome sequence carries no variation and the runs test returns null.
+		const report = await reportFor("boundary")
+		const cell = Object.values(report.cells).find((candidate) => candidate.cell === "C5")
+		assert.equal(cell.outcomeRunsTest, null, "a constant sequence has no runs test")
+		const text = renderReport(report)
+		assert.match(text, /no dependence test possible: saturated/)
+		assert.doesNotMatch(text, /degenerate/, "a saturated cell is not a defect in the statistic")
+		assert.match(text, /\|z\| < 1\.96/, "the explanatory note stays")
+	})
+
 	it("computes the 2×2 decomposition from the same counts", async () => {
 		const report = await reportFor("clean")
 		const rate = (cell) => report.cells[cell].hitRate
@@ -681,6 +701,109 @@ describe("the report", () => {
 		assert.ok(Math.abs(decomposition.mood[0].value - (rate("C3") - rate("C1"))) < 1e-12)
 		assert.ok(Math.abs(decomposition.mood[1].value - (rate("C4") - rate("C2"))) < 1e-12)
 		assert.ok(Math.abs(decomposition.interaction - (rate("C4") - rate("C3") - (rate("C2") - rate("C1")))) < 1e-12)
+	})
+})
+
+describe("the per-record invariant (results stream to disk)", () => {
+	const at = (second) => new Date(Date.UTC(2026, 10, 12, 16, 0, second)).toISOString()
+
+	/** A selected run, shaped for the fields `buildRecord` reads. */
+	const plannedRun = (index, label) => ({
+		index,
+		runId: `${label}-d${String(index).padStart(3, "0")}`,
+		label,
+		draw: index,
+		briefId: "B1",
+		promptSha256: "0".repeat(64),
+		text: "prompt",
+	})
+
+	/** A fake runner: hands back the spans in order and no transcript. */
+	function fakeRunner(spans) {
+		const queue = [...spans]
+		return async () => {
+			const [start, end] = queue.shift()
+			return {
+				status: "RUN",
+				reason: null,
+				exitCode: 0,
+				startedAt: at(start),
+				endedAt: at(end),
+				transcript: null,
+			}
+		}
+	}
+
+	const opts = { model: "stub", only: null, usageDir: "" }
+
+	async function readRecords(out) {
+		const raw = await fs.readFile(path.join(out, "results.jsonl"), "utf-8")
+		return raw
+			.split("\n")
+			.filter((line) => line.trim() !== "")
+			.map((line) => JSON.parse(line))
+	}
+
+	it("throws at a repeated label and keeps every record completed before it", async () => {
+		const out = await fs.mkdtemp(path.join(os.tmpdir(), "routing-round-stream-label-"))
+		const selected = [plannedRun(1, "CELL-4"), plannedRun(2, "CELL-4"), plannedRun(3, "CELL-1")]
+		await assert.rejects(
+			executeSelected({ out, selected, opts, runOnce: fakeRunner([[0, 5], [10, 15], [20, 25]]) }),
+			(error) => {
+				assert.match(error.message, /drifted at call #2/)
+				assert.match(error.message, /"CELL-4"/, "the repeated label is named")
+				assert.ok(error.message.includes(at(10)), `the violating start is named: ${error.message}`)
+				assert.ok(error.message.includes(at(5)), `the previous end is named: ${error.message}`)
+				return true
+			},
+		)
+		const records = await readRecords(out)
+		assert.equal(records.length, 1, "every completed record before the violation survives")
+		assert.equal(records[0].index, 1)
+		assert.equal(records[0].label, "CELL-4")
+	})
+
+	it("throws at an overlap and keeps every record completed before it", async () => {
+		const out = await fs.mkdtemp(path.join(os.tmpdir(), "routing-round-stream-overlap-"))
+		const selected = [plannedRun(1, "CELL-4"), plannedRun(2, "CELL-1"), plannedRun(3, "CELL-3")]
+		await assert.rejects(
+			executeSelected({ out, selected, opts, runOnce: fakeRunner([[0, 20], [10, 30], [40, 50]]) }),
+			/overlap in time/,
+		)
+		const records = await readRecords(out)
+		assert.equal(records.length, 1, "the overlapping call is never appended")
+		assert.equal(records[0].label, "CELL-4")
+	})
+
+	it("skips the label test for a same-label --only slice but still rejects overlap", async () => {
+		const selected = [plannedRun(1, "CELL-4"), plannedRun(2, "CELL-4")]
+		const onlyOpts = { ...opts, only: "CELL-4" }
+
+		const out = await fs.mkdtemp(path.join(os.tmpdir(), "routing-round-stream-only-"))
+		const tally = await executeSelected({
+			out,
+			selected,
+			opts: onlyOpts,
+			runOnce: fakeRunner([[0, 5], [10, 15]]),
+		})
+		assert.equal(tally.RUN, 2, "a same-label slice is legitimate and completes")
+		assert.equal((await readRecords(out)).length, 2)
+
+		const overlapped = await fs.mkdtemp(path.join(os.tmpdir(), "routing-round-stream-only-overlap-"))
+		await assert.rejects(
+			executeSelected({
+				out: overlapped,
+				selected,
+				opts: onlyOpts,
+				runOnce: fakeRunner([[0, 20], [10, 30]]),
+			}),
+			/overlap in time/,
+		)
+		assert.equal(
+			(await readRecords(overlapped)).length,
+			1,
+			"the overlap check still applies to a single-label slice",
+		)
 	})
 })
 

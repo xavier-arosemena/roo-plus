@@ -1441,7 +1441,10 @@ export function renderReport(report) {
 		lines.push(
 			`  ${pad(cell.label, 8)} cell ${pad(cell.cell, 3)} ${
 				test === null
-					? "not defined (every scored outcome is identical)"
+					? // A constant outcome sequence (e.g. C5 and C6 at 100 declarations and 0
+						// asks) is saturated, not defective: there is no variation for the runs
+						// test to read, so the honest rendering says no test is possible.
+						"no dependence test possible: saturated"
 					: `runs ${pad(test.runs, 4)} expected ${pad(fixed(test.expected, 1), 6)} z ${signed(test.z, 2)}`
 			}`,
 		)
