@@ -1,0 +1,68 @@
+{
+  "sealed": true,
+  "warning": "SEALED ANALYSIS KEY — maps blind arm ids to their expected owner and the shared picker vocabulary. No scorer bundle may contain this file.",
+  "registration": "docs/reviews/2026-11-13-e20-preregistration.md",
+  "amendment": "Amendment 1 — 2026-11-16, draws per arm",
+  "experiment": "E20",
+  "slugVocabulary": [
+    "acceptance-criteria",
+    "ai-cost-engineer",
+    "ai-feature-engineer",
+    "architect",
+    "architecture-reviewer",
+    "career-coach",
+    "code",
+    "code-reviewer",
+    "codebase-cartographer",
+    "compliance-mapping",
+    "content-writer",
+    "contract-negotiation",
+    "critic",
+    "data-analyst",
+    "database-migration",
+    "debug",
+    "decision-record",
+    "devops",
+    "documentation",
+    "engineering-physics",
+    "explain",
+    "financial-analyst",
+    "incident-commander",
+    "integration-engineer",
+    "legal-review",
+    "logic-math",
+    "marketing-strategist",
+    "modernisation",
+    "orchestrator",
+    "performance",
+    "planner",
+    "pricing-analyst",
+    "product-manager",
+    "reasoner",
+    "refactoring",
+    "release-readiness",
+    "requirements",
+    "researcher",
+    "science-advisor",
+    "security-reviewer",
+    "synthesis-writer",
+    "test-author",
+    "test-strategist",
+    "venture-analyst",
+    "vulnerability-response"
+  ],
+  "arms": [
+    {
+      "armId": "ARM-2",
+      "expectedOwner": "explain"
+    },
+    {
+      "armId": "ARM-1",
+      "expectedOwner": "explain"
+    },
+    {
+      "armId": "ARM-3",
+      "expectedOwner": "explain"
+    }
+  ]
+}
