@@ -704,3 +704,23 @@ This is the sharpest instance of the programme's recurring failure mode: an auto
 | `_label-map.json` | `6c3e80deef6f0e31`           | restored to two spaces |
 
 `--check` now reports all nine files byte-identical, and the suite is **65 of 65**. The round-trip residual is unchanged (−3/−1/+3/−4/+1/+2, 183 adjudicated), so none of this touched measurement.
+
+## 19. E20 readiness — every precondition checked, no call made (2026-11-16)
+
+Nothing here spent money. The Gemini key was verified with a free models-list call: HTTP 200, 50 models visible, `gemini-3.5-flash` available. That request generates nothing and bills nothing.
+
+| Registration §10 precondition       | State                | Evidence                                                                                                                                     |
+| ----------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Extractor v2, tested, round-tripped | **Met**              | `routing-round.spec.mjs` 65 of 65; round-trip residual −3/−1/+3/−4/+1/+2 with 183 replies awaiting hand adjudication                         |
+| Runs test in the report             | **Met**              | Per arm, rendered beside the clustering guard; a saturated cell reads "no dependence test possible: saturated"                               |
+| Interleaving assertion              | **Met**              | Expected total now comes from the plan (`cycle.length × cycles`); 899 transitions in 900 calls is tested, and one swapped pair throws at 897 |
+| Fixture generated and hashed        | **Met**              | E20 900 entries, 3 distinct `promptSha256`, counts 100/400/400; E20b 200 entries, 2 distinct, 100/100                                        |
+| Answer key sealed                   | **Met**              | `sealed: true` in both; neither key contains line text or a bare arm letter                                                                  |
+| `.env` verified                     | **Met, Gemini only** | Gemini key present and valid. DeepSeek base URL and model are now filled but **unused** — Stage 2 was never authorised to run                |
+
+Measured rather than copied: the three arm lines are **50, 96 and 99 characters**; `explain` sits at index 6 in all three E20 arms; the pickers are identical in slug order and differ only in that one line.
+
+Two things a reader should know before the sweep:
+
+1. **The 47-slug claim in §4.2 does not apply to E20.** A union of 47 is a property of the closing round's six pickers, which added `explanation` and `bug-report`. E20's three arms share one 45-slug picker, so the union is 45. Recorded rather than quietly reconciled.
+2. **Blinding is weaker than it looks.** Because `plan.json` records the cycle, anyone holding it can tell which blind label is arm A — the arm that appears once in nine. The sealed key remains the only place the owner mapping lives, so counting is unaffected. But the hand adjudication of undetermined replies **must strip the arm label from its packet**, or the adjudicator can be biased by knowing which arm produced the reply.
