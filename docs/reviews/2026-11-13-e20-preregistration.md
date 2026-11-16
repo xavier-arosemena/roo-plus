@@ -142,4 +142,41 @@ Any of the following makes the run exploratory rather than confirmatory, and it 
 
 ## 11. Amendment log
 
-_(empty — no amendments at registration)_
+### Amendment 1 — 2026-11-16: draws per arm
+
+Registered before any call. Supersedes three statements above: the "n = 100 draws per arm" line in §2.1, the 19.8-point sentence in §5, and the cost table in §8. Everything else stands unchanged.
+
+**1. Draws.** Arm A stays at **100**. Arms B and C move to **400 each**. E20 totals 900 calls; E20b is unchanged at 200.
+
+**2. Why.** At n = 100 the smallest detectable difference was 19.8 points and a 15-point effect had only 57% power. The closing round measured a label-form effect of 14–17 points (log §17.4) and was then described as "second-order" — which describes the design's resolution, not the label. Spending 300 calls to produce a number that cannot separate a 15-point effect from noise is the mistake this amendment removes.
+
+**3. What 400 buys**, measured at α = .05 two-sided, baseline .50:
+
+| True effect | Power at n = 100 | Power at n = 400 |
+| ----------- | ---------------- | ---------------- |
+| 10 points   | 29%              | 81%              |
+| 12 points   | 40%              | 93%              |
+| 15 points   | 57%              | 99%              |
+| 20 points   | 82%              | ~100%            |
+
+The 10–20 point band becomes answerable. Effects below about 10 points remain out of reach — 8 points sits at 62% — and that limit is reported with every result.
+
+**4. Why A stays at 100.** A is a descriptive reference level, not an inference: it differs from B in length as well as in content (50 against 96 characters), and a length-matched inert clause cannot be written without adding meaning. Its precision therefore buys no causal claim, so 400 draws would sharpen a number that cannot be used for one. One hundred gives ±10 points, which is enough to state the baseline.
+
+**5. Interleaving.** Three arms in a 1:4:4 ratio cannot alternate pairwise. The registered cycle is **A B C B C B C B C**, repeated 100 times: 900 calls, every consecutive pair a different arm, counts exact, and 899 transitions across 900 calls. Any other order is a deviation under §9.
+
+**6. Cost** at the measured rate of €5.1 per 1,000 calls (log §5.1):
+
+| Item                      | Calls     | ≈ Cost     |
+| ------------------------- | --------- | ---------- |
+| E20 — B and C at 400 each | 800       | €4.2       |
+| E20 — A at 100            | 100       | €0.5       |
+| E20b — position           | 200       | €1.1       |
+| **Total**                 | **1,100** | **≈ €5.7** |
+
+Every earlier figure in this file was in dollars and roughly half the true cost. The platform-reported €3.24 for 635 calls is the only measured number the programme has.
+
+**7. Two added preconditions**, beyond §10:
+
+- the executor must take the expected number of calls from the plan rather than from a constant, and the interleaving assertion must accept the 9-cycle (899 transitions in 900 calls);
+- the fixture must prove the 1:4:4 counts and the cycle order before the answer key is sealed.

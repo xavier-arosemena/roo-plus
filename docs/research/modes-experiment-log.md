@@ -193,6 +193,18 @@ Source: usage sidecars written by I-6, one per run.
 
 The pre-run estimate was ≈45k input tokens and "cents to well under a dollar". The measured figure is 66,849 total, of which 27,509 are thinking tokens not present in the estimate. The estimate was low on output-side tokens and right on prompt-side tokens.
 
+### 5.1 Reconciled platform spend (read 2026-11-16)
+
+The Gemini console renders spending more than 24 hours late, so the figure was taken after a weekend rather than at the time of each run. It supersedes every estimate in this log and in the roadmap.
+
+| Date       | Calls               | Reported spend |
+| ---------- | ------------------- | -------------- |
+| 2026-11-11 | 35 (E11 30 + E12 5) | €0.15          |
+| 2026-11-12 | 600 (E13-R Stage 1) | €3.10          |
+| **Total**  | **635**             | **€3.24**      |
+
+Measured rate: **€5.1 per 1,000 calls**, about €0.0051 per call. The closing round had been estimated at $1.7; the measured spend is €3.10, so the estimate was low by a factor close to two even before any currency conversion. Forward planning in this programme uses the measured rate from here on.
+
 ## 6. Deviations and errors register
 
 Every entry here is a departure that a reader of any later write-up should know about.
