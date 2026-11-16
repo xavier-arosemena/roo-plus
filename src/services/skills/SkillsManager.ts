@@ -2,6 +2,7 @@ import * as fs from "fs/promises"
 import * as path from "path"
 import * as vscode from "vscode"
 import matter from "gray-matter"
+import { parseFrontmatter } from "../../utils/safeFrontmatter"
 
 import type { ClineProvider } from "../../core/webview/ClineProvider"
 import { getGlobalRooDirectory, getGlobalAgentsDirectory, getProjectAgentsDirectoryForCwd } from "../roo-config"
@@ -102,7 +103,7 @@ export class SkillsManager {
 			const fileContent = await fs.readFile(skillMdPath, "utf-8")
 
 			// Use gray-matter to parse frontmatter
-			const { data: frontmatter, content: body } = matter(fileContent)
+			const { data: frontmatter } = parseFrontmatter(fileContent)
 
 			// Validate required fields (only name and description for now)
 			if (!frontmatter.name || typeof frontmatter.name !== "string") {
@@ -274,7 +275,7 @@ export class SkillsManager {
 
 		// Read skill content from disk
 		const fileContent = await fs.readFile(skill.path, "utf-8")
-		const { content: body } = matter(fileContent)
+		const { content: body } = parseFrontmatter(fileContent)
 
 		return {
 			...skill,
@@ -540,7 +541,7 @@ Add your skill instructions here.
 
 		// Read the current SKILL.md file
 		const fileContent = await fs.readFile(skill.path, "utf-8")
-		const { data: frontmatter, content: body } = matter(fileContent)
+		const { data: frontmatter, content: body } = parseFrontmatter(fileContent)
 
 		// Update the frontmatter with new modeSlugs
 		if (newModeSlugs && newModeSlugs.length > 0) {
@@ -554,7 +555,7 @@ Add your skill instructions here.
 		}
 
 		// Serialize back to SKILL.md format
-		const newContent = matter.stringify(body, frontmatter)
+		const newContent = matter.stringify({ content: body }, frontmatter)
 		await fs.writeFile(skill.path, newContent, "utf-8")
 
 		// Refresh skills list
