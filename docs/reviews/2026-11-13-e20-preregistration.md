@@ -180,3 +180,21 @@ Every earlier figure in this file was in dollars and roughly half the true cost.
 
 - the executor must take the expected number of calls from the plan rather than from a constant, and the interleaving assertion must accept the 9-cycle (899 transitions in 900 calls);
 - the fixture must prove the 1:4:4 counts and the cycle order before the answer key is sealed.
+
+### Amendment 2 — 2026-11-16: run-time protocol gaps
+
+Registered before any call. Adds four things §4 and §8 left open.
+
+**1. Mid-run stop rule.** After the first 90 draws — ten full cycles, so every arm is represented — compute the exclusion rate. If it exceeds 5% in any arm, or any arm shows a longest identical verbatim run above 5, stop and spend nothing further. §8's rule fired only at the end, which would mean paying the full €4.7 to learn the round is uninformative. The first 90 draws cost about €0.47 and answer the same question.
+
+**2. The persona is the closed round's.** No directive is registered for E20. The build fixed the goal-only directive used by every prior routing round, and the executor refuses a plan whose directive differs. Recorded here so that comparability with the closing round is a stated fact rather than an artefact of the generator.
+
+**3. Model and cap are pinned for the whole sweep.** `gemini-3.5-flash`, with one `maxOutputTokens` value fixed before the first call and recorded in every record. The executor already warns if the cap changes mid-batch; a warning of that kind invalidates the batch, and will be treated as such rather than noted.
+
+**4. The adjudication protocol.** The primary outcome is mechanical and therefore blind by construction: the extractor never sees an arm label. Blindness matters only for the ~30% of replies it cannot classify.
+
+- The packet holds each undetermined reply under a random id, with no arm letter, no draw number, no timestamp, and in shuffled order. The id-to-run mapping stays outside the packet and is joined only after every judgement is recorded.
+- The tie-break rule is fixed here, before the data. **If a declaration marker appears anywhere in the reply, it is a DECLARATION**, even when it asks for information afterwards — E21 found both of its classifier disagreements were exactly this shape, a commit followed by a courtesy question. If no marker appears and the reply requests information, it is an ASK. Anything else is OTHER, reported separately rather than forced into a category.
+- Two passes, the second blind to the first, with the agreement rate published beside the count. A residual that is measured is worth more than one that is assumed.
+
+**What cannot be blinded.** Anyone holding this registration or `plan.json` knows which arm is which, so secrecy is not available in a single-analyst programme. The protection is that the primary outcome is mechanical and the decision bands in §6 were fixed before the data. Adjudication is the one place where knowing would change a judgement, and it is the one place blinded.
