@@ -54,10 +54,17 @@ whole sync pipeline around it** (Issue #159):
 - **Add a built-in slug guard**: `sync-custom-modes.mjs` fails the build if any
   core mode slug (`architect`, `code`, `ask`, `debug`, `orchestrator`) leaks into
   `.roomodes`, `pre-installed-modes.yml`, or `modes.yml`.
-- **Pin the submodule** at a recorded commit (currently `8cdf378b`) and enforce it
+- **Pin the submodule** at a recorded commit and enforce it
   with [`scripts/verify-submodule-pin.mjs`](../../scripts/verify-submodule-pin.mjs),
   wired into `prevsix` / `prebundle` / `prevscode:prepublish`, so every packaging
   path builds against a known-good, clean checkout.
+
+    > **Correction (2026-11-06):** the pin quoted here was `8cdf378b`, but the actual gitlink is
+    > `78a2010bcc511e014be2f3852e965f92e8a756e3` — the two had already drifted, which is precisely the
+    > failure this gate existed to catch. **Superseded by [ADR: Vendor the modes catalogue into the
+    > repository](adr-modes-catalogue-vendored.md)**: the submodule is being retired, so no pin is quoted
+    > here from now on.
+
 - **Regenerate and verify**: `.roomodes` reproducibility is guarded by
   [`scripts/verify-roomodes-sync.mjs`](../../scripts/verify-roomodes-sync.mjs); the
   description pipeline is consolidated in

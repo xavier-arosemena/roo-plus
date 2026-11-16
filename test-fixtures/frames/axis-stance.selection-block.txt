@@ -1,0 +1,45 @@
+- requirements — Use when a request lacks acceptance criteria and must be framed into a testable scope before work starts.
+- acceptance-criteria — Use when criteria exist but are untestable and must become observable conditions with one check each.
+- architect — Use when a design decision must be made: boundaries, quality attributes or a contract, with trade-offs recorded.
+- architecture-reviewer — Use when a design or an existing structure must be reviewed for risk, before build or after drift.
+- code — Use when specified behaviour must be implemented here with tests that fail before and pass after.
+- integration-engineer — Use when third-party APIs, dependencies or protocol boundaries must be integrated or kept working.
+- explain — Use when someone asks why code behaves as it does and the answer must cite evidence, not recall.
+- codebase-cartographer — Use when an unfamiliar or large codebase must be mapped: entry points, flows, dependents, blast radius.
+- debug — Use when something fails and the cause is unknown: produce a reproduction and a named root cause.
+- performance — Use when a performance, latency, memory or cost budget is missed and must be measured before changing.
+- test-author — Use when behaviour needs executable evidence: tests mapped to criteria, failing before and passing after.
+- test-strategist — Use when it is unclear what is worth testing: plan the suite by risk, cost and flakiness, not coverage.
+- refactoring — Use when code must change shape without changing behaviour and tests must stay green throughout.
+- modernisation — Use when a dependency, framework or subsystem must be upgraded or retired in shippable stages.
+- code-reviewer — Use when a change must be reviewed for defects, risk and convention before it merges, findings by severity.
+- release-readiness — Use when a release candidate exists and someone must decide go or no-go with evidence.
+- security-reviewer — Use when a trust boundary, threat model or abuse case must be assessed before or after build.
+- vulnerability-response — Use when a vulnerability, leaked secret or CVE must be reproduced, fixed and regression-tested.
+- devops — Use when the pipeline, build, environment or release automation is the problem to fix.
+- incident-commander — Use when production is degraded and restoration, timeline and follow-ups matter more than root cause.
+- data-analyst — Use when a question can be answered from production data and the answer needs stated caveats.
+- database-migration — Use when a schema or data change must land safely: expand and contract, reversible, verified.
+- documentation — Use when a reader must be able to act without asking: guides, references, runbooks, onboarding notes.
+- decision-record — Use when a choice will be questioned later and must be recorded with context, options and consequences.
+- orchestrator — Use when work spans several modes or agents and must be split into self-contained briefs.
+- planner — Use when the goal is known but the sequence is not: produce an ordered plan with checkpoints.
+- researcher — Use when the answer lives outside this repository or needs sources that can be cited.
+- critic — Use when a claim, plan or design must be attacked before it is trusted.
+- reasoner — Use when a decision needs explicit reasoning: hypotheses, verification and a stated conclusion.
+- legal-review — Use when a contract, clause or obligation must be read and summarised with the risk flagged.
+- compliance-mapping — Use when a regulation or policy must be mapped to concrete controls and evidence.
+- marketing-strategist — Use when positioning, channels or a campaign must be planned against a target audience.
+- content-writer — Use when finished copy is needed for a channel, in a voice and length that fits it.
+- financial-analyst — Use when numbers must be modelled with assumptions, sensitivity and a recommendation.
+- pricing-analyst — Use when a price or tier must be set or defended with willingness-to-pay reasoning.
+- product-manager — Use when a problem must be framed into a product bet with evidence and a success measure.
+- venture-analyst — Use when a business idea must be tested for market, model and viability before building.
+- synthesis-writer — Use when several sources must become one cited brief a decision-maker can act on.
+- career-coach — Use when a developer needs a plan for a role change, promotion or job search.
+- contract-negotiation — Use when an employment or client contract must be negotiated with terms and fallbacks prepared.
+- science-advisor — Use when a scientific question in physics, chemistry or biology needs an evidence-based answer.
+- engineering-physics — Use when a physical or engineering calculation must be checked against units and assumptions.
+- logic-math — Use when a formal argument, proof or quantitative derivation must be constructed or checked.
+- ai-feature-engineer — Use when a model-powered capability must be built: prompts, retrieval, tool calls and evals.
+- ai-cost-engineer — Use when token spend, latency or model routing must be measured and reduced without quality loss.

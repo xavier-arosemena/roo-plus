@@ -19,6 +19,12 @@ makes the decision legible to someone reading the ADR a year later.
 
 What did we decide to do? State it as one concrete, testable decision.
 
+**Optimise for the best achievable product, not for today's configuration.** Constraints (fork
+alignment, strict schemas, absent telemetry, a coarse capability model) shape the _migration path_,
+never the _target_: if a limitation blocks the better product, name the change that removes it and its
+cost **before** choosing. "We cannot, because that is how it is built today" is a status report, not a
+decision.
+
 If alternatives were considered, list them here and explain why each was
 **rejected** — this is what turns a "what we did" into a record of _why_.
 

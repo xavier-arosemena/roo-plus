@@ -1,0 +1,47 @@
+- criteria — Use when a request has no acceptance criteria and must become testable before work starts.
+- legacy-spec — Use when undocumented legacy behaviour must be specified before it is changed.
+- options-memo — Use when two technical or stakeholder options compete and a defensible choice is needed.
+- adr — Use when a structural decision will be questioned later and needs a durable record.
+- contract — Use when two components or teams must agree on an API shape and its compatibility rule.
+- migration — Use when a schema or data change must be applied safely with rollback and verification.
+- design-note — Use when a target cannot be met by the current structure and a tactic must be chosen.
+- feature-diff — Use when acceptance criteria exist and the code does not yet implement them.
+- port — Use when code must move to another language or runtime with proven behaviour parity.
+- localisation — Use when user-facing copy must be localised without breaking placeholders or fallbacks.
+- benchmark — Use when a performance, cost or build-time budget is missed and needs measurement first.
+- bug-report — Use when something fails and the cause is unknown; produce evidence, not a guess.
+- codebase-map — Use when an unfamiliar codebase must be mapped before a change or review.
+- explanation — Use when someone asks why the code behaves as it does and evidence must be cited.
+- test-suite — Use when behaviour needs executable evidence and acceptance criteria exist.
+- test-plan — Use when it is unclear what is worth testing and where the risk actually sits.
+- flake-record — Use when a test fails intermittently and blocks others from merging.
+- refactor-diff — Use when code must change shape without changing behaviour, and tests must stay green.
+- upgrade-plan — Use when a dependency, subsystem or API surface is being retired in stages.
+- review-findings — Use when a change or test suite must be reviewed and findings ranked by risk.
+- release-report — Use when a release candidate exists and someone must decide whether to ship it.
+- threat-model — Use when a new trust boundary appears and its abuse cases must be named.
+- security-fix — Use when a concrete vulnerability, secret or dependency risk must be fixed.
+- supply-evidence — Use when a release or audit requires supply-chain evidence.
+- pipeline-config — Use when the pipeline, build or environment configuration itself is the problem.
+- incident-record — Use when something is degraded in production and the goal is restoration first.
+- data-answer — Use when a question can be answered from production data rather than code.
+- query-plan — Use when a query exceeds its budget and indexes or a rewrite must be justified.
+- doc-page — Use when a reader must be able to act without asking a follow-up question.
+- decision-log — Use when the history of a change is unreadable and must be reconstructed.
+- plan — Use when the work spans several steps or modes and needs to be sequenced first.
+- research-brief — Use when the answer lives outside this repository and must be sourced.
+- critique — Use when a claim, plan or design must be attacked before it is trusted.
+- analysis — Use when a decision needs explicit reasoning rather than a quick answer.
+- delegation-brief — Use when work must be split across modes or agents with complete context.
+- legal-note — Use when a contract, clause or obligation must be reviewed and summarised with the risk flagged.
+- control-map — Use when a regulation or policy must be mapped to concrete controls and the evidence that proves them.
+- campaign-brief — Use when a campaign or positioning must be planned against an audience, channel and budget.
+- content-piece — Use when finished copy is needed for a channel, at the right length and in the right voice.
+- financial-model — Use when numbers must be modelled with stated assumptions, sensitivity and a recommendation.
+- pricing-analysis — Use when a price or tier must be set or defended with willingness-to-pay reasoning.
+- product-brief — Use when a problem must be framed into a product bet with evidence and a success measure.
+- market-analysis — Use when a market or competitor set must be analysed before a product or pricing decision.
+- synthesis-report — Use when several sources must become one cited brief a decision-maker can act on.
+- career-plan — Use when a developer needs a plan for a role change, promotion or job search, with next steps.
+- ai-feature — Use when a model-powered capability must be built: prompts, retrieval, tool calls and an eval suite.
+- eval-suite — Use when model behaviour must be measured against a baseline so regressions are detectable.

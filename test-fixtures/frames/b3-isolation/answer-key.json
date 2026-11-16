@@ -1,0 +1,121 @@
+{
+	"instrument": "B3 isolation (E12)",
+	"registration": "docs/reviews/2026-11-11-b3-isolation-preregistration.md",
+	"amendment": "Amendment 2 §A2.5 — the sealed answer key",
+	"sealed": true,
+	"warning": "SEALED. No scorer may read this file and no bundle may contain it. It records the expected owner for each (condition, brief) pair so that the sequence can be decided mechanically and so that a scorer's judgement cannot move the target. Scorers RECORD the declared mode; they do not decide the owner. If a scorer disagrees with this key, that is a finding about the catalogue, never a licence to edit the key.",
+	"whyItExists": "Objection 14: without a key, A4 — the arm that varies the brief — can move the target instead of the arrow. With a key, a rise in A4 is measurable on the same scale as A0.",
+	"personas": ["P1", "P2", "P3", "P4", "P5"],
+	"owners": [
+		{
+			"condition": "C1",
+			"briefId": "B1",
+			"owner": "debug",
+			"picker": "A0.roomodes (unmodified axis picker)",
+			"executed": true,
+			"note": "B1 is a debugging brief: 'CI is red on a test that passes locally.' The axis picker's `debug` mode owns it ('something fails and the cause is unknown'). Amendment 2 §A2.5 lists `explain` for C1 as well; that is inconsistent with C1 carrying B1, and a key of `explain` would make step 0 unsatisfiable. The decidable reading is `debug`, recorded here and flagged in the implementation notes (IN-15)."
+		},
+		{
+			"condition": "A0",
+			"briefId": "B3",
+			"owner": "explain",
+			"picker": "A0.roomodes (unmodified axis picker)",
+			"executed": true
+		},
+		{
+			"condition": "A5",
+			"briefId": "B3",
+			"owner": "explanation",
+			"picker": "A5.roomodes (unmodified artefact picker)",
+			"executed": true
+		},
+		{
+			"condition": "P",
+			"briefId": "B3",
+			"owner": "explain",
+			"picker": "P.roomodes (A0 with career-coach and pricing-analyst slugs renamed)",
+			"executed": true
+		},
+		{
+			"condition": "A1",
+			"briefId": "B3",
+			"owner": "explanation",
+			"picker": "A1.roomodes (comprehension mode renamed to the noun form)",
+			"executed": true
+		},
+		{
+			"condition": "A2",
+			"briefId": "B3",
+			"owner": "explanation",
+			"picker": "A2.roomodes (A1 plus the artefact routing line)",
+			"executed": true
+		},
+		{
+			"condition": "A4",
+			"briefId": "B3P",
+			"owner": "explain",
+			"picker": "A0.roomodes (unmodified axis picker; the brief is the paraphrased one)",
+			"executed": true,
+			"note": "Amendment 2 §A2.5 fixes this explicitly: for A4 on the unmodified picker the expected owner is `explain`, so A4 and A0 are measured on the same scale."
+		},
+		{
+			"condition": "C2",
+			"briefId": "B3",
+			"owner": "explain",
+			"picker": "C2.roomodes (A0 with the picker order reversed)",
+			"executed": false,
+			"note": "Keyed because §A2.5 names it. Not executed: the Amendment 2 §A2.7 order contains no order control."
+		},
+		{
+			"condition": "A3",
+			"briefId": "B3",
+			"owner": "explain",
+			"picker": "A3.roomodes (A0 plus two appended padding modes)",
+			"executed": false,
+			"note": "Keyed for completeness only. Not executed: §A2.3 withdraws S and marks A3 not-run."
+		}
+	],
+	"e11ReferenceVector": [
+		{
+			"persona": "P1",
+			"label": "HELP",
+			"declared": null,
+			"note": "E11's axis×stance B3 cell: P1 declined to choose."
+		},
+		{
+			"persona": "P2",
+			"label": "HELP",
+			"declared": null,
+			"note": "E11: P2 declined to choose."
+		},
+		{
+			"persona": "P3",
+			"label": "PLAUSIBLE",
+			"declared": "architecture-reviewer",
+			"note": "E11 recorded PLAUSIBLE and the slug it settled on. Agreement in step 4 is exact slug equality, which is what makes the step decidable without a scorer."
+		},
+		{
+			"persona": "P4",
+			"label": "MATCH",
+			"declared": "explain",
+			"note": "E11's one key hit on the comprehension owner."
+		},
+		{
+			"persona": "P5",
+			"label": "HELP",
+			"declared": null,
+			"note": "E11: P5 declined to choose."
+		}
+	],
+	"replicationCriterion": {
+		"minAgreement": 4,
+		"minHelp": 2,
+		"text": "Amendment 2 §A2.2 step 4: at least 4 of 5 personas agree with E11's vector and HELP >= 2, where HELP means the response declared no mode."
+	},
+	"mechanicalDefinitions": {
+		"HELP": "declared_mode is null: the response named no slug from its own picker. Not a judgement.",
+		"keyHit": "declared_mode equals the owner recorded above for that (condition, brief).",
+		"nonKey": "declared_mode is a slug from the picker but not the owner.",
+		"ambiguous": "more than one picker slug appears in the response; the sequence uses the last-mentioned and records the flag. The scorer's tie-break in the rubric governs the scoring pass, not this sequence."
+	}
+}

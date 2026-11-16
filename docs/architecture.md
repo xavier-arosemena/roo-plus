@@ -587,6 +587,14 @@ class than edit approval.
 | **Management**   | [`src/core/context-management/`](../src/core/context-management/)                                             | Sliding-window truncation and window-exceeded recovery.           |
 | **Condensation** | [`src/core/condense/`](../src/core/condense/)                                                                 | Summarise older turns when the budget is exceeded.                |
 
+Mode and skill text is the largest **user-controlled** contributor to that fixed prefix: the
+`MODES` section is regenerated on every request from every installed mode
+([`getModesSection`](../src/core/prompts/sections/modes.ts)), and the skills index from every
+available skill ([`getSkillsSection`](../src/core/prompts/sections/skills.ts)). What belongs in
+each field, what it may cost, and which parts are enforced rather than advisory are specified in
+the [**Modes Architecture**](modes-architecture.md) reference (§1 three-plane model, §4 budgets,
+§7 efficiency, §8 skills).
+
 Token and cost accounting is first-class, not derived: usage chunks are accumulated into
 per-request and per-task metrics (`getApiMetrics`, `calculateApiCost*`), and the UI is expected
 to show real numbers — the product's stated promise is _legible spend_. When a provider omits
@@ -747,13 +755,13 @@ surface. Treat any change that widens auto-approval as a security change, not a 
 
 Five seams, ascending in power:
 
-| Seam                     | Mechanism                                                                                                                   | Where                                                                                                               |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Modes**                | Role definition, tool allow-list, instructions per mode; 90 pre-loaded from a canonical catalog.                            | [`custom-modes/`](../custom-modes/), `CustomModesManager`, [catalog ADR](adr/adr-custom-modes-canonical-catalog.md) |
-| **Rules and skills**     | `AGENTS.md`/`CLAUDE.md`-compatible rules plus `.roo/skills` procedures surfaced by `SkillTool`.                             | [`services/rules/`](../src/services/rules/), [`services/skills/`](../src/services/skills/)                          |
-| **Commands**             | Slash commands resolved from workspace/user scope with pre-flight validation.                                               | `commands` handler, `RunSlashCommandTool`                                                                           |
-| **Tools**                | MCP servers (external) and custom tools (registered with `customToolRegistry`, built by a lazily installed esbuild engine). | `McpHub`, [`packages/core/src/custom-tools/`](../packages/core/src/custom-tools/)                                   |
-| **Programmatic control** | Public `API` + IPC for editors and automation.                                                                              | [`src/extension/api.ts`](../src/extension/api.ts)                                                                   |
+| Seam                     | Mechanism                                                                                                                                                                       | Where                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Modes**                | Role definition, tool allow-list, instructions per mode; 90 pre-loaded from a canonical catalog. Framework, budgets and gates: [**Modes Architecture**](modes-architecture.md). | [`custom-modes/`](../custom-modes/), `CustomModesManager`, [catalog ADR](adr/adr-custom-modes-canonical-catalog.md), [modes architecture](modes-architecture.md) |
+| **Rules and skills**     | `AGENTS.md`/`CLAUDE.md`-compatible rules plus `.roo/skills` procedures surfaced by `SkillTool`.                                                                                 | [`services/rules/`](../src/services/rules/), [`services/skills/`](../src/services/skills/)                                                                       |
+| **Commands**             | Slash commands resolved from workspace/user scope with pre-flight validation.                                                                                                   | `commands` handler, `RunSlashCommandTool`                                                                                                                        |
+| **Tools**                | MCP servers (external) and custom tools (registered with `customToolRegistry`, built by a lazily installed esbuild engine).                                                     | `McpHub`, [`packages/core/src/custom-tools/`](../packages/core/src/custom-tools/)                                                                                |
+| **Programmatic control** | Public `API` + IPC for editors and automation.                                                                                                                                  | [`src/extension/api.ts`](../src/extension/api.ts)                                                                                                                |
 
 The pattern is consistent: **extensions declare capabilities; the core decides whether and how
 to execute them.** No extension point bypasses approval, mode filtering, or validation.
