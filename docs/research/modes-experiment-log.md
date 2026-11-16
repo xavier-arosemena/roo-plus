@@ -34,6 +34,8 @@ The log is append-only and therefore contains superseded readings. **This block 
 
 **Closed.** The routing benchmark **on label form**, on the number in §17.3: **598 of 600 appropriate**. Stage 2 (DeepSeek) is **not run**, because the registered condition — a Stage 1 primary interval excluding zero — was not met.
 
+**The next round's resolution, stated before it runs.** E20 varies the line's artefact polarity at 400 draws for the two long arms. That catches a **12-point difference 93% of the time and 15 points 99% of the time**. Below about **10 points it cannot separate an effect from noise** — 8 points sits at 62%. So a "no detectable effect" result from E20 is a statement about the ruler, not evidence that labels do nothing, and it must be written that way.
+
 **Not established, and not to be quoted.** Any per-cell rate from E11; anything about human users; and whether a good name can _rescue_ a vague brief, because the control cells sat at 99–100% and the interaction therefore had no room to vary.
 
 **Next.** E20, already approved, tests the artefact-stating line on a maximally ambiguous brief; it must freeze a declaration contract first (§16.4). After that, the capability benchmark: doctrine and tooling, not vocabulary.
@@ -768,5 +770,17 @@ Before committing €4.7 I ran one full cycle through the real provider rather t
 
 1. **Time, not cost.** Mean call duration was **9.6 s**, so 900 calls is about **2.4 hours**, not the 60–80 minutes this log previously implied. The closing round averaged 8.2 s only because its unambiguous cells answered in 4–6 s; every E20 call receives the ambiguous brief, so every call is slow.
 2. **My own probe was wrong.** Re-extracting the replies, I passed `undefined` as the slug vocabulary — the E20 key carries one shared `slugVocabulary`, not per-arm lists — and read 9 of 9 as abstentions. Under the closing round's rates that is a 0.2% coincidence, and I nearly concluded a seventh reply format existed. Corrected: 6 of 9 declared. Recorded as **D-17**.
+
+**What E20 can and cannot detect — fixed before the run.** Power at α = .05 two-sided, baseline 50%, measured:
+
+| True difference | Power at 100 draws | Power at 400 draws |
+| --------------- | ------------------ | ------------------ |
+| 8 points        | 15%                | 62%                |
+| 10 points       | 29%                | 81%                |
+| 12 points       | 40%                | **93%**            |
+| 15 points       | 57%                | **99%**            |
+| 20 points       | 82%                | ~100%              |
+
+The smallest detectable difference at 400 draws is **9.9 points**, and 11.5 points at 90% power. The reading rules follow from this and are not negotiable after the fact: a difference under 10 points is reported as _no detectable effect at this resolution_, never as _labels do not matter_; a difference of 10–20 points is a magnitude, not a verdict; and only a difference above 20 points licenses a claim that polarity drives commitment. The closing round's measured 14–17 points sits inside the band where 100 draws had 57% power, which is why "second-order" described the ruler rather than the label.
 
 **One measurement caveat.** The exit codes printed in this session were read through a pipe, so they reflect the last command in the pipeline rather than the executor. This is deviation D-6 recurring; the messages themselves are conclusive, and the codes are asserted in tests rather than read from shell output.
