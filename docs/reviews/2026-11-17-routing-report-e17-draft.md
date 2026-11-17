@@ -8,13 +8,15 @@
 | **Registration** | [`2026-11-13-e20-preregistration.md`](2026-11-13-e20-preregistration.md:1), Amendments 1 and 2                                                                   |
 | **Calls paid**   | 1,931 output-producing calls ≈ **€9.8** (measured rate €5.1 / 1,000); 4.80 h wall clock including one aborted batch                                              |
 
+[I am putting my comments in brackets]
+
 ---
 
 ## 0. What to take away
 
-1. **The picker decides.** Two manipulations of a single field each moved commitment by roughly 27–29 points — far beyond the ~10-point resolution of the design. The picker is not a neutral index.
-2. **Both effects point the opposite way to the prediction.** Naming what the answer must _avoid_ committed more than naming what it must _contain_; the **last** entry committed more than the first. The literature and our own registration expected the reverse.
-3. **Order and wording cannot be told apart at these precisions.** Position reproduced the artefact effect almost exactly — 29.0 points (CI ± 12.0) against 27.5 points (CI ± 5.7). The E20b interval is wide because it ran 100 draws per arm, so "the same size" is the correct reading only in the sense that **neither is distinguishable from the other**; it is not a claim that the two are equal. Any future label experiment must control position, and any future position experiment must control wording.
+1. **The picker decides.** Two manipulations of a single field each moved commitment by roughly 27–29 points — far beyond the ~10-point resolution of the design. The picker is not a neutral index. [A note in the preliminary: What is a picker?]
+2. **Both effects point the opposite way to the prediction.** a) Naming what the answer must _avoid_ committed more than naming what it must _contain_; b) the **last** entry committed more than the first. The literature and our own registration expected the reverse.
+3. **Order and wording cannot be told apart at these precisions.** [a and b are indistinguishable?] Position reproduced the artefact effect almost exactly — 29.0 points (CI ± 12.0) against 27.5 points (CI ± 5.7). The E20b interval is wide because it ran 100 draws per arm, so "the same size" is the correct reading only in the sense that **neither is distinguishable from the other**; it is not a claim that the two are equal. Any future label experiment must control position, and any future position experiment must control wording.
 4. **Order has a cost that wording does not.** The last position produced **12% wrong commits**; the first produced **none**. Commitment is not the same thing as correct commitment.
 5. **Nothing here is reproducible per request.** The same prompt at `temperature: 0`, run hours apart, produced **zero** byte-identical transcripts and matched its own commit/ask outcome only at chance (~53–71%). A mode that works once may ask next time.
 
@@ -33,7 +35,7 @@ There are exactly two levers an author controls when publishing a picker:
 - **Wording** — what the `whenToUse` line says.
 - **Order** — where the mode sits in the list the model reads.
 
-Prior work left both unsettled. The label-form literature documents polarity at _request_ level but never inside a _selection list_. The only factor-isolated position study reports the first-listed entry being chosen in 78.7–96.0% of trials — larger than any label effect ever measured — and every round this programme has run held position fixed, so our own numbers were never tested against it.
+Prior work left both unsettled. The label-form literature documents polarity at _request_ level but never inside a _selection list_ [citation needed]. The only factor-isolated position study reports the first-listed entry being chosen in 78.7–96.0% of trials [citation needed] — larger than any label effect ever measured — and every round this programme has run held position fixed, so our own numbers were never tested against it. [I'm not sure I understand this. This is saying we did not test position?]
 
 ### 1.3 The three questions this report has to answer
 
@@ -43,7 +45,7 @@ Prior work left both unsettled. The label-form literature documents polarity at 
 
 ### 1.4 What counts as an answer
 
-Fixed before the data (registration §5–§6): exact Fisher tests on pre-declared contrasts, Holm-corrected within each experiment; a difference of **≥ 20 points** with adjusted _p_ < .025 counts as an effect, **< 10 points** counts as no detectable effect, and the band between them is recorded as indecisive and not re-run without a new registration. The design resolves about **10 points** at n = 400 per arm, and about **19.8 points** at n = 100.
+Fixed before the data (registration §5–§6): exact Fisher tests [citation needed] on pre-declared contrasts, Holm-corrected [citation needed] within each experiment; a difference of **≥ 20 points** with adjusted _p_ < .025 counts as an effect, **< 10 points** counts as no detectable effect, and the band between them is recorded as indecisive and not re-run without a new registration [Didn't we say we were also testing between 1- and 20?]. The design resolves about **10 points** at n = 400 per arm, and about **19.8 points** at n = 100.
 
 ---
 
@@ -146,7 +148,7 @@ Agreement sits **at chance** and not one transcript repeats. Two consequences: e
 
 ### 4.1 Polarity exists — reversed
 
-E20 was designed to detect a 10–20 point effect that the earlier design could not resolve. It found one at 27.5 points, with a confidence interval that excludes any reading below 21 points. **The effect is not in doubt; its sign is.** The programme's hypothesis — that a line stating a required artefact pulls commitment towards the mode — failed in the direction it was stated. What actually pulled commitment was a line that **excluded** an artefact.
+E20 was designed to detect a 10–20 point effect that the earlier design could not resolve. It found one at 27.5 points, with a confidence interval that excludes any reading below 21 points. **The effect is not in doubt; its sign is.** [I think I understand now this line: we are saying the that polarity does have an effect, but our research is antagonizing what the hypothesis says, and thus the sign is in doubt. So the "its sign is (in doubt) refers to the contradictions between the hipothesis and the results. AM I right?] The programme's hypothesis — that a line stating a required artefact pulls commitment towards the mode — failed in the direction it was stated. What actually pulled commitment was a line that **excluded** an artefact. [If I am correct in how I am understanding this, maybe we can clarify the text a bit.]
 
 The most parsimonious description: a line that says _"not merely describe the code"_ reads as a **prohibition to be complied with**, and prohibition is a stronger instruction than a requirement to include something. This is consistent with the negotiation behaviour seen in the adjudication: replies that ask are overwhelmingly replies that cannot decide _between_ modes, and a prohibition narrows the field.
 
@@ -154,7 +156,7 @@ The most parsimonious description: a line that says _"not merely describe the co
 
 29.0 points against 27.5. A design that varied wording while holding position fixed — which is every earlier round here — was measuring an effect of the same magnitude as the one it held constant.
 
-The direction contradicts the literature's 78.7–96.0% first-listed dominance. We cannot say why from this data. Two candidates, both testable: (i) the model reads the list as a set of _candidate descriptions_ rather than an ordered menu, so position carries no preference and the last line read is the most recent context; (ii) recency within the prompt — the last line is nearest the request. Neither is established here, and the registration deliberately did not cross position with wording.
+The direction contradicts the literature's 78.7–96.0% first-listed dominance [citation needed]. We cannot say why from this data. Two candidates, both testable: (i) the model reads the list as a set of _candidate descriptions_ rather than an ordered menu, so position carries no preference and the last line read is the most recent context; (ii) recency within the prompt — the last line is nearest the request. Neither is established here, and the registration deliberately did not cross position with wording. [This is what we are trying to clarify with the lasts tests right?]
 
 ### 4.3 Commitment is not correctness
 
@@ -168,9 +170,9 @@ By the pre-committed reading for a ≥ 20-point position effect, **the routing c
 
 ## 5. What this does not mean
 
-- **Not a null result, and not a confirmation.** An effect was found with the sign the registration did not anticipate. §6 of the registration has no reading for a reversed ≥ 20-point difference; that gap is recorded rather than papered over.
+- **Not a null result, and not a confirmation.** An effect was found with the sign the registration did not anticipate. §6 of the registration has no reading for a reversed ≥ 20-point difference; that gap is recorded rather than papered over. [Not a confirmation? Or this is because the "reversed reading" was not anticipated? But it in practice *do* gives us a reading. Right?]
 - **Not about humans.** Every inference is about one model on one brief. No claim is made about human selection from the same picker.
-- **Not about interaction.** Position and polarity were deliberately not crossed; nothing here says what their combination does.
+- **Not about interaction.** Position and polarity were deliberately not crossed; nothing here says what their combination does. [That is a very interesting conclusion and next experiment. But not for us, better for a section on recommended next experiments (for anybody that wants to continue testing this.)]
 - **Not generalisable across positions — including E20's own claim.** The polarity contrast was measured with the line held at **index 6 in all three arms**. It is a valid statement _at that position_ and nowhere else. By the same rule §4.4 applies to earlier work, this report's own wording result is **position-controlled, not position-randomised**; it must not be read as "C beats B wherever C sits".
 - **Not a fix for a vague brief.** Every arm in E20 stayed at 100% "appropriate". The manipulations changed _whether the model committed_, not whether it stayed out of unrelated modes.
 - **Not resolution at 10 points.** Effects below ~10 points remain out of reach at n = 400, and below ~19.8 points at n = 100 (E20b). The 12-point harm difference is recorded as observed but is **below the E20b design's resolution** and should not be quoted as an established magnitude.
@@ -185,7 +187,7 @@ Everything below follows from a measured number, and where it does not, it says 
 
 1. **Assume the picker is doing some of the choosing for you.** Two systems with identical instructions but different list order committed at 16% and 45% on the same request. If two modes look plausible for your task, name the outcome you want in the request ("find the cause and prove it" versus "map the dependencies") rather than relying on the mode you clicked.
 2. **A clarifying question is not a failure.** Across 1,100 calls, the model never selected an unrelated mode in the wording arms; when it did not commit it asked. Answering its question is usually cheaper than a wrong commit.
-3. **Do not expect the same answer twice.** The same request, same model, same settings, hours apart matched its own commit/ask outcome only at chance. If a mode behaved oddly once, it may behave differently on a retry.
+3. **Do not expect the same answer twice.** The same request, same model, same settings, hours apart matched its own commit/ask outcome only at chance. If a mode behaved oddly once, it may behave differently on a retry. [I am courious of what this means to users? There is a lot of randomness in the system's behaviour? Is this a reliable system?]
 
 ### 6.2 If you are writing `whenToUse` lines (as an author)
 
@@ -193,11 +195,13 @@ Everything below follows from a measured number, and where it does not, it says 
 2. **Do not expect "must include X" to increase commitment.** It did the opposite of what our registration predicted. A line that excludes something ("not merely describe the code") read as the stronger instruction. This is one brief and one model — treat it as a hypothesis, not a rule.
 3. **Do not promote a mode by moving it up.** In this picker the _last_ position committed most. Whatever the mechanism, position effects of ~29 points mean placement is a load-bearing decision and should be recorded and tested, not inherited from a template.
 4. **Weigh placement by harm, not by commitment.** The last position committed 29 points more and produced 12% wrong commits against none at the first. If a mode is expensive to invoke wrongly, placement that suppresses wrong commits is worth more than placement that maximises uptake.
-5. **Keep the line short enough to be read as one idea.** Descriptive only and length-confounded, but the 50-character line committed more often than either long line (75% against 61.5% and 89%). It is a hint, not an established effect.
+5. **Keep the line short enough to be read as one idea.** Descriptive only and length-confounded, but the 50-character line committed more often than either long line (75% against 61.5% and 89%) [89% is more than 75%... Is this correctly worded?]. It is a hint, not an established effect.
 
 ---
 
 ## 7. The two-prompt comparison: shipped `debugger` against a proposed `debug`
+
+[Please move this comparison to an independent file. I don't think it adds much to the paper so far, and it can be made its own publilcation note.]
 
 ### 7.1 Why this pair, and what it is not
 
@@ -219,7 +223,7 @@ The shape is a **taxonomy dump with the operative rules in the middle**: the two
 
 ### 7.3 The proposed contract
 
-Same function, bookended structure (non-negotiables first, definition of done last), inside the target-state budget of ≤ 4k characters and ≤ 12 constraints:
+Same function, bookended structure (non-negotiables first, definition of done last), inside the target-state budget of ≤ 4k characters and ≤ 12 constraints [citation needed: we decided this somewhen/somewhere. Do we have a user-facing publication or report about this?]:
 
 ```
 You debug. You find the cause of a failure and prove it; you do not describe the failure.
@@ -275,6 +279,8 @@ Three structural claims, none of them measured:
 4. **Extractor v3 is needed** before any further round: 28 of 378 adjudicated replies (7.4%) were commitments the pinned parser missed, and the merge step cannot represent an adjudicated commitment to a non-`explain` slug (Annex G).
 5. **Position × wording is untested by design.** If position matters as much as wording, the interaction may matter more than either and cannot be assumed additive.
 
+[This is a very interesting report so far. I am very enthusiast of where it is going, and of seeing the final report after closing these items.]
+
 ---
 
 ## Annex A — Provenance, cost, and deviations
@@ -295,7 +301,7 @@ Three structural claims, none of them measured:
 
 1. **The first E20 batch aborted** at 781/900 when prepayment credits were depleted (HTTP 402), leaving 40 `UNRUN` records (5.1%; 5.2% per long arm). Under §5 that batch refuses and publishes no estimate; it is preserved untouched. A **fresh full batch** was dispatched after top-up into a **new** directory, because the instrument has no resume path and a spliced tail would place a fixed block of failures inside the outcome sequence the runs test is meant to inspect.
 2. **Pooling was declined**, and this is now evidenced rather than cautious: the two batches are independent draws (Annex F), so pooling would legitimately add information — it would move the primary contrast from 27.5 to 25.7 points and leave the verdict unchanged — but it breaks the registered n and would require adjudicating 223 more replies. The comparison is reported here instead.
-3. **Cost overran the €6.3 estimate** because of the discarded partial batch (741 paid calls ≈ €3.8).
+3. **Cost overran the €6.3 estimate** because of the discarded partial batch (741 paid calls ≈ €3.8). [Maybe we shouldn't publish the costs incurred.]
 
 ## Annex B — Gate table (Amendment 2 §1, first 90 draws)
 

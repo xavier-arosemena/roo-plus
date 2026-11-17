@@ -15,13 +15,21 @@
  *
  * THE EXPECTED NUMBER OF CALLS COMES FROM THE PLAN (E20 Amendment 1 §7)
  *   The closing round's 600 is a registered constant and stays one. E20 has 900
- *   calls and E20b has 200, so for those the expected total is the plan's own
- *   registered structure: `cycle.length × cycles`. A plan that has lost entries
- *   therefore fails against its own declared total, and the full-set interleaving
- *   proof is gated on that derived number rather than on a constant that belongs
- *   to a closed round. The two plan shapes are named, not sniffed: a plan states
- *   `"planSchema": "e20/1"`, and a plan without that field is the closing round's
- *   `runs` schema.
+ *   calls, E20b has 200 and E20c has 600, so for those the expected total is the
+ *   plan's own registered structure: `cycle.length × cycles`. A plan that has lost
+ *   entries therefore fails against its own declared total, and the full-set
+ *   interleaving proof is gated on that derived number rather than on a constant
+ *   that belongs to a closed round. The two plan shapes are named, not sniffed: a
+ *   plan states `"planSchema": "e20/1"`, and a plan without that field is the
+ *   closing round's `runs` schema.
+ *
+ * ONE SHAPE, ONE MODULE PER EXPERIMENT
+ *   `e20/1` names the DOCUMENT shape — entries over a declared cycle with draws per
+ *   arm — not the manipulation under test. E20c is that shape with three arms and
+ *   600 entries and needed no new schema: it needed its own derivation, keyed by
+ *   `plan.experiment` in `EXPERIMENT_MODULES`. The shape detection, the total and
+ *   the interleaving proof stay generic; nothing here knows that E20c has three
+ *   arms or 600 calls, and no constant names either.
  *
  * WHAT IT REFUSES TO TRUST
  *   1. The plan is validated before anything is written or executed. Closing
@@ -120,6 +128,7 @@ import {
 	experimentSpec,
 	labelArms,
 } from "./lib/e20.mjs"
+import * as e20c from "./lib/e20c.mjs"
 import { executeRun, expandRunner } from "./lib/framing-pretest-runner.mjs"
 import { readTranscript } from "./lib/framing-pretest-results.mjs"
 import { sha256 } from "./lib/framing-pretest.mjs"
@@ -154,13 +163,37 @@ const DEFAULT_OUT = path.join(os.tmpdir(), "roo-plus-routing-round", "stage-1")
 const CLOSED_ROUND_RUNS = CELLS.length * DRAWS_PER_CELL
 const C1_PICKER_PATH = path.join(ROUTING_ROUND_DIR, "C1.roomodes")
 
+/**
+ * The experiments that speak the `e20/1` shape, beyond the two `lib/e20.mjs`
+ * already owns. A module registered here must export the same five names the E20
+ * path uses — `experimentSpec`, `buildExperimentSet`, `labelArms`, `buildRuns`
+ * and `REGISTERED_LINES` — so validation and derivation stay one code path.
+ *
+ * This is a lookup, not a branch on arm count or call count: adding a fourth
+ * experiment changes this map and nothing else.
+ */
+const EXPERIMENT_MODULES = new Map([[e20c.E20C_ID, e20c]])
+
+/** The derivation API for a plan's experiment: the E20 pair, or a registered module. */
+function experimentApi(experimentId) {
+	const registered = EXPERIMENT_MODULES.get(experimentId)
+	if (registered) return registered
+	return {
+		experimentSpec,
+		buildExperimentSet,
+		labelArms,
+		buildRuns: buildE20Runs,
+		REGISTERED_LINES: E20_LINES,
+	}
+}
+
 /** Literals that would mean the plan had leaked the sealed analysis key. */
 const SEALED_TOKENS = ["expectedOwner", "slugs", "sealed", "answer-key", "answerKey", "blindSeedMap"]
 
 const USAGE = `Usage: node scripts/run-routing-round.mjs [options]
 
-  --plan <file.json>   the run plan: the closing round's 600, E20's 900 or E20b's 200
-                       (default: ${path.relative(process.cwd(), DEFAULT_PLAN)})
+  --plan <file.json>   the run plan: the closing round's 600, E20's 900, E20b's 200
+                       or E20c's 600 (default: ${path.relative(process.cwd(), DEFAULT_PLAN)})
   --out <dir>          run directory (default: ${DEFAULT_OUT})
   --dry-run            write the selected prompts and a plan copy; execute nothing (default)
   --run                execute the selected runs through --runner; requires --runner and --model
@@ -390,9 +423,10 @@ function validateClosedRoundPlan(plan) {
  */
 function validateE20Plan(plan) {
 	const problems = []
+	const api = experimentApi(plan?.experiment)
 	let spec = null
 	try {
-		spec = experimentSpec(plan?.experiment)
+		spec = api.experimentSpec(plan?.experiment)
 	} catch (error) {
 		problems.push(error.message)
 	}
@@ -477,7 +511,7 @@ function validateE20Plan(plan) {
 	problems.push(...hygieneProblems(plan))
 	// A registered line in the plan would tell a scorer which arm is which.
 	const planText = JSON.stringify(plan)
-	for (const [key, line] of Object.entries(E20_LINES)) {
+	for (const [key, line] of Object.entries(api.REGISTERED_LINES)) {
 		if (planText.includes(line)) problems.push(`registered line ${key} appears in the plan`)
 	}
 
@@ -554,8 +588,9 @@ async function deriveClosedRoundFromFixtures(plan, problems) {
  * checked against, so a truncated plan cannot agree with itself.
  */
 async function deriveE20FromFixtures(plan, problems) {
-	const spec = experimentSpec(plan.experiment)
-	const fixtureSet = buildExperimentSet({
+	const api = experimentApi(plan.experiment)
+	const spec = api.experimentSpec(plan.experiment)
+	const fixtureSet = api.buildExperimentSet({
 		experimentId: plan.experiment,
 		baseText: await fs.readFile(C1_PICKER_PATH, "utf-8"),
 	})
@@ -567,8 +602,8 @@ async function deriveE20FromFixtures(plan, problems) {
 		}
 	}
 
-	const labelsByArm = labelArms(plan.experiment, plan.blindSeed ?? spec.defaultSeed)
-	const derived = buildE20Runs({ experimentId: plan.experiment, fixtureSet, labelsByArm })
+	const labelsByArm = api.labelArms(plan.experiment, plan.blindSeed ?? spec.defaultSeed)
+	const derived = api.buildRuns({ experimentId: plan.experiment, fixtureSet, labelsByArm })
 
 	if (plan.persona?.directive !== fixtureSet.persona.directive) {
 		problems.push("the plan's persona directive is not the frozen goal-only explorer directive")
