@@ -235,6 +235,7 @@ Every entry here is a departure that a reader of any later write-up should know 
 | D-20 | 2026-11-17 | The 60-draw gate's declaration rates diverged from the sweep by up to 18 points (X 65.0% at the gate, 47.0% on the sweep)                                                              | The gate may be used **only** for its registered purpose — exclusion rate and verbatim clustering. Its declaration rates are 20-draw noise and must never be quoted                                                                                                                                |
 | D-21 | 2026-11-17 | E20c's control arm is **not stationary**: 36% → 40% → 54% → 60% across four blocks of 50 (Cochran–Armitage z = 2.72, p ≈ .007), while Y is flat and Z declines                         | Both E20c contrasts decay as the run proceeds — Y−X goes +28, +22, 0, 0 points and Z−X +40, +34, +16, +8. The run cannot estimate its contrasts, and M-9's "within-run contrasts stand" is falsified as stated                                                                                     |
 | D-22 | 2026-11-17 | Every record in every batch stamps `parserVersion: routing-round-parser/1`, including the E20c batch                                                                                   | The report's claim that extraction was pinned to `routing-round-parser/2` is **not evidenced in the data**. Either the executor stamps a constant or the version was never propagated; the pin is a claim about the tool, not about the records                                                    |
+| D-23 | 2026-11-17 | My §24 block table counted **any** declaration while the totals beside it counted only `explain`, so X's blocks summed to 95 against a total of 94, and Z's to 144 against 143         | The `explain`-only blocks are X 18/19/27/30 and Z 38/37/35/33, giving Y−X of +28/+24/0/0 and Z−X of +40/+36/+16/+6 points. The decay conclusion is unchanged; the corrected figures are stated below                                                                                               |
 
 ## 7. What may and may not be claimed from this log
 
@@ -869,3 +870,15 @@ An independent adversarial review returned **revise before publishing**. It conf
 - §4.2's reframing of E20b as a "penalty for the first entry" subtracts an arm from E20b against an arm from E20c — a cross-batch comparison that M-9 forbids and that the red team correctly identified. Within E20b, first is well below last; whether the mechanism is a first-entry penalty or a last-entry reward cannot be decided by comparing across batches.
 
 **Also recorded from the review, not yet fixed:** the E20c runs tests are absent from the report (computed, Y gives z = +2.51); M-1 was violated for E20c because its headlines have had no full manual pass; E20b has 199 distinct transcripts of 200, not the 193 previously stated; and the debugger note's remaining figures need re-derivation (198 items is 189 bullets plus 9 numbered steps, the table cells read 260 and 145 rather than 286 and 162, and the "~1,700-character" proposal measures 1,308).
+
+### 24.1 Correction to the block table above (2026-11-17)
+
+Two definitions were mixed in §24's block rows. The totals (94, 120, 143) counted replies declaring `explain`; the blocks counted any declaration, which includes each arm's single wrong commit. Counted properly on the same definition as the totals:
+
+| Arm | Blocks of 50, `explain` only | Sum |
+| --- | ---------------------------- | --- |
+| X   | 18 / 19 / 27 / 30            | 94  |
+| Y   | 32 / 31 / 27 / 30            | 120 |
+| Z   | 38 / 37 / 35 / 33            | 143 |
+
+The contrasts therefore read **Y−X +28 / +24 / 0 / 0** and **Z−X +40 / +36 / +16 / +6** points, rather than the +22 and +34 previously printed in the second block. Nothing in the conclusion moves: both contrasts still decay to zero or near it, X still ramps (36% → 60%, z = 2.72), and the experiment remains inconclusive. Recorded as **D-23** rather than edited in place, because the log appends and does not overwrite.
