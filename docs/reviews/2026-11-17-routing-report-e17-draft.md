@@ -217,7 +217,7 @@ The direction also runs against the literature's 78.7–96.0% first-listed domin
 
 ### 4.3 E20c: inconclusive, and what it still licenses
 
-The rival placed in the last slot was selected **twice in 600 replies**, so it does not capture the slot. But the effect of changing the occupant is not stable: the contrast against control falls from **+28 to 0 points** for the filler arm and from **+40 to +8** for the rival arm across the four quarters of the run. **The experiment is inconclusive.**
+The rival placed in the last slot was selected **twice in 600 replies**, so it does not capture the slot. But the effect of changing the occupant is not stable: the contrast against control falls from **+28 to 0 points** for the filler arm and from **+40 to +6** for the rival arm across the four quarters of the run. **The experiment is inconclusive.**
 
 The registration's reading for a ≤ 10-point difference is therefore **not applied**, and its opposite is **not claimed** either. What the run licenses is narrow: a plausible rival placed last does not win.
 
