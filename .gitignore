@@ -62,3 +62,9 @@ plans/
 
 roo-cli-*.tar.gz*
 .worktrees/
+
+# Experiment run artefacts. results.jsonl carries the full reply text and is the
+# evidence for every published number; transcripts/ and prompts/ are regenerable
+# copies of the same content and are excluded to keep the repository sane.
+runs/*/transcripts/
+runs/*/prompts/
