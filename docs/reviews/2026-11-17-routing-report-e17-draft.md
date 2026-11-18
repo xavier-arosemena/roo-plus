@@ -13,7 +13,7 @@
 
 ## 0. What to take away
 
-1. A line that excludes out-commits a line that requires. 27.5 points (89.0% against 61.5%, p ≈ 7 × 10⁻²⁰), and the gap keeps its sign in every quarter of the run at 21–35 points. This is the report's only confirmatory finding, and its direction reverses what was predicted. Falsified if a length-matched line that names a required artefact, rather than a quality standard, reverses the gap.
+1. A line that excludes out-commits a line that requires. 27.5 points (89.0% against 61.5%, p ≈ 7 × 10⁻²⁰), and the gap keeps its sign in every quarter of the run at 21–35 points. This is the report's only confirmatory finding, and its direction reverses what was predicted. It is also independently corroborated: a second model, reading the same replies blind under a corrected rule, reproduced the first pass on **99.7%** of them (log §26). Falsified if a length-matched line that names a required artefact, rather than a quality standard, reverses the gap.
 2. On an ambiguous brief the model asks rather than guesses, and that is the correct response. Every reply in the 900 E20 wording calls either committed to the expected mode or asked for the missing information; none selected an unrelated one. Falsified if wrong commits are shown to outnumber asks on ambiguous briefs at this scale.
 3. For list order the programme has a difference but not a mechanism. First and last entries differ within one run, with the gap positive in every quarter (+44, +20, +24, +20 points), but the experiment designed to identify the cause was inconclusive because one of its arms drifted during the run. Falsified if a stationary re-run shows the occupant of the last slot changes the target's commitment rate reliably.
 4. The same prompt does not get the same answer. On 90 identical prompts two dispatches agreed at 50.0 / 50.0 / 62.5% against chance levels of 54.5 / 50.1 / 63.8%, and one unchanged condition ran at 59.3% in one batch and 47.0% in another. That gap is a time-average of a drift, so it is quoted as tens of points and never as a constant. Falsified if two dispatches of the same prompts agree far above chance.
@@ -26,6 +26,7 @@
 Two different numbers get confused here, and only one of them is about getting the answer wrong.
 
 **What moves is the choice.** On a brief too vague to decide from, the line and the position shifted _whether the reply commits or asks_ by **27.5 and 29 points**. That is a shift in the majority behaviour on such a brief, not a marginal effect: the same model, the same request, and the commit rate went from 61.5% to 89.0% on wording alone.
+[So what we could do is testing our final mode-briefs to see the reaction, and infer wheteher they are being vague or not? (nice, real applications from the research.)]
 
 **What goes wrong is rare.** Measured wrong selections — a mode the request did not fit — were **2 in 600** in the closing round, **0 in 900** in E20, **2 in 600** in E20c, and **12 in 100** only in E20b's last-entry arm. So the risk sits between a third of a percent and about one in eight, depending on where the entry sits in the list.
 
