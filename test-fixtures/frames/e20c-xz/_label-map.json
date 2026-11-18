@@ -1,0 +1,16 @@
+{
+  "sealed": true,
+  "warning": "SEALED — maps blind arm ids to the registered arms. No scorer bundle may contain this file.",
+  "blindSeed": "roo-plus-e20c-xz-2026-11-18",
+  "algorithm": "arm ids assigned by ascending sha256(arm + blindSeed)",
+  "arms": [
+    {
+      "armId": "ARM-1",
+      "arm": "X"
+    },
+    {
+      "armId": "ARM-2",
+      "arm": "Z"
+    }
+  ]
+}

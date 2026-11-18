@@ -129,6 +129,7 @@ import {
 	labelArms,
 } from "./lib/e20.mjs"
 import * as e20c from "./lib/e20c.mjs"
+import { REPLICATIONS } from "./lib/replication.mjs"
 import { executeRun, expandRunner } from "./lib/framing-pretest-runner.mjs"
 import { readTranscript } from "./lib/framing-pretest-results.mjs"
 import { sha256 } from "./lib/framing-pretest.mjs"
@@ -172,7 +173,7 @@ const C1_PICKER_PATH = path.join(ROUTING_ROUND_DIR, "C1.roomodes")
  * This is a lookup, not a branch on arm count or call count: adding a fourth
  * experiment changes this map and nothing else.
  */
-const EXPERIMENT_MODULES = new Map([[e20c.E20C_ID, e20c]])
+const EXPERIMENT_MODULES = new Map([[e20c.E20C_ID, e20c], ...REPLICATIONS.map((module) => [module.id, module])])
 
 /** The derivation API for a plan's experiment: the E20 pair, or a registered module. */
 function experimentApi(experimentId) {

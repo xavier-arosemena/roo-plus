@@ -1,0 +1,37 @@
+{
+	"runId": "ARM-2-d007",
+	"model": "deepseek-v4-pro",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-18T08:52:50.771Z",
+			"endedAt": "2026-11-18T08:53:07.930Z",
+			"httpStatus": 200,
+			"finishReason": "STOP",
+			"providerFinishReason": "stop",
+			"usageMetadata": {
+				"promptTokenCount": 1309,
+				"candidatesTokenCount": 806,
+				"totalTokenCount": 2115,
+				"cachedContentTokenCount": 1280,
+				"thoughtsTokenCount": 803,
+				"provider": {
+					"prompt_tokens": 1309,
+					"completion_tokens": 806,
+					"total_tokens": 2115,
+					"prompt_tokens_details": {
+						"cached_tokens": 1280
+					},
+					"completion_tokens_details": {
+						"reasoning_tokens": 803
+					},
+					"prompt_cache_hit_tokens": 1280,
+					"prompt_cache_miss_tokens": 29
+				}
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "RUN",
+	"maxOutputTokens": 4096
+}
