@@ -212,6 +212,14 @@ Agreement sits **at chance** and not one transcript repeats. Two consequences: e
 
 ---
 
+### 3.7 Independent corroboration of the adjudicated counts
+
+Every count above rests on replies the mechanical extractor could not classify. Those replies were judged twice: once by the analyst, and once by a different model reading a blind packet that carries no arm, draw or time.
+
+Under the rule registered for the second pass, the two readings agreed on **11.1%** of 378 replies. Reading twelve disagreements in full showed the first pass right in all twelve: each was an ask that enumerated candidate modes ("whether you want `explain`, `architecture-reviewer` or `codebase-cartographer`"), and the registered tie-break counted any named mode as a declaration. Under a rule that distinguishes **selection from mention**, agreement is **99.7% — 377 of 378**.
+
+Two things follow. The adjudicated counts stand, and are now corroborated by an independent reader rather than merely asserted. And the result is **construct-dependent** in a way that belongs beside every number: scored on a mention-anywhere construct, the same replies give B 98.0% and C 97.75% — a gap of 0.25 points instead of 27.5.
+
 ## 4. What it means
 
 ### 4.1 Polarity exists — reversed
@@ -282,6 +290,30 @@ Contrasts per block, in points:
 
 ---
 
+### 4.7 The X re-run: the ramp did not reproduce, the level moved
+
+Arm X was re-run alone, 200 calls, identical prompts — all 200 prompt hashes match the originals.
+
+| Run      | Block 1  | 2        | 3        | 4        | Total | Trend z   |
+| -------- | -------- | -------- | -------- | -------- | ----- | --------- |
+| Original | 18 (36%) | 19 (38%) | 27 (54%) | 30 (60%) | 47.0% | **+2.72** |
+| Re-run   | 27 (54%) | 31 (62%) | 19 (38%) | 31 (62%) | 54.0% | **−0.06** |
+
+The ramp was **not a stable property of the arm**. What did reproduce is the instability in a different shape: the same condition scored 47.0% and 54.0% in two runs, the same order as the 12.3-point gap between two earlier batches. So §4.6 stands — a batch mean is not a stable quantity — while the specific monotone pattern does not.
+
+### 4.8 The second provider: the channel is model-specific
+
+A replication was attempted on a second model and stopped after 109 of 800 calls, for a reason worth stating plainly: **the second model never asked.** In 91 productive replies it returned one of five strings, all bare mode names, with zero questions.
+
+| Arm               | n   | Declared `explain` | Other | Asked |
+| ----------------- | --- | ------------------ | ----- | ----- |
+| artefact stated   | 43  | 41 (95.3%)         | 2     | **0** |
+| artefact excluded | 48  | 48 (100%)          | 0     | **0** |
+
+Zero asks in 91 replies puts the 95% upper bound on that model's ask rate at **≈3.2%**, against 40–50% for the model this report uses. The effect measured here is a difference in _whether the reply commits_, and a model that always commits has no room for it. Under the practice recorded as M-11, a replication should screen for the channel first — about twenty calls, cents — rather than discover its absence at call 109.
+
+**Two things follow.** The 27.5-point result is a statement about one model's ask threshold, not about routing in general. And mode choice on the second model was near-deterministic and independent of the line, which is consistent with the effect living in the ask threshold rather than in preference between modes.
+
 ## 5. What this does not mean
 
 - **Not a confirmation of the prediction.** The contrast is confirmatory — pre-declared, length-matched, clear of the ≥ 20-point threshold, same sign in all four quarters — and the prediction it was built to test is refuted: the registration's reading asserts that stating a required artefact pulls commitment, and the observed gap runs the other way. What is confirmed is that the line form matters; what is not confirmed is the mechanism the registration named, and no registered reading describes the direction that arrived (Annex G, Defect 3).
@@ -316,6 +348,12 @@ Every item below rests on a number measured within one run. Items that rested on
 4. **Do not expect length alone to decide.** The 50-character line committed more than the 96-character line (75.0% against 61.5%) and less than the 99-character one (89.0%), so length does not order the arms; the 96-versus-99 contrast is length-matched, which is why the polarity reading rests on it and the length reading does not exist.
 
 ---
+
+### 6.3 Auditing a mode line, or a class of requests
+
+The instrument in this report has a practical use that costs almost nothing: **feed a set of real requests to the picker and record whether the reply commits or asks.** A high ask rate on a request class means the catalogue cannot decide from it — which is actionable for the lines, the documentation and onboarding, and re-running the probe after a catalogue change shows whether it helped.
+
+One constraint makes the difference between an honest probe and a magic number: **the ask rate is model-specific** (§4.8). The audit must pin its model and report it. It measures how often _this_ model asks with _this_ catalogue, not an absolute property of vagueness.
 
 ## 7. Turning the results into hypotheses
 
@@ -373,6 +411,8 @@ These are the five that would change what this report can say. All of them are w
 5. **Extractor v3 is needed** before any further round: 28 of 378 adjudicated replies (7.4%) were commitments the pinned parser missed, and 21 of 600 E20c replies were bare slugs. The merge step also cannot represent an adjudicated commitment to a non-`explain` slug (Annex G).
 
 ---
+
+- **E20b's last arm reads 45.0% in §3 and 46.0% under the corrected adjudication.** A one-reply difference, to resolve before publication.
 
 ## Annex A — Provenance, cost, and deviations
 
@@ -527,3 +567,16 @@ The X and Z rows count declarations naming any mode (95 and 144 in total); the `
 **Extraction (D-19).** 241 replies are undetermined. Of these, 21 consist of a bare slug and were corrected by rule, unevenly (X 3, Y 10, Z 8); the remaining 220 are unadjudicated. Mechanical counts are therefore lower bounds, and the correction column is a rule applied to one failure mode, not an adjudication.
 
 **Provenance.** [`runs/e20c-2026-11-17`](../../runs/e20c-2026-11-17) — 600 records, 600 `RUN`, 100.0 min, 10.00 s mean; [`runs/e20c-gate-2026-11-17`](../../runs/e20c-gate-2026-11-17) — 60 records, 9.3 min. Canonical record: [`modes-experiment-log.md` §23](../research/modes-experiment-log.md:812) and [§24](../research/modes-experiment-log.md:834).
+
+## Annex I — The second-provider pilot
+
+Run on 2026-11-18 against a second provider, stopped at 109 of 800 calls (log §25). All 91 output-producing replies across the two wording arms:
+
+| Arm                   | n   | Declared `explain` | Other picks               | Asked | Distinct strings |
+| --------------------- | --- | ------------------ | ------------------------- | ----- | ---------------- |
+| B — artefact stated   | 43  | 41 (95.3%)         | 2 `codebase-cartographer` | 0     | —                |
+| C — artefact excluded | 48  | 48 (100%)          | none                      | 0     | —                |
+
+Five distinct strings across 91 replies, every one a mode name. Failures: five replies truncated to empty content at a 4,096 cap, because a reasoning model spends the output budget on hidden reasoning before answering (D-24); one empty completion. All six failures were in arm B, which is why dropping them rather than raising the cap would have biased the comparison.
+
+Cost: ≈€0.6. The 709 calls not spent would have measured a ceiling.
