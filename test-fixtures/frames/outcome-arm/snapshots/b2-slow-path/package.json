@@ -1,0 +1,13 @@
+{
+	"name": "order-summary",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"description": "Regional order summary endpoint",
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"test": "node --test"
+	}
+}

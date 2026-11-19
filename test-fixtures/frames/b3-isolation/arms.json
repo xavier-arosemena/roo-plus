@@ -1,0 +1,113 @@
+{
+	"instrument": "B3 isolation (E12)",
+	"registration": "docs/reviews/2026-11-11-b3-isolation-preregistration.md",
+	"amendment": "Amendment 2 (2026-11-11) — §3 is withdrawn; this file implements §A2.2's sequential procedure instead",
+	"design": "Sequential, first match wins. Five personas per condition, one draw each except A0 which is drawn three times interleaved. Materialised here: C1 (5) + A0 x3 (15) + A5 (5) + P (5) + A1 (5) + A2 (5) + A4 (5) = 45 prompts. Executed under §A2.2: steps 0-4 cost 30 calls, step 5 costs 5-15 (it stops at the first arm that matches), so the executable range is 35 minimum and 45 maximum. A3 and C2 are declared and NOT RUN.",
+	"note": "Order is the registration's frozen order (Amendment 2 §A2.7): C1 -> A0 x3 -> A5 -> P -> M(A1) -> L(A2) -> X(A4) -> N. C1 is first because the batch-validity control must fail before any arm is read (objection 9). Repetitions are laid out outermost (see planRunsFromPlan): all conditions are drawn once, then A0's second and third draws follow, so no two identical prompts are ever adjacent (objection 19). Every brief is a registered string: B1/B3 verbatim from the frozen BRIEFS constant, B3P verbatim from REGISTERED_B3P (Amendment 2 §A2.4). A3 and C2 carry a 'status' of 'not-run' and are refused by the plan loader, never silently included.",
+	"repetitions": 1,
+	"personas": [
+		{
+			"id": "P1",
+			"condition": "goal-only explorer",
+			"directive": "You are exploring. Say what you want to achieve, not what you want handed back."
+		},
+		{
+			"id": "P2",
+			"condition": "artefact-only deliverer",
+			"directive": "You are commissioning work. Name the deliverable you want in your hand, not the goal behind it."
+		},
+		{
+			"id": "P3",
+			"condition": "terse one-liner",
+			"directive": "You write one short line and nothing else."
+		},
+		{
+			"id": "P4",
+			"condition": "verbose context dump",
+			"directive": "You describe the surrounding situation at length before you say anything else."
+		},
+		{
+			"id": "P5",
+			"condition": "imprecise vocabulary / non-native phrasing",
+			"directive": "You use approximate, everyday words: you do not know this project's technical vocabulary."
+		}
+	],
+	"conditions": [
+		{
+			"id": "C1",
+			"role": "step 0 — instrument control (B1 on the unmodified axis picker)",
+			"fixture": "test-fixtures/frames/b3-isolation/A0.roomodes",
+			"briefId": "B1",
+			"brief": "CI is red on a test that passes locally. I have no idea why.",
+			"repetitions": 1
+		},
+		{
+			"id": "A0",
+			"role": "step 1 — determinism, three interleaved draws; step 4 replication of E11",
+			"fixture": "test-fixtures/frames/b3-isolation/A0.roomodes",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"repetitions": 3
+		},
+		{
+			"id": "A5",
+			"role": "step 2 — the contrast this experiment exists to explain",
+			"fixture": "test-fixtures/frames/b3-isolation/A5.roomodes",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"repetitions": 1
+		},
+		{
+			"id": "P",
+			"role": "step 3 — placebo, the noise floor",
+			"fixture": "test-fixtures/frames/b3-isolation/P.roomodes",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"repetitions": 1
+		},
+		{
+			"id": "A1",
+			"role": "step 5 — cause M (morphology), evaluated first",
+			"fixture": "test-fixtures/frames/b3-isolation/A1.roomodes",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"repetitions": 1
+		},
+		{
+			"id": "A2",
+			"role": "step 5 — cause L (routing-line wording), evaluated second",
+			"fixture": "test-fixtures/frames/b3-isolation/A2.roomodes",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"repetitions": 1
+		},
+		{
+			"id": "A4",
+			"role": "step 5 — cause X (lexical overlap), evaluated third",
+			"fixture": "test-fixtures/frames/b3-isolation/A0.roomodes",
+			"briefId": "B3P",
+			"brief": "Set out the reasons this module is arranged as it is.",
+			"repetitions": 1
+		},
+		{
+			"id": "A3",
+			"role": "withdrawn — retained on disk for a future registration",
+			"fixture": "test-fixtures/frames/b3-isolation/A3.roomodes",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"repetitions": 1,
+			"status": "not-run",
+			"notRunReason": "Amendment 2 §A2.3 — S (picker size) is withdrawn and A3 is not run. Measured: A0 -> A3 adds two modes and +242 picker bytes with the owner's position unchanged, while the contrast A3 was built to model (A0 -> A5) adds two modes, removes 536 bytes and moves the owner seven lines. A3 models neither component, so it is untested rather than refuting. The fixture is retained for a future registration that pads both pickers to a common size."
+		},
+		{
+			"id": "C2",
+			"role": "answer-keyed only — outside the Amendment 2 sequence",
+			"fixture": "test-fixtures/frames/b3-isolation/C2.roomodes",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"repetitions": 1,
+			"status": "not-run",
+			"notRunReason": "Amendment 2 §A2.7 — the frozen order is C1 -> A0 x3 -> A5 -> P -> M -> L -> X -> N and contains no order control. C2 keeps its answer-key entry (§A2.5 names it) so a future registration can run it without rebuilding the material, but this registration does not execute it."
+		}
+	]
+}

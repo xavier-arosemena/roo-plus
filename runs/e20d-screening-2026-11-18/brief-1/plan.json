@@ -1,0 +1,152 @@
+{
+	"planSchema": "e20/1",
+	"instrument": "E20d — artefact polarity on a second brief: B against C, interleaved",
+	"experiment": "E20d",
+	"registration": "Task C — headline effect on a second brief (design fixed in the task statement)",
+	"amendment": "Task C — one brief exchanged, both lines and the picker held",
+	"design": "2 arms (B 5, C 5) = 10 runs, cycle B C repeated 5 times",
+	"drawsPerArm": {
+		"B": 5,
+		"C": 5
+	},
+	"cycle": ["B", "C"],
+	"cycles": 5,
+	"temperature": 0,
+	"provider": null,
+	"model": null,
+	"blindSeed": "roo-plus-e20d-2026-11-18",
+	"persona": {
+		"id": "P1",
+		"condition": "goal-only explorer",
+		"directive": "You are exploring. Say what you want to achieve, not what you want handed back."
+	},
+	"briefs": [
+		{
+			"id": "D1",
+			"text": "Why does this worker retry every failed job three times?",
+			"sha256": "0181bcee322772d008f414d09e1fc3b80222c86c251d13b0bb8382460720ea79"
+		}
+	],
+	"entries": [
+		{
+			"index": 1,
+			"runId": "ARM-2-d001",
+			"label": "ARM-2",
+			"draw": 1,
+			"cyclePosition": 1,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-2-d001.txt",
+			"promptSha256": "6e7fc7d44615ea4a7cf97dc00cd7b436e864bc758dc2a7525634c268a8965fa5",
+			"promptBytes": 6344
+		},
+		{
+			"index": 2,
+			"runId": "ARM-1-d001",
+			"label": "ARM-1",
+			"draw": 1,
+			"cyclePosition": 2,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-1-d001.txt",
+			"promptSha256": "5571ce22ab7e0d7057ac666e9b6b7c70d78f68101288a276fe5df7a454aaec74",
+			"promptBytes": 6347
+		},
+		{
+			"index": 3,
+			"runId": "ARM-2-d002",
+			"label": "ARM-2",
+			"draw": 2,
+			"cyclePosition": 1,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-2-d002.txt",
+			"promptSha256": "6e7fc7d44615ea4a7cf97dc00cd7b436e864bc758dc2a7525634c268a8965fa5",
+			"promptBytes": 6344
+		},
+		{
+			"index": 4,
+			"runId": "ARM-1-d002",
+			"label": "ARM-1",
+			"draw": 2,
+			"cyclePosition": 2,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-1-d002.txt",
+			"promptSha256": "5571ce22ab7e0d7057ac666e9b6b7c70d78f68101288a276fe5df7a454aaec74",
+			"promptBytes": 6347
+		},
+		{
+			"index": 5,
+			"runId": "ARM-2-d003",
+			"label": "ARM-2",
+			"draw": 3,
+			"cyclePosition": 1,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-2-d003.txt",
+			"promptSha256": "6e7fc7d44615ea4a7cf97dc00cd7b436e864bc758dc2a7525634c268a8965fa5",
+			"promptBytes": 6344
+		},
+		{
+			"index": 6,
+			"runId": "ARM-1-d003",
+			"label": "ARM-1",
+			"draw": 3,
+			"cyclePosition": 2,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-1-d003.txt",
+			"promptSha256": "5571ce22ab7e0d7057ac666e9b6b7c70d78f68101288a276fe5df7a454aaec74",
+			"promptBytes": 6347
+		},
+		{
+			"index": 7,
+			"runId": "ARM-2-d004",
+			"label": "ARM-2",
+			"draw": 4,
+			"cyclePosition": 1,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-2-d004.txt",
+			"promptSha256": "6e7fc7d44615ea4a7cf97dc00cd7b436e864bc758dc2a7525634c268a8965fa5",
+			"promptBytes": 6344
+		},
+		{
+			"index": 8,
+			"runId": "ARM-1-d004",
+			"label": "ARM-1",
+			"draw": 4,
+			"cyclePosition": 2,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-1-d004.txt",
+			"promptSha256": "5571ce22ab7e0d7057ac666e9b6b7c70d78f68101288a276fe5df7a454aaec74",
+			"promptBytes": 6347
+		},
+		{
+			"index": 9,
+			"runId": "ARM-2-d005",
+			"label": "ARM-2",
+			"draw": 5,
+			"cyclePosition": 1,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-2-d005.txt",
+			"promptSha256": "6e7fc7d44615ea4a7cf97dc00cd7b436e864bc758dc2a7525634c268a8965fa5",
+			"promptBytes": 6344
+		},
+		{
+			"index": 10,
+			"runId": "ARM-1-d005",
+			"label": "ARM-1",
+			"draw": 5,
+			"cyclePosition": 2,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-1-d005.txt",
+			"promptSha256": "5571ce22ab7e0d7057ac666e9b6b7c70d78f68101288a276fe5df7a454aaec74",
+			"promptBytes": 6347
+		}
+	]
+}

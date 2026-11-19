@@ -19,6 +19,10 @@ custom-modes/custom_modes.d/**/*.yaml  ──►  sync-custom-modes.mjs  ──�
 The curation manifest [`custom-modes/manifest.json`](../custom-modes/manifest.json)
 controls which modes are included in `.roomodes` (`includeSlugs`, `excludeSlugs`).
 
+This page covers **descriptions only**. The wider mode framework — field budgets, enforced versus
+advisory limits, preload selection, catalogue grouping and the gate roadmap — is specified in
+[**Modes Architecture — The Durable Basics**](../docs/modes-architecture.md).
+
 > The legacy `custom-modes/agents/` catalog (flat YAML), the derived
 > `custom-modes/vs-code/converted_modes.d/` set, the monolithic
 > `custom-modes/custom_modes.yaml`, and the split `custom-modes/.roomodes.00…10`

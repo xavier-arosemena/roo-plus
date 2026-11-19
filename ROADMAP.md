@@ -1,6 +1,6 @@
 # Roo+ Roadmap
 
-> **Roo+** — the local-first, bring-your-own-model agentic IDE extension that makes your AI spend legible and your knowledge portable. **No cloud. No lock-in. No silent surprises.** Powered by a curated catalog of **300+ specialised modes**.
+> **Roo+** — the local-first, bring-your-own-model agentic IDE extension that makes your AI spend legible and your knowledge portable. **No cloud. No lock-in. No silent surprises.** Powered by a curated catalogue of specialised modes.
 
 ![VS Code](https://img.shields.io/badge/VS_Code-✓-blue) · ![Open VSX](https://img.shields.io/badge/Open_VSX-✓-blue) · ![Marketplace](https://img.shields.io/badge/VS_Marketplace-✓-blue) · ![Local-first](https://img.shields.io/badge/local--first-✓-green) · ![BYOM](https://img.shields.io/badge/BYOM-✓-green)
 
@@ -28,10 +28,14 @@ Your assistant spends real tokens; you should always know what it costs — and 
 
 ### Smarter mode discovery & onboarding
 
-300+ specialised modes are only powerful if you can find the right one.
+Specialised modes are only powerful if you can find the right one.
 
 - **Guided quickstart** — get to your first successful task in minutes, even if you've never configured an AI tool.
 - **Smart recommendations** — "which mode should I use?" answered in plain language, based on what you're working on.
+- **A curated catalogue, not a pile** — the catalogue follows one rule: **one good mode per job**, each owned, reviewed and dated. Fewer, sharper choices on day one, and a smaller catalogue overall: the change is not limited to what ships pre-selected.
+- **Nothing you rely on breaks** — every retired mode keeps working through an alias, so saved selections and habits survive the change.
+- **One story, told consistently** — the whole-catalogue change is being carried through our tier model, migration stages and this page, so nothing published here claims that the breadth stays put.
+- **Measured, not asserted** — the curated modes are tested against real tasks, and an optional local scorecard shows which ones work best for your projects. On demand, nothing leaves your machine.
 
 ---
 
@@ -70,7 +74,7 @@ More is on the way — around efficiency, smarter workflows, and team collaborat
 ## Get involved
 
 - Install from **Open VSX** or the **Visual Studio Marketplace**.
-- Explore the **300+ specialised modes** — there's one for almost every job.
+- Explore the **specialised modes** — there is one for most jobs, and the list is being made shorter and sharper.
 - Open issues / suggest features on GitHub — we read everything.
 
 ---

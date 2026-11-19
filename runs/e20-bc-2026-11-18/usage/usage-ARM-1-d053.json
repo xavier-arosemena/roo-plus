@@ -1,0 +1,19 @@
+{
+	"runId": "ARM-1-d053",
+	"model": "deepseek-v4-pro",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-18T09:38:31.916Z",
+			"endedAt": "2026-11-18T09:39:32.275Z",
+			"httpStatus": 200,
+			"finishReason": null,
+			"providerFinishReason": null,
+			"usageMetadata": null,
+			"apiMessage": null
+		}
+	],
+	"outcome": "FAILED",
+	"error": "no usable text (finishReason=none)",
+	"maxOutputTokens": 4096
+}

@@ -1,0 +1,124 @@
+{
+	"experiment": "E20d",
+	"blindSeed": "roo-plus-e20d-2026-11-18",
+	"records": 10,
+	"statuses": {
+		"RUN": 10
+	},
+	"arms": [
+		{
+			"arm": "B",
+			"records": 5,
+			"scorable": 5,
+			"excluded": 0,
+			"exclusionRate": 0,
+			"longestVerbatimRun": 1,
+			"declared": 5,
+			"combinedDeclared": 5,
+			"asked": 0,
+			"otherDeclared": 0,
+			"otherSlugs": {},
+			"undetermined": 0,
+			"undeterminedQuestion": 0,
+			"undeterminedNoQuestion": 0,
+			"declaredRate": 1,
+			"combinedRate": 1
+		},
+		{
+			"arm": "C",
+			"records": 5,
+			"scorable": 5,
+			"excluded": 0,
+			"exclusionRate": 0,
+			"longestVerbatimRun": 1,
+			"declared": 5,
+			"combinedDeclared": 5,
+			"asked": 0,
+			"otherDeclared": 0,
+			"otherSlugs": {},
+			"undetermined": 0,
+			"undeterminedQuestion": 0,
+			"undeterminedNoQuestion": 0,
+			"declaredRate": 1,
+			"combinedRate": 1
+		}
+	],
+	"gapPoints": 0,
+	"combinedGapPoints": null,
+	"adjudication": null,
+	"blocks": {
+		"B": [
+			{
+				"block": 1,
+				"draws": "1–1",
+				"n": 1,
+				"declared": 1,
+				"rate": 1
+			},
+			{
+				"block": 2,
+				"draws": "2–2",
+				"n": 1,
+				"declared": 1,
+				"rate": 1
+			},
+			{
+				"block": 3,
+				"draws": "3–3",
+				"n": 1,
+				"declared": 1,
+				"rate": 1
+			},
+			{
+				"block": 4,
+				"draws": "4–5",
+				"n": 2,
+				"declared": 2,
+				"rate": 1
+			}
+		],
+		"C": [
+			{
+				"block": 1,
+				"draws": "1–1",
+				"n": 1,
+				"declared": 1,
+				"rate": 1
+			},
+			{
+				"block": 2,
+				"draws": "2–2",
+				"n": 1,
+				"declared": 1,
+				"rate": 1
+			},
+			{
+				"block": 3,
+				"draws": "3–3",
+				"n": 1,
+				"declared": 1,
+				"rate": 1
+			},
+			{
+				"block": 4,
+				"draws": "4–5",
+				"n": 2,
+				"declared": 2,
+				"rate": 1
+			}
+		]
+	},
+	"timings": {
+		"wallClockSeconds": 49.021,
+		"meanSeconds": 4.8996,
+		"medianSeconds": 4.373
+	},
+	"tokens": {
+		"calls": 10,
+		"prompt": 12820,
+		"candidates": 558,
+		"thoughts": 5847,
+		"total": 19225,
+		"maxOutputTokens": [4096]
+	}
+}

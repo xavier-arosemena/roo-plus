@@ -1,0 +1,32 @@
+{
+  "sealed": true,
+  "warning": "SEALED — maps blind labels to the six cells. No scorer bundle may contain this file.",
+  "blindSeed": "roo-plus-routing-round-2026-11-12",
+  "algorithm": "labels assigned by ascending sha256(cell + blindSeed)",
+  "labels": [
+    {
+      "label": "CELL-4",
+      "cell": "C1"
+    },
+    {
+      "label": "CELL-1",
+      "cell": "C2"
+    },
+    {
+      "label": "CELL-3",
+      "cell": "C3"
+    },
+    {
+      "label": "CELL-5",
+      "cell": "C4"
+    },
+    {
+      "label": "CELL-2",
+      "cell": "C5"
+    },
+    {
+      "label": "CELL-6",
+      "cell": "C6"
+    }
+  ]
+}

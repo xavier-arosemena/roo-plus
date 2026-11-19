@@ -1,0 +1,54 @@
+{
+	"channel": "incidents",
+	"source": "on-call export",
+	"events": [
+		{
+			"id": "INC-1041",
+			"at": "2026-10-01T11:05:00Z",
+			"severity": "warning",
+			"service": "gateway"
+		},
+		{
+			"id": "INC-1042",
+			"at": "2026-10-01T14:40:00Z",
+			"severity": "error",
+			"service": "checkout-api"
+		},
+		{
+			"id": "INC-1043",
+			"at": "2026-10-02T00:30:00Z",
+			"severity": "critical",
+			"service": "ledger"
+		},
+		{
+			"id": "INC-1044",
+			"at": "2026-10-02T02:15:00Z",
+			"severity": "warning",
+			"service": "notifier"
+		},
+		{
+			"id": "INC-1045",
+			"at": "2026-10-02T12:00:00Z",
+			"severity": "error",
+			"service": "checkout-api"
+		},
+		{
+			"id": "INC-1046",
+			"at": "2026-10-02T23:45:00Z",
+			"severity": "info",
+			"service": "notifier"
+		},
+		{
+			"id": "INC-1047",
+			"at": "2026-10-03T01:10:00Z",
+			"severity": "warning",
+			"service": "ledger"
+		},
+		{
+			"id": "INC-1048",
+			"at": "2026-10-03T10:20:00Z",
+			"severity": "info",
+			"service": "gateway"
+		}
+	]
+}

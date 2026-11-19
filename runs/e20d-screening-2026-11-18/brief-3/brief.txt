@@ -1,0 +1,1 @@
+Why does this function allocate a new list on every call?

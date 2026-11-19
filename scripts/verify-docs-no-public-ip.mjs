@@ -32,6 +32,13 @@
  * below with an explanatory comment (that is the only sanctioned way to widen
  * the allow-list).
  *
+ * The one non-allow-list exclusion is positional, not address-based: a
+ * dotted-quad occupying a URL PATH position (`…/books/en/4.378.1.22/1`) is a
+ * citation identifier, not a host, and is skipped. Host positions inside URLs
+ * (`http://8.8.8.8/…`, `//8.8.8.8/…`) are still flagged — see
+ * `isUrlPathSegment`. Nothing about the address pattern or the octet bounds is
+ * relaxed by it.
+ *
  * Usage:  node scripts/verify-docs-no-public-ip.mjs [--root <dir>] [--quiet]
  *         --root <dir>  root to guard (default: the repository root). When
  *                       <dir>/docs is a directory that whole tree is scanned in
@@ -106,7 +113,42 @@ export function isAllowedIpv4(dotted) {
 }
 
 /**
+ * True when the dotted-quad ending at `index` in `line` sits in a URL PATH
+ * position rather than a host position — the deliberate false-positive
+ * exclusion for dotted chapter/article identifiers inside citation URLs, e.g.
+ * `https://example.com/books/en/4.378.1.22/1`.
+ *
+ * The test is intentionally narrow:
+ *
+ *   - the character immediately before the quad must be `/` (a path boundary);
+ *   - the text up to and including that `/` must NOT end in `//` or `://`, i.e.
+ *     the quad is not the authority/host component introduced by a scheme or a
+ *     protocol-relative reference.
+ *
+ * So `http://8.8.8.8/x` and `//8.8.8.8/x` still match (and are flagged — a leak
+ * inside a URL is exactly what this guard exists for), while `en/4.378.1.22`
+ * does not. Prose positions (start of line, whitespace, `(`, `"`, `'`, `=`,
+ * `:`, …) never satisfy the `/` precondition, so they keep their existing
+ * behaviour. Octet bounds and the address pattern itself are untouched.
+ *
+ * Path position wins over the allow-list in the sense that it is checked first:
+ * a private address used as a path segment (`/10.0.0.5/`) is likewise not a
+ * host and is skipped. That is consistent with the guard's purpose (host
+ * disclosure) and is proven by a test.
+ *
+ * @param {string} line
+ * @param {number} index index of the first character of the quad
+ */
+export function isUrlPathSegment(line, index) {
+	if (index === 0 || line[index - 1] !== "/") return false
+	const prefix = line.slice(0, index)
+	return !prefix.endsWith("//") && !prefix.endsWith("://")
+}
+
+/**
  * Finds every non-allow-listed IPv4 literal in `content`.
+ * Dotted-quads in a URL path position are skipped (see `isUrlPathSegment`);
+ * everything else is reported as before.
  * @param {string} content
  * @returns {{ line: number; column: number; ip: string; text: string }[]}
  */
@@ -117,6 +159,7 @@ export function findOffendingIpv4(content) {
 		for (const m of lines[i].matchAll(IPV4_RE)) {
 			const ip = m[0]
 			if (isAllowedIpv4(ip)) continue
+			if (isUrlPathSegment(lines[i], m.index)) continue
 			out.push({ line: i + 1, column: m.index + 1, ip, text: lines[i].trim() })
 		}
 	}

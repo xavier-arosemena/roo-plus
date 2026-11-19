@@ -9,6 +9,8 @@
  *   - that routable AND private addresses are flagged,
  *   - line/column reporting and that allow-listed literals are ignored,
  *   - that version strings and hash fragments are not false positives,
+ *   - that a dotted-quad in a URL PATH position is not flagged, while a host
+ *     inside a URL (`http://8.8.8.8/`, `//8.8.8.8/`) still is,
  *   - a real pass run against the CURRENT repo `docs/` tree (must be clean),
  *   - deterministic failure cases against a self-contained temp fixture,
  *   - the repo-wide `*.md` sweep (`scanRepoMarkdown`): a leak OUTSIDE docs/ is
@@ -35,6 +37,7 @@ import {
 	IPV4_RE,
 	findOffendingIpv4,
 	isAllowedIpv4,
+	isUrlPathSegment,
 	scanDirectory,
 	scanRepoMarkdown,
 } from "./verify-docs-no-public-ip.mjs"
@@ -235,4 +238,75 @@ test("the committed repo Markdown contains no non-allow-listed IPv4 literals", (
 		[],
 		`offending literals: ${findings.map((f) => `${f.file}:${f.line} ${f.ip}`).join(", ")}`,
 	)
+})
+
+// ---------------------------------------------------------------------------
+// URL path segments — the narrow exclusion (dotted citation identifiers)
+//
+// A source register legitimately cites a secondary exposition whose URL path
+// contains a dotted chapter identifier that happens to look like a dotted-quad.
+// It is not an address. The exclusion must be exactly that narrow: a host
+// inside a URL is still a leak and stays flagged.
+//
+// These cases are appended AFTER the committed-tree assertions on purpose, so
+// the pre-existing test numbering (and with it the pre-existing failing test)
+// does not move.
+// ---------------------------------------------------------------------------
+
+test("findOffendingIpv4 skips dotted-quads that are URL path segments", () => {
+	const content = [
+		"| S23 | Raskin, [via secondary exposition](https://example.com/books/en/4.378.1.22/1) |",
+		"| S24 | a private-range path segment is still a path: https://example.com/id/10.0.0.5/1 |",
+		"see /198.18.0.1/ inside a rendered path reference",
+	].join("\n")
+	assert.deepEqual(findOffendingIpv4(content), [])
+})
+
+test("isUrlPathSegment distinguishes path position from host position", () => {
+	const path = "https://example.com/books/en/4.378.1.22/1"
+	assert.equal(isUrlPathSegment(path, path.indexOf("4.378.1.22")), true)
+
+	const host = "http://8.8.8.8/path"
+	assert.equal(isUrlPathSegment(host, host.indexOf("8.8.8.8")), false)
+
+	const protoRelative = "//8.8.8.8/path"
+	assert.equal(isUrlPathSegment(protoRelative, protoRelative.indexOf("8.8.8.8")), false)
+
+	const prose = "host 8.8.8.8 here"
+	assert.equal(isUrlPathSegment(prose, prose.indexOf("8.8.8.8")), false)
+})
+
+test("findOffendingIpv4 flags a host address inside a URL (scheme and protocol-relative)", () => {
+	const findings = findOffendingIpv4(["a http://8.8.8.8/path b", "c //8.8.8.8/path d"].join("\n"))
+	assert.deepEqual(
+		findings.map((f) => ({ ip: f.ip, line: f.line })),
+		[
+			{ ip: "8.8.8.8", line: 1 },
+			{ ip: "8.8.8.8", line: 2 },
+		],
+	)
+})
+
+test("findOffendingIpv4 flags the same address in prose and in parentheses", () => {
+	const prose = "the resolver is 8.8.8.8 and nothing else"
+	const parenthesised = "the resolver (8.8.8.8) is documented"
+	const findings = findOffendingIpv4([prose, parenthesised].join("\n"))
+	assert.deepEqual(
+		findings.map((f) => ({ ip: f.ip, line: f.line, column: f.column })),
+		[
+			{ ip: "8.8.8.8", line: 1, column: prose.indexOf("8.8.8.8") + 1 },
+			{ ip: "8.8.8.8", line: 2, column: parenthesised.indexOf("8.8.8.8") + 1 },
+		],
+	)
+})
+
+test("a citation row with a URL path segment stays clean while a host leak in it is caught", () => {
+	const clean = "| S23 | Raskin, [via secondary exposition](https://example.com/books/en/4.378.1.22/1) | B |"
+	assert.deepEqual(findOffendingIpv4(clean), [])
+
+	const leaky = `${clean}\nmirror at http://198.18.0.1/books/en/4.378.1.22/1`
+	const findings = findOffendingIpv4(leaky)
+	assert.equal(findings.length, 1)
+	assert.equal(findings[0].ip, "198.18.0.1")
+	assert.equal(findings[0].line, 2)
 })
