@@ -42,6 +42,20 @@ Two different numbers get confused here, and only one of them is about getting t
 
 ## 1. What we are trying to assess
 
+### What is already known, and what is not
+
+Four things bear on the question this report asks. Each is stated with its grade, because three of the four rest on a single study and two are unpublished preprints. Sources are listed in Annex J.
+
+**1. Selection from a list is a metadata problem, and the metadata is unequal.** The only factor-isolated study of tool selection — five models, five tasks, metadata drawn from 367,174 tools, positions balanced, conditional logistic regression for position-adjusted effects — ranks the levers **parameter schema > description > name**, with names excluding zero in only **6 of 29** estimates (Annex J-1: single preprint, unreplicated). Our own framing inherits that ranking: `whenToUse` is the description lever, and the entry name is the weakest one available.
+
+**2. Position can dominate when names are all that differ.** The same study reports the first-listed entry chosen in **78.7–96.0%** of trials under name-only comparisons. No factor-isolated study we could reach had varied position inside a mode picker before this programme — which is why §4.2 exists, and why it is reported as a difference without an identified mechanism.
+
+**3. Benchmarks systematically fail to score abstention.** The leading agent-function-calling benchmark builds turns on which asking is the _expected_ behaviour, and then its scorer skips them: _"asking earns nothing, guessing costs nothing on that turn"_. Instructing a model not to ask produces no detectable change in decision quality while raising its official score by **13.5 to 23.5 points** (Annex J-2: measured, single benchmark, unreplicated). This is not an aside. It is the same instrument defect that manufactured this programme's own false null, recorded in §13.
+
+**4. Grammatical form has guidance but no measurement.** Verb-first naming is a documented interface convention (Annex J-3 to J-5), and nominalisation research explains why a "-tion" noun is ambiguous between an event and its result (Annex J-6, J-7). But **no study compares a verb-named entry with a noun-named one while holding everything else fixed**, in any domain we could reach.
+
+**What that leaves.** The literature predicts that descriptions matter more than names, offers no measurement of name form inside a picker, and is itself unpublished in two of the four load-bearing cases. The question this report was built to answer had no prior measurement to confirm or deny — which cuts both ways: any result here is new, and any result here is unanchored.
+
 ### 1.1 The user-facing situation
 
 The catalogue offers 45 modes. What the model receives is a **picker**: one line per mode — slug, name, `whenToUse` — in file order, about 45 entries. A mode's **position** is simply which line it occupies. This report names positions by what they are ("the first entry", "the seventh entry", "the last entry") rather than by number; a reader who needs the fixture's own zero-based numbering will find it in Annex H, which is the only place it appears.
@@ -586,3 +600,21 @@ Run on 2026-11-18 against a second provider, stopped at 109 of 800 calls (log §
 Five distinct strings across 91 replies, every one a mode name. Failures: five replies truncated to empty content at a 4,096 cap, because a reasoning model spends the output budget on hidden reasoning before answering (D-24); one empty completion. All six failures were in arm B, which is why dropping them rather than raising the cap would have biased the comparison.
 
 Cost: ≈€0.6. The 709 calls not spent would have measured a ceiling.
+
+## Annex J — References
+
+Grades follow the convention used in the programme's research reports: **A** peer-reviewed or primary standard, **B** peer-reviewed secondary or vendor documentation, **C** practitioner guidance. "Unreplicated" means a single study; none of the quantitative results below has been independently repeated.
+
+| Id  | Source                                                                                                                                    | Grade                                  | What this report takes from it                                                                                                                                    |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| J-1 | Factor-isolated tool-selection study over metadata from 367,174 MCP tools; five LLMs, five tasks; positions balanced. Preprint 2610.14334 | **B**, unreplicated                    | Rank order of metadata levers (schema > description > name); 6 of 29 name estimates excluding zero; 78.7–96.0% first-listed selection under name-only differences |
+| J-2 | Agent function-calling benchmark scoring study; decision accuracy against official score across seven models. Preprint 2610.04429         | **A−/B**, measured, unreplicated       | Asking is an expected turn type that the scorer skips; +13.5 to 23.5 points of score for suppressing questions with no change in decision quality                 |
+| J-3 | GOV.UK Design System, _Button_; VA.gov Design System, _Button_                                                                            | **B**, public standards                | Verb-first button labels; 35-character target, 50 enforced                                                                                                        |
+| J-4 | Microsoft Learn, _Menus: UI Text Guidelines_; _Windows Menus_; _UX checklist_                                                             | **B**, vendor standards                | Verb/noun alternation; commit labels start with a verb                                                                                                            |
+| J-5 | NN/g — Kaley, _UI Copy: UX Guidelines for Command Names_; _3 Common IA Mistakes_; Budiu, _Information Scent_                              | **C**, practitioner, research-informed | Lead with verbs; forced parallelism; vague verbs fail to differentiate                                                                                            |
+| J-6 | Kawaletz & Plag, _Predicting the semantics of English nominalizations_ (2015)                                                             | **A**, peer-reviewed                   | "-tion" nouns may denote event, result state, or participant                                                                                                      |
+| J-7 | Barsalou et al., _On the Vices of Nominalization and the Virtues of…_ (2010)                                                              | **B**, book chapter                    | Nominalisation coerces a process into an object category                                                                                                          |
+| J-8 | Katz & Byrne, _Effects of Scent and Breadth on Use of Site-Specific Search_, ACM TOCHI 10(3), 2003                                        | **A**, peer-reviewed                   | Semantic match between an item name and a menu label drives browse-versus-search                                                                                  |
+| J-9 | Raskin, _The Humane Interface_ (2000)                                                                                                     | **B**, secondary exposition            | Noun-verb versus verb-noun ordering; locus-of-attention rationale                                                                                                 |
+
+Full source register, with URLs and retrieval dates, is in [`modes-label-form-2026-11.md`](../research/modes-label-form-2026-11.md) §12.
