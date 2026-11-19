@@ -2,7 +2,7 @@ import * as vscode from "vscode"
 
 import { RooCodeEventName, type HistoryItem } from "@roo-code/types"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { Package } from "../../shared/package"
 import type { ToolUse } from "../../shared/tools"
@@ -36,7 +36,11 @@ interface DelegationProvider {
 export class AttemptCompletionTool extends BaseTool<"attempt_completion"> {
 	readonly name = "attempt_completion" as const
 
-	async execute(params: AttemptCompletionParams, task: Task, callbacks: AttemptCompletionCallbacks): Promise<void> {
+	async execute(
+		params: AttemptCompletionParams,
+		task: ToolExecutionContext,
+		callbacks: AttemptCompletionCallbacks,
+	): Promise<void> {
 		const { result } = params
 		const { handleError, pushToolResult, askFinishSubTaskApproval } = callbacks
 
@@ -191,7 +195,7 @@ export class AttemptCompletionTool extends BaseTool<"attempt_completion"> {
 	 * - "continue" when caller should fall through to normal completion ask flow
 	 */
 	private async delegateToParent(
-		task: Task,
+		task: ToolExecutionContext,
 		result: string,
 		provider: DelegationProvider,
 		askFinishSubTaskApproval: () => Promise<boolean>,
@@ -218,7 +222,7 @@ export class AttemptCompletionTool extends BaseTool<"attempt_completion"> {
 		return "delegated"
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"attempt_completion">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"attempt_completion">): Promise<void> {
 		const result: string | undefined = block.params.result
 		const command: string | undefined = block.params.command
 
@@ -241,7 +245,7 @@ export class AttemptCompletionTool extends BaseTool<"attempt_completion"> {
 	 * task is genuinely finished (user accepted, or a subtask was successfully delegated
 	 * back to its parent).
 	 */
-	private emitPublicTaskCompleted(task: Task): void {
+	private emitPublicTaskCompleted(task: ToolExecutionContext): void {
 		// Force final token usage update before emitting TaskCompleted.
 		// This ensures the latest stats are captured regardless of throttle timer.
 		task.emitFinalTokenUsageUpdate()

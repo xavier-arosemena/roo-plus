@@ -1,7 +1,7 @@
 import * as fs from "fs/promises"
 import * as path from "path"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { getTaskDirectoryPath } from "../../utils/storage"
 
 import { BaseTool, ToolCallbacks } from "./BaseTool"
@@ -95,7 +95,11 @@ export class ReadCommandOutputTool extends BaseTool<"read_command_output"> {
 	 * @param task - The current task instance for error reporting and state management
 	 * @param callbacks - Callbacks for pushing tool results
 	 */
-	async execute(params: ReadCommandOutputParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(
+		params: ReadCommandOutputParams,
+		task: ToolExecutionContext,
+		callbacks: ToolCallbacks,
+	): Promise<void> {
 		const { pushToolResult } = callbacks
 		const { artifact_id, search, offset = 0, limit = DEFAULT_LIMIT } = params
 

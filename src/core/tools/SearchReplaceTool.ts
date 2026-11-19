@@ -5,7 +5,7 @@ import { type ClineSayTool, DEFAULT_WRITE_DELAY_MS } from "@roo-code/types"
 
 import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
 import { fileExistsAtPath } from "../../utils/fs"
@@ -24,7 +24,7 @@ interface SearchReplaceParams {
 export class SearchReplaceTool extends BaseTool<"search_replace"> {
 	readonly name = "search_replace" as const
 
-	async execute(params: SearchReplaceParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: SearchReplaceParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { file_path, old_string, new_string } = params
 		const { askApproval, handleError, pushToolResult } = callbacks
 
@@ -237,7 +237,7 @@ export class SearchReplaceTool extends BaseTool<"search_replace"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"search_replace">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"search_replace">): Promise<void> {
 		const filePath: string | undefined = block.params.file_path
 		const oldString: string | undefined = block.params.old_string
 

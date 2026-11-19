@@ -1,4 +1,4 @@
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { BaseTool, ToolCallbacks } from "./BaseTool"
 import type { ToolUse } from "../../shared/tools"
@@ -16,7 +16,7 @@ interface SkillParams {
 export class SkillTool extends BaseTool<"skill"> {
 	readonly name = "skill" as const
 
-	async execute(params: SkillParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: SkillParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { skill: skillName, args } = params
 		const { askApproval, handleError, pushToolResult } = callbacks
 
@@ -80,7 +80,7 @@ export class SkillTool extends BaseTool<"skill"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"skill">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"skill">): Promise<void> {
 		const skillName: string | undefined = block.params.skill
 		const args: string | undefined = block.params.args
 

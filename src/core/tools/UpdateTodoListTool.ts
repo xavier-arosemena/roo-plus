@@ -1,4 +1,4 @@
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { BaseTool, ToolCallbacks } from "./BaseTool"
 import type { ToolUse } from "../../shared/tools"
@@ -16,7 +16,7 @@ let approvedTodoList: TodoItem[] | undefined = undefined
 export class UpdateTodoListTool extends BaseTool<"update_todo_list"> {
 	readonly name = "update_todo_list" as const
 
-	async execute(params: UpdateTodoListParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: UpdateTodoListParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { pushToolResult, handleError, askApproval } = callbacks
 
 		try {
@@ -86,7 +86,7 @@ export class UpdateTodoListTool extends BaseTool<"update_todo_list"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"update_todo_list">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"update_todo_list">): Promise<void> {
 		const todosRaw = block.params.todos
 
 		// Parse the markdown checklist to maintain consistent format with execute()
@@ -106,7 +106,12 @@ export class UpdateTodoListTool extends BaseTool<"update_todo_list"> {
 	}
 }
 
-export function addTodoToTask(cline: Task, content: string, status: TodoStatus = "pending", id?: string): TodoItem {
+export function addTodoToTask(
+	cline: ToolExecutionContext,
+	content: string,
+	status: TodoStatus = "pending",
+	id?: string,
+): TodoItem {
 	const todo: TodoItem = {
 		id: id ?? crypto.randomUUID(),
 		content,
@@ -117,7 +122,7 @@ export function addTodoToTask(cline: Task, content: string, status: TodoStatus =
 	return todo
 }
 
-export function updateTodoStatusForTask(cline: Task, id: string, nextStatus: TodoStatus): boolean {
+export function updateTodoStatusForTask(cline: ToolExecutionContext, id: string, nextStatus: TodoStatus): boolean {
 	if (!cline.todoList) return false
 	const idx = cline.todoList.findIndex((t) => t.id === id)
 	if (idx === -1) return false
@@ -133,7 +138,7 @@ export function updateTodoStatusForTask(cline: Task, id: string, nextStatus: Tod
 	return false
 }
 
-export function removeTodoFromTask(cline: Task, id: string): boolean {
+export function removeTodoFromTask(cline: ToolExecutionContext, id: string): boolean {
 	if (!cline.todoList) return false
 	const idx = cline.todoList.findIndex((t) => t.id === id)
 	if (idx === -1) return false
@@ -141,16 +146,16 @@ export function removeTodoFromTask(cline: Task, id: string): boolean {
 	return true
 }
 
-export function getTodoListForTask(cline: Task): TodoItem[] | undefined {
+export function getTodoListForTask(cline: ToolExecutionContext): TodoItem[] | undefined {
 	return cline.todoList?.slice()
 }
 
-export async function setTodoListForTask(cline?: Task, todos?: TodoItem[]) {
+export async function setTodoListForTask(cline?: ToolExecutionContext, todos?: TodoItem[]) {
 	if (cline === undefined) return
 	cline.todoList = Array.isArray(todos) ? todos : []
 }
 
-export function restoreTodoListForTask(cline: Task, todoList?: TodoItem[]) {
+export function restoreTodoListForTask(cline: ToolExecutionContext, todoList?: TodoItem[]) {
 	if (todoList) {
 		cline.todoList = Array.isArray(todoList) ? todoList : []
 		return

@@ -2,7 +2,7 @@ import * as vscode from "vscode"
 
 import { TodoItem } from "@roo-code/types"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { getModeBySlug } from "../../shared/modes"
 import { formatResponse } from "../prompts/responses"
 import { t } from "../../i18n"
@@ -20,7 +20,7 @@ interface NewTaskParams {
 export class NewTaskTool extends BaseTool<"new_task"> {
 	readonly name = "new_task" as const
 
-	async execute(params: NewTaskParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: NewTaskParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { mode, message, todos } = params
 		const { askApproval, handleError, pushToolResult } = callbacks
 
@@ -126,7 +126,7 @@ export class NewTaskTool extends BaseTool<"new_task"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"new_task">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"new_task">): Promise<void> {
 		const mode: string | undefined = block.params.mode
 		const message: string | undefined = block.params.message
 		const todos: string | undefined = block.params.todos

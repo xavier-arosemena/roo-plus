@@ -4,7 +4,7 @@ import fs from "fs/promises"
 import { type ClineSayTool, DEFAULT_WRITE_DELAY_MS } from "@roo-code/types"
 
 import { getReadablePath } from "../../utils/path"
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { fileExistsAtPath } from "../../utils/fs"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
@@ -23,7 +23,7 @@ interface ApplyDiffParams {
 export class ApplyDiffTool extends BaseTool<"apply_diff"> {
 	readonly name = "apply_diff" as const
 
-	async execute(params: ApplyDiffParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: ApplyDiffParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { askApproval, handleError, pushToolResult } = callbacks
 		let { path: relPath, diff: diffContent } = params
 
@@ -267,7 +267,7 @@ export class ApplyDiffTool extends BaseTool<"apply_diff"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"apply_diff">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"apply_diff">): Promise<void> {
 		const relPath: string | undefined = block.params.path
 		const diffContent: string | undefined = block.params.diff
 

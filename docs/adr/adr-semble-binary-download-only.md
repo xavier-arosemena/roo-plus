@@ -40,5 +40,5 @@ Make **download the sole installation mechanism** for the semble binary, and fix
 
 ## See Also
 
-- [`arch-review-semble-download-404.md`](arch-review-semble-download-404.md) — the bundling option (Solution D) was superseded and rejected on 2026-07-31 for the same size/runtime reasons
+- [architecture review record](../reviews/) — the bundling option (Solution D) was superseded and rejected on 2026-07-31 for the same size/runtime reasons
 - [`DEBT.md`](../../DEBT.md) — resolved-debt rows for the Semble EACCES one-dir layout and bundled-launcher removal

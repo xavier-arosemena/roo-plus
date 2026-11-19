@@ -1,4 +1,4 @@
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import type { ToolUse } from "../../shared/tools"
 import { getSuggestionMode } from "@roo-code/types"
@@ -21,7 +21,11 @@ interface AskFollowupQuestionParams {
 export class AskFollowupQuestionTool extends BaseTool<"ask_followup_question"> {
 	readonly name = "ask_followup_question" as const
 
-	async execute(params: AskFollowupQuestionParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(
+		params: AskFollowupQuestionParams,
+		task: ToolExecutionContext,
+		callbacks: ToolCallbacks,
+	): Promise<void> {
 		const { question, follow_up } = params
 		const { handleError, pushToolResult } = callbacks
 
@@ -79,7 +83,7 @@ export class AskFollowupQuestionTool extends BaseTool<"ask_followup_question"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"ask_followup_question">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"ask_followup_question">): Promise<void> {
 		const question: string | undefined = block.nativeArgs?.question ?? block.params.question
 
 		// During partial streaming, only show the question to avoid displaying raw JSON
