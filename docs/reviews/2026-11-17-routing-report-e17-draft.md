@@ -9,23 +9,33 @@
 | **Canonical record** | [`modes-experiment-log.md` §23](../research/modes-experiment-log.md:812) and [§24](../research/modes-experiment-log.md:834) — the red-team round, which is the record of what was verified. Every E20c figure here is taken from there or from `runs/` |
 | **Calls paid**       | 2,591 output-producing calls in the E20 family; **3,200 across the whole programme including the closed round and the 9-call smoke test**, ≈€16.32. Cost, wall clock and deviations are in Annex A                                                     |
 
-[Did we include already a "template" of how "the perfect prompt" looks like according to this report?]
-
 ---
+
+## Abstract
+
+**Question.** When a request could belong to more than one mode, does the wording of the mode lines — or their order in the list — change which one is chosen? The literature offers no measurement. It establishes that descriptions outrank names in tool selection, that position can dominate when names are all that differ, and that benchmarks routinely fail to score the turn on which asking is the correct answer.
+
+**Method.** Three experiments, one model, one forty-five-entry picker and one deliberately ambiguous brief, varying the lines one clause at a time: 900 draws across three wordings, 200 across two list positions, and 600 across three occupants of the last slot. Every contrast was pre-registered, interleaved, and judged twice — the second time by a different model reading a blind packet.
+
+**Result.** One finding survives. A line stating what the answer must **not** be committed **27.5 points** more often than one stating an evidence standard — 89.0% against 61.5%, the reverse of the prediction — holding its sign throughout the run and reproduced by the second reader on **99.7%** of the replies it re-read. Order produced a difference without an identified mechanism. Everything else narrowed: the effect holds on **one brief out of seven screened**, for one model, at one list position, with batch-to-batch variation of the same order as the design's stated resolution.
+
+**For authors.** §7 turns that finding into a template for writing a mode line; §6 turns it into advice for choosing one.
 
 ## 0. What to take away
 
-1. A line that excludes out-commits a line that requires. 27.5 points (89.0% against 61.5%, p ≈ 7 × 10⁻²⁰), and the gap keeps its sign in every quarter of the run at 21–35 points. This is the report's only confirmatory finding, and its direction reverses what was predicted. It is also independently corroborated: a second model, reading the same replies blind under a corrected rule, reproduced the first pass on **99.7%** of them (log §26). Falsified if a length-matched line that names a required artefact, rather than a quality standard, reverses the gap.
-2. On an ambiguous brief the model asks rather than guesses, and that is the correct response. Every reply in the 900 E20 wording calls either committed to the expected mode or asked for the missing information; none selected an unrelated one. Falsified if wrong commits are shown to outnumber asks on ambiguous briefs at this scale.
+1. **There is exactly one confirmatory finding, and it is this.** A mode line that says what the answer must **not** be out-commits one that says what the answer must **contain**: 89.0% against 61.5%, a gap of **27.5 points**, _p_ ≈ 7 × 10⁻²⁰. Three things make it the report's only surviving result, and all three are stated because the claim is large. It holds its sign in **every quarter** of the run, at 21–35 points; it is **independently corroborated**, a second model re-reading the same replies blind agreeing with the first pass on **99.7%** of them; and its direction is the **reverse of the prediction we registered**. Everything else in this report is narrower than it first appeared — see §5. _Falsified if_ a length-matched line naming a required artefact, rather than a quality standard, reverses the gap. [Please review this sentence, specially the beginning. It is not clear. If this is " the report's only confirmatory finding" it needs to be crystal clear.]
+2. On an ambiguous brief the model asks rather than guesses, and that is the correct response. Every reply in the 900 E20 wording calls either committed to the expected mode or asked for the missing information; none selected an unrelated one. That behaviour is **model-specific** and strongly so: a second model, on the same brief and the same lines, asked **not once in 91 replies** (§4.8). Asking is the correct response here; whether a given model asks at all is not something this report can generalise. _Falsified if_ wrong commits are shown to outnumber asks on ambiguous briefs at this scale, for a model that asks at a comparable rate. [Here I think we should again clarify that this seems to be model-specific. The other model did not ask at all...]
 3. For list order the programme has a difference but not a mechanism. First and last entries differ within one run, with the gap positive in every quarter (+44, +20, +24, +20 points), but the experiment designed to identify the cause was inconclusive because one of its arms drifted during the run. Falsified if a stationary re-run shows the occupant of the last slot changes the target's commitment rate reliably.
 4. The same prompt does not get the same answer. On 90 identical prompts two dispatches agreed at 50.0 / 50.0 / 62.5% against chance levels of 54.5 / 50.1 / 63.8%, and one unchanged condition ran at 59.3% in one batch and 47.0% in another. That gap is a time-average of a drift, so it is quoted as tens of points and never as a constant. Falsified if two dispatches of the same prompts agree far above chance.
 5. Every number here is one model, one brief, one session — and one of those turns out to be channel-specific. A second model, given the same brief and the same two lines, asked **no questions at all** in 91 replies and returned a bare route name every time, which is why the replication was stopped. The commit-versus-ask channel, where the 27.5 points live, depends on the model's willingness to ask, not only on the route. Falsified by a model that asks at a comparable rate and still shows the gap.
+
+[This section for me lacks the simplest idea: that the clarity of the brief remains the main factor of success for routing. And thus we are trying to measure precisely how to improve when the brief is not clear engough. This statement can be improved.]
 
 ---
 
 ### How large is this in practice?
 
-Two different numbers get confused here, and only one of them is about getting the answer wrong.
+Two different numbers get confused here.
 
 **What moves is the choice.** On a brief too vague to decide from, the line and the position shifted _whether the reply commits or asks_ by **27.5 and 29 points**. That is a shift in the majority behaviour on such a brief, not a marginal effect: the same model, the same request, and the commit rate went from 61.5% to 89.0% on wording alone.
 [So what we could do is testing our final mode-briefs to see the reaction, and infer wheteher they are being vague or not? (nice, real applications from the research.)]
@@ -42,23 +52,25 @@ Two different numbers get confused here, and only one of them is about getting t
 
 ## 1. What we are trying to assess
 
+**Start with the simplest fact, because everything below is a refinement of it.** The clarity of the brief decides the outcome. When a request says what is wanted, the model commits to the right mode almost every time — 98 to 100 draws in 100, measured here — and no wording or ordering trick changes that. This report is about the remaining case: a brief ambiguous enough that the model could reasonably ask instead of choosing, and about which levers, if any, improve the choice when the brief cannot.
+
 ### What is already known, and what is not
 
-Four things bear on the question this report asks. Each is stated with its grade, because three of the four rest on a single study and two are unpublished preprints. Sources are listed in Annex J.
+Four things bear on the question this report asks. Each is stated with its grade, because three of the four rest on a single study and two are unpublished preprints. Sources are listed under Citations, before the annexes.
 
-**1. Selection from a list is a metadata problem, and the metadata is unequal.** The only factor-isolated study of tool selection — five models, five tasks, metadata drawn from 367,174 tools, positions balanced, conditional logistic regression for position-adjusted effects — ranks the levers **parameter schema > description > name**, with names excluding zero in only **6 of 29** estimates (Annex J-1: single preprint, unreplicated). Our own framing inherits that ranking: `whenToUse` is the description lever, and the entry name is the weakest one available.
+**1. Selection from a list is a metadata problem, and the metadata is unequal.** The only factor-isolated study of tool selection — five models, five tasks, metadata drawn from 367,174 tools, positions balanced, conditional logistic regression for position-adjusted effects — ranks the levers **parameter schema > description > name**, with names excluding zero in only **6 of 29** estimates (Li, Qiao, & Gao, 2026 — a preprint, unreplicated). Our own framing inherits that ranking: `whenToUse` is the description lever, and the entry name is the weakest one available.
 
 **2. Position can dominate when names are all that differ.** The same study reports the first-listed entry chosen in **78.7–96.0%** of trials under name-only comparisons. No factor-isolated study we could reach had varied position inside a mode picker before this programme — which is why §4.2 exists, and why it is reported as a difference without an identified mechanism.
 
-**3. Benchmarks systematically fail to score abstention.** The leading agent-function-calling benchmark builds turns on which asking is the _expected_ behaviour, and then its scorer skips them: _"asking earns nothing, guessing costs nothing on that turn"_. Instructing a model not to ask produces no detectable change in decision quality while raising its official score by **13.5 to 23.5 points** (Annex J-2: measured, single benchmark, unreplicated). This is not an aside. It is the same instrument defect that manufactured this programme's own false null, recorded in §13.
+**3. Benchmarks systematically fail to score abstention.** The leading agent-function-calling benchmark builds turns on which asking is the _expected_ behaviour, and then its scorer skips them: _"asking earns nothing, guessing costs nothing on that turn"_. Instructing a model not to ask produces no detectable change in decision quality while raising its official score by **13.5 to 23.5 points** (Asking Earns Nothing, 2026 — a preprint, one benchmark, unreplicated). This is not an aside. It is the same instrument defect that manufactured this programme's own false null, recorded in §13.
 
-**4. Grammatical form has guidance but no measurement.** Verb-first naming is a documented interface convention (Annex J-3 to J-5), and nominalisation research explains why a "-tion" noun is ambiguous between an event and its result (Annex J-6, J-7). But **no study compares a verb-named entry with a noun-named one while holding everything else fixed**, in any domain we could reach.
+**4. Grammatical form has guidance but no measurement.** Verb-first naming is a documented interface convention (GOV.UK Design System, n.d.; Microsoft Learn, n.d.; Kaley, n.d.), and nominalisation research explains why a "-tion" noun is ambiguous between an event and its result (Kawaletz & Plag, 2015; Barsalou et al., 2010). But **no study compares a verb-named entry with a noun-named one while holding everything else fixed**, in any domain we could reach.
 
 **What that leaves.** The literature predicts that descriptions matter more than names, offers no measurement of name form inside a picker, and is itself unpublished in two of the four load-bearing cases. The question this report was built to answer had no prior measurement to confirm or deny — which cuts both ways: any result here is new, and any result here is unanchored.
 
 ### 1.1 The user-facing situation
 
-The catalogue offers 45 modes. What the model receives is a **picker**: one line per mode — slug, name, `whenToUse` — in file order, about 45 entries. A mode's **position** is simply which line it occupies. This report names positions by what they are ("the first entry", "the seventh entry", "the last entry") rather than by number; a reader who needs the fixture's own zero-based numbering will find it in Annex H, which is the only place it appears.
+The catalogue offers 45 modes. What the model receives is a **picker**: one line per mode — slug, name, `whenToUse` — in file order, about 45 entries. A mode's **position** is simply which line it occupies in the list. This report names positions by what they are ("the first entry", "the seventh entry", "the last entry") rather than by number; a reader who needs the fixture's own zero-based numbering will find it in Annex H, which is the only place it appears.
 
 From that list and the user's request, the model must decide whether to **commit** to one mode or **ask** for what the request left out. The closing round showed that on an unambiguous brief the model commits almost always (598 of 600 appropriate). The interesting regime is therefore the _ambiguous_ brief, which is the only regime in which the picker line can matter.
 
@@ -354,7 +366,9 @@ Zero asks in 91 replies puts the 95% upper bound on that model's ask rate at **�
 
 Every item below rests on a number measured within one run. Items that rested on a withdrawn reading have been **deleted rather than softened**, which is why the list is shorter than it was.
 
-### 6.1 If you are choosing a mode (as a user)
+### 6.1 If you are choosing a mode
+
+**The brief matters more than the catalogue.** A request that says what is wanted gets the right mode almost every time; nothing in this report makes an unclear brief as good as a clear one. Everything below applies only to the ambiguous case.
 
 1. **Assume the picker is doing some of the choosing for you.** Two systems with identical instructions but different list order committed at 16% and 45% on the same request, inside one run. If two modes look plausible for your task, name the outcome you want in the request ("find the cause and prove it" versus "map the dependencies") rather than relying on the mode you clicked.
 2. **A clarifying question is not a failure.** Across the 900 calls of the E20 wording arms the model never selected an unrelated mode; when it did not commit, it asked. That is not a general property of this system: the last-entry arm of E20b named a mode the key does not name in 12 of 100 replies. The slot-occupant sweep produced at least 2 in 600. Asking is not free — it costs the user a turn — but it is usually cheaper than a commit to the wrong mode. "Wrong" here means _a mode the key does not name_: ten of E20b's twelve named `architecture-reviewer`, which log §17.5 calls adjacent and defensible for this brief.
@@ -377,6 +391,8 @@ One constraint makes the difference between an honest probe and a magic number: 
 
 ## 7. Turning the results into hypotheses
 
+**What follows is a way to write one line of a mode entry.** A picker shows the model one line per mode, in the form `name — slug — whenToUse`; the `whenToUse` text is the only part that differs between the arms of every experiment here, so it is the only part this report can speak to. The skeleton in §7.2 is laid out in that vocabulary, and the worked example in §7.3 is a `whenToUse` line written to the measured pattern.
+
 This section is **untested guidance, not a recipe**. It is derived from the results above with their caveats attached, and only one of its four items rests on a result this report calls confirmatory. The wording evidence comes from one model, one brief and one position (the seventh entry), at 400 draws per arm; §4.2 and §4.6 say how little of it survives being moved or re-batched. Read the items as constraints on what an author may claim, not as a method that produces commitment.
 
 ### 7.1 Four hypotheses, each with what actually stands behind it
@@ -390,16 +406,21 @@ This section is **untested guidance, not a recipe**. It is derived from the resu
 
 ### 7.2 A skeleton, untested
 
+[Give a bit more context here. What this is? (In the mode's description this is how the name | slug | when to use line shoudl look like)]
+
 ```
-Use when <the situation in which this mode, and not its nearest neighbour, owns the outcome>,
+Name | slug | Use when <the situation in which this mode, and not its nearest neighbour, owns the outcome>,
 and the answer must not <the thing the neighbouring modes produce instead>.
 ```
+
+[improve as needed]
 
 The gaps are deliberate. `<…>` is a placeholder, not text to publish. The first gap names a trigger narrow enough that a neighbouring line does not also match it; the second names an exclusion the neighbours do not impose — which is the form that measured 27.5 points ahead of the same clause stated as a requirement (line C against line B), at the seventh entry, on this brief. Nothing here shows that either gap generalises, and no experiment has yet compared this skeleton against a line written any other way.
 
 ### 7.3 One worked example, untested
 
 The measured line C, annotated:
+[here also use the name/slug/when to use structure used above]
 
 > `Use when someone asks why code behaves as it does, and the answer must not merely describe the code.` (99 characters)
 
@@ -433,6 +454,32 @@ These are the five that would change what this report can say. All of them are w
 ---
 
 - **E20b's last arm reads 45.0% in §3 and 46.0% under the corrected adjudication.** A one-reply difference, to resolve before publication.
+
+## Citations
+
+Only the sources used in this report are listed. Initials and full author lists are recorded in the programme register at [`modes-label-form-2026-11.md`](../research/modes-label-form-2026-11.md) §12, where two entries are given by surname only; they are left incomplete here rather than guessed.
+
+Asking Earns Nothing: Scoring the Decision to Act in BFCL Multi-Turn. (2026). _arXiv_. https://arxiv.org/abs/2610.04429
+
+Barsalou, L. W., et al. (2010). _On the vices of nominalization and the virtues of contextualizing_ [Book chapter]. https://barsaloulab.org/Online_Articles/2010-Barsalou_et_al-chap-nominalization_contextualizing.pdf
+
+Budiu, R. (n.d.). _Information scent_. Nielsen Norman Group. https://www.nngroup.com/articles/information-scent
+
+GOV.UK Design System. (n.d.). _Button_. https://design-system.service.gov.uk/components/button
+
+Kaley, A. (n.d.). _UI copy: UX guidelines for command names_. Nielsen Norman Group. https://www.nngroup.com/articles/ui-copy
+
+Katz, S. M., & Byrne, M. D. (2003). Effects of scent and breadth on use of site-specific search. _ACM Transactions on Computer-Human Interaction, 10_(3). http://chil.rice.edu/research/pdf/KatzByrne03.pdf
+
+Kawaletz, L., & Plag, I. (2015). _Predicting the semantics of English nominalizations_. https://www.anglistik3.hhu.de/fileadmin/redaktion/Fakultaeten/Philosophische_Fakultaet/Anglistik_und_Amerikanistik/Ang3_Linguistics/Dateien/Detailseiten/Plag/Kawaletz_Plag2015_Predicting_the_semantics_of_English_nominalizations.pdf
+
+Li, Qiao, & Gao. (2026). _Which metadata matters for LLM tool selection in MCP? Evidence from controlled factor-level interventions_. arXiv. https://arxiv.org/abs/2610.14334
+
+Microsoft Learn. (n.d.). _Menus: UI text guidelines_. https://learn.microsoft.com/en-us/previous-versions/windows/desktop/bb246448(v=vs.85)
+
+Raskin, J. (2000). _The human interface_. Addison-Wesley. Read via a secondary exposition: https://flylib.com/books/en/4.378.1.22/1
+
+VA.gov Design System. (n.d.). _Button_. https://design.va.gov/components/button
 
 ## Annex A — Provenance, cost, and deviations
 
@@ -600,21 +647,3 @@ Run on 2026-11-18 against a second provider, stopped at 109 of 800 calls (log §
 Five distinct strings across 91 replies, every one a mode name. Failures: five replies truncated to empty content at a 4,096 cap, because a reasoning model spends the output budget on hidden reasoning before answering (D-24); one empty completion. All six failures were in arm B, which is why dropping them rather than raising the cap would have biased the comparison.
 
 Cost: ≈€0.6. The 709 calls not spent would have measured a ceiling.
-
-## Annex J — References
-
-Grades follow the convention used in the programme's research reports: **A** peer-reviewed or primary standard, **B** peer-reviewed secondary or vendor documentation, **C** practitioner guidance. "Unreplicated" means a single study; none of the quantitative results below has been independently repeated.
-
-| Id  | Source                                                                                                                                    | Grade                                  | What this report takes from it                                                                                                                                    |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| J-1 | Factor-isolated tool-selection study over metadata from 367,174 MCP tools; five LLMs, five tasks; positions balanced. Preprint 2610.14334 | **B**, unreplicated                    | Rank order of metadata levers (schema > description > name); 6 of 29 name estimates excluding zero; 78.7–96.0% first-listed selection under name-only differences |
-| J-2 | Agent function-calling benchmark scoring study; decision accuracy against official score across seven models. Preprint 2610.04429         | **A−/B**, measured, unreplicated       | Asking is an expected turn type that the scorer skips; +13.5 to 23.5 points of score for suppressing questions with no change in decision quality                 |
-| J-3 | GOV.UK Design System, _Button_; VA.gov Design System, _Button_                                                                            | **B**, public standards                | Verb-first button labels; 35-character target, 50 enforced                                                                                                        |
-| J-4 | Microsoft Learn, _Menus: UI Text Guidelines_; _Windows Menus_; _UX checklist_                                                             | **B**, vendor standards                | Verb/noun alternation; commit labels start with a verb                                                                                                            |
-| J-5 | NN/g — Kaley, _UI Copy: UX Guidelines for Command Names_; _3 Common IA Mistakes_; Budiu, _Information Scent_                              | **C**, practitioner, research-informed | Lead with verbs; forced parallelism; vague verbs fail to differentiate                                                                                            |
-| J-6 | Kawaletz & Plag, _Predicting the semantics of English nominalizations_ (2015)                                                             | **A**, peer-reviewed                   | "-tion" nouns may denote event, result state, or participant                                                                                                      |
-| J-7 | Barsalou et al., _On the Vices of Nominalization and the Virtues of…_ (2010)                                                              | **B**, book chapter                    | Nominalisation coerces a process into an object category                                                                                                          |
-| J-8 | Katz & Byrne, _Effects of Scent and Breadth on Use of Site-Specific Search_, ACM TOCHI 10(3), 2003                                        | **A**, peer-reviewed                   | Semantic match between an item name and a menu label drives browse-versus-search                                                                                  |
-| J-9 | Raskin, _The Humane Interface_ (2000)                                                                                                     | **B**, secondary exposition            | Noun-verb versus verb-noun ordering; locus-of-attention rationale                                                                                                 |
-
-Full source register, with URLs and retrieval dates, is in [`modes-label-form-2026-11.md`](../research/modes-label-form-2026-11.md) §12.

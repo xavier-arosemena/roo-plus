@@ -49,6 +49,9 @@ The programme answers two different questions, and conflating them caused most o
 | **E18**          | **Dispatch the capability research** — brief at [`modes-capability-benchmark-BRIEF.md`](research/modes-capability-benchmark-BRIEF.md)                                                                                                                                                                                                                          | **Free** — no model calls | Can run in parallel with E21/E20                                                                                                              | [docs/research/modes-capability-benchmark-2026-11.md] |
 | **E22**          | **Capability design** — after the research lands: pick the doctrine pair, the fixture, the statistic and n                                                                                                                                                                                                                                                     | Unknown                   | Cannot be scoped before the research answers whether a doctrine effect is detectable at our budget                                            |
 
+When the catalog is defined, we can refine it through testing it against the 2 benchmarks, ans make sure there is no ambiguity or other weaknesses.
+[So what we could do is testing our final mode-briefs to see the reaction, and infer wheteher they are being vague or not? (nice, real applications from the research.)]
+
 ## 5. Open decisions, for the maintainer
 
 | #   | Decision                                                                                       | Default if undecided                                                                                                                                                                                 |
