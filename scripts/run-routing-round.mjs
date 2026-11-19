@@ -193,6 +193,15 @@ function experimentApi(experimentId) {
 	}
 }
 
+/**
+ * A module may declare how a plan parameterises its derivation. E20d does: its
+ * brief and draw count are the two fields Task C varies. Modules that do not
+ * export the hook (E20, E20b, the replications) are unchanged.
+ */
+function deriveOverrides(api, plan) {
+	return typeof api.overridesFromPlan === "function" ? api.overridesFromPlan(plan) : {}
+}
+
 /** Literals that would mean the plan had leaked the sealed analysis key. */
 const SEALED_TOKENS = ["expectedOwner", "slugs", "sealed", "answer-key", "answerKey", "blindSeedMap"]
 
@@ -430,9 +439,10 @@ function validateClosedRoundPlan(plan) {
 function validateE20Plan(plan) {
 	const problems = []
 	const api = experimentApi(plan?.experiment)
+	const overrides = deriveOverrides(api, plan)
 	let spec = null
 	try {
-		spec = api.experimentSpec(plan?.experiment)
+		spec = api.experimentSpec(plan?.experiment, overrides)
 	} catch (error) {
 		problems.push(error.message)
 	}
@@ -595,10 +605,13 @@ async function deriveClosedRoundFromFixtures(plan, problems) {
  */
 async function deriveE20FromFixtures(plan, problems) {
 	const api = experimentApi(plan.experiment)
-	const spec = api.experimentSpec(plan.experiment)
+	const overrides = deriveOverrides(api, plan)
+	const spec = api.experimentSpec(plan.experiment, overrides)
 	const fixtureSet = api.buildExperimentSet({
 		experimentId: plan.experiment,
 		baseText: await fs.readFile(C1_PICKER_PATH, "utf-8"),
+		brief: overrides.brief,
+		draws: overrides.draws,
 	})
 
 	for (const arm of fixtureSet.arms) {
@@ -608,7 +621,7 @@ async function deriveE20FromFixtures(plan, problems) {
 		}
 	}
 
-	const labelsByArm = api.labelArms(plan.experiment, plan.blindSeed ?? spec.defaultSeed)
+	const labelsByArm = api.labelArms(plan.experiment, plan.blindSeed ?? spec.defaultSeed, overrides)
 	const derived = api.buildRuns({ experimentId: plan.experiment, fixtureSet, labelsByArm })
 
 	if (plan.persona?.directive !== fixtureSet.persona.directive) {

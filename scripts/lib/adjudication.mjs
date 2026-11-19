@@ -120,8 +120,18 @@ export function parseJsonl(text, where) {
 	return rows
 }
 
-/** The brief text, never an id alone: the packet must be readable without the key. */
-export function briefText(briefId) {
+/**
+ * The brief text, never an id alone: the packet must be readable without the key.
+ *
+ * `briefs` is the plan's own list. Task C carries a brief (`D1`) that is not in
+ * the frozen `BRIEFS` constant; passing the plan's list keeps the packet readable
+ * without adding a fourth entry to a constant other experiments iterate.
+ */
+export function briefText(briefId, briefs = null) {
+	if (Array.isArray(briefs)) {
+		const fromPlan = briefs.find((candidate) => candidate?.id === briefId)
+		if (fromPlan && typeof fromPlan.text === "string" && fromPlan.text.trim() !== "") return fromPlan.text
+	}
 	const brief = BRIEFS.find((candidate) => candidate.id === briefId)
 	if (!brief) {
 		throw new Error(
@@ -291,7 +301,7 @@ export function adjudicationId(seed, runId) {
  * Returns the packet entries in id order, the join in the same order, and the
  * classification so the caller can print the undetermined distribution.
  */
-export function buildPacket({ records, keyEntries, seed = DEFAULT_ADJUDICATION_SEED }) {
+export function buildPacket({ records, keyEntries, seed = DEFAULT_ADJUDICATION_SEED, briefs = null }) {
 	const classification = classifyRound({ records, keyEntries })
 
 	const idToRunId = new Map()
@@ -306,7 +316,13 @@ export function buildPacket({ records, keyEntries, seed = DEFAULT_ADJUDICATION_S
 			)
 		}
 		idToRunId.set(id, item.runId)
-		ordered.push({ id, brief: briefText(item.briefId), reply: item.reply, runId: item.runId, label: item.label })
+		ordered.push({
+			id,
+			brief: briefText(item.briefId, briefs),
+			reply: item.reply,
+			runId: item.runId,
+			label: item.label,
+		})
 	}
 
 	ordered.sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0))

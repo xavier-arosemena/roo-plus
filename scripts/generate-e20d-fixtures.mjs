@@ -40,6 +40,7 @@ import {
 	DEFAULT_E20D_BLIND_SEED,
 	E20D_BRIEF_ID,
 	E20D_BRIEF_TEXT,
+	E20D_DEFAULT_DRAWS,
 	E20D_ID,
 	E20D_SPEC,
 	REGISTERED_LINES,
@@ -48,8 +49,6 @@ import {
 	buildLabelMap,
 	buildPlanDocument,
 	buildRuns,
-	e20dBrief,
-	expectedRuns,
 	labelArms,
 } from "./lib/e20d.mjs"
 import { E20_DIR } from "./lib/e20.mjs"
@@ -63,9 +62,15 @@ const DEFAULT_OUT = path.join(os.tmpdir(), "roo-plus-e20d")
 
 const USAGE = `Usage: node scripts/generate-e20d-fixtures.mjs [options]
 
+  --brief <text>       the brief to place in both arms (default: the D1 string)
+  --draws <n>          draws per arm; the cycle is B C, so 2n calls in total
+                       (default: ${E20D_DEFAULT_DRAWS}, i.e. 400 calls)
+  --fixture-dir <dir>  where plan.json, the two pickers and the sealed files are
+                       written (default: ${path.relative(process.cwd(), E20D_SPEC.dir)});
+                       pass a run directory to keep a screening fixture out of the canonical one
   --check              compare the generated files with the ones on disk and exit
                        1 on any drift; writes nothing and emits no prompt files
-  --out <dir>          where the 400 prompt files are written
+  --out <dir>          where the prompt files are written
                        (default: ${DEFAULT_OUT}); never inside test-fixtures/
   --seed <s>           seed for the blind arm ids
                        (default: ${DEFAULT_E20D_BLIND_SEED}, so a rerun is byte-identical)
@@ -73,7 +78,15 @@ const USAGE = `Usage: node scripts/generate-e20d-fixtures.mjs [options]
 `
 
 function parseArgs(argv) {
-	const opts = { check: false, out: DEFAULT_OUT, seed: DEFAULT_E20D_BLIND_SEED, help: false }
+	const opts = {
+		check: false,
+		out: DEFAULT_OUT,
+		seed: DEFAULT_E20D_BLIND_SEED,
+		brief: E20D_BRIEF_TEXT,
+		draws: E20D_DEFAULT_DRAWS,
+		fixtureDir: E20D_SPEC.dir,
+		help: false,
+	}
 	for (let index = 0; index < argv.length; index++) {
 		const arg = argv[index]
 		const value = () => {
@@ -84,6 +97,9 @@ function parseArgs(argv) {
 		if (arg === "--check") opts.check = true
 		else if (arg === "--out") opts.out = value()
 		else if (arg === "--seed") opts.seed = value()
+		else if (arg === "--brief") opts.brief = value()
+		else if (arg === "--draws") opts.draws = Number(value())
+		else if (arg === "--fixture-dir") opts.fixtureDir = value()
 		else if (arg === "--help" || arg === "-h") opts.help = true
 		else throw new Error(`unknown argument: ${arg}`)
 	}
@@ -106,10 +122,10 @@ async function readIfExists(target) {
  * Build the fixture: pickers, plan, sealed files and runs. Every assertion lives
  * in `lib/e20d.mjs`; this function only assembles what it returns.
  */
-function buildFixture({ baseText, seed }) {
-	const spec = E20D_SPEC
-	const fixtureSet = buildExperimentSet({ experimentId: spec.id, baseText })
-	const labelsByArm = labelArms(spec.id, seed)
+function buildFixture({ baseText, seed, brief, draws }) {
+	const fixtureSet = buildExperimentSet({ experimentId: E20D_ID, baseText, brief, draws })
+	const spec = fixtureSet.spec
+	const labelsByArm = labelArms(spec.id, seed, { draws })
 	const runs = buildRuns({ experimentId: spec.id, fixtureSet, labelsByArm })
 
 	const plan = buildPlanDocument({ experimentId: spec.id, fixtureSet, runs, seed })
@@ -141,7 +157,17 @@ async function main() {
 		return 0
 	}
 
+	if (!Number.isInteger(opts.draws) || opts.draws < 1) {
+		console.error("error: --draws must be an integer >= 1")
+		return 2
+	}
+	if (typeof opts.brief !== "string" || opts.brief.trim() === "") {
+		console.error("error: --brief must be a non-empty string")
+		return 2
+	}
+
 	const out = path.resolve(opts.out)
+	const fixtureDir = path.resolve(opts.fixtureDir)
 	const fixtureRoot = path.resolve(ROOT, "test-fixtures")
 	if (!opts.check && (out === fixtureRoot || out.startsWith(`${fixtureRoot}${path.sep}`))) {
 		console.error("error: --out may not point inside test-fixtures/; prompts are run artefacts, not fixtures")
@@ -149,8 +175,8 @@ async function main() {
 	}
 
 	const baseText = await fs.readFile(BASE_PICKER_PATH, "utf-8")
-	const brief = e20dBrief()
-	const built = buildFixture({ baseText, seed: opts.seed })
+	const brief = { id: E20D_BRIEF_ID, text: opts.brief }
+	const built = buildFixture({ baseText, seed: opts.seed, brief, draws: opts.draws })
 	const { spec, fixtureSet, runs } = built
 
 	console.log(`${E20D_ID} — fixture generator (one brief exchanged, both lines held)`)
@@ -181,7 +207,7 @@ async function main() {
 			)
 			return 2
 		}
-		if (arm.picker.includes(E20D_BRIEF_TEXT)) {
+		if (arm.picker.includes(brief.text)) {
 			console.error(`error: E20d's brief appears inside the ${arm.arm} picker`)
 			return 2
 		}
@@ -203,7 +229,7 @@ async function main() {
 		`  arm counts: ${[...built.perArm.entries()].map(([arm, count]) => `${arm} ${count}`).join(" · ")} ` +
 			`(declared ${spec.arms.map((arm) => `${arm.arm} ${arm.draws}`).join(" · ")})`,
 	)
-	console.log(`  expected total from the plan: ${expectedRuns(spec.id)}`)
+	console.log(`  expected total from the plan: ${spec.cycle.length * spec.cycles}`)
 	const head = runs.slice(0, 10)
 	console.log(`  first 10 cycle positions: ${head.map((run) => run.arm.padEnd(2)).join(" ")}`)
 	console.log(`  first 10 blind labels:    ${head.map((run) => run.label.padEnd(6)).join(" ")}`)
@@ -214,7 +240,7 @@ async function main() {
 	if (opts.check) {
 		let drifted = 0
 		for (const [name, content] of built.files) {
-			const current = await readIfExists(path.join(spec.dir, name))
+			const current = await readIfExists(path.join(fixtureDir, name))
 			const ok = current === content
 			if (!ok) drifted++
 			console.log(`  check ${pad(name, 20)} ${ok ? "byte-identical" : "DRIFTED"}`)
@@ -225,9 +251,9 @@ async function main() {
 		return drifted === 0 ? 0 : 1
 	}
 
-	await fs.mkdir(spec.dir, { recursive: true })
+	await fs.mkdir(fixtureDir, { recursive: true })
 	for (const [name, content] of built.files) {
-		await fs.writeFile(path.join(spec.dir, name), content, "utf-8")
+		await fs.writeFile(path.join(fixtureDir, name), content, "utf-8")
 	}
 	const promptDir = path.join(out, "prompts")
 	await fs.mkdir(promptDir, { recursive: true })
@@ -235,7 +261,7 @@ async function main() {
 		await fs.writeFile(path.join(promptDir, `${run.runId}.txt`), run.text, "utf-8")
 	}
 
-	console.log(`written: ${[...built.files.keys()].join(", ")} → ${path.relative(ROOT, spec.dir)}/`)
+	console.log(`written: ${[...built.files.keys()].join(", ")} → ${path.relative(ROOT, fixtureDir)}/`)
 	console.log(`prompts: ${runs.length} files → ${promptDir}`)
 	console.log(`sealed: answer-key.json and _label-map.json must never enter a scorer bundle.`)
 	console.log("dry-run only: no provider call was made and none is possible from this file.")

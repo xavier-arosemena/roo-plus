@@ -1,0 +1,1 @@
+Why does the cache expire after sixty seconds?

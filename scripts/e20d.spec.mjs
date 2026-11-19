@@ -36,13 +36,16 @@ import {
 	E20D_BRIEF_TEXT,
 	E20D_CYCLE,
 	E20D_CYCLES,
+	E20D_DEFAULT_DRAWS,
 	E20D_DIR,
 	E20D_ID,
 	REGISTERED_LINES,
 	buildExperimentSet,
 	buildRuns,
 	expectedRuns,
+	experimentSpec,
 	labelArms,
+	overridesFromPlan,
 } from "./lib/e20d.mjs"
 import { E20_DIR, E20_LINES, EXPLAIN_SLUG, buildExperimentSet as buildE20ExperimentSet } from "./lib/e20.mjs"
 import { ROUTING_ROUND_DIR, assertInterleaved } from "./lib/routing-round.mjs"
@@ -193,6 +196,97 @@ describe("the sealed files", () => {
 		)
 		const keyArms = new Set(key.arms.map((arm) => arm.armId))
 		for (const arm of labelMap.arms) assert.equal(keyArms.has(arm.armId), true)
+	})
+})
+
+describe("the parameterised generator", () => {
+	const screeningBrief = "Why does the cache expire after sixty seconds?"
+
+	it("changes only the brief and the draw count", () => {
+		const screening = buildExperimentSet({
+			experimentId: E20D_ID,
+			baseText,
+			brief: screeningBrief,
+			draws: 5,
+		})
+		assert.equal(screening.spec.cycles, 5)
+		assert.deepEqual(
+			screening.spec.arms.map((arm) => arm.draws),
+			[5, 5],
+		)
+		assert.equal(screening.brief.text, screeningBrief)
+
+		const e20 = buildE20ExperimentSet({ experimentId: "E20", baseText })
+		const e20ByArm = new Map(e20.arms.map((arm) => [arm.arm, arm]))
+		for (const arm of screening.arms) {
+			const source = e20ByArm.get(arm.arm)
+			assert.equal(arm.text, source.text, `arm ${arm.arm} is E20's picker`)
+			assert.equal(arm.prompt, source.prompt.replace(e20.brief.text, screeningBrief))
+		}
+
+		const labels = labelArms(E20D_ID, DEFAULT_E20D_BLIND_SEED, { draws: 5 })
+		const screeningRuns = buildRuns({ experimentId: E20D_ID, fixtureSet: screening, labelsByArm: labels })
+		assert.equal(screeningRuns.length, 10)
+		assert.deepEqual(
+			[...new Set(screeningRuns.map((run) => run.arm))].sort(),
+			["B", "C"],
+		)
+	})
+
+	it("reads the brief and draw count back from a plan", () => {
+		const overrides = overridesFromPlan({
+			cycles: 5,
+			drawsPerArm: { B: 5, C: 5 },
+			briefs: [{ id: "D1", text: screeningBrief }],
+		})
+		assert.equal(overrides.draws, 5)
+		assert.equal(overrides.brief.text, screeningBrief)
+		assert.equal(experimentSpec(E20D_ID, overrides).cycles, 5)
+	})
+
+	it("writes a ten-call screening fixture that the executor accepts on a dry-run", async () => {
+		const root = await fs.mkdtemp(path.join(os.tmpdir(), "e20d-screening-spec-"))
+		const fixtureDir = path.join(root, "fixture")
+		const out = path.join(root, "out")
+		const runOut = path.join(root, "run")
+		try {
+			await run(
+				process.execPath,
+				[
+					path.join(ROOT, "scripts", "generate-e20d-fixtures.mjs"),
+					"--brief",
+					screeningBrief,
+					"--draws",
+					"5",
+					"--fixture-dir",
+					fixtureDir,
+					"--out",
+					out,
+				],
+				{ cwd: ROOT },
+			)
+			const screeningPlan = JSON.parse(await fs.readFile(path.join(fixtureDir, "plan.json"), "utf-8"))
+			assert.equal(screeningPlan.entries.length, 10)
+			assert.equal(screeningPlan.cycles, 5)
+			assert.deepEqual(screeningPlan.drawsPerArm, { B: 5, C: 5 })
+			assert.equal(screeningPlan.briefs[0].text, screeningBrief)
+
+			await run(
+				process.execPath,
+				[
+					path.join(ROOT, "scripts", "run-routing-round.mjs"),
+					"--dry-run",
+					"--plan",
+					path.join(fixtureDir, "plan.json"),
+					"--out",
+					runOut,
+				],
+				{ cwd: ROOT },
+			)
+			assert.equal((await fs.readdir(path.join(runOut, "prompts"))).length, 10)
+		} finally {
+			await fs.rm(root, { recursive: true, force: true })
+		}
 	})
 })
 

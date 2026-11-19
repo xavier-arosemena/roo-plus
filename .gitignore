@@ -68,3 +68,9 @@ roo-cli-*.tar.gz*
 # copies of the same content and are excluded to keep the repository sane.
 runs/*/transcripts/
 runs/*/prompts/
+
+# Screening runs nest one level deeper than the swept runs, so the patterns above
+# did not cover them. Any run directory, at any depth, contributes results.jsonl
+# as evidence and prompts/transcripts as regenerable bulk.
+runs/**/prompts/
+runs/**/transcripts/

@@ -42,6 +42,7 @@ import {
 	PACKET_MD,
 	adjudicationId,
 	assertBlind,
+	briefText,
 	buildPacket,
 	compareJudgements,
 	mergeJudgements,
@@ -229,6 +230,31 @@ describe("the packet", () => {
 		assert.equal(entries.filter((entry) => entry.reply.includes("Which module do you mean?")).length, 2)
 		assert.equal(entries.filter((entry) => entry.reply.includes("I will explain the structure")).length, 2)
 		assert.equal(entries.filter((entry) => entry.reply.includes("Could you confirm the target file?")).length, 2)
+	})
+
+	it("takes a plan-carried brief that is not in the frozen BRIEFS list", () => {
+		const brief = "Why does the cache expire after sixty seconds?"
+		assert.equal(briefText("D1", [{ id: "D1", text: brief }]), brief)
+		assert.throws(() => briefText("D1"), /no registered brief/)
+	})
+
+	it("builds a packet on the plan's own brief", () => {
+		const brief = "Why does the cache expire after sixty seconds?"
+		const { packet } = buildPacket({
+			records: [
+				{
+					runId: "ARM-1-d001",
+					label: "ARM-1",
+					briefId: "D1",
+					status: "RUN",
+					response: "Which module do you mean? Please paste the source.",
+				},
+			],
+			keyEntries: [{ label: "ARM-1", expectedOwner: "explain", slugs: ["explain"], cell: null }],
+			briefs: [{ id: "D1", text: brief }],
+		})
+		assert.equal(packet.length, 1)
+		assert.equal(packet[0].brief, brief)
 	})
 })
 

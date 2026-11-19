@@ -42,16 +42,18 @@ const BLOCKS = 4
 
 const USAGE = `Usage: node scripts/analyze-e20d-run.mjs --run-dir <dir> [options]
 
-  --run-dir <dir>   a directory holding results.jsonl and the plan copy
-  --key <file>      the sealed answer key (default: ${path.relative(process.cwd(), DEFAULT_KEY)})
-  --json <file>     write the table as JSON as well as printing it
-  --help            print this text
+  --run-dir <dir>     a directory holding results.jsonl and the plan copy
+  --key <file>        the sealed answer key (default: ${path.relative(process.cwd(), DEFAULT_KEY)})
+  --judgements <file> the adjudication verdicts (JSONL of { id, verdict })
+  --join <file>       the sealed id → runId/label join, needed with --judgements
+  --json <file>       write the table as JSON as well as printing it
+  --help              print this text
 `
 
 class Refusal extends Error {}
 
 function parseArgs(argv) {
-	const opts = { runDir: null, key: DEFAULT_KEY, json: null, help: false }
+	const opts = { runDir: null, key: DEFAULT_KEY, judgements: null, join: null, json: null, help: false }
 	for (let index = 0; index < argv.length; index++) {
 		const arg = argv[index]
 		const value = () => {
@@ -61,6 +63,8 @@ function parseArgs(argv) {
 		}
 		if (arg === "--run-dir") opts.runDir = value()
 		else if (arg === "--key") opts.key = value()
+		else if (arg === "--judgements") opts.judgements = value()
+		else if (arg === "--join") opts.join = value()
 		else if (arg === "--json") opts.json = value()
 		else if (arg === "--help" || arg === "-h") opts.help = true
 		else throw new Refusal(`unknown argument: ${arg}`)
@@ -140,22 +144,53 @@ function tokenTotals(sidecars) {
 	return totals
 }
 
-function blockTable(entries, blocks = BLOCKS) {
+function blockTable(entries, blocks = BLOCKS, key = "declared") {
 	const size = Math.floor(entries.length / blocks)
 	const rows = []
 	for (let index = 0; index < blocks; index++) {
 		const from = index * size
 		const to = index === blocks - 1 ? entries.length : from + size
 		const slice = entries.slice(from, to)
+		const declared = slice.filter((entry) => entry[key]).length
 		rows.push({
 			block: index + 1,
 			draws: `${from + 1}–${to}`,
 			n: slice.length,
-			declared: slice.filter((entry) => entry.declared).length,
-			rate: slice.length === 0 ? null : slice.filter((entry) => entry.declared).length / slice.length,
+			declared,
+			rate: slice.length === 0 ? null : declared / slice.length,
 		})
 	}
 	return rows
+}
+
+/** The second reading's verdicts, keyed by the run id the sealed join names. */
+function verdictsByRunId({ judgements, join }) {
+	const entries = Array.isArray(join?.entries) ? join.entries : []
+	if (entries.length === 0) throw new Refusal("the join carries no entries")
+	const byRunId = new Map()
+	for (const entry of entries) {
+		if (typeof entry?.runId !== "string" || typeof entry?.id !== "string") {
+			throw new Refusal("the join has an entry without a string id and runId")
+		}
+		byRunId.set(entry.runId, judgements.get(entry.id) ?? null)
+	}
+	return byRunId
+}
+
+function parseJudgements(text, where) {
+	const map = new Map()
+	for (const [index, line] of String(text).split("\n").entries()) {
+		if (line.trim() === "") continue
+		let record
+		try {
+			record = JSON.parse(line)
+		} catch (error) {
+			throw new Refusal(`${where}:${index + 1} is not JSON: ${error.message}`)
+		}
+		if (typeof record?.id !== "string") throw new Refusal(`${where}:${index + 1} has no id`)
+		map.set(record.id, record.verdict ?? null)
+	}
+	return map
 }
 
 async function main() {
@@ -201,6 +236,22 @@ async function main() {
 	const vocabulary = key.slugVocabulary
 	if (!vocabulary.includes(EXPLAIN_SLUG)) throw new Refusal(`${opts.key}: the vocabulary does not contain explain`)
 
+	// The second reading is optional: without it the table is the mechanical one.
+	let verdictByRunId = new Map()
+	const hasAdjudication = opts.judgements !== null
+	if (hasAdjudication) {
+		if (!opts.join) throw new Refusal("--judgements needs --join to map packet ids to run ids")
+		const judgements = parseJudgements(await readOrRefuse(opts.judgements, "judgements"), opts.judgements)
+		let join
+		try {
+			join = JSON.parse(await readOrRefuse(opts.join, "join"))
+		} catch (error) {
+			if (error instanceof Refusal) throw error
+			throw new Refusal(`${opts.join} is not JSON: ${error.message}`)
+		}
+		verdictByRunId = verdictsByRunId({ judgements, join })
+	}
+
 	const armOf = armByLabel(plan.experiment, plan.blindSeed)
 	const byArm = new Map()
 	for (const record of records) {
@@ -216,14 +267,26 @@ async function main() {
 		const scorable = ordered.filter(isScorable)
 		const entries = scorable.map((record) => {
 			const slug = extractDeclaredV2(record.response, vocabulary)
+			const adjudicated = verdictByRunId.get(record.runId) ?? null
 			return {
 				slug,
 				declared: slug === EXPLAIN_SLUG,
+				// The verdict vocabulary carries no slug, so an adjudicated
+				// DECLARATION is an upper-bound declared key (report §9 caveat).
+				combinedDeclared: slug === EXPLAIN_SLUG || (slug === null && adjudicated === "DECLARATION"),
+				adjudicated,
 				question: /\?/.test(record.response),
 			}
 		})
 		const declared = entries.filter((entry) => entry.declared).length
+		const combinedDeclared = entries.filter((entry) => entry.combinedDeclared).length
+		const asked = entries.filter((entry) => entry.question).length
 		const otherDeclared = entries.filter((entry) => entry.slug !== null && entry.slug !== EXPLAIN_SLUG).length
+		const otherSlugs = new Map()
+		for (const entry of entries) {
+			if (entry.slug === null || entry.slug === EXPLAIN_SLUG) continue
+			otherSlugs.set(entry.slug, (otherSlugs.get(entry.slug) ?? 0) + 1)
+		}
 		const undetermined = entries.filter((entry) => entry.slug === null)
 		table.push({
 			arm,
@@ -233,11 +296,17 @@ async function main() {
 			exclusionRate: ordered.length === 0 ? 0 : (ordered.length - scorable.length) / ordered.length,
 			longestVerbatimRun: longestVerbatimRun(scorable.map((record) => record.response)),
 			declared,
+			combinedDeclared,
+			asked,
 			otherDeclared,
+			otherSlugs: Object.fromEntries(
+				[...otherSlugs.entries()].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0])),
+			),
 			undetermined: undetermined.length,
 			undeterminedQuestion: undetermined.filter((entry) => entry.question).length,
 			undeterminedNoQuestion: undetermined.filter((entry) => !entry.question).length,
 			declaredRate: scorable.length === 0 ? null : declared / scorable.length,
+			combinedRate: scorable.length === 0 ? null : combinedDeclared / scorable.length,
 			entries,
 		})
 	}
@@ -245,33 +314,55 @@ async function main() {
 	console.log(`E20d run analysis — ${path.relative(process.cwd(), runDir)}`)
 	console.log(`plan: ${path.relative(process.cwd(), planPath)} · seed ${plan.blindSeed} · cycle ${plan.cycle.join(" ")} × ${plan.cycles}`)
 	console.log(`key: ${path.relative(process.cwd(), opts.key)} (sealed) · vocabulary ${vocabulary.length} slugs`)
+	if (hasAdjudication) {
+		console.log(`adjudication: ${path.relative(process.cwd(), opts.judgements)} joined through ${path.relative(process.cwd(), opts.join)}`)
+	}
 	console.log("")
 	console.log(
 		`${pad("arm", 4)} ${pad("records", 8)} ${pad("scorable", 9)} ${pad("excluded", 9)} ${pad("excl%", 7)} ` +
-			`${pad("verbatim", 9)} ${pad("explain", 8)} ${pad("other", 6)} ${pad("undet", 6)} ${pad("? in undet", 11)} no-?`,
+			`${pad("verbatim", 9)} ${pad("explain", 8)} ${pad("asks", 6)} ${pad("other", 6)} ${pad("undet", 6)} ` +
+			`${pad("? in undet", 11)} ${pad("no-?", 6)} combined`,
 	)
 	for (const row of table) {
 		console.log(
 			`${pad(row.arm, 4)} ${pad(row.records, 8)} ${pad(row.scorable, 9)} ${pad(row.excluded, 9)} ` +
 				`${pad(percent(row.exclusionRate), 7)} ${pad(row.longestVerbatimRun, 9)} ${pad(row.declared, 8)} ` +
-				`${pad(row.otherDeclared, 6)} ${pad(row.undetermined, 6)} ${pad(row.undeterminedQuestion, 11)} ` +
-				`${row.undeterminedNoQuestion}`,
+				`${pad(row.asked, 6)} ${pad(row.otherDeclared, 6)} ${pad(row.undetermined, 6)} ` +
+				`${pad(row.undeterminedQuestion, 11)} ${pad(row.undeterminedNoQuestion, 6)} ${row.combinedDeclared}`,
 		)
 	}
 
 	const b = table.find((row) => row.arm === "B")
 	const c = table.find((row) => row.arm === "C")
 	const gap = b && c && b.declaredRate !== null && c.declaredRate !== null ? (b.declaredRate - c.declaredRate) * 100 : null
+	const combinedGap =
+		b && c && b.combinedRate !== null && c.combinedRate !== null ? (b.combinedRate - c.combinedRate) * 100 : null
 	console.log("")
 	console.log(
-		`declared-key rates: B ${percent(b?.declaredRate ?? null)} · C ${percent(c?.declaredRate ?? null)} · ` +
+		`declared-key rates (mechanical): B ${percent(b?.declaredRate ?? null)} · C ${percent(c?.declaredRate ?? null)} · ` +
 			`B − C ${points(gap)} points${table.length === 2 ? "" : " (one arm only: no gap)"}`,
 	)
+	if (hasAdjudication) {
+		console.log(
+			`declared-key rates (mechanical + adjudicated DECLARATION): B ${percent(b?.combinedRate ?? null)} · ` +
+				`C ${percent(c?.combinedRate ?? null)} · B − C ${points(combinedGap)} points`,
+		)
+	}
+
+	const otherSlugLines = table
+		.map((row) => {
+			const entries = Object.entries(row.otherSlugs)
+			return `${row.arm} ${entries.length === 0 ? "none" : entries.map(([slug, count]) => `${slug} ${count}`).join(", ")}`
+		})
+		.join(" · ")
+	console.log(`other declared slugs: ${otherSlugLines}`)
 
 	console.log("")
-	console.log(`per-quarter blocks (${BLOCKS} equal blocks in draw order, declared-key rate)`)
-	const blocksB = b ? blockTable(b.entries) : []
-	const blocksC = c ? blockTable(c.entries) : []
+	const blockKey = hasAdjudication ? "combinedDeclared" : "declared"
+	const blockLabel = hasAdjudication ? "mechanical + adjudicated DECLARATION" : "mechanical"
+	console.log(`per-quarter blocks (${BLOCKS} equal blocks in draw order, ${blockLabel} declared-key rate)`)
+	const blocksB = b ? blockTable(b.entries, BLOCKS, blockKey) : []
+	const blocksC = c ? blockTable(c.entries, BLOCKS, blockKey) : []
 	for (let index = 0; index < BLOCKS; index++) {
 		const left = blocksB[index]
 		const right = blocksC[index]
@@ -325,6 +416,8 @@ async function main() {
 		statuses,
 		arms: table.map(({ entries, ...row }) => row),
 		gapPoints: gap,
+		combinedGapPoints: hasAdjudication ? combinedGap : null,
+		adjudication: hasAdjudication ? { judgements: opts.judgements, join: opts.join } : null,
 		blocks: { B: blocksB, C: blocksC },
 		timings: { wallClockSeconds: wallClock, meanSeconds: mean, medianSeconds: median },
 		tokens: { ...tokens, maxOutputTokens: [...tokens.maxOutputTokens] },

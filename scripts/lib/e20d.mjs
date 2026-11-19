@@ -61,14 +61,19 @@ export const E20D_PLAN_SCHEMA = "e20/1"
  */
 export const E20D_REGISTRATION = "Task C — headline effect on a second brief (design fixed in the task statement)"
 
-/** The new brief, verbatim. One brief for both arms. */
+/**
+ * The default brief, verbatim. Task C redesigns the brief as a parameter: a
+ * screening fixture passes `--brief` and `--draws`, while the canonical fixture
+ * keeps this string as its default so the unparameterised build is unchanged.
+ */
 export const E20D_BRIEF_ID = "D1"
 export const E20D_BRIEF_TEXT = "Why does this service depend on so many internal packages?"
 
 /** The registered pair, taken from `e20.mjs` so the strings are never retyped here. */
+export const E20D_DEFAULT_DRAWS = 200
 export const E20D_ARMS = [
-	{ arm: "B", draws: 200 },
-	{ arm: "C", draws: 200 },
+	{ arm: "B", draws: E20D_DEFAULT_DRAWS },
+	{ arm: "C", draws: E20D_DEFAULT_DRAWS },
 ]
 
 /** The registered lines, by key: byte-identical to E20's B and C. */
@@ -76,7 +81,7 @@ export const REGISTERED_LINES = { B: E20_LINES.B, C: E20_LINES.C }
 
 /** `B C` repeated 200 times = 400 calls. */
 export const E20D_CYCLE = ["B", "C"]
-export const E20D_CYCLES = 200
+export const E20D_CYCLES = E20D_DEFAULT_DRAWS
 
 /** Fixed so a repeated dry-run is byte-identical; recorded in the sealed label map. */
 export const DEFAULT_E20D_BLIND_SEED = "roo-plus-e20d-2026-11-18"
@@ -91,22 +96,62 @@ export const E20D_SPEC = {
 	arms: E20D_ARMS,
 }
 
-export function experimentSpec(experimentId) {
-	if (experimentId !== E20D_ID) {
-		throw new Error(`this module builds only ${E20D_ID}; got ${JSON.stringify(experimentId)}`)
-	}
-	return E20D_SPEC
-}
-
-/** The plan's own registered total: the cycle, repeated. Never a module constant. */
-export function expectedRuns(experimentId = E20D_ID) {
-	const spec = experimentSpec(experimentId)
-	return spec.cycle.length * spec.cycles
-}
-
 /** The brief as the prompt builder and the plan need it. */
 export function e20dBrief() {
 	return { id: E20D_BRIEF_ID, text: E20D_BRIEF_TEXT }
+}
+
+/** Accept a string or `{ id, text }`; reject anything that is not a usable brief. */
+function normaliseBrief(brief) {
+	if (typeof brief === "string") {
+		if (brief.trim() === "") throw new Error("the brief is empty")
+		return { id: E20D_BRIEF_ID, text: brief }
+	}
+	if (brief !== null && typeof brief === "object" && typeof brief.text === "string") {
+		if (brief.text.trim() === "") throw new Error("the brief is empty")
+		return { id: typeof brief.id === "string" && brief.id !== "" ? brief.id : E20D_BRIEF_ID, text: brief.text }
+	}
+	throw new Error("the brief must be a non-empty string or { id, text }")
+}
+
+/**
+ * The spec for one build. `draws` is the number of draws per arm; the cycle is
+ * `B C`, so `cycles` is the same number as long as each arm appears once per
+ * cycle. Task C's only variation is the brief and the draw count.
+ */
+export function experimentSpec(experimentId, overrides = {}) {
+	if (experimentId !== E20D_ID) {
+		throw new Error(`this module builds only ${E20D_ID}; got ${JSON.stringify(experimentId)}`)
+	}
+	const draws = overrides?.draws ?? E20D_DEFAULT_DRAWS
+	if (!Number.isInteger(draws) || draws < 1) {
+		throw new Error(`draws must be an integer >= 1; got ${JSON.stringify(draws)}`)
+	}
+	const brief = normaliseBrief(overrides?.brief ?? e20dBrief())
+	return {
+		...E20D_SPEC,
+		cycle: [...E20D_CYCLE],
+		cycles: draws,
+		arms: E20D_ARMS.map((arm) => ({ ...arm, draws })),
+		brief,
+	}
+}
+
+/** Read the brief and draw count a plan declares, for the executor's derivation. */
+export function overridesFromPlan(plan) {
+	const draws = plan?.drawsPerArm?.B ?? plan?.drawsPerArm?.C ?? plan?.cycles
+	const briefs = Array.isArray(plan?.briefs) ? plan.briefs : []
+	const brief = briefs.length === 1 ? { id: briefs[0]?.id, text: briefs[0]?.text } : undefined
+	const overrides = {}
+	if (Number.isInteger(draws)) overrides.draws = draws
+	if (brief && typeof brief.text === "string") overrides.brief = brief
+	return overrides
+}
+
+/** The plan's own registered total: the cycle, repeated. Never a module constant. */
+export function expectedRuns(experimentId = E20D_ID, overrides = {}) {
+	const spec = experimentSpec(experimentId, overrides)
+	return spec.cycle.length * spec.cycles
 }
 
 /** Literals only doctrine or grants could contribute. Zero of each is asserted. */
@@ -122,10 +167,10 @@ function assertNoDoctrine(prompt, where) {
  * Derive the two arms from E20's registered material and rebuild each prompt with
  * the new brief. Throws on any violation: material that failed here must not run.
  */
-export function buildExperimentSet({ experimentId, baseText }) {
-	const spec = experimentSpec(experimentId)
+export function buildExperimentSet({ experimentId, baseText, brief: briefOverride, draws }) {
+	const spec = experimentSpec(experimentId, { brief: briefOverride, draws })
 	const source = buildE20ExperimentSet({ experimentId: "E20", baseText })
-	const brief = e20dBrief()
+	const brief = spec.brief
 
 	// The new brief must be a different prompt text from E20's, or the experiment
 	// would be E20 run again under another name.
@@ -218,8 +263,8 @@ export function buildExperimentSet({ experimentId, baseText }) {
  * Blind arm ids: ascending `sha256(arm + seed)`, the programme's algorithm. An id
  * carries no arm letter.
  */
-export function labelArms(experimentId, seed = E20D_SPEC.defaultSeed) {
-	const spec = experimentSpec(experimentId)
+export function labelArms(experimentId, seed = E20D_SPEC.defaultSeed, overrides = {}) {
+	const spec = experimentSpec(experimentId, overrides)
 	const catalogues = new Map(
 		spec.arms.map((arm) => [arm.arm, { frame: arm.arm, file: path.join(spec.dir, `${arm.arm}.roomodes`), modes: [] }]),
 	)
@@ -228,8 +273,8 @@ export function labelArms(experimentId, seed = E20D_SPEC.defaultSeed) {
 }
 
 /** The inverse view the summaries need: blind label → arm letter. */
-export function armByLabel(experimentId = E20D_ID, seed = E20D_SPEC.defaultSeed) {
-	return new Map([...labelArms(experimentId, seed).entries()].map(([arm, label]) => [label, arm]))
+export function armByLabel(experimentId = E20D_ID, seed = E20D_SPEC.defaultSeed, overrides = {}) {
+	return new Map([...labelArms(experimentId, seed, overrides).entries()].map(([arm, label]) => [label, arm]))
 }
 
 /**
@@ -237,7 +282,10 @@ export function armByLabel(experimentId = E20D_ID, seed = E20D_SPEC.defaultSeed)
  * an arm taking that arm's next draw number. Asserts the order it just built.
  */
 export function buildRuns({ experimentId, fixtureSet, labelsByArm }) {
-	const spec = experimentSpec(experimentId)
+	const spec = fixtureSet?.spec ?? experimentSpec(experimentId)
+	if (spec.id !== experimentId) {
+		throw new Error(`the fixture set is for ${spec.id}, not ${experimentId}`)
+	}
 	const byArm = new Map(fixtureSet.arms.map((arm) => [arm.arm, arm]))
 	const draws = new Map(spec.arms.map((arm) => [arm.arm, 0]))
 	const runs = []
@@ -322,7 +370,7 @@ export function planEntry(run) {
 }
 
 export function buildPlanDocument({ experimentId, fixtureSet, runs, seed }) {
-	const spec = experimentSpec(experimentId)
+	const spec = fixtureSet?.spec ?? experimentSpec(experimentId)
 	const brief = fixtureSet?.brief ?? e20dBrief()
 	return {
 		planSchema: E20D_PLAN_SCHEMA,
@@ -351,7 +399,7 @@ export function buildPlanDocument({ experimentId, fixtureSet, runs, seed }) {
  * carries no line text and no arm letter.
  */
 export function buildAnswerKey({ experimentId, fixtureSet, labelsByArm }) {
-	const spec = experimentSpec(experimentId)
+	const spec = fixtureSet?.spec ?? experimentSpec(experimentId)
 	const vocabulary = [...fixtureSet.arms[0].modes.map((mode) => mode.slug)].sort()
 	for (const arm of fixtureSet.arms.slice(1)) {
 		if ([...arm.modes.map((mode) => mode.slug)].sort().join(",") !== vocabulary.join(",")) {

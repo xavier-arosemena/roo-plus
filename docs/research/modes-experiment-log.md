@@ -239,6 +239,7 @@ Every entry here is a departure that a reader of any later write-up should know 
 | D-24 | 2026-11-18 | The second-provider sweep ran with the Gemini cap of 4096 output tokens against a **reasoning** model, whose hidden reasoning consumes the same budget                                                                                                       | Five replies truncated with empty content and `MAX_TOKENS`. Any future run against this provider needs a cap of at least 8192, and a truncation rate that differs by arm is itself an outcome, not noise                                                                                                                              |
 | D-25 | 2026-11-18 | The BC replication was launched before checking that the second model **has the outcome channel being replicated**                                                                                                                                           | 91 replies contained **zero questions**; the model returns a bare route name every time. Both arms sat at 95–100% commitment, so the 27.5-point contrast had no variance to move. Stopped at 109 of 800 calls; about 700 calls and 10 hours not spent                                                                                 |
 | D-26 | 2026-11-18 | The registered adjudication tie-break — "if the reply names a mode anywhere, it is a DECLARATION" — is unusable on this corpus: an ask on an ambiguous brief almost always enumerates candidate modes, so the rule turns nearly every ask into a declaration | Under it, an independent model agreed with the first pass on **11.1%** of 378 replies; a manual read of twelve disagreements found the first pass right in all twelve. Corrected, agreement is **99.7%** (377/378). The published counts never used the faulty rule, so no number changes; the rule is replaced for all future passes |
+| D-27 | 2026-11-18 | The first second-brief attempt used a brief whose natural owner was `architecture-reviewer`, not `explain`; the retry screened three why-does-behaviour briefs and all thirty replies committed to `explain` without asking                                  | Neither could test the effect. The screening also produced the result in §28: the channel opens on mode-ownership ambiguity, not on missing context                                                                                                                                                                                   |
 
 ## 7. What may and may not be claimed from this log
 
@@ -812,6 +813,7 @@ Every rule here was bought with a specific failure. They are stated as checks so
 | M-10 | **Stationarity is tested per arm, never assumed from interleaving.** Interleaving protects against a common trend; it does not protect against an arm × time interaction, and an arm that ramps while others do not will manufacture a contrast that decays                                     | **D-21**, E20c arm X                                                                                            |
 | M-11 | **Before replicating a contrast on another model, verify the outcome channel exists there.** A measured difference lives inside a decision; if the second model never makes that decision, or makes it identically every time, the replication is a ceiling or floor and its null means nothing | **D-25**, the DeepSeek pilot                                                                                    |
 | M-12 | **A classification rule must distinguish selection from mention, and be tested on known disagreements before any pass is spent.** "Names a mode" and "names the mode it will use" are different constructs, and the difference accounted for 88 points of measured effect                       | **D-26**, the second-reading experiment                                                                         |
+| M-13 | **Before testing whether an effect travels, characterise the condition that opens its channel.** "A different brief" is not a condition; "a brief of the same kind" is                                                                                                                          | **D-27**, the three-brief screen                                                                                |
 
 **M-6 is the one that bit hardest**, because it fails silently: the test was correctly powered, the effect was correctly measured, and the rule simply had no slot for the answer that arrived. The remedy is not to reinterpret this round — the registration stays frozen and the report says plainly that it has no reading for a reversed result — but to make the omission impossible in the next one.
 
@@ -963,3 +965,27 @@ Counts are `explain`-only, the definition used throughout (D-23). The estimator 
 2. **M-10 stands, but its first instance was a false alarm.** Its wording is too narrow: a ramp is one way to violate stationarity and a shift in level between batches is another, while a four-block trend test detects only the first.
 3. **E20c remains inconclusive**, now for a cleaner reason: its contrasts averaged over a run whose control arm was unstable, and the re-run shows the instability is real even though the ramp shape was not.
 4. **No full E20c re-run is proposed.** It would cost about €3.1 and settle a question outside the confirmatory finding. The remaining budget is better spent on the second brief.
+
+## 28. The brief screen — the channel opens on ownership ambiguity, not on vagueness (2026-11-18)
+
+Three second-brief candidates, 10 calls each, 5 per arm, the same two lines and the same pickers as E20. Every call `RUN`.
+
+| Brief                                                     | Declared `explain` | Asked | Other modes |
+| --------------------------------------------------------- | ------------------ | ----- | ----------- |
+| Why does this worker retry every failed job three times?  | 10 / 10            | **0** | none        |
+| Why does the cache expire after sixty seconds?            | 10 / 10            | **0** | none        |
+| Why does this function allocate a new list on every call? | 10 / 10            | **0** | none        |
+
+Against E20's own brief, where **40.8%** of arm B and **14.0%** of arm C were undetermined — that is, where the model asked instead of committing. Thirty of thirty drew a declaration here, and eight of them then asked for the source code _after_ selecting, which under the selection rule is a declaration (D-26) rather than an ask.
+
+**Two different kinds of missing information.** E20's brief — "Explain why this module is structured the way it is" — is ambiguous about **which mode owns the request**: explain, architect, architecture-reviewer and codebase-cartographer all fit, and the model resolves that by asking. The three screened briefs are narrow mechanism questions: ownership is obvious and the only thing missing is the code, which the model requests after committing.
+
+**What that means for the headline.** The 27.5-point effect is not about vague requests in general. It is about requests whose **mode ownership is ambiguous**, which is the only condition in which a line has anything to decide. Where ownership is obvious, the line has nothing to decide and both arms commit.
+
+**It also refines §25.** The second provider is not missing the channel so much as resolving ownership ambiguity on its own far more readily — a difference of degree rather than of kind, and one that would vanish on a brief where only the code is missing.
+
+**Consequence for the programme.** The population in which this effect applies is narrower than the report's language implied: briefs that could belong to several modes. That is still the population that matters, because it is where a catalogue has to help, but the report must say so rather than implying the effect holds for any request.
+
+**M-13, recorded because the mistake was mine twice.** The first attempt changed the brief's subject and kept its form; the second changed the form and kept the class. Neither was a test of whether the effect travels, because neither first characterised the condition that opens the channel. A brief that fails to open it cannot refute the effect, and a brief that opens it the same way is not an independent test.
+
+**What is left in the budget.** One further screen of three ownership-ambiguous briefs, at fifteen cents, would say whether the effect survives a _different_ ambiguity. If none opens the channel either, the honest conclusion is that this programme has one brief, and the report should say that instead of reaching for a second.

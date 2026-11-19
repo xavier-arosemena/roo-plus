@@ -9,6 +9,8 @@
 | **Canonical record** | [`modes-experiment-log.md` §23](../research/modes-experiment-log.md:812) and [§24](../research/modes-experiment-log.md:834) — the red-team round, which is the record of what was verified. Every E20c figure here is taken from there or from `runs/` |
 | **Calls paid**       | 2,591 output-producing calls in the E20 family; **3,200 across the whole programme including the closed round and the 9-call smoke test**, ≈€16.32. Cost, wall clock and deviations are in Annex A                                                     |
 
+[Did we include already a "template" of how "the perfect prompt" looks like according to this report?]
+
 ---
 
 ## 0. What to take away

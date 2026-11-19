@@ -1,0 +1,152 @@
+{
+	"planSchema": "e20/1",
+	"instrument": "E20d — artefact polarity on a second brief: B against C, interleaved",
+	"experiment": "E20d",
+	"registration": "Task C — headline effect on a second brief (design fixed in the task statement)",
+	"amendment": "Task C — one brief exchanged, both lines and the picker held",
+	"design": "2 arms (B 5, C 5) = 10 runs, cycle B C repeated 5 times",
+	"drawsPerArm": {
+		"B": 5,
+		"C": 5
+	},
+	"cycle": ["B", "C"],
+	"cycles": 5,
+	"temperature": 0,
+	"provider": null,
+	"model": null,
+	"blindSeed": "roo-plus-e20d-2026-11-18",
+	"persona": {
+		"id": "P1",
+		"condition": "goal-only explorer",
+		"directive": "You are exploring. Say what you want to achieve, not what you want handed back."
+	},
+	"briefs": [
+		{
+			"id": "D1",
+			"text": "Why does this function allocate a new list on every call?",
+			"sha256": "944f2adb0bfd607a9ca5120c56ea8299d4e5e16ffec5f5b63ba18892afac1552"
+		}
+	],
+	"entries": [
+		{
+			"index": 1,
+			"runId": "ARM-2-d001",
+			"label": "ARM-2",
+			"draw": 1,
+			"cyclePosition": 1,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-2-d001.txt",
+			"promptSha256": "9a30b3b20bbc4545ea2198b81d99f5d0b8140aad25e4e000f8b530fe9457bfc5",
+			"promptBytes": 6345
+		},
+		{
+			"index": 2,
+			"runId": "ARM-1-d001",
+			"label": "ARM-1",
+			"draw": 1,
+			"cyclePosition": 2,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-1-d001.txt",
+			"promptSha256": "b1e6a52d35a69a527ce234d7a0fc13054d3e56c2ef03a6f12bd83587d5ac63e8",
+			"promptBytes": 6348
+		},
+		{
+			"index": 3,
+			"runId": "ARM-2-d002",
+			"label": "ARM-2",
+			"draw": 2,
+			"cyclePosition": 1,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-2-d002.txt",
+			"promptSha256": "9a30b3b20bbc4545ea2198b81d99f5d0b8140aad25e4e000f8b530fe9457bfc5",
+			"promptBytes": 6345
+		},
+		{
+			"index": 4,
+			"runId": "ARM-1-d002",
+			"label": "ARM-1",
+			"draw": 2,
+			"cyclePosition": 2,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-1-d002.txt",
+			"promptSha256": "b1e6a52d35a69a527ce234d7a0fc13054d3e56c2ef03a6f12bd83587d5ac63e8",
+			"promptBytes": 6348
+		},
+		{
+			"index": 5,
+			"runId": "ARM-2-d003",
+			"label": "ARM-2",
+			"draw": 3,
+			"cyclePosition": 1,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-2-d003.txt",
+			"promptSha256": "9a30b3b20bbc4545ea2198b81d99f5d0b8140aad25e4e000f8b530fe9457bfc5",
+			"promptBytes": 6345
+		},
+		{
+			"index": 6,
+			"runId": "ARM-1-d003",
+			"label": "ARM-1",
+			"draw": 3,
+			"cyclePosition": 2,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-1-d003.txt",
+			"promptSha256": "b1e6a52d35a69a527ce234d7a0fc13054d3e56c2ef03a6f12bd83587d5ac63e8",
+			"promptBytes": 6348
+		},
+		{
+			"index": 7,
+			"runId": "ARM-2-d004",
+			"label": "ARM-2",
+			"draw": 4,
+			"cyclePosition": 1,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-2-d004.txt",
+			"promptSha256": "9a30b3b20bbc4545ea2198b81d99f5d0b8140aad25e4e000f8b530fe9457bfc5",
+			"promptBytes": 6345
+		},
+		{
+			"index": 8,
+			"runId": "ARM-1-d004",
+			"label": "ARM-1",
+			"draw": 4,
+			"cyclePosition": 2,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-1-d004.txt",
+			"promptSha256": "b1e6a52d35a69a527ce234d7a0fc13054d3e56c2ef03a6f12bd83587d5ac63e8",
+			"promptBytes": 6348
+		},
+		{
+			"index": 9,
+			"runId": "ARM-2-d005",
+			"label": "ARM-2",
+			"draw": 5,
+			"cyclePosition": 1,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-2-d005.txt",
+			"promptSha256": "9a30b3b20bbc4545ea2198b81d99f5d0b8140aad25e4e000f8b530fe9457bfc5",
+			"promptBytes": 6345
+		},
+		{
+			"index": 10,
+			"runId": "ARM-1-d005",
+			"label": "ARM-1",
+			"draw": 5,
+			"cyclePosition": 2,
+			"briefId": "D1",
+			"persona": "P1",
+			"prompt": "prompts/ARM-1-d005.txt",
+			"promptSha256": "b1e6a52d35a69a527ce234d7a0fc13054d3e56c2ef03a6f12bd83587d5ac63e8",
+			"promptBytes": 6348
+		}
+	]
+}

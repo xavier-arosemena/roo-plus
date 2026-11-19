@@ -172,6 +172,25 @@ async function readPacketFiles(dir) {
 	return files
 }
 
+/**
+ * The plan's own `briefs` list, when the run directory carries one. Task C's
+ * brief id (`D1`) is not in the frozen `BRIEFS` constant, and the packet must
+ * carry the request text the replies answered.
+ */
+async function planBriefsFor(target) {
+	const resolved = path.resolve(target)
+	const stat = await fs.stat(resolved).catch(() => null)
+	const dir = stat?.isDirectory() ? resolved : path.dirname(resolved)
+	const raw = await fs.readFile(path.join(dir, "plan.json"), "utf-8").catch(() => null)
+	if (raw === null) return null
+	try {
+		const plan = JSON.parse(raw)
+		return Array.isArray(plan.briefs) ? plan.briefs : null
+	} catch {
+		return null
+	}
+}
+
 // ---------------------------------------------------------------------------
 // build
 // ---------------------------------------------------------------------------
@@ -194,8 +213,9 @@ async function build(opts) {
 	const key = normaliseKey(await loadJsonOrRefuse(opts.key, "sealed answer key"))
 	const results = await resolveResults(opts.runDir)
 	const records = parseJsonl(results.raw, relative(results.path)).map((row) => row.value)
+	const briefs = await planBriefsFor(opts.runDir)
 
-	const { packet, join, classification } = buildPacket({ records, keyEntries: key, seed: opts.seed })
+	const { packet, join, classification } = buildPacket({ records, keyEntries: key, seed: opts.seed, briefs })
 	const jsonl = renderPacketJsonl(packet)
 	const markdown = renderPacketMarkdown({ packet, seed: opts.seed })
 
