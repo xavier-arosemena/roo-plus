@@ -17,7 +17,8 @@ import { createDirectoriesForFile } from "../../utils/fs"
 import { arePathsEqual, getReadablePath } from "../../utils/path"
 import { formatResponse } from "../../core/prompts/responses"
 import { diagnosticsToProblemsString, getNewDiagnostics } from "../diagnostics"
-import { Task } from "../../core/task/Task"
+import type { Task } from "../../core/task/Task"
+import type { ToolExecutionContext } from "../../core/tools/ToolExecutionContext"
 
 import { DecorationController } from "./DecorationController"
 
@@ -461,7 +462,7 @@ export class DiffViewProvider {
 	 * @param isNewFile Whether this is a new file or an existing file being modified
 	 * @returns Formatted message (JSON)
 	 */
-	async pushToolWriteResult(task: Task, cwd: string, isNewFile: boolean): Promise<string> {
+	async pushToolWriteResult(task: ToolExecutionContext, cwd: string, isNewFile: boolean): Promise<string> {
 		if (!this.relPath) {
 			throw new Error("No file path available in DiffViewProvider")
 		}

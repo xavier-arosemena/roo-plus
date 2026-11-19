@@ -1,4 +1,4 @@
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { getCommand, getCommandNames } from "../../services/command/commands"
 import { EXPERIMENT_IDS, experiments } from "../../shared/experiments"
@@ -19,7 +19,7 @@ interface RunSlashCommandParams {
 export class RunSlashCommandTool extends BaseTool<"run_slash_command"> {
 	readonly name = "run_slash_command" as const
 
-	async execute(params: RunSlashCommandParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: RunSlashCommandParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { command: commandName, args } = params
 		const { askApproval, handleError, pushToolResult } = callbacks
 
@@ -136,7 +136,7 @@ export class RunSlashCommandTool extends BaseTool<"run_slash_command"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"run_slash_command">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"run_slash_command">): Promise<void> {
 		const commandName: string | undefined = block.params.command
 		const args: string | undefined = block.params.args
 

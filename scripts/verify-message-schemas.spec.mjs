@@ -129,7 +129,11 @@ describe("outbound extension-message ratchet (Phase 0)", () => {
 	const outboundTypeList = [...EXTENSION_MESSAGE_BASELINE, "taskHistoryUpdated", "theme", "mcpServers"]
 
 	it("passes when every baseline outbound type is registered", () => {
-		const analysis = analyzeRegistry(EXTENSION_REGISTRY, [...EXTENSION_MESSAGE_BASELINE], EXTENSION_MESSAGE_BASELINE)
+		const analysis = analyzeRegistry(
+			EXTENSION_REGISTRY,
+			[...EXTENSION_MESSAGE_BASELINE],
+			EXTENSION_MESSAGE_BASELINE,
+		)
 		assert.deepEqual(analysis.missingBaseline, [])
 		assert.equal(analysis.untypedCount, 0)
 		const verdict = evaluateRatchet(analysis, UNTYPED_EXTENSION_MESSAGE_LIMIT, "extensionMessageSchemas")
@@ -242,6 +246,11 @@ describe("outbound extension-message ratchet (Phase 0)", () => {
 			"skills",
 			"rules",
 			"rooHistoryImportProgress",
+			// Backfilled 2026-10-22 — see message-schema-analysis.mjs.
+			"livenessPing",
+			"modesFullConfig",
+			"olderClineMessages",
+			"olderTaskHistory",
 		])
 	})
 })

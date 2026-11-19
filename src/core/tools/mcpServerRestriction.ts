@@ -1,5 +1,5 @@
 import { getModeBySlug, defaultModeSlug } from "../../shared/modes"
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 
 /**
  * Pure predicate: is `serverName` permitted by the (optional) per-mode allowlist?
@@ -31,7 +31,7 @@ export function isMcpServerAllowed(serverName: string, allowedMcpServers?: strin
  * @param task The current task, used to reach provider state.
  * @returns The mode's `allowedMcpServers` allowlist, or `undefined` when unrestricted.
  */
-export async function getAllowedMcpServersForTask(task: Task): Promise<string[] | undefined> {
+export async function getAllowedMcpServersForTask(task: ToolExecutionContext): Promise<string[] | undefined> {
 	const provider = task.providerRef.deref()
 
 	// Be defensive: provider may be gone, or `getState` may be unavailable (e.g. in tests).
@@ -70,7 +70,7 @@ export async function getAllowedMcpServersForTask(task: Task): Promise<string[] 
  * @returns true if the invocation is allowed; false if it was rejected (caller must return).
  */
 export async function ensureMcpServerAllowed(
-	task: Task,
+	task: ToolExecutionContext,
 	toolName: "use_mcp_tool" | "access_mcp_resource",
 	serverName: string,
 	pushToolResult: (content: string) => void,

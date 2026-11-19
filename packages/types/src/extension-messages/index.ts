@@ -105,10 +105,10 @@ export type ExtensionMessageType = ExtensionMessage["type"]
 /**
  * Registry of zod schemas keyed by message type.
  *
- * A type only appears here once its payload is fully typed (see Phase 2 of
- * plans/architecture-review-protocol-migration.md for the migration of the
- * remaining domains). The boundary (`parseExtensionMessage`) validates
- * registered types strictly and passes unregistered ones through structurally.
+ * Every `ExtensionMessageType` is registered. The boundary
+ * (`parseExtensionMessage`) is a hard allowlist: registered types are validated
+ * strictly, and unknown or unregistered types are **rejected**, never passed
+ * through. See `docs/adr/adr-typed-message-protocol.md` (Phase 3 closure).
  */
 export const extensionMessageSchemas: Partial<Record<ExtensionMessageType, z.ZodType>> = {
 	state: stateMessageSchema,

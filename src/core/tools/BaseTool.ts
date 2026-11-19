@@ -1,6 +1,6 @@
 import type { ToolName } from "@roo-code/types"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import type { ToolUse, HandleError, PushToolResult, AskApproval, NativeToolArgs } from "../../shared/tools"
 
 /**
@@ -47,7 +47,7 @@ export abstract class BaseTool<TName extends ToolName> {
 	 * @param task - Task instance with state and API access
 	 * @param callbacks - Tool execution callbacks (approval, error handling, results)
 	 */
-	abstract execute(params: ToolParams<TName>, task: Task, callbacks: ToolCallbacks): Promise<void>
+	abstract execute(params: ToolParams<TName>, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void>
 
 	/**
 	 * Handle partial (streaming) tool messages.
@@ -58,7 +58,7 @@ export abstract class BaseTool<TName extends ToolName> {
 	 * @param task - Task instance
 	 * @param block - Partial ToolUse block
 	 */
-	async handlePartial(task: Task, block: ToolUse<TName>): Promise<void> {
+	async handlePartial(task: ToolExecutionContext, block: ToolUse<TName>): Promise<void> {
 		// Default: no-op for partial messages
 		// Tools can override to show streaming UI updates
 	}
@@ -114,7 +114,7 @@ export abstract class BaseTool<TName extends ToolName> {
 	 *   the shared ToolCallbacks interface for every tool.
 	 */
 	async handle<TCallbacks extends ToolCallbacks>(
-		task: Task,
+		task: ToolExecutionContext,
 		block: ToolUse<TName>,
 		callbacks: TCallbacks,
 	): Promise<void> {

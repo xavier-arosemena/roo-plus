@@ -4,7 +4,8 @@ import * as path from "path"
 import crypto from "crypto"
 import EventEmitter from "events"
 
-import simpleGit, { SimpleGit, SimpleGitOptions } from "simple-git"
+// simple-git 4 dropped the callable default export; the factory is a named export.
+import { simpleGit, SimpleGit, SimpleGitOptions } from "simple-git"
 import pWaitFor from "p-wait-for"
 import * as vscode from "vscode"
 

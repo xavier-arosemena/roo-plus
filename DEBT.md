@@ -24,9 +24,8 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 - [`packages/types/CHANGELOG.md`](packages/types/CHANGELOG.md) — Only contains `0.0.1` with one change
 - [`packages/core/CHANGELOG.md`](packages/core/CHANGELOG.md) — Only contains `0.0.1`
 - [`packages/ipc/CHANGELOG.md`](packages/ipc/CHANGELOG.md) — Only contains `0.0.1`
-- [`packages/telemetry/CHANGELOG.md`](packages/telemetry/CHANGELOG.md) — Only contains `0.0.1`
 
-**Issue**: Shared package CHANGELOGs (types, core, ipc, telemetry) are stubs with `0.0.1` version and minimal entries. These packages receive regular changes but their changelogs are not maintained.
+**Issue**: Shared package CHANGELOGs (types, core, ipc) are stubs with `0.0.1` version and minimal entries. These packages receive regular changes but their changelogs are not maintained.
 **Impact**: Developers and downstream consumers of these packages cannot track historical changes.
 **Suggested Fix**: Automate changelog generation for packages using changesets or a commit-based generator.
 
@@ -44,7 +43,7 @@ This document tracks known technical debt, areas for improvement, and maintenanc
 **Impact**: Documentation drift is likely; the `src/` copy was already behind the root on the Option 0 marketplace instructions.
 **Suggested Fix**: Consider consolidating the `src/README.md` to reference the root README, or add a build step that copies `README.md` → `src/README.md`.
 
-> **Status (2026-08-17):** the two files are currently **byte-identical** (verified via `diff`), so no drift has reoccurred since the last sync — but nothing enforces it. There is no CI gate comparing the copies; the next edit to one side without the other will silently reintroduce drift (this is the exact class of gap the locale-README gate, [`verify-locale-readmes.mjs`](scripts/verify-locale-readmes.mjs), already closes for `locales/`).
+> **Status (2026-08-17):** the two files are currently **byte-identical** (verified via `diff`), so no drift has reoccurred since the last sync — but nothing enforces it. There is no CI gate comparing the copies; the next edit to one side without the other will silently reintroduce drift (this is the exact class of gap the locale-README gate, [`verify-locale-readmes.mjs`](scripts/verify-locale-readmes.mjs), already closes for `locales/`). **Gated since 2026-10-22:** `pnpm verify:readme-parity` (`scripts/verify-readme-parity.mjs`) fails the build when the copies diverge, and `prevsix`/`prebundle` run it.
 
 ---
 

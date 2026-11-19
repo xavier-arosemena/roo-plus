@@ -6,7 +6,7 @@ import delay from "delay"
 
 import { CommandExecutionStatus, DEFAULT_TERMINAL_OUTPUT_PREVIEW_SIZE, PersistedCommandOutput } from "@roo-code/types"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 
 import { ToolUse, ToolResponse } from "../../shared/tools"
 import { formatResponse } from "../prompts/responses"
@@ -79,7 +79,7 @@ export function resolveAgentTimeoutMs(timeoutSeconds: number | null | undefined)
 export class ExecuteCommandTool extends BaseTool<"execute_command"> {
 	readonly name = "execute_command" as const
 
-	async execute(params: ExecuteCommandParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: ExecuteCommandParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { command, cwd: customCwd, timeout: timeoutSeconds } = params
 		const { handleError, pushToolResult, askApproval } = callbacks
 
@@ -265,7 +265,7 @@ export class ExecuteCommandTool extends BaseTool<"execute_command"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"execute_command">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"execute_command">): Promise<void> {
 		const command = block.params.command
 		await task.ask("command", command ?? "", block.partial).catch(() => {})
 	}
@@ -281,7 +281,7 @@ export type ExecuteCommandOptions = {
 }
 
 export async function executeCommandInTerminal(
-	task: Task,
+	task: ToolExecutionContext,
 	{
 		executionId,
 		command,

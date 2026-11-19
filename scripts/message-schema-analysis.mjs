@@ -188,21 +188,27 @@ export const MESSAGE_SCHEMA_BASELINE = [
 	// (marketplaceButtonClicked + shareTaskSuccess removed in Phase 3; the other 8
 	// dead members removed in Phase 3 — see loose.ts.)
 	"draggedImages",
+	// Backfilled 2026-10-22: these were registered after the baseline was first
+	// written, so they were not protected against silent removal. The list must
+	// only ever GROW (see the docstring above).
+	"fetchMarketplaceData",
+	"filterMarketplaceItems",
+	"livenessPong",
+	"getModesFullConfig",
+	"getOlderClineMessages",
+	"getOlderTaskHistory",
 ]
 
 /**
-	* Maximum permitted number of UNTYPED message types (WebviewMessageType members
-	* without a schema in the registry).
-	*
-	* Verified derivation (2026-09-30): 166 literal members of the
-	* `WebviewMessage.type` union minus 166 registered in the zod registry
-	* (`packages/types/src/webview-messages/index.ts`) = 0 untyped. This is the
-	* current count as of S1-M13 (the final sub-task: Debug + Misc + Loose
-	* domains landed) and must only ever DECREASE as domains migrate; increasing
-	* it is a ratchet regression (the guard goal is "the count of untyped message
-	* types must not increase"). Never raise this number — adjust it only when a
-	* type is newly registered, keeping the derivation above in sync.
-	*/
+ * Maximum permitted number of UNTYPED message types (WebviewMessageType members
+ * without a schema in the registry).
+ *
+ * The executable derives the live untyped count as "literal members of the
+ * `WebviewMessage.type` union minus keys in the zod registry" and fails if it
+ * exceeds this limit. The migration is complete, so the limit is zero and
+ * must never rise. Do not hardcode the union size here — it changes with the
+ * protocol; run `node scripts/verify-message-schemas.mjs` for the live figure.
+ */
 export const UNTYPED_MESSAGE_LIMIT = 0
 
 /**
@@ -299,20 +305,22 @@ export const EXTENSION_MESSAGE_BASELINE = [
 	"skills",
 	"rules",
 	"rooHistoryImportProgress",
+	// Backfilled 2026-10-22 — see the inbound baseline note.
+	"livenessPing",
+	"modesFullConfig",
+	"olderClineMessages",
+	"olderTaskHistory",
 ]
 
 /**
  * Maximum permitted number of UNTYPED outbound message types
  * (ExtensionMessageType members without a schema in the registry).
  *
- * Verified derivation (2026-08-11): 77 literal members of the
- * `ExtensionMessage.type` union minus 77 registered in the zod registry
- * (`packages/types/src/extension-messages/index.ts`) = 0 untyped. This is the
- * current count as of Phase 2, Domain 8 (skills/rules/history-import responses
- * landed — the final domain) and must only ever DECREASE as domains migrate;
- * increasing it is a ratchet regression. Never raise this number — adjust it
- * only when a type is newly registered, keeping the derivation above in sync.
- * Phase 2 is COMPLETE: all 77 outbound `ExtensionMessage` types are registered.
+ * The executable derives the live untyped count as "literal members of the
+ * `ExtensionMessage.type` union minus keys in the zod registry" and fails if
+ * it exceeds this limit. The migration is complete, so the limit is zero and
+ * must never rise. Do not hardcode the union size here — it changes with the
+ * protocol; run `node scripts/verify-message-schemas.mjs` for the live figure.
  */
 export const UNTYPED_EXTENSION_MESSAGE_LIMIT = 0
 
@@ -405,7 +413,11 @@ export function analyzeRegistry(registry, typeList, baseline) {
  * @param {string} [registryLabel="webviewMessageSchemas"]  registry name for error text
  * @returns {{ ok: boolean, problems: string[] }}
  */
-export function evaluateRatchet({ missingBaseline, untypedCount }, untypedLimit, registryLabel = "webviewMessageSchemas") {
+export function evaluateRatchet(
+	{ missingBaseline, untypedCount },
+	untypedLimit,
+	registryLabel = "webviewMessageSchemas",
+) {
 	const problems = []
 	if (missingBaseline.length > 0) {
 		problems.push(

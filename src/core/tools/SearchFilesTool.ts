@@ -2,7 +2,7 @@ import path from "path"
 
 import { type ClineSayTool } from "@roo-code/types"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
 import { regexSearchFiles } from "../../services/ripgrep"
@@ -19,7 +19,7 @@ interface SearchFilesParams {
 export class SearchFilesTool extends BaseTool<"search_files"> {
 	readonly name = "search_files" as const
 
-	async execute(params: SearchFilesParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: SearchFilesParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { askApproval, handleError, pushToolResult } = callbacks
 
 		const relDirPath = params.path
@@ -71,7 +71,7 @@ export class SearchFilesTool extends BaseTool<"search_files"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"search_files">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"search_files">): Promise<void> {
 		const relDirPath = block.params.path
 		const regex = block.params.regex
 		const filePattern = block.params.file_pattern

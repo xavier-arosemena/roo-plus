@@ -257,6 +257,11 @@ Full attribution — every bundled binary, the DCG licence text (MIT with the Op
 
 ## 🏗️ Project Structure
 
+> 📐 **Architecture**: how the system actually fits together — containers, components, the
+> agent loop, the host/webview protocol, the trust and privacy model, and the known debt:
+> [`docs/architecture.md`](docs/architecture.md). Decisions and their rationale live in
+> [`docs/adr/`](docs/adr/ADR-INDEX.md).
+
 ```
 roo-plus/
 ├── .roomodes                # 90 custom modes (auto-generated)

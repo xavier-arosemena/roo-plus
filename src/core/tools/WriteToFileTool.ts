@@ -4,7 +4,7 @@ import fs from "fs/promises"
 
 import { type ClineSayTool, DEFAULT_WRITE_DELAY_MS } from "@roo-code/types"
 
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
 import { fileExistsAtPath, createDirectoriesForFile } from "../../utils/fs"
@@ -26,7 +26,7 @@ interface WriteToFileParams {
 export class WriteToFileTool extends BaseTool<"write_to_file"> {
 	readonly name = "write_to_file" as const
 
-	async execute(params: WriteToFileParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: WriteToFileParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		const { pushToolResult, handleError, askApproval } = callbacks
 		const relPath = params.path
 		let newContent = params.content
@@ -193,7 +193,7 @@ export class WriteToFileTool extends BaseTool<"write_to_file"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"write_to_file">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"write_to_file">): Promise<void> {
 		const relPath: string | undefined = block.params.path
 		const newContent: string | undefined = block.params.content
 

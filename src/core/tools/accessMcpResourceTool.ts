@@ -1,7 +1,7 @@
 import type { ClineAskUseMcpServer } from "@roo-code/types"
 
 import type { ToolUse } from "../../shared/tools"
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 
 import { BaseTool, ToolCallbacks } from "./BaseTool"
@@ -15,7 +15,11 @@ interface AccessMcpResourceParams {
 export class AccessMcpResourceTool extends BaseTool<"access_mcp_resource"> {
 	readonly name = "access_mcp_resource" as const
 
-	async execute(params: AccessMcpResourceParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(
+		params: AccessMcpResourceParams,
+		task: ToolExecutionContext,
+		callbacks: ToolCallbacks,
+	): Promise<void> {
 		const { askApproval, handleError, pushToolResult } = callbacks
 		const { server_name, uri } = params
 
@@ -97,7 +101,7 @@ export class AccessMcpResourceTool extends BaseTool<"access_mcp_resource"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"access_mcp_resource">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"access_mcp_resource">): Promise<void> {
 		const server_name = block.params.server_name ?? ""
 		const uri = block.params.uri ?? ""
 

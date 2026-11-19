@@ -5,7 +5,7 @@ import { type ClineSayTool, DEFAULT_WRITE_DELAY_MS } from "@roo-code/types"
 
 import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
-import { Task } from "../task/Task"
+import type { ToolExecutionContext } from "./ToolExecutionContext"
 import { formatResponse } from "../prompts/responses"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
 import { fileExistsAtPath } from "../../utils/fs"
@@ -136,7 +136,7 @@ export class EditFileTool extends BaseTool<"edit_file"> {
 	private didSendPartialToolAsk = false
 	private partialToolAskRelPath: string | undefined
 
-	async execute(params: EditFileParams, task: Task, callbacks: ToolCallbacks): Promise<void> {
+	async execute(params: EditFileParams, task: ToolExecutionContext, callbacks: ToolCallbacks): Promise<void> {
 		// Coerce old_string/new_string to handle malformed native tool calls where they could be non-strings.
 		// In native mode, malformed calls can pass numbers/objects; normalize those to "" to avoid later crashes.
 		const file_path = params.file_path
@@ -482,7 +482,7 @@ export class EditFileTool extends BaseTool<"edit_file"> {
 		}
 	}
 
-	override async handlePartial(task: Task, block: ToolUse<"edit_file">): Promise<void> {
+	override async handlePartial(task: ToolExecutionContext, block: ToolUse<"edit_file">): Promise<void> {
 		const filePath: string | undefined = block.params.file_path
 		const oldString: string | undefined = block.params.old_string
 
