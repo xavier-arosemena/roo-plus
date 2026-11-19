@@ -34,6 +34,8 @@ Two different numbers get confused here, and only one of them is about getting t
 
 **How often a real brief is vague, we have not measured.** Our brief was written to be maximally ambiguous, because that is the only regime in which the line can matter. Whether that describes 2% or 40% of what users actually type is unknown, and nothing here can settle it — it is the largest open question in §9.
 
+**How widely this applies is itself measured, and narrowly.** Six further briefs were screened for the two conditions the effect needs — a reply that sometimes asks, and `explain` as a plausible owner — and **none passed both**. Mechanism questions ("why does this worker retry three times") closed the ask channel: thirty of thirty committed. A change-friction question opened it but handed ownership to `architecture-reviewer`, and `explain` was dropped. So the 27.5 points are established on **one brief out of seven screened**, and any claim beyond that brief is an extrapolation, not a result.
+
 **The two errors are not symmetric.** A question costs the user one turn and often lands on the right mode on the retry. A wrong commit costs a task. That asymmetry is why §6 favours lines that discriminate between neighbouring modes, and why 12 wrong commits in 100 matters more than a 27.5-point swing in how often the model asks.
 
 ---
@@ -331,6 +333,8 @@ Zero asks in 91 replies puts the 95% upper bound on that model's ask rate at **�
 - **Not one model's general behaviour.** Every number here is one model (`gemini-3.5-flash`) and one brief. The literature's 78.7–96.0% position result came from five models on tool selection; model-specificity is untested here. A second provider is provisioned, and replicating one contrast on it would test this.
 
 ---
+
+- **One brief out of seven screened.** Six further briefs were tried and none produced both conditions the effect requires; the failures were of two kinds and are recorded in log §29. The finding is therefore about a brief of one kind — a question about a structural property, where `explain` is preferred but contested — and not about mode selection generally.
 
 ## 6. Advice, for users and for mode authors
 

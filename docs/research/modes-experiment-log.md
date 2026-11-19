@@ -989,3 +989,24 @@ Against E20's own brief, where **40.8%** of arm B and **14.0%** of arm C were un
 **M-13, recorded because the mistake was mine twice.** The first attempt changed the brief's subject and kept its form; the second changed the form and kept the class. Neither was a test of whether the effect travels, because neither first characterised the condition that opens the channel. A brief that fails to open it cannot refute the effect, and a brief that opens it the same way is not an independent test.
 
 **What is left in the budget.** One further screen of three ownership-ambiguous briefs, at fifteen cents, would say whether the effect survives a _different_ ambiguity. If none opens the channel either, the honest conclusion is that this programme has one brief, and the report should say that instead of reaching for a second.
+
+## 29. The second screen — the effect has one brief, not a class (2026-11-19)
+
+Three ownership-ambiguous briefs, 10 calls each, 5 per arm, read under the selection rule (D-26). Every call `RUN`.
+
+| Brief                                                         | asks (B / C) | declares `explain` | other modes declared             |
+| ------------------------------------------------------------- | ------------ | ------------------ | -------------------------------- |
+| Why does this service handle retries in two different places? | 0 / 0        | 10 / 10            | none                             |
+| Why is this module so hard to change?                         | 1 / 4        | **0 / 0**          | `architecture-reviewer`, 5 of 10 |
+| Why does this subsystem have three layers of caching?         | 0 / 0        | 9–10 / 10          | none                             |
+
+**Neither acceptance condition held for the same brief**, and the two failures differ in kind:
+
+1. **Mechanism questions close the channel.** Both the retry and the caching briefs were intended to be jointly owned by `explain`, `architect` and `architecture-reviewer`. The model committed 20 of 20 times and treated each as explanation-with-evidence: ownership was obvious, only the code was missing, and the code was requested after the line had decided.
+2. **Change-friction questions open it, but not for `explain`.** "Why is this module so hard to change?" produces genuine candidate lists and 5 asks in 10 — the channel E20 needs — yet every selection is `architecture-reviewer`, and `explain` is the candidate the replies drop. This reproduces the first attempt's failure (D-27) with a different subject.
+
+**The bracket.** Seven briefs have now been screened across three attempts, sixty calls, about €0.35. Exactly one opens both conditions: E20's own, _"Explain why this module is structured the way it is"_. The two classes tried here bracket the qualifying condition without landing on it — a brief about a **structural property** rather than a mechanism, where `explain` is the preferred owner but not the exclusive one.
+
+**C closes as a negative.** There is no second brief. The effect is reported as **brief-specific within the screened set**, not as a general property of mode selection. That is a narrower claim than the report originally carried, and it is the honest one: six briefs that a reasonable person would have expected to behave the same way did not.
+
+**What would reopen it.** A brief of the bracketed kind — structural, with `explain` preferred but contested — screened for both conditions before any sweep. Two of the six failures would have been avoided by that screen, at fifteen cents each, which is the argument for M-13 made concrete.
