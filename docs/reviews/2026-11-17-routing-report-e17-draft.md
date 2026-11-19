@@ -23,13 +23,13 @@
 
 ## 0. What to take away
 
-1. **There is exactly one confirmatory finding, and it is this.** A mode line that says what the answer must **not** be out-commits one that says what the answer must **contain**: 89.0% against 61.5%, a gap of **27.5 points**, _p_ ≈ 7 × 10⁻²⁰. Three things make it the report's only surviving result, and all three are stated because the claim is large. It holds its sign in **every quarter** of the run, at 21–35 points; it is **independently corroborated**, a second model re-reading the same replies blind agreeing with the first pass on **99.7%** of them; and its direction is the **reverse of the prediction we registered**. Everything else in this report is narrower than it first appeared — see §5. _Falsified if_ a length-matched line naming a required artefact, rather than a quality standard, reverses the gap. [Please review this sentence, specially the beginning. It is not clear. If this is " the report's only confirmatory finding" it needs to be crystal clear.]
-2. On an ambiguous brief the model asks rather than guesses, and that is the correct response. Every reply in the 900 E20 wording calls either committed to the expected mode or asked for the missing information; none selected an unrelated one. That behaviour is **model-specific** and strongly so: a second model, on the same brief and the same lines, asked **not once in 91 replies** (§4.8). Asking is the correct response here; whether a given model asks at all is not something this report can generalise. _Falsified if_ wrong commits are shown to outnumber asks on ambiguous briefs at this scale, for a model that asks at a comparable rate. [Here I think we should again clarify that this seems to be model-specific. The other model did not ask at all...]
+**The simplest fact comes first, because everything below is a refinement of it: the clarity of the brief decides the outcome.** A request that says what is wanted gets the right mode almost every time, and no wording or ordering trick measured here makes an unclear brief as good as a clear one. What this report is about is the residual case — a brief ambiguous enough that the model could reasonably ask instead of choosing — and the question of which levers, if any, improve the choice when the brief itself cannot.
+
+1. **Exactly one result here is confirmatory, and it fits in one sentence.** A mode line that names what the answer must **not** be gets the model to commit to that mode **27.5 points** more often than a line of the same length that names what the answer must **contain** — 89.0% against 61.5%, _p_ ≈ 7 × 10⁻²⁰. That is the finding; it hints at nothing larger, and every other number in this report is narrower than it first appeared (§5). Three properties make it a result rather than an observation, and each is stated because the claim is large: it holds its sign in **every quarter** of the run (21–35 points); it is **independently corroborated**, a second model re-reading the same replies blind agreeing with the first pass on **99.7%** of them; and its direction is the **reverse of the prediction we registered**. _Falsified if_ a length-matched line naming a required artefact, rather than a quality standard, reverses the gap.
+2. **On an ambiguous brief the model asks rather than guesses — and whether it asks at all belongs to the model, not to the routing.** Every one of the 900 E20 wording calls either committed to the expected mode or asked for the missing information; none selected an unrelated one. That behaviour is not a property of the system: a second model, on the same brief and the same lines, asked **not once in 91 replies** and committed every time (§4.8). The channel the headline result lives in is therefore a model's willingness to ask, and it should be read that way wherever it is quoted. _Falsified if_ wrong commits are shown to outnumber asks on ambiguous briefs at this scale, for a model that asks at a comparable rate.
 3. For list order the programme has a difference but not a mechanism. First and last entries differ within one run, with the gap positive in every quarter (+44, +20, +24, +20 points), but the experiment designed to identify the cause was inconclusive because one of its arms drifted during the run. Falsified if a stationary re-run shows the occupant of the last slot changes the target's commitment rate reliably.
 4. The same prompt does not get the same answer. On 90 identical prompts two dispatches agreed at 50.0 / 50.0 / 62.5% against chance levels of 54.5 / 50.1 / 63.8%, and one unchanged condition ran at 59.3% in one batch and 47.0% in another. That gap is a time-average of a drift, so it is quoted as tens of points and never as a constant. Falsified if two dispatches of the same prompts agree far above chance.
 5. Every number here is one model, one brief, one session — and one of those turns out to be channel-specific. A second model, given the same brief and the same two lines, asked **no questions at all** in 91 replies and returned a bare route name every time, which is why the replication was stopped. The commit-versus-ask channel, where the 27.5 points live, depends on the model's willingness to ask, not only on the route. Falsified by a model that asks at a comparable rate and still shows the gap.
-
-[This section for me lacks the simplest idea: that the clarity of the brief remains the main factor of success for routing. And thus we are trying to measure precisely how to improve when the brief is not clear engough. This statement can be improved.]
 
 ---
 
@@ -37,12 +37,11 @@
 
 Two different numbers get confused here.
 
-**What moves is the choice.** On a brief too vague to decide from, the line and the position shifted _whether the reply commits or asks_ by **27.5 and 29 points**. That is a shift in the majority behaviour on such a brief, not a marginal effect: the same model, the same request, and the commit rate went from 61.5% to 89.0% on wording alone.
-[So what we could do is testing our final mode-briefs to see the reaction, and infer wheteher they are being vague or not? (nice, real applications from the research.)]
+**What moves is the choice.** On a brief too vague to decide from, the line and the position shifted _whether the reply commits or asks_ by **27.5 and 30 points**. That is a shift in the majority behaviour on such a brief, not a marginal effect: the same model, the same request, and the commit rate went from 61.5% to 89.0% on wording alone. §6.3 turns that measurement into a probe an author can run against a real catalogue.
 
 **What goes wrong is rare.** Measured wrong selections — a mode the request did not fit — were **2 in 600** in the closing round, **0 in 900** in E20, **2 in 600** in E20c, and **12 in 100** only in E20b's last-entry arm. So the risk sits between a third of a percent and about one in eight, depending on where the entry sits in the list.
 
-**How often a real brief is vague, we have not measured.** Our brief was written to be maximally ambiguous, because that is the only regime in which the line can matter. Whether that describes 2% or 40% of what users actually type is unknown, and nothing here can settle it — it is the largest open question in §9.
+**How often a real brief is vague, we have not measured.** Our brief was written to be maximally ambiguous, because that is the only regime in which the line can matter. Whether that describes 2% or 40% of what users actually type is unknown, and nothing here can settle it — it is the largest open question in §8.1.
 
 **How widely this applies is itself measured, and narrowly.** Six further briefs were screened for the two conditions the effect needs — a reply that sometimes asks, and `explain` as a plausible owner — and **none passed both**. Mechanism questions ("why does this worker retry three times") closed the ask channel: thirty of thirty committed. A change-friction question opened it but handed ownership to `architecture-reviewer`, and `explain` was dropped. So the 27.5 points are established on **one brief out of seven screened**, and any claim beyond that brief is an extrapolation, not a result.
 
@@ -144,11 +143,11 @@ E20b moved `explain` to an extreme, which changed three things at once: its own 
 | **Y** | `documentation`               | Non-competing filler for this brief: does any move to the end disturb `explain`? |
 | **Z** | `architecture-reviewer`       | Plausible rival: does the last slot pull selection towards its occupant?         |
 
-**What this design did not anticipate.** E20c assumed that draws inside an arm were exchangeable — the premise interleaving is meant to secure. Arm X is not: its declaration rate rises from 36.0% to 60.0% across the run while Y holds flat and Z declines (§4.6). E20c is therefore **inconclusive**, and its figures are published as counts and bounds, never as effects.
+**What this design did not anticipate.** E20c assumed that draws inside an arm were exchangeable — the premise interleaving is meant to secure. Arm X is not: its declaration rate rises from 36.0% to 60.0% across the run while Y holds flat and Z declines (§4.6). E20c is therefore **inconclusive**, and its figures are published as counts and readings, never as effects.
 
 ### 2.4 The measurement contract
 
-Replies are **unconstrained** — no `MODE:` slot, because a labelled slot presents a choice where the model might otherwise ask and would bias the very ask rate being measured. Extraction is `routing-round-parser/2`, pinned; every reply it cannot resolve goes to **hand adjudication**, blind: the packet carries a hashed id, the brief and the reply, with no arm, draw or timestamp, and the id-to-run mapping stays outside the packet until every judgement is recorded. Judgements are `DECLARATION`, `ASK` or `OTHER`, with the tie-break fixed in advance: a declaration marker anywhere makes it a `DECLARATION` even if the reply asks afterwards.
+Replies are **unconstrained** — no `MODE:` slot, because a labelled slot presents a choice where the model might otherwise ask and would bias the very ask rate being measured. Extraction is `routing-round-parser/2`, pinned; every reply it cannot resolve goes to **hand adjudication**, blind: the packet carries a hashed id, the brief and the reply, with no arm, draw or timestamp, and the id-to-run mapping stays outside the packet until every judgement is recorded. Judgements are `DECLARATION`, `ASK` or `OTHER`, with the tie-break fixed in advance: a declaration marker anywhere makes it a `DECLARATION` even if the reply asks afterwards. That tie-break proved unusable on this corpus and was replaced — before any count was published — by a rule that separates selection from mention (§3.7, D-26).
 
 ### 2.5 Instrument proof (this is what licenses reading the numbers)
 
@@ -162,7 +161,7 @@ Replies are **unconstrained** — no `MODE:` slot, because a labelled slot prese
 | Token cap / model                         | one value, 4096, throughout; `gemini-3.5-flash`; `temperature: 0`                                                                         |
 | Runs test on each arm's outcome sequence  | B _p_ = .79 · A _p_ = .69 · C _p_ = .67 · P1 _p_ = .24 · P45 _p_ = .76 — no outcome dependence in these arms; E20c's tests are in Annex E |
 
-Two instrument numbers are deliberately **not** results. The 60-draw E20c gate produced declaration rates of X 65.0%, Y 45.0%, Z 65.0%, which invert two arms relative to the sweep: the gate exists for exclusion and verbatim clustering only, and its rates are 20-draw noise (Annex H, D-20). And 21 of the 600 E20c replies are a bare slug, which the pinned extractor cannot resolve; they are corrected by rule in §3.5, so every E20c mechanical count is a lower bound (D-19).
+Two instrument numbers are deliberately **not** results. The 60-draw E20c gate produced declaration rates of X 65.0%, Y 45.0%, Z 65.0%, which invert two arms relative to the sweep: the gate exists for exclusion and verbatim clustering only, and its rates are 20-draw noise (Annex H, D-20). And 21 of the 600 E20c replies are a bare slug, which the pinned extractor cannot resolve at all; they sit inside the 241 replies adjudicated blind in §3.5, so those counts are readings rather than bounds — but they still cannot be turned into a contrast (§4.3, D-19).
 
 Costs, wall clock and deviations are in Annex A. They are published because every finding here is credible partly because the cost of finding it is visible.
 
@@ -172,24 +171,26 @@ Costs, wall clock and deviations are in Annex A. They are published because ever
 
 ### 3.1 The regex was not enough — and here is the size of the problem
 
-Of 378 replies reaching hand adjudication, **28 were commitments the extractor missed** (7.4%). The failure modes are mundane and worth recording, because they are the modes a v3 extractor must accept:
+Of 378 replies reaching hand adjudication, **27 were commitments the extractor missed** (7.1%). The failure modes are mundane and worth recording, because they are the modes a v3 extractor must accept:
 
 - a bare slug with no decoration — `explain`, or `` `explain` `` alone;
 - a bold span wrapping label _and_ slug — `**mode: explain**` — which never matches `**Mode:**`;
 - an unbolded label — `Selected mode: explain`;
 - a slug followed by a paragraph of goal prose — `` `explain` `` then a description.
 
-All 28 named `explain` but one, which named `architecture-reviewer` outright.
+All but one named `explain`, which named `architecture-reviewer` outright.
 
-Adjudication raised the declared rate by 1–3 points in four arms and lowered it by 8 points in P45, whose adjudicated replies named a mode other than the key's and are therefore counted as wrong commits (Annex C) — the opposite direction to every other arm, and the movement the harm measure depends on:
+Adjudication added declarations in every E20 arm — +2 in A, +9 in B and +12 in C, which is 2 to 3 points each. P45 is the exception, and it is the exception in two directions at once: adjudication added three declarations that name `explain`, while the arm's 53 mechanical declarations were never all of the key — 42 name `explain` and 11 name another mode, which are the wrong commits the harm measure depends on (Annex C):
 
 | Arm | Mechanical only   | After adjudication              |
 | --- | ----------------- | ------------------------------- |
 | B   | 237 / 400 = 59.3% | **246 / 400 = 61.5%**           |
 | A   | 73 / 100 = 73.0%  | **75 / 100 = 75.0%**            |
 | C   | 344 / 400 = 86.0% | **356 / 400 = 89.0%**           |
-| P1  | 15 / 100 = 15.0%  | **16 / 100 = 16.0%**            |
-| P45 | 53 / 100 = 53.0%  | **45 / 100 = 45.0%** (12 wrong) |
+| P1  | 15 / 100 = 15.0%  | **15 / 100 = 15.0%**            |
+| P45 | 42 / 100 = 42.0%¹ | **45 / 100 = 45.0%** (12 wrong) |
+
+¹ ARM-1's 53 mechanical declarations are not all of the key: 42 name `explain` and 11 name another mode. Those 11 are wrong commits, and adjudication contributes a twelfth — the reply that is the bare slug `architecture-reviewer`. The declared-key total is therefore 45, not 46 (Annex C, log §30).
 
 ### 3.2 The primary contrast: wording polarity
 
@@ -203,7 +204,7 @@ The registered reading for "≥ 20 points" was written as _"naming what the answ
 
 ### 3.4 The position arm (E20b)
 
-**P1 (first entry) 16.0% against P45 (last entry) 45.0% — 29.0 points, last ahead** (95% CI 16.4–40.4; exact _p_ = 1.3 × 10⁻⁵).
+**P1 (first entry) 15.0% against P45 (last entry) 45.0% — 30.0 points, last ahead** (95% CI 17.5–41.3; exact _p_ = 5.6 × 10⁻⁶).
 
 Two details matter more than the headline:
 
@@ -214,19 +215,19 @@ Two details matter more than the headline:
 
 `explain` sat at the seventh entry in all three arms with the same line. Only the last entry's occupant changed.
 
-| Arm | Last entry holds                | `explain` declared (mechanical) | Bare-slug correction | Corrected             | Undetermined |
-| --- | ------------------------------- | ------------------------------- | -------------------- | --------------------- | ------------ |
-| X   | `ai-cost-engineer` (original)   | 94 / 200 = 47.0%                | +3                   | **98 / 200 = 49.0%**  | 105          |
-| Y   | `documentation` (non-competing) | 120 / 200 = 60.0%               | +10                  | **130 / 200 = 65.0%** | 80           |
-| Z   | `architecture-reviewer` (rival) | 143 / 200 = 71.5%               | +8                   | **152 / 200 = 76.0%** | 56           |
+| Arm | Last entry holds                | `explain` declared (mechanical) | Adjudicated (+) | Corrected             | Extractor-undetermined |
+| --- | ------------------------------- | ------------------------------- | --------------- | --------------------- | ---------------------- |
+| X   | `ai-cost-engineer` (original)   | 94 / 200 = 47.0%                | +4              | **98 / 200 = 49.0%**  | 105                    |
+| Y   | `documentation` (non-competing) | 120 / 200 = 60.0%               | +11             | **131 / 200 = 65.5%** | 80                     |
+| Z   | `architecture-reviewer` (rival) | 143 / 200 = 71.5%               | +9              | **152 / 200 = 76.0%** | 56                     |
 
 The registered readings, and what this run can say about them:
 
 1. **Rival capture (Z against X): 1 against 1.** The count sits on a metric with 56 of Z's 200 replies and 105 of X's unresolved, so it is a bound, not a zero. The registered reading for a ≤ 10-point difference is **not applied** — not because the count contradicts it, but because the run it comes from is not stable (§4.6) — and its opposite is not claimed either (§4.3).
-2. **Explain shift (Y against X): +13.0 points mechanical, +16.0 corrected.** Both sit inside the registered 10–20 indecisive band, which would make the observation indecisive; because the arms are not stationary, not even that verdict is applied.
+2. **Explain shift (Y against X): +13.0 points mechanical, +16.5 corrected.** Both sit inside the registered 10–20 indecisive band, which would make the observation indecisive; because the arms are not stationary, not even that verdict is applied.
 3. **Unregistered: Z against X on `explain`, +24.5 mechanical, +27.0 corrected.** No reading exists for it and none is manufactured here. §4.6 shows the figure is the average of a decaying contrast (+40, +34, +16, +8 points), so it is not a magnitude to quote either.
 
-The gate and the extractor both constrain what can be quoted from this table. At the 60-draw gate the arms read X 65.0%, Y 45.0%, Z 65.0%, an ordering that inverts two arms against the sweep; those rates are not quotable (D-20). 21 replies consisting of a bare slug were scored undetermined and corrected by rule, unevenly (X 3, Y 10, Z 8); 220 further replies remain undetermined pending adjudication, so every mechanical count here is a **lower bound** (D-19).
+The gate and the extractor both constrain what can be quoted from this table. At the 60-draw gate the arms read X 65.0%, Y 45.0%, Z 65.0%, an ordering that inverts two arms against the sweep; those rates are not quotable (D-20). Of the 241 replies the extractor could not resolve — 21 of them a bare slug (X 3, Y 10, Z 8) — all have now been adjudicated blind under the selection rule, and the adjudicated column above is the result (D-19, log §26). The counts are readings rather than bounds; what they still cannot be used for is a contrast, because the arms are not stationary (§4.6).
 
 ### 3.6 Reliability: `temperature: 0` is not reproducibility
 
@@ -260,7 +261,7 @@ The most parsimonious description: a line that says _"not merely describe the co
 
 ### 4.2 Position: a difference within the run, and no identified mechanism
 
-Inside one run, with the line, the brief and the model held fixed, `explain` at the **first entry** declared at **15–16%** and at the **last entry** at **42–45%**; the gap was positive in all four quarters of the run (+44, +20, +24, +20 points). That is the whole of the within-run evidence, and it stops short of an explanation.
+Inside one run, with the line, the brief and the model held fixed, `explain` at the **first entry** declared at **15.0%** and at the **last entry** at **45.0%** — **30 points** (Annex C). The mechanical block contrast is positive in all four quarters of the run (+44, +20, +24, +20 points) and averages 27; the headline is three points larger because adjudication added three declarations to the last arm and none to the first. That is the whole of the within-run evidence, and it stops short of an explanation.
 
 **The mechanism is not identified.** Three candidates remain open — a penalty for occupying the first entry, a reward for occupying the last, and a neighbour effect from whatever sits adjacent to the target — and each would need its own stationary experiment (M-10) to separate them. Interleaving guarantees that none of them is favoured by a shared trend (§4.6); it does not tell us which is at work.
 
@@ -278,7 +279,7 @@ The registration's reading for a ≤ 10-point difference is therefore **not appl
 
 ### 4.4 Commitment is not correctness
 
-The last position bought 29 points of commitment and paid for it with 12 points of wrong commits. The first position bought 0 wrong commits and a great deal of asking. For a catalogue whose worst outcome is _acting in the wrong mode_, that trade is not obviously favourable, and it is a policy-relevant number measured within one run rather than inferred — on an arm that resolves only ~19.8 points (Annex G, §9).
+The last position bought 30 points of commitment and paid for it with 12 points of wrong commits. The first position bought 0 wrong commits and a great deal of asking. For a catalogue whose worst outcome is _acting in the wrong mode_, that trade is not obviously favourable, and it is a policy-relevant number measured within one run rather than inferred — on an arm that resolves only ~19.8 points (Annex G, §8.1).
 
 ### 4.5 Consequences for earlier readings
 
@@ -340,7 +341,7 @@ A replication was attempted on a second model and stopped after 109 of 800 calls
 | artefact stated   | 43  | 41 (95.3%)         | 2     | **0** |
 | artefact excluded | 48  | 48 (100%)          | 0     | **0** |
 
-Zero asks in 91 replies puts the 95% upper bound on that model's ask rate at **≈3.2%**, against 40–50% for the model this report uses. The effect measured here is a difference in _whether the reply commits_, and a model that always commits has no room for it. Under the practice recorded as M-11, a replication should screen for the channel first — about twenty calls, cents — rather than discover its absence at call 109.
+Zero asks in 91 replies puts the 95% upper bound on that model's ask rate at **≈3.2%**. For the model this report uses, the ask rate over the same brief was 11–39% on E20's three lines and 43–85% on E20b's two positions — not a like-for-like magnitude, but the same kind of quantity. The effect measured here is a difference in _whether the reply commits_, and a model that always commits has no room for it. Under the practice recorded as M-11, a replication should screen for the channel first — about twenty calls, cents — rather than discover its absence at call 109.
 
 **Two things follow.** The 27.5-point result is a statement about one model's ask threshold, not about routing in general. And mode choice on the second model was near-deterministic and independent of the line, which is consistent with the effect living in the ask threshold rather than in preference between modes.
 
@@ -354,7 +355,7 @@ Zero asks in 91 replies puts the 95% upper bound on that model's ask rate at **�
 - **Not generalisable across positions — including E20's own claim.** The polarity contrast was measured with the line held at **the seventh entry in all three arms**. It is a valid statement _at that position_ and nowhere else. By the same rule §4.5 applies to earlier work, this report's own wording result is **position-controlled, not position-randomised**; it must not be read as "C beats B wherever C sits".
 - **Not a fix for a vague brief.** Every arm in E20 stayed at 100% "appropriate", which is a definition rather than a result: "appropriate" is `declared ∨ asked`, so with no wrong commits in E20 the figure is arithmetic.
 - **Not resolution at 10 points.** Effects below ~10 points remain out of reach at n = 400 and below ~19.8 points at n = 100, and §4.6's batch-to-batch variation is **tens of points**, so no claim may cross batches at all.
-- **Not a manual pass, in E20c.** 21 replies consisting of a bare slug were corrected by rule; the remaining 220 undetermined replies await a blind adjudication pass, so every E20c count in §3.5 and Annex H is a bound. Method rule **M-1** — a headline automatic metric gets a manual pass before it is quoted — has **not** been complied with for E20c: no E20c figure in this report has had a full manual pass, and that is recorded as a violation, not as a caveat.
+- **Not an adjudicated contrast, in E20c.** The 241 replies the extractor could not resolve have since been adjudicated blind (log §26), so the E20c counts in §3.5 and Annex H are readings rather than bounds, and method rule **M-1** is complied with for them. That is a weaker statement than it sounds: adjudication moved the levels (49.0 / 65.5 / 76.0) without touching the reason the experiment is inconclusive, which is that its arms are not stationary (§4.6).
 - **Not attested by the records as pinned extraction (D-22).** Every record in every batch, E20c included, stamps `parserVersion: routing-round-parser/1`, not `/2`. The analysis code calls the v2 extractor, so the counts are probably what the pin promises, but the pin is a claim about the tool and is not evidenced in the data (D-22).
 - **Not one model's general behaviour.** Every number here is one model (`gemini-3.5-flash`) and one brief. The literature's 78.7–96.0% position result came from five models on tool selection; model-specificity is untested here. A second provider is provisioned, and replicating one contrast on it would test this.
 
@@ -370,7 +371,7 @@ Every item below rests on a number measured within one run. Items that rested on
 
 **The brief matters more than the catalogue.** A request that says what is wanted gets the right mode almost every time; nothing in this report makes an unclear brief as good as a clear one. Everything below applies only to the ambiguous case.
 
-1. **Assume the picker is doing some of the choosing for you.** Two systems with identical instructions but different list order committed at 16% and 45% on the same request, inside one run. If two modes look plausible for your task, name the outcome you want in the request ("find the cause and prove it" versus "map the dependencies") rather than relying on the mode you clicked.
+1. **Assume the picker is doing some of the choosing for you.** Two systems with identical instructions but different list order committed at 15% and 45% on the same request, inside one run. If two modes look plausible for your task, name the outcome you want in the request ("find the cause and prove it" versus "map the dependencies") rather than relying on the mode you clicked.
 2. **A clarifying question is not a failure.** Across the 900 calls of the E20 wording arms the model never selected an unrelated mode; when it did not commit, it asked. That is not a general property of this system: the last-entry arm of E20b named a mode the key does not name in 12 of 100 replies. The slot-occupant sweep produced at least 2 in 600. Asking is not free — it costs the user a turn — but it is usually cheaper than a commit to the wrong mode. "Wrong" here means _a mode the key does not name_: ten of E20b's twelve named `architecture-reviewer`, which log §17.5 calls adjacent and defensible for this brief.
 3. **Do not expect the same answer twice.** The same request, same model, same settings, hours apart matched its own commit/ask outcome only at chance, and two dispatches of 90 identical prompts agreed at or below chance (§3.6, Annex F). A retry is a fresh sample, not a repeat.
 
@@ -378,7 +379,7 @@ Every item below rests on a number measured within one run. Items that rested on
 
 1. **Make lines mutually exclusive, not merely descriptive.** The ask regime is dominated by candidate lists: replies that ask are replies that cannot separate `explain`, `architecture-reviewer`, `codebase-cartographer` and `decision-record`. Two lines that both plausibly cover "why is this like this" manufacture asking.
 2. **Do not expect "must include X" to increase commitment.** The line naming what the answer must avoid out-committed the length-matched line naming what it must contain, by 27.5 points, in every quarter of the run. This is the report's one confirmatory result, and it is one brief, one model, one position: treat it as a hypothesis with a strong number behind it, not a rule.
-3. **Weigh placement by harm, not by commitment.** Inside one run the last position committed 29 points more and produced 12 wrong commits of 100 against none at the first. If a mode is expensive to invoke wrongly, placement that suppresses wrong commits is worth more than placement that maximises uptake — but the harm arm resolves only ~19.8 points, so this is a judgement on a wide interval.
+3. **Weigh placement by harm, not by commitment.** Inside one run the last position committed 30 points more and produced 12 wrong commits of 100 against none at the first. If a mode is expensive to invoke wrongly, placement that suppresses wrong commits is worth more than placement that maximises uptake — but the harm arm resolves only ~19.8 points, so this is a judgement on a wide interval.
 4. **Do not expect length alone to decide.** The 50-character line committed more than the 96-character line (75.0% against 61.5%) and less than the 99-character one (89.0%), so length does not order the arms; the 96-versus-99 contrast is length-matched, which is why the polarity reading rests on it and the length reading does not exist.
 
 ---
@@ -391,7 +392,13 @@ One constraint makes the difference between an honest probe and a magic number: 
 
 ## 7. Turning the results into hypotheses
 
-**What follows is a way to write one line of a mode entry.** A picker shows the model one line per mode, in the form `name — slug — whenToUse`; the `whenToUse` text is the only part that differs between the arms of every experiment here, so it is the only part this report can speak to. The skeleton in §7.2 is laid out in that vocabulary, and the worked example in §7.3 is a `whenToUse` line written to the measured pattern.
+**What follows is a way to write one line of a mode entry.** Each mode reaches the model as one line, assembled from three fields of its definition — the display **name**, the **slug** the reply is expected to return, and the **`whenToUse`** sentence:
+
+```
+* "<name>" mode (<slug>) - <whenToUse>
+```
+
+That is the template in [`modes.ts`](../../src/core/prompts/sections/modes.ts:33); if `whenToUse` is empty the extension substitutes the first sentence of `roleDefinition`, which is itself a reason to treat a missing `whenToUse` as a defect rather than a style choice. Of the three fields, only the `whenToUse` sentence differed between the arms of every experiment here, so it is the only part this report can speak to. §7.2 writes the skeleton in that vocabulary, and §7.3 annotates the measured line the same way.
 
 This section is **untested guidance, not a recipe**. It is derived from the results above with their caveats attached, and only one of its four items rests on a result this report calls confirmatory. The wording evidence comes from one model, one brief and one position (the seventh entry), at 400 draws per arm; §4.2 and §4.6 say how little of it survives being moved or re-batched. Read the items as constraints on what an author may claim, not as a method that produces commitment.
 
@@ -402,27 +409,30 @@ This section is **untested guidance, not a recipe**. It is derived from the resu
 | **Make the line discriminate against its neighbours, not state a quality bar.** | **Confirmatory.** C out-committed B by 27.5 points (89.0% against 61.5%, p ≈ 7 × 10⁻²⁰), length-matched at 99 against 96 characters, and the gap keeps its sign in every quarter of the run (21–35 points). The lever moved commit-versus-ask; it did not change which mode was chosen.                              |
 | **Do not add a requirement clause the other modes could also satisfy.**         | **Descriptive only, and length-confounded.** A (50 characters, artefact absent) out-committed B (96 characters, artefact stated) at 73–75% against 59–62%, but the lines differ by 46 characters and the registration says this contrast "can never falsify anything on its own". It is an observation, not support. |
 | **Do not rely on placing your mode at the end.**                                | **Withdrawn.** The experiment that would have supported it is inconclusive: its control arm ramped 36% → 60% inside the run, the contrast against control decayed to 0 points (filler) and +8 (rival), and the rival count is 1 against 1 on a metric with 28% of one arm unresolved (§4.3, §4.6).                   |
-| **Expect the first entry to be penalised.**                                     | **Withdrawn.** The claim was a subtraction across two batches, which M-9 forbids. What stands is within-run only: 15–16% at the first entry against 42–45% at the last, with the gap positive in all four quarters; the mechanism is not identified (§4.2).                                                          |
+| **Expect the first entry to be penalised.**                                     | **Withdrawn.** The claim was a subtraction across two batches, which M-9 forbids. What stands is within-run only: 15.0% at the first entry against 45.0% at the last (Annex C), with the gap positive in all four quarters; the mechanism is not identified (§4.2).                                                  |
 
 ### 7.2 A skeleton, untested
 
-[Give a bit more context here. What this is? (In the mode's description this is how the name | slug | when to use line shoudl look like)]
+The skeleton is the `whenToUse` field written as two clauses, shown in the three-field order in which the model receives the line — name and slug first, because that is how it is rendered, then the sentence that carries all of the variation.
 
 ```
 Name | slug | Use when <the situation in which this mode, and not its nearest neighbour, owns the outcome>,
 and the answer must not <the thing the neighbouring modes produce instead>.
 ```
 
-[improve as needed]
+In the line the model actually receives, both gaps sit inside the `whenToUse` sentence — the first is its opening clause, the second its closing one — while the name and slug in front of them carry no effect this report can measure.
 
 The gaps are deliberate. `<…>` is a placeholder, not text to publish. The first gap names a trigger narrow enough that a neighbouring line does not also match it; the second names an exclusion the neighbours do not impose — which is the form that measured 27.5 points ahead of the same clause stated as a requirement (line C against line B), at the seventh entry, on this brief. Nothing here shows that either gap generalises, and no experiment has yet compared this skeleton against a line written any other way.
 
 ### 7.3 One worked example, untested
 
-The measured line C, annotated:
-[here also use the name/slug/when to use structure used above]
+Line C, annotated in the same three fields. The name and the slug were held fixed across all three wording arms — the entry was `explain` at the seventh position — so everything the experiment moved sits inside the `whenToUse` sentence:
 
-> `Use when someone asks why code behaves as it does, and the answer must not merely describe the code.` (99 characters)
+```
+Explain | explain | Use when someone asks why code behaves as it does, and the answer must not merely describe the code.
+```
+
+The sentence is 99 characters; the name and slug are shown only to mark where the measured text sits, and nothing in the results is about either of them.
 
 - **The trigger** — "why code behaves as it does" — names a situation rather than a quality ("expert explanation"). It is the form line C took; because C and B differ only in their second clause, the 27.5-point gap between them belongs to the exclusion, not to the trigger.
 - **The exclusion** — "not merely describe the code" — names what the answer must avoid, which is the form that measured 27.5 points ahead of the equivalent requirement (C 89.0% against B 61.5%, length-matched at 99 against 96 characters). Read as a design instruction, it is the one clause in the line that a neighbouring mode's line would not also satisfy.
@@ -431,29 +441,25 @@ The measured line C, annotated:
 
 ---
 
-## 8. Recommended next experiments
+## 8. Recommended next experiments, and what is still open
 
-These are the five that would change what this report can say. All of them are within-run designs that publish a per-arm block decomposition beside every contrast; none requires new machinery.
+These five would change what this report can say. Two of them have partly been run since the draft — the X re-run (§4.7) and the second-provider replication (§4.8) — and their outcomes are folded into the items rather than removed, so each item now states what is left of the question. All five are within-run designs that publish a per-arm block decomposition beside every contrast; none requires new machinery.
 
-1. **Why one arm ramped.** Arm X of E20c rose 24 points inside a 100-minute run while the arms interleaved with it did not. Three candidates, none of them observable from the client side: **warm-up** (the model's early calls differ from its later ones), **provider-side caching or batching** (the same prompt returning different things as the serving stack's state changed), and **quota shaping** (throttling or admission behaviour changing as the run progressed). A second provider would separate methodology from serving behaviour: if the ramp does not reproduce there, it belongs to this vendor's serving and not to the design. This is the most valuable experiment on the list, because every other contrast's validity depends on a stationary control arm (M-10).
+1. **Why one arm ramped — asked, partly answered.** Arm X of E20c rose 24 points inside a 100-minute run while the arms interleaved with it did not. Three candidates were named, none of them observable from the client side: **warm-up**, **provider-side caching or batching**, and **quota shaping**. The 200-call re-run answers the first question and not the second: the ramp does not reproduce (z = 2.72 → −0.06) but the level moves 47.0% → 54.0% (§4.7). What is left is not "does it ramp" but "what makes one batch sit seven points above another", and that needs a design which varies batch conditions deliberately and records them, not another trend test.
 2. **`explain` first, the rival last, against a control in the same batch.** The first-versus-last difference is unexplained, and the slot-occupant experiment was inconclusive because its control arm ramped. One batch, three arms — `explain` first with the rival last, `explain` last with the rival first, and the same control as before — each tested for stationarity before any contrast is read, would separate a first-entry penalty from a last-entry reward from a neighbour effect.
-3. **A second brief.** Everything here is one point in ambiguity space. A brief with a different ambiguity shape — two plausible modes that are not neighbours — would test whether the 27.5-point polarity is a property of the line or of this request.
-4. **One contrast on a second model.** A second provider is provisioned. Replicating the B-versus-C contrast on it would test the caveat in §5 that all of this is one model, which is also the caveat on the literature's five-model position result.
+3. **A brief that passes the screen.** Everything here is one point in ambiguity space, and six further briefs were screened without producing a second one (log §29). The next step is therefore not "another brief" but a brief that both opens the ask channel and leaves `explain` a plausible owner; until one is found, the 27.5 points remain a result about a question of one kind.
+4. **A model that asks.** The second provider is provisioned and was tried: it asked not once in 91 replies, so the channel this effect lives in does not exist there and the contrast cannot be measured on it (§4.8). What is needed now is a provider with a comparable ask rate, established before any draws are spent.
 5. **Position crossed with wording.** Neither lever has been tested in the presence of the other. The registration forbids re-running E20 without a new one, so this needs a fresh registration — and, given §4.6, all arms in a single batch with the block decomposition published beside every contrast.
 
----
+### 8.1 Still open, and who owns it
 
-## 9. Open items
+Two of the five items that stood in this position in the draft are now closed. They are recorded as closed rather than deleted, because each was an objection a reader may still hold.
 
-1. **Second adjudication pass is incomplete.** Pass 1 covers all 378 adjudicated E20 replies; pass 2 covers 50 (13.2%) — every declaration plus sampled asks — with **100% agreement**. The registration requires a full second pass with a published agreement rate. It should be run in a fresh session with no access to the join, the label map or the pass-1 file; the machinery is in place.
-2. **E20c has no adjudication pass at all yet.** 241 replies are undetermined, of which 21 bare slugs are corrected by rule; the packet is built and unopened. Until it is adjudicated, §3.5's counts are lower bounds.
-3. **The reversal needs replication within one batch.** §4.1 reports an effect whose sign contradicts the registration, and §4.6 shows that a cross-batch replication would be unreadable. Any replication needs a new registration — preferably with a second brief, since one brief is a single point of the ambiguity space.
-4. **The harm measure is underpowered.** 12% against 0% is the most policy-relevant number here and the least precise: E20b's design resolves ~19.8 points. A wrong-commit arm at n = 400 is the cheapest useful follow-up.
-5. **Extractor v3 is needed** before any further round: 28 of 378 adjudicated replies (7.4%) were commitments the pinned parser missed, and 21 of 600 E20c replies were bare slugs. The merge step also cannot represent an adjudicated commitment to a non-`explain` slug (Annex G).
-
----
-
-- **E20b's last arm reads 45.0% in §3 and 46.0% under the corrected adjudication.** A one-reply difference, to resolve before publication.
+1. **Closed — the second adjudication pass.** The draft reported 13.2% coverage from the same reader. A full independent pass has since run: a different model, a blind packet, 378 E20 replies, **99.7%** agreement under the corrected rule (§3.7, log §26). The objection is answered, not deferred.
+2. **Closed — E20c's adjudication, without changing its verdict.** The 241 undetermined E20c replies have been adjudicated, which moves the rates to 49.0 / 65.5 / 76.0 (Annex H). The arms are still not stationary, so §4.3 remains inconclusive and those rates still cannot be quoted as a contrast.
+3. **Open — the reversal needs a within-batch replication, on a brief that passes the screen.** §4.1's effect contradicts the registration's prediction and §4.6 rules out reading a cross-batch copy of it, so the replication needs a new registration; one brief out of seven makes finding the second brief the binding constraint. Owner: the experiment programme.
+4. **Open — the harm measure is underpowered.** 12% against 0% is the most policy-relevant number here and the least precise: E20b's design resolves about 19.8 points at n = 100. A wrong-commit arm at n = 400 is the cheapest useful follow-up and needs no new machinery. Owner: the experiment programme.
+5. **Open — extractor v3.** 27 of 378 adjudicated replies (7.1%) were commitments the pinned parser missed, and 21 of 600 E20c replies were bare slugs. The merge step also cannot represent an adjudicated commitment to a non-`explain` slug, which is what produced the 46-versus-45 discrepancy (Annex C, log §30). Owner: instrument work, and it should land before the next round spends money.
 
 ## Citations
 
@@ -531,10 +537,10 @@ Thresholds: exclusion > 5% in any arm, or longest verbatim run > 5. **Neither fi
 
 | Arm   | Position    | n   | Mechanical declared         | Adjudicated declarations | Final declared key | Asked | Wrong commit | Appropriate |
 | ----- | ----------- | --- | --------------------------- | ------------------------ | ------------------ | ----- | ------------ | ----------- |
-| ARM-2 | first entry | 100 | 15                          | +1                       | **16 (16.0%)**     | 84    | 0            | 100%        |
-| ARM-1 | last entry  | 100 | 53 (42 `explain`, 11 other) | +4                       | **45 (45.0%)**     | 43    | **12**       | 88%         |
+| ARM-2 | first entry | 100 | 15                          | +0                       | **15 (15.0%)**     | 85    | 0            | 100%        |
+| ARM-1 | last entry  | 100 | 53 (42 `explain`, 11 other) | +3                       | **45 (45.0%)**     | 43    | **12**       | 88%         |
 
-> The merge tool prints 46 declared / 11 wrong for ARM-1 because the verdict vocabulary carries no slug and counts an adjudicated declaration as a declared key. The reply in question named `architecture-reviewer`, so it is a wrong commit. The corrected split is shown above and is used in every test.
+> **Two counting definitions meet here, and only one is a declared key.** ARM-1's 53 mechanical declarations are not all of `explain`: 42 name it, 11 name another mode and are the wrong commits. The 47 undetermined replies were adjudicated blind, and that pass returned four declarations — three naming `explain` and one consisting of the bare slug `architecture-reviewer`. The declared-key total is therefore **45**, and the wrong-commit total **12** (11 mechanical + 1 adjudicated), with 43 asks. Counting all four adjudicated declarations as declared keys gives **46**; that is the merge tool's figure, because the verdict vocabulary carries no slug, and it is not used. Anything reading "46.0% for the last entry" is the merge tool's number and double-counts a commit to a different mode (log §30).
 
 ## Annex D — Pre-declared statistical tests
 
@@ -542,8 +548,8 @@ Thresholds: exclusion > 5% in any arm, or longest verbatim run > 5. **Neither fi
 | -------------------------------------------------------- | -------------- | ------------- | -------------- | ------------------- | ------------- |
 | **E20 primary: B vs C**                                  | 61.5% vs 89.0% | **−27.5 pts** | [−33.1, −21.7] | 7.1 × 10⁻²⁰         | < 10⁻¹⁹       |
 | E20 secondary: A vs B _(length-confounded, descriptive)_ | 75.0% vs 61.5% | +13.5 pts     | [+3.1, +22.4]  | .0141               | .0141         |
-| **E20b: P1 vs P45**                                      | 16.0% vs 45.0% | **−29.0 pts** | [−40.4, −16.4] | 1.3 × 10⁻⁵          | 1.3 × 10⁻⁵    |
-| E20b harm: wrong commits P45 vs P1                       | 12.0% vs 0.0%  | +12.0 pts     | —              | 3.4 × 10⁻⁴          | —             |
+| **E20b: P1 vs P45**                                      | 15.0% vs 45.0% | **−30.0 pts** | [−41.3, −17.5] | 5.6 × 10⁻⁶          | 5.6 × 10⁻⁶    |
+| E20b harm: wrong commits P45 vs P1                       | 12.0% vs 0.0%  | +12.0 pts     | [+5.8, +19.8]  | 3.4 × 10⁻⁴          | —             |
 | E20c rival capture: Z vs X                               | 1 vs 1         | not estimated | —              | —                   | —             |
 | E20c explain shift: Y vs X                               | 60.0% vs 47.0% | not estimated | —              | —                   | —             |
 | E20c explain shift, unregistered: Z vs X                 | 71.5% vs 47.0% | not estimated | —              | —                   | —             |
@@ -587,7 +593,7 @@ Agreement at chance and zero verbatim repetition together establish that calls a
 | Blindness assertion | **PASS** on both packets: no arm label, no run id, no timestamp, no registered line text |
 | Join discipline     | outside the packet directory; opened only after every verdict was recorded               |
 
-**Defect 1 — the pinned extractor misses commitments.** 28 of 378 (7.4%) were commitments it could not parse: bare slug, bare backticked slug, `**mode: slug**`, unbolded `Selected mode:`, slug followed by prose. All but one named `explain`. It recurred in E20c, where 21 of 600 replies were a bare slug (D-19).
+**Defect 1 — the pinned extractor misses commitments.** 27 of 378 (7.1%) were commitments it could not parse: bare slug, bare backticked slug, `**mode: slug**`, unbolded `Selected mode:`, slug followed by prose. All but one named `explain`. It recurred in E20c, where 21 of 600 replies were a bare slug (D-19).
 
 **Defect 2 — the merge cannot represent an adjudicated wrong commit.** [`mergeJudgements`](../../scripts/lib/adjudication.mjs:535) counts every adjudicated `DECLARATION` as a declared key, justified by the claim that a non-key slug "never reaches the packet". That held in E20 and failed once in E20b. Any published table must carry the corrected split (Annex C).
 
@@ -601,11 +607,11 @@ Agreement at chance and zero verbatim repetition together establish that calls a
 
 600 calls, 200 per arm, all `RUN`, interleaving proved at 599 transitions. `explain` at the seventh entry with line B in every arm; only the last entry's occupant changed, by a swap.
 
-| Arm   | Last entry holds                          | `explain` declared (mechanical) | Bare-slug correction | Corrected           | Undetermined |
-| ----- | ----------------------------------------- | ------------------------------- | -------------------- | ------------------- | ------------ |
-| **X** | `ai-cost-engineer` (original)             | 94/200 = 47.0%                  | +3                   | **98/200 = 49.0%**  | 105          |
-| **Y** | `documentation` (non-competing filler)    | 120/200 = 60.0%                 | +10                  | **130/200 = 65.0%** | 80           |
-| **Z** | `architecture-reviewer` (plausible rival) | 143/200 = 71.5%                 | +8                   | **152/200 = 76.0%** | 56           |
+| Arm   | Last entry holds                          | `explain` declared (mechanical) | Adjudicated (+) | Corrected           | Extractor-undetermined |
+| ----- | ----------------------------------------- | ------------------------------- | --------------- | ------------------- | ---------------------- |
+| **X** | `ai-cost-engineer` (original)             | 94/200 = 47.0%                  | +4              | **98/200 = 49.0%**  | 105                    |
+| **Y** | `documentation` (non-competing filler)    | 120/200 = 60.0%                 | +11             | **131/200 = 65.5%** | 80                     |
+| **Z** | `architecture-reviewer` (plausible rival) | 143/200 = 71.5%                 | +9              | **152/200 = 76.0%** | 56                     |
 
 **Stability (mechanical, blocks of 50 draws).**
 
@@ -622,16 +628,16 @@ The X and Z rows count declarations naming any mode (95 and 144 in total); the `
 | Contrast               | Mechanical | Corrected | Status                                                                                                                                 |
 | ---------------------- | ---------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | Rival capture (Z vs X) | 1 vs 1     | —         | **Not estimable at this n** — 56 of Z's 200 replies are unresolved. The reading is not applied and its opposite is not claimed (§4.3). |
-| Explain shift (Y vs X) | +13.0      | +16.0     | Inside the 10–20 indecisive band by construction, but the arms are not stationary, so not even "indecisive" is applied (§4.6).         |
+| Explain shift (Y vs X) | +13.0      | +16.5     | Inside the 10–20 indecisive band by construction, but the arms are not stationary, so not even "indecisive" is applied (§4.6).         |
 | Explain shift (Z vs X) | +24.5      | +27.0     | Unregistered, and the per-block contrast decays (+40, +34, +16, +8), so the average is not a magnitude to quote.                       |
 
-**Verdict: inconclusive.** Arm X ramps 36% → 60% inside its own run, both contrasts decay to 0 and +8 points, and no E20c figure has had a manual pass (M-1). What survives is narrower than the registration anticipated: a plausible rival placed in the last slot was selected twice in 600 replies, so it does not capture the slot.
+**Verdict: inconclusive.** Arm X ramps 36% → 60% inside its own run and both contrasts decay to 0 and +8 points, so no average of them estimates anything. The 241 undetermined replies have since been adjudicated (log §26), which moves the levels to 49.0 / 65.5 / 76.0 without touching the decay — the arms are still not stationary, which is why the verdict does not change. What survives is narrower than the registration anticipated: a plausible rival placed in the last slot was selected twice in 600 replies, so it does not capture the slot.
 
 **Zero-based numbering.** This is the only place the fixture's own indexing appears. The fixture counts entries from zero: with 45 entries, the first entry is 0, the seventh is 6, and the last is 44.
 
 **Gate (60 draws, 20 per arm).** X 65.0%, Y 45.0%, Z 65.0% — the gate exists for exclusion and verbatim clustering only; those rates are noise and are not quotable (D-20).
 
-**Extraction (D-19).** 241 replies are undetermined. Of these, 21 consist of a bare slug and were corrected by rule, unevenly (X 3, Y 10, Z 8); the remaining 220 are unadjudicated. Mechanical counts are therefore lower bounds, and the correction column is a rule applied to one failure mode, not an adjudication.
+**Extraction (D-19).** 241 replies were undetermined by the pinned extractor. 21 of them consist of a bare slug, which it cannot resolve at all (X 3, Y 10, Z 8). All 241 were then re-read blind under the selection rule (log §26), and that pass resolved them into the adjudicated column above: +4, +11 and +9. The corrected counts are therefore adjudicated rather than bounds; what they still cannot support is a contrast, because the arms are not stationary (§4.6).
 
 **Provenance.** [`runs/e20c-2026-11-17`](../../runs/e20c-2026-11-17) — 600 records, 600 `RUN`, 100.0 min, 10.00 s mean; [`runs/e20c-gate-2026-11-17`](../../runs/e20c-gate-2026-11-17) — 60 records, 9.3 min. Canonical record: [`modes-experiment-log.md` §23](../research/modes-experiment-log.md:812) and [§24](../research/modes-experiment-log.md:834).
 
