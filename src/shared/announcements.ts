@@ -26,8 +26,9 @@ export const Announcements: Record<string, ReleaseAnnouncement> = {
 			"🛡️ Command guard ships built-in — destructive-command guard bundled for 5 platforms, hash-verified, no startup download (#479)",
 			"📦 ~14 MB lighter install — 1,932 → 1,278 packaged files, source maps gone, curated Shiki themes (#13)",
 			"🚀 New models — DeepSeek V4.1 Flash (opencode-go), grok-build-0.1 (xAI)",
+			"🔒 Critical dependency advisories cleared — 5 critical and 15 high findings reduced to 0 critical and 1 high (simple-git, shell-quote, dompurify, undici, MCP SDK); the one remaining high needs a repo-wide zod 4 migration and is tracked in `docs/runbooks/dependency-advisories.md`, not suppressed",
 		],
-		contentHash: "085ab9cf997a9b91",
+		contentHash: "fa06a9e304892a06",
 	},
 }
 

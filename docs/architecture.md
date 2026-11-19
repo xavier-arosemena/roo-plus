@@ -1055,7 +1055,7 @@ Snapshot: `master` @ `a86996d`, 2026-10-22. Re-derive before citing.
 | Host locales                                              | 18    | `src/i18n/locales/`                              |
 | Provider arms in `buildApiHandler`                        | 34    | `src/api/index.ts`                               |
 | `Task.ts` lines                                           | 4831  | `src/core/task/Task.ts`                          |
-| `ClineProvider.ts` lines                                  | 3370  | `src/core/webview/ClineProvider.ts`              |
+| `ClineProvider.ts` lines                                  | 3395  | `src/core/webview/ClineProvider.ts`              |
 | `TaskOrchestrator.ts` lines                               | 1484  | `src/core/services/TaskOrchestrator.ts`          |
 
 <!-- architecture-facts:end -->
