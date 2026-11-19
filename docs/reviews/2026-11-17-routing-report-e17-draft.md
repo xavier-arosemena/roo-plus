@@ -1,5 +1,7 @@
 # Routing report (E17 draft) — does the picker's wording or its order decide whether a model commits?
 
+Report # 1; Routing benchmark
+
 | Field                | Value                                                                                                                                                                                                                                                  |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Status**           | **Draft for review.** Not a release note; numbers are final where they are mechanical counts, interpretation is open to challenge and partly withdrawn (§4.2, §4.3, §4.6)                                                                              |
