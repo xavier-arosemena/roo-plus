@@ -17,6 +17,7 @@ import {
 	CHANGELOG_PATH,
 	OUTPUT_PATH,
 	cleanHighlight,
+	normalizeLineEndings,
 	parseChangelogSection,
 	renderAnnouncementsModule,
 	resolveLineVersion,
@@ -216,6 +217,52 @@ describe("assessAnnouncementVersion", () => {
 	it("fails when the asset is missing entirely (empty file)", () => {
 		const verdict = assessAnnouncementVersion("3.81.0", SAMPLE_CHANGELOG, "")
 		assert.equal(verdict.ok, false)
+	})
+})
+
+describe("line endings (CRLF checkouts)", () => {
+	// GitHub's Windows runners default to `core.autocrlf=true`, so the LF
+	// changelog and asset arrive on disk with CRLF. Before normalization the
+	// line-anchored bullet regexes matched nothing and the verifier reported
+	// "no release highlights" + a stale asset for a version that was valid,
+	// turning `roo-plus#bundle` red on `platform-unit-test (windows-latest)`.
+	const SAMPLE_CRLF = SAMPLE_CHANGELOG.replace(/\n/g, "\r\n")
+
+	it("normalizeLineEndings converts CRLF and lone CR to LF", () => {
+		assert.equal(normalizeLineEndings("a\r\nb\rc\nd"), "a\nb\nc\nd")
+		assert.equal(normalizeLineEndings("a\nb"), "a\nb")
+	})
+
+	it("parses a CRLF changelog exactly like the LF original", () => {
+		const lf = parseChangelogSection(SAMPLE_CHANGELOG, "3.81.0")
+		const crlf = parseChangelogSection(SAMPLE_CRLF, "3.81.0")
+		assert.deepEqual(crlf, lf)
+		assert.equal(crlf.highlights.length, 5)
+		assert.equal(crlf.highlights[0], "Webview React #301 startup crash resolved")
+	})
+
+	it("verifies a CRLF checkout of both files", () => {
+		const asset = renderAnnouncementsModule(parseChangelogSection(SAMPLE_CHANGELOG, "3.81.0"))
+		const verdict = assessAnnouncementVersion("3.81.0", SAMPLE_CRLF, asset.replace(/\n/g, "\r\n"))
+		assert.equal(verdict.ok, true)
+		assert.deepEqual(verdict.reasons, [])
+	})
+
+	it("still fails a genuinely stale asset on a CRLF checkout (no weakening)", () => {
+		const staleAsset = renderAnnouncementsModule({ version: "3.80.0", highlights: ["Older release bullet"] })
+		const verdict = assessAnnouncementVersion("3.81.0", SAMPLE_CRLF, staleAsset.replace(/\n/g, "\r\n"))
+		assert.equal(verdict.ok, false)
+		assert.match(verdict.reasons[0], /stale/)
+	})
+
+	it("still fails an empty-highlight section on a CRLF checkout", () => {
+		const verdict = assessAnnouncementVersion(
+			"3.81.0",
+			EMPTY_SECTION_CHANGELOG.replace(/\n/g, "\r\n"),
+			renderAnnouncementsModule({ version: "3.81.0", highlights: [] }),
+		)
+		assert.equal(verdict.ok, false)
+		assert.match(verdict.reasons[0], /no release highlights/)
 	})
 })
 
