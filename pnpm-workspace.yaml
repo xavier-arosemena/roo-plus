@@ -12,16 +12,21 @@ overrides:
     tar-fs: ">=3.1.1"
     esbuild: "0.28.1"
     rollup: "4.60.4"
-    vite: "8.1.0"
-    # undici — 6.28.0 is vulnerable (GHSA: DoS via unrequested WebSocket
-    # subprotocol); patched >=6.28.1
-    undici: ">=6.28.1"
+    vite: "8.1.6"
+    # undici (HIGH x3: patched >=6.29.1). Deliberately the caret, NOT ">=": an
+    # open-ended range resolves to the undici 8 major, which changes the fetch /
+    # Agent surface this extension uses. Stay on the 6.x line the code targets.
+    undici: "^6.29.1"
     form-data: ">=4.0.4"
     bluebird: ">=3.7.2"
     glob: "11.1.0"
     "@types/react": "18.3.31"
     "@types/react-dom": "18.3.7"
     csstype: "3.2.3"
+    # zod — pinned so schema instances stay identical across the extension, the
+    # webview and packages/*. NOT fixed here: the open HIGH is zod <4.6.6, and
+    # every workspace resolves zod 3, so clearing it needs one repo-wide zod 4
+    # migration, not a per-package bump. See docs/runbooks/dependency-advisories.md.
     zod: "3.25.76"
 
     # ── HIGH severity fixes ──
@@ -71,8 +76,9 @@ overrides:
     # linkify-it
     linkify-it: "^5.0.2"
 
-    # shell-quote
-    shell-quote: "^1.9.0"
+    # shell-quote (CRITICAL: 1.8.4–1.10.x patched only in >=1.11.0). This global
+    # override wins over the workspace declarations, so it must move with them.
+    shell-quote: "^1.11.0"
 
     # path-to-regexp
     path-to-regexp: "^8.4.0"
@@ -100,8 +106,10 @@ overrides:
     # @babel/core (LOW) — webview-ui>@vitejs/plugin-react>@babel/core stuck at 7.29.0
     "@vitejs/plugin-react>@babel/core": "^7.29.6"
 
-    # body-parser (LOW) — src>@modelcontextprotocol/sdk>express>body-parser stuck at 2.2.2
-    "express>body-parser": "^2.3.0"
+    # body-parser (HIGH: patched >=2.4.0) — src>@modelcontextprotocol/sdk>express.
+    # The path-specific override takes precedence over the global one below, so
+    # both must name the patched minor.
+    "express>body-parser": "^2.4.0"
 
     # dompurify (LOW) — webview-ui>mermaid>dompurify
     # (posthog-js was removed with telemetry, Marketplace #305 WS-A — its override is gone)
@@ -116,8 +124,18 @@ overrides:
     # the 14.x line; 15.x is a breaking major that vsce has not adopted.
     markdown-it: "^14.3.2"
 
-    # follow-redirects (HIGH in .>ovsx: patched >=1.16.1)
-    follow-redirects: "^1.16.1"
+    # follow-redirects (HIGH in .>ovsx: patched >=1.16.2)
+    follow-redirects: "^1.16.2"
+
+    # express transitives under @modelcontextprotocol/sdk (CRITICAL/HIGH:
+    # proxy-addr <2.0.8, body-parser <2.4.0). The sdk bump alone does not lift
+    # these because express resolves its own ranges, so pin the patched minors.
+    proxy-addr: "^2.0.8"
+    body-parser: "^2.4.0"
+
+    # source-map-js (HIGH: patched >=1.2.2) — transitive via
+    # @vitest/coverage-v8>magicast and vite.
+    source-map-js: "^1.2.2"
 
     # uuid — path-specific; exceljs uses uuid@^8, @azure/msal-node uses uuid@^8
     "exceljs>uuid": "^11.1.1"
