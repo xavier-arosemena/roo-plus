@@ -32,6 +32,7 @@ Three things follow, and they explain why the catalogue has not been built:
 - **The presentation is a switch, not a fork.** One set of modes, two groupings — by axis × stance, or by artefact. That needs one slug set, which the two frames do not yet have.
 - **The preload is 45** (decided 2026-11-19, superseding 60–90) and **includes the 16 non-coding entries**. Affordable: 4,208 `whenToUse` characters, about a third of the 12,000-char budget.
 - **45 against 47 is unreconciled**, and the frames disagree on coverage as well as on count. That is an open item, not a detail.
+- **The word list the 45 will need exists as a candidate set**: [`test-fixtures/reach/triggers-candidates.json`](../test-fixtures/reach/triggers-candidates.json:1) — derived per owner from the 476-probe corpus, with the nine catalogue recommendations (**C1–C9**) attached. It is **untested**: the round that would test it has not run, and the file says so in its first field.
 
 ## 3. What routing established
 

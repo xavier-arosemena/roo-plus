@@ -1230,6 +1230,8 @@ Cost of answering: no calls. Cost of acting: one 200–400-call run (≈€1–2
 2. **A derived mapping can still be invented.** The owner map was "derived, never chosen", and one row (Q6) was nevertheless invented; the check could not catch it because the same pass wrote both sides. The frame's own count of 13 caught it. A derived rule needs an independent count beside it.
 3. **No part of the corpus is blind.** The author never read the lines but did read names and slugs to derive ownership. The blind half remains outstanding, and the falsifier about a second author's rate cannot be evaluated without it.
 
+**Where the words live.** The per-owner candidate vocabulary and the nine catalogue recommendations (**C1–C9**) are in [`test-fixtures/reach/triggers-candidates.json`](../../test-fixtures/reach/triggers-candidates.json:1), linked from the roadmap, [`modes-architecture.md`](../modes-architecture.md:795) §10.8 and [`modes-target-state.md`](../modes-target-state.md:350) §5.2 so it cannot be lost. It is a **candidate list**: the testing round has not run, and the file says so in its first field.
+
 ## 35. R0 position batch — the effect is not in the product form, and one arm ramped (2026-11-20)
 
 **Instrument.** [`scripts/r0-run.mjs`](../../scripts/r0-run.mjs:1): one batch, four arms, `explain` first against last in **two picker formats**, brief B3, persona P1, arms rotated each cycle. **400 calls, ≈€2.04**. Registration: [`2026-11-20-r0-picker-format-preregistration.md`](../reviews/2026-11-20-r0-picker-format-preregistration.md:1). Recount with the corrected extractor: [`runs/r0-position-both-2026-11-20/recount.json`](../../runs/r0-position-both-2026-11-20/recount.json).

@@ -356,6 +356,7 @@ For each axis (defined in Phase 3.9 from an external taxonomy), the spec records
 - **preload share** — how many of the axis's jobs the preload carries, and why;
 - **one primary owner** per job;
 - **disposition classes** for the refactor: `keep` · `merge into <slug>` · `thin to skill` · `retire` · `create`.
+- **the words a user types** — E24 measured, per owner, which of them the line does not contain, and whether a model can reach the owner without them ([`triggers-candidates.json`](../test-fixtures/reach/triggers-candidates.json:1), log §34). Candidate list only; it is the input to J3, not a decision.
 
 ### 5.3 Counts are functions, never literals
 

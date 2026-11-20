@@ -861,6 +861,14 @@ characters until a user installs one. The rule already exists in
 the sentence that ties it to this decision — **the preload is the 45; the languages are the
 installables**.
 
+**The lines the 45 will carry are now evidence-based, and the evidence is a candidate list.** E24 put
+476 probes over the 119 jobs through two instruments — a lexical matcher and a model — and found two
+distinct defects: six axes lack the words users type, and three contain them and lose anyway because
+neighbours do too (log §34). The per-owner word proposals and the nine recommendations they generate
+(**C1–C9**) live in [`test-fixtures/reach/triggers-candidates.json`](../test-fixtures/reach/triggers-candidates.json:1).
+**They are untested**: the round that would test them has not run, and no word from that file may
+enter a `whenToUse` without a reachability check and one model call per job.
+
 ---
 
 ## 11. Governance — gates, lifecycle, time
