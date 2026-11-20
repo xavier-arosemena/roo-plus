@@ -41,6 +41,10 @@ const CONTRASTS = {
 		{ arm: "B", line: "B", index: 6 },
 		{ arm: "C", line: "C", index: 6 },
 	],
+	// One condition, nothing varied: the drift probe. Every movement it shows is
+	// the provider or the hour, not the design, which is what makes it the cheapest
+	// decisive test before any four-arm batch is trusted (log §35).
+	drift: [{ arm: "fixed", line: "B", index: 0 }],
 }
 
 function parseArgs(argv) {
@@ -181,6 +185,9 @@ for (let i = 0; i < total; i += 1) {
 		slug: machine.slug ?? null,
 		rule: machine.rule,
 		exitCode: child.status,
+		// A failed call must never enter a denominator: one of 400 did in the first
+		// position batch and was scored as a row (log §35).
+		failed: child.status !== 0 || reply.trim().length === 0,
 	})
 	if ((i + 1) % 25 === 0) process.stdout.write(`  ${i + 1}/${total} calls\n`)
 }
@@ -189,7 +196,7 @@ fs.writeFileSync(path.join(outDir, "results.jsonl"), rows.map((row) => JSON.stri
 
 const byArm = {}
 for (const arm of arms) {
-	const armRows = rows.filter((row) => row.key === arm.key)
+	const armRows = rows.filter((row) => row.key === arm.key && !row.failed)
 	const declared = armRows.filter((row) => row.verdict === "DECLARATION").length
 	const byQuarter = [0, 1, 2, 3].map((quarter) => {
 		const qRows = armRows.filter((row) => row.quarter === quarter)
@@ -228,6 +235,7 @@ const summary = {
 	formats,
 	model: options.model,
 	calls: rows.length,
+	failed: rows.filter((row) => row.failed).length,
 	stationary,
 	ramped,
 	byArm,

@@ -1,0 +1,23 @@
+{
+	"schemaVersion": "ecc.r0.v1",
+	"registration": "docs/reviews/2026-11-20-r0-picker-format-preregistration.md",
+	"contrast": "drift",
+	"formats": ["product"],
+	"briefId": "B3",
+	"brief": "Explain why this module is structured the way it is.",
+	"persona": "P1",
+	"model": "gemini-3.5-flash",
+	"draws": 100,
+	"catalogueDigest": "30315cd252c6bec9789afdddf139ebff29765b775557d6c51d72fbae3706edc6",
+	"arms": [
+		{
+			"key": "product:fixed",
+			"format": "product",
+			"arm": "fixed",
+			"line": "B",
+			"index": 0,
+			"promptSha256": "063b12281c4b0ad29b3415f9d3009097910f0da57f81421aceb5a36e95f1ee9e",
+			"pickerDigest": "5b3dec077c566ee3a008c82b3e1d57781d90d0c58861ad10d0727b92cb321c1e"
+		}
+	]
+}

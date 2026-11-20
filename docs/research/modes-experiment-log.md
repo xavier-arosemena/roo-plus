@@ -1257,4 +1257,43 @@ Cost of answering: no calls. Cost of acting: one 200–400-call run (≈€1–2
 1. **One call of 400 failed** (no transcript, non-zero exit). The runner recorded a row for it anyway. Excluded here; the runner should refuse a batch with any failed call.
 2. **16 to 25 replies per arm scored "unresolved", and every one sampled was an ask** — "To determine the correct mode, I need the following information: …". The extractor gained an ask-phrase rule, re-validated 20/20 against R2's hand pass. **Declaration rates are unaffected by this fix**, because the denominator is the whole arm; only the ask/unresolved split moves.
 
+> **Superseded in part by §36.** The contrasts in this batch are readable after all: paired within cycle, the drift cancels and the fixture replication survives the sign test. Read §36 before quoting §35.
+
 **The recurring blocker, named.** This is the third round in which an arm is non-stationary inside its run — E20c's control ramped up, the re-run did not reproduce it, and here the fixture-first arm ramped down 24 points. Until drift is characterised, every contrast is at the mercy of which arm happens to move. **The cheapest decisive next test is not the wording contrast: it is one fixed condition, 100 draws, no arm variation**, to measure drift with nothing else in the design (≈€0.5).
+
+## 36. The drift probe — arm rates move 24 points with nothing varied, and pairing recovers the batch (2026-11-20)
+
+**Instrument.** [`scripts/r0-run.mjs`](../../scripts/r0-run.mjs:1) `--contrast drift`: **one condition, 100 identical calls, nothing varied** — same mode, same position, same line, same format, same brief, same persona. **100 calls, ≈€0.51.** If an invariant condition moves, the movement is the platform or the hour, not the design.
+
+| Quarter | Declarations |     Rate |
+| ------- | -----------: | -------: |
+| 1       |      10 / 25 | **0.40** |
+| 2       |       7 / 25 | **0.28** |
+| 3       |       4 / 25 | **0.16** |
+| 4       |       6 / 25 | **0.24** |
+
+**Range 24 points, with nothing varied.** That is the size of the confound every four-arm batch in this programme has been carrying. It explains §35's fixture-first "ramp" (0.32 → 0.08), E20c's ramping control, and the 47.0-versus-59.3 cross-batch gap that M-9 was written from. **Arm-level rates are not comparable across quarters of a run.**
+
+**But the contrast does not use arm levels — it uses differences, and the difference cancels the drift.** The batch rotates arms every four calls, so the two members of each comparison sit ~40 seconds apart. Pairing within the cycle gives, for R0's position batch:
+
+| Contrast                     | Pairs | Mean difference | Up / down / tied | Approx. two-sided p |
+| ---------------------------- | ----: | --------------: | ---------------- | ------------------: |
+| fixture: last − first        |    99 |   **+23.2 pts** | 36 / 13 / 50     |         **≈ 0.001** |
+| product: last − first        |   100 |    **−9.0 pts** | 17 / 26 / 57     |              ≈ 0.17 |
+| format at first (prod − fix) |    99 |       +13.1 pts | 26 / 13 / 60     |              ≈ 0.04 |
+| format at last (prod − fix)  |   100 |   **−19.0 pts** | 14 / 33 / 53     |         **≈ 0.006** |
+
+The mean differences are identical to the arm-rate differences, because a balanced rotation distributes drift evenly. What changes is that the **sign test is now available**, and it does not depend on the level drifting.
+
+**What R0 actually found, restated.**
+
+1. **The fixture-form position effect replicates: +23.2 points** (E20b: +30), and the sign test excludes chance at the 0.001 level.
+2. **The product form shows no position effect: −9.0 points**, not distinguishable from zero (17 up against 26 down).
+3. **The form changes the outcome at the last position: −19.0 points.** The same line, last, declares 19 points less often in the product's rendering.
+4. H-format-null fails; **H-leading-token survives** — the ordering the fixture produced is absent once the name leads the line.
+
+**Method rule M-15 — stationarity is tested on the contrast, not on the arm.** Arm-level drift is evidence that _levels_ are unstable; it does not invalidate a contrast computed from pairs adjacent in time under a balanced rotation. §35 applied M-10 to the arm rate and voided a result that the paired design had already protected. The rule from here: report the per-quarter arm rates **and** the paired sign test, and let the paired one decide, unless the rotation is unbalanced.
+
+**Limits, stated before anyone quotes this.** One batch, one model, one brief, 100 draws per arm. Adjacent pairs are not strictly independent — four calls sit within one cycle, so their errors are correlated and the sign test's p-values are optimistic by an unquantified amount. The direction and the size are the findings; the p-values are supporting evidence, not the claim.
+
+**Cost.** €0.51 for the drift probe, which protected a €2 batch and changed a standing method rule.
