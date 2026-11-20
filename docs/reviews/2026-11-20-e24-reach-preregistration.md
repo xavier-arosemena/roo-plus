@@ -130,3 +130,36 @@ That distinction is the round's first deliverable to the catalogue builder, and 
 ### Blindness: not achieved, and not claimed
 
 Every probe is tagged `source: "trigger-column"`. The author never read the `whenToUse` column, but did read the mode names and slugs in order to derive ownership, so §1.1's blind fraction is **not met** and the falsifier about a second author's rate cannot be evaluated. A genuinely blind half remains outstanding work.
+
+## Amendment 3 — 2026-11-20: the model arm has run, and the two arms fail in the same places
+
+119 calls, one per job, product-rendered picker, ≈€0.61 at the measured rate. Extractors validated first (R0 §5.2): 20/20 against R2's hand pass.
+
+| Measure                                      | Value                                                             |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| Calls / jobs                                 | 119 / 119 (13 jobs have no owner and are excluded from agreement) |
+| ASK                                          | **9**                                                             |
+| DECLARATION                                  | **104**                                                           |
+| UNRESOLVED                                   | **6**                                                             |
+| **Strict agreement with the authored owner** | **57 / 106 = 0.538**                                              |
+| Same-axis (adjacent) owner                   | 11 → **appropriate = 68 / 106 = 0.642**                           |
+| Unrelated owner                              | **25 / 106 = 0.236**                                              |
+| No commitment (ask or unresolved)            | 13 / 106 = 0.123                                                  |
+
+**Against the lexical arm, the model is 3.5× better** — 0.538 strict against 0.152 top-1. So the catalogue is not unusable; the model compensates for lines that do not carry the user's words. What it cannot do is compensate where several lines claim the same words.
+
+**The two failure modes survive the change of instrument, and that is the finding.** The axes that lost in the lexical arm lose again here:
+
+| Axis | Lexical top-1 | Model strict |
+| ---- | ------------: | -----------: |
+| REV  |         0.111 |    **1 / 8** |
+| TST  |         0.091 |   **3 / 11** |
+| REQ  |         0.250 |        2 / 5 |
+| DAT  |         0.188 |        4 / 8 |
+| ARC  |         0.125 |        7 / 8 |
+
+A failure that persists across a matcher and a language model is a property of the **text**, not of the instrument. That is what makes capture — several lines containing the same words — a real routing defect rather than a gate artefact, and it is why `triggers` alone will not fix TST or REV.
+
+**Harm, not adjacency, is the number to carry forward.** 25 of 106 landed on an owner outside the job's axis: "works locally, fails in CI" went to `devops`, "explain the history of a decision" went to `debug`, "integrate a payment provider" went to `modernisation`. The adjacency category (11) is the E21 "appropriate" reading; the 25 are wrong in the way that matters.
+
+**Recorded limits.** One call per job, one model, one probe per job, and the "authored owner" is a judgement from the frame rather than a golden key. No contrast was run and no p-value is quoted: this is a descriptive map, and its decision rules were declared in §3 before the data existed.
