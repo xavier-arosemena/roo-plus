@@ -87,7 +87,12 @@ export function buildScreen({ catalogueText, briefs, persona }) {
 		pickerDigest: sha256(picker),
 		runs: plan.map((slot) => {
 			const built = buildPrompt(persona, { id: slot.briefId, text: slot.brief }, picker)
-			return { ...slot, runId: `r${String(slot.slot).padStart(2, "0")}-${slot.briefId}`, prompt: built.text, promptSha256: sha256(built.text) }
+			return {
+				...slot,
+				runId: `r${String(slot.slot).padStart(2, "0")}-${slot.briefId}`,
+				prompt: built.text,
+				promptSha256: sha256(built.text),
+			}
 		}),
 	}
 }
@@ -110,14 +115,20 @@ export function classify(reply, slugs) {
 	if (!text) return { verdict: "EMPTY", slug: null }
 	const lower = text.toLowerCase()
 	const found = [...new Set((lower.match(/\b[a-z][a-z0-9-]{1,40}\b/g) ?? []).filter((word) => slugs.has(word)))]
-	const firstLine = text.split("\n").map((line) => line.trim()).filter(Boolean)[0] ?? ""
+	const firstLine =
+		text
+			.split("\n")
+			.map((line) => line.trim())
+			.filter(Boolean)[0] ?? ""
 	const bare = firstLine.replace(/^[`*_]+|[`*_.:]+$/g, "").toLowerCase()
 	const marker = lower.match(/(?:selected\s+)?mode\s*[:*-]+\s*[`*_"'(\s]*([a-z][a-z0-9-]{1,40})/)
 	const opening = lower.slice(0, 200)
 	const asks =
 		text.includes("?") ||
 		/^to\s+(?:select|determine|choose|pick)\b/.test(opening) ||
-		/\b(?:i|we)\s+(?:need|require)\b[^.]{0,80}\b(?:information|clarification|details|context|to know)\b/.test(opening) ||
+		/\b(?:i|we)\s+(?:need|require)\b[^.]{0,80}\b(?:information|clarification|details|context|to know)\b/.test(
+			opening,
+		) ||
 		/\bplease\s+(?:provide|tell)\b/.test(opening)
 	if (slugs.has(bare)) return { verdict: "DECLARATION", slug: bare }
 	if (marker && slugs.has(marker[1])) return { verdict: "DECLARATION", slug: marker[1] }
@@ -189,14 +200,21 @@ function runCalls({ screen, model, runner }) {
 			.replaceAll("{runId}", JSON.stringify(run.runId))
 		const child = spawnSync(command, { shell: true, cwd: ROOT, encoding: "utf8" })
 		const ok = child.status === 0 && existsSync(outPath)
-		results.push({ runId: run.runId, ok, status: child.status ?? null, stderr: ok ? undefined : (child.stderr ?? "").slice(-400) })
+		results.push({
+			runId: run.runId,
+			ok,
+			status: child.status ?? null,
+			stderr: ok ? undefined : (child.stderr ?? "").slice(-400),
+		})
 		process.stderr.write(`${run.runId}: ${ok ? "ok" : "FAILED"}\n`)
 		if (!ok) break
 	}
 	writeFileSync(path.join(OUT, "results.jsonl"), results.map((row) => JSON.stringify(row)).join("\n") + "\n")
 	const failed = results.find((row) => !row.ok)
 	if (failed) {
-		process.stderr.write(`hidden-intent-screen: stopped at ${failed.runId}; ${results.length} attempt(s) recorded\n`)
+		process.stderr.write(
+			`hidden-intent-screen: stopped at ${failed.runId}; ${results.length} attempt(s) recorded\n`,
+		)
 		process.exit(1)
 	}
 }
@@ -212,29 +230,58 @@ function report(screen) {
 			rows.push({ runId: run.runId, arm: run.arm, briefId: run.briefId, verdict: "MISSING", slug: null })
 			continue
 		}
-		rows.push({ runId: run.runId, arm: run.arm, briefId: run.briefId, ...classify(readFileSync(file, "utf8"), slugs) })
+		rows.push({
+			runId: run.runId,
+			arm: run.arm,
+			briefId: run.briefId,
+			...classify(readFileSync(file, "utf8"), slugs),
+		})
 	}
 	const count = (arm, verdict) => rows.filter((row) => row.arm === arm && row.verdict === verdict).length
 	const summary = {
-		hiddenIntent: { n: rows.filter((row) => row.arm === "hidden-intent").length, ask: count("hidden-intent", "ASK"), declaration: count("hidden-intent", "DECLARATION"), unresolved: count("hidden-intent", "UNRESOLVED") },
-		control: { n: rows.filter((row) => row.arm === "control").length, ask: count("control", "ASK"), declaration: count("control", "DECLARATION"), unresolved: count("control", "UNRESOLVED") },
+		hiddenIntent: {
+			n: rows.filter((row) => row.arm === "hidden-intent").length,
+			ask: count("hidden-intent", "ASK"),
+			declaration: count("hidden-intent", "DECLARATION"),
+			unresolved: count("hidden-intent", "UNRESOLVED"),
+		},
+		control: {
+			n: rows.filter((row) => row.arm === "control").length,
+			ask: count("control", "ASK"),
+			declaration: count("control", "DECLARATION"),
+			unresolved: count("control", "UNRESOLVED"),
+		},
 	}
-	const payload = { schemaVersion: "ecc.hidden-intent-screen.v1", warning: "Mechanical counts only. Adjudicate every UNRESOLVED and every multi-candidate reply by hand before quoting (M-1, M-12).", summary, rows }
+	const payload = {
+		schemaVersion: "ecc.hidden-intent-screen.v1",
+		warning:
+			"Mechanical counts only. Adjudicate every UNRESOLVED and every multi-candidate reply by hand before quoting (M-1, M-12).",
+		summary,
+		rows,
+	}
 	writeFileSync(path.join(OUT, "report.json"), `${JSON.stringify(payload, null, 2)}\n`)
 	process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`)
-	if (rows.some((row) => row.verdict === "UNRESOLVED")) process.stdout.write("unresolved replies require hand adjudication before this screen can be read.\n")
+	if (rows.some((row) => row.verdict === "UNRESOLVED"))
+		process.stdout.write("unresolved replies require hand adjudication before this screen can be read.\n")
 }
 
-const options = parseArgs(process.argv.slice(2))
-const { screen } = loadMaterial()
-if (options.mode === "report") report(screen)
-else {
-	writeMaterial(screen)
-	if (options.mode === "run") {
-		if (!options.model) fail("--run needs --model")
-		runCalls({ screen, model: options.model, runner: options.runner })
+// A module imported for its helpers must not run the batch. It did once: importing
+// this file to borrow `classify` rewrote `prompts/*` and `plan.json` in the
+// published run directory. The guard is the fix; the incident is why it is here.
+const invokedDirectly = Boolean(process.argv[1]) && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+
+if (invokedDirectly) {
+	const options = parseArgs(process.argv.slice(2))
+	const { screen } = loadMaterial()
+	if (options.mode === "report") report(screen)
+	else {
+		writeMaterial(screen)
+		if (options.mode === "run") {
+			if (!options.model) fail("--run needs --model")
+			runCalls({ screen, model: options.model, runner: options.runner })
+		}
+		process.stdout.write(
+			`${screen.runs.length} prompts written to ${path.relative(ROOT, OUT)}; catalogue ${screen.catalogueDigest.slice(0, 16)}… picker ${screen.pickerDigest.slice(0, 16)}…\n`,
+		)
 	}
-	process.stdout.write(
-		`${screen.runs.length} prompts written to ${path.relative(ROOT, OUT)}; catalogue ${screen.catalogueDigest.slice(0, 16)}… picker ${screen.pickerDigest.slice(0, 16)}…\n`,
-	)
 }
