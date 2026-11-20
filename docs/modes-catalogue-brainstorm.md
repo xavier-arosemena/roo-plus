@@ -28,6 +28,11 @@ theoretically sound but does not match how users describe their problems will no
 
 ## 2. The draft catalogue (~42 owners)
 
+> **Count corrected 2026-11-19 — 45 owners, not 42.** The per-axis list has always summed to
+> **24 coding + 5 meta + 16 non-coding = 45**; the "42" elsewhere in this document is left in place as
+> the record of what was argued at the time. The authoritative figures are the frame's own
+> ([`axis-stance §5`](modes-catalogue-axis-stance-frame.md:84)), and the preload built from them is 45.
+
 ### 2.1 Coding owners (24) — twelve axes, two stances each
 
 | Axis                   | Mode A (stance)                    | Mode B (stance)                                  | Split justification (D1/D2)                    |

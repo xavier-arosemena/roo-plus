@@ -1,0 +1,181 @@
+{
+	"schemaVersion": "ecc.mode-probes.v1",
+	"construct": "BM25 over the three fields a picker line exposes (name, slug, whenToUse). A retrieval proxy, not a model result: it says nothing about commit-versus-ask, position or provider variance.",
+	"provenance": {
+		"gate": "Authored for this gate by the reviewer (2026-11-20), phrased as a user would write and deliberately NOT copied from the catalogue's whenToUse lines. They carry the E2 recognition risk: a high rate shows the author recognises their own names. The claim they support is regression (does an edit move an answer), not validity.",
+		"report": "Taken verbatim from the briefs screened in docs/research/modes-experiment-log.md §28 and §29. They are ambiguous by construction and must never fail the gate."
+	},
+	"probes": [
+		{
+			"id": "gate-01",
+			"set": "gate",
+			"query": "The API returns 500 for a request that worked yesterday. Find out why it fails.",
+			"expected": ["debug"],
+			"note": "failure with unknown cause"
+		},
+		{
+			"id": "gate-02",
+			"set": "gate",
+			"query": "Write the test that fails now, then the retry handling that makes it pass.",
+			"expected": ["code", "test-author"],
+			"note": "two defensible owners; either is a pass"
+		},
+		{
+			"id": "gate-03",
+			"set": "gate",
+			"query": "Our deploy pipeline takes forty minutes and the deploy step keeps timing out.",
+			"expected": ["devops"]
+		},
+		{
+			"id": "gate-04",
+			"set": "gate",
+			"query": "Review this pull request for code defects and risky patterns before I merge.",
+			"expected": ["code-reviewer"]
+		},
+		{
+			"id": "gate-05",
+			"set": "gate",
+			"query": "Add a NOT NULL column to a 200-million-row table. The schema change must be reversible and must not lock writes.",
+			"expected": ["database-migration"]
+		},
+		{
+			"id": "gate-06",
+			"set": "gate",
+			"query": "Write the onboarding guide new engineers use to set up this repo.",
+			"expected": ["documentation"]
+		},
+		{
+			"id": "gate-07",
+			"set": "gate",
+			"query": "Read this termination clause and flag the legal risk.",
+			"expected": ["legal-review"]
+		},
+		{
+			"id": "gate-08",
+			"set": "gate",
+			"query": "Our model spend doubled last month. Cut token cost without losing quality.",
+			"expected": ["ai-cost-engineer"]
+		},
+		{
+			"id": "gate-09",
+			"set": "gate",
+			"query": "Map how requests flow through this unfamiliar codebase before we touch anything.",
+			"expected": ["codebase-cartographer"]
+		},
+		{
+			"id": "gate-10",
+			"set": "gate",
+			"query": "Production is degraded. Restore service first, then write the timeline.",
+			"expected": ["incident-commander"]
+		},
+		{
+			"id": "gate-11",
+			"set": "gate",
+			"query": "Decide whether Friday's release candidate ships, and give the evidence.",
+			"expected": ["release-readiness"]
+		},
+		{
+			"id": "gate-12",
+			"set": "gate",
+			"query": "The goal is fixed but the order of work is not. Give me the sequenced plan.",
+			"expected": ["planner"]
+		},
+		{
+			"id": "gate-13",
+			"set": "gate",
+			"query": "An API key leaked in a public commit. Fix it and prove it cannot recur.",
+			"expected": ["vulnerability-response"]
+		},
+		{
+			"id": "gate-14",
+			"set": "gate",
+			"query": "Write the pricing page copy in our brand voice, 150 words.",
+			"expected": ["content-writer"]
+		},
+		{
+			"id": "gate-15",
+			"set": "gate",
+			"query": "Model revenue for a 10% price rise at three churn levels.",
+			"expected": ["financial-analyst", "pricing-analyst"]
+		},
+		{
+			"id": "gate-16",
+			"set": "gate",
+			"query": "Turn these five interview transcripts into one cited brief for the board.",
+			"expected": ["synthesis-writer"]
+		},
+		{
+			"id": "gate-17",
+			"set": "gate",
+			"query": "Review this design doc for risk before we build.",
+			"expected": ["architecture-reviewer"]
+		},
+		{
+			"id": "gate-18",
+			"set": "gate",
+			"query": "Latency on the search endpoint regressed to 400ms. Measure before changing code.",
+			"expected": ["performance"]
+		},
+		{
+			"id": "gate-19",
+			"set": "gate",
+			"query": "Set up CI that lints, tests and publishes on tag.",
+			"expected": ["devops"]
+		},
+		{
+			"id": "gate-20",
+			"set": "gate",
+			"query": "We must upgrade React 17 to 19 in stages without breaking the app.",
+			"expected": ["modernisation"]
+		},
+		{
+			"id": "amb-01",
+			"set": "report",
+			"query": "Explain why this module is structured the way it is.",
+			"expected": ["explain", "architect", "architecture-reviewer", "codebase-cartographer"],
+			"source": "modes-experiment-log.md §28 — the one brief that passed the screen"
+		},
+		{
+			"id": "amb-02",
+			"set": "report",
+			"query": "Why does this worker retry every failed job three times?",
+			"expected": ["explain", "debug", "architecture-reviewer"],
+			"source": "modes-experiment-log.md §28 — mechanism brief; channel closed"
+		},
+		{
+			"id": "amb-03",
+			"set": "report",
+			"query": "Why does the cache expire after sixty seconds?",
+			"expected": ["explain", "debug", "architecture-reviewer"],
+			"source": "modes-experiment-log.md §28 — mechanism brief; channel closed"
+		},
+		{
+			"id": "amb-04",
+			"set": "report",
+			"query": "Why does this function allocate a new list on every call?",
+			"expected": ["explain", "performance", "debug"],
+			"source": "modes-experiment-log.md §28 — mechanism brief; channel closed"
+		},
+		{
+			"id": "amb-05",
+			"set": "report",
+			"query": "Why does this service handle retries in two different places?",
+			"expected": ["explain", "architecture-reviewer", "refactoring"],
+			"source": "modes-experiment-log.md §29 — mechanism brief; channel closed"
+		},
+		{
+			"id": "amb-06",
+			"set": "report",
+			"query": "Why is this module so hard to change?",
+			"expected": ["architecture-reviewer", "refactoring", "explain"],
+			"source": "modes-experiment-log.md §29 — change-friction brief; opened the channel, but not for explain"
+		},
+		{
+			"id": "amb-07",
+			"set": "report",
+			"query": "Why does this subsystem have three layers of caching?",
+			"expected": ["explain", "architect", "architecture-reviewer"],
+			"source": "modes-experiment-log.md §29 — mechanism brief; channel closed"
+		}
+	]
+}

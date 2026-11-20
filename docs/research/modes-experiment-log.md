@@ -5,7 +5,7 @@
 | **What this is**   | A lab notebook for the modes-catalogue experiments, kept so the programme can be written up later without reconstruction. Every entry is dated, every number names its instrument, every deviation is logged where it happened.                                                                         |
 | **Conventions**    | Entries are numbered `E<n>` and are append-only. A measurement is stated with its instrument in the same line. A departure from a registered protocol is a **deviation** and gets its own row in §6, even when it is my own error. Nothing here is a result unless a registered reading rule covers it. |
 | **What it is not** | Not a paper, not a summary of intent. Results that contradict an earlier entry are added as new entries rather than edited into old ones.                                                                                                                                                               |
-| **Status**         | Live. Last entry: **§17 (2026-11-13)**.                                                                                                                                                                                                                                                                 |
+| **Status**         | Live. Last entry: **§33 (2026-11-20)**.                                                                                                                                                                                                                                                                 |
 
 ---
 
@@ -38,9 +38,13 @@ The log is append-only and therefore contains superseded readings. **This block 
 
 **Not established, and not to be quoted.** Any per-cell rate from E11; anything about human users; and whether a good name can _rescue_ a vague brief, because the control cells sat at 99–100% and the interaction therefore had no room to vary.
 
+**Why there are two benchmarks — recorded so it is not lost.** The catalogue was proposed as two rival frames, axis × stance (45 entries) and artefact (47), and the routing benchmark began as the test that would choose between them. E11 returned a 0-point difference at a ceiling in both arms, so the registered rule returned **H3 — one catalogue, two views** (§2, E11). That is why the programme moved on to what might actually make a difference: the picker's line and order first, then the mode's doctrine. Settled since: the **preload is 45** (2026-11-19, superseding 60–90) and **includes the 16 non-coding entries** (budget, not judgement); language and framework modes are **marketplace installables**. Not settled: the switch itself — E11 compared names, while the frames define a mode differently, so reconciliation of **45 against 47** (count, slugs, and coverage: 13 jobs uncovered against 4) belongs to whoever builds the catalogue, and the set may grow beyond 45. See [`modes-architecture.md`](../modes-architecture.md:795) §10.8 and the roadmap's D-5/D-6.
+
 **Next.** E20, already approved, tests the artefact-stating line on a maximally ambiguous brief; it must freeze a declaration contract first (§16.4). After that, the capability benchmark: doctrine and tooling, not vocabulary.
 
 **Document map.** §2 (E1–E11) is history — read it for how the programme got here, not for numbers. §11–§13 are the round, §16 is its instrument verification, §17 is its closing number. Deviations D-1…D-12 live in §6 and should be read by anyone auditing the reasoning.
+
+**2026-11-20 — three entries added after the closing round.** §31: our own 45-entry preload is lexically reachable for only **6 of 20** ordinary requests (coverage 0.30), and three requests captured a wrong owner before the anchor rule was declared. §32: the picker every experiment rendered is **not** the picker the extension emits — the advice in §7 of the routing report is advice for the fixture form. §33: the hidden-intent class opens the commit-versus-ask channel (**7 of 10**), which supplies the second-brief generator the programme lacked. **No contrast changes; §32 amends the report's external validity and does not retract it.** Deviations D-29…D-31 are recorded inside §31–§33, because §6 is append-only.
 
 ---
 
@@ -278,6 +282,13 @@ The blind map: `CATALOGUE-1 = axis-stance` (45 modes), `CATALOGUE-2 = artefact` 
 | artefact      | 10  | 10    | **100%** |
 
 Difference **0 pp**. Registered decision rule row 2 applies (`< 10 pp`, CI includes zero, no difference): **H3 — one catalogue, two views.**
+
+> **Superseded 2026-11-19, and the entry stands as written.** The rule returned H3 on what the test
+> could see: names. It could not see that the two frames define a mode differently — a stance applied
+> to a domain in one, an artefact produced in the other — so 0 points on selection licenses "both lists
+> are readable", not "one list". **The presentation switch is therefore withdrawn**, pending
+> reconciliation of 45 against 47 by the builder of the catalogue
+> ([`modes-architecture.md`](../modes-architecture.md:795) §10.8).
 
 **Two qualifications that must travel with it.**
 
@@ -1047,3 +1058,145 @@ The harm figure survives untouched, which is the check that the split is right: 
 **Method rule M-14 — a published count is re-derived from its components by a second route before it is quoted.** A total and the columns beside it must be re-added from the raw files, not from each other. Three of the four arithmetic defects in this log (D-19, D-23, D-28) would have been caught by one addition.
 
 **Status.** The report is corrected to **15.0% / 45.0% / −30.0 points** in every place the position arm is quoted, and the reconciliation note that stood in its §9 is deleted. Nothing here is retracted except the number 46.0 and the number 29.0 that came with it.
+
+## 31. The model-free probe gate — what it measured, and which catalogue it measured (2026-11-20)
+
+**Instrument.** [`scripts/mode-probe-gate.mjs`](../../scripts/mode-probe-gate.mjs:1) over [`test-fixtures/mode-probes/probes.json`](../../test-fixtures/mode-probes/probes.json:1), with the strict reader [`scripts/lib/roomodes-lite.mjs`](../../scripts/lib/roomodes-lite.mjs:1). It ranks the catalogue by BM25 over **name + slug + `whenToUse` only** — the three fields a picker line exposes — and compares the top-1 with an allowed-owner set. 11 tests pass; a mutated catalogue is refused on a SHA-256 digest.
+
+**Which catalogue — ours, not ECC's.** The catalogue measured is **our 45-entry axis×stance picker**, [`test-fixtures/frames/axis-stance.roomodes`](../../test-fixtures/frames/axis-stance.roomodes:1) — the same file E13 and E20 rendered into their prompts. ECC's 327 skill descriptions and 72 agent descriptions were read during the review but **never ranked**; nothing in this section is a statement about ECC's catalogue. (ECC's resolver does implement an anchor rule of its own — `scripts/lib/context-selection.js:19-21` in the clone — which is where the idea came from; we did not run it.)
+
+**The two sets.** 20 `gate` probes written as a user would type them, and the 7 briefs already screened in §28–§29 as `report` probes. Report probes never fail the gate.
+
+**Result 1 — the finding is coverage, not accuracy.**
+
+| Measure                                                                               | Value        |
+| ------------------------------------------------------------------------------------- | ------------ |
+| Gate probes                                                                           | 20           |
+| Lexically reachable (expected owner shares a token with the request via name or slug) | **6 (0.30)** |
+| On those 6: top-1 in the allowed set                                                  | **6 / 6**    |
+| On those 6: wrong owners                                                              | **0**        |
+| Unreachable                                                                           | 14           |
+
+Fourteen of twenty ordinary requests contain no word from the name or slug of the mode that owns them. The catalogue is not beaten by its rivals on these requests; it is **invisible** to them. A user asking "the API returns 500, find out why" never types "debug".
+
+**Result 2 — the captures that happened before the anchor rule was declared.** First run, all 20 gated:
+
+| Probe   | Request                                          | Top-1             | Matched terms                              | Correct owner            |
+| ------- | ------------------------------------------------ | ----------------- | ------------------------------------------ | ------------------------ |
+| gate-01 | The API returns 500 … find out why it fails      | `requirements`    | request, work                              | `debug`                  |
+| gate-13 | An API key leaked in a public commit             | `devops`          | pipeline? (no) — generic match on the line | `vulnerability-response` |
+| gate-19 | Set up CI that lints, tests and publishes on tag | `pricing-analyst` | **set**                                    | `devops`                 |
+
+`devops`'s line — "pipeline, build, environment or release automation" — contains neither "CI", "test", "tag" nor "publish". `debug`'s line never says "API" or "error". `vulnerability-response` says "leaked", so gate-13 loses on the _anchor_ (its name shares no token), not on the description. These are three concrete opportunities to make a wrong commit by making the line's vocabulary narrower than the user's.
+
+**Result 3 — one function word is worth 57 points.** The tokenizer dropped "why" as a stopword in the first build, then kept it. On the report probes, top-1 moved from **0.286 to 0.857**. Definition, not arithmetic: this is the sixth time in the programme that a measurement definition decided an answer (M-1, M-12, §26, §30). Consequence adopted: the gate publishes **no absolute rate**, only baseline-to-baseline deltas, and its catalogue digest is fatal on mismatch.
+
+**Result 4 — the proxy does not reproduce the model.** With "why" kept, all seven report probes top-1 `explain`, including the two the model answered with `architecture-reviewer` (§29). A selector that returns the same answer for every ambiguous brief is not evidence about ownership; it is a reason the 20-call screen exists.
+
+**Deviation D-29, recorded because it was made after seeing data.** The anchor rule (name/slug token) was introduced after the first run produced three wrong owners. It is uniform, declared in code, and it does not convert those three into passes — they remain listed as unreachable. A reader who rejects the rule gets 3 wrong owners in 20 and a gate that cannot pass; a reader who accepts it gets a coverage metric. Both readings are printed by the tool (`--json` carries `reachable`, `top1Matched` and `summary.unreachable`).
+
+**What it changes.** The gate is a catalogue instrument, not a routing result. It belongs beside the preload work: it can be run in seconds on every `whenToUse` edit, it fails on a moved top-1 against a recorded baseline, and it produces one number worth tracking — reachability.
+
+## 32. The picker the experiments used is not the picker the product emits (2026-11-20)
+
+**Instrument.** Read the renderer, then compared it with an archived prompt.
+
+| Surface                                    | Rendered form                                                                                               | Source                                                                                                                                                                                                              |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product                                    | `  * "<name>" mode (<slug>) - <whenToUse>`, under `MODES`, after "These are the currently available modes:" | [`modes.ts:33`](../../src/core/prompts/sections/modes.ts:33)                                                                                                                                                        |
+| Experiment fixtures (E13, E20, E20b, E20c) | `- <slug> — <name> — <whenToUse>`, no heading                                                               | `pickerLine`, [`framing-pretest.mjs:243`](../../scripts/lib/framing-pretest.mjs:243); used at [`routing-round.mjs:331`](../../scripts/lib/routing-round.mjs:331) and [`e20.mjs:301`](../../scripts/lib/e20.mjs:301) |
+
+Archived evidence, verbatim from the published E20 batch: `- explain — Explain — Use when someone asks why code behaves as it does and the answer must cite evidence, not recall.` ([`runs/e20-2026-11-17/prompts/ARM-1-d001.txt:7`](../../runs/e20-2026-11-17/prompts/ARM-1-d001.txt:7)). **Grade High** — source and artefact.
+
+**Three differences, not one.** (1) The line template (`* "Name" mode (slug) - line` vs `- slug — Name — line`). (2) The section framing: the product introduces the list as available modes under a `MODES` heading; the fixtures present it bare. (3) **Field order**: the fixtures put the slug first and the name second; the product puts the name first. Field order is part of the rendered line, so the position result and a _first-token_ effect are not separated by any experiment we have run.
+
+**What is unaffected.** Every within-run contrast: all arms in each experiment shared the form, so the sign and size of B−C, P1−P45 and the E20c readings stand as statements about the fixture form. What is affected: any claim that the result transfers to what the extension shows; §7's authoring template, which prints the product form while the measured text was the fixture form; and the echo detector, whose canonical string is `pickerLine` ([`scorer-rubric.mjs:89`](../../scripts/lib/scorer-rubric.mjs:89)), so a product-form run would need a new echo reference or it would mis-score.
+
+**Do we circulate this to the fixture owner? Yes — this is the comment to transmit.**
+
+```text
+Subject: E13/E20 picker format differs from the extension's rendered mode list
+
+What I measured
+1. The extension renders each mode as:
+      * "<name>" mode (<slug>) - <whenToUse>
+   inside a MODES section introduced by "These are the currently available
+   modes:"  (src/core/prompts/sections/modes.ts:33).
+2. Every experiment fixture renders it as:
+      - <slug> — <name> — <whenToUse>
+   with no heading (pickerLine, scripts/lib/framing-pretest.mjs:243), and that
+   is what E13 (scripts/lib/routing-round.mjs:331) and E20
+   (scripts/lib/e20.mjs:301) put in their prompts.
+3. The published E20 prompt confirms it verbatim, line 7 of
+   runs/e20-2026-11-17/prompts/ARM-1-d001.txt.
+
+Why I am raising it
+- Field order differs (slug-first vs name-first), so a first-entry effect and a
+  first-token effect are confounded in the position result.
+- The report's §7 authoring advice prints the product template while the 27.5
+  points were measured on the fixture template. Read literally, §7 attributes a
+  measured effect to a format that was never measured.
+- The echo guard uses pickerLine as its canonical string
+  (scripts/lib/scorer-rubric.mjs:89), so switching format silently changes what
+  the guard recognises.
+
+What I am not claiming
+- That any within-run contrast is wrong. All arms shared the fixture form.
+- That the fixture form is defensible or indefensible. I cannot find a written
+  rationale for it in the repo; if there is one, this objection is answered.
+
+What I need from you
+1. Was the dash form deliberate? If so, what does it model — an earlier
+   renderer, a token-budget choice, or a decision to avoid the "MODES" header
+   being echoed back?
+2. Was pickerLine ever validated against getModesSection? If yes, at which
+   commit, and what changed since?
+3. Which form should the next round use? If the answer is "product form", the
+   change needs: a new registration (it is not comparable with E13/E20, M-9),
+   a new echo reference, and a decision on whether the heading is included.
+4. If the answer is "keep the fixture form", §7 of the routing report needs a
+   sentence saying the advice is about the fixture form, not the product.
+
+Cost of answering: no calls. Cost of acting: one 200–400-call run (≈€1–2).
+```
+
+**Deviation D-30.** Nothing was changed in the fixtures and no reply was re-scored: the divergence is recorded, not repaired. The **report now carries it** — §1.1 names both forms, §7 says its advice is about the measured form, §4.2 adds a rendered-form candidate, §8 carries R0 and §8.1 records the transfer as open (2026-11-20). The addendum in [`ecc-review-2026-11.md`](ecc-review-2026-11.md:238) carries the same finding and ranks a product-format replication above further authoring advice.
+
+**Does this retract the routing report?** No, and the distinction is mechanical rather than diplomatic.
+
+| Claim                                                                   | Status after this finding                                                                                                                      |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| "C out-committed B by 27.5 points"                                      | **Stands**, as a within-run contrast on the fixture form. Wording polarity is a property of the sentence, which was identical in both formats. |
+| "First vs last differs by 30 points"                                    | **Stands within the run**; its mechanism list gains a fourth candidate (first _token_, not first entry).                                       |
+| "99.7% independent agreement", "598/600 appropriate", extractor defects | **Unaffected** — none touches the rendered template.                                                                                           |
+| §7's advice as advice for the extension                                 | **Needs an amendment**, not retraction: it is advice for the fixture form until R0 runs.                                                       |
+| "One brief, one model, one position"                                    | **Understated**: add "one picker format".                                                                                                      |
+
+## 33. The hidden-intent screen — the channel opens (2026-11-20)
+
+**Instrument.** [`scripts/hidden-intent-screen.mjs`](../../scripts/hidden-intent-screen.mjs:1) with [`test-fixtures/hidden-intent/briefs.json`](../../test-fixtures/hidden-intent/briefs.json:1). Ten briefs whose deciding fact is held only by the user, plus B3 as an in-run control, interleaved `H K H K …`, one model (`gemini-3.5-flash`), 20 calls, all `STOP`, 1.9 minutes, 30,242 prompt + 1,746 candidate + 18,374 thought tokens, **≈€0.10**. Prompt hashes: 11 distinct (10 hidden + B3 replicated ten times), 20/20 transcripts distinct.
+
+**Adjudication.** Mechanical rule first, then a hand pass on every reply. The first mechanical rule agreed with the hand pass on **15/20 (75%)** and failed in **both** directions: it missed two declarations written `Selected mode: **"Explain" mode (explain)**`, and it scored one ask as a declaration of `code` because the asker wrote "source code". A second rule over-corrected, scoring the goal sentence "without needing to ask for clarification" as a question. The rule now in the tool (v3) agrees on **19/20**, and its only residual is an ask left `UNRESOLVED` — it never over-counts asking. Record: `runs/hidden-intent-screen-2026-11-20/adjudication.json`.
+
+| Arm           |   n |   ASK | DECLARATION |        Outside the authored owner set |
+| ------------- | --: | ----: | ----------: | ------------------------------------: |
+| Hidden intent |  10 | **7** |           3 | 1 (`requirements` on the audit brief) |
+| Control (B3)  |  10 |     3 |           7 |                                     0 |
+
+**Result — the class opens the channel, and that is all it establishes.** 7 of 10 hidden-intent briefs drew a question that named the missing fact ("is this CI/CD, database maintenance or a batch job?"; "pricing, invoicing or contract?"). Two of the three commits are briefs that failed the design — "make the API faster" and "the docs are out of date" state their owner in the brief, so nothing was withheld. Excluding them post hoc gives **7 of 8 (87.5%)**, which is a second finding about the _design_: a hidden-intent brief only works if the withheld fact is what decides ownership.
+
+**Control consistency.** B3 declared in **7 of 10 (70%)** on the **product** form, against **61.5%** at 400 draws on the **fixture** form in E20 arm B. Two arms, different formats, nine points apart at n=10 versus n=400: this is a consistency observation, not a replication, and it is the cheapest evidence so far that the format gap of §32 does not by itself move the commit rate much for this brief. It does not license subtracting one from the other (M-9).
+
+**Deviation D-31.** Post-hoc exclusion of hi-04 and hi-06 is disclosed above and must not be quoted as the headline; the headline is 7/10, with the two failures named.
+
+**What it changes for the seven-brief problem.** The programme now has a _generator_ for the qualifying class rather than a search over hand-written briefs: withhold the fact that decides ownership, leave the repository intact. The next round should pre-register the owner sets (including whether `requirements` on an audit-scoping request is a wrong commit or an acceptable neighbour), because that judgement currently sits with the analyst.
+
+**How these three sections improve the repository.**
+
+| Finding                                               | Concrete change                                                                                                                                                                           | Where                                                                  |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Reachability 0.30; three captures                     | Add the user's words to the thinnest lines: `debug` gains "error", "API", "fails"; `devops` gains "CI", "tests", "tags", "publish"; `vulnerability-response` gains "leaked key", "secret" | `test-fixtures/frames/*.roomodes`, then `custom-modes/custom_modes.d/` |
+| Anchor rule needs a vocabulary the name cannot supply | Add a curated `triggers` list per mode (3–6 words users actually type) and rank on it, as ECC does                                                                                        | new field in the catalogue schema; `scripts/mode-probe-gate.mjs`       |
+| Definition sensitivity (57 points)                    | Keep the baseline digests; never publish an absolute rate; require a baseline for any claim                                                                                               | already implemented                                                    |
+| Format gap                                            | One renderer, two formats, chosen by flag; echo reference follows the flag                                                                                                                | `framing-pretest.mjs`, `scorer-rubric.mjs`, R0 registration            |
+| Hidden-intent class                                   | Use it as the brief generator for the next round; pre-register the owner sets                                                                                                             | `docs/reviews/<next>-preregistration.md`                               |

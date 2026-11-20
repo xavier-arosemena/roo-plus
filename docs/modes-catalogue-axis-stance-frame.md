@@ -136,3 +136,8 @@ The earlier claim of "~4k headroom" for this frame was an estimate from a 180-ch
 coherence** and on being a **closed vocabulary** (once §4's drift is fixed). Neither catalogue is ready, and
 the two failures are complementary — which, taken with the reviewer's entry-point insight, is the strongest
 argument so far for **one catalogue with two views rather than a winner**.
+
+NOTE:
+The axis-stance frame fails its own coverage test: 108 job ids assigned, 106 unique, so 13 jobs uncovered and 2 double-assigned (§6). That is worse than the artefact frame's 4 uncovered, and it fails differently — it drops evidence jobs and cross-cutting concerns (R6, Q6, S6, S9, I8, I9) rather than "things that are not artefacts". So it is not a draft to adopt wholesale.
+
+Its stance vocabulary is not closed: 19 labels are actually in use against a claimed 12, then 16 (§4).

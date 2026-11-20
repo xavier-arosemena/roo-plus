@@ -211,7 +211,7 @@ because a finding demanded it.
 | -------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Thin modes**             | 2.6, 2.7, 2.14, T3      | Mode = routing line + charter + capability + handoff. Procedure lives in skills.                                                                                      |
 | **Fat skills**             | 2.6, 2.10, 2.14         | 8–12 spine skills (evidence, verification loop, diff hygiene, test selection, release, incident, security, API contract, migration, reporting) scoped by `modeSlugs`. |
-| **Bounded preload**        | 2.1, 2.4, 2.13          | 60–90 modes; Σ`whenToUse` ≤ 12k chars; frozen for a release cycle.                                                                                                    |
+| **Bounded preload**        | 2.1, 2.4, 2.13          | **45 modes**, incl. the 16 non-coding (2026-11-19); Σ`whenToUse` ≤ 12k chars; frozen for a release cycle.                                                             |
 | **Dedupe before taxonomy** | 2.4, 2.5                | One primary owner per job; retrieval turns near-duplicates into coin flips.                                                                                           |
 | **Explicit capability**    | 2.2, 2.11               | `allowedMcpServers` explicit or literal `all`; least privilege per mode; capability map as the target state.                                                          |
 | **Bookended doctrine**     | 2.7                     | Non-negotiables first; pre-completion checklist last.                                                                                                                 |
@@ -227,7 +227,7 @@ because a finding demanded it.
 ```
 Built-in (5)                 always present, reserved slugs
    │
-Preload (60–90)              budgeted, owned, dated, eval-backed
+Preload (45)                 budgeted, owned, dated, eval-backed
    │
 Marketplace (N, dynamic)     install-on-demand, no prompt cost until installed
    │

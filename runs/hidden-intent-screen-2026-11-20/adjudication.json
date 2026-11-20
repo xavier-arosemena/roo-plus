@@ -1,0 +1,147 @@
+{
+	"schemaVersion": "ecc.hidden-intent-adjudication.v1",
+	"screen": "runs/hidden-intent-screen-2026-11-20",
+	"model": "gemini-3.5-flash",
+	"calls": 20,
+	"finishReasons": { "STOP": 20 },
+	"transcripts": { "files": 20, "distinct": 20 },
+	"tokens": { "prompt": 30242, "candidates": 1746, "thoughts": 18374, "total": 50362 },
+	"wallClockMinutes": 1.9,
+	"mechanicalV1": {
+		"rule": "question mark, bare first-line slug, or `<verb> <slug> mode`",
+		"hiddenIntent": { "ask": 7, "declaration": 3, "unresolved": 0 },
+		"control": { "ask": 0, "declaration": 6, "unresolved": 4 },
+		"note": "Kept for the record. v1 agreed with the hand pass on 15/20 (75%) and failed in BOTH directions: it missed 'Selected mode: **\"Explain\" mode (explain)**' and scored an ask as a declaration of `code` because the asker wrote 'source code'."
+	},
+	"mechanicalV3": {
+		"rule": "case-insensitive slugs; `Mode:`/`Selected mode:` marker; ask only when a question mark, a leading 'To select/determine/choose', or an anchored 'I need … information/context' appears in the opening 200 characters",
+		"hiddenIntent": { "ask": 7, "declaration": 3, "unresolved": 0 },
+		"control": { "ask": 2, "declaration": 7, "unresolved": 1 },
+		"agreementWithHand": "19/20 (95%); the single residual is r10-B3, an ask the rule leaves UNRESOLVED and never mis-promotes"
+	},
+	"handAdjudication": {
+		"rule": "A reply SELECTS only by naming the mode it will use. A reply that asks for information — including one that lists candidates while asking — is an ASK, however many slugs it contains (M-12, D-26).",
+		"hiddenIntent": { "ask": 7, "declaration": 3, "declarationOutsideAuthoredSet": 1 },
+		"control": { "ask": 3, "declaration": 7, "declarationSlug": "explain" }
+	},
+	"rows": [
+		{
+			"runId": "r01-hi-01",
+			"brief": "hi-01",
+			"mechanical": "ASK",
+			"hand": "ASK",
+			"slug": null,
+			"note": "asks job type, failure output and scope; names Devops and Debug as the two owners it cannot separate"
+		},
+		{ "runId": "r02-B3", "brief": "B3", "mechanical": "DECLARATION", "hand": "DECLARATION", "slug": "explain" },
+		{
+			"runId": "r03-hi-02",
+			"brief": "hi-02",
+			"mechanical": "ASK",
+			"hand": "ASK",
+			"slug": null,
+			"note": "asks whether pricing, invoicing or contract; lists five candidates"
+		},
+		{ "runId": "r04-B3", "brief": "B3", "mechanical": "DECLARATION", "hand": "DECLARATION", "slug": "explain" },
+		{
+			"runId": "r05-hi-03",
+			"brief": "hi-03",
+			"mechanical": "ASK",
+			"hand": "ASK",
+			"slug": null,
+			"note": "asks which value is wrong and where it is computed"
+		},
+		{ "runId": "r06-B3", "brief": "B3", "mechanical": "DECLARATION", "hand": "DECLARATION", "slug": "explain" },
+		{
+			"runId": "r07-hi-04",
+			"brief": "hi-04",
+			"mechanical": "DECLARATION",
+			"hand": "DECLARATION",
+			"slug": "performance",
+			"note": "inside the authored set; the brief names the goal ('faster'), so ownership was NOT withheld — this brief does not test the hidden-intent design"
+		},
+		{ "runId": "r08-B3", "brief": "B3", "mechanical": "DECLARATION", "hand": "DECLARATION", "slug": "explain" },
+		{
+			"runId": "r09-hi-05",
+			"brief": "hi-05",
+			"mechanical": "DECLARATION",
+			"hand": "DECLARATION",
+			"slug": "requirements",
+			"note": "OUTSIDE the authored set [compliance-mapping, security-reviewer, refactoring]; frames audit scope. Defensible to a reader, but it is a commit to a mode the brief does not fit — the harm category, not an ask"
+		},
+		{
+			"runId": "r10-B3",
+			"brief": "B3",
+			"mechanical": "UNRESOLVED",
+			"hand": "ASK",
+			"slug": null,
+			"note": "asks for the module code; offers Cartographer / Architecture Reviewer / Explain as candidates"
+		},
+		{
+			"runId": "r11-hi-06",
+			"brief": "hi-06",
+			"mechanical": "DECLARATION",
+			"hand": "DECLARATION",
+			"slug": "documentation",
+			"note": "obvious ownership ('docs are out of date'); does not test the design"
+		},
+		{ "runId": "r12-B3", "brief": "B3", "mechanical": "DECLARATION", "hand": "DECLARATION", "slug": "explain" },
+		{
+			"runId": "r13-hi-07",
+			"brief": "hi-07",
+			"mechanical": "ASK",
+			"hand": "ASK",
+			"slug": null,
+			"note": "asks where the slowness is and whether the effort is Performance, Test Strategist or Devops"
+		},
+		{ "runId": "r14-B3", "brief": "B3", "mechanical": "DECLARATION", "hand": "DECLARATION", "slug": "explain" },
+		{
+			"runId": "r15-hi-08",
+			"brief": "hi-08",
+			"mechanical": "ASK",
+			"hand": "ASK",
+			"slug": null,
+			"note": "asks what is migrating and what 'own' means"
+		},
+		{
+			"runId": "r16-B3",
+			"brief": "B3",
+			"mechanical": "UNRESOLVED",
+			"hand": "ASK",
+			"slug": null,
+			"note": "asks for code and intent; lists Explain / Cartographer / Architecture Reviewer"
+		},
+		{
+			"runId": "r17-hi-09",
+			"brief": "hi-09",
+			"mechanical": "ASK",
+			"hand": "ASK",
+			"slug": null,
+			"note": "asks the subject and purpose of the review"
+		},
+		{ "runId": "r18-B3", "brief": "B3", "mechanical": "DECLARATION", "hand": "DECLARATION", "slug": "explain" },
+		{
+			"runId": "r19-hi-10",
+			"brief": "hi-10",
+			"mechanical": "ASK",
+			"hand": "ASK",
+			"slug": null,
+			"note": "asks what system and which cost driver"
+		},
+		{
+			"runId": "r20-B3",
+			"brief": "B3",
+			"mechanical": "UNRESOLVED",
+			"hand": "ASK",
+			"slug": null,
+			"note": "asks for code and intent; lists Architect / Architecture Reviewer / Cartographer / Explain"
+		}
+	],
+	"reading": {
+		"hiddenIntentAskRate": "7/10 = 70%; 7/8 = 87.5% if the two obvious-ownership briefs (hi-04, hi-06) are excluded as failing the design",
+		"controlAskRate": "3/10 = 30% (7/10 declarations of explain)",
+		"comparisonWithE20": "E20 arm B declared at 61.5% on the fixture form; the control here declares 7/10 = 70% on the product form. n=10 versus n=400, so this is a consistency observation, not a replication.",
+		"verdict": "The hidden-intent class opens the channel. That is the screen's only finding. It is not a rate and must not be quoted as one.",
+		"harm": "1 commit outside the authored set in 10 hidden-intent replies (requirements); whether it is wrong or merely adjacent is a judgement the next round should pre-register."
+	}
+}
