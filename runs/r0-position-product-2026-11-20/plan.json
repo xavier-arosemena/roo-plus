@@ -1,0 +1,28 @@
+{
+	"schemaVersion": "ecc.r0.v1",
+	"registration": "docs/reviews/2026-11-20-r0-picker-format-preregistration.md",
+	"contrast": "position",
+	"format": "product",
+	"briefId": "B3",
+	"brief": "Explain why this module is structured the way it is.",
+	"persona": "P1",
+	"model": null,
+	"draws": 100,
+	"catalogueDigest": "30315cd252c6bec9789afdddf139ebff29765b775557d6c51d72fbae3706edc6",
+	"arms": [
+		{
+			"arm": "first",
+			"line": "B",
+			"index": 0,
+			"promptSha256": "063b12281c4b0ad29b3415f9d3009097910f0da57f81421aceb5a36e95f1ee9e",
+			"pickerDigest": "5b3dec077c566ee3a008c82b3e1d57781d90d0c58861ad10d0727b92cb321c1e"
+		},
+		{
+			"arm": "last",
+			"line": "B",
+			"index": 44,
+			"promptSha256": "e686c6e68e6653f755b22b13f6a2a96a6df59b14174a43412ef52f6c7b52cfd4",
+			"pickerDigest": "e1f24c9b845858269a0220e688a210ea7a8536246484cd6fae665360d870db1e"
+		}
+	]
+}

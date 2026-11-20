@@ -27,11 +27,18 @@ import { classify } from "../hidden-intent-screen.mjs"
 export const ASK_LEADIN =
 	/(^|\n)\s*(?:\*\*)?(required information|information needed|clarification(?: needed)?|what i need|please provide)\b/i
 
+// R0's first position batch produced 16 to 25 reply-level "unresolved" per arm, and
+// every one sampled was an ask written mid-sentence: "To determine the correct mode,
+// I need the following information: …". This catches that family without touching a
+// reply that names one mode and does not ask.
+export const ASK_PHRASE =
+	/\b(i need (?:the following|more information|additional)|which mode|to determine (?:the|which) (?:correct |appropriate )?mode|to select the (?:correct |appropriate )?mode)\b/i
+
 export function classifyProductReply(reply, slugs) {
 	const text = String(reply ?? "")
 	const base = classify(text, slugs)
 	if (base.verdict !== "UNRESOLVED") return { ...base, rule: base.verdict === "ASK" ? "v3-ask" : "v3-declaration" }
-	if (ASK_LEADIN.test(text)) return { verdict: "ASK", slug: null, rule: "ask-leadin" }
+	if (ASK_LEADIN.test(text) || ASK_PHRASE.test(text)) return { verdict: "ASK", slug: null, rule: "ask-leadin" }
 	return { ...base, rule: "unresolved" }
 }
 

@@ -1,0 +1,43 @@
+{
+	"schemaVersion": "ecc.r0.recount.v1",
+	"note": "Recomputed with r0-extract after the ask-phrase rule was added; declaration rates are unchanged by that fix, only the ask/unresolved split moves.",
+	"missingTranscripts": 1,
+	"byArm": {
+		"fixture:first": {
+			"n": 99,
+			"decl": 21,
+			"ask": 76,
+			"unres": 2,
+			"q": [8, 8, 3, 2],
+			"qn": [25, 25, 24, 25],
+			"quarters": [0.32, 0.32, 0.125, 0.08]
+		},
+		"fixture:last": {
+			"n": 100,
+			"decl": 44,
+			"ask": 52,
+			"unres": 4,
+			"q": [10, 11, 11, 12],
+			"qn": [25, 25, 25, 25],
+			"quarters": [0.4, 0.44, 0.44, 0.48]
+		},
+		"product:first": {
+			"n": 100,
+			"decl": 34,
+			"ask": 57,
+			"unres": 9,
+			"q": [8, 7, 7, 12],
+			"qn": [25, 25, 25, 25],
+			"quarters": [0.32, 0.28, 0.28, 0.48]
+		},
+		"product:last": {
+			"n": 100,
+			"decl": 25,
+			"ask": 71,
+			"unres": 4,
+			"q": [6, 4, 8, 7],
+			"qn": [25, 25, 25, 25],
+			"quarters": [0.24, 0.16, 0.32, 0.28]
+		}
+	}
+}

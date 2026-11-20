@@ -1229,3 +1229,30 @@ Cost of answering: no calls. Cost of acting: one 200–400-call run (≈€1–2
 1. **The two reach definitions were opposites.** §31's anchor rule (owner shares a token with its name or slug) reads **0.000** on a corpus that forbids owner vocabulary by design. It is inapplicable there, not adverse evidence, and would have been published as a collapse had the second definition not been tried.
 2. **A derived mapping can still be invented.** The owner map was "derived, never chosen", and one row (Q6) was nevertheless invented; the check could not catch it because the same pass wrote both sides. The frame's own count of 13 caught it. A derived rule needs an independent count beside it.
 3. **No part of the corpus is blind.** The author never read the lines but did read names and slugs to derive ownership. The blind half remains outstanding, and the falsifier about a second author's rate cannot be evaluated without it.
+
+## 35. R0 position batch — the effect is not in the product form, and one arm ramped (2026-11-20)
+
+**Instrument.** [`scripts/r0-run.mjs`](../../scripts/r0-run.mjs:1): one batch, four arms, `explain` first against last in **two picker formats**, brief B3, persona P1, arms rotated each cycle. **400 calls, ≈€2.04**. Registration: [`2026-11-20-r0-picker-format-preregistration.md`](../reviews/2026-11-20-r0-picker-format-preregistration.md:1). Recount with the corrected extractor: [`runs/r0-position-both-2026-11-20/recount.json`](../../runs/r0-position-both-2026-11-20/recount.json).
+
+| Arm             | Declarations |      Rate | Quarters                | Stationary   |
+| --------------- | -----------: | --------: | ----------------------- | ------------ |
+| fixture · first |      21 / 99 | **0.212** | 0.32 0.32 0.13 **0.08** | ✗ range 0.24 |
+| fixture · last  |     44 / 100 | **0.440** | 0.40 0.44 0.44 0.48     | ✓ range 0.08 |
+| product · first |     34 / 100 | **0.340** | 0.32 0.28 0.28 0.48     | ✓ range 0.20 |
+| product · last  |     25 / 100 | **0.250** | 0.24 0.16 0.32 0.28     | ✓ range 0.16 |
+
+**What may be read — the two contrasts whose arms are both stationary.**
+
+- **Order in the product form: −9.0 points.** `explain` last declares **less** often than `explain` first. The fixture form's last-entry advantage reverses.
+- **Format at the last position: −19.0 points.** The same condition declares 25% in the product form and 44% in the fixture form, in one batch.
+
+**What may not be read.** The fixture replication, **+22.8 points** (0.440 − 0.212), reproduces E20b's +30 in direction and size — and is **voided**, because its first arm fell 0.32 → 0.08 inside the run. M-10 was written for this and is applied. The format contrast at the first position is voided with it.
+
+**Against the registered predictions.** H-format-null **fails** at the last position (19 points). H-leading-token **survives**: the ordering that the fixture form produced is absent or reversed once the name leads the line. That is the prediction on record before the data, and the size is large enough to matter — but it rests on one batch, one model, one brief, and no p-value, and the arm that would have anchored the fixture comparison drifted.
+
+**Two defects found and fixed.**
+
+1. **One call of 400 failed** (no transcript, non-zero exit). The runner recorded a row for it anyway. Excluded here; the runner should refuse a batch with any failed call.
+2. **16 to 25 replies per arm scored "unresolved", and every one sampled was an ask** — "To determine the correct mode, I need the following information: …". The extractor gained an ask-phrase rule, re-validated 20/20 against R2's hand pass. **Declaration rates are unaffected by this fix**, because the denominator is the whole arm; only the ask/unresolved split moves.
+
+**The recurring blocker, named.** This is the third round in which an arm is non-stationary inside its run — E20c's control ramped up, the re-run did not reproduce it, and here the fixture-first arm ramped down 24 points. Until drift is characterised, every contrast is at the mercy of which arm happens to move. **The cheapest decisive next test is not the wording contrast: it is one fixed condition, 100 draws, no arm variation**, to measure drift with nothing else in the design (≈€0.5).
