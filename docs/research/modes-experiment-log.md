@@ -1331,3 +1331,20 @@ None of these can be separated from the client side; E20c tried and could not (�
 - **M-15** (written): stationarity is tested on the contrast, not the arm.
 - **M-16** (new): every contrast publishes arm rates **and** the paired sign test, and no level is ever compared across runs — only within one.
 - **Free work available:** the paired sign test can be re-derived for E20 and E20b from the transcripts already on disk, replacing the Annex D p-values with ones that do not assume independence. No calls, no cost, and it would settle whether the 27.5 and 30 points survive a test that knows about time.
+
+## 38. The free work done: E20 and E20b re-tested with a time-aware statistic (2026-11-20)
+
+No calls. Every reply was already on disk; only the test changed. The classifier is R0's ([`r0-extract.mjs`](../../scripts/lib/r0-extract.mjs:1)), applied uniformly to both rounds.
+
+| Round    | Contrast     | Pairs | Up / down    |  Paired z | Reading                         |
+| -------- | ------------ | ----: | ------------ | --------: | ------------------------------- |
+| **E20**  | C − B        |   288 | **238 / 50** | **11.08** | survives by a wide margin       |
+| **E20b** | last − first |   107 | **94 / 13**  |  **7.83** | survives, with one caveat below |
+
+**The rates reconcile for E20 and do not for E20b.** E20's re-classification gives 61.8% and 88.2% against the registered adjudication's 61.5% and 89.0% — within a point, which is what a consistent extractor should do. E20b gives 16% and **57%** against the adjudication's 15% and 45%: the first arm reconciles, **the second does not**. So the E20 paired test can be read as confirming the registered result, and the E20b paired test can be read only as _the contrast is not drift_, not as a replacement for 45.0%.
+
+**What this settles.** The two results the programme relies on are not artefacts of time-position: in both rounds the high arm won the adjacent pair about nine times out of ten, and no drift model explains 238-to-50. The Annex D p-values were optimistic in their assumptions; their conclusions were not.
+
+**What it does not settle.** The E20b extractor disagreement is a defect in this re-analysis, not in the published figure; the published 15.0/45.0 comes from the registered adjudication and stands. Anyone quoting the paired z for E20b should quote the caveat with it.
+
+**Plain-language account** for readers outside the programme: [`2026-11-20-the-ruler-wobbled.md`](../discussions/research-reports/2026-11-20-the-ruler-wobbled.md:1).
