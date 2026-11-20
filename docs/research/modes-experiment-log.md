@@ -1200,3 +1200,32 @@ Cost of answering: no calls. Cost of acting: one 200–400-call run (≈€1–2
 | Definition sensitivity (57 points)                    | Keep the baseline digests; never publish an absolute rate; require a baseline for any claim                                                                                               | already implemented                                                    |
 | Format gap                                            | One renderer, two formats, chosen by flag; echo reference follows the flag                                                                                                                | `framing-pretest.mjs`, `scorer-rubric.mjs`, R0 registration            |
 | Hidden-intent class                                   | Use it as the brief generator for the next round; pre-register the owner sets                                                                                                             | `docs/reviews/<next>-preregistration.md`                               |
+
+## 34. E24 — reach: the catalogue has two defects, and they need different fixes (2026-11-20)
+
+**Instrument.** [`scripts/reach-model-arm.mjs`](../../scripts/reach-model-arm.mjs:1) over the 476-probe corpus in [`test-fixtures/reach/probes.json`](../../test-fixtures/reach/probes.json:1): one call per job (119), **product-rendered** picker, the standing request that permits asking. Lexical arm over the same corpus with `mode-probe-gate`'s BM25. Registration, amendments and decision rules: [`2026-11-20-e24-reach-preregistration.md`](../reviews/2026-11-20-e24-reach-preregistration.md:1). Cost **≈€0.61**.
+
+**F-3 — the catalogue fails in two different ways, and the first fix does not touch the second.**
+
+| Defect                                                                          | Axes                                                          | Evidence                                                         |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **Missing words** — the line shares nothing with what users type                | UND, OPS, DBG, DAT, ARC, REF (lexical reach 0.27–0.36)        | a `triggers` vocabulary is the fix                               |
+| **Capture** — the words are present and several neighbouring lines contain them | TST 0.59 reach / 0.09 top-1; IMP 0.60 / 0.20; SEC 0.56 / 0.13 | `triggers` makes it worse; a discriminator or a merge is the fix |
+
+**F-4 — capture survives a change of instrument, so it is a property of the text, not of the matcher.** Model agreement on the same corpus: strict **57/106 = 0.538**, appropriate (with the same-axis neighbour allowed) **0.642**, an unrelated owner **25/106 = 0.236**, no commitment **13/106**. Per axis, the losers are the same: **REV 1/8** and **TST 3/11**, against lexical 0.111 and 0.091. A failure that persists from a token matcher to a language model is not a measurement artefact.
+
+**F-5 — the model compensates for the lines, which is why no user complaint has surfaced.** 0.538 strict against 0.152 top-1: reach improves 3.5× when a model reads the list instead of a matcher. The lines carry almost none of the routing work; the model does. That is a hidden cost, not a hidden success — every routing decision is being made on generalisation the catalogue does not document.
+
+**F-6 — "appropriate" hides a fifth of the failures.** E21 counts an adjacent owner as appropriate; here 11 of 106 are adjacent and **25 are outside the job's axis**. Examples: "works locally, fails in CI" → `devops`; "explain the history of a decision" → `debug`; "integrate a payment provider" → `modernisation`. Any future "correct routing" number should publish strict, adjacent and unrelated separately.
+
+**F-7 — 13 jobs have no owner at all**, listed mechanically and matching the frame's own count: R2, R3, R6, R8, D7, D8, I8, I9, C4, Q6, S6, S9, B9. C4 and Q6 are the surprising ones: failure-path tracing and docs-code drift are claimed by nobody. Direct input to **D-5**.
+
+**What this implies for the catalogue.** `triggers` for six axes; **discriminators or merges** for TST, REV and IMP, where the lines already contain the words and lose anyway — and which of those two it is is a J3 question about job overlap, not a wording question.
+
+**What it does not establish.** One probe per job, one model, and an "authored owner" that is a judgement from the frame rather than a golden key. No contrast was run and no p-value is quoted. Per-axis cells of 5 to 11 support a direction, not a rate.
+
+**Three method notes worth keeping.**
+
+1. **The two reach definitions were opposites.** §31's anchor rule (owner shares a token with its name or slug) reads **0.000** on a corpus that forbids owner vocabulary by design. It is inapplicable there, not adverse evidence, and would have been published as a collapse had the second definition not been tried.
+2. **A derived mapping can still be invented.** The owner map was "derived, never chosen", and one row (Q6) was nevertheless invented; the check could not catch it because the same pass wrote both sides. The frame's own count of 13 caught it. A derived rule needs an independent count beside it.
+3. **No part of the corpus is blind.** The author never read the lines but did read names and slugs to derive ownership. The blind half remains outstanding, and the falsifier about a second author's rate cannot be evaluated without it.
