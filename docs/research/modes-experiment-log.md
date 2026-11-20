@@ -1297,3 +1297,37 @@ The mean differences are identical to the arm-rate differences, because a balanc
 **Limits, stated before anyone quotes this.** One batch, one model, one brief, 100 draws per arm. Adjacent pairs are not strictly independent — four calls sit within one cycle, so their errors are correlated and the sign test's p-values are optimistic by an unquantified amount. The direction and the size are the findings; the p-values are supporting evidence, not the claim.
 
 **Cost.** €0.51 for the drift probe, which protected a €2 batch and changed a standing method rule.
+
+## 37. What the drift finding changes in the earlier rounds — and what it does not (2026-11-20)
+
+**The drift is not caused by having a fourth arm.** One arm, 100 identical calls, still moved 24 points (§36). What moves is **position in time**: calls made twenty minutes apart differ from calls made two minutes apart. Any design that compares arm _totals_ is exposed, whatever the number of arms.
+
+**It is partly documented, and the documented mechanisms fit our data better than "the model got worse".**
+
+| Mechanism                                                                                                                                                                                                                          | What it predicts                                                                                                              | Fit to our evidence                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Provider non-determinism at fixed seed/temperature.** Google states that a fixed `seed` is "best effort" and "deterministic output isn't guaranteed"; the developer forum carries repeated reports at `temperature=0`, `top_k=1` | run-to-run variation with an identical prompt                                                                                 | Explains the E12 determinism probe and the R2 batch, but not a 24-point swing in a coarse outcome |
+| **Implicit context caching, on by default for 2.5+ models, with variable hit rates**                                                                                                                                               | the same prompt is sometimes served with a cached prefix and sometimes not, so its effective context differs across a session | The strongest candidate for **within-session** drift of exactly the kind §36 measured             |
+| **Batch-dependent computation** — providers group requests and the arithmetic varies with batch composition                                                                                                                        | output depends on what else was in flight, so the drift is a function of traffic, not of our design                           | Explains why drift is smooth over a run and different between runs (47.0 vs 59.3)                 |
+
+None of these can be separated from the client side; E20c tried and could not (§24). What §36 adds is the **size**: about 24 points of level movement, which is larger than any effect this programme has claimed except the polarity result.
+
+**What each earlier round loses, and what it keeps.**
+
+| Round                     | Design                                                               | Keeps                                                                                                    | Loses or weakens                                                                           |
+| ------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| E13-R closing round (600) | six cells, interleaved, runs tests (Annex E)                         | within-run direction; the 598/600 "appropriate" reading is a rate on adjudicated replies, not a contrast | any reading that treats the whole round as one stationary period                           |
+| E20 (900)                 | three arms, interleaved, sign checked **per quarter** (21–35 points) | **direction and size**: the sign held in all four quarters, which is the same protection §36 uses        | the Annex D p-value, computed as if draws were independent and time-free: it is optimistic |
+| E20b (200)                | two arms, interleaved, quarterly +44/+20/+24/+20                     | **direction and size**, same reason                                                                      | its p-value; and its absolute rates (15.0 / 45.0) are one batch's levels                   |
+| E20c (600)                | three arms, interleaved; the control **ramped**                      | the inconclusive verdict — the drift signature was visible in its own quarters and the void was right    | nothing; §36 explains why it ramped                                                        |
+| E11 / R2 screens (30, 20) | interleaved adjacent pairs                                           | the qualitative reading ("the channel opens")                                                            | the counts were never significant at n = 10 per arm, and still are not                     |
+| E24 model arm (119)       | one call per job, no contrast                                        | everything: a per-owner map has no arm totals to drift                                                   | nothing                                                                                    |
+| R0 position (§35–36)      | four arms, rotated every four calls                                  | the paired contrasts in §36                                                                              | the arm-level reading in §35, which is why it is marked superseded                         |
+
+**The correction is to the uncertainty, not to the direction.** Every contrast this programme reported was interleaved, and the three that mattered already published quarter-by-quarter signs. What was wrong was the _statistic_: p-values computed on arm totals assume no time structure, and the honest test is the **paired sign test within cycle**, as §36 did.
+
+**Two rules follow, and one piece of free work.**
+
+- **M-15** (written): stationarity is tested on the contrast, not the arm.
+- **M-16** (new): every contrast publishes arm rates **and** the paired sign test, and no level is ever compared across runs — only within one.
+- **Free work available:** the paired sign test can be re-derived for E20 and E20b from the transcripts already on disk, replacing the Annex D p-values with ones that do not assume independence. No calls, no cost, and it would settle whether the 27.5 and 30 points survive a test that knows about time.
