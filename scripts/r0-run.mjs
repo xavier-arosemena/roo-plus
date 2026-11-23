@@ -45,6 +45,15 @@ const CONTRASTS = {
 	// the provider or the hour, not the design, which is what makes it the cheapest
 	// decisive test before any four-arm batch is trusted (log §35).
 	drift: [{ arm: "fixed", line: "B", index: 0 }],
+	// Is it the template or the field order? `explain` held at the seventh entry in
+	// all four arms, so position cannot leak into the comparison; only the rendered
+	// line changes. This is the contrast the position batch could not make (log §36).
+	attribution: [
+		{ arm: "fixture", line: "B", index: 6, format: "fixture" },
+		{ arm: "fixture-name-first", line: "B", index: 6, format: "fixture-name-first" },
+		{ arm: "product-slug-first", line: "B", index: 6, format: "product-slug-first" },
+		{ arm: "product", line: "B", index: 6, format: "product" },
+	],
 }
 
 function parseArgs(argv) {
@@ -89,23 +98,29 @@ function modesForArm(arm) {
 	return modes
 }
 
-const arms = formats.flatMap((format) =>
-	CONTRASTS[options.contrast].map((arm) => {
-		const modes = modesForArm(arm)
-		const picker = pickerTextFor(modes, format)
-		const prompt = buildPrompt(persona, brief, picker)
-		return {
-			key: `${format}:${arm.arm}`,
-			format,
-			arm: arm.arm,
-			line: arm.line,
-			index: arm.index,
-			prompt: prompt.text,
-			promptSha256: sha(prompt.text),
-			pickerDigest: sha(picker),
-		}
-	}),
-)
+const spec = CONTRASTS[options.contrast]
+// A contrast may carry its own formats (attribution does): then `--format` is ignored
+// rather than doubling the batch.
+const explicitFormats = spec.every((arm) => Boolean(arm.format))
+const arms = (
+	explicitFormats
+		? spec.map((arm) => [arm.format, arm])
+		: formats.flatMap((format) => spec.map((arm) => [format, arm]))
+).map(([format, arm]) => {
+	const modes = modesForArm(arm)
+	const picker = pickerTextFor(modes, format)
+	const prompt = buildPrompt(persona, brief, picker)
+	return {
+		key: `${format}:${arm.arm}`,
+		format,
+		arm: arm.arm,
+		line: arm.line,
+		index: arm.index,
+		prompt: prompt.text,
+		promptSha256: sha(prompt.text),
+		pickerDigest: sha(picker),
+	}
+})
 
 const outDir = path.join(
 	ROOT,

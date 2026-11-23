@@ -1,0 +1,28 @@
+{
+	"runId": "r0-attribution-fixture-fixture-045",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-20T16:23:24.847Z",
+			"endedAt": "2026-11-20T16:23:30.466Z",
+			"httpStatus": 200,
+			"finishReason": "MALFORMED_RESPONSE",
+			"usageMetadata": {
+				"promptTokenCount": 1281,
+				"totalTokenCount": 1281,
+				"promptTokensDetails": [
+					{
+						"modality": "TEXT",
+						"tokenCount": 1281
+					}
+				],
+				"serviceTier": "standard"
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "FAILED",
+	"error": "no usable text (finishReason=MALFORMED_RESPONSE, block=none)",
+	"maxOutputTokens": 4096
+}

@@ -1,0 +1,18 @@
+{
+	"runId": "r0-attribution-fixture-name-first-fixture-name-first-092",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-20T16:36:33.697Z",
+			"endedAt": "2026-11-20T16:36:33.869Z",
+			"httpStatus": 402,
+			"finishReason": null,
+			"usageMetadata": null,
+			"apiMessage": "Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing. Learn more at https://ai.google.dev/gemini-api/docs/billing#prepay. "
+		}
+	],
+	"outcome": "FAILED",
+	"error": "HTTP 402: Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing. Learn more at https://ai.google.dev/gemini-api/docs/billing#prepay. ",
+	"maxOutputTokens": 4096
+}

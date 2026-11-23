@@ -37,7 +37,13 @@ export const ASK_PHRASE =
 export function classifyProductReply(reply, slugs) {
 	const text = String(reply ?? "")
 	const base = classify(text, slugs)
-	if (base.verdict !== "UNRESOLVED") return { ...base, rule: base.verdict === "ASK" ? "v3-ask" : "v3-declaration" }
+	if (base.verdict !== "UNRESOLVED") {
+		// EMPTY and other non-choice verdicts must not be labelled as declarations:
+		// an empty reply was reported as "v3-declaration" in the failed batch.
+		const rule =
+			base.verdict === "ASK" ? "v3-ask" : base.verdict === "DECLARATION" ? "v3-declaration" : "v3-no-signal"
+		return { ...base, rule }
+	}
 	if (ASK_LEADIN.test(text) || ASK_PHRASE.test(text)) return { verdict: "ASK", slug: null, rule: "ask-leadin" }
 	return { ...base, rule: "unresolved" }
 }

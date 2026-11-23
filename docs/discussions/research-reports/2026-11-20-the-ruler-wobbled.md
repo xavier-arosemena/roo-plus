@@ -21,6 +21,7 @@ Simple experiment. Same list, same request, one line changed.
 ## The first surprise, a week earlier
 
 One early test gave **one answer in five** for one condition and **four in five** for another. A big, clean result. We ran it again with more conversations and it **reversed**.
+[examples here]
 
 We decided it had been luck: five conversations is almost nothing.
 
@@ -31,10 +32,11 @@ Later we ran 600 conversations. One batch of identical prompts scored 59.3%. Ano
 Same prompts. Same model. Twelve points apart.
 
 We did not have an explanation, so we made a rule: **never compare numbers from two different batches.** Compare only within one batch, side by side. That rule saved the next two rounds — their effects held their sign quarter by quarter, so we trusted the direction even though the exact numbers wobbled.
+[Is this whole thing a testament of LLM models non-deterministic behaviour? And is this common to all models or is a Gemini thing?]
 
 ## The third surprise: an arm that kept climbing
 
-Next we ran a 100-minute test with three conditions that alternated. One of them started at 36% and ended at 60% — while the others did not move.
+Next we ran a 100-minute test with three conditions that alternated. One of them started at 36% and ended at 60% — while the others did not move. [this makes it more interesting... It is not always present.]
 
 A condition that climbs during a test is not a result, it is a moving target. We threw that round out and wrote it down as inconclusive.
 
@@ -43,6 +45,7 @@ Still no explanation. Just a pattern: **later calls look different from earlier 
 ## The fourth surprise: the same thing happened again
 
 Our most recent test had four conditions, alternating every four calls. One of them fell from 32% to 8% over the run, while the others stayed flat. By our own rule, that round could not be read.
+[Why some, and not the others?]
 
 We had now seen this three times. So we spent fifty cents to test it directly.
 
@@ -65,9 +68,9 @@ We cannot see inside the provider, but three explanations are documented and all
 
 1. **The same input is not guaranteed to give the same output.** Google's own documentation says a fixed random seed is "best effort" and deterministic output is not guaranteed. The developer forums are full of the same complaint, even with randomness switched off.
 2. **Caching.** Google caches common content automatically to save money and time. A help-page thread shows the same request being served from cache three times out of five, then not, then from cache again. Cached and uncached, the model is not reading quite the same context.
-3. **Grouping.** Providers bundle requests together for efficiency, and the arithmetic depends on what else is in the bundle. What else is in flight depends on strangers' traffic, not on us.
-
-So: **the model on the other end is a slightly different machine every few minutes.** Not broken — just not the measuring instrument we assumed.
+3. **Grouping.** Providers bundle requests together for efficiency, and the arithmetic depends on what else is in the bundle. What else is in flight depends on strangers' traffic, not on us. [this is the only one non-gemini?]
+   [If gemini is the problem, we should run the tests with deepseek?]
+   So: **the model on the other end is a slightly different machine every few minutes.** Not broken — just not the measuring instrument we assumed.
 
 ## How this fooled us, in order
 
@@ -92,13 +95,18 @@ Every comparison we made was done side by side, in the same batch, with conditio
 
 What does **not** survive is the statistical confidence we attached to them, because those calculations assumed that each conversation was independent of the next. When the whole run drifts, they are not.
 
+[So in short: if we use gemini we can not get statistical, because there is a drift introduced by the model. If we use deepseek we do not have anything to measure at all, because deepseek never asks. So all the fine-tuning we are doing for our modes is only relevant if the user is useing a model "gemini-like", and not relevant if is using a "deepseek-like¨?]
+
 And one reading changes outright: **in the format our extension actually shows, the "last is better" effect disappears.** Same batch, same lines, side by side — 44% at the last position in the old format, 25% in the product's format. The advantage was in how the old test list was laid out, not in lists as such.
+
+[Also seems like an argument for in the test round in the capability benchmar, and any other we may do, to do compare between models gemini/deepseek, as the results will get tainted by the model's weaknesses...]
 
 ## The fix, in one line
 
-**Compare things measured next to each other, never one after the other.**
+**Compare things measured next to each other, never one after the other.** [because the model's machine evolves per minute, we can only compare things done in the same machine, meaning at the same time?]
 
 Concretely: alternate the conditions every few calls, and compare each pair of neighbours instead of comparing two grand totals. When we did that, the drift cancelled: the same 400 conversations that looked unreadable gave a clear answer — the old format's effect at +23 points, the product format at −9, and the difference between formats at −19.
+[very interesting]
 
 ## If you are doing this yourself
 

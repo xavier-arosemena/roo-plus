@@ -1348,3 +1348,21 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 **What it does not settle.** The E20b extractor disagreement is a defect in this re-analysis, not in the published figure; the published 15.0/45.0 comes from the registered adjudication and stands. Anyone quoting the paired z for E20b should quote the caveat with it.
 
 **Plain-language account** for readers outside the programme: [`2026-11-20-the-ruler-wobbled.md`](../discussions/research-reports/2026-11-20-the-ruler-wobbled.md:1).
+
+## 39. The attribution batch failed at 44% — a quota failure, not a result (2026-11-23)
+
+**What happened.** The attribution batch (four formats, `explain` held at the seventh entry) ran **176 of 400 calls cleanly, then failed 146**, all with runner exit code 1, starting at call 177 and continuing to the end. **254 transcripts exist; 146 calls produced none.**
+
+**Why it cannot be read.** The surviving 62 to 64 calls per arm are not a balanced sample: the failures begin at a fixed point in the sequence and fall on every arm, so each arm keeps its early draws and loses its late ones — and the drift in §36 runs _on exactly that axis_. Excluding failures from the denominator (which the runner now does) protects the arithmetic, not the inference.
+
+**What the surviving rows appeared to show, stated only so it is not mistaken for a finding later:** fixture 0.66, fixture-name-first 0.53, product-slug-first 0.13, product 0.72. A 59-point gap between two arms that differ only in whether the slug or the name is quoted first is implausible on its face and is the clearest warning that the batch is degraded.
+
+**What is actually learned.**
+
+1. **The failure mode is external.** Uniform exit code 1 across arms, starting at a fixed call index, is the signature of a quota or rate limit rather than of anything in the design. The session resumed three days after the previous run; the key or the free-tier allowance is the first thing to check before re-running.
+2. **The runner's failure accounting works** — every failed call is flagged and excluded rather than scored, which is the defect §35 recorded.
+3. **One label defect, fixed:** an empty reply was reported as `v3-declaration` because the wrapper labelled anything that was not an ask as a declaration. Fixed to report `v3-no-signal`.
+
+**Cost.** ≈€0.9 for the 176 completed calls; failed calls most likely consumed nothing, which is unverified.
+
+**Next time.** Poll the quota before dispatch, cap the batch at what the allowance covers (240 calls at 60 per arm instead of 400 at 100), and abort on the first non-zero exit rather than recording it and continuing.
