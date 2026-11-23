@@ -108,7 +108,7 @@ What does **not** survive is the statistical confidence we attached to them, bec
 
 So: our wording advice applies where a model is willing to say "I need more information". That is a product-level statement as much as a statistical one, and it is the honest boundary of what a week of testing buys.
 
-And one reading changes outright: **in the format our extension actually shows, the "last is better" effect disappears.** Same batch, same lines, side by side — 44% at the last position in the old format, 25% in the product's format. The advantage was in how the old test list was laid out, not in lists as such.
+And one reading changes outright: **in the format our extension actually shows, the "last is better" effect disappears.** Same batch, same lines, side by side — 44% at the last position in the old format, 26% in the product's format. The advantage was in how the old test list was laid out, not in lists as such.
 
 **And yes — every future round should carry a second model.** Not to average the two, which would be meaningless, but to report each model on the outcome _it can produce_: on the asking model, commit-versus-ask; on the non-asking model, which mode gets chosen. Two parallel readings, never pooled. The capability benchmark's own plan already flags model-specificity; this makes it a standing requirement rather than a caveat.
 
@@ -116,7 +116,7 @@ And one reading changes outright: **in the format our extension actually shows, 
 
 **Compare things measured next to each other, never one after the other.** That is exactly the reason: if the machine on the other end changes from minute to minute, then two measurements taken together describe the same machine and two measurements taken an hour apart describe two different ones. We cannot freeze the machine; we can only make sure both sides of a comparison meet it at the same moment.
 
-Concretely: alternate the conditions every few calls, and compare each pair of neighbours instead of comparing two grand totals. When we did that, the drift cancelled: the same 400 conversations that looked unreadable gave a clear answer — the old format's effect at +23 points, the product format at −9, and the difference between formats at −19.
+Concretely: alternate the conditions every few calls, and compare each pair of neighbours instead of comparing two grand totals. When we did that, the drift cancelled: the same 400 conversations that looked unreadable gave a clear answer — the old format's effect at +23 points, the product format at −9, and the difference between formats at −18.
 
 ## If you are doing this yourself
 
