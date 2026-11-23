@@ -1407,3 +1407,33 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 **What this settles for the catalogue.** Write and test every line in the product's rendering (**C6**): that form declared 26 points more often than the experiment's, in the same batch. Do not choose field order as a lever: within the experiment template it is worth nothing, and within the product template the "wrong" order is pathological rather than merely worse.
 
 **Limits.** One batch, 62 to 63 per arm, one model, one brief, no p-value quoted; the sign test's pairs are adjacent but not independent, so its z is optimistic. Two failed batches preceded this one, and the 251-call stop means the design is 63 per arm, not the 100 planned.
+
+## 41. Wording in the product's rendering — the headline strengthens, and the ask channel closes (2026-11-23)
+
+**Instrument.** `scripts/r0-run.mjs` `--contrast wording`: line B against line C, `explain` held at the seventh entry, in both renderings, arms rotated every four calls. The run was cut at **337 of 400 calls** when the tool timeout killed the process; the rotation left a **balanced** batch — 85 / 84 / 84 / 84 — and the analysis below uses all 337. **≈€1.72.**
+
+| Arm                     | Declared |      Rate |  Asks |
+| ----------------------- | -------: | --------: | ----: |
+| experiment form, line B |  55 / 85 | **0.647** |    27 |
+| experiment form, line C |  73 / 84 | **0.869** |     9 |
+| product form, line B    |  56 / 84 | **0.667** |    25 |
+| product form, line C    |  83 / 84 | **0.988** | **0** |
+
+**Paired within cycle (M-15):**
+
+| Contrast                     | Pairs |          Mean | Up / down |        z |
+| ---------------------------- | ----: | ------------: | --------- | -------: |
+| C − B, experiment form       |    84 | **+22.6 pts** | 24 / 5    |     3.53 |
+| C − B, **product form**      |    84 | **+32.1 pts** | 28 / 1    | **5.01** |
+| product − experiment, line B |    84 |      +2.4 pts | 19 / 17   |     0.33 |
+| product − experiment, line C |    84 |     +11.9 pts | 11 / 1    |     2.89 |
+
+**F-11 — the headline survives the product's rendering and is larger there.** The wording contrast reads +22.6 in the form every earlier round used, which reproduces E20's 27.5 within the same margin, and **+32.1** in the form the extension emits. **H-template-eased is confirmed**: the product's line makes the sentence do more work, not less.
+
+**F-12 — and in the product's rendering the excluding line silences the ask channel.** Line C committed **83 times in 84 calls, with zero questions**. Line B, same batch, same form, asked 25 times. So the discriminating "must not merely describe" line in the product's rendering does not merely favour commitment — it removes the alternative. That is a product decision, not only a statistical one: on an ambiguous brief the model would stop asking for the missing information, which §0 of the routing report calls the _appropriate_ behaviour.
+
+**F-13 — the format does not change line B at all.** +2.4 points, 19 up against 17 down. Whatever the product's rendering does, it does it through the _content_ of a discriminating line, not by making every line more decisive.
+
+**What this settles for the 45.** Write the product form (**C6**), and write it with a discriminating clause: that combination is the strongest lever measured in the whole programme — 0.988 against 0.647 for the same idea in the experiment's rendering. But pair it with the ask rule: a line that always commits removes the model's ability to say "I need the file". The catalogue needs both, and the wording that maximises commitment is not automatically the wording that serves the user.
+
+**Limits.** One batch, 84 per arm, one model, one brief, no p-value; cut at 337 by a tool timeout rather than by a quota stop, so the batch is complete-but-short and balanced. The sign test's pairs are adjacent, not independent.

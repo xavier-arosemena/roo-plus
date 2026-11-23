@@ -25,7 +25,7 @@
 
 **The simplest fact comes first, because everything below is a refinement of it: the clarity of the brief decides the outcome.** A request that says what is wanted gets the right mode almost every time, and no wording or ordering trick measured here makes an unclear brief as good as a clear one. What this report is about is the residual case — a brief ambiguous enough that the model could reasonably ask instead of choosing — and the question of which levers, if any, improve the choice when the brief itself cannot.
 
-1. **Exactly one result here is confirmatory, and it fits in one sentence.** A mode line that names what the answer must **not** be gets the model to commit to that mode **27.5 points** more often than a line of the same length that names what the answer must **contain** — 89.0% against 61.5%, _p_ ≈ 7 × 10⁻²⁰. That is the finding; it hints at nothing larger, and every other number in this report is narrower than it first appeared (§5). Three properties make it a result rather than an observation, and each is stated because the claim is large: it holds its sign in **every quarter** of the run (21–35 points); it is **independently corroborated**, a second model re-reading the same replies blind agreeing with the first pass on **99.7%** of them; and its direction is the **reverse of the prediction we registered**. _Falsified if_ a length-matched line naming a required artefact, rather than a quality standard, reverses the gap.
+1. **Exactly one result here is confirmatory, and it fits in one sentence.** A mode line that names what the answer must **not** be gets the model to commit to that mode **27.5 points** more often than a line of the same length that names what the answer must **contain** — 89.0% against 61.5%, _p_ ≈ 7 × 10⁻²⁰. That is the finding; it hints at nothing larger, and every other number in this report is narrower than it first appeared (§5). Three properties make it a result rather than an observation, and each is stated because the claim is large: it holds its sign in **every quarter** of the run (21–35 points); it is **independently corroborated**, a second model re-reading the same replies blind agreeing with the first pass on **99.7%** of them; and its direction is the **reverse of the prediction we registered**. It also **reproduces and strengthens in the rendering the product actually emits**: +22.6 points in the experiment form, **+32.1** in the product form, measured in one batch (§4.10). _Falsified if_ a length-matched line naming a required artefact, rather than a quality standard, reverses the gap.
 2. **On an ambiguous brief the model asks rather than guesses — and whether it asks at all belongs to the model, not to the routing.** Every one of the 900 E20 wording calls either committed to the expected mode or asked for the missing information; none selected an unrelated one. That behaviour is not a property of the system: a second model, on the same brief and the same lines, asked **not once in 91 replies** and committed every time (§4.8). The channel the headline result lives in is therefore a model's willingness to ask, and it should be read that way wherever it is quoted. _Falsified if_ wrong commits are shown to outnumber asks on ambiguous briefs at this scale, for a model that asks at a comparable rate.
 3. For list order the programme has a difference, no identified mechanism, and a **format that changes it**. First and last entries differ within one run, with the gap positive in every quarter (+44, +20, +24, +20 points). Rendered the way the extension renders it, the difference **is not there** (−9 points, indistinguishable from zero), and the same line at the last slot declares **19 points less** than in the experiment format (§4.9). The effect is real for the line that was measured and does not transfer to the line users see. Falsified by a stationary re-run on the product form that reproduces it.
 4. The same prompt does not get the same answer. On 90 identical prompts two dispatches agreed at 50.0 / 50.0 / 62.5% against chance levels of 54.5 / 50.1 / 63.8%, and one unchanged condition ran at 59.3% in one batch and 47.0% in another. That gap is a time-average of a drift, so it is quoted as tens of points and never as a constant. Falsified if two dispatches of the same prompts agree far above chance.
@@ -360,6 +360,21 @@ Zero asks in 91 replies puts the 95% upper bound on that model's ask rate at **�
 **What a publisher may say.** That the wording result is a within-run contrast which survives a time-aware test at overwhelming margin. That the position result is real in the format the experiments rendered and absent in the format the product emits. That every absolute rate in this report is one batch's level and should be quoted with its batch.
 
 **What a publisher may not say.** That a specific percentage would be reproduced next week. That the position effect applies to users of the extension. That a difference of ten points between two runs is a finding.
+
+### 4.10 The headline in the product rendering — larger, and it silences the ask (2026-11-23)
+
+Line B against line C, `explain` held at the seventh entry, both renderings, one interleaved batch of 337 calls (log §41):
+
+| Arm                      |      Rate |  Asks |
+| ------------------------ | --------: | ----: |
+| experiment form, line B  |     0.647 |    27 |
+| experiment form, line C  |     0.869 |     9 |
+| product form, line B     |     0.667 |    25 |
+| **product form, line C** | **0.988** | **0** |
+
+Paired within cycle: **C − B is +22.6 points in the experiment form and +32.1 in the product form** (28 pairs to 1). The headline survives the change of rendering and grows. The format alone does nothing (+2.4 for line B, indistinguishable from zero).
+
+**And the product's rendering of a discriminating line removes the question entirely: 83 commitments in 84 calls, zero asks.** That is the tension the catalogue has to hold. On an ambiguous brief §0 calls asking the right behaviour; a line that always commits is not the same thing as a line that routes well.
 
 ## 5. What this does not mean
 

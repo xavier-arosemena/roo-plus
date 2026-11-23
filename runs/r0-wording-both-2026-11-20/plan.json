@@ -6,7 +6,7 @@
 	"briefId": "B3",
 	"brief": "Explain why this module is structured the way it is.",
 	"persona": "P1",
-	"model": null,
+	"model": "gemini-3.5-flash",
 	"draws": 100,
 	"catalogueDigest": "30315cd252c6bec9789afdddf139ebff29765b775557d6c51d72fbae3706edc6",
 	"arms": [
