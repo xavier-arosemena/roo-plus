@@ -1377,3 +1377,33 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 **Quotable paragraph for publication (agreed 2026-11-23).** The manuscript and the announcement are edited independently, but this is the wording that matches the log, so that neither drifts from it:
 
 > A measurement note. One hundred identical requests, with nothing varied, differed by 24 points inside a single run. Every contrast reported here was interleaved within one batch, and both headline results survive a paired sign test (238 of 288 adjacent pairs for the wording result; 94 of 107 for the position result). But absolute percentages should not be compared across runs, and the position effect we measured belongs to the format our experiments rendered — in the format the product actually emits, it is absent.
+
+## 40. Attribution — the template decides, and the product's own line wins (2026-11-23)
+
+**Instrument.** [`scripts/r0-run.mjs`](../../scripts/r0-run.mjs:1) `--contrast attribution`: four rendered forms, `explain` held at the seventh entry, line B, brief B3, persona P1, arms rotated every four calls. **251 calls before the runner stopped itself on a failed call** (call 251, exit 1, quota signature — §39). **≈€1.28.** Balanced: 63 / 62 / 63 / 63. One failed row excluded.
+
+| Rendered form                                   | Declared |      Rate | Asks |
+| ----------------------------------------------- | -------: | --------: | ---: |
+| `- slug — Name — line` (fixture)                |  31 / 62 | **0.500** |   29 |
+| `- Name — slug — line`                          |  28 / 62 | **0.452** |   33 |
+| `* "slug" mode (Name) - line`                   |  12 / 63 | **0.190** |   51 |
+| `* "Name" mode (slug) - line` (**the product**) |  45 / 63 | **0.714** |   14 |
+
+**Paired within cycle (drift cancels, M-15):**
+
+| Contrast                                          | Pairs |          Mean | Up / down |        z |
+| ------------------------------------------------- | ----: | ------------: | --------- | -------: |
+| order, dash template (name-first − slug-first)    |    62 |  **−4.8 pts** | 15 / 18   |    −0.52 |
+| order, product template (name-first − slug-first) |    63 | **+52.4 pts** | 37 / 4    | **5.15** |
+| template, slug-first (product − fixture)          |    62 | **−30.6 pts** | 6 / 25    |    −3.41 |
+| template, name-first (product − fixture)          |    62 | **+25.8 pts** | 25 / 9    | **2.74** |
+
+**F-8 — inside the experiment's own template, field order does not matter, and inside the product's it decides everything.** Swapping slug and name in the dash form moves the rate by 5 points (not distinguishable from zero). Swapping them inside `* "<x>" mode (<y>) - line` moves it by **52 points**. The same field, in the same position, is worth nothing in one template and everything in the other.
+
+**F-9 — the product's own line is the best of the four, by 26 points.** Name quoted, slug in the parenthesis, under the `MODES` heading: 0.714 against 0.500 for the fixture form, 25 up against 9 down. That is the sentence the catalogue build needs, and it points the opposite way from the advice the earlier rounds implied.
+
+**F-10 — one of the four arms is probably not a fair test, and saying so is part of the result.** `* "slug" mode (Name)` puts a lowercase identifier where the template expects a display name and the name where it expects an identifier. At 0.190 with **51 asks** out of 63, it looks like a line that fails to read as a mode at all rather than a line that leads with the slug. So the honest claim is **"the template decides"**, not **"slug-first is worse"** — the two are not separated by this design, and separating them needs an arm where a slug can plausibly occupy the name slot.
+
+**What this settles for the catalogue.** Write and test every line in the product's rendering (**C6**): that form declared 26 points more often than the experiment's, in the same batch. Do not choose field order as a lever: within the experiment template it is worth nothing, and within the product template the "wrong" order is pathological rather than merely worse.
+
+**Limits.** One batch, 62 to 63 per arm, one model, one brief, no p-value quoted; the sign test's pairs are adjacent but not independent, so its z is optimistic. Two failed batches preceded this one, and the 251-call stop means the design is 63 per arm, not the 100 planned.
