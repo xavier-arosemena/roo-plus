@@ -657,7 +657,8 @@
 		"C7": "Do not use list position as a lever: in the product form the last slot declared 19 points less than the same line first.",
 		"C8": "Assume the wording effect may be smaller, not larger, in the product form; weight discriminating content over polar phrasing.",
 		"C9": "Do not treat field order as a lever. Within the experiment template, swapping slug and name moved nothing (-4.8 points, z -0.52); within the product template the wrong order collapsed the rate to 0.190. Write the product form, in the product order, and do not optimise the order separately.",
-		"C10": "Re-run the attribution arms at full size when quota allows: 63 per arm is enough for a 26-point effect, not for a 10-point one."
+		"C10": "Re-run the attribution arms at full size when quota allows: 63 per arm is enough for a 26-point effect, not for a 10-point one.",
+		"C11": "Print the display name in the quoted slot: * \"<Name>\" mode (<slug>) - line. One batch, 2026-11-23: name quoted 0.780, slug quoted 0.450, slug quoted with the name in parentheses 0.130. Dropping to a slug-only line saves 761 characters and costs 33 points, so the shorter line is a trade against the routing decision, not a saving (log 43)."
 	},
 	"ownerlessJobs": ["B9", "C4", "D7", "D8", "I8", "I9", "Q6", "R2", "R3", "R6", "R8", "S6", "S9"]
 }

@@ -1453,4 +1453,36 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 
 **What is still not known, and M-16 forbids guessing.** Whether a slug-only line matches the product's name-first form (0.714 in §40's batch, 0.667 for line B in §41's) cannot be read across batches. It needs one batch carrying three arms — name-first, slug-only, slug-and-name — at **≈€1.2**. Until then the honest statement is that the two leading vocabularies are within reach of each other and that the product's name-first form is the only one measured against the experiment baseline in the same batch.
 
-**Why it matters for the catalogue.** If slug-only lines perform like name-first lines, the catalogue can print a shorter line — 5,860 characters for 45 modes against 6,621 — and spend the routing budget elsewhere. That is a real trade, and it is now one small batch from being decidable rather than arguable.
+**Why it matters for the catalogue.** If slug-only lines perform like name-first lines, the catalogue can print a shorter line — 5,860 characters for 45 modes against 6,621 — and spend the routing budget elsewhere. That is a real trade, and it is now one small batch from being decidable rather than arguable. _(Decided in §43: it is not a saving.)_
+
+## 43. The three namings in one batch — the quoted slot decides which token the model says (2026-11-23)
+
+**Instrument.** `scripts/r0-run.mjs --contrast naming`: three arms, `explain` at the seventh entry, line B, all in the product template, **300 calls, none failed, ≈€1.5**, 100 draws per arm, arm order rotated every cycle. Only the quoted token and the parenthetical differ, so this is the batch §42 said was needed and the first time the three namings have shared a run.
+
+| Arm (rendered as) | `explain`'s line                           |  Rate | Asks | Unresolved |
+| ----------------- | ------------------------------------------ | ----: | ---: | ---------: |
+| name-first        | `* "Explain" mode (explain) - <whenToUse>` | 0.780 |   22 |          5 |
+| slug-only         | `* "explain" mode - <whenToUse>`           | 0.450 |   55 |          3 |
+| slug-and-name     | `* "explain" mode (Explain) - <whenToUse>` | 0.130 |   85 |          2 |
+
+Rates are hand-adjudicated (F-15 below). As classified by the pinned rule: 0.730 / 0.420 / 0.130, same ordering.
+
+**Paired within cycle** (M-15's statistic, the only one M-16 permits here):
+
+- name-first − slug-only = **+57.9 points**, 45 up against 12 down (z 4.37)
+- name-first − slug-and-name = **+84.4 points**, 71 up against 6 down (z 7.41)
+- slug-only − slug-and-name = **+72.7 points**, 38 up against 6 down (z 4.82)
+
+The unpaired rate differences are 33.0 / 65.0 / 32.0 points, and each equals its paired net (45 − 12, 71 − 6, 38 − 6) — the two routes agree, which is the check M-14 asks for.
+
+**F-15 — the classifier misses declarations that print a bare header.** All ten `UNRESOLVED` replies were read by hand (M-1). Eight are declarations: the model prints `**"Explain" mode (explain)**` — or `I will use **"explain" mode**` — and _then_ asks for the source file. That is a commitment followed by a material ask, not a failure to choose. Two are genuine asks (`slug-and-name` 032 and 064: "clarification on whether…"). The v3 rule needs an anchored marker (`Mode:`, `Selected Mode:`) or no ask lead-in at all, so the bare-header form falls through to `unresolved`. The bias runs **against** the winning arm (it understates name-first and slug-only, never slug-and-name), so the conclusion below does not rest on the correction — but §40, §41 and §42 were not re-adjudicated, and their declaration rates are lower bounds on the same ordering.
+
+**Stationarity — the runner's warning is not the test (M-15).** The runner raised its M-10 warning on `name-first` (quarters 0.80 / 0.64 / 0.88 / 0.60). Applied to the arm rate that voids the batch, which is the same over-correction as §35. Tested on the contrasts, all three keep sign and magnitude in both halves: name-first vs slug-only **+50.0** (first 50 cycles) then **+61.3**; name-first vs slug-and-name **+88.2** then **+78.9**; slug-only vs slug-and-name **+81.8** then **+52.4**. The arms oscillate in opposite directions, which is not what a shared drift looks like. **The contrasts are stationary; the arm levels are not.** That distinction is what M-15 was written for, and the runner still reports the arm test because this contrast set declares no factorial pairs, so its `contrasts` block is empty.
+
+**F-16 — the lever is the quoted slot, not the presence of the name.** `slug-and-name` prints the display name too, in the parenthetical, and is the worst of the three (0.130). So "printing a human-readable name helps" is false as stated. What the three arms separate is _which token is inside the quotes_: the name there gives 0.780, the slug there gives 0.130, and the parenthetical is inert whether it holds the slug (0.780) or the name (0.130). Stated as a mechanism candidate, not a finding: the quoted token is what the model appears to read as the mode's name.
+
+**What this settles for the 45.** Print the form the product already emits — `* "<Name>" mode (<slug>) - <whenToUse>` — and keep the parenthetical, which costs nothing measurable. The 5,860-character slug-only line §42 floated as a saving is **not** a saving: 761 characters bought a **33-point loss** in commitment. The routing budget is better spent on the line than on the parenthesis.
+
+**Cross-run agreement, recorded as reassurance and not as evidence (M-16).** name-first 0.780 here against 0.714 in §40's product arm; slug-only 0.450 against 0.440 in §42; slug-and-name 0.130 against 0.190 in both §40 and §42. Nothing here is a new phenomenon; what the batch says is what counts.
+
+**Limits.** One model, one brief, one line (B), one position (seventh entry), no pre-registered p-values, and adjacent-not-independent pairs. The eight mislabelled declarations show the pinned rule still has a blind spot on exactly this rendering, so any future product-form batch should either extend the rule to the bare-header form or budget for hand adjudication.

@@ -48,6 +48,14 @@ const CONTRASTS = {
 	// Is it the template or the field order? `explain` held at the seventh entry in
 	// all four arms, so position cannot leak into the comparison; only the rendered
 	// line changes. This is the contrast the position batch could not make (log §36).
+	// Which of the three product-template namings should the catalogue print? One
+	// batch, so the three levels can be compared to each other (M-16 forbids comparing
+	// them to levels measured in other batches). `explain` at the seventh entry.
+	naming: [
+		{ arm: "name-first", line: "B", index: 6, format: "product" },
+		{ arm: "slug-only", line: "B", index: 6, format: "product-slug-only" },
+		{ arm: "slug-and-name", line: "B", index: 6, format: "product-slug-first" },
+	],
 	// Is it the parenthetical that broke the slug arm, or the slug itself? Two arms,
 	// `explain` at the seventh entry, only the quoted field and the parenthetical vary.
 	"slug-lead": [
