@@ -21,7 +21,8 @@ Simple experiment. Same list, same request, one line changed.
 ## The first surprise, a week earlier
 
 One early test gave **one answer in five** for one condition and **four in five** for another. A big, clean result. We ran it again with more conversations and it **reversed**.
-[examples here]
+
+The concrete example: two versions of one mode's description, five conversations each. One committed once, the other four times. When the same comparison was repeated at a hundred conversations per side it read **44% against 30%** — the other way round. Five conversations told us a story; a hundred told us the opposite one.
 
 We decided it had been luck: five conversations is almost nothing.
 
@@ -32,11 +33,12 @@ Later we ran 600 conversations. One batch of identical prompts scored 59.3%. Ano
 Same prompts. Same model. Twelve points apart.
 
 We did not have an explanation, so we made a rule: **never compare numbers from two different batches.** Compare only within one batch, side by side. That rule saved the next two rounds — their effects held their sign quarter by quarter, so we trusted the direction even though the exact numbers wobbled.
-[Is this whole thing a testament of LLM models non-deterministic behaviour? And is this common to all models or is a Gemini thing?]
+
+**Is this just language models being non-deterministic, and is it a Gemini thing?** Both, in different proportions. _Non-determinism_ is general: identical input giving different output at "randomness off" is documented behaviour, reported across providers, not a quirk of one vendor. What is _measured_ is narrower: every number here comes from one model, on one provider. The size of the movement — a quarter of the answers — is our measurement on that model; whether another provider moves as much is untested. So read this as "the instrument moves", not "vendor X is bad".
 
 ## The third surprise: an arm that kept climbing
 
-Next we ran a 100-minute test with three conditions that alternated. One of them started at 36% and ended at 60% — while the others did not move. [this makes it more interesting... It is not always present.]
+Next we ran a 100-minute test with three conditions that alternated. One of them started at 36% and ended at 60% — while the others did not move. That it is **not always present** is part of the finding: most runs were flat, which is exactly why the moving ones were mistaken for results and not for weather.
 
 A condition that climbs during a test is not a result, it is a moving target. We threw that round out and wrote it down as inconclusive.
 
@@ -45,7 +47,8 @@ Still no explanation. Just a pattern: **later calls look different from earlier 
 ## The fourth surprise: the same thing happened again
 
 Our most recent test had four conditions, alternating every four calls. One of them fell from 32% to 8% over the run, while the others stayed flat. By our own rule, that round could not be read.
-[Why some, and not the others?]
+
+**Why some conditions and not others?** We do not know, and that is the honest answer. Two readings fit: either the drift attaches to _moments in time_ and lands on whichever condition occupies them — which a balanced rotation should even out, but this one did not — or it attaches to _what a condition's text triggers on the provider side_, for instance whether that particular prompt was being served from a cache. Either way the practical rule is the same: never rely on an individual condition being stable.
 
 We had now seen this three times. So we spent fifty cents to test it directly.
 
@@ -68,9 +71,11 @@ We cannot see inside the provider, but three explanations are documented and all
 
 1. **The same input is not guaranteed to give the same output.** Google's own documentation says a fixed random seed is "best effort" and deterministic output is not guaranteed. The developer forums are full of the same complaint, even with randomness switched off.
 2. **Caching.** Google caches common content automatically to save money and time. A help-page thread shows the same request being served from cache three times out of five, then not, then from cache again. Cached and uncached, the model is not reading quite the same context.
-3. **Grouping.** Providers bundle requests together for efficiency, and the arithmetic depends on what else is in the bundle. What else is in flight depends on strangers' traffic, not on us. [this is the only one non-gemini?]
-   [If gemini is the problem, we should run the tests with deepseek?]
-   So: **the model on the other end is a slightly different machine every few minutes.** Not broken — just not the measuring instrument we assumed.
+3. **Grouping.** Providers bundle requests together for efficiency, and the arithmetic depends on what else is in the bundle. What else is in flight depends on strangers' traffic, not on us. This is the one that is not vendor-specific: it is an industry-wide technique, and the same caveat applies to any provider that batches.
+
+    So: **the model on the other end is a slightly different machine every few minutes.** Not broken — just not the measuring instrument we assumed.
+
+**Should we just run the tests on the other model, then?** For this particular question, no — and that is the trap. The second model we have access to **never asks for clarification**: in 91 replies it committed to a mode every single time. The thing we are measuring is _whether the assistant commits or asks_, and on that model the answer is always "commits", so there is nothing to compare. The drift is a reason to measure more carefully, not a reason to change instruments to one that cannot see the phenomenon.
 
 ## How this fooled us, in order
 
@@ -93,20 +98,25 @@ Every comparison we made was done side by side, in the same batch, with conditio
 - A line that says what the answer must _not_ be made the assistant commit far more often than one stating an evidence standard.
 - In the older list format, a mode placed last was picked far more often than the same mode placed first.
 
-What does **not** survive is the statistical confidence we attached to them, because those calculations assumed that each conversation was independent of the next. When the whole run drifts, they are not.
+What does **not** survive is the statistical confidence we attached to them, because those calculations assumed that each conversation was independent of the next. When the whole run drifts, they are not — and the honest replacement is a comparison of neighbouring calls, which we then ran: the wording result won 238 of 288 adjacent pairs and the position result 94 of 107. The effects are real; the error bars were too tight.
 
-[So in short: if we use gemini we can not get statistical, because there is a drift introduced by the model. If we use deepseek we do not have anything to measure at all, because deepseek never asks. So all the fine-tuning we are doing for our modes is only relevant if the user is useing a model "gemini-like", and not relevant if is using a "deepseek-like¨?]
+**So does this mean the work only matters for "Gemini-like" models?** In part, yes — and it is worth being precise about which part. Three separate statements:
+
+1. **The measurement** needs a model that asks. On a model that never asks, "does it commit or ask" has one possible answer and cannot be studied. That is a limit of the instrument, not of the catalogue.
+2. **The finding** is model-specific by construction, and we said so before the drift appeared: the effect lives in the model's willingness to ask. A model that never asks does not get this advice.
+3. **The catalogue advice** that survives is the part about _which_ mode gets chosen — and that is measurable on either kind of model, because it does not need an ask channel.
+
+So: our wording advice applies where a model is willing to say "I need more information". That is a product-level statement as much as a statistical one, and it is the honest boundary of what a week of testing buys.
 
 And one reading changes outright: **in the format our extension actually shows, the "last is better" effect disappears.** Same batch, same lines, side by side — 44% at the last position in the old format, 25% in the product's format. The advantage was in how the old test list was laid out, not in lists as such.
 
-[Also seems like an argument for in the test round in the capability benchmar, and any other we may do, to do compare between models gemini/deepseek, as the results will get tainted by the model's weaknesses...]
+**And yes — every future round should carry a second model.** Not to average the two, which would be meaningless, but to report each model on the outcome _it can produce_: on the asking model, commit-versus-ask; on the non-asking model, which mode gets chosen. Two parallel readings, never pooled. The capability benchmark's own plan already flags model-specificity; this makes it a standing requirement rather than a caveat.
 
 ## The fix, in one line
 
-**Compare things measured next to each other, never one after the other.** [because the model's machine evolves per minute, we can only compare things done in the same machine, meaning at the same time?]
+**Compare things measured next to each other, never one after the other.** That is exactly the reason: if the machine on the other end changes from minute to minute, then two measurements taken together describe the same machine and two measurements taken an hour apart describe two different ones. We cannot freeze the machine; we can only make sure both sides of a comparison meet it at the same moment.
 
 Concretely: alternate the conditions every few calls, and compare each pair of neighbours instead of comparing two grand totals. When we did that, the drift cancelled: the same 400 conversations that looked unreadable gave a clear answer — the old format's effect at +23 points, the product format at −9, and the difference between formats at −19.
-[very interesting]
 
 ## If you are doing this yourself
 
