@@ -146,7 +146,7 @@ for (const [index, run] of selected.entries()) {
 	const started = Date.now()
 	const child = spawnSync(command, { shell: true, cwd: ROOT, encoding: "utf8" })
 	const reply = fs.existsSync(outPath) ? fs.readFileSync(outPath, "utf8") : ""
-	const machine = classifyProductReply(reply, slugs)
+	const machine = classifyProductReply(reply, slugs, entries)
 	const row = {
 		index,
 		runId: run.runId,

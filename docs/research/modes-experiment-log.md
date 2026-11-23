@@ -1380,6 +1380,8 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 
 ## 40. Attribution — the template decides, and the product's own line wins (2026-11-23)
 
+> _Rates below are as scored at the time. §44 re-derives them under extractor v4; where the two differ, §44's table is authoritative (product 0.778, fixture-name-first 0.468)._
+
 **Instrument.** [`scripts/r0-run.mjs`](../../scripts/r0-run.mjs:1) `--contrast attribution`: four rendered forms, `explain` held at the seventh entry, line B, brief B3, persona P1, arms rotated every four calls. **251 calls before the runner stopped itself on a failed call** (call 251, exit 1, quota signature — §39). **≈€1.28.** Balanced: 63 / 62 / 63 / 63. One failed row excluded.
 
 | Rendered form                                   | Declared |      Rate | Asks |
@@ -1410,6 +1412,8 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 
 ## 41. Wording in the product's rendering — the headline strengthens, and the ask channel closes (2026-11-23)
 
+> _Rates below are as scored at the time. §44 re-derives them under extractor v4: line B 0.659, line C 1.000 in the product form, C − B +33.3 points._
+
 **Instrument.** `scripts/r0-run.mjs` `--contrast wording`: line B against line C, `explain` held at the seventh entry, in both renderings, arms rotated every four calls. The run was cut at **337 of 400 calls** when the tool timeout killed the process; the rotation left a **balanced** batch — 85 / 84 / 84 / 84 — and the analysis below uses all 337. **≈€1.72.**
 
 | Arm                     | Declared |      Rate |  Asks |
@@ -1439,6 +1443,8 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 **Limits.** One batch, 84 per arm, one model, one brief, no p-value; cut at 337 by a tool timeout rather than by a quota stop, so the batch is complete-but-short and balanced. The sign test's pairs are adjacent, not independent.
 
 ## 42. The fair slug arm — the parenthetical did the damage, not the slug (2026-11-23)
+
+> _Rates below are as scored at the time. §44 re-derives them under extractor v4: slug-only 0.450, slug-and-name 0.190, paired +26.0 points._
 
 **Instrument.** `scripts/r0-run.mjs --contrast slug-lead`: two arms, `explain` at the seventh entry, line B, both in the product template, differing only in whether the display name is printed. **200 calls, none failed, ≈€1.02.**
 
@@ -1483,6 +1489,56 @@ The unpaired rate differences are 33.0 / 65.0 / 32.0 points, and each equals its
 
 **What this settles for the 45.** Print the form the product already emits — `* "<Name>" mode (<slug>) - <whenToUse>` — and keep the parenthetical, which costs nothing measurable. The 5,860-character slug-only line §42 floated as a saving is **not** a saving: 761 characters bought a **33-point loss** in commitment. The routing budget is better spent on the line than on the parenthesis.
 
-**Cross-run agreement, recorded as reassurance and not as evidence (M-16).** name-first 0.780 here against 0.714 in §40's product arm; slug-only 0.450 against 0.440 in §42; slug-and-name 0.130 against 0.190 in both §40 and §42. Nothing here is a new phenomenon; what the batch says is what counts.
+**Cross-run agreement, recorded as reassurance and not as evidence (M-16).** name-first 0.780 here against 0.778 in §40's product arm (as re-derived, §44); slug-only 0.450 against 0.450 in §42; slug-and-name 0.130 against 0.190 in both §40 and §42. Nothing here is a new phenomenon; what the batch says is what counts.
 
 **Limits.** One model, one brief, one line (B), one position (seventh entry), no pre-registered p-values, and adjacent-not-independent pairs. The eight mislabelled declarations show the pinned rule still has a blind spot on exactly this rendering, so any future product-form batch should either extend the rule to the bare-header form or budget for hand adjudication.
+
+## 44. Extractor v4 — the bare header, the `code` homonym, and every number re-derived (2026-11-23)
+
+**The defect was misdescribed in §43, and the re-derivation is what showed it.** F-15 said the classifier "only knows sentence shapes". That is half of it, and the smaller half. v3 does read a label — but it also has an earlier rule that commits when _exactly one_ slug appears anywhere in the reply, and that rule is defeated by any second word that happens to be a mode name. **`code` is a mode name in the 45**, and every one of these replies says "the source code". The candidate set was `{explain, code}`, so v3's committing rule fell silent and the reply landed in `unresolved` beside the genuine asks. The label form matters only because, once the homonym has silenced the rule, the label is the one unambiguous signal left in the reply.
+
+**The rules (`r0-extract/4`).** Four additions, and every one of them is anchored on the picker's own vocabulary — a token that is not a slug or a display name cannot be read as a mode:
+
+| Rule               | Shape                                                                                    |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| `v4-bare-header`   | a line that is only a quoted token, with optional `mode` and an optional parenthetical   |
+| `v4-bare-token`    | a line that is only an emphasised token                                                  |
+| `v4-labelled-mode` | `Selected Mode:`, `Chosen mode —`, `Mode:` followed within 120 characters by a mode name |
+| `v4-will-use`      | "I will use …", "I am using …" — never bare "using"                                      |
+
+Position arbitrates: the earliest signal in the reply wins. A heading before an ask is a commitment followed by a material request (014, 028, 079, 080, 096); an ask before a heading is a question, so r10-B3 stays an ASK and the 20-reply wall is undisturbed.
+
+**Two defects in my own first draft, both caught by the tests.** (a) Allowing the `v4-labelled-mode` label to be followed by _optional_ punctuation matched the bare words "the exact mode" in "To determine the exact mode and complete this analysis", and the 120-character window then found the word `code` — scoring **two genuine clarification asks** (r0-naming 032 and 064) as commitments to `code`. The rule now requires a punctuation character, and a regression test holds it. (b) The naive "I will use" rule without a vocabulary read _"using concrete evidence from its implementation"_ and treated `concrete` as a mode. Both are the same lesson: a pattern without a vocabulary is a declaration factory.
+
+**Validation.** [`r0-extract.spec.mjs`](../scripts/r0-extract.spec.mjs:1) is 16/16 — R2's twenty-reply hand wall reproduced with **and** without the vocabulary (v4 must not disturb a single hand verdict), each new shape, and three negative cases including the prose false positive.
+
+**Re-derivation, at zero cost.** [`r0-reclassify.mjs`](../scripts/r0-reclassify.mjs:1) re-reads every stored transcript, re-derives every verdict, and writes `reclass-r0-extract-4.json` beside each batch. **Raw `results.jsonl` is never rewritten** — a record that silently changes is not a record. Seven batches, 1,841 usable rows, **75 verdicts change**, and not one declaration becomes an ask.
+
+**These figures supersede the ones in §36–§43 wherever they differ.**
+
+| §   | Batch       | Arm                                    |         Published |          Re-derived |
+| --- | ----------- | -------------------------------------- | ----------------: | ------------------: |
+| §36 | position    | fixture first / last                   |       0.210/0.440 |         0.210/0.440 |
+| §36 | position    | product first / last                   |       0.340/0.250 | **0.350**/**0.260** |
+| §40 | attribution | fixture                                |             0.500 |               0.500 |
+| §40 | attribution | fixture-name-first                     |             0.452 |           **0.468** |
+| §40 | attribution | product-slug-first                     |             0.190 |               0.190 |
+| §40 | attribution | product                                |             0.714 |           **0.778** |
+| §41 | wording     | fixture B / C                          |       0.647/0.869 |     **0.659**/0.869 |
+| §41 | wording     | product B / C                          |       0.667/0.988 |     0.667/**1.000** |
+| §42 | slug-lead   | slug-only / slug-and-name              |       0.440/0.190 |     **0.450**/0.190 |
+| §43 | naming      | name-first / slug-only / slug-and-name | 0.780/0.450/0.130 |   0.780/0.450/0.130 |
+
+**Paired contrasts, re-derived** (net discordant pairs per cycle = points of rate — M-15's statistic, and the only form M-16 permits inside a batch):
+
+- attribution: product − fixture **+27.4** (17 of 62 cycles, z 3.05); product − slug-first **+58.1** (z 5.55); fixture − name-first +3.2 (z 0.35, indistinguishable from zero)
+- wording: product C − B **+33.3** (28 of 84 cycles, z 5.29); fixture C − B **+21.4** (18 of 84, z 3.40)
+- slug-lead: slug-only − slug-and-name **+26.0** (26 of 100, z 3.61)
+- naming: **+33**, **+65** and **+32** (z 4.37 / 7.41 / 4.82) — unchanged, and now mechanical rather than hand-adjudicated
+- position: fixture last − first **+23** (z 3.29); product last − first **−9** (z −1.37, not distinguishable from zero); product − fixture at last **−18** (z −2.65)
+
+**Nothing reverses, and one number reaches a ceiling.** Every contrast keeps its sign and its size to within a couple of points. The one that changed character is wording line C in the product form: **84 declarations in 84 calls — no asks, and no unresolved replies left at all.** §41's reading ("the product's rendering of a discriminating line removes the question entirely") is now exact rather than nearly exact.
+
+**Why the position batch moved most, and what it says about the record.** 57 of its 74 `unresolved` become asks, and that is not v4 doing the work: the ask rules already existed, and the batch was scored _before_ they did — the comment beside them in the source says so ("R0's first position batch produced 16 to 25 reply-level unresolved per arm, and every one sampled was an ask written mid-sentence"). The stored rows have been carrying a rule set the batch was never scored with. Declarations barely move (+1 and +1), so nothing in §35 or §36 is resurrected: the four-arm table is unchanged in substance and the position reading stays as §36 left it.
+
+**The lesson that outlives this round.** Batches were scored by different extractor versions and nothing on the record said which. [`r0-run.mjs`](../scripts/r0-run.mjs:207) now stamps `extractor` on every row — D-22's finding (a parser version asserted but never evidenced in the data) applied to the extractor this programme actually reads.

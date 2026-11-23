@@ -1,0 +1,84 @@
+{
+	"schema": "r0.reclass.v1",
+	"extractorVersion": "r0-extract/4",
+	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+	"rows": 250,
+	"changed": [
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-021",
+			"arm": "fixture-name-first",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-labelled-mode",
+			"firstLine": "**Objective:**",
+			"note": null
+		},
+		{
+			"runId": "r0-attribution-product-product-022",
+			"arm": "product",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "\"Explain\" mode (explain)",
+			"note": null
+		},
+		{
+			"runId": "r0-attribution-product-product-037",
+			"arm": "product",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "**\"Explain\" mode (explain)**",
+			"note": null
+		},
+		{
+			"runId": "r0-attribution-product-product-042",
+			"arm": "product",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "\"Explain\" mode (explain)",
+			"note": null
+		},
+		{
+			"runId": "r0-attribution-product-product-057",
+			"arm": "product",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "\"Explain\" mode (explain)",
+			"note": null
+		}
+	],
+	"byArm": {
+		"fixture:fixture": {
+			"n": 62,
+			"storedDeclared": 31,
+			"derivedDeclared": 31,
+			"changed": 0
+		},
+		"fixture-name-first:fixture-name-first": {
+			"n": 62,
+			"storedDeclared": 28,
+			"derivedDeclared": 29,
+			"changed": 1
+		},
+		"product-slug-first:product-slug-first": {
+			"n": 63,
+			"storedDeclared": 12,
+			"derivedDeclared": 12,
+			"changed": 0
+		},
+		"product:product": {
+			"n": 63,
+			"storedDeclared": 45,
+			"derivedDeclared": 49,
+			"changed": 4
+		}
+	}
+}

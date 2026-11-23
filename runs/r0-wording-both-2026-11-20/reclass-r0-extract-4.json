@@ -1,0 +1,54 @@
+{
+	"schema": "r0.reclass.v1",
+	"extractorVersion": "r0-extract/4",
+	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+	"rows": 337,
+	"changed": [
+		{
+			"runId": "r0-wording-product-C-009",
+			"arm": "C",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "**\"Explain\" mode (explain)**",
+			"note": null
+		},
+		{
+			"runId": "r0-wording-fixture-B-022",
+			"arm": "B",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-token",
+			"firstLine": "I want to analyze the module's source code and structural boundaries to explain the rationale behind",
+			"note": null
+		}
+	],
+	"byArm": {
+		"fixture:B": {
+			"n": 85,
+			"storedDeclared": 55,
+			"derivedDeclared": 56,
+			"changed": 1
+		},
+		"fixture:C": {
+			"n": 84,
+			"storedDeclared": 73,
+			"derivedDeclared": 73,
+			"changed": 0
+		},
+		"product:B": {
+			"n": 84,
+			"storedDeclared": 56,
+			"derivedDeclared": 56,
+			"changed": 0
+		},
+		"product:C": {
+			"n": 84,
+			"storedDeclared": 83,
+			"derivedDeclared": 84,
+			"changed": 1
+		}
+	}
+}

@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url"
 
 import { BRIEFS, PICKER_FORMATS, buildPrompt, pickerTextFor } from "./lib/framing-pretest.mjs"
 import { E20_BRIEF_ID, E20_LINES, EXPLAIN_SLUG } from "./lib/e20.mjs"
-import { classifyProductReply } from "./lib/r0-extract.mjs"
+import { EXTRACTOR_VERSION, classifyProductReply } from "./lib/r0-extract.mjs"
 import { parseRoomodes } from "./lib/roomodes-lite.mjs"
 import { fixedPersona } from "./lib/routing-round.mjs"
 
@@ -202,7 +202,7 @@ for (let i = 0; i < total; i += 1) {
 		.replaceAll("{runId}", runId)
 	const child = spawnSync(command, { shell: true, cwd: ROOT, encoding: "utf8" })
 	const reply = fs.existsSync(outPath) ? fs.readFileSync(outPath, "utf8") : ""
-	const machine = classifyProductReply(reply, slugs)
+	const machine = classifyProductReply(reply, slugs, entries)
 	const failed = child.status !== 0 || reply.trim().length === 0
 	rows.push({
 		i,
@@ -214,6 +214,10 @@ for (let i = 0; i < total; i += 1) {
 		verdict: machine.verdict,
 		slug: machine.slug ?? null,
 		rule: machine.rule,
+		// The rule that produced this verdict is stamped on the record, because D-22
+		// found every earlier batch claiming a parser version it could not evidence.
+		// A batch scored by an older extractor is now visible as such.
+		extractor: EXTRACTOR_VERSION,
 		exitCode: child.status,
 		// A failed call must never enter a denominator: one of 400 did in the first
 		// position batch and was scored as a row (log §35).

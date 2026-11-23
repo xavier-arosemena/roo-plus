@@ -1,0 +1,54 @@
+{
+	"schema": "r0.reclass.v1",
+	"extractorVersion": "r0-extract/4",
+	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+	"rows": 254,
+	"changed": [
+		{
+			"runId": "r0-attribution-fixture-fixture-036",
+			"arm": "fixture",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-token",
+			"firstLine": "To understand the rationale behind the module's structure, I need to see the module's source code, i",
+			"note": null
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-063",
+			"arm": "fixture-name-first",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-labelled-mode",
+			"firstLine": "I want to understand the design rationale, boundary choices, and structural trade-offs of the specif",
+			"note": null
+		}
+	],
+	"byArm": {
+		"fixture:fixture": {
+			"n": 62,
+			"storedDeclared": 41,
+			"derivedDeclared": 42,
+			"changed": 1
+		},
+		"fixture-name-first:fixture-name-first": {
+			"n": 64,
+			"storedDeclared": 34,
+			"derivedDeclared": 35,
+			"changed": 1
+		},
+		"product-slug-first:product-slug-first": {
+			"n": 64,
+			"storedDeclared": 8,
+			"derivedDeclared": 8,
+			"changed": 0
+		},
+		"product:product": {
+			"n": 64,
+			"storedDeclared": 46,
+			"derivedDeclared": 46,
+			"changed": 0
+		}
+	}
+}

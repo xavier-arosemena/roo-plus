@@ -1,0 +1,604 @@
+{
+	"schema": "r0.reclass.v1",
+	"extractorVersion": "r0-extract/4",
+	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+	"rows": 400,
+	"changed": [
+		{
+			"runId": "r0-position-product-first-001",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to uncover the underlying architectural decisions, boundary definitions, and design constrain",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-004",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to identify the specific module under discussion and clarify the intent of the analysis so th",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-005",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to understand the architectural choices, component boundaries, and design trade-offs that led",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-007",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the design decisions, component boundaries, and underlying constraints that govern",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-008",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the underlying design principles, boundary decisions, and structural organization ",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-010",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to understand the architectural design, boundary decisions, and structural patterns governing",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-011",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the target module's source code and clarify whether the primary focus is on runtim",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-012",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to uncover the design rationale, component boundaries, and dependency patterns of the module ",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-012",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the target module's source code and design artifacts to explain the specific ratio",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-013",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to understand the design rationale, structural patterns, and component relationships of the t",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-018",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to identify the correct perspective for analyzing the module's design so the underlying struc",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-020",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to uncover the design trade-offs, functional constraints, and architectural principles that d",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-025",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to determine the exact analysis mode required to examine the module's structure, but the requ",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-025",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to understand the design decisions, boundary choices, and structural patterns governing the m",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-027",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-labelled-mode",
+			"firstLine": "I want to analyze the implementation and source code evidence to understand the design choices, boun",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-027",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "To fulfill this request, I want to analyze the module's component boundaries, structural layout, and",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-028",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "To explain the underlying rationale of the module, I want to understand its architectural boundaries",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-029",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the specified module to explain the rationale behind its structural design, compon",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-029",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to locate the source code or file structure for the module in question and clarify the focus ",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-030",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I cannot tell which mode fits because the request asks about \"this module,\" but no source code, dire",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-031",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to examine the target module's code, file organization, dependency boundaries, and interactio",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-031",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the design decisions, component boundaries, and structural patterns of the target ",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-041",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to determine the correct operating mode for analyzing this module by clarifying the specific ",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-045",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the design rationale, component layout, and structural trade-offs of the specified",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-046",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to identify the correct operating mode so I can analyze the design and structure of your modu",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-049",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to understand the design choices, entry points, and component boundaries of the target module",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-050",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to determine the correct operating mode so we can analyze the structural design of your modul",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-051",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the design decisions, entry points, and structural patterns of the specified modul",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-054",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the target module's design choices, structural boundaries, and internal organizati",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-055",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "To analyze the structural rationale of the module, I want to evaluate its component boundaries, inte",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-062",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the module's implementation and component boundaries to explain the rationale behi",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-064",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to understand the design decisions, component boundaries, and dependency flows that dictate h",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-065",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to uncover the architectural principles, component boundaries, and design trade-offs that gov",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-067",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the module's architecture, dependency boundaries, and file organization to underst",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-067",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to understand the architectural design decisions, component boundaries, and structural ration",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-068",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to inspect the source code and architectural context of the target module to analyze its desi",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-069",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the target module's design choices, component boundaries, and implementation patte",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-071",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to establish the exact analytical objective behind examining the module's layout so the appro",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-072",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the design rationale, component boundaries, and file organization of the target mo",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-075",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the internal organization, component boundaries, and design choices of the module ",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-077",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I need to inspect the target module's code and understand whether the focus is on its dynamic runtim",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-077",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to determine the correct analysis mode to explain the module's structure based on the specifi",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-077",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to determine the right analytical lens for understanding your module's structure so we can ad",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-080",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to determine the primary objective of explaining the module's structure so the task can be pr",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-080",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to inspect the target code and its structural evidence so I can explain the architectural and",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-080",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "**Goal:** I want to analyze and understand the design decisions, boundary choices, and structural tr",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-081",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the implementation details, boundary decisions, and design trade-offs of the modul",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-083",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to identify the underlying structural design choices and boundaries of the specified code mod",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-086",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the architectural boundaries, structural design decisions, and implementation evid",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-first-091",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to determine the appropriate analysis mode for explaining the module's structure based on its",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-093",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the target module's layout, component boundaries, and design rationale using concr",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-093",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to identify the correct operating mode and analyze the underlying architectural rationale usi",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-094",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "architecture-reviewer",
+			"rule": "v4-bare-header",
+			"firstLine": "I want to evaluate the module's design boundaries, dependency relationships, and architectural trade",
+			"note": null
+		},
+		{
+			"runId": "r0-position-product-last-095",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the target module's design choices, structural boundaries, and execution rationale",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-095",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to analyze the underlying structural choices, dependency boundaries, and architectural trade-",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-last-096",
+			"arm": "last",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "To explain why the module is structured the way it is, I need to analyze its boundaries, dependencie",
+			"note": null
+		},
+		{
+			"runId": "r0-position-fixture-first-097",
+			"arm": "first",
+			"stored": "UNRESOLVED",
+			"derived": "ASK",
+			"slug": null,
+			"rule": "ask-leadin",
+			"firstLine": "I want to understand the design decisions, structural boundaries, and architectural trade-offs that ",
+			"note": null
+		}
+	],
+	"byArm": {
+		"fixture:first": {
+			"n": 100,
+			"storedDeclared": 21,
+			"derivedDeclared": 21,
+			"changed": 13
+		},
+		"fixture:last": {
+			"n": 100,
+			"storedDeclared": 44,
+			"derivedDeclared": 44,
+			"changed": 12
+		},
+		"product:first": {
+			"n": 100,
+			"storedDeclared": 34,
+			"derivedDeclared": 35,
+			"changed": 17
+		},
+		"product:last": {
+			"n": 100,
+			"storedDeclared": 25,
+			"derivedDeclared": 26,
+			"changed": 15
+		}
+	}
+}
