@@ -189,6 +189,7 @@ for (let i = 0; i < total; i += 1) {
 	const child = spawnSync(command, { shell: true, cwd: ROOT, encoding: "utf8" })
 	const reply = fs.existsSync(outPath) ? fs.readFileSync(outPath, "utf8") : ""
 	const machine = classifyProductReply(reply, slugs)
+	const failed = child.status !== 0 || reply.trim().length === 0
 	rows.push({
 		i,
 		runId,
@@ -202,9 +203,25 @@ for (let i = 0; i < total; i += 1) {
 		exitCode: child.status,
 		// A failed call must never enter a denominator: one of 400 did in the first
 		// position batch and was scored as a row (log §35).
-		failed: child.status !== 0 || reply.trim().length === 0,
+		failed,
 	})
 	if ((i + 1) % 25 === 0) process.stdout.write(`  ${i + 1}/${total} calls\n`)
+	// Fail fast. The attribution batch kept going after its first failure and turned
+	// one quota event into 146 wasted rows on an arm that then could not be read
+	// (log §39). Stopping keeps the batch balanced enough to say what it lost.
+	if (failed) {
+		fs.writeFileSync(path.join(outDir, "results.jsonl"), rows.map((row) => JSON.stringify(row)).join("\n") + "\n")
+		const perKey = {}
+		for (const row of rows) {
+			perKey[row.key] ??= { done: 0, failed: 0 }
+			perKey[row.key].done++
+			if (row.failed) perKey[row.key].failed++
+		}
+		throw new Error(
+			`call ${i + 1}/${total} failed (exit ${child.status}, ${reply.trim().length} bytes). Stopped: ${JSON.stringify(perKey)}. ` +
+				`Re-run only after the quota is confirmed; a partial batch is unbalanced on the drift axis (log §39).`,
+		)
+	}
 }
 
 fs.writeFileSync(path.join(outDir, "results.jsonl"), rows.map((row) => JSON.stringify(row)).join("\n") + "\n")

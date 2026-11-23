@@ -1373,3 +1373,7 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 **Cost.** ≈€0.9 for the 176 completed calls; failed calls most likely consumed nothing, which is unverified.
 
 **Next time.** Poll the quota before dispatch, cap the batch at what the allowance covers (240 calls at 60 per arm instead of 400 at 100), and abort on the first non-zero exit rather than recording it and continuing.
+
+**Quotable paragraph for publication (agreed 2026-11-23).** The manuscript and the announcement are edited independently, but this is the wording that matches the log, so that neither drifts from it:
+
+> A measurement note. One hundred identical requests, with nothing varied, differed by 24 points inside a single run. Every contrast reported here was interleaved within one batch, and both headline results survive a paired sign test (238 of 288 adjacent pairs for the wording result; 94 of 107 for the position result). But absolute percentages should not be compared across runs, and the position effect we measured belongs to the format our experiments rendered — in the format the product actually emits, it is absent.
