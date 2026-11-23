@@ -247,7 +247,7 @@ export async function loadCatalogues(dir = FRAME_DIR) {
  * design, a leading-token effect and a template effect stay confounded, which is
  * the defect R0 was created to remove.
  */
-export const PICKER_FORMATS = ["fixture", "fixture-name-first", "product", "product-slug-first"]
+export const PICKER_FORMATS = ["fixture", "fixture-name-first", "product", "product-slug-first", "product-slug-only"]
 
 const PRODUCT_HEADING = "====\n\nMODES\n\n- These are the currently available modes:\n"
 
@@ -261,6 +261,11 @@ export function pickerLine(mode, format = "fixture") {
 			return `  * "${mode.name}" mode (${mode.slug}) - ${mode.whenToUse}`
 		case "product-slug-first":
 			return `  * "${mode.slug}" mode (${mode.name}) - ${mode.whenToUse}`
+		// Slug quoted, no parenthetical. The fair test of "slug first": the earlier
+		// slug arm put a lowercase identifier in the slot the template reserves for a
+		// display name and collapsed to 0.190 (log §40, F-10).
+		case "product-slug-only":
+			return `  * "${mode.slug}" mode - ${mode.whenToUse}`
 		default:
 			throw new Error(`unknown picker format: ${format}`)
 	}

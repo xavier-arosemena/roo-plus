@@ -55,7 +55,13 @@ test("only the product family carries the MODES heading", () => {
 test("every format carries all three fields once per mode", () => {
 	for (const format of PICKER_FORMATS) {
 		const text = pickerTextFor([MODE, SECOND], format)
-		for (const needle of ["explain", "Explain", "evidence.", "code", "Code", "implemented."]) {
+		// `product-slug-only` intentionally renders no display name, so the name check
+		// does not apply to it. Everything else must carry all three fields.
+		const needles =
+			format === "product-slug-only"
+				? ["explain", "evidence.", "code", "implemented."]
+				: ["explain", "Explain", "evidence.", "code", "Code", "implemented."]
+		for (const needle of needles) {
 			assert.ok(text.includes(needle), `${format} lost ${needle}`)
 		}
 		// One rendered entry per mode, counted by a marker that only an entry can
@@ -63,7 +69,9 @@ test("every format carries all three fields once per mode", () => {
 		// test alone would count it as an entry.
 		const entries = text
 			.split("\n")
-			.filter((line) => (format.startsWith("product") ? line.includes("mode (") : /^- .+ — .+ — /.test(line)))
+			// `product-slug-only` renders `* "slug" mode - line`, with no parenthetical,
+			// so the entry marker cannot require one.
+			.filter((line) => (format.startsWith("product") ? /mode\s*[(-]/.test(line) : /^- .+ — .+ — /.test(line)))
 		assert.equal(entries.length, 2, `${format} should render exactly two entries`)
 	}
 })

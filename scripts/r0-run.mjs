@@ -48,6 +48,12 @@ const CONTRASTS = {
 	// Is it the template or the field order? `explain` held at the seventh entry in
 	// all four arms, so position cannot leak into the comparison; only the rendered
 	// line changes. This is the contrast the position batch could not make (log §36).
+	// Is it the parenthetical that broke the slug arm, or the slug itself? Two arms,
+	// `explain` at the seventh entry, only the quoted field and the parenthetical vary.
+	"slug-lead": [
+		{ arm: "slug-only", line: "B", index: 6, format: "product-slug-only" },
+		{ arm: "slug-and-name", line: "B", index: 6, format: "product-slug-first" },
+	],
 	attribution: [
 		{ arm: "fixture", line: "B", index: 6, format: "fixture" },
 		{ arm: "fixture-name-first", line: "B", index: 6, format: "fixture-name-first" },

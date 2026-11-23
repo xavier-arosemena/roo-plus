@@ -1437,3 +1437,20 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 **What this settles for the 45.** Write the product form (**C6**), and write it with a discriminating clause: that combination is the strongest lever measured in the whole programme — 0.988 against 0.647 for the same idea in the experiment's rendering. But pair it with the ask rule: a line that always commits removes the model's ability to say "I need the file". The catalogue needs both, and the wording that maximises commitment is not automatically the wording that serves the user.
 
 **Limits.** One batch, 84 per arm, one model, one brief, no p-value; cut at 337 by a tool timeout rather than by a quota stop, so the batch is complete-but-short and balanced. The sign test's pairs are adjacent, not independent.
+
+## 42. The fair slug arm — the parenthetical did the damage, not the slug (2026-11-23)
+
+**Instrument.** `scripts/r0-run.mjs --contrast slug-lead`: two arms, `explain` at the seventh entry, line B, both in the product template, differing only in whether the display name is printed. **200 calls, none failed, ≈€1.02.**
+
+| Arm           | Rendered as                         |      Rate | Asks |
+| ------------- | ----------------------------------- | --------: | ---: |
+| slug-and-name | `* "explain" mode (Explain) - line` | **0.190** |   79 |
+| slug-only     | `* "explain" mode - line`           | **0.440** |   52 |
+
+**Paired within cycle: slug-only − slug-and-name = +25.0 points**, 38 up against 13 down (z 3.50).
+
+**F-14 — F-10 is discharged.** In §40 the slug arm collapsed to 0.19 and I declined to read it as "slug-first is worse", because a lowercase identifier sat in the slot the template reserves for a display name. Removing the parenthetical recovers **25 of those points**. So the malformation was the parenthetical, not the slug: **a slug can lead the line perfectly well.**
+
+**What is still not known, and M-16 forbids guessing.** Whether a slug-only line matches the product's name-first form (0.714 in §40's batch, 0.667 for line B in §41's) cannot be read across batches. It needs one batch carrying three arms — name-first, slug-only, slug-and-name — at **≈€1.2**. Until then the honest statement is that the two leading vocabularies are within reach of each other and that the product's name-first form is the only one measured against the experiment baseline in the same batch.
+
+**Why it matters for the catalogue.** If slug-only lines perform like name-first lines, the catalogue can print a shorter line — 5,860 characters for 45 modes against 6,621 — and spend the routing budget elsewhere. That is a real trade, and it is now one small batch from being decidable rather than arguable.
