@@ -3,6 +3,15 @@
 	"extractorVersion": "r0-extract/4",
 	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
 	"rows": 337,
+	"unusable": [
+		{
+			"runId": "r0-wording-fixture-C-085",
+			"arm": "C",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		}
+	],
 	"changed": [
 		{
 			"runId": "r0-wording-product-C-009",

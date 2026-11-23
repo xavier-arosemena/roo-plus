@@ -51,17 +51,33 @@ function loadBatch(dirName, entries, slugs) {
 		.filter(Boolean)
 		.map((line) => JSON.parse(line))
 	const rows = []
+	const unusable = []
 	for (const row of stored) {
-		if (row.failed) continue
+		// A row counts only if the call exited 0 AND left a transcript. The position
+		// batch predates the `failed` flag and carries one exit-1 row with no
+		// transcript that an earlier denominator scored as EMPTY (log §35) — a failed
+		// call must never enter a denominator, however old the batch.
 		const transcriptPath = path.join(dir, "transcripts", `${row.runId}.txt`)
-		if (!fs.existsSync(transcriptPath)) {
-			rows.push({ row, derived: null, note: "no transcript" })
+		const exitCode = row.exitCode ?? 0
+		if (row.failed || exitCode !== 0 || !fs.existsSync(transcriptPath)) {
+			unusable.push({
+				runId: row.runId,
+				arm: row.arm,
+				exitCode,
+				stored: row.verdict,
+				reason:
+					exitCode !== 0
+						? "non-zero exit"
+						: !fs.existsSync(transcriptPath)
+							? "no transcript"
+							: "flagged failed",
+			})
 			continue
 		}
 		const reply = fs.readFileSync(transcriptPath, "utf8")
 		rows.push({ row, derived: classifyProductReply(reply, slugs, entries), reply })
 	}
-	return { dirName, dir, rows }
+	return { dirName, dir, rows, unusable }
 }
 
 function summarise(batch) {
@@ -83,7 +99,10 @@ function summarise(batch) {
 				derived: derived.verdict,
 				slug: derived.slug ?? null,
 				rule: derived.rule,
-				firstLine: String(reply ?? "").trim().split("\n")[0].slice(0, 100),
+				firstLine: String(reply ?? "")
+					.trim()
+					.split("\n")[0]
+					.slice(0, 100),
 				note: note ?? null,
 			})
 		}
@@ -101,14 +120,15 @@ function pairs(batch) {
 	const size = keys.length
 	if (size < 2) return null
 	const cycles = new Map()
-	let position = 0
 	for (const entry of batch.rows) {
-		const cycle = Math.floor(position / size)
+		// Group by the row's OWN index, never by its position in the filtered list:
+		// dropping one unusable row shifts every later position by one and silently
+		// misaligns the rotation after that point.
+		const cycle = Math.floor((entry.row.i ?? 0) / size)
 		if (!cycles.has(cycle)) cycles.set(cycle, new Map())
 		const bucket = cycles.get(cycle)
 		if (bucket.has(entry.row.key)) return null
 		bucket.set(entry.row.key, entry.derived)
-		position += 1
 	}
 	const complete = [...cycles.values()].filter((bucket) => bucket.size === size)
 	const out = []
@@ -129,7 +149,10 @@ function pairs(batch) {
 				up,
 				down,
 				n,
-				delta: n ? ((up - down) / n) * 100 : 0,
+				// Points of rate over the complete cycles, and separately the share of
+				// discordant pairs. Both are legitimate; mixing them is not.
+				deltaRate: complete.length ? ((up - down) / complete.length) * 100 : 0,
+				deltaShare: n ? ((up - down) / n) * 100 : 0,
 				z: n ? (up - down) / Math.sqrt(n) : 0,
 			})
 		}
@@ -150,9 +173,11 @@ const names = options.dirs.length
 
 console.log(`extractor ${EXTRACTOR_VERSION} · catalogue ${CATALOGUE} (${entries.length} entries)`)
 let totalChanged = 0
+let batchesPrinted = 0
 for (const dirName of names) {
 	const batch = loadBatch(dirName, entries, slugs)
 	if (!batch) continue
+	batchesPrinted += 1
 	const { byArm, changed } = summarise(batch)
 	totalChanged += changed.length
 	console.log(`\n${dirName} — ${batch.rows.length} usable rows, ${changed.length} verdicts change`)
@@ -170,13 +195,15 @@ for (const dirName of names) {
 		for (const p of paired.out) {
 			console.log(
 				`    ${p.a} vs ${p.b}: up ${String(p.up).padStart(2)} down ${String(p.down).padStart(2)}` +
-					` n ${String(p.n).padStart(3)} delta ${p.delta.toFixed(1)} pts z ${p.z.toFixed(2)}`,
+					` n ${String(p.n).padStart(3)} · ${p.deltaRate.toFixed(1)} pts of rate (${p.deltaShare.toFixed(1)}% of pairs) z ${p.z.toFixed(2)}`,
 			)
 		}
 	}
 	if (!options.quiet) {
 		for (const entry of changed) {
-			console.log(`    ${entry.stored} → ${entry.derived}${entry.slug ? ":" + entry.slug : ""} (${entry.rule}) · ${entry.runId}`)
+			console.log(
+				`    ${entry.stored} → ${entry.derived}${entry.slug ? ":" + entry.slug : ""} (${entry.rule}) · ${entry.runId}`,
+			)
 			console.log(`      ${JSON.stringify(entry.firstLine)}`)
 		}
 	}
@@ -188,6 +215,7 @@ for (const dirName of names) {
 				extractorVersion: EXTRACTOR_VERSION,
 				catalogue: CATALOGUE,
 				rows: batch.rows.length,
+				unusable: batch.unusable,
 				changed,
 				byArm: Object.fromEntries(byArm),
 			},
@@ -196,4 +224,4 @@ for (const dirName of names) {
 		)}\n`,
 	)
 }
-console.log(`\n${totalChanged} verdicts change across ${names.length} batches. Raw records untouched.`)
+console.log(`\n${totalChanged} verdicts change across ${batchesPrinted} batches. Raw records untouched.`)

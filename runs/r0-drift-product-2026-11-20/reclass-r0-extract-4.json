@@ -3,6 +3,7 @@
 	"extractorVersion": "r0-extract/4",
 	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
 	"rows": 100,
+	"unusable": [],
 	"changed": [],
 	"byArm": {
 		"product:fixed": {

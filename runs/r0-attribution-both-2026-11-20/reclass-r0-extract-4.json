@@ -3,6 +3,15 @@
 	"extractorVersion": "r0-extract/4",
 	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
 	"rows": 250,
+	"unusable": [
+		{
+			"runId": "r0-attribution-fixture-fixture-063",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		}
+	],
 	"changed": [
 		{
 			"runId": "r0-attribution-fixture-name-first-fixture-name-first-021",

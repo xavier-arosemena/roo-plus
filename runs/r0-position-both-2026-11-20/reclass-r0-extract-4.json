@@ -2,7 +2,16 @@
 	"schema": "r0.reclass.v1",
 	"extractorVersion": "r0-extract/4",
 	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
-	"rows": 400,
+	"rows": 399,
+	"unusable": [
+		{
+			"runId": "r0-position-fixture-first-062",
+			"arm": "first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		}
+	],
 	"changed": [
 		{
 			"runId": "r0-position-product-first-001",
@@ -577,7 +586,7 @@
 	],
 	"byArm": {
 		"fixture:first": {
-			"n": 100,
+			"n": 99,
 			"storedDeclared": 21,
 			"derivedDeclared": 21,
 			"changed": 13

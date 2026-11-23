@@ -44,7 +44,7 @@ The log is append-only and therefore contains superseded readings. **This block 
 
 What survives is the **direction** of every contrast, because all of them were interleaved. Re-tested as adjacent-pair sign tests over replies already on disk: E20 C − B wins **238 of 288** pairs (z 11.08), E20b last − first **94 of 107** (z 7.83, with an extractor caveat). What does not survive is the Annex D intervals, which assumed time-free independent draws.
 
-One reading changes outright: **the position effect is absent in the product rendering** (−9 points, n.s.) and the same line declares **19 points less** at the last slot there than in the experiment format (§36). Two rules follow: **M-15** test stationarity on the contrast, not the arm; **M-16** publish arm rates _and_ the paired sign test, and never compare a level across runs.
+One reading changes outright: **the position effect is absent in the product rendering** (−9 points, n.s.) and the same line declares **18 points less** at the last slot there than in the experiment format (§36). Two rules follow: **M-15** test stationarity on the contrast, not the arm; **M-16** publish arm rates _and_ the paired sign test, and never compare a level across runs.
 
 Plain-language account: [`2026-11-20-the-ruler-wobbled.md`](../discussions/research-reports/2026-11-20-the-ruler-wobbled.md:1).
 **Next.** E20, already approved, tests the artefact-stating line on a maximally ambiguous brief; it must freeze a declaration contract first (§16.4). After that, the capability benchmark: doctrine and tooling, not vocabulary.
@@ -1241,28 +1241,28 @@ Cost of answering: no calls. Cost of acting: one 200–400-call run (≈€1–2
 
 ## 35. R0 position batch — the effect is not in the product form, and one arm ramped (2026-11-20)
 
-**Instrument.** [`scripts/r0-run.mjs`](../../scripts/r0-run.mjs:1): one batch, four arms, `explain` first against last in **two picker formats**, brief B3, persona P1, arms rotated each cycle. **400 calls, ≈€2.04**. Registration: [`2026-11-20-r0-picker-format-preregistration.md`](../reviews/2026-11-20-r0-picker-format-preregistration.md:1). Recount with the corrected extractor: [`runs/r0-position-both-2026-11-20/recount.json`](../../runs/r0-position-both-2026-11-20/recount.json).
+**Instrument.** [`scripts/r0-run.mjs`](../../scripts/r0-run.mjs:1): one batch, four arms, `explain` first against last in **two picker formats**, brief B3, persona P1, arms rotated each cycle. **400 calls, ≈€2.04**. Registration: [`2026-11-20-r0-picker-format-preregistration.md`](../reviews/2026-11-20-r0-picker-format-preregistration.md:1). Recount with the corrected extractor: [`runs/r0-position-both-2026-11-20/recount.json`](../../runs/r0-position-both-2026-11-20/recount.json); re-derived under extractor v4 in [`reclass-r0-extract-4.json`](../../runs/r0-position-both-2026-11-20/reclass-r0-extract-4.json).
 
 | Arm             | Declarations |      Rate | Quarters                | Stationary   |
 | --------------- | -----------: | --------: | ----------------------- | ------------ |
 | fixture · first |      21 / 99 | **0.212** | 0.32 0.32 0.13 **0.08** | ✗ range 0.24 |
 | fixture · last  |     44 / 100 | **0.440** | 0.40 0.44 0.44 0.48     | ✓ range 0.08 |
-| product · first |     34 / 100 | **0.340** | 0.32 0.28 0.28 0.48     | ✓ range 0.20 |
-| product · last  |     25 / 100 | **0.250** | 0.24 0.16 0.32 0.28     | ✓ range 0.16 |
+| product · first |     35 / 100 | **0.350** | 0.32 0.32 0.28 0.48     | ✓ range 0.20 |
+| product · last  |     26 / 100 | **0.260** | 0.24 0.16 0.32 0.32     | ✓ range 0.16 |
 
 **What may be read — the two contrasts whose arms are both stationary.**
 
 - **Order in the product form: −9.0 points.** `explain` last declares **less** often than `explain` first. The fixture form's last-entry advantage reverses.
-- **Format at the last position: −19.0 points.** The same condition declares 25% in the product form and 44% in the fixture form, in one batch.
+- **Format at the last position: −18.2 points.** The same condition declares 26% in the product form and 44% in the fixture form, in one batch.
 
 **What may not be read.** The fixture replication, **+22.8 points** (0.440 − 0.212), reproduces E20b's +30 in direction and size — and is **voided**, because its first arm fell 0.32 → 0.08 inside the run. M-10 was written for this and is applied. The format contrast at the first position is voided with it.
 
-**Against the registered predictions.** H-format-null **fails** at the last position (19 points). H-leading-token **survives**: the ordering that the fixture form produced is absent or reversed once the name leads the line. That is the prediction on record before the data, and the size is large enough to matter — but it rests on one batch, one model, one brief, and no p-value, and the arm that would have anchored the fixture comparison drifted.
+**Against the registered predictions.** H-format-null **fails** at the last position (18 points). H-leading-token **survives**: the ordering that the fixture form produced is absent or reversed once the name leads the line. That is the prediction on record before the data, and the size is large enough to matter — but it rests on one batch, one model, one brief, and no p-value, and the arm that would have anchored the fixture comparison drifted.
 
 **Two defects found and fixed.**
 
 1. **One call of 400 failed** (no transcript, non-zero exit). The runner recorded a row for it anyway. Excluded here; the runner should refuse a batch with any failed call.
-2. **16 to 25 replies per arm scored "unresolved", and every one sampled was an ask** — "To determine the correct mode, I need the following information: …". The extractor gained an ask-phrase rule, re-validated 20/20 against R2's hand pass. **Declaration rates are unaffected by this fix**, because the denominator is the whole arm; only the ask/unresolved split moves.
+2. **16 to 25 replies per arm scored "unresolved", and every one sampled was an ask** — "To determine the correct mode, I need the following information: …". The extractor gained an ask-phrase rule, re-validated 20/20 against R2's hand pass. **Declaration rates are unaffected by this fix**, because the denominator is the whole arm; only the ask/unresolved split moves. Re-derived under extractor v4 (§44) the split is settled: **fixture first 76 asks and 2 unresolved, fixture last 52 and 4, product first 57 and 8, product last 71 and 3** — and declarations move by one and one (35 / 26 in the product arms).
 
 > **Superseded in part by §36.** The contrasts in this batch are readable after all: paired within cycle, the drift cancels and the fixture replication survives the sign test. Read §36 before quoting §35.
 
@@ -1281,22 +1281,24 @@ Cost of answering: no calls. Cost of acting: one 200–400-call run (≈€1–2
 
 **Range 24 points, with nothing varied.** That is the size of the confound every four-arm batch in this programme has been carrying. It explains §35's fixture-first "ramp" (0.32 → 0.08), E20c's ramping control, and the 47.0-versus-59.3 cross-batch gap that M-9 was written from. **Arm-level rates are not comparable across quarters of a run.**
 
+> _Re-derived under extractor v4 (§44), which also excluded the one exit-1 call: declarations 21 / 99, 44 / 100, 35 / 100, 26 / 100; asks 76, 52, 57, 71; unresolved 2, 4, 8, 3. The paired figures below are v4's._
+
 **But the contrast does not use arm levels — it uses differences, and the difference cancels the drift.** The batch rotates arms every four calls, so the two members of each comparison sit ~40 seconds apart. Pairing within the cycle gives, for R0's position batch:
 
 | Contrast                     | Pairs | Mean difference | Up / down / tied | Approx. two-sided p |
 | ---------------------------- | ----: | --------------: | ---------------- | ------------------: |
 | fixture: last − first        |    99 |   **+23.2 pts** | 36 / 13 / 50     |         **≈ 0.001** |
 | product: last − first        |   100 |    **−9.0 pts** | 17 / 26 / 57     |              ≈ 0.17 |
-| format at first (prod − fix) |    99 |       +13.1 pts | 26 / 13 / 60     |              ≈ 0.04 |
-| format at last (prod − fix)  |   100 |   **−19.0 pts** | 14 / 33 / 53     |         **≈ 0.006** |
+| format at first (prod − fix) |    99 |       +14.1 pts | 26 / 12 / 61     |              ≈ 0.04 |
+| format at last (prod − fix)  |   100 |   **−18.2 pts** | 14 / 32 / 53     |         **≈ 0.006** |
 
-The mean differences are identical to the arm-rate differences, because a balanced rotation distributes drift evenly. What changes is that the **sign test is now available**, and it does not depend on the level drifting.
+The mean differences track the arm-rate differences — 23.2 paired against 22.8 unpaired for the fixture contrast, the residual being the one excluded call — because a balanced rotation distributes drift evenly. What changes is that the **sign test is now available**, and it does not depend on the level drifting.
 
 **What R0 actually found, restated.**
 
 1. **The fixture-form position effect replicates: +23.2 points** (E20b: +30), and the sign test excludes chance at the 0.001 level.
 2. **The product form shows no position effect: −9.0 points**, not distinguishable from zero (17 up against 26 down).
-3. **The form changes the outcome at the last position: −19.0 points.** The same line, last, declares 19 points less often in the product's rendering.
+3. **The form changes the outcome at the last position: −18.2 points.** The same line, last, declares 18 points less often in the product's rendering.
 4. H-format-null fails; **H-leading-token survives** — the ordering the fixture produced is absent once the name leads the line.
 
 **Method rule M-15 — stationarity is tested on the contrast, not on the arm.** Arm-level drift is evidence that _levels_ are unstable; it does not invalidate a contrast computed from pairs adjacent in time under a balanced rotation. §35 applied M-10 to the arm rate and voided a result that the paired design had already protected. The rule from here: report the per-quarter arm rates **and** the paired sign test, and let the paired one decide, unless the rotation is unbalanced.
@@ -1387,26 +1389,26 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 | Rendered form                                   | Declared |      Rate | Asks |
 | ----------------------------------------------- | -------: | --------: | ---: |
 | `- slug — Name — line` (fixture)                |  31 / 62 | **0.500** |   29 |
-| `- Name — slug — line`                          |  28 / 62 | **0.452** |   33 |
+| `- Name — slug — line`                          |  29 / 62 | **0.468** |   33 |
 | `* "slug" mode (Name) - line`                   |  12 / 63 | **0.190** |   51 |
-| `* "Name" mode (slug) - line` (**the product**) |  45 / 63 | **0.714** |   14 |
+| `* "Name" mode (slug) - line` (**the product**) |  49 / 63 | **0.778** |   14 |
 
 **Paired within cycle (drift cancels, M-15):**
 
 | Contrast                                          | Pairs |          Mean | Up / down |        z |
 | ------------------------------------------------- | ----: | ------------: | --------- | -------: |
-| order, dash template (name-first − slug-first)    |    62 |  **−4.8 pts** | 15 / 18   |    −0.52 |
-| order, product template (name-first − slug-first) |    63 | **+52.4 pts** | 37 / 4    | **5.15** |
+| order, dash template (name-first − slug-first)    |    62 |  **+3.2 pts** | 17 / 15   |     0.35 |
+| order, product template (name-first − slug-first) |    62 | **+58.1 pts** | 39 / 3    | **5.55** |
 | template, slug-first (product − fixture)          |    62 | **−30.6 pts** | 6 / 25    |    −3.41 |
-| template, name-first (product − fixture)          |    62 | **+25.8 pts** | 25 / 9    | **2.74** |
+| template, name-first (product − fixture)          |    62 | **+27.4 pts** | 24 / 7    | **3.05** |
 
-**F-8 — inside the experiment's own template, field order does not matter, and inside the product's it decides everything.** Swapping slug and name in the dash form moves the rate by 5 points (not distinguishable from zero). Swapping them inside `* "<x>" mode (<y>) - line` moves it by **52 points**. The same field, in the same position, is worth nothing in one template and everything in the other.
+**F-8 — inside the experiment's own template, field order does not matter, and inside the product's it decides everything.** Swapping slug and name in the dash form moves the rate by 3 points (not distinguishable from zero). Swapping them inside `* "<x>" mode (<y>) - line` moves it by **58 points**. The same field, in the same position, is worth nothing in one template and everything in the other.
 
-**F-9 — the product's own line is the best of the four, by 26 points.** Name quoted, slug in the parenthesis, under the `MODES` heading: 0.714 against 0.500 for the fixture form, 25 up against 9 down. That is the sentence the catalogue build needs, and it points the opposite way from the advice the earlier rounds implied.
+**F-9 — the product's own line is the best of the four, by 27 points.** Name quoted, slug in the parenthesis, under the `MODES` heading: 0.778 against 0.500 for the fixture form, 24 up against 7 down. That is the sentence the catalogue build needs, and it points the opposite way from the advice the earlier rounds implied.
 
 **F-10 — one of the four arms is probably not a fair test, and saying so is part of the result.** `* "slug" mode (Name)` puts a lowercase identifier where the template expects a display name and the name where it expects an identifier. At 0.190 with **51 asks** out of 63, it looks like a line that fails to read as a mode at all rather than a line that leads with the slug. So the honest claim is **"the template decides"**, not **"slug-first is worse"** — the two are not separated by this design, and separating them needs an arm where a slug can plausibly occupy the name slot.
 
-**What this settles for the catalogue.** Write and test every line in the product's rendering (**C6**): that form declared 26 points more often than the experiment's, in the same batch. Do not choose field order as a lever: within the experiment template it is worth nothing, and within the product template the "wrong" order is pathological rather than merely worse.
+**What this settles for the catalogue.** Write and test every line in the product's rendering (**C6**): that form declared 27 points more often than the experiment's, in the same batch. Do not choose field order as a lever: within the experiment template it is worth nothing, and within the product template the "wrong" order is pathological rather than merely worse.
 
 **Limits.** One batch, 62 to 63 per arm, one model, one brief, no p-value quoted; the sign test's pairs are adjacent but not independent, so its z is optimistic. Two failed batches preceded this one, and the 251-call stop means the design is 63 per arm, not the 100 planned.
 
@@ -1418,27 +1420,27 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 
 | Arm                     | Declared |      Rate |  Asks |
 | ----------------------- | -------: | --------: | ----: |
-| experiment form, line B |  55 / 85 | **0.647** |    27 |
+| experiment form, line B |  56 / 85 | **0.659** |    27 |
 | experiment form, line C |  73 / 84 | **0.869** |     9 |
 | product form, line B    |  56 / 84 | **0.667** |    25 |
-| product form, line C    |  83 / 84 | **0.988** | **0** |
+| product form, line C    |  84 / 84 | **1.000** | **0** |
 
 **Paired within cycle (M-15):**
 
 | Contrast                     | Pairs |          Mean | Up / down |        z |
 | ---------------------------- | ----: | ------------: | --------- | -------: |
-| C − B, experiment form       |    84 | **+22.6 pts** | 24 / 5    |     3.53 |
-| C − B, **product form**      |    84 | **+32.1 pts** | 28 / 1    | **5.01** |
-| product − experiment, line B |    84 |      +2.4 pts | 19 / 17   |     0.33 |
-| product − experiment, line C |    84 |     +11.9 pts | 11 / 1    |     2.89 |
+| C − B, experiment form       |    84 | **+21.4 pts** | 23 / 5    |     3.40 |
+| C − B, **product form**      |    84 | **+33.3 pts** | 28 / 0    | **5.29** |
+| product − experiment, line B |    84 |      +1.2 pts | 19 / 18   |     0.16 |
+| product − experiment, line C |    84 |     +13.1 pts | 11 / 0    |     3.32 |
 
-**F-11 — the headline survives the product's rendering and is larger there.** The wording contrast reads +22.6 in the form every earlier round used, which reproduces E20's 27.5 within the same margin, and **+32.1** in the form the extension emits. **H-template-eased is confirmed**: the product's line makes the sentence do more work, not less.
+**F-11 — the headline survives the product's rendering and is larger there.** The wording contrast reads +21.4 in the form every earlier round used, which reproduces E20's 27.5 within the same margin, and **+33.3** in the form the extension emits. **H-template-eased is confirmed**: the product's line makes the sentence do more work, not less.
 
-**F-12 — and in the product's rendering the excluding line silences the ask channel.** Line C committed **83 times in 84 calls, with zero questions**. Line B, same batch, same form, asked 25 times. So the discriminating "must not merely describe" line in the product's rendering does not merely favour commitment — it removes the alternative. That is a product decision, not only a statistical one: on an ambiguous brief the model would stop asking for the missing information, which §0 of the routing report calls the _appropriate_ behaviour.
+**F-12 — and in the product's rendering the excluding line silences the ask channel.** Line C committed **84 times in 84 calls, with zero questions and nothing left unresolved**. Line B, same batch, same form, asked 25 times. So the discriminating "must not merely describe" line in the product's rendering does not merely favour commitment — it removes the alternative. That is a product decision, not only a statistical one: on an ambiguous brief the model would stop asking for the missing information, which §0 of the routing report calls the _appropriate_ behaviour.
 
-**F-13 — the format does not change line B at all.** +2.4 points, 19 up against 17 down. Whatever the product's rendering does, it does it through the _content_ of a discriminating line, not by making every line more decisive.
+**F-13 — the format does not change line B at all.** +1.2 points, 19 up against 18 down. Whatever the product's rendering does, it does it through the _content_ of a discriminating line, not by making every line more decisive.
 
-**What this settles for the 45.** Write the product form (**C6**), and write it with a discriminating clause: that combination is the strongest lever measured in the whole programme — 0.988 against 0.647 for the same idea in the experiment's rendering. But pair it with the ask rule: a line that always commits removes the model's ability to say "I need the file". The catalogue needs both, and the wording that maximises commitment is not automatically the wording that serves the user.
+**What this settles for the 45.** Write the product form (**C6**), and write it with a discriminating clause: that combination is the strongest lever measured in the whole programme — 1.000 against 0.659 for the same idea in the experiment's rendering. But pair it with the ask rule: a line that always commits removes the model's ability to say "I need the file". The catalogue needs both, and the wording that maximises commitment is not automatically the wording that serves the user.
 
 **Limits.** One batch, 84 per arm, one model, one brief, no p-value; cut at 337 by a tool timeout rather than by a quota stop, so the batch is complete-but-short and balanced. The sign test's pairs are adjacent, not independent.
 
@@ -1451,13 +1453,13 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 | Arm           | Rendered as                         |      Rate | Asks |
 | ------------- | ----------------------------------- | --------: | ---: |
 | slug-and-name | `* "explain" mode (Explain) - line` | **0.190** |   79 |
-| slug-only     | `* "explain" mode - line`           | **0.440** |   52 |
+| slug-only     | `* "explain" mode - line`           | **0.450** |   52 |
 
-**Paired within cycle: slug-only − slug-and-name = +25.0 points**, 38 up against 13 down (z 3.50).
+**Paired within cycle: slug-only − slug-and-name = +26.0 points of rate**, 39 up against 13 down (z 3.61).
 
-**F-14 — F-10 is discharged.** In §40 the slug arm collapsed to 0.19 and I declined to read it as "slug-first is worse", because a lowercase identifier sat in the slot the template reserves for a display name. Removing the parenthetical recovers **25 of those points**. So the malformation was the parenthetical, not the slug: **a slug can lead the line perfectly well.**
+**F-14 — F-10 is discharged.** In §40 the slug arm collapsed to 0.19 and I declined to read it as "slug-first is worse", because a lowercase identifier sat in the slot the template reserves for a display name. Removing the parenthetical recovers **26 of those points**. So the malformation was the parenthetical, not the slug: **a slug can lead the line perfectly well.**
 
-**What is still not known, and M-16 forbids guessing.** Whether a slug-only line matches the product's name-first form (0.714 in §40's batch, 0.667 for line B in §41's) cannot be read across batches. It needs one batch carrying three arms — name-first, slug-only, slug-and-name — at **≈€1.2**. Until then the honest statement is that the two leading vocabularies are within reach of each other and that the product's name-first form is the only one measured against the experiment baseline in the same batch.
+**What is still not known, and M-16 forbids guessing.** Whether a slug-only line matches the product's name-first form (0.778 in §40's batch as re-derived in §44, 0.667 for line B in §41's) cannot be read across batches. It needs one batch carrying three arms — name-first, slug-only, slug-and-name — at **≈€1.2**. Until then the honest statement is that the two leading vocabularies are within reach of each other and that the product's name-first form is the only one measured against the experiment baseline in the same batch.
 
 **Why it matters for the catalogue.** If slug-only lines perform like name-first lines, the catalogue can print a shorter line — 5,860 characters for 45 modes against 6,621 — and spend the routing budget elsewhere. That is a real trade, and it is now one small batch from being decidable rather than arguable. _(Decided in §43: it is not a saving.)_
 
@@ -1471,19 +1473,19 @@ No calls. Every reply was already on disk; only the test changed. The classifier
 | slug-only         | `* "explain" mode - <whenToUse>`           | 0.450 |   55 |          3 |
 | slug-and-name     | `* "explain" mode (Explain) - <whenToUse>` | 0.130 |   85 |          2 |
 
-Rates are hand-adjudicated (F-15 below). As classified by the pinned rule: 0.730 / 0.420 / 0.130, same ordering.
+Rates are extractor v4's output (§44), which reproduces the hand pass on all ten unresolved replies. As classified by the pinned rule: 0.730 / 0.420 / 0.130, same ordering.
 
 **Paired within cycle** (M-15's statistic, the only one M-16 permits here):
 
-- name-first − slug-only = **+57.9 points**, 45 up against 12 down (z 4.37)
-- name-first − slug-and-name = **+84.4 points**, 71 up against 6 down (z 7.41)
-- slug-only − slug-and-name = **+72.7 points**, 38 up against 6 down (z 4.82)
+- name-first − slug-only = **+33.0 points of rate**, 45 up against 12 down (57.9% of the 57 discordant pairs, z 4.37)
+- name-first − slug-and-name = **+65.0 points of rate**, 71 up against 6 down (84.4% of 77, z 7.41)
+- slug-only − slug-and-name = **+32.0 points of rate**, 38 up against 6 down (72.7% of 44, z 4.82)
 
-The unpaired rate differences are 33.0 / 65.0 / 32.0 points, and each equals its paired net (45 − 12, 71 − 6, 38 − 6) — the two routes agree, which is the check M-14 asks for.
+Those nets are also the unpaired rate differences (33.0 / 65.0 / 32.0), the two routes agreeing — the check M-14 asks for. Every figure in this section is quoted as points of rate; the share of discordant pairs is given only in brackets.
 
-**F-15 — the classifier misses declarations that print a bare header.** All ten `UNRESOLVED` replies were read by hand (M-1). Eight are declarations: the model prints `**"Explain" mode (explain)**` — or `I will use **"explain" mode**` — and _then_ asks for the source file. That is a commitment followed by a material ask, not a failure to choose. Two are genuine asks (`slug-and-name` 032 and 064: "clarification on whether…"). The v3 rule needs an anchored marker (`Mode:`, `Selected Mode:`) or no ask lead-in at all, so the bare-header form falls through to `unresolved`. The bias runs **against** the winning arm (it understates name-first and slug-only, never slug-and-name), so the conclusion below does not rest on the correction — but §40, §41 and §42 were not re-adjudicated, and their declaration rates are lower bounds on the same ordering.
+**F-15 — the classifier misses declarations that print a bare header.** All ten `UNRESOLVED` replies were read by hand (M-1). Eight are declarations: the model prints `**"Explain" mode (explain)**` — or `I will use **"explain" mode**` — and _then_ asks for the source file. That is a commitment followed by a material ask, not a failure to choose. Two are genuine asks (`slug-and-name` 032 and 064: "clarification on whether…"). The cause is narrower and worse than the shape of the heading: v3 also has an earlier rule that commits when _exactly one_ slug appears anywhere in the reply, and `code` is one of the 45 — so "the source code" gives it two candidates and it says nothing. §44 states the mechanism correctly, adds the anchored rules, and re-derives every batch; the rates above are that re-derivation. The bias ran **against** the winning arm (it understated name-first and slug-only, never slug-and-name), so the conclusion never rested on it.
 
-**Stationarity — the runner's warning is not the test (M-15).** The runner raised its M-10 warning on `name-first` (quarters 0.80 / 0.64 / 0.88 / 0.60). Applied to the arm rate that voids the batch, which is the same over-correction as §35. Tested on the contrasts, all three keep sign and magnitude in both halves: name-first vs slug-only **+50.0** (first 50 cycles) then **+61.3**; name-first vs slug-and-name **+88.2** then **+78.9**; slug-only vs slug-and-name **+81.8** then **+52.4**. The arms oscillate in opposite directions, which is not what a shared drift looks like. **The contrasts are stationary; the arm levels are not.** That distinction is what M-15 was written for, and the runner still reports the arm test because this contrast set declares no factorial pairs, so its `contrasts` block is empty.
+**Stationarity — the runner's warning is not the test (M-15).** The runner raised its M-10 warning on `name-first` (quarters 0.80 / 0.64 / 0.88 / 0.60). Applied to the arm rate that voids the batch, which is the same over-correction as §35. Tested on the contrasts, all three keep sign and magnitude in both halves: name-first vs slug-only **+26.0** (first 50 cycles) then **+40.0**; name-first vs slug-and-name **+64.0** then **+66.0**; slug-only vs slug-and-name **+38.0** then **+26.0**. The arms oscillate in opposite directions, which is not what a shared drift looks like. **The contrasts are stationary; the arm levels are not.** That distinction is what M-15 was written for, and the runner still reports the arm test because this contrast set declares no factorial pairs, so its `contrasts` block is empty.
 
 **F-16 — the lever is the quoted slot, not the presence of the name.** `slug-and-name` prints the display name too, in the parenthetical, and is the worst of the three (0.130). So "printing a human-readable name helps" is false as stated. What the three arms separate is _which token is inside the quotes_: the name there gives 0.780, the slug there gives 0.130, and the parenthetical is inert whether it holds the slug (0.780) or the name (0.130). Stated as a mechanism candidate, not a finding: the quoted token is what the model appears to read as the mode's name.
 
@@ -1491,7 +1493,7 @@ The unpaired rate differences are 33.0 / 65.0 / 32.0 points, and each equals its
 
 **Cross-run agreement, recorded as reassurance and not as evidence (M-16).** name-first 0.780 here against 0.778 in §40's product arm (as re-derived, §44); slug-only 0.450 against 0.450 in §42; slug-and-name 0.130 against 0.190 in both §40 and §42. Nothing here is a new phenomenon; what the batch says is what counts.
 
-**Limits.** One model, one brief, one line (B), one position (seventh entry), no pre-registered p-values, and adjacent-not-independent pairs. The eight mislabelled declarations show the pinned rule still has a blind spot on exactly this rendering, so any future product-form batch should either extend the rule to the bare-header form or budget for hand adjudication.
+**Limits.** One model, one brief, one line (B), one position (seventh entry), no pre-registered p-values, and adjacent-not-independent pairs. The eight mislabelled declarations were the reason for extractor v4 (§44); with the vocabulary anchor in place the pinned rule reads them, and the twenty-reply wall still passes. A future product-form batch needs no hand adjudication, but it should confirm the extractor version stamped on its rows.
 
 ## 44. Extractor v4 — the bare header, the `code` homonym, and every number re-derived (2026-11-23)
 
@@ -1512,7 +1514,7 @@ Position arbitrates: the earliest signal in the reply wins. A heading before an 
 
 **Validation.** [`r0-extract.spec.mjs`](../scripts/r0-extract.spec.mjs:1) is 16/16 — R2's twenty-reply hand wall reproduced with **and** without the vocabulary (v4 must not disturb a single hand verdict), each new shape, and three negative cases including the prose false positive.
 
-**Re-derivation, at zero cost.** [`r0-reclassify.mjs`](../scripts/r0-reclassify.mjs:1) re-reads every stored transcript, re-derives every verdict, and writes `reclass-r0-extract-4.json` beside each batch. **Raw `results.jsonl` is never rewritten** — a record that silently changes is not a record. Seven batches, 1,841 usable rows, **75 verdicts change**, and not one declaration becomes an ask.
+**Re-derivation, at zero cost.** [`r0-reclassify.mjs`](../scripts/r0-reclassify.mjs:1) re-reads every stored transcript, re-derives every verdict, and writes `reclass-r0-extract-4.json` beside each batch. **Raw `results.jsonl` is never rewritten** — a record that silently changes is not a record. Seven batches, 1,840 usable rows (one exit-1 call excluded, §35), **75 verdicts change**, and not one declaration becomes an ask.
 
 **These figures supersede the ones in §36–§43 wherever they differ.**
 
