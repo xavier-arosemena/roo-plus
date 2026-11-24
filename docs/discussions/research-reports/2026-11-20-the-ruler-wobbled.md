@@ -2,6 +2,8 @@
 
 _A plain-language note on a measurement problem we found in our own testing. Written for readers who do not work on language models._
 
+**Status:** published 2026-11-23. Third of three posts on the mode-routing work; the evidence behind every number here — the experiments, the raw records and the corrections — is in the [technical report](2026-11-19-routing-benchmark-report.md:1). Nothing in this note is a product announcement.
+
 ## The short version
 
 We spent a week asking one question: **does the wording of a list change which item a model picks?** We built careful tests, spent real money, and got clean-looking answers.
@@ -20,11 +22,11 @@ Simple experiment. Same list, same request, one line changed.
 
 ## The first surprise, a week earlier
 
-One early test gave **one answer in five** for one condition and **four in five** for another. A big, clean result. We ran it again with more conversations and it **reversed**.
+One early screen gave **one answer in five** for one condition and **four in five** for another. Clean, striking, and we reported it as a finding.
 
-The concrete example: two versions of one mode's description, five conversations each. One committed once, the other four times. When the same comparison was repeated at a hundred conversations per side it read **44% against 30%** — the other way round. Five conversations told us a story; a hundred told us the opposite one.
+It did not survive. Five conversations per side is almost nothing: those counts were never beyond what chance produces at that size, and when the same comparison was repeated at a hundred conversations per side the gap had shrunk to about fourteen points — which, as the rest of this note explains, is inside the range an unchanged condition wanders on its own.
 
-We decided it had been luck: five conversations is almost nothing.
+So the first surprise was not a discovery. It was a small sample read as a large effect. It stays in the record rather than being tidied away, because a programme that only publishes what survived is publishing a highlight reel.
 
 ## The second surprise: the same thing, twice, disagreed
 
@@ -67,27 +69,29 @@ A 24-point swing with nothing changed. Two in five, then one in six, for the sam
 
 ## Why this happens
 
-We cannot see inside the provider, but three explanations are documented and all fit:
+**We do not know, and we are not going to guess in public.** What follows are three explanations that are documented for commercial language-model services and are _consistent_ with what we measured. None of them is a cause we established: all three happen on the provider's side, none is visible from where we sit, and the measurements cannot separate them.
 
-1. **The same input is not guaranteed to give the same output.** Google's own documentation says a fixed random seed is "best effort" and deterministic output is not guaranteed. The developer forums are full of the same complaint, even with randomness switched off.
-2. **Caching.** Google caches common content automatically to save money and time. A help-page thread shows the same request being served from cache three times out of five, then not, then from cache again. Cached and uncached, the model is not reading quite the same context.
-3. **Grouping.** Providers bundle requests together for efficiency, and the arithmetic depends on what else is in the bundle. What else is in flight depends on strangers' traffic, not on us. This is the one that is not vendor-specific: it is an industry-wide technique, and the same caveat applies to any provider that batches.
+1. **The same input is not guaranteed to give the same output.** At least one major provider documents that a fixed random seed is "best effort" and that identical input may still produce different output, even with randomness switched off.
+2. **Caching.** Providers cache content automatically to save money and time, and whether a given request is served from cache can vary within a session. Cached and uncached, the model is not reading quite the same context.
+3. **Grouping.** Providers bundle requests together for efficiency, and the arithmetic depends on what else is in the bundle. What else is in flight depends on other people's traffic, not on us. This one is not vendor-specific: it is an industry-wide technique.
 
     So: **the model on the other end is a slightly different machine every few minutes.** Not broken — just not the measuring instrument we assumed.
+
+The technical report treats these as candidates that fit the size and shape of the movement, and states plainly that separating them needs a design that varies batch conditions deliberately. Anyone quoting this post as evidence that a particular provider caches or batches in a particular way is quoting more than we measured.
 
 **Should we just run the tests on the other model, then?** For this particular question, no — and that is the trap. The second model we have access to **never asks for clarification**: in 91 replies it committed to a mode every single time. The thing we are measuring is _whether the assistant commits or asks_, and on that model the answer is always "commits", so there is nothing to compare. The drift is a reason to measure more carefully, not a reason to change instruments to one that cannot see the phenomenon.
 
 ## How this fooled us, in order
 
-| When              | What we saw                                  | What we concluded then                      | What it looks like now                                 |
-| ----------------- | -------------------------------------------- | ------------------------------------------- | ------------------------------------------------------ |
-| Early, 5 runs     | 1 in 5 versus 4 in 5                         | a real effect                               | luck, later reversed                                   |
-| 600 conversations | 59.3% then 47.0% for identical prompts       | batch variation, ban cross-batch comparison | the same drift, twelve points of it                    |
-| 900 conversations | effect held its sign in all four quarters    | trust it                                    | still right — the quarterly check is what protected it |
-| 200 conversations | 15% versus 45%, quarters +44/+20/+24/+20     | trust it                                    | still right, same reason                               |
-| 600 conversations | one condition climbed 36% → 60%              | inconclusive, stop                          | the drift, caught in the act                           |
-| 20 conversations  | the channel opens for hidden-intent requests | fine                                        | fine, but the numbers were never significant           |
-| 400 conversations | one condition fell 32% → 8%                  | cannot read this round                      | the drift again, then confirmed by the fifty-cent test |
+| When              | What we saw                                  | What we concluded then                      | What it looks like now                                                                |
+| ----------------- | -------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Early, 5 runs     | 1 in 5 versus 4 in 5                         | a real effect                               | luck — never beyond chance at that size; the gap shrank to ~14 points at 100 per side |
+| 600 conversations | 59.3% then 47.0% for identical prompts       | batch variation, ban cross-batch comparison | the same drift, twelve points of it                                                   |
+| 900 conversations | effect held its sign in all four quarters    | trust it                                    | still right — the quarterly check is what protected it                                |
+| 200 conversations | 15% versus 45%, quarters +44/+20/+24/+20     | trust it                                    | still right, same reason                                                              |
+| 600 conversations | one condition climbed 36% → 60%              | inconclusive, stop                          | the drift, caught in the act                                                          |
+| 20 conversations  | the channel opens for hidden-intent requests | fine                                        | fine, but the numbers were never significant                                          |
+| 400 conversations | one condition fell 32% → 8%                  | cannot read this round                      | the drift again, then confirmed by the fifty-cent test                                |
 
 ## What actually changes
 
@@ -129,3 +133,20 @@ Concretely: alternate the conditions every few calls, and compare each pair of n
 We are not saying the model is bad, or the provider is at fault, or that our earlier results were wrong. We are saying that a tool which varies by a quarter between calls cannot be used to detect a change of a tenth. That is a fact about the ruler, and it took a week to see because every test in the week looked, individually, fine.
 
 The measurements are still ours. The error bars are now honest.
+
+---
+
+## Where these numbers come from
+
+Every figure in this note is one batch's measurement of one model on one request, and is quoted from the programme's own record:
+
+- **The five-and-five screen and its collapse** — the persona screen's deviation record (D-10) and the closing round's correction, log §6 and §13.
+- **14–17 points on the closing round's ruler** — log §11 (the statistical decisions fixed before that round).
+- **59.3% against 47.0%, and the 24-point drift** — log §§22, 27 and 36.
+- **The arm that climbed 36% → 60% and the arm that fell 32% → 8%** — log §§23–24, 35.
+- **238 of 288 and 94 of 107 adjacent pairs** — log §38.
+- **+23, −9 and −18 points in the two layouts** — log §§35–36, re-derived in §44.
+
+The full account, including the claims we withdrew and the defects we recorded, is the **[routing benchmark report](2026-11-19-routing-benchmark-report.md:1)**. Its §4.9 is this note in technical form; its §10 is what we got wrong.
+
+_Keywords: `agentic-coding` · `agentic-ide` · `coding` · `vscodium-extension` · `llm-evaluation` · `reproducibility`_

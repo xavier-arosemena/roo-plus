@@ -398,7 +398,7 @@ Line B against line C, position held at the seventh entry, both renderings, one 
 | product form, line B     | 0.667     | 25    |
 | **product form, line C** | **1.000** | **0** |
 
-Paired within cycle: **C − B is +21.4 points in the experiment form** (18 up, 5 down, z 3.40) and **+33.3 points in the product form** (28 up, 0 down, z 5.29). The effect survives the change of rendering and grows in it. The format alone does nothing for line B: +1.2 points, 19 up against 18 down.
+Paired within cycle: **C − B is +21.4 points in the experiment form** (18 up, 5 down, z 3.40) and **+33.3 points in the product form** (28 up, 0 down, z 5.29). The effect survives the change of rendering and grows in it. The format alone does nothing for line B: **+1.2 points**, 19 up against 18 down. An earlier pass reported +2.4 for that comparison; the re-derivation under extractor v4 moved one reply (19 up, 17 down became 19 up, 18 down), and the conclusion — indistinguishable from zero — is the same under either reading.
 
 **And in the product's rendering, the discriminating line removes the alternative.** Line C committed **84 times in 84 calls — no questions, nothing unresolved** — while line B asked 25 times in the same batch, in the same form. On an ambiguous brief, asking is the _appropriate_ behaviour by this report's own definition. So the strongest wording lever measured in the whole programme is also the one that suppresses the behaviour the system needs when the user has not said enough.
 
