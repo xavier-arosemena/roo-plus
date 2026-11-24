@@ -1,6 +1,6 @@
 import type { MouseEvent } from "react"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { Bug, MessagesSquare, Star, Store } from "lucide-react"
+import { Bug, MessagesSquare, ShoppingBag, Star, Store } from "lucide-react"
 import { Trans, useTranslation } from "react-i18next"
 
 import { EXTERNAL_LINKS } from "@src/constants/externalLinks"
@@ -37,6 +37,14 @@ const supportLinks = [
 		labelKey: "support.reviewUsMarketplace",
 		href: EXTERNAL_LINKS.MARKETPLACE_REVIEW,
 	},
+	{
+		// Permanent merch link: the welcome tips block is the one place every
+		// user sees on first run, so it carries the standing shop link while the
+		// "What's New" popup keeps the rotating seasonal copy.
+		icon: <ShoppingBag className="size-4 shrink-0" aria-hidden />,
+		labelKey: "support.merch",
+		href: EXTERNAL_LINKS.MERCH,
+	},
 ]
 
 const RooTips = () => {
@@ -61,6 +69,7 @@ const RooTips = () => {
 					</VSCodeLink>
 				))}
 			</div>
+			<p className="my-0 text-xs">{t("support.merchBlurb")}</p>
 		</div>
 	)
 }

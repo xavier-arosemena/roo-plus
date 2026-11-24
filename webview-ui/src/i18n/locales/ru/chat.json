@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "Загрузить предыдущие сообщения",
 	"about": "Локальное, bring-your-own-model агентное расширение IDE — <br/>Знай свои расходы, доверяй своему кэшу, сохраняй свои знания.",
 	"support": {
-	"marketing": "Уделите минутку и поставьте нам <star/> на <githubLink>GitHub</githubLink>! (~20s)",
+		"merch": "Мерч Roo+",
+		"merchBlurb": "Держит репозиторий бодрым.",
 		"reportIssue": "Сообщить об ошибке или запросить функцию",
 		"discussions": "Присоединиться к обсуждениям",
 		"starUs": "Поставьте нам звезду на GitHub",
@@ -342,6 +343,7 @@
 	},
 	"announcement": {
 		"title": "Выпущен Roo+ {{version}}",
+		"marketing": "Нет идеи для подарка? Мерч Roo+: для агентного разработчика в твоей жизни. <merchLink>В магазин</merchLink>",
 		"support": "Поддержите Roo+ на <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> и в <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Что нового:",

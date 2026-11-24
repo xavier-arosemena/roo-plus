@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "Carrega els missatges anteriors",
 	"about": "L'extensió d'IDE agentic local-first, amb el teu propi model — <br/>Coneix els teus costos, confia en la teva memòria cau, conserva el teu coneixement.",
 	"support": {
-	"marketing": "Dedica un moment i dona'ns una <star/> a <githubLink>GitHub</githubLink>! (~20s)",
+		"merch": "Marxandatge de Roo+",
+		"merchBlurb": "Manté el repo despert.",
 		"reportIssue": "Informa d'un error o demana una funció",
 		"discussions": "Uneix-te als debats",
 		"starUs": "Dona'ns una estrella a GitHub",
@@ -369,6 +370,7 @@
 	},
 	"announcement": {
 		"title": "S'ha publicat Roo+ {{version}}",
+		"marketing": "Sense idees per als regals? Marxandatge de Roo+: per al desenvolupador agèntic de la teva vida. <merchLink>Veure la botiga</merchLink>",
 		"support": "Si us plau, dóna suport a Roo+ a <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> i al <openVsxLink>Registre Open VSX</openVsxLink>.",
 		"release": {
 			"heading": "Novetats:",

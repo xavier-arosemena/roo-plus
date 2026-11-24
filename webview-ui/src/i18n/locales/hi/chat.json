@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "पिछले संदेश लोड करें",
 	"about": "लोकल-फ़र्स्ट, ब्रिंग-योर-ओन-मॉडल एजेंटिक IDE एक्सटेंशन — <br/>अपनी लागत जानें, अपने कैश पर भरोसा करें, अपना ज्ञान बनाए रखें।",
 	"support": {
-	"marketing": "कृपया एक पल लेकर हमें <githubLink>GitHub</githubLink> पर एक <star/> दें! (~20s)",
+		"merch": "Roo+ मर्च",
+		"merchBlurb": "रेपो को जगाए रखता है।",
 		"reportIssue": "बग रिपोर्ट करें या फ़ीचर मांगें",
 		"discussions": "चर्चाओं में शामिल हों",
 		"starUs": "GitHub पर हमें स्टार दें",
@@ -369,6 +370,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ {{version}} रिलीज़ हो गया",
+		"marketing": "उपहार की सोच में उलझे हैं? Roo+ मर्च: आपके जीवन के एजेंटिक डेवलपर के लिए। <merchLink>शॉप देखें</merchLink>",
 		"support": "कृपया <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> और <openVsxLink>Open VSX Registry</openVsxLink> पर Roo+ का समर्थन करें।",
 		"release": {
 			"heading": "नया क्या है:",

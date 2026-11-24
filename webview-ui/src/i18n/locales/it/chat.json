@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "Carica messaggi precedenti",
 	"about": "L'estensione IDE agentica local-first, porta il tuo modello — <br/>Conosci i tuoi costi, fidati della tua cache, conserva le tue conoscenze.",
 	"support": {
-	"marketing": "Prenditi un momento per darci una <star/> su <githubLink>GitHub</githubLink>! (~20s)",
+		"merch": "Merch di Roo+",
+		"merchBlurb": "Tiene sveglio il repo.",
 		"reportIssue": "Segnala un bug o richiedi una funzionalità",
 		"discussions": "Unisciti alle discussioni",
 		"starUs": "Lasciaci una stella su GitHub",
@@ -369,6 +370,7 @@
 	},
 	"announcement": {
 		"title": "Rilasciato Roo+ {{version}}",
+		"marketing": "Nessuna idea regalo? Il merch di Roo+: per lo sviluppatore agentico della tua vita. <merchLink>Vai allo shop</merchLink>",
 		"support": "Sostieni Roo+ su <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> e sul <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novità:",

@@ -333,6 +333,16 @@ See the full **[Roadmap](ROADMAP.md)** for details and the principles behind eac
 
 ---
 
+## ☕ Merch
+
+Insulated mugs, coffee tumblers, and vanity plates — printed on demand, shipped worldwide, captioned for people who have reviewed an agent's pull request.
+
+**[Browse the shop](https://roo-plus.printify.me/)** · shipping and returns are covered in the [pinned discussion](https://github.com/xavier-arosemena/roo-plus/discussions).
+
+A portion of every purchase goes back into this repository. The extension itself is unchanged by it.
+
+---
+
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!

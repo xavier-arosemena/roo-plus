@@ -14,6 +14,8 @@ vi.mock("react-i18next", () => ({
 				"support.starUs": "Star us on GitHub",
 				"support.reviewUsOpenVsx": "Review us on Open VSX",
 				"support.reviewUsMarketplace": "Review us on VS Code Marketplace",
+				"support.merch": "Roo+ merch",
+				"support.merchBlurb": "Keeps the repo caffeinated.",
 			}
 			return labels[key] ?? key
 		},
@@ -56,8 +58,8 @@ describe("RooTips Component", () => {
 
 	it("renders the community links with the correct hrefs and labels", () => {
 		render(<RooTips />)
-		// Three support links + the two split review links.
-		expect(screen.getAllByRole("link")).toHaveLength(5)
+		// Three support links + the two split review links + the permanent merch link.
+		expect(screen.getAllByRole("link")).toHaveLength(6)
 
 		expect(screen.getByRole("link", { name: "Report an issue" }).getAttribute("href")).toBe(
 			EXTERNAL_LINKS.GITHUB_ISSUES_CHOOSER,
@@ -74,6 +76,13 @@ describe("RooTips Component", () => {
 		expect(screen.getByRole("link", { name: "Review us on Open VSX" }).getAttribute("href")).toBe(
 			EXTERNAL_LINKS.OPEN_VSX_REGISTRY,
 		)
+		expect(screen.getByRole("link", { name: "Roo+ merch" }).getAttribute("href")).toBe(EXTERNAL_LINKS.MERCH)
+	})
+
+	it("renders the permanent merch blurb under the links", () => {
+		render(<RooTips />)
+
+		expect(screen.getByText("Keeps the repo caffeinated.")).toBeInTheDocument()
 	})
 
 	it("posts an openExternal message when a link is clicked", () => {

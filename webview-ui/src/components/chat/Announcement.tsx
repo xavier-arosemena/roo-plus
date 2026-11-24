@@ -37,9 +37,14 @@ interface AnnouncementProps {
  * `highlight1..3` keys remain the fallback when no generated data exists.
  *
  * The MARKETING slot (`chat:announcement.marketing`) sits ABOVE the "What's
- * New" heading, is translatable, and may embed links. It is intentionally not
- * a changelog bullet: rewriting marketing copy must not require a release, and
- * it must not consume a highlight slot or leak into the GitHub release notes.
+ * New" heading, is translatable, and may embed links (it carries a
+ * `<merchLink>` token today). It is intentionally not a changelog bullet:
+ * rewriting marketing copy must not require a release, and it must not consume
+ * a highlight slot or leak into the GitHub release notes.
+ *
+ * The slot is existence-guarded for the same reason the highlights are: a
+ * rotation that lands in only some locales must degrade to "no promo", never
+ * paint the raw key id (`chat:announcement.marketing`) to the user.
  */
 
 const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
@@ -80,16 +85,26 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 				</DialogHeader>
 				<div>
 					<div className="mb-4">
-						{/* Standing marketing slot — translatable, may embed links. */}
-						<p className="mb-3">
-							<Trans
-								i18nKey="chat:announcement.marketing"
-								components={{
-									star: <FaStar className="inline-block w-3.5 h-3.5 align-text-bottom" aria-hidden />,
-									githubLink: <GitHubLink />,
-								}}
-							/>
-						</p>
+						{/* Standing marketing slot — translatable, may embed links. Rendered
+						only when the locale actually defines it so a partial rotation can
+						never surface the raw key id. */}
+						{i18n?.exists?.("chat:announcement.marketing") && (
+							<p className="mb-3">
+								<Trans
+									i18nKey="chat:announcement.marketing"
+									components={{
+										star: (
+											<FaStar
+												className="inline-block w-3.5 h-3.5 align-text-bottom"
+												aria-hidden
+											/>
+										),
+										githubLink: <GitHubLink />,
+										merchLink: <MerchLink />,
+									}}
+								/>
+							</p>
+						)}
 						<p className="mb-3">{t("chat:announcement.release.heading")}</p>
 						<ul className="list-disc list-inside text-sm space-y-1.5">
 							{generatedHighlights?.length ? (
@@ -159,6 +174,22 @@ const GitHubLink = ({ children }: { children?: ReactNode }) => (
 		onClick={(e) => {
 			e.preventDefault()
 			vscode.postMessage({ type: "openExternal", url: EXTERNAL_LINKS.GITHUB_REPO })
+		}}>
+		{children}
+	</VSCodeLink>
+)
+
+/**
+ * Roo+ merch shop link for the rotating marketing slot. A plain `<a href>` (or
+ * a raw URL pasted into the copy) cannot open from a VS Code webview, so the
+ * click is routed through the host's `openExternal` message.
+ */
+const MerchLink = ({ children }: { children?: ReactNode }) => (
+	<VSCodeLink
+		href={EXTERNAL_LINKS.MERCH}
+		onClick={(e) => {
+			e.preventDefault()
+			vscode.postMessage({ type: "openExternal", url: EXTERNAL_LINKS.MERCH })
 		}}>
 		{children}
 	</VSCodeLink>

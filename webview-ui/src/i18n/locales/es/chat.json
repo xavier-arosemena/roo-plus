@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "Cargar mensajes anteriores",
 	"about": "La extensión de IDE agéntico local-first, con tu propio modelo — <br/>Conoce tus costos, confía en tu caché, conserva tu conocimiento.",
 	"support": {
-	"marketing": "Dedica un momento a darnos una <star/> en <githubLink>GitHub</githubLink>. (~20s)",
+		"merch": "Merch de Roo+",
+		"merchBlurb": "Mantiene el repo despierto.",
 		"reportIssue": "Informa de un error o solicita una función",
 		"discussions": "Únete a los debates",
 		"starUs": "Danos una estrella en GitHub",
@@ -369,6 +370,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ {{version}} publicado",
+		"marketing": "¿Sin ideas para regalos? Merch de Roo+: para el desarrollador agéntico de tu vida. <merchLink>Ver la tienda</merchLink>",
 		"support": "Apoya a Roo+ en <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> y en el <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Novedades:",
