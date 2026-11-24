@@ -81,7 +81,7 @@ One plain sentence, because the rest of this is a bit: **a portion of every purc
 
 If this feels familiar, the extension will mention the same shop in a small line when the next update lands. That is not a coincidence, it is a campaign, and you are reading its documentation.
 
-If you do not want a mug, the correct action is to close this tab, and simply giving us a star. The report stays open. Nothing happens. That is the design.
+If you do not want a mug, the correct action is to close this tab, and simply give us a star. The report stays open. Nothing happens. That is the design.
 
 > About Roo+. Roo+ is a local-first agentic coding extension for VS Code and Codium and compatible editors. You bring the model; Roo+ runs the loop on your machine, with your approvals, and with no mandatory cloud. Your files and your conversations stay yours.
 ````
