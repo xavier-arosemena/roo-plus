@@ -70,6 +70,8 @@
 | 44  | `ai-feature-engineer`  | A22  | construct | Use when a model-powered capability must be built: prompts, retrieval, tool calls and evals.      | 99     |
 | 45  | `ai-cost-engineer`     | A22  | measure   | Use when token spend, latency or model routing must be measured and reduced without quality loss. | 102    |
 
+[Consider the academic angle: researcher, academic writer, peer-reviewer, tutor, journal editor]
+
 ## 4. Stance vocabulary actually used
 
 The closed list claimed 12, then 16. The assignments above use **19 labels**: frame, design, construct,
