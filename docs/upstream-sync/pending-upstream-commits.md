@@ -389,10 +389,27 @@ qs 6.17.1 (`9ae00199e`), fast-uri 3.1.9, smol-toml 1.9.1, serialize-javascript
 **Not closed:** `@ai-sdk/provider-utils` stays at 4.0.14 — `@ai-sdk/anthropic`
 3.0.42, `@ai-sdk/openai` 3.0.27 and `ai-sdk-provider-poe` 2.0.18 pin that exact
 version, so the patched 4.0.33 is unreachable without an override, which D4
-forbids; and `@vitest/mocker` stays at 4.1.11 because its advisory asks for
-4.1.12, past the authorised 4.1.11 target. **Majors still open:** zod v4
-(`8dd553332`, migration deferred), katex 0.18 (`e536e8258`), i18next 26 and
-minimatch 11. No row changes state here: the upstream commits were never
+forbids; `@vitest/mocker` stays at 4.1.11 because its advisory asks for
+4.1.12, past the authorised 4.1.11 target; and **`glob`** stays at **11.1.0**
+(moderate, patched `>=14.0.2`) because it is pinned by the `pnpm.overrides`
+block in `pnpm-workspace.yaml` — unclosable without an override change, which D4
+forbids. **Majors still open:** zod v4 (`8dd553332`, migration deferred), katex
+0.18 (`e536e8258`), i18next 26, minimatch 11 and glob 14.
+
+**What the SYNC-23 caps do and do not mitigate.** The `.max()` caps added to the
+`.roomodes` (`customModes`, `allowedMcpServers`) and `.roo/mcp.json` (`args`,
+`alwaysAllow`, `watchPaths`, `disabledTools`) schemas are **product limits**: they
+bound the valid-and-oversized case and give a clean "too big" error. They are
+**not** the advisory's mitigation, because zod v3 records one `too_big` issue and
+then walks every element anyway. What is now enforced is a **pre-parse length
+gate** at the two untrusted parse boundaries — `assertRoomodesBounded()` in
+`packages/types/src/mode.ts` and `assertMcpSettingsBounded()` in
+`src/services/mcp/McpHub.ts`, both called before `safeParse`, the second of which
+also bounds the previously uncapped `mcpServers` record and each server's `env`
+— so rejection is O(1) per field and no element is read. **Not mitigated:** any
+future schema that parses an unbounded array or record from workspace content
+without calling the gate. The zod HIGH advisory therefore stays open pending the
+v4 migration. No row changes state here: the upstream commits were never
 cherry-picked, so every row stays `☐`.
 
 ## SYNC-10 — Test-Only Ports (`P3`)

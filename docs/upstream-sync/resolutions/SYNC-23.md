@@ -27,7 +27,7 @@
 - resolution: upstream-adapted
 - rationale: The conflicted scan-site line differs only by the fork's dead `content: body` binding — `body` has no other occurrence in that function, so upstream's narrower destructuring is a strict superset of the surviving behaviour while carrying the security fix the row exists for.
 - dropped: none
-- evidence: src/services/skills/__tests__/SkillsManager.spec.ts and src/utils/__tests__/safeFrontmatter.spec.ts — the unsupported-language cases fail on the pre-pick tree and pass after; `npx vitest run` over the three specs: 141 tests pass; gates: gate:sync
+- evidence: src/services/skills/__tests__/SkillsManager.spec.ts and src/utils/__tests__/safeFrontmatter.spec.ts — the unsupported-language cases fail on the pre-pick tree and pass after; `npx vitest run` over the three specs: 143 tests pass; gates: gate:sync
 - divergence: none
 
 ### src/services/skills/__tests__/SkillsManager.spec.ts [shape: modify/modify]
@@ -38,7 +38,7 @@
 - resolution: upstream-adapted
 - rationale: The harness import supplies exactly the six symbols the fork spec uses as bindings, so the declaration move is adopted. `enoent` is deliberately absent from the named import list: its only call sites are inside the harness self-test, which reaches it through `await import("./skillsTestHarness")` as `harness.enoent()`, so a named binding would be unused and rejected as dead code — the export itself is consumed and stays. `mockSymlinks` is not added because upstream never put it in the harness (see above) and the fork's spec has no `mockLstat` for it to close over; the upstream harness file is adopted byte-for-byte.
 - dropped: none
-- evidence: src/services/skills/__tests__/SkillsManager.spec.ts — the suite (including the harness platform branches) passes only after the import replaces the local declarations; `npx vitest run` over the three specs: 141 tests pass; gates: gate:sync
+- evidence: src/services/skills/__tests__/SkillsManager.spec.ts — the suite (including the harness platform branches) passes only after the import replaces the local declarations; `npx vitest run` over the three specs: 143 tests pass; gates: gate:sync
 - divergence: divergent-forever:the symlink-container cases that consume `enoent`/`mockSymlinks` belong to the unpicked `7389d9836`; when that row lands, the spec regains those call sites and the import list follows upstream verbatim
 
 ### src/services/command/commands.ts [shape: modify/modify]
@@ -49,7 +49,7 @@
 - resolution: upstream-adapted
 - rationale: The fork never touched this file, so upstream's intent is adopted verbatim; the auto-merge needed no edit and no fork behaviour was at stake.
 - dropped: none
-- evidence: src/services/command/__tests__/frontmatter-commands.spec.ts — the malicious-frontmatter cases fail before the pick and pass after; 141 tests pass across the three specs; gates: gate:sync
+- evidence: src/services/command/__tests__/frontmatter-commands.spec.ts — the malicious-frontmatter cases fail before the pick and pass after; 143 tests pass across the three specs; gates: gate:sync
 - divergence: none
 
 ### src/services/command/__tests__/frontmatter-commands.spec.ts [shape: modify/modify]
@@ -60,7 +60,7 @@
 - resolution: upstream-adapted
 - rationale: Both upstream commits add cases to a spec file the fork had not modified, so the additions apply cleanly and every pre-existing assertion survives.
 - dropped: none
-- evidence: src/services/command/__tests__/frontmatter-commands.spec.ts — passes with the new cases; 141 tests pass across the three specs; gates: gate:sync
+- evidence: src/services/command/__tests__/frontmatter-commands.spec.ts — passes with the new cases; 143 tests pass across the three specs; gates: gate:sync
 - divergence: none
 
 ### src/utils/safeFrontmatter.ts [shape: empty-fork-side]
@@ -71,7 +71,7 @@
 - resolution: upstream-adapted
 - rationale: A brand-new module with no fork counterpart: the fork side is empty, so upstream's implementation is adopted verbatim.
 - dropped: none
-- evidence: src/utils/__tests__/safeFrontmatter.spec.ts — the BOM/selector/cache cases pass; the "only this module may hold gray-matter's callable export" boundary is enforced by src/utils/__tests__/safeFrontmatterImportGuard.spec.ts (it fails on a default/namespace/require import anywhere else under `src/`); 141 tests pass across the three specs; gates: gate:sync
+- evidence: src/utils/__tests__/safeFrontmatter.spec.ts — the BOM/selector/cache cases pass; the "only this module may hold gray-matter's callable export" boundary is enforced by src/utils/__tests__/safeFrontmatterImportGuard.spec.ts, which parses every file under `src/` with the TypeScript compiler and fails on a default/namespace/`require`/dynamic-import/`createRequire` reference anywhere else; 143 tests pass across the three specs; gates: gate:sync
 - divergence: none
 
 ### src/utils/__tests__/safeFrontmatter.spec.ts [shape: empty-fork-side]
@@ -82,7 +82,7 @@
 - resolution: upstream-adapted
 - rationale: Brand-new spec file with no fork counterpart, so it is adopted verbatim and stands as the parser's fix-equivalence evidence.
 - dropped: none
-- evidence: src/utils/__tests__/safeFrontmatter.spec.ts — passes; 141 tests pass across the three specs; gates: gate:sync
+- evidence: src/utils/__tests__/safeFrontmatter.spec.ts — passes; 143 tests pass across the three specs; gates: gate:sync
 - divergence: none
 
 ### src/services/skills/__tests__/skillsTestHarness.ts [shape: empty-fork-side]

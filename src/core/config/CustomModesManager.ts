@@ -6,7 +6,13 @@ import * as os from "os"
 import * as yaml from "yaml"
 import stripBom from "strip-bom"
 
-import { type ModeConfig, type PromptComponent, customModesSettingsSchema, modeConfigSchema } from "@roo-code/types"
+import {
+	type ModeConfig,
+	type PromptComponent,
+	assertRoomodesBounded,
+	customModesSettingsSchema,
+	modeConfigSchema,
+} from "@roo-code/types"
 
 import { fileExistsAtPath } from "../../utils/fs"
 import { getWorkspacePath } from "../../utils/path"
@@ -299,6 +305,26 @@ export class CustomModesManager {
 				return []
 			}
 
+			// Pre-parse length gate (decision D7, SYNC-23 CP2 F-01): refuse an
+			// oversized list BEFORE zod walks it. The `.max()` caps on the schema
+			// do not bound an oversized *invalid* payload — zod records one issue
+			// and still visits every element — so this is the check that keeps the
+			// rejection cost independent of the payload's length.
+			try {
+				assertRoomodesBounded(settings)
+			} catch (error) {
+				const message = error instanceof Error ? error.message : String(error)
+				console.error(`[CustomModesManager] Refusing ${filePath}: ${message}`)
+
+				if (filePath.endsWith(ROOMODES_FILENAME)) {
+					vscode.window.showErrorMessage(
+						t("common:customModes.errors.schemaValidationError", { issues: `• ${message}` }),
+					)
+				}
+
+				return []
+			}
+
 			// Derive fallback descriptions before schema validation so existing
 			// configs that blank a description stay back-compatible with the
 			// enforced schema (non-empty when present) and no mode reaches the
@@ -407,6 +433,19 @@ export class CustomModesManager {
 				} catch (error) {
 					console.error(error)
 					vscode.window.showErrorMessage(errorMessage)
+					return
+				}
+
+				// Same pre-parse length gate as `loadModesFromFile`: an oversized
+				// list is refused here without entering the schema walk.
+				try {
+					assertRoomodesBounded(config)
+				} catch (error) {
+					const message = error instanceof Error ? error.message : String(error)
+					console.error(`[CustomModesManager] ${message}`)
+					vscode.window.showErrorMessage(
+						t("common:customModes.errors.schemaValidationError", { issues: `• ${message}` }),
+					)
 					return
 				}
 

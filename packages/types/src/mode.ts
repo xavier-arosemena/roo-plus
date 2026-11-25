@@ -1,13 +1,21 @@
 import { z } from "zod"
 
+import { assertBounded } from "./bounded.js"
 import { deprecatedToolGroups, toolGroupsSchema } from "./tool.js"
 
 /**
- * Upper bounds for arrays that arrive from an externally supplied `.roomodes`
- * file (a workspace file a cloned repository can ship). They are zod parsing
- * DoS caps — decision D4 of the dependency security sweep — not product limits:
- * the curated catalogue is ~90 modes in total, and one mode lists only a handful
- * of MCP servers, so no legitimate configuration approaches either bound.
+ * Product limits for arrays that arrive from an externally supplied `.roomodes`
+ * file (a workspace file a cloned repository can ship). The curated catalogue is
+ * ~90 modes in total and one mode lists only a handful of MCP servers, so no
+ * legitimate configuration approaches either bound.
+ *
+ * These caps are NOT the security mitigation: zod v3 records one `too_big` issue
+ * and still walks every element, so an oversized *invalid* payload accumulates
+ * issues in proportion to its length. The bound that holds is
+ * `assertRoomodesBounded()` below, called before `safeParse` at the loader
+ * (decision D7, SYNC-23 CP2 F-01). Keep the caps: they are what produces a clean
+ * "too big" error for a legitimately oversized file once the gate has let it
+ * through.
  */
 export const MAX_CUSTOM_MODES = 512
 export const MAX_MODE_ALLOWED_MCP_SERVERS = 256
@@ -166,6 +174,53 @@ export const customModesSettingsSchema = z.object({
 })
 
 export type CustomModesSettings = z.infer<typeof customModesSettingsSchema>
+
+/**
+ * Pre-parse length gate for anything loaded from a `.roomodes` file or the
+ * global custom-modes settings file.
+ *
+ * Called by the loader BEFORE `customModesSettingsSchema.safeParse`, so an
+ * oversized payload is refused in O(1) — the array length is read, and for a
+ * within-cap list each mode's `allowedMcpServers` length is read — without zod
+ * walking (and accumulating an issue per) element. Throws an `Error` whose
+ * message names the field and the cap, which the caller surfaces to the user.
+ *
+ * Input that is not an object, or that omits `customModes`, is left alone: those
+ * shapes fail schema validation with their own message.
+ */
+export function assertRoomodesBounded(settings: unknown): void {
+	if (settings === null || typeof settings !== "object") {
+		return
+	}
+
+	const modes = (settings as { customModes?: unknown }).customModes
+	if (modes === undefined) {
+		return
+	}
+
+	assertBounded(modes, MAX_CUSTOM_MODES, "customModes")
+
+	// Reached only when the list is within cap, so this walk is bounded by
+	// MAX_CUSTOM_MODES iterations regardless of the input's real size.
+	if (!Array.isArray(modes)) {
+		return
+	}
+
+	for (const mode of modes) {
+		if (mode === null || typeof mode !== "object") {
+			continue
+		}
+
+		const servers = (mode as { allowedMcpServers?: unknown }).allowedMcpServers
+		if (servers === undefined) {
+			continue
+		}
+
+		const slug = (mode as { slug?: unknown }).slug
+		const label = typeof slug === "string" ? `allowedMcpServers of mode "${slug}"` : "allowedMcpServers"
+		assertBounded(servers, MAX_MODE_ALLOWED_MCP_SERVERS, label)
+	}
+}
 
 /**
  * PromptComponent

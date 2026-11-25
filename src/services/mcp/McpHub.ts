@@ -27,6 +27,7 @@ import type {
 	McpTool,
 	McpToolCallResponse,
 } from "@roo-code/types"
+import { assertBounded } from "@roo-code/types"
 
 import { t } from "../../i18n"
 
@@ -69,13 +70,21 @@ export enum DisableReason {
 	SERVER_DISABLED = "serverDisabled",
 }
 
-// Upper bounds for arrays that arrive from a workspace-controlled `.roo/mcp.json`
-// (zod parsing DoS caps — decision D4 of the dependency security sweep). Real
-// configurations stay far below these, so no legitimate input is rejected.
+// Product limits for arrays and records that arrive from a workspace-controlled
+// `.roo/mcp.json`. Real configurations stay far below these, so no legitimate
+// input is rejected.
+//
+// These caps are NOT the security mitigation: zod v3 records one `too_big` issue
+// and still walks every element, and `z.record(...)` has no cap at all, so an
+// oversized invalid payload accumulates issues in proportion to its length. The
+// bound that holds is `assertMcpSettingsBounded()` below, called before
+// `safeParse` at every load site (decision D7, SYNC-23 CP2 F-01).
 export const MAX_MCP_SERVER_ARGS = 256
 export const MAX_MCP_ALWAYS_ALLOW = 1024
 export const MAX_MCP_WATCH_PATHS = 256
 export const MAX_MCP_DISABLED_TOOLS = 1024
+export const MAX_MCP_SERVERS = 256
+export const MAX_MCP_ENV_VARS = 256
 
 // Base configuration schema for common settings
 const BaseConfigSchema = z.object({
@@ -160,6 +169,60 @@ export const ServerConfigSchema = createServerTypeSchema()
 const McpSettingsSchema = z.object({
 	mcpServers: z.record(ServerConfigSchema),
 })
+
+/**
+ * Pre-parse length gate for a `.roo/mcp.json` / global `mcp_settings.json` body.
+ *
+ * Called BEFORE `McpSettingsSchema.safeParse` at every load site, so an
+ * oversized file is refused in O(1) per field — array `length` reads, and a
+ * key count that stops at the cap — instead of allocating one zod issue per
+ * element. Throws an `Error` whose message names the field and the cap; the
+ * caller surfaces it through the existing invalid-settings notification.
+ *
+ * The record itself (`mcpServers`) and each server's `env` are bounded here
+ * too: they are unbounded in the schema, and they carry the same per-element
+ * amplification as the arrays.
+ */
+export function assertMcpSettingsBounded(config: unknown): void {
+	if (config === null || typeof config !== "object") {
+		return
+	}
+
+	const servers = (config as { mcpServers?: unknown }).mcpServers
+	if (servers === undefined) {
+		return
+	}
+
+	assertBounded(servers, MAX_MCP_SERVERS, "mcpServers")
+
+	if (servers === null || typeof servers !== "object") {
+		return
+	}
+
+	// Reached only for a within-cap record, so this walk is bounded by
+	// MAX_MCP_SERVERS iterations regardless of the input's real size.
+	for (const [name, server] of Object.entries(servers as Record<string, unknown>)) {
+		if (server === null || typeof server !== "object") {
+			continue
+		}
+
+		const fields: Array<[key: string, cap: number]> = [
+			["args", MAX_MCP_SERVER_ARGS],
+			["alwaysAllow", MAX_MCP_ALWAYS_ALLOW],
+			["watchPaths", MAX_MCP_WATCH_PATHS],
+			["disabledTools", MAX_MCP_DISABLED_TOOLS],
+			["env", MAX_MCP_ENV_VARS],
+		]
+
+		for (const [field, cap] of fields) {
+			const value = (server as Record<string, unknown>)[field]
+			if (value === undefined) {
+				continue
+			}
+			assertBounded(value, cap, `mcpServers.${name}.${field}`)
+		}
+	}
+}
 
 export class McpHub {
 	private providerRef: WeakRef<ClineProvider>
@@ -353,6 +416,16 @@ export class McpHub {
 				return
 			}
 
+			// Refuse an oversized file before zod walks it (decision D7, SYNC-23 CP2
+			// F-01). Rejecting there means no per-element issue allocation happens.
+			try {
+				assertMcpSettingsBounded(config)
+			} catch (error) {
+				const errorMessages = error instanceof Error ? error.message : String(error)
+				vscode.window.showErrorMessage(t("mcp:errors.invalid_settings_validation", { errorMessages }))
+				return
+			}
+
 			const result = McpSettingsSchema.safeParse(config)
 
 			if (!result.success) {
@@ -436,6 +509,16 @@ export class McpHub {
 				const errorMessage = t("mcp:errors.invalid_settings_syntax")
 				console.error(errorMessage, parseError)
 				vscode.window.showErrorMessage(errorMessage)
+				return
+			}
+
+			// Refuse an oversized file before zod walks it (decision D7, F-01).
+			try {
+				assertMcpSettingsBounded(config)
+			} catch (error) {
+				const errorMessages = error instanceof Error ? error.message : String(error)
+				console.error("Invalid project MCP settings format:", errorMessages)
+				vscode.window.showErrorMessage(t("mcp:errors.invalid_settings_validation", { errorMessages }))
 				return
 			}
 
@@ -572,6 +655,20 @@ export class McpHub {
 
 			const content = await fs.readFile(configPath, "utf-8")
 			const config = JSON.parse(content)
+
+			// Refuse an oversized file before zod walks it (decision D7, F-01).
+			// Unlike a schema failure, an oversized payload must NOT fall through
+			// to `updateServerConnections` with the raw config for global settings:
+			// that would hand the unbounded record to the connection layer.
+			try {
+				assertMcpSettingsBounded(config)
+			} catch (error) {
+				const errorMessages = error instanceof Error ? error.message : String(error)
+				console.error(`Invalid ${source} MCP settings format:`, errorMessages)
+				vscode.window.showErrorMessage(t("mcp:errors.invalid_settings_validation", { errorMessages }))
+				return
+			}
+
 			const result = McpSettingsSchema.safeParse(config)
 
 			if (result.success) {
