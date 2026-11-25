@@ -381,6 +381,20 @@ _intent_ locally or not at all; taking the commit would regress the fork.
 - **`edaf7a14e`** (nightly path): only relevant if the fork still ships a nightly
   path; verify then re-implement locally.
 
+**Numbers.** Dependency rows discharged by regenerating the lockfile locally in
+the SYNC-23 sweep (in-range only — no override range was widened or relaxed):
+hono 4.13.22, `@hono/node-server` 2.1.11, ip-address 10.7.6, fflate 0.8.3,
+qs 6.17.1 (`9ae00199e`), fast-uri 3.1.9, smol-toml 1.9.1, serialize-javascript
+7.1.4, `@humanfs/node` 0.16.8, and vitest 4.1.11 (`1ebbd954e`).
+**Not closed:** `@ai-sdk/provider-utils` stays at 4.0.14 — `@ai-sdk/anthropic`
+3.0.42, `@ai-sdk/openai` 3.0.27 and `ai-sdk-provider-poe` 2.0.18 pin that exact
+version, so the patched 4.0.33 is unreachable without an override, which D4
+forbids; and `@vitest/mocker` stays at 4.1.11 because its advisory asks for
+4.1.12, past the authorised 4.1.11 target. **Majors still open:** zod v4
+(`8dd553332`, migration deferred), katex 0.18 (`e536e8258`), i18next 26 and
+minimatch 11. No row changes state here: the upstream commits were never
+cherry-picked, so every row stays `☐`.
+
 ## SYNC-10 — Test-Only Ports (`P3`)
 
 | SHA         | Date       | Subject                                                    | Class       | Pri | Δ   | Status | Blocked-by               | Resolved: | Version | Exception |

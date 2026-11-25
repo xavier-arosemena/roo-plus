@@ -3,6 +3,16 @@ import { z } from "zod"
 import { deprecatedToolGroups, toolGroupsSchema } from "./tool.js"
 
 /**
+ * Upper bounds for arrays that arrive from an externally supplied `.roomodes`
+ * file (a workspace file a cloned repository can ship). They are zod parsing
+ * DoS caps — decision D4 of the dependency security sweep — not product limits:
+ * the curated catalogue is ~90 modes in total, and one mode lists only a handful
+ * of MCP servers, so no legitimate configuration approaches either bound.
+ */
+export const MAX_CUSTOM_MODES = 512
+export const MAX_MODE_ALLOWED_MCP_SERVERS = 256
+
+/**
  * GroupOptions
  */
 
@@ -110,6 +120,7 @@ export const modeConfigSchema = z.object({
 	source: z.enum(["global", "project"]).optional(),
 	allowedMcpServers: z
 		.array(z.string())
+		.max(MAX_MODE_ALLOWED_MCP_SERVERS)
 		.describe(
 			"Optional list of MCP server names to include. When omitted, all servers are available. When set, only the listed servers are injected.",
 		)
@@ -132,23 +143,26 @@ export type ModeConfig = z.infer<typeof modeConfigSchema>
  */
 
 export const customModesSettingsSchema = z.object({
-	customModes: z.array(modeConfigSchema).refine(
-		(modes) => {
-			const slugs = new Set()
+	customModes: z
+		.array(modeConfigSchema)
+		.max(MAX_CUSTOM_MODES)
+		.refine(
+			(modes) => {
+				const slugs = new Set()
 
-			return modes.every((mode) => {
-				if (slugs.has(mode.slug)) {
-					return false
-				}
+				return modes.every((mode) => {
+					if (slugs.has(mode.slug)) {
+						return false
+					}
 
-				slugs.add(mode.slug)
-				return true
-			})
-		},
-		{
-			message: "Duplicate mode slugs are not allowed",
-		},
-	),
+					slugs.add(mode.slug)
+					return true
+				})
+			},
+			{
+				message: "Duplicate mode slugs are not allowed",
+			},
+		),
 })
 
 export type CustomModesSettings = z.infer<typeof customModesSettingsSchema>

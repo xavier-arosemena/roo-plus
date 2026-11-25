@@ -69,13 +69,21 @@ export enum DisableReason {
 	SERVER_DISABLED = "serverDisabled",
 }
 
+// Upper bounds for arrays that arrive from a workspace-controlled `.roo/mcp.json`
+// (zod parsing DoS caps — decision D4 of the dependency security sweep). Real
+// configurations stay far below these, so no legitimate input is rejected.
+export const MAX_MCP_SERVER_ARGS = 256
+export const MAX_MCP_ALWAYS_ALLOW = 1024
+export const MAX_MCP_WATCH_PATHS = 256
+export const MAX_MCP_DISABLED_TOOLS = 1024
+
 // Base configuration schema for common settings
 const BaseConfigSchema = z.object({
 	disabled: z.boolean().optional(),
 	timeout: z.number().min(1).max(3600).optional().default(60),
-	alwaysAllow: z.array(z.string()).default([]),
-	watchPaths: z.array(z.string()).optional(), // paths to watch for changes and restart server
-	disabledTools: z.array(z.string()).default([]),
+	alwaysAllow: z.array(z.string()).max(MAX_MCP_ALWAYS_ALLOW).default([]),
+	watchPaths: z.array(z.string()).max(MAX_MCP_WATCH_PATHS).optional(), // paths to watch for changes and restart server
+	disabledTools: z.array(z.string()).max(MAX_MCP_DISABLED_TOOLS).default([]),
 })
 
 // Custom error messages for better user feedback
@@ -98,7 +106,7 @@ const createServerTypeSchema = () => {
 		BaseConfigSchema.extend({
 			type: z.enum(["stdio"]).optional(),
 			command: z.string().min(1, "Command cannot be empty"),
-			args: z.array(z.string()).optional(),
+			args: z.array(z.string()).max(MAX_MCP_SERVER_ARGS).optional(),
 			cwd: z.string().default(() => vscode.workspace.workspaceFolders?.at(0)?.uri.fsPath ?? process.cwd()),
 			env: z.record(z.string()).optional(),
 			// Ensure no SSE fields are present
