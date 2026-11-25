@@ -116,7 +116,6 @@
  */
 
 import * as fs from "node:fs/promises"
-import * as os from "node:os"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
 
@@ -131,6 +130,7 @@ import {
 import * as e20c from "./lib/e20c.mjs"
 import * as e20d from "./lib/e20d.mjs"
 import { REPLICATIONS } from "./lib/replication.mjs"
+import { resolveEvalOutputDir } from "./lib/eval-output-dir.mjs"
 import { executeRun, expandRunner } from "./lib/framing-pretest-runner.mjs"
 import { readTranscript } from "./lib/framing-pretest-results.mjs"
 import { sha256 } from "./lib/framing-pretest.mjs"
@@ -152,7 +152,14 @@ import {
 } from "./lib/routing-round.mjs"
 
 const DEFAULT_PLAN = path.join(ROUTING_ROUND_DIR, "plan.json")
-const DEFAULT_OUT = path.join(os.tmpdir(), "roo-plus-routing-round", "stage-1")
+
+/**
+ * mkdtemp prefix for the default run directory. The old default was a fixed path
+ * (`<tmp>/roo-plus-routing-round/stage-1`), which any other local user can
+ * pre-create or read; a fresh, owner-only directory per run removes that exposure
+ * (code-scanning `js/insecure-temporary-file`) without changing `--out`.
+ */
+const DEFAULT_OUT_PREFIX = "roo-plus-routing-round-"
 
 /**
  * The closing round's registered total. It is a constant because that registration
@@ -209,7 +216,8 @@ const USAGE = `Usage: node scripts/run-routing-round.mjs [options]
 
   --plan <file.json>   the run plan: the closing round's 600, E20's 900, E20b's 200
                        or E20c's 600 (default: ${path.relative(process.cwd(), DEFAULT_PLAN)})
-  --out <dir>          run directory (default: ${DEFAULT_OUT})
+  --out <dir>          run directory (default: a fresh fs.mkdtemp directory under
+                       the system temp root, printed on start)
   --dry-run            write the selected prompts and a plan copy; execute nothing (default)
   --run                execute the selected runs through --runner; requires --runner and --model
   --runner <template>  shell command template (required with --run); placeholders:
@@ -228,7 +236,7 @@ const USAGE = `Usage: node scripts/run-routing-round.mjs [options]
 function parseArgs(argv) {
 	const opts = {
 		plan: DEFAULT_PLAN,
-		out: DEFAULT_OUT,
+		out: "",
 		run: false,
 		runner: "",
 		model: "",
@@ -1177,7 +1185,8 @@ async function main() {
 		return 2
 	}
 
-	const out = path.resolve(opts.out)
+	const out = await resolveEvalOutputDir(opts.out, { prefix: DEFAULT_OUT_PREFIX })
+	console.log(`run directory: ${out}`)
 	if (!(await guardResults(path.join(out, "results.jsonl"), opts.force))) return 2
 
 	let plan

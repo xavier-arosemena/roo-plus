@@ -144,7 +144,13 @@ function runPreconditions(opts) {
 	if (!opts.model) errors.push("--model is required with --run")
 	if (!opts.provider) errors.push("--provider (or FRAMING_PRETEST_PROVIDER) is required with --run")
 	if (!opts.runner) errors.push("--runner is required with --run")
-	if (!process.env[opts.apiKeyEnv]) errors.push(`$${opts.apiKeyEnv} is empty; no API key is configured`)
+	// The message is deliberately CONSTANT: `--api-key-env` is operator-supplied text,
+	// and interpolating it here put a user-controlled string into a printed error
+	// (code-scanning `js/clear-text-logging`, alert #119). The operator already knows
+	// which variable name they passed, so naming it back to them adds nothing.
+	if (!process.env[opts.apiKeyEnv]) {
+		errors.push("the environment variable named by --api-key-env is empty; export the API key first")
+	}
 	return errors
 }
 
