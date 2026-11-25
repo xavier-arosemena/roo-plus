@@ -2275,25 +2275,36 @@ describe("--json output purity", () => {
 		// (7bb14e44e, cc9c0afe9) have landed, and the SYNC-14…16 refresh proposals now
 		// carry the open prerequisites. Refreshed again for the SYNC-22 provider-metadata
 		// batch: c38db3ed7/754a9160d name 9ec139cd8 and 70cafe419 names 0298294d6, all open.
+		// Refreshed again for the SYNC-23 sweep: six rows labelled `A-CLEAN`/Δ 0 are not
+		// pickable because the files their patches modify are CREATED by unsynced upstream
+		// predecessors (Δ is fork-side only), so they now record that dependency instead of
+		// being picked. Those six are 2681ccbac, ecab51985, 766b906ce, 8c801752a, 94c26d5b1
+		// and ebfe57454.
 		// De-duplicated — a row can name several open blockers and is reported once per blocker.
 		assert.deepEqual(
 			[...new Set(report.blockedByPending.map((row) => row.sha))].sort(),
 			[
 				"0f75a60bc",
 				"10b45abf7",
+				"2681ccbac",
 				"2da6ea2ae",
 				"500152b78",
 				"70cafe419",
 				"754a9160d",
+				"766b906ce",
 				"7c302a51b",
 				"87d41aa4f",
+				"8c801752a",
 				"914f0c42a",
 				"9176f2f69",
+				"94c26d5b1",
 				"97265fd8e",
 				"9e4a52d99",
 				"a9ebf1a6a",
 				"c38db3ed7",
 				"d351a155e",
+				"ebfe57454",
+				"ecab51985",
 			],
 			"only rows whose named prerequisite has not landed are pending",
 		)
