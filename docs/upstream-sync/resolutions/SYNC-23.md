@@ -32,11 +32,11 @@
 
 ### src/services/skills/__tests__/SkillsManager.spec.ts [shape: modify/modify]
 
-- upstream: e3de60a7c — moves the shared fixture constants (`HOME_DIR`, `PROJECT_DIR`, `SHARED_DIR`, `p`, `GLOBAL_ROO_DIR`, `GLOBAL_AGENTS_DIR`, `enoent`) and the `mockSymlinks` helper out of the spec into the new `./skillsTestHarness` module, keeping every `vi.mock`/`vi.hoisted` call in the spec.
+- upstream: e3de60a7c — moves the shared fixture declarations (`HOME_DIR`, `PROJECT_DIR`, `SHARED_DIR`, `p`, `GLOBAL_ROO_DIR`, `GLOBAL_AGENTS_DIR`, `enoent`) out of the spec into the new `./skillsTestHarness` module and keeps every `vi.mock`/`vi.hoisted` call in the spec. It does **not** move `mockSymlinks`: that helper stays in upstream's own spec because it closes over the spec-local `mockLstat`, and upstream's harness is exactly the seven declarations the fork adopted.
 - fork: 04ffb64bb7 — the fork commit that last shaped `SkillsManager.spec.ts`; at the batch base the spec still declared the four path constants and `p` locally and declared `GLOBAL_ROO_DIR`/`GLOBAL_AGENTS_DIR` further down, which the refactor's deletions remove.
 - fork_locus: src/services/skills/__tests__/skillsTestHarness.ts
 - resolution: upstream-adapted
-- rationale: The harness import supplies exactly the six symbols the fork spec still uses, so the declaration move is adopted; `enoent` is not imported and `mockSymlinks` is not added because neither has a call site here (the spec uses `harness.enoent()` only inside the harness self-test) and `mockSymlinks` would reference an undeclared `mockLstat` — importing them would be dead code that the lint gate rejects.
+- rationale: The harness import supplies exactly the six symbols the fork spec uses as bindings, so the declaration move is adopted. `enoent` is deliberately absent from the named import list: its only call sites are inside the harness self-test, which reaches it through `await import("./skillsTestHarness")` as `harness.enoent()`, so a named binding would be unused and rejected as dead code — the export itself is consumed and stays. `mockSymlinks` is not added because upstream never put it in the harness (see above) and the fork's spec has no `mockLstat` for it to close over; the upstream harness file is adopted byte-for-byte.
 - dropped: none
 - evidence: src/services/skills/__tests__/SkillsManager.spec.ts — the suite (including the harness platform branches) passes only after the import replaces the local declarations; `npx vitest run` over the three specs: 141 tests pass; gates: gate:sync
 - divergence: divergent-forever:the symlink-container cases that consume `enoent`/`mockSymlinks` belong to the unpicked `7389d9836`; when that row lands, the spec regains those call sites and the import list follows upstream verbatim
@@ -71,7 +71,7 @@
 - resolution: upstream-adapted
 - rationale: A brand-new module with no fork counterpart: the fork side is empty, so upstream's implementation is adopted verbatim.
 - dropped: none
-- evidence: src/utils/__tests__/safeFrontmatter.spec.ts — the BOM/selector/cache cases pass; 141 tests pass across the three specs; gates: gate:sync
+- evidence: src/utils/__tests__/safeFrontmatter.spec.ts — the BOM/selector/cache cases pass; the "only this module may hold gray-matter's callable export" boundary is enforced by src/utils/__tests__/safeFrontmatterImportGuard.spec.ts (it fails on a default/namespace/require import anywhere else under `src/`); 141 tests pass across the three specs; gates: gate:sync
 - divergence: none
 
 ### src/utils/__tests__/safeFrontmatter.spec.ts [shape: empty-fork-side]
@@ -104,7 +104,7 @@
 - resolution: upstream-adapted
 - rationale: The module is created and then renamed inside this same batch, so the range only ever shows the final `Frontmatter.tla`; there is no fork-side spec to reconcile and the upstream sequence is preserved exactly.
 - dropped: none
-- evidence: docs/architecture/tla/Frontmatter.tla — the spec is asserted by the frontmatter tests that model the same accept/reject table; gates: gate:sync
+- evidence: docs/architecture/tla/Frontmatter.tla — documentation only: no gate runs TLC, and nothing in `scripts/gate-sync.mjs` references `.tla`. The module models the same accept/reject table that `src/utils/__tests__/safeFrontmatter.spec.ts` and `src/services/command/__tests__/frontmatter-commands.spec.ts` assert at runtime; gates: gate:sync
 - divergence: none
 
 ### docs/architecture/tla/Frontmatter.cfg [shape: empty-fork-side]

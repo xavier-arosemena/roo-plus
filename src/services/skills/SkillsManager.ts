@@ -1,7 +1,7 @@
 import * as fs from "fs/promises"
 import * as path from "path"
 import * as vscode from "vscode"
-import matter from "gray-matter"
+import { stringify } from "gray-matter"
 import { parseFrontmatter } from "../../utils/safeFrontmatter"
 
 import type { ClineProvider } from "../../core/webview/ClineProvider"
@@ -555,7 +555,7 @@ Add your skill instructions here.
 		}
 
 		// Serialize back to SKILL.md format
-		const newContent = matter.stringify({ content: body }, frontmatter)
+		const newContent = stringify({ content: body }, frontmatter)
 		await fs.writeFile(skill.path, newContent, "utf-8")
 
 		// Refresh skills list

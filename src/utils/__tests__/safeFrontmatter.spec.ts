@@ -54,4 +54,23 @@ describe("parseFrontmatter", () => {
 	it("preserves Markdown without metadata", () => {
 		expect(parseFrontmatter("# Heading\nBody").content).toBe("# Heading\nBody")
 	})
+
+	// Regression for the guard branch `normalized[3] !== "-"`: without it a document whose
+	// body starts with a horizontal rule is falsely rejected, and the caller swallows the
+	// throw, so the command/skill would silently disappear.
+	it.each(["----\n(globalThis.frontmatterExecuted(), {})\n----\nBody", "----- horizontal\nBody"])(
+		"accepts a body that starts with a horizontal rule: %s",
+		(body) => {
+			const executed = vi.fn()
+			vi.stubGlobal("frontmatterExecuted", executed)
+			try {
+				const parsed = parseFrontmatter(body)
+				expect(parsed.content).toBe(body)
+				expect(parsed.data).toEqual({})
+				expect(executed).not.toHaveBeenCalled()
+			} finally {
+				vi.unstubAllGlobals()
+			}
+		},
+	)
 })
