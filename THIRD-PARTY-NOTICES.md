@@ -302,6 +302,16 @@ or a shipped binary component, is missing from this file.
 | `typescript`                                    | `5.9.3`    |
 | `workerpool`                                    | `10.0.3`   |
 
+### BlueOak-1.0.0 (5 packages)
+
+| Package                  | Version  |
+| ------------------------ | -------- |
+| `glob`                   | `11.1.0` |
+| `jackspeak`              | `4.1.1`  |
+| `minimatch`              | `10.2.5` |
+| `package-json-from-dist` | `1.0.1`  |
+| `path-scurry`            | `2.0.0`  |
+
 ### BSD (1 packages)
 
 | Package | Version  |
@@ -336,25 +346,15 @@ or a shipped binary component, is missing from this file.
 | `buffer-equal-constant-time` | `1.0.1`  |
 | `diff`                       | `5.2.2`  |
 | `duplexer2`                  | `0.1.4`  |
-| `fast-uri`                   | `3.1.8`  |
+| `fast-uri`                   | `3.1.9`  |
 | `fzf`                        | `0.5.2`  |
 | `global-agent`               | `3.0.0`  |
 | `ieee754`                    | `1.2.1`  |
 | `protobufjs`                 | `7.6.5`  |
-| `qs`                         | `6.15.2` |
+| `qs`                         | `6.17.1` |
 | `roarr`                      | `2.15.4` |
 | `sprintf-js`                 | `1.0.3`  |
 | `sprintf-js`                 | `1.1.3`  |
-
-### BlueOak-1.0.0 (5 packages)
-
-| Package                  | Version  |
-| ------------------------ | -------- |
-| `glob`                   | `11.1.0` |
-| `jackspeak`              | `4.1.1`  |
-| `minimatch`              | `10.2.5` |
-| `package-json-from-dist` | `1.0.1`  |
-| `path-scurry`            | `2.0.0`  |
 
 ### ISC (22 packages)
 
@@ -383,7 +383,7 @@ or a shipped binary component, is missing from this file.
 | `yaml`                | `2.9.0`  |
 | `zod-to-json-schema`  | `3.25.2` |
 
-### MIT (295 packages)
+### MIT (294 packages)
 
 | Package                                  | Version    |
 | ---------------------------------------- | ---------- |
@@ -392,13 +392,13 @@ or a shipped binary component, is missing from this file.
 | `@babel/runtime`                         | `7.29.7`   |
 | `@fast-csv/format`                       | `4.3.5`    |
 | `@fast-csv/parse`                        | `4.3.6`    |
-| `@hono/node-server`                      | `2.1.3`    |
+| `@hono/node-server`                      | `2.1.11`   |
 | `@kwsites/file-exists`                   | `1.1.1`    |
 | `@kwsites/promise-deferred`              | `1.1.1`    |
-| `@modelcontextprotocol/sdk`              | `1.29.0`   |
+| `@modelcontextprotocol/sdk`              | `1.32.0`   |
 | `@qdrant/openapi-typescript-fetch`       | `1.2.6`    |
-| `@simple-git/args-pathspec`              | `1.0.3`    |
-| `@simple-git/argv-parser`                | `1.1.1`    |
+| `@simple-git/args-pathspec`              | `1.0.4`    |
+| `@simple-git/argv-parser`                | `2.0.1`    |
 | `@stablelib/base64`                      | `1.0.1`    |
 | `@standard-schema/spec`                  | `1.1.0`    |
 | `@types/node`                            | `14.18.63` |
@@ -426,7 +426,7 @@ or a shipped binary component, is missing from this file.
 | `binary`                                 | `0.3.0`    |
 | `bl`                                     | `4.1.0`    |
 | `bluebird`                               | `3.7.2`    |
-| `body-parser`                            | `2.3.0`    |
+| `body-parser`                            | `2.4.0`    |
 | `boolean`                                | `3.2.0`    |
 | `bowser`                                 | `2.14.1`   |
 | `brace-expansion`                        | `5.0.12`   |
@@ -445,9 +445,10 @@ or a shipped binary component, is missing from this file.
 | `combined-stream`                        | `1.0.8`    |
 | `commander`                              | `8.3.0`    |
 | `compress-commons`                       | `4.1.2`    |
-| `content-disposition`                    | `1.0.0`    |
+| `content-disposition`                    | `1.0.1`    |
 | `content-type`                           | `1.0.5`    |
 | `content-type`                           | `2.0.0`    |
+| `content-type`                           | `2.1.0`    |
 | `cookie`                                 | `0.7.2`    |
 | `cookie-signature`                       | `1.2.2`    |
 | `core-util-is`                           | `1.0.3`    |
@@ -471,7 +472,7 @@ or a shipped binary component, is missing from this file.
 | `end-of-stream`                          | `1.4.4`    |
 | `es-define-property`                     | `1.0.1`    |
 | `es-errors`                              | `1.3.0`    |
-| `es-object-atoms`                        | `1.1.1`    |
+| `es-object-atoms`                        | `1.1.2`    |
 | `es-set-tostringtag`                     | `2.1.0`    |
 | `es6-error`                              | `4.1.1`    |
 | `escape-html`                            | `1.0.3`    |
@@ -491,7 +492,7 @@ or a shipped binary component, is missing from this file.
 | `fastest-levenshtein`                    | `1.0.16`   |
 | `fetch-blob`                             | `3.2.0`    |
 | `finalhandler`                           | `2.1.0`    |
-| `follow-redirects`                       | `1.16.1`   |
+| `follow-redirects`                       | `1.16.2`   |
 | `form-data`                              | `4.0.6`    |
 | `formdata-polyfill`                      | `4.0.10`   |
 | `forwarded`                              | `0.2.0`    |
@@ -512,17 +513,16 @@ or a shipped binary component, is missing from this file.
 | `has-symbols`                            | `1.1.0`    |
 | `has-tostringtag`                        | `1.0.2`    |
 | `hasown`                                 | `2.0.4`    |
-| `hono`                                   | `4.12.34`  |
+| `hono`                                   | `4.13.22`  |
 | `http-errors`                            | `2.0.1`    |
 | `http-proxy-agent`                       | `7.0.2`    |
 | `https-proxy-agent`                      | `5.0.1`    |
 | `https-proxy-agent`                      | `7.0.6`    |
 | `i18next`                                | `25.2.1`   |
-| `iconv-lite`                             | `0.7.0`    |
 | `iconv-lite`                             | `0.7.3`    |
 | `ignore`                                 | `7.0.5`    |
 | `immediate`                              | `3.0.6`    |
-| `ip-address`                             | `10.3.1`   |
+| `ip-address`                             | `10.7.6`   |
 | `ipaddr.js`                              | `1.9.1`    |
 | `is-extendable`                          | `0.1.1`    |
 | `is-fullwidth-code-point`                | `3.0.0`    |
@@ -582,7 +582,7 @@ or a shipped binary component, is missing from this file.
 | `normalize-path`                         | `3.0.0`    |
 | `npm-run-path`                           | `5.3.0`    |
 | `object-assign`                          | `4.1.1`    |
-| `object-inspect`                         | `1.13.4`   |
+| `object-inspect`                         | `1.14.0`   |
 | `object-keys`                            | `1.1.1`    |
 | `ollama`                                 | `0.6.3`    |
 | `on-finished`                            | `2.4.1`    |
@@ -605,7 +605,7 @@ or a shipped binary component, is missing from this file.
 | `pretty-bytes`                           | `7.0.0`    |
 | `process-nextick-args`                   | `2.0.1`    |
 | `proper-lockfile`                        | `4.1.2`    |
-| `proxy-addr`                             | `2.0.7`    |
+| `proxy-addr`                             | `2.0.8`    |
 | `proxy-from-env`                         | `2.1.0`    |
 | `ps-tree`                                | `1.2.0`    |
 | `range-parser`                           | `1.2.1`    |
@@ -633,12 +633,12 @@ or a shipped binary component, is missing from this file.
 | `shallow-clone`                          | `3.0.1`    |
 | `shebang-command`                        | `2.0.0`    |
 | `shebang-regex`                          | `3.0.0`    |
-| `shell-quote`                            | `1.9.0`    |
-| `side-channel`                           | `1.1.0`    |
-| `side-channel-list`                      | `1.0.0`    |
+| `shell-quote`                            | `1.12.0`   |
+| `side-channel`                           | `1.1.1`    |
+| `side-channel-list`                      | `1.0.1`    |
 | `side-channel-map`                       | `1.0.1`    |
 | `side-channel-weakmap`                   | `1.0.2`    |
-| `simple-git`                             | `3.36.0`   |
+| `simple-git`                             | `4.0.2`    |
 | `split`                                  | `0.3.3`    |
 | `standardwebhooks`                       | `1.0.0`    |
 | `statuses`                               | `2.0.2`    |
@@ -657,10 +657,9 @@ or a shipped binary component, is missing from this file.
 | `tmp`                                    | `0.2.7`    |
 | `toidentifier`                           | `1.0.1`    |
 | `ts-algebra`                             | `2.0.0`    |
-| `type-is`                                | `2.0.1`    |
 | `type-is`                                | `2.1.0`    |
 | `underscore`                             | `1.13.8`   |
-| `undici`                                 | `6.28.1`   |
+| `undici`                                 | `6.29.1`   |
 | `undici-types`                           | `6.21.0`   |
 | `universalify`                           | `0.1.2`    |
 | `unpipe`                                 | `1.0.0`    |
