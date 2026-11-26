@@ -190,6 +190,18 @@ export default defineConfig(({ mode }) => {
 								tags: ["$initial"],
 							},
 							{
+								// i18n: `i18n/setup.ts` reaches the seventeen non-English
+								// locale bundles through a LAZY `import.meta.glob`, so
+								// Rolldown would emit one chunk per JSON module (~150
+								// files with 18 locales x 9 namespaces) and blow the
+								// VSIX `.js` budget (issue #13). Collapse them into ONE
+								// lazily-fetched chunk: the initial graph is unchanged,
+								// nothing extra loads at startup, and the first locale
+								// switch pays a single request instead of one per file.
+								name: "locales",
+								test: /[\\/]webview-ui[\\/]src[\\/]i18n[\\/]locales[\\/]/,
+							},
+							{
 								// The rest of Mermaid (its diagram renderers) is reached
 								// only through Mermaid's internal dynamic imports.
 								// `entriesAware` groups matching modules by the set of
