@@ -203,6 +203,12 @@ function makeProbe({
 	 * the link tests supply a message explicitly.
 	 */
 	commitMessage = null,
+	/**
+	 * Δ blindness: `(sha) => string[] | null`. Left UNDEFINED by default so the
+	 * advisory is skipped for fixtures that predate it; the pre-image tests pass a
+	 * function per case.
+	 */
+	preimageMissing = null,
 } = {}) {
 	const commitSet = new Set(commits)
 	const reachableSet = new Set(reachable)
@@ -220,6 +226,7 @@ function makeProbe({
 		commitSignature,
 	}
 	if (typeof commitMessage === "function") probe.commitMessage = commitMessage
+	if (typeof preimageMissing === "function") probe.preimageMissing = preimageMissing
 	return probe
 }
 
@@ -732,6 +739,77 @@ describe("validateRegister — ☑ rows must carry a fork SHA reachable from mas
 		})
 		assert.equal(report.ok, true)
 		assert.equal(report.counts.synced, 1)
+	})
+})
+
+describe("validateRegister — preimage-missing (Δ is blind to upstream precedence)", () => {
+	// Δ counts the files the FORK also changed, so a row reads Δ 0 when the fork
+	// never had the file at all. Six C4 rows and eleven C6/C7 rows failed exactly
+	// this way in the 2026-11-24 sweep: the pick died on modify/delete while the
+	// register claimed a clean pick. The check is an ADVISORY (the operator records
+	// the creator in Blocked-by); it must never turn the run red.
+
+	it("advises when an open row modifies a file the fork does not have", () => {
+		const markdown = buildRegister({
+			rows: [makeRow(PREFIX_A, "fix: a"), makeRow(PREFIX_B, "fix: b"), makeRow(PREFIX_C, "fix: c")],
+			pendingCount: 3,
+		})
+		const report = validateRegister({
+			markdown,
+			pendingShas: HEALTHY_PENDING,
+			probe: makeProbe({
+				commits: [PREFIX_A, PREFIX_B, PREFIX_C],
+				preimageMissing: (sha) => (sha === PREFIX_A ? ["src/created-upstream.ts"] : []),
+			}),
+			today: "2026-09-16",
+		})
+		const check = checkById(report, "preimage-missing")
+		assert.equal(report.ok, true, "the advisory must never fail the run")
+		assert.equal(check.warnings.length, 1)
+		assert.match(check.warnings[0], new RegExp(PREFIX_A))
+		assert.match(check.warnings[0], /src\/created-upstream\.ts/)
+	})
+
+	it("stays silent when the pre-image exists, and when the probe cannot say", () => {
+		const markdown = buildRegister({
+			rows: [makeRow(PREFIX_A, "fix: a"), makeRow(PREFIX_B, "fix: b"), makeRow(PREFIX_C, "fix: c")],
+			pendingCount: 3,
+		})
+		const report = validateRegister({
+			markdown,
+			pendingShas: HEALTHY_PENDING,
+			probe: makeProbe({ commits: [PREFIX_A, PREFIX_B, PREFIX_C], preimageMissing: () => [] }),
+			today: "2026-09-16",
+		})
+		assert.equal(checkById(report, "preimage-missing").warnings.length, 0)
+		assert.equal(report.ok, true)
+	})
+
+	it("does not inspect synced rows", () => {
+		const markdown = buildRegister({
+			rows: [
+				makeRow(PREFIX_A, "fix: a", { status: "☑ `abc1234`", resolved: "2026-09-16", version: "3.88.4" }),
+				makeRow(PREFIX_B, "fix: b"),
+				makeRow(PREFIX_C, "fix: c"),
+			],
+			pendingCount: 3,
+		})
+		const seen = []
+		const report = validateRegister({
+			markdown,
+			pendingShas: HEALTHY_PENDING,
+			probe: makeProbe({
+				commits: [PREFIX_A, PREFIX_B, PREFIX_C],
+				reachable: ["abc1234"],
+				preimageMissing: (sha) => {
+					seen.push(sha)
+					return []
+				},
+			}),
+			today: "2026-09-16",
+		})
+		assert.equal(report.ok, true)
+		assert.ok(!seen.includes(PREFIX_A), "a ☑ row must not be inspected")
 	})
 })
 
@@ -2449,6 +2527,7 @@ describe("CP1-4 — check-id profile membership is pinned independently", () => 
 		"stale-in-progress",
 		"class-ladder",
 		"class-ladder-advisory",
+		"preimage-missing",
 		"exception-advisory",
 		"blocked-by",
 		"blocked-by-pending",
@@ -2467,6 +2546,7 @@ describe("CP1-4 — check-id profile membership is pinned independently", () => 
 		"duplicates",
 		"synced-fork-sha",
 		"stale-in-progress",
+		"preimage-missing",
 		"exception-advisory",
 		"header-tip",
 		"register-age",

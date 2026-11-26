@@ -292,7 +292,7 @@ fail) · `1` a check failed, the merge base is unusable (shallow clone), upstrea
 was unavailable with `--strict`, or stale `◐` rows were found with `--strict`.
 Unknown flags and `--repo-only` outside `--verify` fail loudly with `1`.
 
-- `--verify` (default) — assert the register against the repo, reporting **19 independent checks**, **9** of which need no merge base: (1) `row-sha-format`
+- `--verify` (default) — assert the register against the repo, reporting **20 independent checks**, **10** of which need no merge base: (1) `row-sha-format`
   every row SHA is the canonical 9-character prefix; (2) `row-sha-resolves` every
   row SHA resolves to a commit; (3) `row-parse` every data row in a commit table
   parses into a register row — a row whose SHA cell lost its backticks is invisible
@@ -348,7 +348,17 @@ Unknown flags and `--repo-only` outside `--verify` fail loudly with `1`.
   snapshot without failing. The **repo-only** profile is the CI gate; the full
   profile is run after a refresh. It also prints a **per-batch progress roll-up**
   (resolved vs pending per `SYNC-n`), the derived **ready set** and every dated
-  **exception**.
+  **exception**. (20) `preimage-missing` — **warning**: an **open** row whose patch
+  **modifies or deletes** a file that does not exist at the fork ref. `Δ` counts the
+  files the FORK also changed, so it reads 0 when the fork never had the file at
+  all: the row looks like a clean pick and `git cherry-pick` dies on modify/delete
+  because an unsynced predecessor created that file. The adapter runs as an
+  advisory in **both** profiles (one `ls-tree` for the run, one `show` per open
+  row), prints the first `PREIMAGE_REPORT_CAP` findings by SHA and summarises the
+  rest; the remedy is the operator's — record the creator in `Blocked-by`. It never
+  guesses a prerequisite and never fails the run. This is the check that would have
+  caught the 2026-11-24 sweep's six C4 and eleven C6/C7 rows before they were
+  probed by hand.
 - **Four finding levels** — every finding an operator sees is exactly one of these,
   and only the first can fail the run:
     - **fail** — an `error`-severity check reported a defect: a false claim about the
@@ -368,9 +378,10 @@ Unknown flags and `--repo-only` outside `--verify` fail loudly with `1`.
       violates `A-CLEAN` ⇒ Δ = 0; an undated/mis-shaped token, or one on a row that
       does not violate the rule, is a hard failure. `--verify` prints every excepted
       row **by SHA** under its own heading, so an exception can never be silent.
-- `--repo-only` (with `--verify`) — run **only the 9 merge-base-free checks**
+- `--repo-only` (with `--verify`) — run **only the 10 merge-base-free checks**
   (`row-sha-format`, `row-sha-resolves`, `row-parse`, `duplicates`,
-  `synced-fork-sha`, `stale-in-progress`, `exception-advisory`, `header-tip`,
+  `synced-fork-sha`, `stale-in-progress`, `preimage-missing`,
+  `exception-advisory`, `header-tip`,
   `register-age`) and compute **no upstream merge base** — `coverage`,
   `header-pending-count` and `landed-unflipped` (the history-dependent checks) are
   invoked only in the full profile (CP1-3). `row-parse`, `exception-advisory` and

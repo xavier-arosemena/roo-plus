@@ -1186,6 +1186,9 @@ function warn(check, message) {
  * needs it directly, and keeping the pair out of `--repo-only` is what preserves
  * that profile's "no `upstream` / no merge-base git call" guarantee.
  */
+/** How many `preimage-missing` rows are printed before the rest are summarised. */
+export const PREIMAGE_REPORT_CAP = 40
+
 export const CHECK_IDS_FULL = [
 	"row-sha-format",
 	"row-sha-resolves",
@@ -1196,6 +1199,7 @@ export const CHECK_IDS_FULL = [
 	"stale-in-progress",
 	"class-ladder",
 	"class-ladder-advisory",
+	"preimage-missing",
 	"exception-advisory",
 	"blocked-by",
 	"blocked-by-pending",
@@ -1225,6 +1229,7 @@ export const CHECK_IDS_REPO_ONLY = [
 	"duplicates",
 	"synced-fork-sha",
 	"stale-in-progress",
+	"preimage-missing",
 	"exception-advisory",
 	"header-tip",
 	"register-age",
@@ -1622,6 +1627,56 @@ export function validateRegister({
 		)
 	}
 
+	// 7c — Δ BLINDNESS (ADVISORY, never fatal): a row whose patch MODIFIES a file
+	// the fork does not have cannot be picked, however small its Δ, because an
+	// unsynced predecessor created that file. This bit twice in the 2026-11-24
+	// sweep (six C4 rows and eleven C6/C7 rows read `A-CLEAN`/Δ 0 and failed on
+	// modify/delete), so the tool now names the condition instead of leaving it to
+	// a probe by hand. Reported BY SHA; the remedy is `Blocked-by <creator>`, which
+	// the operator records — the tool never guesses a prerequisite.
+	const preimageCheck = makeCheck(
+		"preimage-missing",
+		`advisory: an open row whose patch MODIFIES a file absent from \`${forkRef}\` (Δ is blind to this)`,
+		{ severity: "warning" },
+	)
+	const preimageRows = []
+	if (typeof probe.preimageMissing === "function") {
+		for (const row of rows) {
+			const open = row.status.includes(PENDING_MARKER) || row.inProgress
+			if (!open) continue
+			const missing = probe.preimageMissing(row.sha)
+			if (missing === null) {
+				warn(
+					preimageCheck,
+					`line ${row.line}: \`${row.sha}\` could not be inspected for a missing pre-image — ` +
+						`the commit object is unavailable (advisory only: the run stays green)`,
+				)
+				continue
+			}
+			if (missing.length === 0) continue
+			preimageRows.push({ line: row.line, sha: row.sha, delta: row.delta, files: missing })
+		}
+		// A register with hundreds of open rows produces hundreds of these, which
+		// would bury every other finding in the log. Report the first slice and a
+		// count; the JSON report always carries the whole set.
+		for (const finding of preimageRows.slice(0, PREIMAGE_REPORT_CAP)) {
+			warn(
+				preimageCheck,
+				`line ${finding.line}: \`${finding.sha}\` is open with Δ ` +
+					`${finding.delta === null ? "(not recorded)" : finding.delta} but ${finding.files.length} file(s) ` +
+					`it modifies do not exist at \`${forkRef}\` (e.g. \`${finding.files[0]}\`) — the pick will fail as ` +
+					`modify/delete; record the creator in ${BLOCKED_BY_COLUMN} (advisory only: the run stays green)`,
+			)
+		}
+		if (preimageRows.length > PREIMAGE_REPORT_CAP) {
+			warn(
+				preimageCheck,
+				`${preimageRows.length - PREIMAGE_REPORT_CAP} further open row(s) modify a file the fork does not ` +
+					`have; re-run with \`--json\` for the full list (advisory only: the run stays green)`,
+			)
+		}
+	}
+
 	// 8 — Blocked-by closure (HARD): a token must name a DIFFERENT row of this
 	// register, and the literal `unknown` is forbidden — a named unknown looks like
 	// a resolved reference while carrying no information, so the real prerequisite
@@ -1947,6 +2002,7 @@ export function validateRegister({
 		staleCheck,
 		ladderCheck,
 		advisoryCheck,
+		preimageCheck,
 		exceptionAgeCheck,
 		blockedCheck,
 		blockedPendingCheck,
@@ -2839,6 +2895,9 @@ function landedUpstreamByPatchId(forkRef, mergeBase) {
  * `cat-file -t`), not a stub that returns a constant (CP1-5).
  */
 export function buildProbe(forkRef = FORK_REF, { objectFetch = null } = {}) {
+	/** Lazily materialised `forkRef` tree, shared by every `preimageMissing()` call. */
+	let forkPathSet = null
+
 	return {
 		/**
 		 * WS-12: the run-level fetch verdict, so an unresolved object can be
@@ -2887,6 +2946,41 @@ export function buildProbe(forkRef = FORK_REF, { objectFetch = null } = {}) {
 		 */
 		commitMessage(sha) {
 			return gitQuiet(["log", "-1", "--format=%B", sha]) ?? ""
+		},
+		/**
+		 * Δ BLINDNESS, MADE VISIBLE. Δ counts the files the FORK also changed, so it
+		 * reads 0 when the fork never had the file at all — the row looks like a
+		 * clean pick and `git cherry-pick` fails as modify/delete because an
+		 * unsynced predecessor created the file. This returns the paths the commit
+		 * MODIFIES or DELETES that do not exist at `forkRef`; `null` means git could
+		 * not describe the commit (missing object), which the check reports rather
+		 * than treating as clean. Additions (`A`) are excluded on purpose: creating
+		 * a file the fork lacks is exactly what a pickable commit does.
+		 */
+		preimageMissing(sha) {
+			const out = gitQuiet(["show", "--name-status", "--format=", "-M", sha])
+			if (out === null) return null
+			// One `ls-tree` for the whole run, not one `cat-file -e` per path: the
+			// check walks every open row (~350 in the current register) and each row
+			// touches several files, so per-path calls cost minutes.
+			if (forkPathSet === null) {
+				const listing = gitQuiet(["ls-tree", "-r", "--name-only", forkRef]) ?? ""
+				forkPathSet = new Set(listing.split("\n").filter(Boolean))
+			}
+			const missing = []
+			const seen = new Set()
+			for (const line of out.split("\n")) {
+				const fields = line.trim().split("\t")
+				if (fields.length < 2) continue
+				const status = fields[0]
+				if (status.startsWith("A")) continue
+				// A rename/copy line is `<status>\t<old>\t<new>`; the pre-image is <old>.
+				const path = fields[1]
+				if (!path || seen.has(path)) continue
+				seen.add(path)
+				if (!forkPathSet.has(path)) missing.push(path)
+			}
+			return missing
 		},
 	}
 }
