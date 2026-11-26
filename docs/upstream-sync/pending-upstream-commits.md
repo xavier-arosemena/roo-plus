@@ -1669,6 +1669,35 @@ its `Blocked-by` intact. Eleven did not, for the same Δ-blindness recorded abov
 
 **Notes.** **SYNC-23 task 6 — D9/D10/D11 dispositions (2026-11-26).** **(1) D10 history surgery.** The `32a56f30b` pick `436d7a416` and its revert `715067b63b` were dropped from `sync/sync-23-31-row-security-sweep`; both register/docs commits after them were preserved (`279cbedc26` → `d157303a75`, `39828287a9` → `2611d4e46e`), and `cd src && npx tsc --noEmit -p .` is green at each replayed tip. The `32a56f30b` row is unchanged: `☐`, still `Blocked-by a0f2e0355, 3b06b953a`. **(2) `a15ba8c8a` → `✖`.** The row is pure upstream-org CI surface — the mutation PR-comment workflow plus the `scripts/stryker-diff*` harness, both created by the discarded `E-SKIP` row `79cd12f2c` — and the fork runs neither. No hunk was taken, so no R5 drop was needed. **(3) `51b7f579f` — D-LOCAL hand-port attempted and impossible, row left `☐`.** Its entire intent is a ten-line flag flip (`vitestRelated: true` / `discoverRelatedTests: false`) inside `scripts/stryker-diff.mjs`, a file the fork does not have: that file is created by the discarded `E-SKIP` row `79cd12f2c`, and `git grep stryker HEAD -- scripts package.json src/package.json` is empty, so there is no host for the change and the fork does not own the mutation-gate concern (`D-LOCAL` does not apply). The intent cannot be separated from the E-SKIP row, so it was reported rather than guessed; the row keeps `Blocked-by 79cd12f2c`. **(4) `f8aa881c5` → `◐ ec8f283d31` — PARTIAL.** The i18n core is picked verbatim (`webview-ui/src/i18n/setup.ts`, `TranslationContext.tsx`, the three new i18n specs, `TranslationContext.spec.tsx` and the `IndexingStatusBadge.spec.tsx` mock line). The playwright harness hunks are omitted: `playwright/AppProviders.tsx`, `playwright/gallery/stories.tsx` and `settings/__tests__/UISettings.visual.fixture.tsx` do not exist in the fork (created by the discarded `8f7f48ad5` / `fec4e1353`), so the `stories.tsx` hunk is blocked by `8f7f48ad5` and the other two by the same unpicked harness. Evidence: 34 tests pass across 8 i18n/webview spec files and webview `tsc --noEmit` is clean. **(5) `1165aebc8` → `◐ 220a5a679f`.** Picked with `-x`; the spec conflict was structural (the fork lacks upstream's intervening Astra cases), resolved by intent with only this commit's 95-line block grafted. 27/27 tests pass. **(6) D11 divergence.** `src/services/skills/SkillsManager.ts` keeps the named-`stringify` import; byte-identity with upstream is deliberately not claimed and the reason is recorded in `docs/upstream-sync/resolutions/SYNC-23.md` (`## Fork-side divergence (declared)`), which also records that `SkillsManager.spec.ts` is now byte-identical to upstream after `de2ec1870b` landed.
 
+**Notes.** **CP4 review dispositions (2026-11-26).** The final adversarial review
+([`docs/reviews/2026-11-26-sync23-cp4-red-team.md`](../../docs/reviews/2026-11-26-sync23-cp4-red-team.md))
+returned APPROVE WITH CONDITIONS: one BLOCKER — the committed `3.89.5` was already
+the published `latest` on Open VSX, so the publish guard would have exited 1 — and
+five record items. The blocker is closed by the 3.89.6 pre-release bump in this same
+landing. **Committed evidence:** the CP2 and CP4 review reports are committed with
+this note (the CP1 report was already tracked in `56e2d236f3`), so the full gate
+chain is readable from `master`. **Already recorded, not missing:** the
+`f8aa881c5` partial pick is paragraph `(4)` above, and the `1165aebc8`
+`✖` → `◐` transition with its withdrawn data-error rationale is paragraph `(5)`;
+the review grepped the resolution record only, which is why it reported them
+missing. **Corrected — splice attribution:** `ec8f283d31`'s body attributes all
+three omitted visual-harness files to `8f7f48ad5`; only
+`webview-ui/playwright/gallery/stories.tsx` was created there (`A`), while
+`webview-ui/playwright/AppProviders.tsx` and
+`webview-ui/src/components/settings/__tests__/UISettings.visual.fixture.tsx` were
+created by `fec4e1353` and only modified by `8f7f48ad5`. Both creators are
+unpicked, so the omission stands and the row's `Blocked-by fec4e1353, 8f7f48ad5`
+is unchanged. **Corrected — dependency arithmetic:** of the 48 open Dependabot
+alerts at review time, **34 are closed** by this branch's lockfile and **14
+remain**: zod 5 (v4 deferred), i18next 3, katex 2, `@vitest/mocker` 2 (installed
+4.1.11, the advisory asks for 4.1.12), minimatch 1 and
+`@ai-sdk/provider-utils` 1 (pinned to 4.0.14 by three dependents, so unclosable
+without the override D4 forbids). `glob` carries **no** open alert; it stays
+override-pinned at 11.1.0. **NITs recorded, deliberately not acted on:** the
+guard's concatenated-package-name bypass (`require("gray-" + "matter")`) and its
+`src/`-only scan, and the `.prettierignore` exemption for `embedder.ts`, which is
+justified in place.
+
 ## Recommended execution order
 
 1. **SYNC-1 `A-CLEAN` trio** — ✅ synced (☑) on `master` — merged via PR #345 (merge `6c4e9df5c`): `c6eb8fb57` → `f4287ff4f`,
