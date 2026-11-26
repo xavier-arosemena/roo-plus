@@ -1,0 +1,29 @@
+{
+	"runId": "r0-wording-fixture-B-081",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-23T12:05:24.442Z",
+			"endedAt": "2026-11-23T12:05:32.791Z",
+			"httpStatus": 200,
+			"finishReason": "STOP",
+			"usageMetadata": {
+				"promptTokenCount": 1281,
+				"candidatesTokenCount": 74,
+				"totalTokenCount": 2654,
+				"promptTokensDetails": [
+					{
+						"modality": "TEXT",
+						"tokenCount": 1281
+					}
+				],
+				"thoughtsTokenCount": 1299,
+				"serviceTier": "standard"
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "RUN",
+	"maxOutputTokens": 4096
+}

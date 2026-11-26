@@ -1,0 +1,29 @@
+{
+	"runId": "r0-wording-product-C-028",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-23T11:35:13.097Z",
+			"endedAt": "2026-11-23T11:35:19.295Z",
+			"httpStatus": 200,
+			"finishReason": "STOP",
+			"usageMetadata": {
+				"promptTokenCount": 1528,
+				"candidatesTokenCount": 42,
+				"totalTokenCount": 2540,
+				"promptTokensDetails": [
+					{
+						"modality": "TEXT",
+						"tokenCount": 1528
+					}
+				],
+				"thoughtsTokenCount": 970,
+				"serviceTier": "standard"
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "RUN",
+	"maxOutputTokens": 4096
+}

@@ -1,0 +1,29 @@
+{
+	"runId": "r0-position-product-last-089",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-20T14:33:21.208Z",
+			"endedAt": "2026-11-20T14:33:29.460Z",
+			"httpStatus": 200,
+			"finishReason": "STOP",
+			"usageMetadata": {
+				"promptTokenCount": 1528,
+				"candidatesTokenCount": 104,
+				"totalTokenCount": 2901,
+				"promptTokensDetails": [
+					{
+						"modality": "TEXT",
+						"tokenCount": 1528
+					}
+				],
+				"thoughtsTokenCount": 1269,
+				"serviceTier": "standard"
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "RUN",
+	"maxOutputTokens": 4096
+}

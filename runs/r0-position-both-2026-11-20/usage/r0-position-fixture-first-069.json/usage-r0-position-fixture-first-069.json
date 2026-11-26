@@ -1,0 +1,29 @@
+{
+	"runId": "r0-position-fixture-first-069",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-20T14:19:13.039Z",
+			"endedAt": "2026-11-20T14:19:22.217Z",
+			"httpStatus": 200,
+			"finishReason": "STOP",
+			"usageMetadata": {
+				"promptTokenCount": 1281,
+				"candidatesTokenCount": 144,
+				"totalTokenCount": 2730,
+				"promptTokensDetails": [
+					{
+						"modality": "TEXT",
+						"tokenCount": 1281
+					}
+				],
+				"thoughtsTokenCount": 1305,
+				"serviceTier": "standard"
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "RUN",
+	"maxOutputTokens": 4096
+}

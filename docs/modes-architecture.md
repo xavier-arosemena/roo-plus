@@ -692,7 +692,7 @@ to be inflatable and were removed by one directory as unverifiable.
 
 | Metric                             | Today                                 | Target                                 |
 | ---------------------------------- | ------------------------------------- | -------------------------------------- |
-| Preloaded modes                    | 90                                    | 60–90 (do not grow)                    |
+| Preloaded modes                    | 90                                    | **45**, incl. 16 non-coding (§10.8)    |
 | Σ `whenToUse` in preload           | **13,306 chars — already 10.9% over** | ≤ 12,000 chars                         |
 | Modes over 6,000 instruction chars | 160 / 302                             | 0                                      |
 | Max `customInstructions`           | 49,299                                | ≤ 6,000 (body); larger content → skill |
@@ -791,6 +791,83 @@ separate quantities that must never be blended: _supply breadth_ (distinct jobs 
 allocation_ (routing chars and preload slots), _eval coverage_ (evidence per axis) and _external need_
 (the research baseline). Definitions, the small-n rules (coarse bins before percentages) and the honest
 sentence the project can defend are in [`docs/modes-doctrine.md`](modes-doctrine.md) Part VI.
+
+### 10.8 The frame question, the preload it settles, and what it leaves open
+
+**Why there are two benchmarks.** The catalogue was proposed as two rival frames, written so both
+could be measured on identical instruments: an **axis × stance** frame
+([`modes-catalogue-axis-stance-frame.md`](modes-catalogue-axis-stance-frame.md:1), **45** entries —
+24 coding, 5 meta, 16 non-coding) and an **artefact** frame
+([`modes-catalogue-artefact-frame.md`](modes-catalogue-artefact-frame.md:1), **47** entries — 24
+coding, 6 operations and data, 5 meta, 12 non-coding). The routing benchmark began as the test that
+would choose between them. The capability benchmark exists because the frame turned out not to be
+where the difference is.
+
+**What the test returned — and what it cannot license.** E11 scored both frames blind —
+`CATALOGUE-1` = axis × stance, `CATALOGUE-2` = artefact — and found **10/10 against 10/10**, a
+**0-point difference** ([`modes-experiment-log.md`](research/modes-experiment-log.md:271)). The
+registered rule's row 2 applies and returns **H3 — one catalogue, two views**. Two qualifications
+travel with it: the confirmatory cells were at **ceiling in both arms** (20 of 20), so H3 is _the
+default the rule returns_, not an equivalence demonstrated; and the only discriminating cell was
+excluded by Amendment 6, an exclusion D-8 records as mistaken.
+
+**The presentation switch is therefore not a decision, and this document does not carry one.** The
+test could see _names_: it asked whether a reader picks the same entry from two lists of slugs and
+lines. It could not see that the two frames define a mode differently — "a stance applied to a
+domain" in one, "an artefact produced" in the other — with different counts (45 against 47),
+different slugs (`explain` against `explanation`), and different coverage. If the sets differ in
+kind and not only in wording, then 0 points on selection is evidence that **both lists are
+readable**, not that they are **one list**. A view toggle implemented before the reconciliation
+would render two catalogues and call it one. **Status: withdrawn pending settlement by the builder
+of the catalogue.**
+
+**Three items the builder must settle, none of them arithmetic.**
+
+1. **45 against 47 — count, slugs, and the definition behind both.** The frames differ by two
+   entries and by almost every slug, and the disagreement is about what a mode _is_. This is an
+   argument to be made and recorded, not an intersection to be computed.
+2. **Coverage — and the possibility that 45 is too few.** The frames disagree on what is covered:
+   axis × stance leaves **13 jobs uncovered** and double-assigns 2, the artefact frame leaves **4
+   uncovered** and double-assigns 4 ([`axis-stance §6`](modes-catalogue-axis-stance-frame.md:90)).
+   Neither covers the inventory, so the reconciled catalogue may need **more modes than 45** —
+   possibly by adding owners for uncovered jobs. That makes **45 a floor, not a target**, and if it
+   moves, the preload figure below has to be re-costed. This is unsettled and must be settled with
+   the job inventory open beside it.
+3. **The presentation switch itself** — conditional on 1 and 2.
+
+**Preload size is 45 — decided 2026-11-19, superseding 60–90.** The curated preload is the
+**45-entry catalogue**, not the range this document carried while the target was still argued. The
+arithmetic supports it: the 45 drafted lines total **4,208 `whenToUse` characters** (113.42 per
+entry, measured on the generated selection block —
+[`frame bake-off §2.1`](reviews/2026-11-09-frame-bakeoff-run.md:54)), about a third of the
+12,000-character budget. So the decision is affordable, not merely aspirational. **The 45 are not
+built**: construction waits for both benchmarks, because each mode's contract is meant to carry the
+routing findings (§6, [`routing report`](reviews/2026-11-17-routing-report-e17-draft.md:1)) and the
+capability findings together.
+
+**The preload includes the 16 non-coding modes — decided 2026-11-19.** This reverses
+[`ADR-6`](adr/adr-target-catalogue.md:82) §6 and rule 2 of [`modes-units`](modes-units.md:145), both of
+which gave non-coding modes no preload slot. The reason is budget, and it is arithmetic rather than
+judgement: 45 lines at 113.42 characters is **4,208 of the 12,000 `whenToUse` characters**, leaving
+7,792 unspent. A rule written to protect a budget that is not under pressure is protecting nothing.
+What survives is the reason the rule existed: non-coding modes stay **labelled**, they hold no
+preload slot beyond these 16, and their presence is not an argument for growing the preload further.
+
+**Language and framework modes are installables, never preload.** The 43 stack-specific slugs in the
+implementation axis ([`needs baseline §7.2`](research/modes-needs-baseline-2026-11.md:519)) are
+**declared specialisations**: marketplace, install-on-demand, no preload slot and no routing
+characters until a user installs one. The rule already exists in
+[`ADR-6`](adr/adr-target-catalogue.md:52) §1 and §5 and in the tier table above; what was missing is
+the sentence that ties it to this decision — **the preload is the 45; the languages are the
+installables**.
+
+**The lines the 45 will carry are now evidence-based, and the evidence is a candidate list.** E24 put
+476 probes over the 119 jobs through two instruments — a lexical matcher and a model — and found two
+distinct defects: six axes lack the words users type, and three contain them and lose anyway because
+neighbours do too (log §34). The per-owner word proposals and the nine recommendations they generate
+(**C1–C9**) live in [`test-fixtures/reach/triggers-candidates.json`](../test-fixtures/reach/triggers-candidates.json:1).
+**They are untested**: the round that would test them has not run, and no word from that file may
+enter a `whenToUse` without a reachability check and one model call per job.
 
 ---
 
@@ -926,7 +1003,7 @@ two-stage routing ADR compares accuracy against the full-index baseline.
 | 3.8  | **Doctrine publication**: a cited long-form white paper derived from the research and this document (problem → model → evidence → gates → measured results), published from the project site, versioned in-repo, treated as the **citable theory of record** the catalogue is built on                                                                                                                                                                                         | MODERATE (synthesis)                  | M          |
 | 3.9  | **J1–J2 — Axis research and job inventory** (target-state §5.5): research the recognised dimensions of coding work from _external_ standards, define 6–12 axes with sources, then inventory the **jobs** per axis (trigger + definition of done). This is research work, not a taxonomy preference — it is the needs baseline the catalogue is planned against                                                                                                                 | NONE until chosen (research required) | L          |
 | 3.10 | **Coverage baseline + a worked example** (§10.7): map the catalogue onto the axes, publish supply and allocation for both series, leave `C`/`N` blank, and publish one worked S/A/C/N example for a single axis                                                                                                                                                                                                                                                                | STRONG (repo data)                    | S–M        |
-| 3.11 | **Target catalogue plan**: from the job inventory — the named mode list, the 60–90 preload selection, a capability profile per mode, one primary owner per job, naming conventions, and the merge / absorb / split / retire rules; includes superseding the built-in five into the preload, with a 1–3 mode bootstrap baseline left in core                                                                                                                                    | MODERATE (derived)                    | M          |
+| 3.11 | **Target catalogue plan**: from the job inventory — the named mode list, the 45-mode preload selection (§10.8), a capability profile per mode, one primary owner per job family, naming conventions, and the merge / absorb / split / retire rules; includes superseding the built-in five into the preload, with a 1–3 mode bootstrap baseline left in core                                                                                                                   | MODERATE (derived)                    | M          |
 | 3.12 | **Target-catalogue migration plan and execution**: per-mode disposition (keep / merge into X / thin to skill / retire / create) applied under the demand-by-failure admission test; the catalogue is refactored to the target, not merely re-wrapped in new categories                                                                                                                                                                                                         | MODERATE                              | L          |
 | 3.13 | **Coverage gate**: the map regenerates on every catalogue change; an axis that grows past its target count, or a preload share that drifts, fails the build                                                                                                                                                                                                                                                                                                                    | MODERATE                              | S          |
 | 3.14 | **Migration scorecard — measure the savings, do not assert them** ([`modes-catalogue-brainstorm.md`](modes-catalogue-brainstorm.md) §6): before/after for modes, preload slots, Σ`whenToUse` (13,306 today), rendered `MODES` section (18,648), median/max doctrine chars, skills shipped, distinct `groups` signatures, jobs with exactly one owner, and aliases published — plus the product-level number, **modes a new user sees on day 1**. Published in the release note | STRONG (measured)                     | S          |

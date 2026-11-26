@@ -1,0 +1,29 @@
+{
+	"runId": "r0-attribution-product-slug-first-product-slug-first-014",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-20T16:03:23.603Z",
+			"endedAt": "2026-11-20T16:03:36.225Z",
+			"httpStatus": 200,
+			"finishReason": "STOP",
+			"usageMetadata": {
+				"promptTokenCount": 1528,
+				"candidatesTokenCount": 152,
+				"totalTokenCount": 3705,
+				"promptTokensDetails": [
+					{
+						"modality": "TEXT",
+						"tokenCount": 1528
+					}
+				],
+				"thoughtsTokenCount": 2025,
+				"serviceTier": "standard"
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "RUN",
+	"maxOutputTokens": 4096
+}

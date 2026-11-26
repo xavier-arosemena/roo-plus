@@ -1,0 +1,32 @@
+{
+	"schemaVersion": "ecc.r0.v1",
+	"registration": "docs/reviews/2026-11-20-r0-picker-format-preregistration.md",
+	"contrast": "slug-lead",
+	"formats": ["fixture", "product"],
+	"briefId": "B3",
+	"brief": "Explain why this module is structured the way it is.",
+	"persona": "P1",
+	"model": "gemini-3.5-flash",
+	"draws": 100,
+	"catalogueDigest": "30315cd252c6bec9789afdddf139ebff29765b775557d6c51d72fbae3706edc6",
+	"arms": [
+		{
+			"key": "product-slug-only:slug-only",
+			"format": "product-slug-only",
+			"arm": "slug-only",
+			"line": "B",
+			"index": 6,
+			"promptSha256": "5403d03f266afd9d62f0df3c26425c8029553cd7f2370c3b01592fafcf767c12",
+			"pickerDigest": "739302d0455c611e52fd6e9c31e238ff614e575782c6c73229dfdc6fe624d942"
+		},
+		{
+			"key": "product-slug-first:slug-and-name",
+			"format": "product-slug-first",
+			"arm": "slug-and-name",
+			"line": "B",
+			"index": 6,
+			"promptSha256": "b8f68f48a8ce115d481ab029d65635a05273a590a164cc8ce0fa239956154285",
+			"pickerDigest": "ff69f344ce13c5d41427d34218d3cc4f483c12074b2262763159c385fef41193"
+		}
+	]
+}

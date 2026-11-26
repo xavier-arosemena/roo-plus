@@ -2,7 +2,7 @@
 
 **Date**: 2026-11-06
 
-**Status**: ✅ ACCEPTED — ⚠️ **partially under revision**: (a) the unit clause (one owner per _job_) is being revised to one owner per _job family_, with skills per job ([`docs/modes-units.md`](../modes-units.md)); (b) **scope widened 2026-11-10** — the whole catalogue is being restructured, not only the preload, so **marketplace size is affected** ([review](../reviews/2026-11-10-programme-state-review.md)).
+**Status**: ✅ ACCEPTED — ⚠️ **partially under revision**: (a) the unit clause (one owner per _job_) is being revised to one owner per _job family_, with skills per job ([`docs/modes-units.md`](../modes-units.md)); (b) **scope widened 2026-11-10** — the whole catalogue is being restructured, not only the preload, so **marketplace size is affected** ([review](../reviews/2026-11-10-programme-state-review.md)); (c) **preload target superseded 2026-11-19 — 45, not 60–90 — and the 45 now includes the 16 non-coding entries**, which supersedes §6's "no preload slot" rule; (d) **the presentation switch is not decided**: E11 compared names at a ceiling, while the two frames define a mode differently, so "one catalogue, two views" is withdrawn pending reconciliation by the catalogue's builder ([`modes-architecture.md`](../modes-architecture.md:795) §10.8).
 
 **Decision owners**: Repository maintainer
 
@@ -63,6 +63,17 @@ privileged by being built in.**
 4. **The preload is jobs plus declared specialisations.** Target 60–90 slots only if **≤ 40 are
    specialisations**. The preload must cover **≥ 80% of jobs in the deep-need bands** (comprehension,
    debugging, testing, implementation, architecture) _before_ any specialisation slot is allocated.
+
+    > **Superseded 2026-11-19 — the preload target is 45.** The range above was a working figure while
+    > the catalogue's shape was still being argued. The curated preload is now the **45-entry**
+    > catalogue ([`modes-architecture.md`](../modes-architecture.md:795) §10.8), affordable at 4,208
+    > `whenToUse` characters. Clause 1's "one owner per job family" still governs the unit, and the
+    > deep-need coverage rule still governs allocation; what changes is the size, not the criteria.
+    > Language and framework modes remain **declared specialisations** — installable from the
+    > marketplace, never preloaded. The 16 non-coding entries **are** in the 45 and **do** take preload
+    > slots: decided 2026-11-19 on budget grounds (4,208 of 12,000 `whenToUse` characters), which
+    > reverses §6's rule below (decision **D-6**, [`modes-programme-roadmap.md`](../modes-programme-roadmap.md:76)).
+
 5. **Catalogue size is an output, not a target — and that applies to the marketplace too.** Target ≈ jobs
    (35–47 owners) + declared specialisations + a small number of deliberate variants, **for the catalogue as
    a whole**. The marketplace may exceed that target by carrying declared specialisations and labelled
@@ -71,8 +82,11 @@ privileged by being built in.**
 6. **Jobless modes are not deleted by fiat, but none of them is exempt from disposition.** Each gets one —
    `keep` (labelled non-coding), `merge`, `thin to skill`, `retire`, `create` — under the demand-by-failure
    admission test, **and each keeps the same contract, budget and grant rules as any other mode**. Non-coding
-   professions may stay in the **marketplace**, explicitly labelled, and take **no preload slot**. The
-   marketplace is a lower bar for _admission_, not a lower bar for _quality_.
+   professions may stay in the **marketplace**, explicitly labelled. ~~They take no preload slot.~~
+   **Superseded 2026-11-19:** they **do** take preload slots — the 45 includes the 16 non-coding
+   entries, because the routing budget is not under pressure (4,208 of 12,000 characters). The
+   labelling requirement stands. The marketplace is a lower bar for _admission_, not a lower bar for
+   _quality_.
 7. **The routing budget ratchets.** No new preload entry until Σ`whenToUse` is back under 12,000 chars; the
    current 10.9% overage is paid down first (Phase 3), not amortised by adding modes.
 8. **The 12 axes become the catalogue spine.** Stored as `categories` in [`manifest.json`](../../custom-modes/manifest.json),

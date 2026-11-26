@@ -84,12 +84,13 @@ vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 
 vi.mock("react-i18next", () => ({
 	Trans: ({ i18nKey, components }: { i18nKey: string; components?: Record<string, React.ReactElement> }) => {
-		if (i18nKey === "chat:announcement.marketing" && components?.githubLink) {
+		// The rotating marketing slot: only its PLACEMENT and its merch link are
+		// asserted here. The copy itself is verified against the real locale
+		// files in Announcement.locales.spec.ts, so a mock that hardcodes English
+		// can never mask a missing key again.
+		if (i18nKey === "chat:announcement.marketing" && components?.merchLink) {
 			return (
-				<span>
-					Please take a moment to give us a {components.star} on{" "}
-					{React.cloneElement(components.githubLink, undefined, "GitHub")}!
-				</span>
+				<span>Holiday merch CTA {React.cloneElement(components.merchLink, undefined, "Browse the shop")}</span>
 			)
 		}
 
@@ -111,8 +112,11 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 	useAppTranslation: () => ({
 		// Mirror i18next: a key only "exists" when the locale defines it, which is
 		// what the component uses to decide between a translation and the English
-		// canonical bullet.
-		i18n: { exists: (key: string) => lineOverrides[key] !== undefined },
+		// canonical bullet. The marketing slot is existence-guarded the same way,
+		// and the real locale files define it, so it counts as present here.
+		i18n: {
+			exists: (key: string) => key === "chat:announcement.marketing" || lineOverrides[key] !== undefined,
+		},
 		t: (key: string, options?: { version?: string; defaultValue?: string }) => {
 			const translations: Record<string, string> = {
 				"chat:announcement.release.heading": "What's New:",
@@ -228,11 +232,18 @@ describe("Announcement", () => {
 		render(<Announcement hideAnnouncement={vi.fn()} />)
 
 		const text = document.body.textContent ?? ""
-		const ctaAt = text.indexOf("Please take a moment")
+		const ctaAt = text.indexOf("Holiday merch CTA")
 		const headingAt = text.indexOf("What's New:")
 		expect(ctaAt).toBeGreaterThanOrEqual(0)
 		expect(headingAt).toBeGreaterThanOrEqual(0)
 		expect(ctaAt).toBeLessThan(headingAt)
+	})
+
+	it("links the marketing CTA to the Roo+ merch shop", () => {
+		render(<Announcement hideAnnouncement={vi.fn()} />)
+
+		const merchLink = screen.getByRole("link", { name: "Browse the shop" })
+		expect(merchLink).toHaveAttribute("href", EXTERNAL_LINKS.MERCH)
 	})
 
 	it("links support users to the Roo+ GitHub repository", () => {

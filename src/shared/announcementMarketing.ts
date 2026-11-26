@@ -10,4 +10,4 @@
  * translation-independent copy changes, including edits made only in
  * non-English locales.
  */
-export const MARKETING_REVISION = "star-cta-v1"
+export const MARKETING_REVISION = "holiday-merch-v1"

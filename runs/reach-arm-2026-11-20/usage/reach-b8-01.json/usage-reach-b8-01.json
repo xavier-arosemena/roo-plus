@@ -1,0 +1,29 @@
+{
+	"runId": "reach-b8-01",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-20T12:51:07.032Z",
+			"endedAt": "2026-11-20T12:51:10.470Z",
+			"httpStatus": 200,
+			"finishReason": "STOP",
+			"usageMetadata": {
+				"promptTokenCount": 1539,
+				"candidatesTokenCount": 50,
+				"totalTokenCount": 2093,
+				"promptTokensDetails": [
+					{
+						"modality": "TEXT",
+						"tokenCount": 1539
+					}
+				],
+				"thoughtsTokenCount": 504,
+				"serviceTier": "standard"
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "RUN",
+	"maxOutputTokens": 4096
+}

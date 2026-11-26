@@ -1,0 +1,29 @@
+{
+	"runId": "reach-c9-01",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-20T12:52:17.624Z",
+			"endedAt": "2026-11-20T12:52:21.109Z",
+			"httpStatus": 200,
+			"finishReason": "STOP",
+			"usageMetadata": {
+				"promptTokenCount": 1537,
+				"candidatesTokenCount": 64,
+				"totalTokenCount": 2018,
+				"promptTokensDetails": [
+					{
+						"modality": "TEXT",
+						"tokenCount": 1537
+					}
+				],
+				"thoughtsTokenCount": 417,
+				"serviceTier": "standard"
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "RUN",
+	"maxOutputTokens": 4096
+}

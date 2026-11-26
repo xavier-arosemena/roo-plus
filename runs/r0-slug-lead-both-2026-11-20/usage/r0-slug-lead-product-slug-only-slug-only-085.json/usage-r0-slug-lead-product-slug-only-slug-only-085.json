@@ -1,0 +1,29 @@
+{
+	"runId": "r0-slug-lead-product-slug-only-slug-only-085",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-23T13:21:31.915Z",
+			"endedAt": "2026-11-23T13:21:43.693Z",
+			"httpStatus": 200,
+			"finishReason": "STOP",
+			"usageMetadata": {
+				"promptTokenCount": 1345,
+				"candidatesTokenCount": 158,
+				"totalTokenCount": 3027,
+				"promptTokensDetails": [
+					{
+						"modality": "TEXT",
+						"tokenCount": 1345
+					}
+				],
+				"thoughtsTokenCount": 1524,
+				"serviceTier": "standard"
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "RUN",
+	"maxOutputTokens": 4096
+}

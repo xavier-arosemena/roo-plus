@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "Tải tin nhắn trước đó",
 	"about": "Tiện ích mở rộng IDE tác nhân local-first, tự mang mô hình của bạn — <br/>Biết chi phí của bạn, tin tưởng bộ nhớ cache của bạn, giữ kiến thức của bạn.",
 	"support": {
-	"marketing": "Hãy dành một chút thời gian để tặng chúng tôi một <star/> trên <githubLink>GitHub</githubLink>! (~20s)",
+		"merch": "Đồ merch Roo+",
+		"merchBlurb": "Giữ repo luôn tỉnh táo.",
 		"reportIssue": "Báo lỗi hoặc yêu cầu tính năng",
 		"discussions": "Tham gia thảo luận",
 		"starUs": "Cho chúng tôi một sao trên GitHub",
@@ -369,6 +370,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ {{version}} đã phát hành",
+		"marketing": "Chưa biết tặng gì? Đồ merch Roo+: dành cho lập trình viên agentic trong đời bạn. <merchLink>Xem cửa hàng</merchLink>",
 		"support": "Hãy ủng hộ Roo+ trên <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> và <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Có gì mới:",

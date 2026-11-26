@@ -1,0 +1,664 @@
+{
+	"schema": "reach-triggers-candidates/1",
+	"status": "CANDIDATE LIST. The round that tests it has not been run. Nothing here is validated.",
+	"warning": "Do not copy these into whenToUse and claim an improvement. The words are derived from 4 probes per job, filtered mechanically and selected by hand; the E24 model arm shows the model already reaches 0.538 without them, so the gain is unmeasured and could be small or negative for a line that is already too long.",
+	"provenance": {
+		"corpus": "test-fixtures/reach/probes.json",
+		"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+		"catalogueDigest": "30315cd252c6bec9789afdddf139ebff29765b775557d6c51d72fbae3706edc6",
+		"derivedFrom": "tokens present in the probes of an owner's jobs and absent from that owner's whenToUse, kept when they occur at least twice and in at most two owners' probe sets",
+		"log": "docs/research/modes-experiment-log.md §34"
+	},
+	"howToUse": [
+		"Add 3-6 words to the owner's whenToUse, inside the 100-200 character budget.",
+		"Re-run node scripts/mode-probe-gate.mjs; reachability must rise for that owner and no other owner's top-1 may move.",
+		"Then run one model call per job for that owner only, and compare with the 0.538 baseline in plain words.",
+		"Only after that may a line be called improved."
+	],
+	"derived": {
+		"acceptance-criteria": {
+			"probes": 8,
+			"missing": [
+				{
+					"token": "actually",
+					"count": 2
+				}
+			]
+		},
+		"architect": {
+			"probes": 24,
+			"missing": [
+				{
+					"token": "option",
+					"count": 4
+				},
+				{
+					"token": "belong",
+					"count": 3
+				},
+				{
+					"token": "criteria",
+					"count": 3
+				},
+				{
+					"token": "case",
+					"count": 2
+				},
+				{
+					"token": "directly",
+					"count": 2
+				},
+				{
+					"token": "export",
+					"count": 2
+				},
+				{
+					"token": "extension",
+					"count": 2
+				},
+				{
+					"token": "score",
+					"count": 2
+				},
+				{
+					"token": "seam",
+					"count": 2
+				},
+				{
+					"token": "third",
+					"count": 2
+				}
+			]
+		},
+		"architecture-reviewer": {
+			"probes": 8,
+			"missing": [
+				{
+					"token": "scenario",
+					"count": 2
+				}
+			]
+		},
+		"code": {
+			"probes": 20,
+			"missing": [
+				{
+					"token": "transitive",
+					"count": 3
+				},
+				{
+					"token": "clear",
+					"count": 2
+				},
+				{
+					"token": "explicit",
+					"count": 2
+				},
+				{
+					"token": "lockfile",
+					"count": 2
+				}
+			]
+		},
+		"code-reviewer": {
+			"probes": 24,
+			"missing": [
+				{
+					"token": "gate",
+					"count": 4
+				},
+				{
+					"token": "trust",
+					"count": 3
+				},
+				{
+					"token": "verdict",
+					"count": 3
+				},
+				{
+					"token": "assert",
+					"count": 2
+				},
+				{
+					"token": "assertion",
+					"count": 2
+				},
+				{
+					"token": "coverage",
+					"count": 2
+				},
+				{
+					"token": "licence",
+					"count": 2
+				},
+				{
+					"token": "lint",
+					"count": 2
+				},
+				{
+					"token": "output",
+					"count": 2
+				},
+				{
+					"token": "true",
+					"count": 2
+				},
+				{
+					"token": "waive",
+					"count": 2
+				}
+			]
+		},
+		"codebase-cartographer": {
+			"probes": 20,
+			"missing": [
+				{
+					"token": "main",
+					"count": 2
+				},
+				{
+					"token": "outside",
+					"count": 2
+				}
+			]
+		},
+		"data-analyst": {
+			"probes": 12,
+			"missing": [
+				{
+					"token": "budget",
+					"count": 2
+				},
+				{
+					"token": "invalidation",
+					"count": 2
+				}
+			]
+		},
+		"database-migration": {
+			"probes": 24,
+			"missing": [
+				{
+					"token": "column",
+					"count": 6
+				},
+				{
+					"token": "sample",
+					"count": 4
+				},
+				{
+					"token": "model",
+					"count": 3
+				},
+				{
+					"token": "aged",
+					"count": 2
+				},
+				{
+					"token": "auditable",
+					"count": 2
+				},
+				{
+					"token": "backfill",
+					"count": 2
+				},
+				{
+					"token": "converter",
+					"count": 2
+				},
+				{
+					"token": "export",
+					"count": 2
+				},
+				{
+					"token": "implement",
+					"count": 2
+				},
+				{
+					"token": "match",
+					"count": 2
+				},
+				{
+					"token": "reconcile",
+					"count": 2
+				},
+				{
+					"token": "repair",
+					"count": 2
+				}
+			]
+		},
+		"debug": {
+			"probes": 32,
+			"missing": [
+				{
+					"token": "passe",
+					"count": 3
+				},
+				{
+					"token": "broken",
+					"count": 2
+				},
+				{
+					"token": "browser",
+					"count": 2
+				},
+				{
+					"token": "even",
+					"count": 2
+				},
+				{
+					"token": "locally",
+					"count": 2
+				},
+				{
+					"token": "sometime",
+					"count": 2
+				},
+				{
+					"token": "stack",
+					"count": 2
+				}
+			]
+		},
+		"decision-record": {
+			"probes": 16,
+			"missing": [
+				{
+					"token": "decision",
+					"count": 2
+				},
+				{
+					"token": "info",
+					"count": 2
+				},
+				{
+					"token": "she",
+					"count": 2
+				},
+				{
+					"token": "statu",
+					"count": 2
+				}
+			]
+		},
+		"devops": {
+			"probes": 16,
+			"missing": [
+				{
+					"token": "base",
+					"count": 4
+				},
+				{
+					"token": "apply",
+					"count": 3
+				},
+				{
+					"token": "image",
+					"count": 3
+				},
+				{
+					"token": "prevent",
+					"count": 3
+				},
+				{
+					"token": "rebuild",
+					"count": 3
+				},
+				{
+					"token": "differ",
+					"count": 2
+				},
+				{
+					"token": "recurr",
+					"count": 2
+				},
+				{
+					"token": "startup",
+					"count": 2
+				}
+			]
+		},
+		"documentation": {
+			"probes": 20,
+			"missing": [
+				{
+					"token": "answer",
+					"count": 4
+				},
+				{
+					"token": "comment",
+					"count": 3
+				},
+				{
+					"token": "reviewer",
+					"count": 3
+				},
+				{
+					"token": "clone",
+					"count": 2
+				},
+				{
+					"token": "draft",
+					"count": 2
+				}
+			]
+		},
+		"explain": {
+			"probes": 16,
+			"missing": [
+				{
+					"token": "deliberate",
+					"count": 2
+				},
+				{
+					"token": "odd",
+					"count": 2
+				},
+				{
+					"token": "round",
+					"count": 2
+				}
+			]
+		},
+		"incident-commander": {
+			"probes": 12,
+			"missing": [
+				{
+					"token": "alert",
+					"count": 4
+				}
+			]
+		},
+		"integration-engineer": {
+			"probes": 12,
+			"missing": [
+				{
+					"token": "port",
+					"count": 3
+				},
+				{
+					"token": "kill",
+					"count": 2
+				},
+				{
+					"token": "removal",
+					"count": 2
+				}
+			]
+		},
+		"modernisation": {
+			"probes": 16,
+			"missing": [
+				{
+					"token": "retire",
+					"count": 3
+				},
+				{
+					"token": "end",
+					"count": 2
+				},
+				{
+					"token": "legacy",
+					"count": 2
+				},
+				{
+					"token": "life",
+					"count": 2
+				},
+				{
+					"token": "notice",
+					"count": 2
+				}
+			]
+		},
+		"performance": {
+			"probes": 24,
+			"missing": [
+				{
+					"token": "doubl",
+					"count": 3
+				},
+				{
+					"token": "hour",
+					"count": 3
+				},
+				{
+					"token": "profile",
+					"count": 3
+				},
+				{
+					"token": "grow",
+					"count": 2
+				},
+				{
+					"token": "resource",
+					"count": 2
+				},
+				{
+					"token": "stage",
+					"count": 2
+				},
+				{
+					"token": "suite",
+					"count": 2
+				},
+				{
+					"token": "until",
+					"count": 2
+				},
+				{
+					"token": "workload",
+					"count": 2
+				}
+			]
+		},
+		"refactoring": {
+			"probes": 24,
+			"missing": [
+				{
+					"token": "logic",
+					"count": 3
+				},
+				{
+					"token": "everywhere",
+					"count": 2
+				},
+				{
+					"token": "graph",
+					"count": 2
+				},
+				{
+					"token": "restructure",
+					"count": 2
+				},
+				{
+					"token": "safely",
+					"count": 2
+				},
+				{
+					"token": "smaller",
+					"count": 2
+				}
+			]
+		},
+		"release-readiness": {
+			"probes": 16,
+			"missing": [
+				{
+					"token": "tag",
+					"count": 4
+				},
+				{
+					"token": "artefact",
+					"count": 2
+				},
+				{
+					"token": "changelog",
+					"count": 2
+				},
+				{
+					"token": "checklist",
+					"count": 2
+				},
+				{
+					"token": "dry",
+					"count": 2
+				},
+				{
+					"token": "post",
+					"count": 2
+				}
+			]
+		},
+		"requirements": {
+			"probes": 12,
+			"missing": [
+				{
+					"token": "problem",
+					"count": 3
+				},
+				{
+					"token": "dashboard",
+					"count": 2
+				}
+			]
+		},
+		"security-reviewer": {
+			"probes": 12,
+			"missing": [
+				{
+					"token": "mitigation",
+					"count": 3
+				},
+				{
+					"token": "replace",
+					"count": 2
+				},
+				{
+					"token": "tool",
+					"count": 2
+				},
+				{
+					"token": "vector",
+					"count": 2
+				}
+			]
+		},
+		"test-author": {
+			"probes": 12,
+			"missing": [
+				{
+					"token": "regression",
+					"count": 2
+				}
+			]
+		},
+		"test-strategist": {
+			"probes": 24,
+			"missing": [
+				{
+					"token": "session",
+					"count": 3
+				},
+				{
+					"token": "area",
+					"count": 2
+				},
+				{
+					"token": "flaky",
+					"count": 2
+				},
+				{
+					"token": "generate",
+					"count": 2
+				},
+				{
+					"token": "incident",
+					"count": 2
+				},
+				{
+					"token": "quarantine",
+					"count": 2
+				}
+			]
+		},
+		"vulnerability-response": {
+			"probes": 20,
+			"missing": [
+				{
+					"token": "rotate",
+					"count": 3
+				},
+				{
+					"token": "access",
+					"count": 2
+				},
+				{
+					"token": "advisory",
+					"count": 2
+				},
+				{
+					"token": "assess",
+					"count": 2
+				},
+				{
+					"token": "attack",
+					"count": 2
+				},
+				{
+					"token": "boundary",
+					"count": 2
+				},
+				{
+					"token": "end",
+					"count": 2
+				},
+				{
+					"token": "implement",
+					"count": 2
+				},
+				{
+					"token": "sink",
+					"count": 2
+				}
+			]
+		}
+	},
+	"curated": {
+		"debug": ["fails", "broken", "stack trace", "locally", "intermittent", "hangs"],
+		"performance": ["slow", "got slower", "memory", "leak", "OOM", "p95", "hours"],
+		"devops": ["CI", "pipeline", "image", "rebuild", "startup", "exit code"],
+		"vulnerability-response": ["leaked", "secret", "CVE", "rotate", "advisory", "patch"],
+		"test-author": ["regression", "fails before", "cover"],
+		"test-strategist": ["flaky", "quarantine", "suite", "risk", "session"],
+		"release-readiness": ["tag", "changelog", "checklist", "dry-run", "go/no-go"],
+		"refactoring": ["restructure", "smaller", "same behaviour", "green"],
+		"modernisation": ["retire", "legacy", "upgrade", "end of life", "staged"],
+		"documentation": ["runbook", "onboarding", "what changed", "how to"],
+		"decision-record": ["why we chose", "context", "trade-offs", "superseded"],
+		"database-migration": ["backfill", "column", "reversible", "expand-contract"],
+		"data-analyst": ["query", "how many", "dashboard", "stale data"],
+		"code-reviewer": ["verdict", "findings", "severity", "lint", "licence"],
+		"security-reviewer": ["threat", "abuse case", "trust boundary", "mitigation"],
+		"incident-commander": ["outage", "degraded", "restore", "timeline", "follow-ups"],
+		"codebase-cartographer": ["entry points", "who calls", "dependents", "blast radius"],
+		"integration-engineer": ["third-party", "SDK", "webhook", "port", "kill", "removal"],
+		"requirements": ["ticket", "acceptance", "what do you need", "scope"]
+	},
+	"curatedNote": "Hand-selected from `derived`, plus domain sense. Four owners have no useful candidates: acceptance-criteria, architecture-reviewer, code, explain. Their problem is not missing words — it is that neighbouring lines contain the same ones.",
+	"recommendations": {
+		"C1": "Add triggers to the word-short axes: UND, OPS, DBG, DAT, ARC, REF.",
+		"C2": "Do not add words to TST, REV, IMP: they contain the words and still lose. Add a discriminator ('not for X') or merge the pair.",
+		"C3": "Fill or drop the 13 ownerless jobs: B9, C4, D7, D8, I8, I9, Q6, R2, R3, R6, R8, S6, S9.",
+		"C4": "Publish strict, adjacent and unrelated owners separately; 'appropriate' hides 25 wrong owners in 106.",
+		"C5": "Gate every whenToUse edit on reachability; it costs seconds.",
+		"C6": "Author and test lines in the product rendering (name quoted, slug in parentheses, under MODES). Measured 2026-11-23: that form declared 0.778 against 0.500 (extractor v4; 0.714 as first scored), +27.4 points paired (z 3.05), log 40 and 44.",
+		"C7": "Do not use list position as a lever: in the product form the last slot declared 19 points less than the same line first.",
+		"C8": "Assume the wording effect may be smaller, not larger, in the product form; weight discriminating content over polar phrasing.",
+		"C9": "Do not treat field order as a lever. Within the experiment template, swapping slug and name moved nothing (-4.8 points, z -0.52); within the product template the wrong order collapsed the rate to 0.190. Write the product form, in the product order, and do not optimise the order separately.",
+		"C10": "Re-run the attribution arms at full size when quota allows: 63 per arm is enough for a 26-point effect, not for a 10-point one.",
+		"C11": "Print the display name in the quoted slot: * \"<Name>\" mode (<slug>) - line. One batch, 2026-11-23: name quoted 0.780, slug quoted 0.450, slug quoted with the name in parentheses 0.130. Dropping to a slug-only line saves 761 characters and costs 33 points, so the shorter line is a trade against the routing decision, not a saving (log 43)."
+	},
+	"ownerlessJobs": ["B9", "C4", "D7", "D8", "I8", "I9", "Q6", "R2", "R3", "R6", "R8", "S6", "S9"]
+}

@@ -1,0 +1,16 @@
+{
+	"schema": "r0.reclass.v1",
+	"extractorVersion": "r0-extract/4",
+	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+	"rows": 100,
+	"unusable": [],
+	"changed": [],
+	"byArm": {
+		"product:fixed": {
+			"n": 100,
+			"storedDeclared": 27,
+			"derivedDeclared": 27,
+			"changed": 0
+		}
+	}
+}

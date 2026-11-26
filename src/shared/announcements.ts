@@ -23,12 +23,13 @@ export const Announcements: Record<string, ReleaseAnnouncement> = {
 	"3.89.0": {
 		version: "3.89.0",
 		highlights: [
-			"🛡️ Command guard ships built-in — destructive-command guard bundled for 5 platforms, hash-verified, no startup download (#479)",
-			"📦 ~14 MB lighter install — 1,932 → 1,278 packaged files, source maps gone, curated Shiki themes (#13)",
-			"🚀 New models — DeepSeek V4.1 Flash (opencode-go), grok-build-0.1 (xAI)",
-			"🔒 Critical dependency advisories cleared — 5 critical and 15 high findings reduced to 0 critical and 1 high (simple-git, shell-quote, dompurify, undici, MCP SDK); the one remaining high needs a repo-wide zod 4 migration and is tracked in `docs/runbooks/dependency-advisories.md`, not suppressed",
+			"🛡️ Command and skill frontmatter hardened — a crafted `SKILL.md` or slash-command header can no longer execute code; every frontmatter read now goes through one safe boundary that the test suite enforces for the whole source tree (#2456, #2420)",
+			"🖥️ Terminal-escape injection closed in the CLI — ask prompts escape untrusted text instead of printing it raw (#2473)",
+			"🤖 More models, fewer surprises — six vscode-lm Copilot entries, nanogpt keeps its optional tool parameters, and images with unsupported MIME types are rejected instead of sent to the model (#2032, #1590, #1961)",
+			"🔗 Skills can be symlinked, and the MCP catalogue adds AnySearch, Tradehand, Mailtea and Keenable (#1843)",
+			"📉 Fewer open advisories — 34 of the 48 open Dependabot alerts closed by in-range updates, and the only high that remains (zod) is documented rather than suppressed",
 		],
-		contentHash: "fa06a9e304892a06",
+		contentHash: "4fdad8e8d9964922",
 	},
 }
 

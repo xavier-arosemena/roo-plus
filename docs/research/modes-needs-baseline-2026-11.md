@@ -635,6 +635,15 @@ Allocation should follow **N band × trigger frequency**, and be expressed as _j
 
 The two rows to argue about are META and OUT. The evidence here supports **zero** coding-job owners for both; whether a _coding agent product_ should still ship a legal-advisor or a market-researcher is a product-scope question this report cannot answer (C-6). What the evidence does support is that those 25 slots are not serving the 119 jobs, while UND and DBG have none.
 
+> **Note added 2026-11-19 — the 60–90 premise is retired.** The preload target is now **45**
+> ([`modes-architecture.md`](../modes-architecture.md:795) §10.8). This section was computed against a
+> 60–90 preload, so its "slots (incl. variants)" column and its "45–48 + variants" total should be read
+> as the allocation _rate_ per axis, applied to a 45-slot preload. The substantive finding is unchanged:
+> if the owner count is ~21 for coding work, most of a 45 preload is still specialisation. Two things
+> have moved, and neither is a finding of this report: the 45 **includes** the 16 non-coding entries
+> (budget grounds), and whether a _coding_ product should ship them at all remains the product-scope
+> question this report could not answer (C-6).
+
 ### 8.3 Jobs with no owner today
 
 | Axis | Jobs | Catalogue modes | Preload | Reading                                                                        |

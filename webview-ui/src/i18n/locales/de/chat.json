@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "Ältere Nachrichten laden",
 	"about": "Die lokale, bring-your-own-model Agentic-IDE-Erweiterung — <br/>Kenne deine Kosten, vertraue deinem Cache, behalte dein Wissen.",
 	"support": {
-	"marketing": "Nimm dir einen Moment und gib uns einen <star/> auf <githubLink>GitHub</githubLink>! (~20s)",
+		"merch": "Roo+ Merch",
+		"merchBlurb": "Hält das Repo wach.",
 		"reportIssue": "Fehler melden oder Feature anfragen",
 		"discussions": "An den Diskussionen teilnehmen",
 		"starUs": "Gib uns einen Stern auf GitHub",
@@ -369,6 +370,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ {{version}} veröffentlicht",
+		"marketing": "Noch keine Geschenkidee? Roo+ Merch: für den agentischen Entwickler in deinem Leben. <merchLink>Zum Shop</merchLink>",
 		"support": "Bitte unterstütze Roo+ auf <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> und im <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Was ist neu:",

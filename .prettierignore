@@ -14,3 +14,11 @@ docs/upstream-sync/resolutions/
 # (`e20/`, `e20b/`) are generated the same way, and a path-specific rule would
 # silently leave their sealed answer keys formattable.
 test-fixtures/frames/
+
+# Upstream-identical formatting is a gate, not a preference. `gate:sync` step 2
+# (verify-upstream-code-index-alignment) requires the `AvailableEmbedders` union to
+# match `upstream/main` byte-for-byte, i.e. on one line; prettier 3.8.4 re-expands
+# it into a multi-line union. The pre-commit hook runs `prettier --write` over
+# `*.{ts,tsx,…}`, so without this rule the next routine edit to the file silently
+# re-breaks the alignment gate (SYNC-23 CP2 F-03).
+src/services/code-index/interfaces/embedder.ts

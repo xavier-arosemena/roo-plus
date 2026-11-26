@@ -1,0 +1,33 @@
+{
+	"schema": "r0.reclass.v1",
+	"extractorVersion": "r0-extract/4",
+	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+	"rows": 200,
+	"unusable": [],
+	"changed": [
+		{
+			"runId": "r0-slug-lead-product-slug-only-slug-only-003",
+			"arm": "slug-only",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "architecture-reviewer",
+			"rule": "v4-bare-token",
+			"firstLine": "I want to analyze the architectural boundaries, design trade-offs, and structural decisions of the t",
+			"note": null
+		}
+	],
+	"byArm": {
+		"product-slug-only:slug-only": {
+			"n": 100,
+			"storedDeclared": 44,
+			"derivedDeclared": 45,
+			"changed": 1
+		},
+		"product-slug-first:slug-and-name": {
+			"n": 100,
+			"storedDeclared": 19,
+			"derivedDeclared": 19,
+			"changed": 0
+		}
+	}
+}

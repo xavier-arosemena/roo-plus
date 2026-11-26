@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "이전 메시지 불러오기",
 	"about": "로컬 우선, bring-your-own-model 에이전틱 IDE 확장 프로그램 — <br/>비용을 알고, 캐시를 신뢰하고, 지식을 지키세요.",
 	"support": {
-	"marketing": "<githubLink>GitHub</githubLink>에서 <star/>를 눌러주시면 감사하겠습니다! (~20초)",
+		"merch": "Roo+ 굿즈",
+		"merchBlurb": "레포를 깨어 있게 유지해요.",
 		"reportIssue": "버그 신고 또는 기능 요청",
 		"discussions": "토론에 참여하기",
 		"starUs": "GitHub에서 스타 주기",
@@ -369,6 +370,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ {{version}} 출시",
+		"marketing": "선물 고민 중이라면? Roo+ 굿즈를, 당신 인생의 에이전틱 개발자에게. <merchLink>상점 보기</merchLink>",
 		"support": "<githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink>, <openVsxLink>Open VSX Registry</openVsxLink>에서 Roo+를 응원해 주세요.",
 		"release": {
 			"heading": "새로운 기능:",

@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "Önceki mesajları yükle",
 	"about": "Yerel öncelikli, kendi modelini getir ajan tabanlı IDE uzantısı — <br/>Maliyetini bil, önbelleğine güven, bilgini koru.",
 	"support": {
-	"marketing": "Bir dakikanızı ayırıp <githubLink>GitHub</githubLink> üzerinde bize <star/> verin! (~20s)",
+		"merch": "Roo+ ürünleri",
+		"merchBlurb": "Repoyu uyanık tutar.",
 		"reportIssue": "Hata bildir veya özellik iste",
 		"discussions": "Tartışmalara katıl",
 		"starUs": "GitHub'da bize yıldız ver",
@@ -369,6 +370,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ {{version}} yayınlandı",
+		"marketing": "Hediye fikri mi yok? Roo+ ürünleri: hayatındaki agentic geliştirici için. <merchLink>Mağazaya göz at</merchLink>",
 		"support": "Lütfen Roo+'u <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink> ve <openVsxLink>Open VSX Registry</openVsxLink>'de destekle.",
 		"release": {
 			"heading": "Yenilikler:",

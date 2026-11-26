@@ -5,7 +5,7 @@
 | **What this is**   | A lab notebook for the modes-catalogue experiments, kept so the programme can be written up later without reconstruction. Every entry is dated, every number names its instrument, every deviation is logged where it happened.                                                                         |
 | **Conventions**    | Entries are numbered `E<n>` and are append-only. A measurement is stated with its instrument in the same line. A departure from a registered protocol is a **deviation** and gets its own row in §6, even when it is my own error. Nothing here is a result unless a registered reading rule covers it. |
 | **What it is not** | Not a paper, not a summary of intent. Results that contradict an earlier entry are added as new entries rather than edited into old ones.                                                                                                                                                               |
-| **Status**         | Live. Last entry: **§17 (2026-11-13)**.                                                                                                                                                                                                                                                                 |
+| **Status**         | Live. Last entry: **§33 (2026-11-20)**.                                                                                                                                                                                                                                                                 |
 
 ---
 
@@ -38,22 +38,34 @@ The log is append-only and therefore contains superseded readings. **This block 
 
 **Not established, and not to be quoted.** Any per-cell rate from E11; anything about human users; and whether a good name can _rescue_ a vague brief, because the control cells sat at 99–100% and the interaction therefore had no room to vary.
 
+**Why there are two benchmarks — recorded so it is not lost.** The catalogue was proposed as two rival frames, axis × stance (45 entries) and artefact (47), and the routing benchmark began as the test that would choose between them. E11 returned a 0-point difference at a ceiling in both arms, so the registered rule returned **H3 — one catalogue, two views** (§2, E11). That is why the programme moved on to what might actually make a difference: the picker's line and order first, then the mode's doctrine. Settled since: the **preload is 45** (2026-11-19, superseding 60–90) and **includes the 16 non-coding entries** (budget, not judgement); language and framework modes are **marketplace installables**. Not settled: the switch itself — E11 compared names, while the frames define a mode differently, so reconciliation of **45 against 47** (count, slugs, and coverage: 13 jobs uncovered against 4) belongs to whoever builds the catalogue, and the set may grow beyond 45. See [`modes-architecture.md`](../modes-architecture.md:795) §10.8 and the roadmap's D-5/D-6.
+
+**Measurement integrity (2026-11-23) — read this before quoting any rate.** One hundred identical calls, nothing varied, moved **24 points** across a run (§36). Arm-level rates are therefore not comparable across runs, and the drift is external: best-effort seeding, implicit caching with variable hit rates, and batch-dependent computation all fit, none is separable from the client side (§37).
+
+What survives is the **direction** of every contrast, because all of them were interleaved. Re-tested as adjacent-pair sign tests over replies already on disk: E20 C − B wins **238 of 288** pairs (z 11.08), E20b last − first **94 of 107** (z 7.83, with an extractor caveat). What does not survive is the Annex D intervals, which assumed time-free independent draws.
+
+One reading changes outright: **the position effect is absent in the product rendering** (−9 points, n.s.) and the same line declares **18 points less** at the last slot there than in the experiment format (§36). Two rules follow: **M-15** test stationarity on the contrast, not the arm; **M-16** publish arm rates _and_ the paired sign test, and never compare a level across runs.
+
+Plain-language account: [`2026-11-20-the-ruler-wobbled.md`](../discussions/research-reports/2026-11-20-the-ruler-wobbled.md:1).
 **Next.** E20, already approved, tests the artefact-stating line on a maximally ambiguous brief; it must freeze a declaration contract first (§16.4). After that, the capability benchmark: doctrine and tooling, not vocabulary.
 
 **Document map.** §2 (E1–E11) is history — read it for how the programme got here, not for numbers. §11–§13 are the round, §16 is its instrument verification, §17 is its closing number. Deviations D-1…D-12 live in §6 and should be read by anyone auditing the reasoning.
+
+**2026-11-20 — three entries added after the closing round.** §31: our own 45-entry preload is lexically reachable for only **6 of 20** ordinary requests (coverage 0.30), and three requests captured a wrong owner before the anchor rule was declared. §32: the picker every experiment rendered is **not** the picker the extension emits — the advice in §7 of the routing report is advice for the fixture form. §33: the hidden-intent class opens the commit-versus-ask channel (**7 of 10**), which supplies the second-brief generator the programme lacked. **No contrast changes; §32 amends the report's external validity and does not retract it.** Deviations D-29…D-31 are recorded inside §31–§33, because §6 is append-only.
 
 ---
 
 ## 1. Instrument register
 
-| Id  | Instrument                                                                                                       | Purpose                                                   | State                                     |
-| --- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------- |
-| I-1 | [`modes-needs-baseline-2026-11.md`](modes-needs-baseline-2026-11.md)                                             | 12 axes, 119 jobs, S/A/C/N quantities                     | Built, not independently re-measured      |
-| I-2 | Frame fixtures: `test-fixtures/frames/axis-stance.roomodes` (45 modes), `artefact.roomodes` (47 modes)           | The two candidate catalogues                              | Built, schema-valid, idempotent generator |
-| I-3 | [`2026-11-09-frame-decision-preregistration.md`](../reviews/2026-11-09-frame-decision-preregistration.md)        | Hypotheses, decision rule, amendments 1–6                 | Registered; amendments 1–6 logged         |
-| I-4 | `test-fixtures/frames/outcome-arm/run-b1-pilot.sh`                                                               | Six-run behavioural pilot over three snapshots            | Built; **six runs UNRUN**                 |
-| I-5 | [`scripts/run-framing-pretest.mjs`](../../scripts/run-framing-pretest.mjs) + `scripts/lib/framing-pretest-*.mjs` | 30-run framing pretest                                    | Built; **30 runs RUN** (E8)               |
-| I-6 | [`scripts/lib/gemini-runner.mjs`](../../scripts/lib/gemini-runner.mjs)                                           | Provider boundary for I-5; writes a usage sidecar per run | Built; used for E8                        |
+| Id  | Instrument                                                                                                                                                                                                                                     | Purpose                                                                                     | State                                                                                                                                                                                                                                        |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I-1 | [`modes-needs-baseline-2026-11.md`](modes-needs-baseline-2026-11.md)                                                                                                                                                                           | 12 axes, 119 jobs, S/A/C/N quantities                                                       | Built, not independently re-measured                                                                                                                                                                                                         |
+| I-2 | Frame fixtures: `test-fixtures/frames/axis-stance.roomodes` (45 modes), `artefact.roomodes` (47 modes)                                                                                                                                         | The two candidate catalogues                                                                | Built, schema-valid, idempotent generator                                                                                                                                                                                                    |
+| I-3 | [`2026-11-09-frame-decision-preregistration.md`](../reviews/2026-11-09-frame-decision-preregistration.md)                                                                                                                                      | Hypotheses, decision rule, amendments 1–6                                                   | Registered; amendments 1–6 logged                                                                                                                                                                                                            |
+| I-4 | `test-fixtures/frames/outcome-arm/run-b1-pilot.sh`                                                                                                                                                                                             | Six-run behavioural pilot over three snapshots                                              | Built; **six runs UNRUN**                                                                                                                                                                                                                    |
+| I-5 | [`scripts/run-framing-pretest.mjs`](../../scripts/run-framing-pretest.mjs) + `scripts/lib/framing-pretest-*.mjs`                                                                                                                               | 30-run framing pretest                                                                      | Built; **30 runs RUN** (E8)                                                                                                                                                                                                                  |
+| I-6 | [`scripts/lib/gemini-runner.mjs`](../../scripts/lib/gemini-runner.mjs)                                                                                                                                                                         | Provider boundary for I-5; writes a usage sidecar per run                                   | Built; used for E8                                                                                                                                                                                                                           |
+| I-7 | The routing-round prompt: persona sentence ("You are exploring. Say what you want to achieve, not what you want handed back.") + the instruction to pick exactly one mode or say what information is missing + the brief + the rendered picker | The stimulus itself, recorded because two of its four parts are prose that was never varied | Fixed in every arm of E20, E20b, E20c and E24; the pick-or-ask instruction is what makes `ASK` an admissible reply, so the ask channel is a property of the instruction as much as of the menu (quoted in §32 and in the public report §3.1) |
 
 ## 2. Chronological entries
 
@@ -241,6 +253,7 @@ Every entry here is a departure that a reader of any later write-up should know 
 | D-26 | 2026-11-18 | The registered adjudication tie-break — "if the reply names a mode anywhere, it is a DECLARATION" — is unusable on this corpus: an ask on an ambiguous brief almost always enumerates candidate modes, so the rule turns nearly every ask into a declaration | Under it, an independent model agreed with the first pass on **11.1%** of 378 replies; a manual read of twelve disagreements found the first pass right in all twelve. Corrected, agreement is **99.7%** (377/378). The published counts never used the faulty rule, so no number changes; the rule is replaced for all future passes                                                                                                                                                                         |
 | D-27 | 2026-11-18 | The first second-brief attempt used a brief whose natural owner was `architecture-reviewer`, not `explain`; the retry screened three why-does-behaviour briefs and all thirty replies committed to `explain` without asking                                  | Neither could test the effect. The screening also produced the result in §28: the channel opens on mode-ownership ambiguity, not on missing context                                                                                                                                                                                                                                                                                                                                                           |
 | D-28 | 2026-11-19 | Two published figures for E20b's last arm could not both be right — §26 printed 42 + 4 = **46.0%**, the report printed **45.0%** with 12 wrong commits                                                                                                       | Re-derived from the packet, its join and both judgement files: the pass returned four declarations, three naming `explain` and one the bare slug `architecture-reviewer`. Declared key **45**, wrong commits **12**, asks 43. The 46 counted a commit to another mode as a declared key; the report's 45 was right, its 29.0 was not, because the first arm's single adjudicated declaration is an ask on review (15, not 16). Final: **15.0% vs 45.0%, −30.0 points, p = 5.6 × 10⁻⁶, CI [17.5, 41.3]** (§30) |
+| D-29 | 2026-11-23 | §32, the section that establishes the picker-format divergence, cited the archived `explain` line as `ARM-1-d001.txt:7`; line 7 is `requirements` and `explain` is line 13 (the draft's Annex A carried the same pointer)                                    | The verbatim quotation was accurate and the pointer was not, so a reader who checked the citation landed on the wrong entry in the one place the divergence is argued. Both pointers corrected to line 13, with the line map stated (1 persona, 3 instruction, 5 brief, 7 `requirements`, 13 `explain`). Found by an external reader on 2026-11-23, after the section had been public for three days                                                                                                          |
 
 ## 7. What may and may not be claimed from this log
 
@@ -278,6 +291,13 @@ The blind map: `CATALOGUE-1 = axis-stance` (45 modes), `CATALOGUE-2 = artefact` 
 | artefact      | 10  | 10    | **100%** |
 
 Difference **0 pp**. Registered decision rule row 2 applies (`< 10 pp`, CI includes zero, no difference): **H3 — one catalogue, two views.**
+
+> **Superseded 2026-11-19, and the entry stands as written.** The rule returned H3 on what the test
+> could see: names. It could not see that the two frames define a mode differently — a stance applied
+> to a domain in one, an artefact produced in the other — so 0 points on selection licenses "both lists
+> are readable", not "one list". **The presentation switch is therefore withdrawn**, pending
+> reconciliation of 45 against 47 by the builder of the catalogue
+> ([`modes-architecture.md`](../modes-architecture.md:795) §10.8).
 
 **Two qualifications that must travel with it.**
 
@@ -1047,3 +1067,482 @@ The harm figure survives untouched, which is the check that the split is right: 
 **Method rule M-14 — a published count is re-derived from its components by a second route before it is quoted.** A total and the columns beside it must be re-added from the raw files, not from each other. Three of the four arithmetic defects in this log (D-19, D-23, D-28) would have been caught by one addition.
 
 **Status.** The report is corrected to **15.0% / 45.0% / −30.0 points** in every place the position arm is quoted, and the reconciliation note that stood in its §9 is deleted. Nothing here is retracted except the number 46.0 and the number 29.0 that came with it.
+
+## 31. The model-free probe gate — what it measured, and which catalogue it measured (2026-11-20)
+
+**Instrument.** [`scripts/mode-probe-gate.mjs`](../../scripts/mode-probe-gate.mjs:1) over [`test-fixtures/mode-probes/probes.json`](../../test-fixtures/mode-probes/probes.json:1), with the strict reader [`scripts/lib/roomodes-lite.mjs`](../../scripts/lib/roomodes-lite.mjs:1). It ranks the catalogue by BM25 over **name + slug + `whenToUse` only** — the three fields a picker line exposes — and compares the top-1 with an allowed-owner set. 11 tests pass; a mutated catalogue is refused on a SHA-256 digest.
+
+**Which catalogue — ours, not ECC's.** The catalogue measured is **our 45-entry axis×stance picker**, [`test-fixtures/frames/axis-stance.roomodes`](../../test-fixtures/frames/axis-stance.roomodes:1) — the same file E13 and E20 rendered into their prompts. ECC's 327 skill descriptions and 72 agent descriptions were read during the review but **never ranked**; nothing in this section is a statement about ECC's catalogue. (ECC's resolver does implement an anchor rule of its own — `scripts/lib/context-selection.js:19-21` in the clone — which is where the idea came from; we did not run it.)
+
+**The two sets.** 20 `gate` probes written as a user would type them, and the 7 briefs already screened in §28–§29 as `report` probes. Report probes never fail the gate.
+
+**Result 1 — the finding is coverage, not accuracy.**
+
+| Measure                                                                               | Value        |
+| ------------------------------------------------------------------------------------- | ------------ |
+| Gate probes                                                                           | 20           |
+| Lexically reachable (expected owner shares a token with the request via name or slug) | **6 (0.30)** |
+| On those 6: top-1 in the allowed set                                                  | **6 / 6**    |
+| On those 6: wrong owners                                                              | **0**        |
+| Unreachable                                                                           | 14           |
+
+Fourteen of twenty ordinary requests contain no word from the name or slug of the mode that owns them. The catalogue is not beaten by its rivals on these requests; it is **invisible** to them. A user asking "the API returns 500, find out why" never types "debug".
+
+**Result 2 — the captures that happened before the anchor rule was declared.** First run, all 20 gated:
+
+| Probe   | Request                                          | Top-1             | Matched terms                              | Correct owner            |
+| ------- | ------------------------------------------------ | ----------------- | ------------------------------------------ | ------------------------ |
+| gate-01 | The API returns 500 … find out why it fails      | `requirements`    | request, work                              | `debug`                  |
+| gate-13 | An API key leaked in a public commit             | `devops`          | pipeline? (no) — generic match on the line | `vulnerability-response` |
+| gate-19 | Set up CI that lints, tests and publishes on tag | `pricing-analyst` | **set**                                    | `devops`                 |
+
+`devops`'s line — "pipeline, build, environment or release automation" — contains neither "CI", "test", "tag" nor "publish". `debug`'s line never says "API" or "error". `vulnerability-response` says "leaked", so gate-13 loses on the _anchor_ (its name shares no token), not on the description. These are three concrete opportunities to make a wrong commit by making the line's vocabulary narrower than the user's.
+
+**Result 3 — one function word is worth 57 points.** The tokenizer dropped "why" as a stopword in the first build, then kept it. On the report probes, top-1 moved from **0.286 to 0.857**. Definition, not arithmetic: this is the sixth time in the programme that a measurement definition decided an answer (M-1, M-12, §26, §30). Consequence adopted: the gate publishes **no absolute rate**, only baseline-to-baseline deltas, and its catalogue digest is fatal on mismatch.
+
+**Result 4 — the proxy does not reproduce the model.** With "why" kept, all seven report probes top-1 `explain`, including the two the model answered with `architecture-reviewer` (§29). A selector that returns the same answer for every ambiguous brief is not evidence about ownership; it is a reason the 20-call screen exists.
+
+**Deviation D-29, recorded because it was made after seeing data.** The anchor rule (name/slug token) was introduced after the first run produced three wrong owners. It is uniform, declared in code, and it does not convert those three into passes — they remain listed as unreachable. A reader who rejects the rule gets 3 wrong owners in 20 and a gate that cannot pass; a reader who accepts it gets a coverage metric. Both readings are printed by the tool (`--json` carries `reachable`, `top1Matched` and `summary.unreachable`).
+
+**What it changes.** The gate is a catalogue instrument, not a routing result. It belongs beside the preload work: it can be run in seconds on every `whenToUse` edit, it fails on a moved top-1 against a recorded baseline, and it produces one number worth tracking — reachability.
+
+## 32. The picker the experiments used is not the picker the product emits (2026-11-20)
+
+**Instrument.** Read the renderer, then compared it with an archived prompt.
+
+| Surface                                    | Rendered form                                                                                               | Source                                                                                                                                                                                                              |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product                                    | `  * "<name>" mode (<slug>) - <whenToUse>`, under `MODES`, after "These are the currently available modes:" | [`modes.ts:33`](../../src/core/prompts/sections/modes.ts:33)                                                                                                                                                        |
+| Experiment fixtures (E13, E20, E20b, E20c) | `- <slug> — <name> — <whenToUse>`, no heading                                                               | `pickerLine`, [`framing-pretest.mjs:243`](../../scripts/lib/framing-pretest.mjs:243); used at [`routing-round.mjs:331`](../../scripts/lib/routing-round.mjs:331) and [`e20.mjs:301`](../../scripts/lib/e20.mjs:301) |
+
+Archived evidence, verbatim from the published E20 batch: `- explain — Explain — Use when someone asks why code behaves as it does and the answer must cite evidence, not recall.` ([`runs/e20-2026-11-17/prompts/ARM-1-d001.txt:13`](../../runs/e20-2026-11-17/prompts/ARM-1-d001.txt:13)). **Grade High** — source and artefact. _Line number corrected from 7 to 13 on 2026-11-23: line 1 is the persona sentence, line 3 the pick-or-ask instruction, line 5 the brief, line 7 `requirements`, and `explain` is line 13. The quotation was accurate; the pointer was not, and this is the section that establishes the format divergence (D-29)._
+
+**Three differences, not one.** (1) The line template (`* "Name" mode (slug) - line` vs `- slug — Name — line`). (2) The section framing: the product introduces the list as available modes under a `MODES` heading; the fixtures present it bare. (3) **Field order**: the fixtures put the slug first and the name second; the product puts the name first. Field order is part of the rendered line, so the position result and a _first-token_ effect are not separated by any experiment we have run.
+
+**What is unaffected.** Every within-run contrast: all arms in each experiment shared the form, so the sign and size of B−C, P1−P45 and the E20c readings stand as statements about the fixture form. What is affected: any claim that the result transfers to what the extension shows; §7's authoring template, which prints the product form while the measured text was the fixture form; and the echo detector, whose canonical string is `pickerLine` ([`scorer-rubric.mjs:89`](../../scripts/lib/scorer-rubric.mjs:89)), so a product-form run would need a new echo reference or it would mis-score.
+
+**Do we circulate this to the fixture owner? Yes — this is the comment to transmit.**
+
+```text
+Subject: E13/E20 picker format differs from the extension's rendered mode list
+
+What I measured
+1. The extension renders each mode as:
+      * "<name>" mode (<slug>) - <whenToUse>
+   inside a MODES section introduced by "These are the currently available
+   modes:"  (src/core/prompts/sections/modes.ts:33).
+2. Every experiment fixture renders it as:
+      - <slug> — <name> — <whenToUse>
+   with no heading (pickerLine, scripts/lib/framing-pretest.mjs:243), and that
+   is what E13 (scripts/lib/routing-round.mjs:331) and E20
+   (scripts/lib/e20.mjs:301) put in their prompts.
+3. The published E20 prompt confirms it verbatim, line 7 of
+   runs/e20-2026-11-17/prompts/ARM-1-d001.txt.
+
+Why I am raising it
+- Field order differs (slug-first vs name-first), so a first-entry effect and a
+  first-token effect are confounded in the position result.
+- The report's §7 authoring advice prints the product template while the 27.5
+  points were measured on the fixture template. Read literally, §7 attributes a
+  measured effect to a format that was never measured.
+- The echo guard uses pickerLine as its canonical string
+  (scripts/lib/scorer-rubric.mjs:89), so switching format silently changes what
+  the guard recognises.
+
+What I am not claiming
+- That any within-run contrast is wrong. All arms shared the fixture form.
+- That the fixture form is defensible or indefensible. I cannot find a written
+  rationale for it in the repo; if there is one, this objection is answered.
+
+What I need from you
+1. Was the dash form deliberate? If so, what does it model — an earlier
+   renderer, a token-budget choice, or a decision to avoid the "MODES" header
+   being echoed back?
+2. Was pickerLine ever validated against getModesSection? If yes, at which
+   commit, and what changed since?
+3. Which form should the next round use? If the answer is "product form", the
+   change needs: a new registration (it is not comparable with E13/E20, M-9),
+   a new echo reference, and a decision on whether the heading is included.
+4. If the answer is "keep the fixture form", §7 of the routing report needs a
+   sentence saying the advice is about the fixture form, not the product.
+
+Cost of answering: no calls. Cost of acting: one 200–400-call run (≈€1–2).
+```
+
+**Deviation D-30.** Nothing was changed in the fixtures and no reply was re-scored: the divergence is recorded, not repaired. The **report now carries it** — §1.1 names both forms, §7 says its advice is about the measured form, §4.2 adds a rendered-form candidate, §8 carries R0 and §8.1 records the transfer as open (2026-11-20). The addendum in [`ecc-review-2026-11.md`](ecc-review-2026-11.md:238) carries the same finding and ranks a product-format replication above further authoring advice.
+
+**Does this retract the routing report?** No, and the distinction is mechanical rather than diplomatic.
+
+| Claim                                                                   | Status after this finding                                                                                                                      |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| "C out-committed B by 27.5 points"                                      | **Stands**, as a within-run contrast on the fixture form. Wording polarity is a property of the sentence, which was identical in both formats. |
+| "First vs last differs by 30 points"                                    | **Stands within the run**; its mechanism list gains a fourth candidate (first _token_, not first entry).                                       |
+| "99.7% independent agreement", "598/600 appropriate", extractor defects | **Unaffected** — none touches the rendered template.                                                                                           |
+| §7's advice as advice for the extension                                 | **Needs an amendment**, not retraction: it is advice for the fixture form until R0 runs.                                                       |
+| "One brief, one model, one position"                                    | **Understated**: add "one picker format".                                                                                                      |
+
+## 33. The hidden-intent screen — the channel opens (2026-11-20)
+
+**Instrument.** [`scripts/hidden-intent-screen.mjs`](../../scripts/hidden-intent-screen.mjs:1) with [`test-fixtures/hidden-intent/briefs.json`](../../test-fixtures/hidden-intent/briefs.json:1). Ten briefs whose deciding fact is held only by the user, plus B3 as an in-run control, interleaved `H K H K …`, one model (`gemini-3.5-flash`), 20 calls, all `STOP`, 1.9 minutes, 30,242 prompt + 1,746 candidate + 18,374 thought tokens, **≈€0.10**. Prompt hashes: 11 distinct (10 hidden + B3 replicated ten times), 20/20 transcripts distinct.
+
+**Adjudication.** Mechanical rule first, then a hand pass on every reply. The first mechanical rule agreed with the hand pass on **15/20 (75%)** and failed in **both** directions: it missed two declarations written `Selected mode: **"Explain" mode (explain)**`, and it scored one ask as a declaration of `code` because the asker wrote "source code". A second rule over-corrected, scoring the goal sentence "without needing to ask for clarification" as a question. The rule now in the tool (v3) agrees on **19/20**, and its only residual is an ask left `UNRESOLVED` — it never over-counts asking. Record: `runs/hidden-intent-screen-2026-11-20/adjudication.json`.
+
+| Arm           |   n |   ASK | DECLARATION |        Outside the authored owner set |
+| ------------- | --: | ----: | ----------: | ------------------------------------: |
+| Hidden intent |  10 | **7** |           3 | 1 (`requirements` on the audit brief) |
+| Control (B3)  |  10 |     3 |           7 |                                     0 |
+
+**Result — the class opens the channel, and that is all it establishes.** 7 of 10 hidden-intent briefs drew a question that named the missing fact ("is this CI/CD, database maintenance or a batch job?"; "pricing, invoicing or contract?"). Two of the three commits are briefs that failed the design — "make the API faster" and "the docs are out of date" state their owner in the brief, so nothing was withheld. Excluding them post hoc gives **7 of 8 (87.5%)**, which is a second finding about the _design_: a hidden-intent brief only works if the withheld fact is what decides ownership.
+
+**Control consistency.** B3 declared in **7 of 10 (70%)** on the **product** form, against **61.5%** at 400 draws on the **fixture** form in E20 arm B. Two arms, different formats, nine points apart at n=10 versus n=400: this is a consistency observation, not a replication, and it is the cheapest evidence so far that the format gap of §32 does not by itself move the commit rate much for this brief. It does not license subtracting one from the other (M-9).
+
+**Deviation D-31.** Post-hoc exclusion of hi-04 and hi-06 is disclosed above and must not be quoted as the headline; the headline is 7/10, with the two failures named.
+
+**What it changes for the seven-brief problem.** The programme now has a _generator_ for the qualifying class rather than a search over hand-written briefs: withhold the fact that decides ownership, leave the repository intact. The next round should pre-register the owner sets (including whether `requirements` on an audit-scoping request is a wrong commit or an acceptable neighbour), because that judgement currently sits with the analyst.
+
+**How these three sections improve the repository.**
+
+| Finding                                               | Concrete change                                                                                                                                                                           | Where                                                                  |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Reachability 0.30; three captures                     | Add the user's words to the thinnest lines: `debug` gains "error", "API", "fails"; `devops` gains "CI", "tests", "tags", "publish"; `vulnerability-response` gains "leaked key", "secret" | `test-fixtures/frames/*.roomodes`, then `custom-modes/custom_modes.d/` |
+| Anchor rule needs a vocabulary the name cannot supply | Add a curated `triggers` list per mode (3–6 words users actually type) and rank on it, as ECC does                                                                                        | new field in the catalogue schema; `scripts/mode-probe-gate.mjs`       |
+| Definition sensitivity (57 points)                    | Keep the baseline digests; never publish an absolute rate; require a baseline for any claim                                                                                               | already implemented                                                    |
+| Format gap                                            | One renderer, two formats, chosen by flag; echo reference follows the flag                                                                                                                | `framing-pretest.mjs`, `scorer-rubric.mjs`, R0 registration            |
+| Hidden-intent class                                   | Use it as the brief generator for the next round; pre-register the owner sets                                                                                                             | `docs/reviews/<next>-preregistration.md`                               |
+
+## 34. E24 — reach: the catalogue has two defects, and they need different fixes (2026-11-20)
+
+**Instrument.** [`scripts/reach-model-arm.mjs`](../../scripts/reach-model-arm.mjs:1) over the 476-probe corpus in [`test-fixtures/reach/probes.json`](../../test-fixtures/reach/probes.json:1): one call per job (119), **product-rendered** picker, the standing request that permits asking. Lexical arm over the same corpus with `mode-probe-gate`'s BM25. Registration, amendments and decision rules: [`2026-11-20-e24-reach-preregistration.md`](../reviews/2026-11-20-e24-reach-preregistration.md:1). Cost **≈€0.61**.
+
+**F-3 — the catalogue fails in two different ways, and the first fix does not touch the second.**
+
+| Defect                                                                          | Axes                                                          | Evidence                                                         |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **Missing words** — the line shares nothing with what users type                | UND, OPS, DBG, DAT, ARC, REF (lexical reach 0.27–0.36)        | a `triggers` vocabulary is the fix                               |
+| **Capture** — the words are present and several neighbouring lines contain them | TST 0.59 reach / 0.09 top-1; IMP 0.60 / 0.20; SEC 0.56 / 0.13 | `triggers` makes it worse; a discriminator or a merge is the fix |
+
+**F-4 — capture survives a change of instrument, so it is a property of the text, not of the matcher.** Model agreement on the same corpus: strict **57/106 = 0.538**, appropriate (with the same-axis neighbour allowed) **0.642**, an unrelated owner **25/106 = 0.236**, no commitment **13/106**. Per axis, the losers are the same: **REV 1/8** and **TST 3/11**, against lexical 0.111 and 0.091. A failure that persists from a token matcher to a language model is not a measurement artefact.
+
+**F-5 — the model compensates for the lines, which is why no user complaint has surfaced.** 0.538 strict against 0.152 top-1: reach improves 3.5× when a model reads the list instead of a matcher. The lines carry almost none of the routing work; the model does. That is a hidden cost, not a hidden success — every routing decision is being made on generalisation the catalogue does not document.
+
+**F-6 — "appropriate" hides a fifth of the failures.** E21 counts an adjacent owner as appropriate; here 11 of 106 are adjacent and **25 are outside the job's axis**. Examples: "works locally, fails in CI" → `devops`; "explain the history of a decision" → `debug`; "integrate a payment provider" → `modernisation`. Any future "correct routing" number should publish strict, adjacent and unrelated separately.
+
+**F-7 — 13 jobs have no owner at all**, listed mechanically and matching the frame's own count: R2, R3, R6, R8, D7, D8, I8, I9, C4, Q6, S6, S9, B9. C4 and Q6 are the surprising ones: failure-path tracing and docs-code drift are claimed by nobody. Direct input to **D-5**.
+
+**What this implies for the catalogue.** `triggers` for six axes; **discriminators or merges** for TST, REV and IMP, where the lines already contain the words and lose anyway — and which of those two it is is a J3 question about job overlap, not a wording question.
+
+**What it does not establish.** One probe per job, one model, and an "authored owner" that is a judgement from the frame rather than a golden key. No contrast was run and no p-value is quoted. Per-axis cells of 5 to 11 support a direction, not a rate.
+
+**Three method notes worth keeping.**
+
+1. **The two reach definitions were opposites.** §31's anchor rule (owner shares a token with its name or slug) reads **0.000** on a corpus that forbids owner vocabulary by design. It is inapplicable there, not adverse evidence, and would have been published as a collapse had the second definition not been tried.
+2. **A derived mapping can still be invented.** The owner map was "derived, never chosen", and one row (Q6) was nevertheless invented; the check could not catch it because the same pass wrote both sides. The frame's own count of 13 caught it. A derived rule needs an independent count beside it.
+3. **No part of the corpus is blind.** The author never read the lines but did read names and slugs to derive ownership. The blind half remains outstanding, and the falsifier about a second author's rate cannot be evaluated without it.
+
+**Where the words live.** The per-owner candidate vocabulary and the nine catalogue recommendations (**C1–C9**) are in [`test-fixtures/reach/triggers-candidates.json`](../../test-fixtures/reach/triggers-candidates.json:1), linked from the roadmap, [`modes-architecture.md`](../modes-architecture.md:795) §10.8 and [`modes-target-state.md`](../modes-target-state.md:350) §5.2 so it cannot be lost. It is a **candidate list**: the testing round has not run, and the file says so in its first field.
+
+## 35. R0 position batch — the effect is not in the product form, and one arm ramped (2026-11-20)
+
+**Instrument.** [`scripts/r0-run.mjs`](../../scripts/r0-run.mjs:1): one batch, four arms, `explain` first against last in **two picker formats**, brief B3, persona P1, arms rotated each cycle. **400 calls, ≈€2.04**. Registration: [`2026-11-20-r0-picker-format-preregistration.md`](../reviews/2026-11-20-r0-picker-format-preregistration.md:1). Recount with the corrected extractor: [`runs/r0-position-both-2026-11-20/recount.json`](../../runs/r0-position-both-2026-11-20/recount.json); re-derived under extractor v4 in [`reclass-r0-extract-4.json`](../../runs/r0-position-both-2026-11-20/reclass-r0-extract-4.json).
+
+| Arm             | Declarations |      Rate | Quarters                | Stationary   |
+| --------------- | -----------: | --------: | ----------------------- | ------------ |
+| fixture · first |      21 / 99 | **0.212** | 0.32 0.32 0.13 **0.08** | ✗ range 0.24 |
+| fixture · last  |     44 / 100 | **0.440** | 0.40 0.44 0.44 0.48     | ✓ range 0.08 |
+| product · first |     35 / 100 | **0.350** | 0.32 0.32 0.28 0.48     | ✓ range 0.20 |
+| product · last  |     26 / 100 | **0.260** | 0.24 0.16 0.32 0.32     | ✓ range 0.16 |
+
+**What may be read — the two contrasts whose arms are both stationary.**
+
+- **Order in the product form: −9.0 points.** `explain` last declares **less** often than `explain` first. The fixture form's last-entry advantage reverses.
+- **Format at the last position: −18.2 points.** The same condition declares 26% in the product form and 44% in the fixture form, in one batch.
+
+**What may not be read.** The fixture replication, **+22.8 points** (0.440 − 0.212), reproduces E20b's +30 in direction and size — and is **voided**, because its first arm fell 0.32 → 0.08 inside the run. M-10 was written for this and is applied. The format contrast at the first position is voided with it.
+
+**Against the registered predictions.** H-format-null **fails** at the last position (18 points). H-leading-token **survives**: the ordering that the fixture form produced is absent or reversed once the name leads the line. That is the prediction on record before the data, and the size is large enough to matter — but it rests on one batch, one model, one brief, and no p-value, and the arm that would have anchored the fixture comparison drifted.
+
+**Two defects found and fixed.**
+
+1. **One call of 400 failed** (no transcript, non-zero exit). The runner recorded a row for it anyway. Excluded here; the runner should refuse a batch with any failed call.
+2. **16 to 25 replies per arm scored "unresolved", and every one sampled was an ask** — "To determine the correct mode, I need the following information: …". The extractor gained an ask-phrase rule, re-validated 20/20 against R2's hand pass. **Declaration rates are unaffected by this fix**, because the denominator is the whole arm; only the ask/unresolved split moves. Re-derived under extractor v4 (§44) the split is settled: **fixture first 76 asks and 2 unresolved, fixture last 52 and 4, product first 57 and 8, product last 71 and 3** — and declarations move by one and one (35 / 26 in the product arms).
+
+> **Superseded in part by §36.** The contrasts in this batch are readable after all: paired within cycle, the drift cancels and the fixture replication survives the sign test. Read §36 before quoting §35.
+
+**The recurring blocker, named.** This is the third round in which an arm is non-stationary inside its run — E20c's control ramped up, the re-run did not reproduce it, and here the fixture-first arm ramped down 24 points. Until drift is characterised, every contrast is at the mercy of which arm happens to move. **The cheapest decisive next test is not the wording contrast: it is one fixed condition, 100 draws, no arm variation**, to measure drift with nothing else in the design (≈€0.5).
+
+## 36. The drift probe — arm rates move 24 points with nothing varied, and pairing recovers the batch (2026-11-20)
+
+**Instrument.** [`scripts/r0-run.mjs`](../../scripts/r0-run.mjs:1) `--contrast drift`: **one condition, 100 identical calls, nothing varied** — same mode, same position, same line, same format, same brief, same persona. **100 calls, ≈€0.51.** If an invariant condition moves, the movement is the platform or the hour, not the design.
+
+| Quarter | Declarations |     Rate |
+| ------- | -----------: | -------: |
+| 1       |      10 / 25 | **0.40** |
+| 2       |       7 / 25 | **0.28** |
+| 3       |       4 / 25 | **0.16** |
+| 4       |       6 / 25 | **0.24** |
+
+**Range 24 points, with nothing varied.** That is the size of the confound every four-arm batch in this programme has been carrying. It explains §35's fixture-first "ramp" (0.32 → 0.08), E20c's ramping control, and the 47.0-versus-59.3 cross-batch gap that M-9 was written from. **Arm-level rates are not comparable across quarters of a run.**
+
+> _Re-derived under extractor v4 (§44), which also excluded the one exit-1 call: declarations 21 / 99, 44 / 100, 35 / 100, 26 / 100; asks 76, 52, 57, 71; unresolved 2, 4, 8, 3. The paired figures below are v4's._
+
+**But the contrast does not use arm levels — it uses differences, and the difference cancels the drift.** The batch rotates arms every four calls, so the two members of each comparison sit ~40 seconds apart. Pairing within the cycle gives, for R0's position batch:
+
+| Contrast                     | Pairs | Mean difference | Up / down / tied | Approx. two-sided p |
+| ---------------------------- | ----: | --------------: | ---------------- | ------------------: |
+| fixture: last − first        |    99 |   **+23.2 pts** | 36 / 13 / 50     |         **≈ 0.001** |
+| product: last − first        |   100 |    **−9.0 pts** | 17 / 26 / 57     |              ≈ 0.17 |
+| format at first (prod − fix) |    99 |       +14.1 pts | 26 / 12 / 61     |              ≈ 0.04 |
+| format at last (prod − fix)  |   100 |   **−18.2 pts** | 14 / 32 / 53     |         **≈ 0.006** |
+
+The mean differences track the arm-rate differences — 23.2 paired against 22.8 unpaired for the fixture contrast, the residual being the one excluded call — because a balanced rotation distributes drift evenly. What changes is that the **sign test is now available**, and it does not depend on the level drifting.
+
+**What R0 actually found, restated.**
+
+1. **The fixture-form position effect replicates: +23.2 points** (E20b: +30), and the sign test excludes chance at the 0.001 level.
+2. **The product form shows no position effect: −9.0 points**, not distinguishable from zero (17 up against 26 down).
+3. **The form changes the outcome at the last position: −18.2 points.** The same line, last, declares 18 points less often in the product's rendering.
+4. H-format-null fails; **H-leading-token survives** — the ordering the fixture produced is absent once the name leads the line.
+
+**Method rule M-15 — stationarity is tested on the contrast, not on the arm.** Arm-level drift is evidence that _levels_ are unstable; it does not invalidate a contrast computed from pairs adjacent in time under a balanced rotation. §35 applied M-10 to the arm rate and voided a result that the paired design had already protected. The rule from here: report the per-quarter arm rates **and** the paired sign test, and let the paired one decide, unless the rotation is unbalanced.
+
+**Limits, stated before anyone quotes this.** One batch, one model, one brief, 100 draws per arm. Adjacent pairs are not strictly independent — four calls sit within one cycle, so their errors are correlated and the sign test's p-values are optimistic by an unquantified amount. The direction and the size are the findings; the p-values are supporting evidence, not the claim.
+
+**Cost.** €0.51 for the drift probe, which protected a €2 batch and changed a standing method rule.
+
+## 37. What the drift finding changes in the earlier rounds — and what it does not (2026-11-20)
+
+**The drift is not caused by having a fourth arm.** One arm, 100 identical calls, still moved 24 points (§36). What moves is **position in time**: calls made twenty minutes apart differ from calls made two minutes apart. Any design that compares arm _totals_ is exposed, whatever the number of arms.
+
+**It is partly documented, and the documented mechanisms fit our data better than "the model got worse".**
+
+| Mechanism                                                                                                                                                                                                                          | What it predicts                                                                                                              | Fit to our evidence                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Provider non-determinism at fixed seed/temperature.** Google states that a fixed `seed` is "best effort" and "deterministic output isn't guaranteed"; the developer forum carries repeated reports at `temperature=0`, `top_k=1` | run-to-run variation with an identical prompt                                                                                 | Explains the E12 determinism probe and the R2 batch, but not a 24-point swing in a coarse outcome |
+| **Implicit context caching, on by default for 2.5+ models, with variable hit rates**                                                                                                                                               | the same prompt is sometimes served with a cached prefix and sometimes not, so its effective context differs across a session | The strongest candidate for **within-session** drift of exactly the kind §36 measured             |
+| **Batch-dependent computation** — providers group requests and the arithmetic varies with batch composition                                                                                                                        | output depends on what else was in flight, so the drift is a function of traffic, not of our design                           | Explains why drift is smooth over a run and different between runs (47.0 vs 59.3)                 |
+
+None of these can be separated from the client side; E20c tried and could not (§24). What §36 adds is the **size**: about 24 points of level movement, which is larger than any effect this programme has claimed except the polarity result.
+
+**What each earlier round loses, and what it keeps.**
+
+| Round                     | Design                                                               | Keeps                                                                                                    | Loses or weakens                                                                           |
+| ------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| E13-R closing round (600) | six cells, interleaved, runs tests (Annex E)                         | within-run direction; the 598/600 "appropriate" reading is a rate on adjudicated replies, not a contrast | any reading that treats the whole round as one stationary period                           |
+| E20 (900)                 | three arms, interleaved, sign checked **per quarter** (21–35 points) | **direction and size**: the sign held in all four quarters, which is the same protection §36 uses        | the Annex D p-value, computed as if draws were independent and time-free: it is optimistic |
+| E20b (200)                | two arms, interleaved, quarterly +44/+20/+24/+20                     | **direction and size**, same reason                                                                      | its p-value; and its absolute rates (15.0 / 45.0) are one batch's levels                   |
+| E20c (600)                | three arms, interleaved; the control **ramped**                      | the inconclusive verdict — the drift signature was visible in its own quarters and the void was right    | nothing; §36 explains why it ramped                                                        |
+| E11 / R2 screens (30, 20) | interleaved adjacent pairs                                           | the qualitative reading ("the channel opens")                                                            | the counts were never significant at n = 10 per arm, and still are not                     |
+| E24 model arm (119)       | one call per job, no contrast                                        | everything: a per-owner map has no arm totals to drift                                                   | nothing                                                                                    |
+| R0 position (§35–36)      | four arms, rotated every four calls                                  | the paired contrasts in §36                                                                              | the arm-level reading in §35, which is why it is marked superseded                         |
+
+**The correction is to the uncertainty, not to the direction.** Every contrast this programme reported was interleaved, and the three that mattered already published quarter-by-quarter signs. What was wrong was the _statistic_: p-values computed on arm totals assume no time structure, and the honest test is the **paired sign test within cycle**, as §36 did.
+
+**Two rules follow, and one piece of free work.**
+
+- **M-15** (written): stationarity is tested on the contrast, not the arm.
+- **M-16** (new): every contrast publishes arm rates **and** the paired sign test, and no level is ever compared across runs — only within one.
+- **Free work available:** the paired sign test can be re-derived for E20 and E20b from the transcripts already on disk, replacing the Annex D p-values with ones that do not assume independence. No calls, no cost, and it would settle whether the 27.5 and 30 points survive a test that knows about time.
+
+## 38. The free work done: E20 and E20b re-tested with a time-aware statistic (2026-11-20)
+
+No calls. Every reply was already on disk; only the test changed. The classifier is R0's ([`r0-extract.mjs`](../../scripts/lib/r0-extract.mjs:1)), applied uniformly to both rounds.
+
+| Round    | Contrast     | Pairs | Up / down    |  Paired z | Reading                         |
+| -------- | ------------ | ----: | ------------ | --------: | ------------------------------- |
+| **E20**  | C − B        |   288 | **238 / 50** | **11.08** | survives by a wide margin       |
+| **E20b** | last − first |   107 | **94 / 13**  |  **7.83** | survives, with one caveat below |
+
+**The rates reconcile for E20 and do not for E20b.** E20's re-classification gives 61.8% and 88.2% against the registered adjudication's 61.5% and 89.0% — within a point, which is what a consistent extractor should do. E20b gives 16% and **57%** against the adjudication's 15% and 45%: the first arm reconciles, **the second does not**. So the E20 paired test can be read as confirming the registered result, and the E20b paired test can be read only as _the contrast is not drift_, not as a replacement for 45.0%.
+
+**What this settles.** The two results the programme relies on are not artefacts of time-position: in both rounds the high arm won the adjacent pair about nine times out of ten, and no drift model explains 238-to-50. The Annex D p-values were optimistic in their assumptions; their conclusions were not.
+
+**What it does not settle.** The E20b extractor disagreement is a defect in this re-analysis, not in the published figure; the published 15.0/45.0 comes from the registered adjudication and stands. Anyone quoting the paired z for E20b should quote the caveat with it.
+
+**Plain-language account** for readers outside the programme: [`2026-11-20-the-ruler-wobbled.md`](../discussions/research-reports/2026-11-20-the-ruler-wobbled.md:1).
+
+## 39. The attribution batch failed at 44% — a quota failure, not a result (2026-11-23)
+
+**What happened.** The attribution batch (four formats, `explain` held at the seventh entry) ran **176 of 400 calls cleanly, then failed 146**, all with runner exit code 1, starting at call 177 and continuing to the end. **254 transcripts exist; 146 calls produced none.**
+
+**Why it cannot be read.** The surviving 62 to 64 calls per arm are not a balanced sample: the failures begin at a fixed point in the sequence and fall on every arm, so each arm keeps its early draws and loses its late ones — and the drift in §36 runs _on exactly that axis_. Excluding failures from the denominator (which the runner now does) protects the arithmetic, not the inference.
+
+**What the surviving rows appeared to show, stated only so it is not mistaken for a finding later:** fixture 0.66, fixture-name-first 0.53, product-slug-first 0.13, product 0.72. A 59-point gap between two arms that differ only in whether the slug or the name is quoted first is implausible on its face and is the clearest warning that the batch is degraded.
+
+**What is actually learned.**
+
+1. **The failure mode is external.** Uniform exit code 1 across arms, starting at a fixed call index, is the signature of a quota or rate limit rather than of anything in the design. The session resumed three days after the previous run; the key or the free-tier allowance is the first thing to check before re-running.
+2. **The runner's failure accounting works** — every failed call is flagged and excluded rather than scored, which is the defect §35 recorded.
+3. **One label defect, fixed:** an empty reply was reported as `v3-declaration` because the wrapper labelled anything that was not an ask as a declaration. Fixed to report `v3-no-signal`.
+
+**Cost.** ≈€0.9 for the 176 completed calls; failed calls most likely consumed nothing, which is unverified.
+
+**Next time.** Poll the quota before dispatch, cap the batch at what the allowance covers (240 calls at 60 per arm instead of 400 at 100), and abort on the first non-zero exit rather than recording it and continuing.
+
+**Quotable paragraph for publication (agreed 2026-11-23).** The manuscript and the announcement are edited independently, but this is the wording that matches the log, so that neither drifts from it:
+
+> A measurement note. One hundred identical requests, with nothing varied, differed by 24 points inside a single run. Every contrast reported here was interleaved within one batch, and both headline results survive a paired sign test (238 of 288 adjacent pairs for the wording result; 94 of 107 for the position result). But absolute percentages should not be compared across runs, and the position effect we measured belongs to the format our experiments rendered — in the format the product actually emits, it is absent.
+
+## 40. Attribution — the template decides, and the product's own line wins (2026-11-23)
+
+> _Rates below are as scored at the time. §44 re-derives them under extractor v4; where the two differ, §44's table is authoritative (product 0.778, fixture-name-first 0.468)._
+
+**Instrument.** [`scripts/r0-run.mjs`](../../scripts/r0-run.mjs:1) `--contrast attribution`: four rendered forms, `explain` held at the seventh entry, line B, brief B3, persona P1, arms rotated every four calls. **251 calls before the runner stopped itself on a failed call** (call 251, exit 1, quota signature — §39). **≈€1.28.** Balanced: 63 / 62 / 63 / 63. One failed row excluded.
+
+| Rendered form                                   | Declared |      Rate | Asks |
+| ----------------------------------------------- | -------: | --------: | ---: |
+| `- slug — Name — line` (fixture)                |  31 / 62 | **0.500** |   29 |
+| `- Name — slug — line`                          |  29 / 62 | **0.468** |   33 |
+| `* "slug" mode (Name) - line`                   |  12 / 63 | **0.190** |   51 |
+| `* "Name" mode (slug) - line` (**the product**) |  49 / 63 | **0.778** |   14 |
+
+**Paired within cycle (drift cancels, M-15):**
+
+| Contrast                                          | Pairs |          Mean | Up / down |        z |
+| ------------------------------------------------- | ----: | ------------: | --------- | -------: |
+| order, dash template (name-first − slug-first)    |    62 |  **+3.2 pts** | 17 / 15   |     0.35 |
+| order, product template (name-first − slug-first) |    62 | **+58.1 pts** | 39 / 3    | **5.55** |
+| template, slug-first (product − fixture)          |    62 | **−30.6 pts** | 6 / 25    |    −3.41 |
+| template, name-first (product − fixture)          |    62 | **+27.4 pts** | 24 / 7    | **3.05** |
+
+**F-8 — inside the experiment's own template, field order does not matter, and inside the product's it decides everything.** Swapping slug and name in the dash form moves the rate by 3 points (not distinguishable from zero). Swapping them inside `* "<x>" mode (<y>) - line` moves it by **58 points**. The same field, in the same position, is worth nothing in one template and everything in the other.
+
+**F-9 — the product's own line is the best of the four, by 27 points.** Name quoted, slug in the parenthesis, under the `MODES` heading: 0.778 against 0.500 for the fixture form, 24 up against 7 down. That is the sentence the catalogue build needs, and it points the opposite way from the advice the earlier rounds implied.
+
+**F-10 — one of the four arms is probably not a fair test, and saying so is part of the result.** `* "slug" mode (Name)` puts a lowercase identifier where the template expects a display name and the name where it expects an identifier. At 0.190 with **51 asks** out of 63, it looks like a line that fails to read as a mode at all rather than a line that leads with the slug. So the honest claim is **"the template decides"**, not **"slug-first is worse"** — the two are not separated by this design, and separating them needs an arm where a slug can plausibly occupy the name slot.
+
+**What this settles for the catalogue.** Write and test every line in the product's rendering (**C6**): that form declared 27 points more often than the experiment's, in the same batch. Do not choose field order as a lever: within the experiment template it is worth nothing, and within the product template the "wrong" order is pathological rather than merely worse.
+
+**Limits.** One batch, 62 to 63 per arm, one model, one brief, no p-value quoted; the sign test's pairs are adjacent but not independent, so its z is optimistic. Two failed batches preceded this one, and the 251-call stop means the design is 63 per arm, not the 100 planned.
+
+## 41. Wording in the product's rendering — the headline strengthens, and the ask channel closes (2026-11-23)
+
+> _Rates below are as scored at the time. §44 re-derives them under extractor v4: line B 0.659, line C 1.000 in the product form, C − B +33.3 points._
+
+**Instrument.** `scripts/r0-run.mjs` `--contrast wording`: line B against line C, `explain` held at the seventh entry, in both renderings, arms rotated every four calls. The run was cut at **337 of 400 calls** when the tool timeout killed the process; the rotation left a **balanced** batch — 85 / 84 / 84 / 84 — and the analysis below uses all 337. **≈€1.72.**
+
+| Arm                     | Declared |      Rate |  Asks |
+| ----------------------- | -------: | --------: | ----: |
+| experiment form, line B |  56 / 85 | **0.659** |    27 |
+| experiment form, line C |  73 / 84 | **0.869** |     9 |
+| product form, line B    |  56 / 84 | **0.667** |    25 |
+| product form, line C    |  84 / 84 | **1.000** | **0** |
+
+**Paired within cycle (M-15):**
+
+| Contrast                     | Pairs |          Mean | Up / down |        z |
+| ---------------------------- | ----: | ------------: | --------- | -------: |
+| C − B, experiment form       |    84 | **+21.4 pts** | 23 / 5    |     3.40 |
+| C − B, **product form**      |    84 | **+33.3 pts** | 28 / 0    | **5.29** |
+| product − experiment, line B |    84 |      +1.2 pts | 19 / 18   |     0.16 |
+| product − experiment, line C |    84 |     +13.1 pts | 11 / 0    |     3.32 |
+
+**F-11 — the headline survives the product's rendering and is larger there.** The wording contrast reads +21.4 in the form every earlier round used, which reproduces E20's 27.5 within the same margin, and **+33.3** in the form the extension emits. **H-template-eased is confirmed**: the product's line makes the sentence do more work, not less.
+
+**F-12 — and in the product's rendering the excluding line silences the ask channel.** Line C committed **84 times in 84 calls, with zero questions and nothing left unresolved**. Line B, same batch, same form, asked 25 times. So the discriminating "must not merely describe" line in the product's rendering does not merely favour commitment — it removes the alternative. That is a product decision, not only a statistical one: on an ambiguous brief the model would stop asking for the missing information, which §0 of the routing report calls the _appropriate_ behaviour.
+
+**F-13 — the format does not change line B at all.** +1.2 points, 19 up against 18 down. Whatever the product's rendering does, it does it through the _content_ of a discriminating line, not by making every line more decisive.
+
+**What this settles for the 45.** Write the product form (**C6**), and write it with a discriminating clause: that combination is the strongest lever measured in the whole programme — 1.000 against 0.659 for the same idea in the experiment's rendering. But pair it with the ask rule: a line that always commits removes the model's ability to say "I need the file". The catalogue needs both, and the wording that maximises commitment is not automatically the wording that serves the user.
+
+**Limits.** One batch, 84 per arm, one model, one brief, no p-value; cut at 337 by a tool timeout rather than by a quota stop, so the batch is complete-but-short and balanced. The sign test's pairs are adjacent, not independent.
+
+## 42. The fair slug arm — the parenthetical did the damage, not the slug (2026-11-23)
+
+> _Rates below are as scored at the time. §44 re-derives them under extractor v4: slug-only 0.450, slug-and-name 0.190, paired +26.0 points._
+
+**Instrument.** `scripts/r0-run.mjs --contrast slug-lead`: two arms, `explain` at the seventh entry, line B, both in the product template, differing only in whether the display name is printed. **200 calls, none failed, ≈€1.02.**
+
+| Arm           | Rendered as                         |      Rate | Asks |
+| ------------- | ----------------------------------- | --------: | ---: |
+| slug-and-name | `* "explain" mode (Explain) - line` | **0.190** |   79 |
+| slug-only     | `* "explain" mode - line`           | **0.450** |   52 |
+
+**Paired within cycle: slug-only − slug-and-name = +26.0 points of rate**, 39 up against 13 down (z 3.61).
+
+**F-14 — F-10 is discharged.** In §40 the slug arm collapsed to 0.19 and I declined to read it as "slug-first is worse", because a lowercase identifier sat in the slot the template reserves for a display name. Removing the parenthetical recovers **26 of those points**. So the malformation was the parenthetical, not the slug: **a slug can lead the line perfectly well.**
+
+**What is still not known, and M-16 forbids guessing.** Whether a slug-only line matches the product's name-first form (0.778 in §40's batch as re-derived in §44, 0.667 for line B in §41's) cannot be read across batches. It needs one batch carrying three arms — name-first, slug-only, slug-and-name — at **≈€1.2**. Until then the honest statement is that the two leading vocabularies are within reach of each other and that the product's name-first form is the only one measured against the experiment baseline in the same batch.
+
+**Why it matters for the catalogue.** If slug-only lines perform like name-first lines, the catalogue can print a shorter line — 5,860 characters for 45 modes against 6,621 — and spend the routing budget elsewhere. That is a real trade, and it is now one small batch from being decidable rather than arguable. _(Decided in §43: it is not a saving.)_
+
+## 43. The three namings in one batch — the quoted slot decides which token the model says (2026-11-23)
+
+**Instrument.** `scripts/r0-run.mjs --contrast naming`: three arms, `explain` at the seventh entry, line B, all in the product template, **300 calls, none failed, ≈€1.5**, 100 draws per arm, arm order rotated every cycle. Only the quoted token and the parenthetical differ, so this is the batch §42 said was needed and the first time the three namings have shared a run.
+
+| Arm (rendered as) | `explain`'s line                           |  Rate | Asks | Unresolved |
+| ----------------- | ------------------------------------------ | ----: | ---: | ---------: |
+| name-first        | `* "Explain" mode (explain) - <whenToUse>` | 0.780 |   22 |          5 |
+| slug-only         | `* "explain" mode - <whenToUse>`           | 0.450 |   55 |          3 |
+| slug-and-name     | `* "explain" mode (Explain) - <whenToUse>` | 0.130 |   85 |          2 |
+
+Rates are extractor v4's output (§44), which reproduces the hand pass on all ten unresolved replies. As classified by the pinned rule: 0.730 / 0.420 / 0.130, same ordering.
+
+**Paired within cycle** (M-15's statistic, the only one M-16 permits here):
+
+- name-first − slug-only = **+33.0 points of rate**, 45 up against 12 down (57.9% of the 57 discordant pairs, z 4.37)
+- name-first − slug-and-name = **+65.0 points of rate**, 71 up against 6 down (84.4% of 77, z 7.41)
+- slug-only − slug-and-name = **+32.0 points of rate**, 38 up against 6 down (72.7% of 44, z 4.82)
+
+Those nets are also the unpaired rate differences (33.0 / 65.0 / 32.0), the two routes agreeing — the check M-14 asks for. Every figure in this section is quoted as points of rate; the share of discordant pairs is given only in brackets.
+
+**F-15 — the classifier misses declarations that print a bare header.** All ten `UNRESOLVED` replies were read by hand (M-1). Eight are declarations: the model prints `**"Explain" mode (explain)**` — or `I will use **"explain" mode**` — and _then_ asks for the source file. That is a commitment followed by a material ask, not a failure to choose. Two are genuine asks (`slug-and-name` 032 and 064: "clarification on whether…"). The cause is narrower and worse than the shape of the heading: v3 also has an earlier rule that commits when _exactly one_ slug appears anywhere in the reply, and `code` is one of the 45 — so "the source code" gives it two candidates and it says nothing. §44 states the mechanism correctly, adds the anchored rules, and re-derives every batch; the rates above are that re-derivation. The bias ran **against** the winning arm (it understated name-first and slug-only, never slug-and-name), so the conclusion never rested on it.
+
+**Stationarity — the runner's warning is not the test (M-15).** The runner raised its M-10 warning on `name-first` (quarters 0.80 / 0.64 / 0.88 / 0.60). Applied to the arm rate that voids the batch, which is the same over-correction as §35. Tested on the contrasts, all three keep sign and magnitude in both halves: name-first vs slug-only **+26.0** (first 50 cycles) then **+40.0**; name-first vs slug-and-name **+64.0** then **+66.0**; slug-only vs slug-and-name **+38.0** then **+26.0**. The arms oscillate in opposite directions, which is not what a shared drift looks like. **The contrasts are stationary; the arm levels are not.** That distinction is what M-15 was written for, and the runner still reports the arm test because this contrast set declares no factorial pairs, so its `contrasts` block is empty.
+
+**F-16 — the lever is the quoted slot, not the presence of the name.** `slug-and-name` prints the display name too, in the parenthetical, and is the worst of the three (0.130). So "printing a human-readable name helps" is false as stated. What the three arms separate is _which token is inside the quotes_: the name there gives 0.780, the slug there gives 0.130, and the parenthetical is inert whether it holds the slug (0.780) or the name (0.130). Stated as a mechanism candidate, not a finding: the quoted token is what the model appears to read as the mode's name.
+
+**What this settles for the 45.** Print the form the product already emits — `* "<Name>" mode (<slug>) - <whenToUse>` — and keep the parenthetical, which costs nothing measurable. The 5,860-character slug-only line §42 floated as a saving is **not** a saving: 761 characters bought a **33-point loss** in commitment. The routing budget is better spent on the line than on the parenthesis.
+
+**Cross-run agreement, recorded as reassurance and not as evidence (M-16).** name-first 0.780 here against 0.778 in §40's product arm (as re-derived, §44); slug-only 0.450 against 0.450 in §42; slug-and-name 0.130 against 0.190 in both §40 and §42. Nothing here is a new phenomenon; what the batch says is what counts.
+
+**Limits.** One model, one brief, one line (B), one position (seventh entry), no pre-registered p-values, and adjacent-not-independent pairs. The eight mislabelled declarations were the reason for extractor v4 (§44); with the vocabulary anchor in place the pinned rule reads them, and the twenty-reply wall still passes. A future product-form batch needs no hand adjudication, but it should confirm the extractor version stamped on its rows.
+
+## 44. Extractor v4 — the bare header, the `code` homonym, and every number re-derived (2026-11-23)
+
+**The defect was misdescribed in §43, and the re-derivation is what showed it.** F-15 said the classifier "only knows sentence shapes". That is half of it, and the smaller half. v3 does read a label — but it also has an earlier rule that commits when _exactly one_ slug appears anywhere in the reply, and that rule is defeated by any second word that happens to be a mode name. **`code` is a mode name in the 45**, and every one of these replies says "the source code". The candidate set was `{explain, code}`, so v3's committing rule fell silent and the reply landed in `unresolved` beside the genuine asks. The label form matters only because, once the homonym has silenced the rule, the label is the one unambiguous signal left in the reply.
+
+**The rules (`r0-extract/4`).** Four additions, and every one of them is anchored on the picker's own vocabulary — a token that is not a slug or a display name cannot be read as a mode:
+
+| Rule               | Shape                                                                                    |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| `v4-bare-header`   | a line that is only a quoted token, with optional `mode` and an optional parenthetical   |
+| `v4-bare-token`    | a line that is only an emphasised token                                                  |
+| `v4-labelled-mode` | `Selected Mode:`, `Chosen mode —`, `Mode:` followed within 120 characters by a mode name |
+| `v4-will-use`      | "I will use …", "I am using …" — never bare "using"                                      |
+
+Position arbitrates: the earliest signal in the reply wins. A heading before an ask is a commitment followed by a material request (014, 028, 079, 080, 096); an ask before a heading is a question, so r10-B3 stays an ASK and the 20-reply wall is undisturbed.
+
+**Two defects in my own first draft, both caught by the tests.** (a) Allowing the `v4-labelled-mode` label to be followed by _optional_ punctuation matched the bare words "the exact mode" in "To determine the exact mode and complete this analysis", and the 120-character window then found the word `code` — scoring **two genuine clarification asks** (r0-naming 032 and 064) as commitments to `code`. The rule now requires a punctuation character, and a regression test holds it. (b) The naive "I will use" rule without a vocabulary read _"using concrete evidence from its implementation"_ and treated `concrete` as a mode. Both are the same lesson: a pattern without a vocabulary is a declaration factory.
+
+**Validation.** [`r0-extract.spec.mjs`](../scripts/r0-extract.spec.mjs:1) is 16/16 — R2's twenty-reply hand wall reproduced with **and** without the vocabulary (v4 must not disturb a single hand verdict), each new shape, and three negative cases including the prose false positive.
+
+**Re-derivation, at zero cost.** [`r0-reclassify.mjs`](../scripts/r0-reclassify.mjs:1) re-reads every stored transcript, re-derives every verdict, and writes `reclass-r0-extract-4.json` beside each batch. **Raw `results.jsonl` is never rewritten** — a record that silently changes is not a record. Seven batches, 1,840 usable rows (one exit-1 call excluded, §35), **75 verdicts change**, and not one declaration becomes an ask.
+
+**These figures supersede the ones in §36–§43 wherever they differ.**
+
+| §   | Batch       | Arm                                    |         Published |          Re-derived |
+| --- | ----------- | -------------------------------------- | ----------------: | ------------------: |
+| §36 | position    | fixture first / last                   |       0.210/0.440 |         0.210/0.440 |
+| §36 | position    | product first / last                   |       0.340/0.250 | **0.350**/**0.260** |
+| §40 | attribution | fixture                                |             0.500 |               0.500 |
+| §40 | attribution | fixture-name-first                     |             0.452 |           **0.468** |
+| §40 | attribution | product-slug-first                     |             0.190 |               0.190 |
+| §40 | attribution | product                                |             0.714 |           **0.778** |
+| §41 | wording     | fixture B / C                          |       0.647/0.869 |     **0.659**/0.869 |
+| §41 | wording     | product B / C                          |       0.667/0.988 |     0.667/**1.000** |
+| §42 | slug-lead   | slug-only / slug-and-name              |       0.440/0.190 |     **0.450**/0.190 |
+| §43 | naming      | name-first / slug-only / slug-and-name | 0.780/0.450/0.130 |   0.780/0.450/0.130 |
+
+**Paired contrasts, re-derived** (net discordant pairs per cycle = points of rate — M-15's statistic, and the only form M-16 permits inside a batch):
+
+- attribution: product − fixture **+27.4** (17 of 62 cycles, z 3.05); product − slug-first **+58.1** (z 5.55); fixture − name-first +3.2 (z 0.35, indistinguishable from zero)
+- wording: product C − B **+33.3** (28 of 84 cycles, z 5.29); fixture C − B **+21.4** (18 of 84, z 3.40)
+- slug-lead: slug-only − slug-and-name **+26.0** (26 of 100, z 3.61)
+- naming: **+33**, **+65** and **+32** (z 4.37 / 7.41 / 4.82) — unchanged, and now mechanical rather than hand-adjudicated
+- position: fixture last − first **+23** (z 3.29); product last − first **−9** (z −1.37, not distinguishable from zero); product − fixture at last **−18** (z −2.65)
+
+**Nothing reverses, and one number reaches a ceiling.** Every contrast keeps its sign and its size to within a couple of points. The one that changed character is wording line C in the product form: **84 declarations in 84 calls — no asks, and no unresolved replies left at all.** §41's reading ("the product's rendering of a discriminating line removes the question entirely") is now exact rather than nearly exact.
+
+**Why the position batch moved most, and what it says about the record.** 57 of its 74 `unresolved` become asks, and that is not v4 doing the work: the ask rules already existed, and the batch was scored _before_ they did — the comment beside them in the source says so ("R0's first position batch produced 16 to 25 reply-level unresolved per arm, and every one sampled was an ask written mid-sentence"). The stored rows have been carrying a rule set the batch was never scored with. Declarations barely move (+1 and +1), so nothing in §35 or §36 is resurrected: the four-arm table is unchanged in substance and the position reading stays as §36 left it.
+
+**The lesson that outlives this round.** Batches were scored by different extractor versions and nothing on the record said which. [`r0-run.mjs`](../scripts/r0-run.mjs:207) now stamps `extractor` on every row — D-22's finding (a parser version asserted but never evidenced in the data) applied to the extractor this programme actually reads.

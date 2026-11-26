@@ -37,6 +37,7 @@
 						"items": {
 							"type": "string"
 						},
+						"maxItems": 256,
 						"description": "Optional list of MCP server names to include. When omitted, all servers are available. When set, only the listed servers are injected."
 					},
 					"groups": {

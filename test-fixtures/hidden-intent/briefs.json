@@ -1,0 +1,72 @@
+{
+	"schemaVersion": "ecc.hidden-intent-briefs.v1",
+	"purpose": "Briefs whose deciding fact exists only in the user's head. The screen asks one question: does this class of brief open the commit-versus-ask channel? It is not a wording experiment and makes no claim about the 27.5-point polarity result.",
+	"provenance": "Authored 2026-11-20, after the second brief screen (modes-experiment-log.md §29) failed to find an ownership-ambiguous brief of a different class. The idea is ECC's hidden-intent harness (docs/gateguard/question-effectiveness.md:206), which exists because a deciding fact held only by a simulated user produces a genuine ask.",
+	"briefs": [
+		{
+			"id": "hi-01",
+			"brief": "The nightly job failed again. Sort it out.",
+			"hiddenIntent": "Whether the user wants service restored tonight (incident) or the cause removed (debug), and whether the job may be disabled meanwhile.",
+			"plausibleOwners": ["debug", "incident-commander", "refactoring"]
+		},
+		{
+			"id": "hi-02",
+			"brief": "We need to change how customers are billed next quarter.",
+			"hiddenIntent": "Whether this is a price change, an invoicing change, or a tax change.",
+			"plausibleOwners": ["pricing-analyst", "financial-analyst", "database-migration"]
+		},
+		{
+			"id": "hi-03",
+			"brief": "The dashboard is wrong.",
+			"hiddenIntent": "Which number is wrong, and what the correct value should be.",
+			"plausibleOwners": ["data-analyst", "debug"]
+		},
+		{
+			"id": "hi-04",
+			"brief": "Make the API faster before launch.",
+			"hiddenIntent": "The latency target and the load it must hold.",
+			"plausibleOwners": ["performance", "code"]
+		},
+		{
+			"id": "hi-05",
+			"brief": "Clean up the repo before the audit.",
+			"hiddenIntent": "Whether the audit is security, licence or process.",
+			"plausibleOwners": ["compliance-mapping", "security-reviewer", "refactoring"]
+		},
+		{
+			"id": "hi-06",
+			"brief": "The docs are out of date.",
+			"hiddenIntent": "Which document, and which reader it must serve.",
+			"plausibleOwners": ["documentation"]
+		},
+		{
+			"id": "hi-07",
+			"brief": "Our tests are slow.",
+			"hiddenIntent": "Whether the user wants a suite strategy or faster individual tests.",
+			"plausibleOwners": ["test-strategist", "test-author", "performance"]
+		},
+		{
+			"id": "hi-08",
+			"brief": "Someone should own the migration.",
+			"hiddenIntent": "Whether the missing thing is a plan, a schema change, or an owner.",
+			"plausibleOwners": ["planner", "database-migration", "orchestrator"]
+		},
+		{
+			"id": "hi-09",
+			"brief": "Review this before Friday.",
+			"hiddenIntent": "What the review is for: correctness, risk, security, or a go/no-go decision.",
+			"plausibleOwners": ["code-reviewer", "architecture-reviewer", "security-reviewer", "release-readiness"]
+		},
+		{
+			"id": "hi-10",
+			"brief": "It's too expensive to run.",
+			"hiddenIntent": "Whether the cost is cloud spend or model tokens, and what trade is acceptable.",
+			"plausibleOwners": ["ai-cost-engineer", "devops", "financial-analyst"]
+		}
+	],
+	"control": {
+		"id": "B3",
+		"brief": "Explain why this module is structured the way it is.",
+		"why": "The one brief of seven that passed the screen (modes-experiment-log.md §28). Interleaved with the hidden-intent briefs so the ask rate has a within-run comparator rather than a remembered number."
+	}
+}

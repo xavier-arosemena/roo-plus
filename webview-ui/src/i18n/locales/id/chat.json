@@ -159,7 +159,8 @@
 	"loadEarlierMessages": "Muat pesan sebelumnya",
 	"about": "Ekstensi IDE agentik local-first, bawa modelmu sendiri — <br/>Ketahui biayamu, percayai cache-mu, simpan pengetahuammu.",
 	"support": {
-	"marketing": "Luangkan waktu sebentar untuk memberi kami <star/> di <githubLink>GitHub</githubLink>! (~20s)",
+		"merch": "Merch Roo+",
+		"merchBlurb": "Bikin repo tetap melek.",
 		"reportIssue": "Laporkan bug atau minta fitur",
 		"discussions": "Ikuti diskusinya",
 		"starUs": "Beri kami bintang di GitHub",
@@ -392,6 +393,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ {{version}} Dirilis",
+		"marketing": "Bingung cari hadiah? Merch Roo+: untuk developer agentic di hidupmu. <merchLink>Lihat toko</merchLink>",
 		"support": "Dukung Roo+ di <githubLink>GitHub</githubLink>, <marketplaceLink>Visual Studio</marketplaceLink>, dan di <openVsxLink>Open VSX Registry</openVsxLink>.",
 		"release": {
 			"heading": "Yang Baru:",

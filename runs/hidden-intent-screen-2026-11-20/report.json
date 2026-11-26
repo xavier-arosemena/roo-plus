@@ -1,0 +1,161 @@
+{
+	"schemaVersion": "ecc.hidden-intent-screen.v1",
+	"warning": "Mechanical counts only. Adjudicate every UNRESOLVED and every multi-candidate reply by hand before quoting (M-1, M-12).",
+	"summary": {
+		"hiddenIntent": {
+			"n": 10,
+			"ask": 7,
+			"declaration": 3,
+			"unresolved": 0
+		},
+		"control": {
+			"n": 10,
+			"ask": 2,
+			"declaration": 7,
+			"unresolved": 1
+		}
+	},
+	"rows": [
+		{
+			"runId": "r01-hi-01",
+			"arm": "hidden-intent",
+			"briefId": "hi-01",
+			"verdict": "ASK",
+			"slug": null
+		},
+		{
+			"runId": "r02-B3",
+			"arm": "control",
+			"briefId": "B3",
+			"verdict": "DECLARATION",
+			"slug": "explain"
+		},
+		{
+			"runId": "r03-hi-02",
+			"arm": "hidden-intent",
+			"briefId": "hi-02",
+			"verdict": "ASK",
+			"slug": null
+		},
+		{
+			"runId": "r04-B3",
+			"arm": "control",
+			"briefId": "B3",
+			"verdict": "DECLARATION",
+			"slug": "explain"
+		},
+		{
+			"runId": "r05-hi-03",
+			"arm": "hidden-intent",
+			"briefId": "hi-03",
+			"verdict": "ASK",
+			"slug": null
+		},
+		{
+			"runId": "r06-B3",
+			"arm": "control",
+			"briefId": "B3",
+			"verdict": "DECLARATION",
+			"slug": "explain"
+		},
+		{
+			"runId": "r07-hi-04",
+			"arm": "hidden-intent",
+			"briefId": "hi-04",
+			"verdict": "DECLARATION",
+			"slug": "performance"
+		},
+		{
+			"runId": "r08-B3",
+			"arm": "control",
+			"briefId": "B3",
+			"verdict": "DECLARATION",
+			"slug": "explain"
+		},
+		{
+			"runId": "r09-hi-05",
+			"arm": "hidden-intent",
+			"briefId": "hi-05",
+			"verdict": "DECLARATION",
+			"slug": "requirements"
+		},
+		{
+			"runId": "r10-B3",
+			"arm": "control",
+			"briefId": "B3",
+			"verdict": "UNRESOLVED",
+			"slug": null,
+			"candidates": ["explain", "code"]
+		},
+		{
+			"runId": "r11-hi-06",
+			"arm": "hidden-intent",
+			"briefId": "hi-06",
+			"verdict": "DECLARATION",
+			"slug": "documentation"
+		},
+		{
+			"runId": "r12-B3",
+			"arm": "control",
+			"briefId": "B3",
+			"verdict": "DECLARATION",
+			"slug": "explain"
+		},
+		{
+			"runId": "r13-hi-07",
+			"arm": "hidden-intent",
+			"briefId": "hi-07",
+			"verdict": "ASK",
+			"slug": null
+		},
+		{
+			"runId": "r14-B3",
+			"arm": "control",
+			"briefId": "B3",
+			"verdict": "DECLARATION",
+			"slug": "explain"
+		},
+		{
+			"runId": "r15-hi-08",
+			"arm": "hidden-intent",
+			"briefId": "hi-08",
+			"verdict": "ASK",
+			"slug": null
+		},
+		{
+			"runId": "r16-B3",
+			"arm": "control",
+			"briefId": "B3",
+			"verdict": "ASK",
+			"slug": null
+		},
+		{
+			"runId": "r17-hi-09",
+			"arm": "hidden-intent",
+			"briefId": "hi-09",
+			"verdict": "ASK",
+			"slug": null
+		},
+		{
+			"runId": "r18-B3",
+			"arm": "control",
+			"briefId": "B3",
+			"verdict": "DECLARATION",
+			"slug": "explain"
+		},
+		{
+			"runId": "r19-hi-10",
+			"arm": "hidden-intent",
+			"briefId": "hi-10",
+			"verdict": "ASK",
+			"slug": null
+		},
+		{
+			"runId": "r20-B3",
+			"arm": "control",
+			"briefId": "B3",
+			"verdict": "ASK",
+			"slug": null
+		}
+	]
+}

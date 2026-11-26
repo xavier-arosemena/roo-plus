@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "加载更早的消息",
 	"about": "本地优先、自带模型的智能体 IDE 扩展 — <br/>了解你的成本，信任你的缓存，守护你的知识。",
 	"support": {
-	"marketing": "请花一点时间在 <githubLink>GitHub</githubLink> 上给我们一个 <star/>！（约 20 秒）",
+		"merch": "Roo+ 周边",
+		"merchBlurb": "让仓库保持清醒。",
 		"reportIssue": "报告错误或请求功能",
 		"discussions": "加入讨论",
 		"starUs": "在 GitHub 上为我们点赞",
@@ -369,6 +370,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ {{version}} 已发布",
+		"marketing": "还在为节日礼物发愁？Roo+ 周边：送给你生活中的智能体开发者。<merchLink>逛逛商店</merchLink>",
 		"support": "请在 <githubLink>GitHub</githubLink>、<marketplaceLink>Visual Studio</marketplaceLink> 和 <openVsxLink>Open VSX Registry</openVsxLink> 上支持 Roo+。",
 		"release": {
 			"heading": "新增功能：",

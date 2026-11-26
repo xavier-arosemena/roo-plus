@@ -10,4 +10,7 @@ export const EXTERNAL_LINKS = {
 	OPEN_VSX_REGISTRY: "https://open-vsx.org/extension/xavier-arosemena/roo-plus",
 	MARKETPLACE: "https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus",
 	MARKETPLACE_REVIEW: "https://marketplace.visualstudio.com/items?itemName=xavier-arosemena.roo-plus#review-details",
+	// Permanent Roo+ merch shop. Linked from the welcome tips block and from the
+	// rotating "What's New" marketing slot.
+	MERCH: "https://roo-plus.printify.me/",
 } as const

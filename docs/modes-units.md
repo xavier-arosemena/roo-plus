@@ -110,7 +110,7 @@ They are not modes; an owner mode may cover one family or several.
 | **OPS** Delivery & operations     | 11      | pipeline/build · deploy & recover · release · incident · alerting · infra change · env parity · cost                                               | **3** (`devops`, `incident-commander`, `finops`)   | 11                              |
 | **DAT** Data & persistence        | 8       | schema change · query performance · repair/backfill · data questions · retention · formats · cache coherence                                       | **2** (`database-administrator`, `data-migration`) | 8                               |
 | **DOC** Documentation & knowledge | 9       | change description · API docs · decision record · runnable repo · comments · issue triage · status · history · usage answers                       | **1** (`documentation`)                            | 9                               |
-| **Totals**                        | **119** | **~70 families**                                                                                                                                   | **42 owners** (24 coding + 5 meta + 13 non-coding) | **≤ 90 skills** (≤ 6 per owner) |
+| **Totals**                        | **119** | **~70 families**                                                                                                                                   | **45 owners** (24 + 5 + 16; corrected 2026-11-19)  | **≤ 90 skills** (≤ 6 per owner) |
 
 \*\* **UND has no mode today** — this is the largest single gap in the catalogue: 10 jobs, 0 modes, 0
 preloaded, and the best-documented need in the research (182 of 371 hard questions are rationale/intent/
@@ -145,6 +145,13 @@ Rules that keep them from distorting the product:
 2. **They take no preload slot by default.** Roo+ is a coding extension; the preload stays coding-first
    because that is what the product is. The preload share for A13/A14 is **0** until the local ledger
    shows real demand.
+
+    > **Reversed 2026-11-19.** The 45-entry preload **includes** the 16 non-coding entries of the
+    > axis × stance frame. The reason is budget rather than a change of view about the product: the 45
+    > lines cost 4,208 of the 12,000 `whenToUse` characters, so the slot rule was protecting a budget
+    > that is not under pressure. The labelling requirement stands, and the ledger rule above is
+    > retired with it ([`modes-architecture.md`](modes-architecture.md:795) §10.8).
+
 3. **They stay in the marketplace, labelled.** Breadth remains a selling point; the label prevents a user
    from expecting coding behaviour.
 4. **They are exempt from the coding-specific gates** where those do not apply (`groups` still applies;
@@ -192,7 +199,7 @@ experiment: write the 11 debugging skills and see whether they need more than on
 
 - **Jobs are the measurement unit.** They stay at 119 and never become the catalogue.
 - **Families are the ownership unit** (~70), grouped by done-artefact and grant.
-- **Modes are stances over domains** — 42 owners: 24 coding, 5 meta, 13 non-coding (see the brainstorm for the current set), admitted only by G1–G3.
+- **Modes are stances over domains** — **45 owners: 24 coding, 5 meta, 16 non-coding** (corrected 2026-11-19; the earlier "42" predates the frame's own arithmetic check, [`axis-stance §5`](modes-catalogue-axis-stance-frame.md:84)), admitted only by G1–G3.
 - **Skills carry the job-level procedure**, merged to ≤ 6 per owner (a skill costs ~description + 150 chars of markup and path, so 119 separate skills are unaffordable — red-team O-01), which is exactly the "thin modes, fat skills" thesis
   arriving at its logical conclusion.
 - **Eleven debugging modes would be a mistake;** two modes and eleven skills is the same coverage at a

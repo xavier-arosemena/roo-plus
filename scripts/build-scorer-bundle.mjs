@@ -19,10 +19,13 @@
  * WHERE THE MAP GOES (objection 18)
  *   The case id → run id map is a de-blinding document. The default output used
  *   to be `<run>/scoring-bundles`, i.e. one `..` from `plan.json`, the blind map
- *   and the sealed answer key. It now defaults to a neutral directory under the
- *   system temporary directory, and the tool refuses an `--out` that is inside
- *   the run directory or inside a bundle. It prints bundle and map paths only —
- *   never the run path.
+ *   and the sealed answer key. It now defaults to a neutral directory created by
+ *   `fs.mkdtemp` under the system temporary directory — unique to this process and
+ *   owner-only, so no other local user can pre-create or read it (code-scanning
+ *   `js/insecure-temporary-file`) — and the tool refuses an `--out` that is inside
+ *   the run directory or inside a bundle. The resolved output directory is printed
+ *   so an operator can find it, and the tool prints bundle and map paths only —
+ *   never the run path. An explicit `--out` is used verbatim.
  *
  * WHAT IS EXCLUDED
  *   Anything whose status is not `RUN`, and anything whose `finishReason` is
@@ -45,15 +48,16 @@
  */
 
 import * as fs from "node:fs/promises"
-import * as os from "node:os"
 import * as path from "node:path"
 
+import { resolveEvalOutputDir } from "./lib/eval-output-dir.mjs"
 import { isTruncatedFinishReason } from "./lib/framing-pretest-results.mjs"
 import { orderForBundle, selectDuplicateSources, walkFiles } from "./lib/scorer-bundle-cases.mjs"
 import { RUBRIC_MD } from "./lib/scorer-rubric.mjs"
 import { RUBRIC_LEAK_PATTERNS, findLeaks, findSealedFiles, isInside, isInsideBundle } from "./lib/scorer-bundle-guards.mjs"
 
-const DEFAULT_OUT = path.join(os.tmpdir(), "roo-plus-scoring-bundles")
+/** mkdtemp prefix for the default output directory (see lib/eval-output-dir.mjs). */
+const DEFAULT_OUT_PREFIX = "roo-plus-scoring-bundles-"
 const DUPLICATE_COUNT = 5
 const DUPLICATE_SALT = "b3-isolation-scorer-reliability-2026-11-11"
 
@@ -62,7 +66,8 @@ const USAGE = `Usage: node scripts/build-scorer-bundle.mjs --run <dir> [options]
   --run <dir>          a run directory holding plan.json, results.jsonl,
                        prompts/<runId>.txt and transcripts/<runId>.txt
   --out <dir>          where bundle-A/, bundle-B/ and the maps are written
-                       (default: ${DEFAULT_OUT}). Must not be inside the run
+                       (default: a fresh fs.mkdtemp directory under the system
+                       temp root, printed on start). Must not be inside the run
                        directory or inside a bundle.
   --seed-a <s>         shuffle seed for bundle A (default: fixed literal)
   --seed-b <s>         shuffle seed for bundle B (default: fixed literal)
@@ -150,7 +155,8 @@ async function main() {
 	}
 
 	const runDir = path.resolve(opts.run)
-	const outDir = path.resolve(opts.out || DEFAULT_OUT)
+	const outDir = await resolveEvalOutputDir(opts.out, { prefix: DEFAULT_OUT_PREFIX })
+	console.log(`output directory: ${outDir}`)
 
 	// The bundles and the maps may not live inside the run directory: that
 	// directory holds plan.json, the blind map and the sealed answer key.

@@ -1,0 +1,4300 @@
+{
+	"schema": "reach-probes/1",
+	"registered": "2026-11-20",
+	"registration": "docs/reviews/2026-11-20-e24-reach-preregistration.md",
+	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+	"rule": "A probe is written as a developer would type it, and contains neither the name nor the slug of the mode that owns it. Owner is the axis x stance owner for the job; null means the frame assigns no owner, which is a coverage gap and not a probe defect.",
+	"axesComplete": ["REQ", "ARC", "IMP", "UND", "DBG", "TST", "REF", "REV", "SEC", "OPS", "DAT", "DOC"],
+	"axesPending": [],
+	"probes": [
+		{
+			"id": "dbg-b1-01",
+			"jobId": "B1",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "The auth test started failing this morning and it passes locally. I have no idea what changed.",
+			"note": "red pipeline, no local reproduction",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b1-02",
+			"jobId": "B1",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "CI is red on a test nobody touched this week. Where do I even start?",
+			"note": "red pipeline, no local reproduction",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b1-03",
+			"jobId": "B1",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "One unit test fails in the pipeline, but the same commit is green on my machine.",
+			"note": "red pipeline, no local reproduction",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b1-04",
+			"jobId": "B1",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "We have a red test with a stack trace that points nowhere useful. Can you work out what broke?",
+			"note": "root cause with evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b2-01",
+			"jobId": "B2",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Users started seeing a 500 on checkout since the last deploy. There is a trace in the logs.",
+			"note": "production crash carrying a trace",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b2-02",
+			"jobId": "B2",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "We got an error report at 03:00 with a stack trace, and I cannot tell whether it is the API or the worker.",
+			"note": "trace with unclear layer",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b2-03",
+			"jobId": "B2",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "The service crashed overnight. Logs show an unhandled exception in a handler I did not write.",
+			"note": "crash, unfamiliar code",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b2-04",
+			"jobId": "B2",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "There is a TypeError in production on a path that no test covers.",
+			"note": "production error, no test evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b3-01",
+			"jobId": "B3",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "This shows up maybe one run in twenty and I cannot reproduce it on demand.",
+			"note": "intermittent, no reliable steps",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b3-02",
+			"jobId": "B3",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Something fails intermittently under load but never when I run it alone.",
+			"note": "intermittent, load dependent",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b3-03",
+			"jobId": "B3",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "The job sometimes times out. I cannot see a pattern in the timestamps.",
+			"note": "intermittent timeout",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b3-04",
+			"jobId": "B3",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "A test fails roughly every tenth run and passes when it is retried.",
+			"note": "flaky test, rate unmeasured",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b4-01",
+			"jobId": "B4",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "It runs fine on my laptop and fails in the pipeline with a module not found.",
+			"note": "environment-dependent failure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b4-02",
+			"jobId": "B4",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Same code, same commit: works in staging, breaks in production.",
+			"note": "environment diff",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b4-03",
+			"jobId": "B4",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Locally the env vars are picked up and in CI they are empty. Nothing about this makes sense.",
+			"note": "configuration difference",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b4-04",
+			"jobId": "B4",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "The build passes on macOS and the Linux runner cannot find the binary.",
+			"note": "platform difference",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b5-01",
+			"jobId": "B5",
+			"axis": "DBG",
+			"owner": "performance",
+			"request": "The endpoint got three times slower after Tuesday's release.",
+			"note": "latency regression after a change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b5-02",
+			"jobId": "B5",
+			"axis": "DBG",
+			"owner": "performance",
+			"request": "p95 latency doubled last week and nobody admits to a change.",
+			"note": "throughput regression, cause unknown",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b5-03",
+			"jobId": "B5",
+			"axis": "DBG",
+			"owner": "performance",
+			"request": "Page load went from 400ms to two seconds and I need to know which part is responsible.",
+			"note": "attribution needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b5-04",
+			"jobId": "B5",
+			"axis": "DBG",
+			"owner": "performance",
+			"request": "Our nightly batch now takes four hours instead of forty minutes.",
+			"note": "duration regression",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b6-01",
+			"jobId": "B6",
+			"axis": "DBG",
+			"owner": "performance",
+			"request": "Memory climbs steadily until the pod gets OOM-killed, roughly every six hours.",
+			"note": "unbounded memory growth",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b6-02",
+			"jobId": "B6",
+			"axis": "DBG",
+			"owner": "performance",
+			"request": "File handles keep growing until the process refuses new connections.",
+			"note": "handle exhaustion",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b6-03",
+			"jobId": "B6",
+			"axis": "DBG",
+			"owner": "performance",
+			"request": "The worker restarts every night and I suspect it is leaking something.",
+			"note": "suspected leak, unconfirmed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b6-04",
+			"jobId": "B6",
+			"axis": "DBG",
+			"owner": "performance",
+			"request": "Heap grows on every request and never comes back down.",
+			"note": "allocation site needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b7-01",
+			"jobId": "B7",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "A customer says it does not work. That is all I have.",
+			"note": "vague report, no steps",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b7-02",
+			"jobId": "B7",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Support forwarded 'the page is broken' with a screenshot and no steps to reproduce.",
+			"note": "vague report with an artefact",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b7-03",
+			"jobId": "B7",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Someone reported that saving fails sometimes. No version, no browser, nothing.",
+			"note": "under-specified report",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b7-04",
+			"jobId": "B7",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "The PM says the feature is not working for some users and I need to pin down which ones.",
+			"note": "report to reproduction",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b8-01",
+			"jobId": "B8",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "This worked in v2.3 and is broken in v2.4. Something in between did it.",
+			"note": "known-good to known-bad range",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b8-02",
+			"jobId": "B8",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Between last Friday's tag and today's the behaviour changed. Which commit?",
+			"note": "culprit commit needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b8-03",
+			"jobId": "B8",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "I need the exact change that introduced this, not a guess.",
+			"note": "culprit with mechanism",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b8-04",
+			"jobId": "B8",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Bisect points somewhere in a 200-commit range and I need to narrow it down.",
+			"note": "history analysis",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b9-01",
+			"jobId": "B9",
+			"axis": "DBG",
+			"owner": null,
+			"request": "Two requests occasionally deadlock and the service hangs until the pod is killed.",
+			"note": "race/deadlock; the frame assigns no owner to B9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b9-02",
+			"jobId": "B9",
+			"axis": "DBG",
+			"owner": null,
+			"request": "Under load the counter sometimes ends up wrong, as if two writes interleaved.",
+			"note": "race; the frame assigns no owner to B9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b9-03",
+			"jobId": "B9",
+			"axis": "DBG",
+			"owner": null,
+			"request": "We see a lock wait timeout a few times a day inside the same transaction.",
+			"note": "lock ordering; the frame assigns no owner to B9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b9-04",
+			"jobId": "B9",
+			"axis": "DBG",
+			"owner": null,
+			"request": "The queue consumer hangs when two workers pick up the same message.",
+			"note": "concurrency fault; the frame assigns no owner to B9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b10-01",
+			"jobId": "B10",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "The build fails with 'exit code 137' and nothing else. What does that even mean?",
+			"note": "opaque code",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b10-02",
+			"jobId": "B10",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "We get 'EAI_AGAIN' in the logs. Is that DNS, network or something else?",
+			"note": "opaque error string",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b10-03",
+			"jobId": "B10",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Postgres says 'canceling statement due to statement timeout'. Where is that set?",
+			"note": "message whose source is unclear",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b10-04",
+			"jobId": "B10",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "The browser console shows 'Invalid hook call' and I cannot tell which layer is complaining.",
+			"note": "message with unclear layer",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b11-01",
+			"jobId": "B11",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Three services are involved and I cannot tell which one dropped the message.",
+			"note": "multi-service attribution",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b11-02",
+			"jobId": "B11",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "The error surfaces in the frontend but I think it starts further back. Whose component is it?",
+			"note": "ownership unclear",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b11-03",
+			"jobId": "B11",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Payments fail and the logs on our side look clean. Is it us or the provider?",
+			"note": "boundary attribution",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dbg-b11-04",
+			"jobId": "B11",
+			"axis": "DBG",
+			"owner": "debug",
+			"request": "Something between the gateway and the auth service is failing and I need the owning team.",
+			"note": "handoff needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r1-01",
+			"jobId": "R1",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "The whole ticket is just: add SSO to the app. What do you need from me to make it buildable?",
+			"note": "one-line ask, no acceptance criteria",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r1-02",
+			"jobId": "R1",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "Our ticket says make the dashboard faster and stops there. Can you turn that into something I can start on?",
+			"note": "vague ask, no criteria",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r1-03",
+			"jobId": "R1",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "The PM asked for a dark mode in one line. What should I ask before anyone starts building?",
+			"note": "single-line feature ask",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r1-04",
+			"jobId": "R1",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "The ask is let teams share links, with no detail. Which assumptions are we making and what is still open?",
+			"note": "assumptions and open questions needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r2-01",
+			"jobId": "R2",
+			"axis": "REQ",
+			"owner": null,
+			"request": "Nobody wrote down how the old billing flow behaves and we must change it next sprint. Where do we start?",
+			"note": "legacy behaviour unspecified; the frame assigns no owner to R2",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r2-02",
+			"jobId": "R2",
+			"axis": "REQ",
+			"owner": null,
+			"request": "I need a list of what this legacy module actually does before we touch it, with the tests as evidence.",
+			"note": "behaviour inventory; the frame assigns no owner to R2",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r2-03",
+			"jobId": "R2",
+			"axis": "REQ",
+			"owner": null,
+			"request": "The vendor is gone and the real behaviour only exists in production. How do I write down what it does today?",
+			"note": "undocumented behaviour; the frame assigns no owner to R2",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r2-04",
+			"jobId": "R2",
+			"axis": "REQ",
+			"owner": null,
+			"request": "Before we replace it: what does the current system do, what is proven by tests, and what is still unknown?",
+			"note": "explicit unknowns; the frame assigns no owner to R2",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r3-01",
+			"jobId": "R3",
+			"axis": "REQ",
+			"owner": null,
+			"request": "Sales wants this shipped this month and security wants a full audit first. Both are in one thread and I am stuck.",
+			"note": "contradictory asks; the frame assigns no owner to R3",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r3-02",
+			"jobId": "R3",
+			"axis": "REQ",
+			"owner": null,
+			"request": "The PM wants more scope and the platform lead wants fewer dependencies. How do I write this up so someone decides?",
+			"note": "scope vs dependency conflict; the frame assigns no owner to R3",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r3-03",
+			"jobId": "R3",
+			"axis": "REQ",
+			"owner": null,
+			"request": "Two teams want opposite defaults for the same flag. I need the options written out and who owns the call.",
+			"note": "opposing defaults, no decision owner; the frame assigns no owner to R3",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r3-04",
+			"jobId": "R3",
+			"axis": "REQ",
+			"owner": null,
+			"request": "My manager wants speed and the lead dev wants a rewrite. Can you lay out what each choice costs us?",
+			"note": "speed vs rewrite; the frame assigns no owner to R3",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r4-01",
+			"jobId": "R4",
+			"axis": "REQ",
+			"owner": "acceptance-criteria",
+			"request": "It has to be fast is all the spec says. What number should go in the ticket, and where do we measure it?",
+			"note": "quality wish, no number",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r4-02",
+			"jobId": "R4",
+			"axis": "REQ",
+			"owner": "acceptance-criteria",
+			"request": "The client wants the app reliable. How do I turn that into something we can actually test?",
+			"note": "reliability without a target",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r4-03",
+			"jobId": "R4",
+			"axis": "REQ",
+			"owner": "acceptance-criteria",
+			"request": "We keep writing must be secure in tickets. What would a measurable version of that look like?",
+			"note": "security wish, unmeasurable",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r4-04",
+			"jobId": "R4",
+			"axis": "REQ",
+			"owner": "acceptance-criteria",
+			"request": "A stakeholder says it should handle our traffic. Give me a threshold and the method to check it.",
+			"note": "threshold and method needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r5-01",
+			"jobId": "R5",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "Every time I finish a slice they add while you are in there. How do I draw a line and record what is deferred?",
+			"note": "scope creep mid-task",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r5-02",
+			"jobId": "R5",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "This started as a bug fix and is now four features. Can you split what is in scope from what is not?",
+			"note": "request grew into features",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r5-03",
+			"jobId": "R5",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "I need a written in and out list for this item before I start, so the extras stop arriving mid-task.",
+			"note": "in/out list needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r5-04",
+			"jobId": "R5",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "How do I say not now to the next add-on without losing it? I want the deferral written down and agreed.",
+			"note": "deferral note",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r6-01",
+			"jobId": "R6",
+			"axis": "REQ",
+			"owner": null,
+			"request": "Legal says we need audit logging. Where in our system does that land, and how do we show it actually works?",
+			"note": "policy outcome, controls unmapped; the frame assigns no owner to R6",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r6-02",
+			"jobId": "R6",
+			"axis": "REQ",
+			"owner": null,
+			"request": "The policy says delete on request. Map that to the places that must change and a check for each one.",
+			"note": "obligation to controls; the frame assigns no owner to R6",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r6-03",
+			"jobId": "R6",
+			"axis": "REQ",
+			"owner": null,
+			"request": "A clause needs access reviews every quarter. What in our setup satisfies it, and how is that proven?",
+			"note": "compliance clause to controls; the frame assigns no owner to R6",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r6-04",
+			"jobId": "R6",
+			"axis": "REQ",
+			"owner": null,
+			"request": "Compliance wants evidence we log admin actions. Which endpoints, tables and services are involved?",
+			"note": "evidence needed for a clause; the frame assigns no owner to R6",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r7-01",
+			"jobId": "R7",
+			"axis": "REQ",
+			"owner": "acceptance-criteria",
+			"request": "The ticket says works correctly and nothing else. What conditions should I test, one per line?",
+			"note": "criteria exist but are untestable",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r7-02",
+			"jobId": "R7",
+			"axis": "REQ",
+			"owner": "acceptance-criteria",
+			"request": "Our story is user can reset a password. Can you list the observable outcomes I should assert?",
+			"note": "observable outcomes needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r7-03",
+			"jobId": "R7",
+			"axis": "REQ",
+			"owner": "acceptance-criteria",
+			"request": "The sign-off box says meets expectations. How do I turn that into checks I can run in the pipeline?",
+			"note": "sign-off wording is vague",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r7-04",
+			"jobId": "R7",
+			"axis": "REQ",
+			"owner": "acceptance-criteria",
+			"request": "I have a ticket with vague wording. Help me write the conditions I can actually observe.",
+			"note": "vague ticket wording",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r8-01",
+			"jobId": "R8",
+			"axis": "REQ",
+			"owner": null,
+			"request": "Can we ship multi-tenant support by the end of Q1? I need an answer with the assumptions behind it.",
+			"note": "date question, no assumptions; the frame assigns no owner to R8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r8-02",
+			"jobId": "R8",
+			"axis": "REQ",
+			"owner": null,
+			"request": "My boss asked if we can move off the old queue in six weeks. How confident can I be, and why?",
+			"note": "feasibility question; the frame assigns no owner to R8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r8-03",
+			"jobId": "R8",
+			"axis": "REQ",
+			"owner": null,
+			"request": "Is it realistic to add offline mode by March? Tell me what would have to be true and what is unknown.",
+			"note": "feasibility with unknowns; the frame assigns no owner to R8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r8-04",
+			"jobId": "R8",
+			"axis": "REQ",
+			"owner": null,
+			"request": "Before I promise a date: what is the estimate, what is uncertain, and how sure are you?",
+			"note": "estimate with confidence; the frame assigns no owner to R8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r9-01",
+			"jobId": "R9",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "The team already picked a solution and I am not sure what problem it solves. Who is affected, and why?",
+			"note": "solution proposed, problem unstated",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r9-02",
+			"jobId": "R9",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "Before we build the new dashboard: what is the real problem, who has it, and how will we know it is fixed?",
+			"note": "problem framing before build",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r9-03",
+			"jobId": "R9",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "Someone proposed rewriting search. What problem statement should exist before we agree to anything?",
+			"note": "rewrite proposal, no problem statement",
+			"source": "trigger-column"
+		},
+		{
+			"id": "req-r9-04",
+			"jobId": "R9",
+			"axis": "REQ",
+			"owner": "requirements",
+			"request": "I want to challenge this proposal. What is the user pain today and what does success look like?",
+			"note": "user pain unknown",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d1-01",
+			"jobId": "D1",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "We are adding notifications and I cannot tell if this belongs in the API or a new service. What are the options?",
+			"note": "boundary decision needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d1-02",
+			"jobId": "D1",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "A new capability has to live somewhere. Where should the boundary go, and what does it cost to move it later?",
+			"note": "placement with exit cost",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d1-03",
+			"jobId": "D1",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "Should this be a module in the monolith or its own service? I want the forces written down and a decision.",
+			"note": "options with forces",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d1-04",
+			"jobId": "D1",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "We keep arguing about where the export job belongs. Can you weigh the trade-offs and pick one?",
+			"note": "recurring placement argument",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d2-01",
+			"jobId": "D2",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "p99 is 400ms and the target is 100ms. The current structure cannot get there. What tactics would?",
+			"note": "latency target blocked by structure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d2-02",
+			"jobId": "D2",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "Our availability target is 99.95% and one database stands in the way. What changes, and what do we give up?",
+			"note": "availability target, trade-off",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d2-03",
+			"jobId": "D2",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "Cost per request has to halve. Which structural options exist, and how would we measure the result?",
+			"note": "cost target needs a tactic",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d2-04",
+			"jobId": "D2",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "This shape cannot hold the latency target any more. Propose the trade-off and say how we verify it.",
+			"note": "design note with measurement",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d3-01",
+			"jobId": "D3",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "The diagram says everything goes through the gateway, but the repo tells another story. Can you list the differences?",
+			"note": "described versus built structure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d3-02",
+			"jobId": "D3",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "An auditor asked whether the build still matches the described structure. Where do they disagree, with files?",
+			"note": "audit question, evidence needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d3-03",
+			"jobId": "D3",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "Onboarding left me thinking services call each other directly. Is that allowed, and where does it break?",
+			"note": "drift suspected",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d3-04",
+			"jobId": "D3",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "I suspect the layering rules are ignored in a few places. Find the violations and say what to do with each.",
+			"note": "conformance report",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d4-01",
+			"jobId": "D4",
+			"axis": "ARC",
+			"owner": "database-migration",
+			"request": "We need to split the address field into structured columns. What is the schema change, the rollback and who reads it?",
+			"note": "field split, rollback needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d4-02",
+			"jobId": "D4",
+			"axis": "ARC",
+			"owner": "database-migration",
+			"request": "A new table is needed for teams. Design it and list every consumer that has to change.",
+			"note": "new entity, consumers",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d4-03",
+			"jobId": "D4",
+			"axis": "ARC",
+			"owner": "database-migration",
+			"request": "Orders and invoices need a many-to-many link now. What is the safe way to change the model on live data?",
+			"note": "relationship change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d4-04",
+			"jobId": "D4",
+			"axis": "ARC",
+			"owner": "database-migration",
+			"request": "We must rename a column three services read. What is the plan, and how do we undo it?",
+			"note": "rename with rollback",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d5-01",
+			"jobId": "D5",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "Two teams keep breaking each other's calls. Can you write the request and response shape, errors and compatibility rule?",
+			"note": "interface agreement",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d5-02",
+			"jobId": "D5",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "We publish an endpoint for partners next month. What belongs in the written agreement, with examples?",
+			"note": "external contract",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d5-03",
+			"jobId": "D5",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "The mobile team and the API team disagree on error codes. Can we settle it in a written document?",
+			"note": "two teams, one contract",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d5-04",
+			"jobId": "D5",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "What is the rule for changing this payload without breaking consumers? I need it stated, not implied.",
+			"note": "compatibility rule",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d6-01",
+			"jobId": "D6",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "Postgres or Dynamo for the audit trail? Score the options on explicit criteria, including how hard it is to leave.",
+			"note": "options memo with exit cost",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d6-02",
+			"jobId": "D6",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "We are picking a queue library and everyone has a favourite. Can you write the options up with the exit cost?",
+			"note": "choice blocks progress",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d6-03",
+			"jobId": "D6",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "Should we use the vendor SDK or call the API directly? I want criteria, scores, and who disagrees.",
+			"note": "scored comparison, dissent",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d6-04",
+			"jobId": "D6",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "Two approaches are on the table for search. Compare them against our criteria and recommend one with dissent noted.",
+			"note": "recommendation with dissent",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d7-01",
+			"jobId": "D7",
+			"axis": "ARC",
+			"owner": null,
+			"request": "We do not know if the vendor API can do bulk updates. Can you build a throwaway to find out and report what it showed?",
+			"note": "feasibility spike; the frame assigns no owner to D7",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d7-02",
+			"jobId": "D7",
+			"axis": "ARC",
+			"owner": null,
+			"request": "I need a quick experiment to see whether this approach holds at a thousand concurrent users, then bin it.",
+			"note": "throwaway prototype; the frame assigns no owner to D7",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d7-03",
+			"jobId": "D7",
+			"axis": "ARC",
+			"owner": null,
+			"request": "Before we commit: prototype the import path against their sandbox and tell us whether it is feasible.",
+			"note": "vendor behaviour unknown; the frame assigns no owner to D7",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d7-04",
+			"jobId": "D7",
+			"axis": "ARC",
+			"owner": null,
+			"request": "There is a ceiling we cannot estimate from the docs. What is the cheapest way to answer it for real?",
+			"note": "performance ceiling; the frame assigns no owner to D7",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d8-01",
+			"jobId": "D8",
+			"axis": "ARC",
+			"owner": null,
+			"request": "Two workers may process the same order at once. What invariants do we need, and what test catches a double charge?",
+			"note": "duplicate processing; the frame assigns no owner to D8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d8-02",
+			"jobId": "D8",
+			"axis": "ARC",
+			"owner": null,
+			"request": "We are adding shared state across instances. Write down the ordering guarantees and every failure mode.",
+			"note": "shared state design; the frame assigns no owner to D8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d8-03",
+			"jobId": "D8",
+			"axis": "ARC",
+			"owner": null,
+			"request": "Duplicate processing shows up when the queue retries. What design makes that impossible, and how do we prove it?",
+			"note": "exactly-once design; the frame assigns no owner to D8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d8-04",
+			"jobId": "D8",
+			"axis": "ARC",
+			"owner": null,
+			"request": "A crash mid-write must not leave inconsistent rows. What should we design, and what test would catch a violation?",
+			"note": "consistency under crash; the frame assigns no owner to D8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d9-01",
+			"jobId": "D9",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "We are about to add the third payment provider. Should we open a seam now and migrate the existing one as proof?",
+			"note": "third variant, seam needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d9-02",
+			"jobId": "D9",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "This is the third export format request. Do we keep branching, or open an extension point?",
+			"note": "repeated variants",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d9-03",
+			"jobId": "D9",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "Before the fourth report type lands, specify where the extension point goes and move one case onto it.",
+			"note": "seam with one migrated case",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d9-04",
+			"jobId": "D9",
+			"axis": "ARC",
+			"owner": "architect",
+			"request": "Every new channel needs the same steps. Can we make that a seam and show one existing case using it?",
+			"note": "extension seam",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d10-01",
+			"jobId": "D10",
+			"axis": "ARC",
+			"owner": "architecture-reviewer",
+			"request": "The design doc is finished and a wrong call here is expensive. Review it and list findings by severity.",
+			"note": "review before build",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d10-02",
+			"jobId": "D10",
+			"axis": "ARC",
+			"owner": "architecture-reviewer",
+			"request": "We start building the new sync design tomorrow. Which failure scenarios does it not cover?",
+			"note": "review against failure scenarios",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d10-03",
+			"jobId": "D10",
+			"axis": "ARC",
+			"owner": "architecture-reviewer",
+			"request": "Go through this plan and tell me what breaks, worst first, and what each finding would cost.",
+			"note": "severity-ordered findings",
+			"source": "trigger-column"
+		},
+		{
+			"id": "arc-d10-04",
+			"jobId": "D10",
+			"axis": "ARC",
+			"owner": "architecture-reviewer",
+			"request": "Before we commit to this shape, list the risks in order and the scenario each one would cause.",
+			"note": "risk to scenario mapping",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i1-01",
+			"jobId": "I1",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "The story has clear checks and the endpoint does not exist yet. Build it with tests that fail without it.",
+			"note": "criteria exist, behaviour missing",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i1-02",
+			"jobId": "I1",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "I have the behaviour written down and nothing built. Please implement it with one test per condition.",
+			"note": "implement to conditions",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i1-03",
+			"jobId": "I1",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "We agreed what the feature must do. Now write the handler and the tests that prove each part.",
+			"note": "agreed behaviour, unbuilt",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i1-04",
+			"jobId": "I1",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "Implement this from the ticket, and make sure the tests would go red without your change.",
+			"note": "red without the change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i2-01",
+			"jobId": "I2",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "I need the CRUD skeleton for a new resource: routes, model, migration stub, and one happy-path test.",
+			"note": "repetitive structure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i2-02",
+			"jobId": "I2",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "Generate the boilerplate for a new module with the usual wiring, and leave no unexplained magic in it.",
+			"note": "boilerplate, no magic",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i2-03",
+			"jobId": "I2",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "Set up the config loading pattern the other services use, plus a test that it loads.",
+			"note": "config scaffold with a test",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i2-04",
+			"jobId": "I2",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "Spin up the empty structure for the new service: compiles, lints, one test, nothing hidden.",
+			"note": "empty project scaffold",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i3-01",
+			"jobId": "I3",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "We have to use this payments SDK for the first time. Get a minimal working call going and pin the version.",
+			"note": "first use of a dependency; frame names two owners, I3 resolved here",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i3-02",
+			"jobId": "I3",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "I have never used this client library. What is the smallest correct wiring, and where do I find the truth?",
+			"note": "unfamiliar library",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i3-03",
+			"jobId": "I3",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "The vendor docs and their examples disagree. Make the basic call work and cite what you relied on.",
+			"note": "source of truth unclear",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i3-04",
+			"jobId": "I3",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "First time with this queue package. Wire it up, handle the error path, and pin what we installed.",
+			"note": "error path and pinning",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i4-01",
+			"jobId": "I4",
+			"axis": "IMP",
+			"owner": "refactoring",
+			"request": "This file is too tangled to add the feature safely. Restructure it first without changing behaviour.",
+			"note": "change blocked by tangled code",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i4-02",
+			"jobId": "I4",
+			"axis": "IMP",
+			"owner": "refactoring",
+			"request": "Before I touch the discount logic, split it into smaller pieces with the tests staying green.",
+			"note": "prepare the ground first",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i4-03",
+			"jobId": "I4",
+			"axis": "IMP",
+			"owner": "refactoring",
+			"request": "The change is hard because of the current shape. Make it easier to change, as a separate step.",
+			"note": "behaviour-preserving first pass",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i4-04",
+			"jobId": "I4",
+			"axis": "IMP",
+			"owner": "refactoring",
+			"request": "Untangle this module first, keep every test passing, and merge that on its own.",
+			"note": "merged separately",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i5-01",
+			"jobId": "I5",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "Every catch block here swallows the error. Make the failures explicit, with a message, a log and a test each.",
+			"note": "swallowed errors",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i5-02",
+			"jobId": "I5",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "When the call fails the user sees nothing. Surface a clear error, log context, and cover each path.",
+			"note": "silent failure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i5-03",
+			"jobId": "I5",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "We return generic 500s for six different causes. Can you type them and test each one?",
+			"note": "generic error responses",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i5-04",
+			"jobId": "I5",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "The error path has never been tested. Make it explicit and prove it works.",
+			"note": "untested failure path",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i6-01",
+			"jobId": "I6",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "This must be reversible in production. Put it behind a flag, default off, with the kill path written down.",
+			"note": "reversibility required",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i6-02",
+			"jobId": "I6",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "We need to ship the new path dark. Add the switch, document how to turn it off, and name the removal ticket.",
+			"note": "dark launch with removal ticket",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i6-03",
+			"jobId": "I6",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "Before this goes live I want a way to turn it off without a deploy. Add that and a removal note.",
+			"note": "kill path without deploy",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i6-04",
+			"jobId": "I6",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "Wrap the change in a toggle that starts off, and tell me how to kill it during an outage.",
+			"note": "toggle default-off",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i7-01",
+			"jobId": "I7",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "We are moving this module from Python to Go next quarter. Port it and prove parity on the same fixtures.",
+			"note": "language migration decided",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i7-02",
+			"jobId": "I7",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "Port this report generator to the new runtime and show identical output on our sample data.",
+			"note": "runtime port, parity needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i7-03",
+			"jobId": "I7",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "We must reimplement this in TypeScript. Do it with a differential test on the existing corpus.",
+			"note": "port with differential test",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i7-04",
+			"jobId": "I7",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"request": "Same behaviour, new language. Port it and give me a test that would catch any drift.",
+			"note": "parity proof",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i8-01",
+			"jobId": "I8",
+			"axis": "IMP",
+			"owner": null,
+			"request": "We launch in German next month and the copy is hard-coded everywhere. How do we extract it without breaking placeholders?",
+			"note": "hard-coded strings; the frame assigns no owner to I8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i8-02",
+			"jobId": "I8",
+			"axis": "IMP",
+			"owner": null,
+			"request": "A translator found our strings concatenated in three places. Pull them out and keep the variables intact.",
+			"note": "concatenation; the frame assigns no owner to I8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i8-03",
+			"jobId": "I8",
+			"axis": "IMP",
+			"owner": null,
+			"request": "New locale coming. What is the fallback, and how do we test that placeholders survived?",
+			"note": "fallback and placeholder test; the frame assigns no owner to I8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i8-04",
+			"jobId": "I8",
+			"axis": "IMP",
+			"owner": null,
+			"request": "Hard-coded English is scattered through the UI. Move it to resources with a test for the placeholders.",
+			"note": "extraction; the frame assigns no owner to I8",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i9-01",
+			"jobId": "I9",
+			"axis": "IMP",
+			"owner": null,
+			"request": "The audit flagged the date picker as unusable by keyboard. Fix it and add an automated check.",
+			"note": "accessibility barrier; the frame assigns no owner to I9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i9-02",
+			"jobId": "I9",
+			"axis": "IMP",
+			"owner": null,
+			"request": "Our icon buttons have no label for screen readers. What do I change, and how do I verify by hand?",
+			"note": "missing labels; the frame assigns no owner to I9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i9-03",
+			"jobId": "I9",
+			"axis": "IMP",
+			"owner": null,
+			"request": "Legal says we fail on contrast and focus order. Fix both and note how you checked.",
+			"note": "legal requirement; the frame assigns no owner to I9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i9-04",
+			"jobId": "I9",
+			"axis": "IMP",
+			"owner": null,
+			"request": "The modal traps focus. Fix it, add the check to CI, and tell me what to test manually.",
+			"note": "focus trap; the frame assigns no owner to I9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i10-01",
+			"jobId": "I10",
+			"axis": "IMP",
+			"owner": "performance",
+			"request": "The endpoint misses its budget at 500 rps. Get it under, and show before and after on the same workload.",
+			"note": "measured target missed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i10-02",
+			"jobId": "I10",
+			"axis": "IMP",
+			"owner": "performance",
+			"request": "We agreed 50ms for this call and we are at 180ms. Make it fit and commit the benchmark.",
+			"note": "budget overrun in a hot path",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i10-03",
+			"jobId": "I10",
+			"axis": "IMP",
+			"owner": "performance",
+			"request": "The render loop is over budget. Profile it, fix it, and keep the workload definition with the numbers.",
+			"note": "hot path budget",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i10-04",
+			"jobId": "I10",
+			"axis": "IMP",
+			"owner": "performance",
+			"request": "This hot path must stay under target. Fix it and prove it with a repeatable measurement.",
+			"note": "repeatable measurement",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i11-01",
+			"jobId": "I11",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "After the bump, install fails on a peer conflict. Resolve it and explain the version you chose.",
+			"note": "dependency resolution",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i11-02",
+			"jobId": "I11",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "The build broke when a transitive package changed. Fix it, keep the lockfile diff small, and note the risk.",
+			"note": "transitive break",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i11-03",
+			"jobId": "I11",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "Compilation fails since the upgrade. What is the minimal fix, and which transitive packages are affected?",
+			"note": "compile break after upgrade",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i11-04",
+			"jobId": "I11",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "Our lockfile is pinned to an old range. Move it, justify the version, and flag the transitive risk.",
+			"note": "version chosen with rationale",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i12-01",
+			"jobId": "I12",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "This cache is hit from several workers and I think it corrupts. Make it safe and add a stress test.",
+			"note": "shared structure, concurrent writers",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i12-02",
+			"jobId": "I12",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "Two request paths touch the same map. Pick synchronisation or isolation, justify it, and prove it under load.",
+			"note": "synchronisation choice",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i12-03",
+			"jobId": "I12",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "We see torn reads on a shared counter. What is the right guard, and what test would catch a regression?",
+			"note": "torn reads",
+			"source": "trigger-column"
+		},
+		{
+			"id": "imp-i12-04",
+			"jobId": "I12",
+			"axis": "IMP",
+			"owner": "code",
+			"request": "Make this shared structure safe for concurrent use and give me a test that fails without the lock.",
+			"note": "stress or model test",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c1-01",
+			"jobId": "C1",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "I just joined and there is no overview. Where do requests enter, what are the main flows, and where would I change a price?",
+			"note": "onboarding, no map",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c1-02",
+			"jobId": "C1",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "New repo, no README worth reading. Map the entry points and the external calls, with file references.",
+			"note": "entry points and dependencies",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c1-03",
+			"jobId": "C1",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "I need a tour: start points, main paths, outside dependencies, and the place to add a new endpoint.",
+			"note": "where to change X",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c1-04",
+			"jobId": "C1",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "I have to fix a bug in a service I have never seen. Give me a map with files for each claim.",
+			"note": "map with file evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c2-01",
+			"jobId": "C2",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Where is the retry logic handled? I need the file and line, and the path that reaches it.",
+			"note": "locate behaviour",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c2-02",
+			"jobId": "C2",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Somewhere the currency is rounded. Which function does it, and what calls it?",
+			"note": "file plus call path",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c2-03",
+			"jobId": "C2",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Which file decides whether a user sees the banner? I only need the location.",
+			"note": "single location question",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c2-04",
+			"jobId": "C2",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Where does the app read the feature flags from? Point me at the file and the call path.",
+			"note": "where is X handled",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c3-01",
+			"jobId": "C3",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Why is there a sleep of 200ms here? Is it a workaround, and is there a commit or issue behind it?",
+			"note": "surprising workaround",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c3-02",
+			"jobId": "C3",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "This looks odd: the config is read twice. What was the reason, and is there evidence?",
+			"note": "rationale with evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c3-03",
+			"jobId": "C3",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Someone wrote a manual sort instead of using the library. Was that deliberate?",
+			"note": "deliberate or accidental",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c3-04",
+			"jobId": "C3",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Why does this module bypass the shared client? If there is no evidence, say what you infer.",
+			"note": "explicit inference when no evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c4-01",
+			"jobId": "C4",
+			"axis": "UND",
+			"owner": null,
+			"request": "If the inventory call times out, what happens next? Walk the branches and tell me what the user sees.",
+			"note": "failure path; the frame assigns no owner to C4",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c4-02",
+			"jobId": "C4",
+			"axis": "UND",
+			"owner": null,
+			"request": "What does the system do when the webhook signature fails? I need the path and the observable result.",
+			"note": "failure path; the frame assigns no owner to C4",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c4-03",
+			"jobId": "C4",
+			"axis": "UND",
+			"owner": null,
+			"request": "Trace what happens when the queue is full: which branch fires, and what does the caller get?",
+			"note": "branch trace; the frame assigns no owner to C4",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c4-04",
+			"jobId": "C4",
+			"axis": "UND",
+			"owner": null,
+			"request": "If the cache is empty on startup, what runs and in which order?",
+			"note": "startup path; the frame assigns no owner to C4",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c5-01",
+			"jobId": "C5",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "I am about to change the User shape. Who calls it, and which callers would break?",
+			"note": "blast radius",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c5-02",
+			"jobId": "C5",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "What depends on formatPrice, and where would a changed return type hurt?",
+			"note": "dependents list",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c5-03",
+			"jobId": "C5",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "I want to rename this type. Give me every place that references it and the risky ones.",
+			"note": "references with risk",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c5-04",
+			"jobId": "C5",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "Before I change this function's signature, list the call sites and which ones are outside this repo.",
+			"note": "external callers",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c6-01",
+			"jobId": "C6",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "This behaved differently last month. What changed, in which commits, and what was the intent?",
+			"note": "change digest",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c6-02",
+			"jobId": "C6",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "The postmortem needs a digest of what landed on this service this week and why.",
+			"note": "incident review input",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c6-03",
+			"jobId": "C6",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Something about the auth flow changed and I missed it. Which commits touched it, and what were they for?",
+			"note": "commits with linked intent",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c6-04",
+			"jobId": "C6",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Can you tell me what changed around the retry policy and link the work items?",
+			"note": "history with work items",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c7-01",
+			"jobId": "C7",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Is this odd rounding intended or a bug? Should we fix it or write it down?",
+			"note": "intended versus bug",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c7-02",
+			"jobId": "C7",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "The API returns 404 for missing tenants. Deliberate or accidental? What is the evidence?",
+			"note": "classification with evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c7-03",
+			"jobId": "C7",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Someone calls this a hack in a comment. Was it intentional, and what should we do?",
+			"note": "hack versus design",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c7-04",
+			"jobId": "C7",
+			"axis": "UND",
+			"owner": "explain",
+			"request": "Before I file this as a defect: is the behaviour by design? Recommend fix, document or leave.",
+			"note": "fix, document or leave",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c8-01",
+			"jobId": "C8",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "Can this function ever run when the tenant is archived? Show the conditions or a counterexample.",
+			"note": "reachability with counterexample",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c8-02",
+			"jobId": "C8",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "Is there a path where the retry happens before the transaction commits?",
+			"note": "reachability question",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c8-03",
+			"jobId": "C8",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "Could this branch fire for a free-tier account? I need the path or proof it cannot.",
+			"note": "can this run in situation S",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c8-04",
+			"jobId": "C8",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "Under what conditions can the cron job see a half-written row?",
+			"note": "condition analysis",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c9-01",
+			"jobId": "C9",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "How does the email address get from the signup form to the analytics table? Where is it transformed?",
+			"note": "data flow with transforms",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c9-02",
+			"jobId": "C9",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "Trace the order total from the request to the invoice row, and tell me where it can be lost.",
+			"note": "loss points",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c9-03",
+			"jobId": "C9",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "A privacy review asks where the phone number is stored. Map the flow and each place it lands.",
+			"note": "privacy flow map",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c9-04",
+			"jobId": "C9",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "Where could the tenant id get dropped between the gateway and the query?",
+			"note": "where a value can be altered",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c10-01",
+			"jobId": "C10",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "Write me an orientation note: setup, conventions, and a first task a new hire could finish.",
+			"note": "orientation note",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c10-02",
+			"jobId": "C10",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "A new teammate starts Monday. What should they read, run and change first to be productive?",
+			"note": "new contributor path",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c10-03",
+			"jobId": "C10",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "Give me a handover note for this service that a newcomer can follow from a clean checkout.",
+			"note": "handover",
+			"source": "trigger-column"
+		},
+		{
+			"id": "und-c10-04",
+			"jobId": "C10",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"request": "I need a guided first day: how to run it locally, the house rules, and one small thing to fix.",
+			"note": "setup validated by reader",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t1-01",
+			"jobId": "T1",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "I added the discount rule and there are no tests. Write tests that fail without it, one per condition.",
+			"note": "new behaviour uncovered",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t1-02",
+			"jobId": "T1",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "This new endpoint shipped untested. Add tests that would catch a regression tomorrow.",
+			"note": "untested addition",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t1-03",
+			"jobId": "T1",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "The feature works but nothing covers it. Write the tests, and check they fail on the old branch.",
+			"note": "fail before, pass after",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t1-04",
+			"jobId": "T1",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "Add tests for this behaviour, aligned to each condition we agreed.",
+			"note": "one test per criterion",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t2-01",
+			"jobId": "T2",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "The billing module has no tests and we have had two incidents there. Cover the named risks first.",
+			"note": "risky module, incident evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t2-02",
+			"jobId": "T2",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "Our coverage report shows the parser at 12%. What should we test first, and what did we add?",
+			"note": "coverage gap",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t2-03",
+			"jobId": "T2",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "This file is risky and untested. Target the failure modes, then tell me the delta per file.",
+			"note": "targeted tests, delta reported",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t2-04",
+			"jobId": "T2",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "Incidents keep coming from the same area with no tests. Where do we start, and how do we show progress?",
+			"note": "incident-driven coverage",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t3-01",
+			"jobId": "T3",
+			"axis": "TST",
+			"owner": "performance",
+			"request": "CI takes 40 minutes and the team wants it under 15 without losing coverage. Where is the time going?",
+			"note": "suite over tolerance",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t3-02",
+			"jobId": "T3",
+			"axis": "TST",
+			"owner": "performance",
+			"request": "The test suite doubled in a month. Find the slow parts and get it back in budget.",
+			"note": "suite time regression",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t3-03",
+			"jobId": "T3",
+			"axis": "TST",
+			"owner": "performance",
+			"request": "Our pipeline is over its time budget. What can we cut or parallelise, and what is the selection rule afterwards?",
+			"note": "suites within budget",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t3-04",
+			"jobId": "T3",
+			"axis": "TST",
+			"owner": "performance",
+			"request": "Builds block everyone for half an hour. Get the suite under target and write down how tests are chosen.",
+			"note": "selection rule documented",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t4-01",
+			"jobId": "T4",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "One test fails about twice a week and blocks every merge. Can we park it with a note and a date?",
+			"note": "flaky test blocking merges",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t4-02",
+			"jobId": "T4",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "This test is flaky and the team has started ignoring red. Quarantine it properly with an owner.",
+			"note": "quarantine with owner",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t4-03",
+			"jobId": "T4",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "We keep rerunning CI because of the same test. Set it aside, record the diagnosis and when it is fixed or deleted.",
+			"note": "diagnosis and expiry date",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t4-04",
+			"jobId": "T4",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "Please quarantine this flaky test, note why, and give it a fix-or-delete date.",
+			"note": "fix or delete",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t5-01",
+			"jobId": "T5",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "We closed that bug as fixed. Add a test that fails on the old version and passes now.",
+			"note": "regression test",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t5-02",
+			"jobId": "T5",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "The defect is marked done but nothing proves it. Write the regression check.",
+			"note": "fix unproven",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t5-03",
+			"jobId": "T5",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "Add a test that would have caught this bug before the fix.",
+			"note": "would have caught it",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t5-04",
+			"jobId": "T5",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "Before we close the ticket, I want a test that reproduces the old failure.",
+			"note": "reproduce then close",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t6-01",
+			"jobId": "T6",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "We are changing the response shape and two consumers depend on it. Can you prove compatibility?",
+			"note": "external consumers",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t6-02",
+			"jobId": "T6",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "The schema changed slightly. What contract test tells us whether clients break?",
+			"note": "schema compatibility",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t6-03",
+			"jobId": "T6",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "Partners read this endpoint. Verify the change is backward compatible, with evidence.",
+			"note": "compatibility verdict",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t6-04",
+			"jobId": "T6",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "We bumped a field type. Is that safe for consumers? I need a verdict, not a guess.",
+			"note": "verdict required",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t7-01",
+			"jobId": "T7",
+			"axis": "TST",
+			"owner": "release-readiness",
+			"request": "We move to Node 22 next week. What should we check before and after, item by item?",
+			"note": "runtime upgrade plan",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t7-02",
+			"jobId": "T7",
+			"axis": "TST",
+			"owner": "release-readiness",
+			"request": "Before we change the Postgres major version, give me a checklist we can tick with evidence.",
+			"note": "database upgrade checklist",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t7-03",
+			"jobId": "T7",
+			"axis": "TST",
+			"owner": "release-readiness",
+			"request": "The framework upgrade is planned. What has to be verified, and how do we record each result?",
+			"note": "verification with evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t7-04",
+			"jobId": "T7",
+			"axis": "TST",
+			"owner": "release-readiness",
+			"request": "We are switching runtime versions. Give me the pre and post check list, with proof for each.",
+			"note": "pre and post checks",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t8-01",
+			"jobId": "T8",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "The new checkout flow has no test basis. Run an exploratory session and file what you find.",
+			"note": "no test basis",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t8-02",
+			"jobId": "T8",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "Nobody knows the risks in the reporting area. Spend a session exploring it and note anomalies.",
+			"note": "unclear risks",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t8-03",
+			"jobId": "T8",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "We have no script for this feature yet. Charter a session, observe, and file defects.",
+			"note": "chartered session",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t8-04",
+			"jobId": "T8",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "Before we write tests, poke at the import feature and report anything odd.",
+			"note": "exploratory first",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t9-01",
+			"jobId": "T9",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "The tests need realistic customers but we must not use real ones. Generate a set with rules and constraints.",
+			"note": "representative inputs",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t9-02",
+			"jobId": "T9",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "We need fixtures with edge cases, and proof there is no personal data in them.",
+			"note": "no personal data",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t9-03",
+			"jobId": "T9",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "Generate data for the billing tests, with the generation rule written down.",
+			"note": "generation rule",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t9-04",
+			"jobId": "T9",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "I need a dataset with awkward names and amounts. How do we build it and show it is not real people?",
+			"note": "proof of synthetic data",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t10-01",
+			"jobId": "T10",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "The ticket's criteria are agreed but nothing runs them. Turn each one into a check in CI.",
+			"note": "no executable evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t10-02",
+			"jobId": "T10",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "We have four agreed conditions and no executable evidence. Map them one to one.",
+			"note": "one-to-one mapping",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t10-03",
+			"jobId": "T10",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "Make the signed-off criteria runnable, one check each, in the pipeline.",
+			"note": "runnable in CI",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t10-04",
+			"jobId": "T10",
+			"axis": "TST",
+			"owner": "test-author",
+			"request": "The conditions are written but not automated. Wire them into CI as separate checks.",
+			"note": "separate checks",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t11-01",
+			"jobId": "T11",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "The spec says p95 under 200ms and keyboard accessible. Measure both and report method and environment.",
+			"note": "non-functional threshold",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t11-02",
+			"jobId": "T11",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "The threshold is 99.9% availability this quarter. How do we produce a report against it?",
+			"note": "availability target",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t11-03",
+			"jobId": "T11",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "Security says no critical findings at launch. We need a measurement, not an opinion.",
+			"note": "security threshold",
+			"source": "trigger-column"
+		},
+		{
+			"id": "tst-t11-04",
+			"jobId": "T11",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"request": "There is a hard limit in the ticket for load time. Measure it, state the method, and report the result.",
+			"note": "method and environment stated",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f1-01",
+			"jobId": "F1",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "This function is 300 lines and I cannot change it safely. Simplify it with the tests staying untouched.",
+			"note": "complex unit, behaviour preserved",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f1-02",
+			"jobId": "F1",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "The class has too many branches to reason about. Restructure it without changing behaviour, and show the complexity drop.",
+			"note": "complexity before and after",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f1-03",
+			"jobId": "F1",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "I need to make this unit smaller before we add anything. Keep every test exactly as it is.",
+			"note": "tests unchanged",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f1-04",
+			"jobId": "F1",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "This method is unreadable. Break it up, prove behaviour is unchanged, and give before and after counts.",
+			"note": "measured simplification",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f2-01",
+			"jobId": "F2",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "The same validation exists in three places and they have drifted. Collapse them into one.",
+			"note": "duplication drifting",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f2-02",
+			"jobId": "F2",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "There are four copies of this format logic. Pick one, migrate the callers, prove nothing broke.",
+			"note": "call sites migrated",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f2-03",
+			"jobId": "F2",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "We keep patching the same bug in two files. Merge them into a single implementation.",
+			"note": "single implementation",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f2-04",
+			"jobId": "F2",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "Duplicated retry logic in five services. Can we share one version without changing behaviour?",
+			"note": "shared implementation",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f3-01",
+			"jobId": "F3",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "This package is end-of-life and has a CVE. Upgrade it and change what the changelog requires.",
+			"note": "end-of-life plus CVE",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f3-02",
+			"jobId": "F3",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "The library is deprecated. Move us to the supported one, keep tests green, and list what risk remains.",
+			"note": "deprecation notice",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f3-03",
+			"jobId": "F3",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "We are pinned to an abandoned version. Update it, adapt the calls, and note what is left over.",
+			"note": "residual risk",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f3-04",
+			"jobId": "F3",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "An end-of-life notice landed for our HTTP client. Upgrade and tell me what residual risk we carry.",
+			"note": "upgrade with changelog work",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f4-01",
+			"jobId": "F4",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "The old admin app runs on an unsupported runtime and nobody can change it. What is a staged plan with checkpoints?",
+			"note": "legacy subsystem",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f4-02",
+			"jobId": "F4",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "Velocity on the legacy billing subsystem has collapsed. Can you plan stages that each ship on their own?",
+			"note": "independently shippable stages",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f4-03",
+			"jobId": "F4",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "We must retire the old framework. Give me stages, each independently shippable, with a rollback per stage.",
+			"note": "rollback per stage",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f4-04",
+			"jobId": "F4",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "The legacy portal is stuck. What is the sequence of steps, and what can we undo at each one?",
+			"note": "staged plan",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f5-01",
+			"jobId": "F5",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "I think this module is unused. Prove it, then remove it without leaving orphan tests.",
+			"note": "dead code removal",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f5-02",
+			"jobId": "F5",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "There is a lot of dead code here. Show the usage search and runtime evidence before deleting.",
+			"note": "usage evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f5-03",
+			"jobId": "F5",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "Is this flag ever read? If not, delete it, keep the build green and clean the tests.",
+			"note": "unused flag",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f5-04",
+			"jobId": "F5",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "Help me remove what nothing calls, with proof, and check nothing references it afterwards.",
+			"note": "proof then removal",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f6-01",
+			"jobId": "F6",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "This name no longer matches what it does. Rename it everywhere and keep the diff easy to review.",
+			"note": "rename across the repo",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f6-02",
+			"jobId": "F6",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "I want to move this helper into the shared package. Update every reference and keep tests green.",
+			"note": "move plus references",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f6-03",
+			"jobId": "F6",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "Rename this type across the repo, mechanical only, and tell me if anything needed a hand.",
+			"note": "mechanical rename",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f6-04",
+			"jobId": "F6",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "The module should live under utils now. Move it, fix imports, leave a readable diff.",
+			"note": "module move",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f7-01",
+			"jobId": "F7",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "Every time we change A we have to change B. Show the dependency and cut one edge.",
+			"note": "coupling hotspot",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f7-02",
+			"jobId": "F7",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "This hotspot couples the API to the storage layer. Split them and show the graph before and after.",
+			"note": "dependency graph delta",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f7-03",
+			"jobId": "F7",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "These two modules keep changing together. Can we remove the link without changing behaviour?",
+			"note": "removed edge",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f7-04",
+			"jobId": "F7",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "I want fewer circular imports here. Show the graph, break the cycle, prove behaviour is intact.",
+			"note": "cycle broken",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f8-01",
+			"jobId": "F8",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "The API response is any everywhere and blows up at runtime. Type the boundary and fix what surfaces.",
+			"note": "untyped boundary",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f8-02",
+			"jobId": "F8",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "Untyped JSON crosses this layer. Add types, resolve the errors or suppress them with a reason.",
+			"note": "types at the boundary",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f8-03",
+			"jobId": "F8",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "We get runtime surprises from this payload. Type it at the edge without changing behaviour.",
+			"note": "runtime surprises",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f8-04",
+			"jobId": "F8",
+			"axis": "REF",
+			"owner": "refactoring",
+			"request": "Turn on strict types for this module, fix the fallout, and justify anything you silence.",
+			"note": "suppression with reason",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f9-01",
+			"jobId": "F9",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "We need to retire the v1 endpoint. What is the notice, the usage inventory and the removal date?",
+			"note": "own API retired",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f9-02",
+			"jobId": "F9",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "An old flag must go. Prove nobody uses it, publish the migration path and set the date.",
+			"note": "zero-use proof",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f9-03",
+			"jobId": "F9",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "We want to remove this public method. Who calls it, what is the replacement, and when can we delete?",
+			"note": "removal plan",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ref-f9-04",
+			"jobId": "F9",
+			"axis": "REF",
+			"owner": "modernisation",
+			"request": "Retire this endpoint properly: announce it, list consumers, give them a path and a date.",
+			"note": "deprecation notice",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q1-01",
+			"jobId": "Q1",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "PR is up and I want a proper pass before merge. Findings by severity with file and line, and a verdict.",
+			"note": "change before merge",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q1-02",
+			"jobId": "Q1",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "Go through this diff and tell me what would break, worst first.",
+			"note": "ordered findings",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q1-03",
+			"jobId": "Q1",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "Before I merge: anything in here that is a correctness or security problem, with locations?",
+			"note": "file:line findings",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q1-04",
+			"jobId": "Q1",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "I need a merge verdict with the issues ordered and tied to a failing scenario.",
+			"note": "verdict with scenarios",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q2-01",
+			"jobId": "Q2",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "Lint fails on the new file. Fix it, or waive it with a reason and scope written down.",
+			"note": "rule failure, fix or waiver",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q2-02",
+			"jobId": "Q2",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "The structure check rejects my import. Should I change it or record an exception, and where?",
+			"note": "architecture rule failure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q2-03",
+			"jobId": "Q2",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "A formatting rule fails in CI. Give me the minimal fix, or a waiver with a rationale.",
+			"note": "minimal fix or waiver",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q2-04",
+			"jobId": "Q2",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "The style rule fires here but the rule may be wrong. Fix or waive, and say which and why.",
+			"note": "waiver scope recorded",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q3-01",
+			"jobId": "Q3",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "The scanner reported 40 issues. Which are real, which are noise, and what do we fix?",
+			"note": "bulk findings to triage",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q3-02",
+			"jobId": "Q3",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "Semgrep flagged a dozen places. Classify each with evidence and fix the true ones.",
+			"note": "true or false positive",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q3-03",
+			"jobId": "Q3",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "Our analyser output is unreadable. Triage it: true or false positive, and why.",
+			"note": "classification with evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q3-04",
+			"jobId": "Q3",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "I do not trust the static findings. Go through them and tell me which deserve a change.",
+			"note": "findings worth fixing",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q4-01",
+			"jobId": "Q4",
+			"axis": "REV",
+			"owner": "architecture-reviewer",
+			"request": "This design has a God class and a hidden cycle. Name the pattern, the consequence and the cost to fix.",
+			"note": "anti-pattern named; frame names two owners, Q4 resolved here",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q4-02",
+			"jobId": "Q4",
+			"axis": "REV",
+			"owner": "architecture-reviewer",
+			"request": "I think we built a distributed monolith. Name what is wrong and what it would take to correct.",
+			"note": "known-bad structure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q4-03",
+			"jobId": "Q4",
+			"axis": "REV",
+			"owner": "architecture-reviewer",
+			"request": "The design smells like a known-bad structure. Say which one, what it costs us, and the options.",
+			"note": "consequence and refactor option",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q4-04",
+			"jobId": "Q4",
+			"axis": "REV",
+			"owner": "architecture-reviewer",
+			"request": "Everyone is copying state between services. Is that an anti-pattern here, and what is the cheapest way out?",
+			"note": "repeated structure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q5-01",
+			"jobId": "Q5",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "We have 300 tests but I am not sure they assert anything. Check assertion strength and isolation.",
+			"note": "assertion strength",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q5-02",
+			"jobId": "Q5",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "Our tests pass no matter what I break. Where are they hollow, with examples?",
+			"note": "hollow tests",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q5-03",
+			"jobId": "Q5",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "Go through the suite for determinism and real assertions, and show me the weak ones.",
+			"note": "test quality review",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q5-04",
+			"jobId": "Q5",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "Coverage looks fine but I do not trust it. Which tests assert nothing meaningful?",
+			"note": "coverage versus assertions",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q6-01",
+			"jobId": "Q6",
+			"axis": "REV",
+			"owner": null,
+			"request": "The docs describe the old config format and we changed it. List what is stale, with files.",
+			"note": "docs-vs-code drift; the frame assigns no owner to Q6 (frame §6 lists it among the 13 uncovered jobs)",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q6-02",
+			"jobId": "Q6",
+			"axis": "REV",
+			"owner": null,
+			"request": "The README says one thing and the CLI does another. Where do they differ?",
+			"note": "docs-vs-code drift; the frame assigns no owner to Q6 (frame §6 lists it among the 13 uncovered jobs)",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q6-03",
+			"jobId": "Q6",
+			"axis": "REV",
+			"owner": null,
+			"request": "Our guide still mentions removed flags. Find the drift and open an issue per item.",
+			"note": "docs-vs-code drift; the frame assigns no owner to Q6 (frame §6 lists it among the 13 uncovered jobs)",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q6-04",
+			"jobId": "Q6",
+			"axis": "REV",
+			"owner": null,
+			"request": "Check whether the written behaviour still matches the build, and list each mismatch.",
+			"note": "docs-vs-code drift; the frame assigns no owner to Q6 (frame §6 lists it among the 13 uncovered jobs)",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q7-01",
+			"jobId": "Q7",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "Merge is blocked by the coverage gate. Explain the rule, then give me the smallest compliant fix.",
+			"note": "coverage gate",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q7-02",
+			"jobId": "Q7",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "The type gate fails and nobody knows why. What is the rule asking for, and what is the minimal change?",
+			"note": "type gate",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q7-03",
+			"jobId": "Q7",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "A security gate blocks the PR. Do not disable it; tell me what it wants and fix that.",
+			"note": "gate not disabled",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q7-04",
+			"jobId": "Q7",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "We are blocked by a lint gate on legacy files. What is the least invasive way through without switching rules off?",
+			"note": "minimal compliant fix",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q8-01",
+			"jobId": "Q8",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "Half this PR came from a generator. Check it against the ticket and flag risky dependencies and licences.",
+			"note": "generated change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q8-02",
+			"jobId": "Q8",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "An agent wrote this. What is the provenance, does it match what we asked, and where are the gaps?",
+			"note": "provenance and traceability",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q8-03",
+			"jobId": "Q8",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "This was produced by a coding assistant. Look at error paths, dependencies and licence, then verdict.",
+			"note": "risk areas reviewed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q8-04",
+			"jobId": "Q8",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"request": "I do not fully trust generated output here. Trace it back to the ask and list the risks.",
+			"note": "requirements traceability",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q9-01",
+			"jobId": "Q9",
+			"axis": "REV",
+			"owner": "release-readiness",
+			"request": "The candidate is built. Give me open defects by severity, test evidence and risks, plus go or no-go.",
+			"note": "release candidate",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q9-02",
+			"jobId": "Q9",
+			"axis": "REV",
+			"owner": "release-readiness",
+			"request": "We want to ship tomorrow. What is still open, what is proven, and would you sign it off?",
+			"note": "go or no-go",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q9-03",
+			"jobId": "Q9",
+			"axis": "REV",
+			"owner": "release-readiness",
+			"request": "Before the tag: a quality report with defects, evidence and risks, and a recommendation.",
+			"note": "quality report",
+			"source": "trigger-column"
+		},
+		{
+			"id": "rev-q9-04",
+			"jobId": "Q9",
+			"axis": "REV",
+			"owner": "release-readiness",
+			"request": "Can we ship this build? I need the evidence behind the answer, not an opinion.",
+			"note": "evidence for the verdict",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s1-01",
+			"jobId": "S1",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "User input reaches a shell command in this handler. Validate at the boundary and add tests for the attack.",
+			"note": "untrusted input to a sink",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s1-02",
+			"jobId": "S1",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "We pass a query parameter into a template. Where are the sinks, and how do we close them?",
+			"note": "template sink",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s1-03",
+			"jobId": "S1",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "A pentest says our search box can inject SQL. Fix it at the edge and list every sink.",
+			"note": "injection finding",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s1-04",
+			"jobId": "S1",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "This deserialiser takes untrusted text. Add validation and a test per attack class.",
+			"note": "deserialisation",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s2-01",
+			"jobId": "S2",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "A CVE landed against a transitive dependency. Is it exploitable here, and what is the fix or mitigation?",
+			"note": "CVE on a transitive package",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s2-02",
+			"jobId": "S2",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "The alert says our lockfile pulls a vulnerable library. What is our exposure and what do we do?",
+			"note": "dependency alert triage",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s2-03",
+			"jobId": "S2",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "Snyk flagged a package we use indirectly. Upgrade or mitigate, and record what risk remains.",
+			"note": "upgrade or mitigation",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s2-04",
+			"jobId": "S2",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "A security advisory names a dependency four levels down. Assess, act, and write down the residual risk.",
+			"note": "residual risk recorded",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s3-01",
+			"jobId": "S3",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "A key ended up in a commit. Revoke and rotate it, clean the history where we can, and add a check.",
+			"note": "credential in history",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s3-02",
+			"jobId": "S3",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "Someone committed a token to the repo. What do we rotate, what do we scrub, and what stops it next time?",
+			"note": "leak response",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s3-03",
+			"jobId": "S3",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "Our logs contain an API key. Rotate, purge what is possible, and add prevention.",
+			"note": "secret in logs",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s3-04",
+			"jobId": "S3",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "I found a credential in the config. Handle the leak end to end and stop the next one.",
+			"note": "prevention check",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s4-01",
+			"jobId": "S4",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "We are adding a tenant boundary. Implement the policy and add deny tests proving it.",
+			"note": "new tenant boundary",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s4-02",
+			"jobId": "S4",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "A new role can see all invoices. Write the rule and prove with negative tests that it cannot.",
+			"note": "negative tests",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s4-03",
+			"jobId": "S4",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "We are changing who can approve refunds. Implement it and show a test where access is refused.",
+			"note": "authorisation change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s4-04",
+			"jobId": "S4",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "Multi-tenant access is going in. Prove with a failing-before test that cross-tenant reads are blocked.",
+			"note": "boundary proof",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s5-01",
+			"jobId": "S5",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "Our agent reads user text and can call tools. Mark the trust boundary and test that injection fails.",
+			"note": "untrusted text with tools",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s5-02",
+			"jobId": "S5",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "The model can browse and then act. What mitigations do we need, and which eval proves them?",
+			"note": "mitigations plus evals",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s5-03",
+			"jobId": "S5",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "Users can put instructions in a document we feed the model. Someone tried to exfiltrate data; what now?",
+			"note": "injected instructions",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s5-04",
+			"jobId": "S5",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "We ship a tool-calling assistant. Mark untrusted input, add guards, and write cases that fail without them.",
+			"note": "eval cases",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s6-01",
+			"jobId": "S6",
+			"axis": "SEC",
+			"owner": null,
+			"request": "A privacy review asks where the address is collected, stored and sent. Map it per field with retention.",
+			"note": "personal data flow; the frame assigns no owner to S6",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s6-02",
+			"jobId": "S6",
+			"axis": "SEC",
+			"owner": null,
+			"request": "A user asked for their data. Where does it actually live, and what do we not know?",
+			"note": "subject request; the frame assigns no owner to S6",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s6-03",
+			"jobId": "S6",
+			"axis": "SEC",
+			"owner": null,
+			"request": "Legal needs a field-level flow of personal data with retention per field. Where are the gaps?",
+			"note": "field-level flow; the frame assigns no owner to S6",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s6-04",
+			"jobId": "S6",
+			"axis": "SEC",
+			"owner": null,
+			"request": "Where does the device id travel and how long do we keep it? I need a map and the unknowns.",
+			"note": "retention gaps; the frame assigns no owner to S6",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s7-01",
+			"jobId": "S7",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "We are opening a webhook endpoint to a new partner. What are the threats, and where does each mitigation live?",
+			"note": "new trust boundary",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s7-02",
+			"jobId": "S7",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "New trust boundary between our service and the vendor. Threat model it and take residual risk to an owner.",
+			"note": "residual risk owner",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s7-03",
+			"jobId": "S7",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "The design adds an external integration. What can go wrong, how likely, and what do we do about each?",
+			"note": "likelihood and impact",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s7-04",
+			"jobId": "S7",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "Before we build this, list the threats with impact and the mitigation in the build, and who accepts what.",
+			"note": "threats to mitigations",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s8-01",
+			"jobId": "S8",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "A researcher reported an auth bypass. Reproduce it, rate the severity, fix it and add a regression test.",
+			"note": "external report",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s8-02",
+			"jobId": "S8",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "Someone disclosed a bug to us privately. What is the sequence: reproduce, assess, fix, retest, disclose?",
+			"note": "disclosure sequence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s8-03",
+			"jobId": "S8",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "We got a report of an IDOR. Handle it end to end and write the advisory.",
+			"note": "report to advisory",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s8-04",
+			"jobId": "S8",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"request": "An internal report says our upload allows arbitrary files. Reproduce, fix, and record the disclosure.",
+			"note": "internal report",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s9-01",
+			"jobId": "S9",
+			"axis": "SEC",
+			"owner": null,
+			"request": "The audit wants an SBOM and provenance for this build. Generate them and verify the components.",
+			"note": "SBOM and provenance; the frame assigns no owner to S9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s9-02",
+			"jobId": "S9",
+			"axis": "SEC",
+			"owner": null,
+			"request": "Before we ship, we need to show what is inside the artefact and that it was built where we say.",
+			"note": "artifact integrity; the frame assigns no owner to S9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s9-03",
+			"jobId": "S9",
+			"axis": "SEC",
+			"owner": null,
+			"request": "The gate requires signed attestation and a component list. Can you produce both?",
+			"note": "attestation; the frame assigns no owner to S9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s9-04",
+			"jobId": "S9",
+			"axis": "SEC",
+			"owner": null,
+			"request": "A customer asks for our software bill of materials and proof of provenance. How do we produce it?",
+			"note": "customer supply-chain request; the frame assigns no owner to S9",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s10-01",
+			"jobId": "S10",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "Someone wrote their own encryption here with a fixed IV. Replace it with a vetted library.",
+			"note": "home-grown crypto",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s10-02",
+			"jobId": "S10",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "We hash passwords with SHA-1. What should it be, and how do we migrate keys and vectors?",
+			"note": "weak primitive",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s10-03",
+			"jobId": "S10",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "The key is rotated never and stored in the repo. Fix the primitive and write down the key lifecycle.",
+			"note": "key handling",
+			"source": "trigger-column"
+		},
+		{
+			"id": "sec-s10-04",
+			"jobId": "S10",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"request": "We use ECB mode on user data. Replace it properly and show the test vectors passing.",
+			"note": "mode misuse",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o1-01",
+			"jobId": "O1",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "CI fails before any test runs, on a timeout. Find the cause and stop it recurring.",
+			"note": "infrastructure failure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o1-02",
+			"jobId": "O1",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "The pipeline dies at setup with a quota error. What is it, and how do we make it green for good?",
+			"note": "quota failure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o1-03",
+			"jobId": "O1",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "Our runner runs out of disk every few days. Fix the cause and note what prevents it next time.",
+			"note": "recurrence prevention",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o1-04",
+			"jobId": "O1",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "The deploy job fails on a cache restore, not on our change. Diagnose and prevent.",
+			"note": "setup failure, not the code",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o2-01",
+			"jobId": "O2",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "The deploy went out and health checks are failing. Roll back or push a fix, then verify health.",
+			"note": "failed deployment",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o2-02",
+			"jobId": "O2",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "We shipped and half the pods are crash-looping. Recover it and write the timeline.",
+			"note": "crash loop after deploy",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o2-03",
+			"jobId": "O2",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "The rollout is stuck at 50%. Decide rollback or forward fix, and record what happened.",
+			"note": "stuck rollout",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o2-04",
+			"jobId": "O2",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "The new version is failing readiness. Get us back to healthy and note the sequence.",
+			"note": "health check failure",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o3-01",
+			"jobId": "O3",
+			"axis": "OPS",
+			"owner": "release-readiness",
+			"request": "We need to cut a version now. Check version, changelog, artefacts and tags against policy, with a dry run.",
+			"note": "release due",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o3-02",
+			"jobId": "O3",
+			"axis": "OPS",
+			"owner": "release-readiness",
+			"request": "The tag, the changelog and the package version disagree. What is right, and how do we verify before publishing?",
+			"note": "version inconsistency",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o3-03",
+			"jobId": "O3",
+			"axis": "OPS",
+			"owner": "release-readiness",
+			"request": "The version is due today. Walk the checklist and show me the dry-run evidence.",
+			"note": "dry-run evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o3-04",
+			"jobId": "O3",
+			"axis": "OPS",
+			"owner": "release-readiness",
+			"request": "Before we publish: are the version, notes, artefacts and tags all consistent with the rules?",
+			"note": "consistency check",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o4-01",
+			"jobId": "O4",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "Customers report slow checkout and alerts are firing. Bound the impact, mitigate, and file the follow-ups.",
+			"note": "degradation report",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o4-02",
+			"jobId": "O4",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "We are down for some users. What do we do first, what is the timeline, and what follows?",
+			"note": "incident response",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o4-03",
+			"jobId": "O4",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "Error rate spiked ten minutes ago. Stabilise it and write down what we saw and what is next.",
+			"note": "mitigation with timeline",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o4-04",
+			"jobId": "O4",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "Payments are failing in one region. Contain it, record the timeline, and open the follow-ups.",
+			"note": "regional impact",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o5-01",
+			"jobId": "O5",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "Half our alerts nobody acts on. Tie each one to a symptom and justify the threshold.",
+			"note": "alert noise",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o5-02",
+			"jobId": "O5",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "We missed a real outage because it was buried. Which alerts should exist, and why?",
+			"note": "missed signal",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o5-03",
+			"jobId": "O5",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "Pager fatigue is real here. Go through the rules, drop or retune them, and link runbooks.",
+			"note": "rules retuned",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o5-04",
+			"jobId": "O5",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"request": "These alerts fire on CPU, not on what users feel. Rework them against an SLO.",
+			"note": "symptom-based alerts",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o6-01",
+			"jobId": "O6",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "We need to double the worker count. Show the plan and diff, apply it, test rollback and state the cost change.",
+			"note": "capacity change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o6-02",
+			"jobId": "O6",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "I need to move the queue to a bigger instance type. What is the plan, the rollback, and the monthly delta?",
+			"note": "instance change, cost delta",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o6-03",
+			"jobId": "O6",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "Changing the network topology next week. Review the diff, apply it, and prove we can undo it.",
+			"note": "topology change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o6-04",
+			"jobId": "O6",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "Add a read replica. Plan, apply, rollback test, and the new cost per month.",
+			"note": "applied change with rollback",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o7-01",
+			"jobId": "O7",
+			"axis": "OPS",
+			"owner": "performance",
+			"request": "The build crept from 4 to 11 minutes. Profile the stages, fix the worst, and measure again.",
+			"note": "build duration creep",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o7-02",
+			"jobId": "O7",
+			"axis": "OPS",
+			"owner": "performance",
+			"request": "Our compile time is over tolerance. Where does the time go, and what changed the number?",
+			"note": "stage profile",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o7-03",
+			"jobId": "O7",
+			"axis": "OPS",
+			"owner": "performance",
+			"request": "The bundle step takes most of the build. Break down the stages, speed one up, and report the new duration.",
+			"note": "new duration measured",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o7-04",
+			"jobId": "O7",
+			"axis": "OPS",
+			"owner": "performance",
+			"request": "Build is past budget and slowing merges. Profile it, apply a change, and show before and after.",
+			"note": "build time budget",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o8-01",
+			"jobId": "O8",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "The scanner flags packages in our runtime image. Rebuild on a patched base without growing it or slowing startup.",
+			"note": "base image finding",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o8-02",
+			"jobId": "O8",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "Our container has 30 CVEs from the base layer. Rebuild, confirm they are gone, and check size and boot time.",
+			"note": "image CVE count",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o8-03",
+			"jobId": "O8",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "The image scan fails the gate. Update the base, verify the finding cleared, and show startup is unchanged.",
+			"note": "scan gate",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o8-04",
+			"jobId": "O8",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "Our base image is old and vulnerable. Rebuild it, prove the finding is closed, and keep the image lean.",
+			"note": "patched base",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o9-01",
+			"jobId": "O9",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "Staging and production differ in config and nobody knows why. Diff them, decide, and add a check.",
+			"note": "environment drift",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o9-02",
+			"jobId": "O9",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "We only see the bug in staging because a version differs. Find the drift and prevent it recurring.",
+			"note": "version parity",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o9-03",
+			"jobId": "O9",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "Dev, stage and prod have different defaults. Show the diff and add something that catches the next one.",
+			"note": "recurrence check",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o9-04",
+			"jobId": "O9",
+			"axis": "OPS",
+			"owner": "devops",
+			"request": "Our environments have silently diverged. Compare them, state the parity decision, and enforce it.",
+			"note": "parity decision",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o10-01",
+			"jobId": "O10",
+			"axis": "OPS",
+			"owner": "release-readiness",
+			"request": "The deploy finished but I am not sure it is healthy. Smoke check it and name the signal that means rollback.",
+			"note": "post-deploy verification",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o10-02",
+			"jobId": "O10",
+			"axis": "OPS",
+			"owner": "release-readiness",
+			"request": "We shipped an hour ago. Run checks and give me a watch-window report with the rollback trigger.",
+			"note": "watch window",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o10-03",
+			"jobId": "O10",
+			"axis": "OPS",
+			"owner": "release-readiness",
+			"request": "Post-deploy confidence is low. Verify the key paths and name the metric that should page us.",
+			"note": "key paths checked",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o10-04",
+			"jobId": "O10",
+			"axis": "OPS",
+			"owner": "release-readiness",
+			"request": "Can you confirm the deployment actually works, and say what would have sent us back?",
+			"note": "rollback signal",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o11-01",
+			"jobId": "O11",
+			"axis": "OPS",
+			"owner": "performance",
+			"request": "Cloud spend is up 40% with flat traffic. Attribute it by resource, name the cause and cut it.",
+			"note": "cost regression",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o11-02",
+			"jobId": "O11",
+			"axis": "OPS",
+			"owner": "performance",
+			"request": "The bill doubled and usage did not. Where is the money going, and what do we change without hurting latency?",
+			"note": "cost attribution",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o11-03",
+			"jobId": "O11",
+			"axis": "OPS",
+			"owner": "performance",
+			"request": "A service costs three times what it should. Break it down, fix the cause, and show the SLO still holds.",
+			"note": "reduction with SLO evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "ops-o11-04",
+			"jobId": "O11",
+			"axis": "OPS",
+			"owner": "performance",
+			"request": "Our monthly bill jumped after the last deploy. Find the resource and reduce it with evidence.",
+			"note": "spend after a change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x1-01",
+			"jobId": "X1",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "We need a new column on a table with 40M rows. Plan the expand and contract steps, reversible, tried on a copy first.",
+			"note": "live schema change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x1-02",
+			"jobId": "X1",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "Adding an index to a live table scares me. What is the safe sequence and the verification queries?",
+			"note": "index addition",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x1-03",
+			"jobId": "X1",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "A new table is needed for teams. Write the change so it can be undone, and prove it on a copy.",
+			"note": "reversible change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x1-04",
+			"jobId": "X1",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "Renaming a column in production: what are the steps, and how do we check the result?",
+			"note": "rename with verification",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x2-01",
+			"jobId": "X2",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "This query takes 8 seconds and the budget is 300ms. Show the plan before and after and the change made.",
+			"note": "query over budget",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x2-02",
+			"jobId": "X2",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "The report query got slow after the data grew. What is the plan, and what index or rewrite fixes it?",
+			"note": "plan and rewrite",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x2-03",
+			"jobId": "X2",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "One endpoint's query is the bottleneck. Get it within budget without slowing writes.",
+			"note": "no write regression",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x2-04",
+			"jobId": "X2",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "Give me the query plan now, the change, and the measured improvement afterwards.",
+			"note": "measured improvement",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x3-01",
+			"jobId": "X3",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "The status column is wrong for 12k rows. Write an idempotent backfill, dry-run it, and give reconciliation counts.",
+			"note": "idempotent backfill",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x3-02",
+			"jobId": "X3",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "We lost created_at for old records. Backfill it safely, and show the counts match.",
+			"note": "missing values",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x3-03",
+			"jobId": "X3",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "A migration left half the rows null. Repair them idempotently and prove the result.",
+			"note": "repair with proof",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x3-04",
+			"jobId": "X3",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "A batch of rows has bad totals. Write the repair, try it on a sample, and reconcile.",
+			"note": "sample dry run",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x4-01",
+			"jobId": "X4",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "How many customers used the new flow last week, and what are the caveats about the numbers?",
+			"note": "production data question",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x4-02",
+			"jobId": "X4",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "What proportion of orders failed at payment since Monday? I need the query, the result and the gaps.",
+			"note": "proportion with caveats",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x4-03",
+			"jobId": "X4",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "Which plan has the highest churn this quarter? Show the query and what could skew it.",
+			"note": "analysis with caveats",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x4-04",
+			"jobId": "X4",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "How many accounts have no billing address? Give me the number and what the data cannot tell us.",
+			"note": "known gaps",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x5-01",
+			"jobId": "X5",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "The models and the actual tables disagree in three places and it causes bugs. Map the differences and fix each.",
+			"note": "model drift",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x5-02",
+			"jobId": "X5",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "Our ORM thinks a column is nullable and the table says otherwise. Find all the drift and add a test for it.",
+			"note": "nullability mismatch",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x5-03",
+			"jobId": "X5",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "Something changed the schema without a model change. Where do they diverge and how do we stop it?",
+			"note": "future drift guard",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x5-04",
+			"jobId": "X5",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "We get errors from a type mismatch between the mapping and the table. Reconcile them and add a guard.",
+			"note": "type mismatch",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x6-01",
+			"jobId": "X6",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "The policy says logs must expire after 90 days. Implement it as a job and verify on old fixtures.",
+			"note": "retention rule",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x6-02",
+			"jobId": "X6",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "A retention rule is required for audit rows. Where does it run, and how do we prove it works on aged data?",
+			"note": "aged fixtures",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x6-03",
+			"jobId": "X6",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "We must delete accounts on request. Implement the rule and give me an auditable check.",
+			"note": "deletion on request",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x6-04",
+			"jobId": "X6",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "Data older than a year must go. Build the job or constraint, test it on aged fixtures, and make it auditable.",
+			"note": "expiry implemented",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x7-01",
+			"jobId": "X7",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "The upstream feed changed its format. Write a converter with round-trip tests and a sample diff.",
+			"note": "format change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x7-02",
+			"jobId": "X7",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "Our CSV export must match the new partner schema. Build it and show the diff on a sample.",
+			"note": "export format",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x7-03",
+			"jobId": "X7",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "The importer breaks on the new date format. Fix it with round-trip tests.",
+			"note": "import break",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x7-04",
+			"jobId": "X7",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"request": "Downstream wants a different export shape. Write the converter, test both ways, and report the sample diff.",
+			"note": "converter with round trip",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x8-01",
+			"jobId": "X8",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "Users see stale prices after an update. What is the invalidation rule, and can you reproduce the bug?",
+			"note": "stale reads",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x8-02",
+			"jobId": "X8",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "The list page shows deleted rows for a minute. Find the rule and add a test that fails on the old one.",
+			"note": "invalidation rule",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x8-03",
+			"jobId": "X8",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "After a write, the read returns the old value. State the rule, reproduce, and fix it.",
+			"note": "coherence bug",
+			"source": "trigger-column"
+		},
+		{
+			"id": "dat-x8-04",
+			"jobId": "X8",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"request": "We cache per tenant and it leaks across them. What is the invalidation and how do we prove the fix?",
+			"note": "cross-tenant staleness",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k1-01",
+			"jobId": "K1",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "PR is ready and reviewers need context. Write what changed, why, the risk and what to look at first.",
+			"note": "change description",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k1-02",
+			"jobId": "K1",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "My diff is large and the message is empty. Draft the description with test evidence and the risky part flagged.",
+			"note": "risk and evidence",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k1-03",
+			"jobId": "K1",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "Write the PR body: the why, what could break, and where a reviewer should start.",
+			"note": "what to look at first",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k1-04",
+			"jobId": "K1",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "Reviewers keep asking the same things. Draft the summary with risk and evidence included.",
+			"note": "reviewer context",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k2-01",
+			"jobId": "K2",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "We changed the endpoint and consumers must adapt. Update the reference, add a migration example and the timeline.",
+			"note": "API change",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k2-02",
+			"jobId": "K2",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "The public API changed shape. Write the updated reference with an example of the old and new call.",
+			"note": "reference update",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k2-03",
+			"jobId": "K2",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "Partners need to know how to move. Update the guide with a migration example and when the old one goes.",
+			"note": "deprecation timeline",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k2-04",
+			"jobId": "K2",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "Our API pages are out of date after the change. Fix them and show the before and after usage.",
+			"note": "stale reference",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k3-01",
+			"jobId": "K3",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "We chose Postgres over Dynamo and people will ask why in six months. Write it up with context, options and consequences.",
+			"note": "choice to record",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k3-02",
+			"jobId": "K3",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "A decision was made in a call and lives nowhere. Capture the options, the choice and what we accept.",
+			"note": "undocumented choice",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k3-03",
+			"jobId": "K3",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "Record this choice so the next team understands the trade-off and the link to the discussion.",
+			"note": "trade-off and links",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k3-04",
+			"jobId": "K3",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "Write the context, the alternatives, the call and the consequences, with links.",
+			"note": "full write-up",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k4-01",
+			"jobId": "K4",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "Setup fails on a clean clone. Get it working, pin the versions and note the traps.",
+			"note": "setup broken",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k4-02",
+			"jobId": "K4",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "A new hire could not run the project. Fix the steps, verify from scratch, and list the failure modes.",
+			"note": "verified from a clean checkout",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k4-03",
+			"jobId": "K4",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "Our onboarding breaks on Node version and a missing env file. Make setup work from a clean checkout.",
+			"note": "versions pinned",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k4-04",
+			"jobId": "K4",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "I followed the setup and got three errors. Fix it, check from a fresh clone, and pin what matters.",
+			"note": "failure modes noted",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k5-01",
+			"jobId": "K5",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "This comment says it retries, but the loop exits. Fix the comment or move the real reason elsewhere.",
+			"note": "comment contradicts the code",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k5-02",
+			"jobId": "K5",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "The note above this function describes old behaviour. Update or remove it, and put the rationale where it is read.",
+			"note": "stale comment",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k5-03",
+			"jobId": "K5",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "A comment claims thread safety that does not exist. Correct it and keep the useful part.",
+			"note": "misleading claim",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k5-04",
+			"jobId": "K5",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "These comments contradict the implementation. Fix them, and move any non-obvious reasoning to the PR.",
+			"note": "rationale relocated",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k6-01",
+			"jobId": "K6",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "A new bug report arrived with no steps. Classify it, reproduce or ask for info, and suggest an owner.",
+			"note": "incoming issue",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k6-02",
+			"jobId": "K6",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "This issue duplicates two others. Link them, mark what is needed, and say who should take it.",
+			"note": "duplicates linked",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k6-03",
+			"jobId": "K6",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "Triage this report: is it a bug, a request or a question, and what do we need to act?",
+			"note": "classification",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k6-04",
+			"jobId": "K6",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "New issue on the tracker. Reproduce if you can, else mark needs-info, and point it at the right owner.",
+			"note": "needs-info or reproduction",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k7-01",
+			"jobId": "K7",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "The VP asks where we are. Write a status with evidence, risks and the decision she needs, without jargon.",
+			"note": "non-engineer status",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k7-02",
+			"jobId": "K7",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "I need an update for the board: what shipped, what slipped, what could go wrong, and what we need decided.",
+			"note": "board update",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k7-03",
+			"jobId": "K7",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "Write the weekly status for a non-technical reader with the risk and the ask.",
+			"note": "plain-language status",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k7-04",
+			"jobId": "K7",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "My manager wants a plain update: progress backed by evidence, risks, and what she must decide.",
+			"note": "decision needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k8-01",
+			"jobId": "K8",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "Our commit log is unreadable. Restructure this branch into commits whose messages explain intent and risk.",
+			"note": "unreadable history",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k8-02",
+			"jobId": "K8",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "Squash this work and write a message that says what changed, why and what could break.",
+			"note": "squash with intent",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k8-03",
+			"jobId": "K8",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "The history for this change is 20 wip commits. Make it legible for whoever comes next.",
+			"note": "history made legible",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k8-04",
+			"jobId": "K8",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"request": "Reword these commits so each one explains the reason, not just the file.",
+			"note": "message quality",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k9-01",
+			"jobId": "K9",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "Three people asked how to configure the client this week. Answer with an example and put it where it will be found.",
+			"note": "recurring question",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k9-02",
+			"jobId": "K9",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "The same usage question keeps arriving. Write the answer with a snippet and update the place people look.",
+			"note": "answer plus source fix",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k9-03",
+			"jobId": "K9",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "New joiners ask how the CLI works. Give me a short answer with an example, and fix the source so it stops.",
+			"note": "example needed",
+			"source": "trigger-column"
+		},
+		{
+			"id": "doc-k9-04",
+			"jobId": "K9",
+			"axis": "DOC",
+			"owner": "documentation",
+			"request": "I keep answering this in chat. Write the example and add it to the guide.",
+			"note": "answer made durable",
+			"source": "trigger-column"
+		}
+	],
+	"authoring": {
+		"procedure": "Probe wording is written from the job's trigger and definition-of-done only. The catalogue is not opened for wording, and the owner comes from owners.json, never from reading a whenToUse line. Every probe is checked mechanically by reach-corpus.spec.mjs afterwards.",
+		"sourceValues": ["trigger-column", "trigger-column-blind"],
+		"blindFraction": "at least half of the remaining axes authored by someone who has not read the catalogue's lines"
+	}
+}

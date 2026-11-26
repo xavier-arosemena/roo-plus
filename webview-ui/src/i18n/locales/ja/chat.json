@@ -135,7 +135,8 @@
 	"loadEarlierMessages": "以前のメッセージを読み込む",
 	"about": "ローカルファースト、bring-your-own-model のエージェンティック IDE 拡張機能 — <br/>コストを把握し、キャッシュを信頼し、ナレッジを守りましょう。",
 	"support": {
-	"marketing": "ぜひ<githubLink>GitHub</githubLink>で<star/>をお願いします！（~20秒）",
+		"merch": "Roo+ グッズ",
+		"merchBlurb": "リポジトリを眠らせない。",
 		"reportIssue": "バグを報告するか機能をリクエスト",
 		"discussions": "ディスカッションに参加",
 		"starUs": "GitHub でスターを付ける",
@@ -369,6 +370,7 @@
 	},
 	"announcement": {
 		"title": "Roo+ {{version}} リリース",
+		"marketing": "贈り物に迷ったら？Roo+ のグッズを、あなたの人生のエージェント開発者へ。<merchLink>ショップを見る</merchLink>",
 		"support": "<githubLink>GitHub</githubLink>、<marketplaceLink>Visual Studio</marketplaceLink>、<openVsxLink>Open VSX Registry</openVsxLink>で Roo+ を応援してください。",
 		"release": {
 			"heading": "新機能:",

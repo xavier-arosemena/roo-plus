@@ -1,0 +1,50 @@
+{
+	"schemaVersion": "ecc.r0.v1",
+	"registration": "docs/reviews/2026-11-20-r0-picker-format-preregistration.md",
+	"contrast": "wording",
+	"formats": ["fixture", "product"],
+	"briefId": "B3",
+	"brief": "Explain why this module is structured the way it is.",
+	"persona": "P1",
+	"model": "gemini-3.5-flash",
+	"draws": 100,
+	"catalogueDigest": "30315cd252c6bec9789afdddf139ebff29765b775557d6c51d72fbae3706edc6",
+	"arms": [
+		{
+			"key": "fixture:B",
+			"format": "fixture",
+			"arm": "B",
+			"line": "B",
+			"index": 6,
+			"promptSha256": "f77076ad904f731d5392a07bf5674fd4bc32784062e746b6e8cdaf02f5dda6a4",
+			"pickerDigest": "5a6a73de1fd53e5a77091f7e446758d12e6aef871ced5ed40b2542d712b1f014"
+		},
+		{
+			"key": "fixture:C",
+			"format": "fixture",
+			"arm": "C",
+			"line": "C",
+			"index": 6,
+			"promptSha256": "83edfe99e957883d796057825208e8a78af1273623942ac79ae4ce67f1ec875f",
+			"pickerDigest": "3326ac76a0353de3c3aaae5052c7fd5bf7a6f3b2b6090e0210a7a453b72e504c"
+		},
+		{
+			"key": "product:B",
+			"format": "product",
+			"arm": "B",
+			"line": "B",
+			"index": 6,
+			"promptSha256": "1c8eaea8faa9f6a861b53bad7ad4d71aa726db0cdff5639cc1281aa8aad709e3",
+			"pickerDigest": "2ddbc615ec941dc8a5677bb819b34c82027bc0801a6c47694b4bb8029e964073"
+		},
+		{
+			"key": "product:C",
+			"format": "product",
+			"arm": "C",
+			"line": "C",
+			"index": 6,
+			"promptSha256": "0dd1f1e7c64f216d74b917d48cf21e62949b000a8e535aa2a6cae00658bb0d02",
+			"pickerDigest": "f3d3429a208f957eb730a17e0ea466f6bb4991a30a981bec0720811d48bde045"
+		}
+	]
+}

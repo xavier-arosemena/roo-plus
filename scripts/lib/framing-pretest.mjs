@@ -238,13 +238,51 @@ export async function loadCatalogues(dir = FRAME_DIR) {
  * the rubric names. Objection 16: the harness looked for the bulleted line while
  * the rubric defined echo as "a whole slug — Name — routing line", so the two
  * measured different quantities. One renderer, used by both, closes that.
+ *
+ * **Formats (R0, log §32).** `fixture` is what E13/E20/E20b/E20c rendered and
+ * stays the default, so no existing run changes. `product` is what the extension
+ * emits (`src/core/prompts/sections/modes.ts:33`), and it is the only format that
+ * carries the `MODES` heading. The two order variants exist so **field order and
+ * template can be varied separately**: with only `fixture` and `product` in a
+ * design, a leading-token effect and a template effect stay confounded, which is
+ * the defect R0 was created to remove.
  */
-export function pickerLine(mode) {
-	return `- ${mode.slug} — ${mode.name} — ${mode.whenToUse}`
+export const PICKER_FORMATS = ["fixture", "fixture-name-first", "product", "product-slug-first", "product-slug-only"]
+
+const PRODUCT_HEADING = "====\n\nMODES\n\n- These are the currently available modes:\n"
+
+export function pickerLine(mode, format = "fixture") {
+	switch (format) {
+		case "fixture":
+			return `- ${mode.slug} — ${mode.name} — ${mode.whenToUse}`
+		case "fixture-name-first":
+			return `- ${mode.name} — ${mode.slug} — ${mode.whenToUse}`
+		case "product":
+			return `  * "${mode.name}" mode (${mode.slug}) - ${mode.whenToUse}`
+		case "product-slug-first":
+			return `  * "${mode.slug}" mode (${mode.name}) - ${mode.whenToUse}`
+		// Slug quoted, no parenthetical. The fair test of "slug first": the earlier
+		// slug arm put a lowercase identifier in the slot the template reserves for a
+		// display name and collapsed to 0.190 (log §40, F-10).
+		case "product-slug-only":
+			return `  * "${mode.slug}" mode - ${mode.whenToUse}`
+		default:
+			throw new Error(`unknown picker format: ${format}`)
+	}
 }
 
-export function pickerTextFor(modes) {
-	return modes.map(pickerLine).join("\n") + "\n"
+export function pickerTextFor(modes, format = "fixture") {
+	const lines = modes.map((mode) => pickerLine(mode, format)).join("\n")
+	return format.startsWith("product") ? `${PRODUCT_HEADING}${lines}\n` : `${lines}\n`
+}
+
+/**
+ * The echo reference for a format. The scorer's canonical string is bound to one
+ * rendered form; a run in another form needs its own reference or it mis-scores
+ * (log §32, and R2's extraction failure in the other direction).
+ */
+export function echoLineFor(format = "fixture") {
+	return pickerLine({ slug: "slug", name: "Name", whenToUse: "routing line" }, format)
 }
 
 /**

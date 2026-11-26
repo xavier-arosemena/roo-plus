@@ -1,0 +1,1084 @@
+{
+	"schemaVersion": "ecc.reach-model-arm.v1",
+	"registration": "docs/reviews/2026-11-20-e24-reach-preregistration.md",
+	"model": "gemini-3.5-flash",
+	"catalogueDigest": "30315cd252c6bec9789afdddf139ebff29765b775557d6c51d72fbae3706edc6",
+	"pickerDigest": "2ddbc615ec941dc8a5677bb819b34c82027bc0801a6c47694b4bb8029e964073",
+	"corpusDigest": "6aa13d025fd698b73e0685f0512c8ba133135857350089e97aae253f9ff088a2",
+	"pickerFormat": "product",
+	"calls": 119,
+	"ownerless": 13,
+	"prompts": [
+		{
+			"runId": "reach-b1-01",
+			"jobId": "B1",
+			"axis": "DBG",
+			"owner": "debug",
+			"probeId": "dbg-b1-01",
+			"request": "The auth test started failing this morning and it passes locally. I have no idea what changed.",
+			"promptSha256": "290d18be2353f0516250123f4f7632d4eb1900110fbcc26defb1770b63d33ae1"
+		},
+		{
+			"runId": "reach-b10-01",
+			"jobId": "B10",
+			"axis": "DBG",
+			"owner": "debug",
+			"probeId": "dbg-b10-01",
+			"request": "The build fails with 'exit code 137' and nothing else. What does that even mean?",
+			"promptSha256": "f5dde64013f208e8a929449d106592fc020dcce6f862ee99a75556fd2ec8b255"
+		},
+		{
+			"runId": "reach-b11-01",
+			"jobId": "B11",
+			"axis": "DBG",
+			"owner": "debug",
+			"probeId": "dbg-b11-01",
+			"request": "Three services are involved and I cannot tell which one dropped the message.",
+			"promptSha256": "e7707662c959b85123b462bc984b874dce0131237f9de1ffc59c98a662ef1b1d"
+		},
+		{
+			"runId": "reach-b2-01",
+			"jobId": "B2",
+			"axis": "DBG",
+			"owner": "debug",
+			"probeId": "dbg-b2-01",
+			"request": "Users started seeing a 500 on checkout since the last deploy. There is a trace in the logs.",
+			"promptSha256": "acd7a34915abe38b3e87666ff9b231c89580edb77e6238ef64d472a4ebab1b05"
+		},
+		{
+			"runId": "reach-b3-01",
+			"jobId": "B3",
+			"axis": "DBG",
+			"owner": "debug",
+			"probeId": "dbg-b3-01",
+			"request": "This shows up maybe one run in twenty and I cannot reproduce it on demand.",
+			"promptSha256": "67693b5a0188ad879db806ab088f6dd5d01206b18357c919a755c2c032f16e89"
+		},
+		{
+			"runId": "reach-b4-01",
+			"jobId": "B4",
+			"axis": "DBG",
+			"owner": "debug",
+			"probeId": "dbg-b4-01",
+			"request": "It runs fine on my laptop and fails in the pipeline with a module not found.",
+			"promptSha256": "c68da66ab7767be075c7f462ab44735a5f949035ac4da120bd6998322c56947e"
+		},
+		{
+			"runId": "reach-b5-01",
+			"jobId": "B5",
+			"axis": "DBG",
+			"owner": "performance",
+			"probeId": "dbg-b5-01",
+			"request": "The endpoint got three times slower after Tuesday's release.",
+			"promptSha256": "05629fe70155dfbfd90e3193a369ca903789f49db69afc9f82356856adbbc66c"
+		},
+		{
+			"runId": "reach-b6-01",
+			"jobId": "B6",
+			"axis": "DBG",
+			"owner": "performance",
+			"probeId": "dbg-b6-01",
+			"request": "Memory climbs steadily until the pod gets OOM-killed, roughly every six hours.",
+			"promptSha256": "284678936fb01562b27988656f2f6eb7711deb70ad2c6d8dec408fedf78e904d"
+		},
+		{
+			"runId": "reach-b7-01",
+			"jobId": "B7",
+			"axis": "DBG",
+			"owner": "debug",
+			"probeId": "dbg-b7-01",
+			"request": "A customer says it does not work. That is all I have.",
+			"promptSha256": "707d355a5a55bc5a6d00a486514cfaaf219ab55b2d630c2ab3edebc048c17e00"
+		},
+		{
+			"runId": "reach-b8-01",
+			"jobId": "B8",
+			"axis": "DBG",
+			"owner": "debug",
+			"probeId": "dbg-b8-01",
+			"request": "This worked in v2.3 and is broken in v2.4. Something in between did it.",
+			"promptSha256": "7d054be6ca7702bed26c099f96c2d831a1cf133536196d60c1a3b2f6abe61d83"
+		},
+		{
+			"runId": "reach-b9-01",
+			"jobId": "B9",
+			"axis": "DBG",
+			"owner": null,
+			"probeId": "dbg-b9-01",
+			"request": "Two requests occasionally deadlock and the service hangs until the pod is killed.",
+			"promptSha256": "80334474c1e1ec2d5971d03363e82a52c2faf2ff5c1234f26d7abb3261230496"
+		},
+		{
+			"runId": "reach-c1-01",
+			"jobId": "C1",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"probeId": "und-c1-01",
+			"request": "I just joined and there is no overview. Where do requests enter, what are the main flows, and where would I change a price?",
+			"promptSha256": "2573907780987fb206f6fa093e2e431fd8242f3b8942cf3d7afe4fdc4fe4a4b5"
+		},
+		{
+			"runId": "reach-c10-01",
+			"jobId": "C10",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"probeId": "und-c10-01",
+			"request": "Write me an orientation note: setup, conventions, and a first task a new hire could finish.",
+			"promptSha256": "acead968b3c8b20b918829b06f3f271acdd350da82761daa60cc3a0591611738"
+		},
+		{
+			"runId": "reach-c2-01",
+			"jobId": "C2",
+			"axis": "UND",
+			"owner": "explain",
+			"probeId": "und-c2-01",
+			"request": "Where is the retry logic handled? I need the file and line, and the path that reaches it.",
+			"promptSha256": "7eade909286507bb5be54a6062a59508cec6674db16b9d557a48df95bea30bc8"
+		},
+		{
+			"runId": "reach-c3-01",
+			"jobId": "C3",
+			"axis": "UND",
+			"owner": "explain",
+			"probeId": "und-c3-01",
+			"request": "Why is there a sleep of 200ms here? Is it a workaround, and is there a commit or issue behind it?",
+			"promptSha256": "992fd7fe419f326407fd20a93a8559d046bd5271a8c1d8ea60e64d7213d941a2"
+		},
+		{
+			"runId": "reach-c4-01",
+			"jobId": "C4",
+			"axis": "UND",
+			"owner": null,
+			"probeId": "und-c4-01",
+			"request": "If the inventory call times out, what happens next? Walk the branches and tell me what the user sees.",
+			"promptSha256": "e814a48d87d1ed32f2f79ea8890546af6dfe69f94b28f2a9a1e01d40f673ae4b"
+		},
+		{
+			"runId": "reach-c5-01",
+			"jobId": "C5",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"probeId": "und-c5-01",
+			"request": "I am about to change the User shape. Who calls it, and which callers would break?",
+			"promptSha256": "34e3e61616114611b2e91b52508c709eca4788103c2d2d8e76f8198510c3d2fe"
+		},
+		{
+			"runId": "reach-c6-01",
+			"jobId": "C6",
+			"axis": "UND",
+			"owner": "explain",
+			"probeId": "und-c6-01",
+			"request": "This behaved differently last month. What changed, in which commits, and what was the intent?",
+			"promptSha256": "68866c240ac65211996b599e1831c1d33d4182409cb817031b1caf3ab799534c"
+		},
+		{
+			"runId": "reach-c7-01",
+			"jobId": "C7",
+			"axis": "UND",
+			"owner": "explain",
+			"probeId": "und-c7-01",
+			"request": "Is this odd rounding intended or a bug? Should we fix it or write it down?",
+			"promptSha256": "accf37a82ddfd0e6866f2c1b68737436504599c29a3c2fe8bbb7e55e5d94fb69"
+		},
+		{
+			"runId": "reach-c8-01",
+			"jobId": "C8",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"probeId": "und-c8-01",
+			"request": "Can this function ever run when the tenant is archived? Show the conditions or a counterexample.",
+			"promptSha256": "10d21954316a04e46d42ad95502fbffccc2f9a3cd468fec0c6a972c937126e9d"
+		},
+		{
+			"runId": "reach-c9-01",
+			"jobId": "C9",
+			"axis": "UND",
+			"owner": "codebase-cartographer",
+			"probeId": "und-c9-01",
+			"request": "How does the email address get from the signup form to the analytics table? Where is it transformed?",
+			"promptSha256": "e9f052a6dc8c49a6a0974b609b26099b264c9a2189426ed06c29c64390c421f7"
+		},
+		{
+			"runId": "reach-d1-01",
+			"jobId": "D1",
+			"axis": "ARC",
+			"owner": "architect",
+			"probeId": "arc-d1-01",
+			"request": "We are adding notifications and I cannot tell if this belongs in the API or a new service. What are the options?",
+			"promptSha256": "6cb3186698025bc3d1798ff0c7dc563e3a4bd7c57d101ad24ea46695b64e8edd"
+		},
+		{
+			"runId": "reach-d10-01",
+			"jobId": "D10",
+			"axis": "ARC",
+			"owner": "architecture-reviewer",
+			"probeId": "arc-d10-01",
+			"request": "The design doc is finished and a wrong call here is expensive. Review it and list findings by severity.",
+			"promptSha256": "aabf6c8bca692ed4344e48ac913aedd0c7f836903ce95bcf9b4b4be65edcb2b7"
+		},
+		{
+			"runId": "reach-d2-01",
+			"jobId": "D2",
+			"axis": "ARC",
+			"owner": "architect",
+			"probeId": "arc-d2-01",
+			"request": "p99 is 400ms and the target is 100ms. The current structure cannot get there. What tactics would?",
+			"promptSha256": "01a6687d2f06df9230f8845fc3618a5e3daee8878d254a7e9b3a451cb10fc6eb"
+		},
+		{
+			"runId": "reach-d3-01",
+			"jobId": "D3",
+			"axis": "ARC",
+			"owner": "architect",
+			"probeId": "arc-d3-01",
+			"request": "The diagram says everything goes through the gateway, but the repo tells another story. Can you list the differences?",
+			"promptSha256": "30dd90b3e8d526ddece3a3420ad57129b922f6312a087fb7e6acafc24465aae4"
+		},
+		{
+			"runId": "reach-d4-01",
+			"jobId": "D4",
+			"axis": "ARC",
+			"owner": "database-migration",
+			"probeId": "arc-d4-01",
+			"request": "We need to split the address field into structured columns. What is the schema change, the rollback and who reads it?",
+			"promptSha256": "9b3636bd9c07c91a1dad7235a46dda44f541a6ae98e796bcc3a2c60bbe9dbf32"
+		},
+		{
+			"runId": "reach-d5-01",
+			"jobId": "D5",
+			"axis": "ARC",
+			"owner": "architect",
+			"probeId": "arc-d5-01",
+			"request": "Two teams keep breaking each other's calls. Can you write the request and response shape, errors and compatibility rule?",
+			"promptSha256": "7c8256b85971983f6e1386900f49fd1ad1bc0a289d19e70a119cbe9988526766"
+		},
+		{
+			"runId": "reach-d6-01",
+			"jobId": "D6",
+			"axis": "ARC",
+			"owner": "architect",
+			"probeId": "arc-d6-01",
+			"request": "Postgres or Dynamo for the audit trail? Score the options on explicit criteria, including how hard it is to leave.",
+			"promptSha256": "bd2ee252e182e4f26762507ce62eb61f560a0ac5ca847841a11e72bf41d62206"
+		},
+		{
+			"runId": "reach-d7-01",
+			"jobId": "D7",
+			"axis": "ARC",
+			"owner": null,
+			"probeId": "arc-d7-01",
+			"request": "We do not know if the vendor API can do bulk updates. Can you build a throwaway to find out and report what it showed?",
+			"promptSha256": "9d642e31668d5f4e2695cfffad8bacfe351255892c646c361684cec88885523f"
+		},
+		{
+			"runId": "reach-d8-01",
+			"jobId": "D8",
+			"axis": "ARC",
+			"owner": null,
+			"probeId": "arc-d8-01",
+			"request": "Two workers may process the same order at once. What invariants do we need, and what test catches a double charge?",
+			"promptSha256": "5f69236a3112077dae70c46f13ca55fc1c875a6331873681e94fd0b4bbba6465"
+		},
+		{
+			"runId": "reach-d9-01",
+			"jobId": "D9",
+			"axis": "ARC",
+			"owner": "architect",
+			"probeId": "arc-d9-01",
+			"request": "We are about to add the third payment provider. Should we open a seam now and migrate the existing one as proof?",
+			"promptSha256": "34f18a2b6463394733b0113eae33b4c3a5d38ef1cbed8ac5b298c721a86ba0ca"
+		},
+		{
+			"runId": "reach-f1-01",
+			"jobId": "F1",
+			"axis": "REF",
+			"owner": "refactoring",
+			"probeId": "ref-f1-01",
+			"request": "This function is 300 lines and I cannot change it safely. Simplify it with the tests staying untouched.",
+			"promptSha256": "68e8360fb0b7d5da862f6a3f6497859f1c0dff29f2aea32b9151cfaa3adf7fd7"
+		},
+		{
+			"runId": "reach-f2-01",
+			"jobId": "F2",
+			"axis": "REF",
+			"owner": "refactoring",
+			"probeId": "ref-f2-01",
+			"request": "The same validation exists in three places and they have drifted. Collapse them into one.",
+			"promptSha256": "3d2f785f5c04ef0399ab2e14bb4189934aaf08422518c1792703c6a9a29a2c7b"
+		},
+		{
+			"runId": "reach-f3-01",
+			"jobId": "F3",
+			"axis": "REF",
+			"owner": "modernisation",
+			"probeId": "ref-f3-01",
+			"request": "This package is end-of-life and has a CVE. Upgrade it and change what the changelog requires.",
+			"promptSha256": "7259bbafc5dd2bedc71d55b1b6df1d91202006e3d16f24ffd2c17de4c375f102"
+		},
+		{
+			"runId": "reach-f4-01",
+			"jobId": "F4",
+			"axis": "REF",
+			"owner": "modernisation",
+			"probeId": "ref-f4-01",
+			"request": "The old admin app runs on an unsupported runtime and nobody can change it. What is a staged plan with checkpoints?",
+			"promptSha256": "a421bbe8bc7ba5436b398035254035550003cddf969439c94b554f1b344aa9cd"
+		},
+		{
+			"runId": "reach-f5-01",
+			"jobId": "F5",
+			"axis": "REF",
+			"owner": "modernisation",
+			"probeId": "ref-f5-01",
+			"request": "I think this module is unused. Prove it, then remove it without leaving orphan tests.",
+			"promptSha256": "05bd5f6e44de0088beb6ff53d3139862ed697d66d794afea7319c1a681d2b00d"
+		},
+		{
+			"runId": "reach-f6-01",
+			"jobId": "F6",
+			"axis": "REF",
+			"owner": "refactoring",
+			"probeId": "ref-f6-01",
+			"request": "This name no longer matches what it does. Rename it everywhere and keep the diff easy to review.",
+			"promptSha256": "cd6199a48d4fefa448c2af17cfabd910689184794a5b04077a4f3638d1e0642c"
+		},
+		{
+			"runId": "reach-f7-01",
+			"jobId": "F7",
+			"axis": "REF",
+			"owner": "refactoring",
+			"probeId": "ref-f7-01",
+			"request": "Every time we change A we have to change B. Show the dependency and cut one edge.",
+			"promptSha256": "5d6696d6cbf94c654a09be0d3583b54893d787ab27a5e761b3142f12ee8d4ed6"
+		},
+		{
+			"runId": "reach-f8-01",
+			"jobId": "F8",
+			"axis": "REF",
+			"owner": "refactoring",
+			"probeId": "ref-f8-01",
+			"request": "The API response is any everywhere and blows up at runtime. Type the boundary and fix what surfaces.",
+			"promptSha256": "ec38616f5c634cce648db942d222c336c2c25e34f1d78696325d5c52cb3ba8a8"
+		},
+		{
+			"runId": "reach-f9-01",
+			"jobId": "F9",
+			"axis": "REF",
+			"owner": "modernisation",
+			"probeId": "ref-f9-01",
+			"request": "We need to retire the v1 endpoint. What is the notice, the usage inventory and the removal date?",
+			"promptSha256": "5b8364880f3d0d1c1edf5e00f5d3f6de5c4e3704421c14f96781f045cb252acc"
+		},
+		{
+			"runId": "reach-i1-01",
+			"jobId": "I1",
+			"axis": "IMP",
+			"owner": "code",
+			"probeId": "imp-i1-01",
+			"request": "The story has clear checks and the endpoint does not exist yet. Build it with tests that fail without it.",
+			"promptSha256": "d7379426dfc5f4d74270efac848e73c455ff90139990b219d92de41f902e7176"
+		},
+		{
+			"runId": "reach-i10-01",
+			"jobId": "I10",
+			"axis": "IMP",
+			"owner": "performance",
+			"probeId": "imp-i10-01",
+			"request": "The endpoint misses its budget at 500 rps. Get it under, and show before and after on the same workload.",
+			"promptSha256": "47569dbf9cc98567e850532aad4731a33d27afa33ec920242bc64daf2e3d9eab"
+		},
+		{
+			"runId": "reach-i11-01",
+			"jobId": "I11",
+			"axis": "IMP",
+			"owner": "code",
+			"probeId": "imp-i11-01",
+			"request": "After the bump, install fails on a peer conflict. Resolve it and explain the version you chose.",
+			"promptSha256": "055685374ea49d26812fe327c16eedea1cfac5a67c0fd2a261a22bf9520b1e38"
+		},
+		{
+			"runId": "reach-i12-01",
+			"jobId": "I12",
+			"axis": "IMP",
+			"owner": "code",
+			"probeId": "imp-i12-01",
+			"request": "This cache is hit from several workers and I think it corrupts. Make it safe and add a stress test.",
+			"promptSha256": "af07dadeec9fda28ac3e2e1814034e2080b3f96094d2b176db7df7c35d345915"
+		},
+		{
+			"runId": "reach-i2-01",
+			"jobId": "I2",
+			"axis": "IMP",
+			"owner": "code",
+			"probeId": "imp-i2-01",
+			"request": "I need the CRUD skeleton for a new resource: routes, model, migration stub, and one happy-path test.",
+			"promptSha256": "a28cb04af8d2b9d8febbaa5f8f5568a98e2fe48168ee6bdd1f9a52078f40cb26"
+		},
+		{
+			"runId": "reach-i3-01",
+			"jobId": "I3",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"probeId": "imp-i3-01",
+			"request": "We have to use this payments SDK for the first time. Get a minimal working call going and pin the version.",
+			"promptSha256": "fd8b7903af30b143d37c07d31e53911756414c49c1a6364042a48e6b4edc2412"
+		},
+		{
+			"runId": "reach-i4-01",
+			"jobId": "I4",
+			"axis": "IMP",
+			"owner": "refactoring",
+			"probeId": "imp-i4-01",
+			"request": "This file is too tangled to add the feature safely. Restructure it first without changing behaviour.",
+			"promptSha256": "1b7cc1b8f59dc2377d1b378d2a23ba33189626b0a598acf6f70838754fd957f2"
+		},
+		{
+			"runId": "reach-i5-01",
+			"jobId": "I5",
+			"axis": "IMP",
+			"owner": "code",
+			"probeId": "imp-i5-01",
+			"request": "Every catch block here swallows the error. Make the failures explicit, with a message, a log and a test each.",
+			"promptSha256": "bb94bd0393b19128d77e636c5ed3df4ab3693c36f02007bc139683da60ed0179"
+		},
+		{
+			"runId": "reach-i6-01",
+			"jobId": "I6",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"probeId": "imp-i6-01",
+			"request": "This must be reversible in production. Put it behind a flag, default off, with the kill path written down.",
+			"promptSha256": "95624d1e7b37bd8bf563bccfa8f02f48090a065650012f2cddecc5735567a7d0"
+		},
+		{
+			"runId": "reach-i7-01",
+			"jobId": "I7",
+			"axis": "IMP",
+			"owner": "integration-engineer",
+			"probeId": "imp-i7-01",
+			"request": "We are moving this module from Python to Go next quarter. Port it and prove parity on the same fixtures.",
+			"promptSha256": "1d03a5dbb3d95274ee411d248ae4091f597b6e7b78f50fdb1906e0750ba58000"
+		},
+		{
+			"runId": "reach-i8-01",
+			"jobId": "I8",
+			"axis": "IMP",
+			"owner": null,
+			"probeId": "imp-i8-01",
+			"request": "We launch in German next month and the copy is hard-coded everywhere. How do we extract it without breaking placeholders?",
+			"promptSha256": "31f333cc0e69435cd4a385382a260d4957c39ba69f4af12bf39175bd63738d2d"
+		},
+		{
+			"runId": "reach-i9-01",
+			"jobId": "I9",
+			"axis": "IMP",
+			"owner": null,
+			"probeId": "imp-i9-01",
+			"request": "The audit flagged the date picker as unusable by keyboard. Fix it and add an automated check.",
+			"promptSha256": "f919d1febe0717c2249cf524a6e782ef6bb675f6e4909a4cf5ef39347fdfd05c"
+		},
+		{
+			"runId": "reach-k1-01",
+			"jobId": "K1",
+			"axis": "DOC",
+			"owner": "documentation",
+			"probeId": "doc-k1-01",
+			"request": "PR is ready and reviewers need context. Write what changed, why, the risk and what to look at first.",
+			"promptSha256": "8be64eec51ab277827aea7b92c60cf49b729acde6fc54f12365b4aec7878572e"
+		},
+		{
+			"runId": "reach-k2-01",
+			"jobId": "K2",
+			"axis": "DOC",
+			"owner": "documentation",
+			"probeId": "doc-k2-01",
+			"request": "We changed the endpoint and consumers must adapt. Update the reference, add a migration example and the timeline.",
+			"promptSha256": "6440622042daeefd23e19701fb8870e35a45cd1ae9206397f85d8a81416b4d6b"
+		},
+		{
+			"runId": "reach-k3-01",
+			"jobId": "K3",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"probeId": "doc-k3-01",
+			"request": "We chose Postgres over Dynamo and people will ask why in six months. Write it up with context, options and consequences.",
+			"promptSha256": "cb872f1669b4277567a857d46defc34b08459de8e4631a72e5b005e16fa3e2b8"
+		},
+		{
+			"runId": "reach-k4-01",
+			"jobId": "K4",
+			"axis": "DOC",
+			"owner": "documentation",
+			"probeId": "doc-k4-01",
+			"request": "Setup fails on a clean clone. Get it working, pin the versions and note the traps.",
+			"promptSha256": "9b28c9ec63c203d2a7ab64e3399a03a7089a5907dd4e6a086ea6508b8c578ee5"
+		},
+		{
+			"runId": "reach-k5-01",
+			"jobId": "K5",
+			"axis": "DOC",
+			"owner": "documentation",
+			"probeId": "doc-k5-01",
+			"request": "This comment says it retries, but the loop exits. Fix the comment or move the real reason elsewhere.",
+			"promptSha256": "881b467c202b54aebaceb2d108e19e4bc16b70c0e669642a50a5061ea2e73042"
+		},
+		{
+			"runId": "reach-k6-01",
+			"jobId": "K6",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"probeId": "doc-k6-01",
+			"request": "A new bug report arrived with no steps. Classify it, reproduce or ask for info, and suggest an owner.",
+			"promptSha256": "8c1808ad152c4e065f439b5c8aad6f221d61d00589ae1dc148e71bab6d4e253d"
+		},
+		{
+			"runId": "reach-k7-01",
+			"jobId": "K7",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"probeId": "doc-k7-01",
+			"request": "The VP asks where we are. Write a status with evidence, risks and the decision she needs, without jargon.",
+			"promptSha256": "eece718657f5f8de4aa09dd304ad6a92e5283d80ba1000106d7eb65e84fa6e09"
+		},
+		{
+			"runId": "reach-k8-01",
+			"jobId": "K8",
+			"axis": "DOC",
+			"owner": "decision-record",
+			"probeId": "doc-k8-01",
+			"request": "Our commit log is unreadable. Restructure this branch into commits whose messages explain intent and risk.",
+			"promptSha256": "f8a512f2d6910efb77b744e53b676ce2d4f5d647f2c5e517a49cf0e17f702ddf"
+		},
+		{
+			"runId": "reach-k9-01",
+			"jobId": "K9",
+			"axis": "DOC",
+			"owner": "documentation",
+			"probeId": "doc-k9-01",
+			"request": "Three people asked how to configure the client this week. Answer with an example and put it where it will be found.",
+			"promptSha256": "7e71d2af4cf4d4b271b3005a5aff50256cfccbafe6e4d90024fb4104c60772a1"
+		},
+		{
+			"runId": "reach-o1-01",
+			"jobId": "O1",
+			"axis": "OPS",
+			"owner": "devops",
+			"probeId": "ops-o1-01",
+			"request": "CI fails before any test runs, on a timeout. Find the cause and stop it recurring.",
+			"promptSha256": "50b680de0d52bf1bfcfa88c7761767ecc7b0b0547c5e7709bc3de16d90a5c6fb"
+		},
+		{
+			"runId": "reach-o10-01",
+			"jobId": "O10",
+			"axis": "OPS",
+			"owner": "release-readiness",
+			"probeId": "ops-o10-01",
+			"request": "The deploy finished but I am not sure it is healthy. Smoke check it and name the signal that means rollback.",
+			"promptSha256": "124a4e58236723bac16dd0fa9ada3d5300ccb4b51add8927dae9eba6b86abdb6"
+		},
+		{
+			"runId": "reach-o11-01",
+			"jobId": "O11",
+			"axis": "OPS",
+			"owner": "performance",
+			"probeId": "ops-o11-01",
+			"request": "Cloud spend is up 40% with flat traffic. Attribute it by resource, name the cause and cut it.",
+			"promptSha256": "91471422988588cdca729203336211a069af3f1c68698b178059935559408838"
+		},
+		{
+			"runId": "reach-o2-01",
+			"jobId": "O2",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"probeId": "ops-o2-01",
+			"request": "The deploy went out and health checks are failing. Roll back or push a fix, then verify health.",
+			"promptSha256": "c853437de7f94a362c6f07df500fe831d237a023fd4633035a1ec57fde700fb2"
+		},
+		{
+			"runId": "reach-o3-01",
+			"jobId": "O3",
+			"axis": "OPS",
+			"owner": "release-readiness",
+			"probeId": "ops-o3-01",
+			"request": "We need to cut a version now. Check version, changelog, artefacts and tags against policy, with a dry run.",
+			"promptSha256": "e357b5e59b0a877bf74d171de70b79d550adf4b5b88af5f8e9b3f46521357266"
+		},
+		{
+			"runId": "reach-o4-01",
+			"jobId": "O4",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"probeId": "ops-o4-01",
+			"request": "Customers report slow checkout and alerts are firing. Bound the impact, mitigate, and file the follow-ups.",
+			"promptSha256": "f42b7b5dde9a2dda2bf56ee1278ff9a96b360edca02c0fb8865dd50d934c6a30"
+		},
+		{
+			"runId": "reach-o5-01",
+			"jobId": "O5",
+			"axis": "OPS",
+			"owner": "incident-commander",
+			"probeId": "ops-o5-01",
+			"request": "Half our alerts nobody acts on. Tie each one to a symptom and justify the threshold.",
+			"promptSha256": "f0659d379cafdb94142e16de3628a9dbda9ed25683b7ef2758fad52da0fd1b93"
+		},
+		{
+			"runId": "reach-o6-01",
+			"jobId": "O6",
+			"axis": "OPS",
+			"owner": "devops",
+			"probeId": "ops-o6-01",
+			"request": "We need to double the worker count. Show the plan and diff, apply it, test rollback and state the cost change.",
+			"promptSha256": "32b1293813cacd39307ac3393ecb5d3ced56bacd9ffb2b8507a71f95d264ba5b"
+		},
+		{
+			"runId": "reach-o7-01",
+			"jobId": "O7",
+			"axis": "OPS",
+			"owner": "performance",
+			"probeId": "ops-o7-01",
+			"request": "The build crept from 4 to 11 minutes. Profile the stages, fix the worst, and measure again.",
+			"promptSha256": "088f955f05ee93790de73c40b066a7c66f2dc17e5a3a0e6638f8e4189398396f"
+		},
+		{
+			"runId": "reach-o8-01",
+			"jobId": "O8",
+			"axis": "OPS",
+			"owner": "devops",
+			"probeId": "ops-o8-01",
+			"request": "The scanner flags packages in our runtime image. Rebuild on a patched base without growing it or slowing startup.",
+			"promptSha256": "e43b683fcbce9d708342d5975a9f6c0cf4fa534ce06b09cc2c7b36c4d825e611"
+		},
+		{
+			"runId": "reach-o9-01",
+			"jobId": "O9",
+			"axis": "OPS",
+			"owner": "devops",
+			"probeId": "ops-o9-01",
+			"request": "Staging and production differ in config and nobody knows why. Diff them, decide, and add a check.",
+			"promptSha256": "abdafbfe74cfec57ee9ef29ebddeac7d565e7b90c5cf204286e96dd1baa11e2f"
+		},
+		{
+			"runId": "reach-q1-01",
+			"jobId": "Q1",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"probeId": "rev-q1-01",
+			"request": "PR is up and I want a proper pass before merge. Findings by severity with file and line, and a verdict.",
+			"promptSha256": "19d7d0ee1d0da5c8de50f9ae4561c1a70d1d3011c90f8157dcef2d4b9579f9d1"
+		},
+		{
+			"runId": "reach-q2-01",
+			"jobId": "Q2",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"probeId": "rev-q2-01",
+			"request": "Lint fails on the new file. Fix it, or waive it with a reason and scope written down.",
+			"promptSha256": "1aafc2306d954169081cd9237a393806550d6a0cb77b699cec5b423f1d7844dd"
+		},
+		{
+			"runId": "reach-q3-01",
+			"jobId": "Q3",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"probeId": "rev-q3-01",
+			"request": "The scanner reported 40 issues. Which are real, which are noise, and what do we fix?",
+			"promptSha256": "253a4d13a05c171fbf8430abbafeae9b062e573cca34680c171c74641639310c"
+		},
+		{
+			"runId": "reach-q4-01",
+			"jobId": "Q4",
+			"axis": "REV",
+			"owner": "architecture-reviewer",
+			"probeId": "rev-q4-01",
+			"request": "This design has a God class and a hidden cycle. Name the pattern, the consequence and the cost to fix.",
+			"promptSha256": "1dc5c7fa367547b1856cf9be12e98044ddfff3de304b95ffdb83459970c7d6a3"
+		},
+		{
+			"runId": "reach-q5-01",
+			"jobId": "Q5",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"probeId": "rev-q5-01",
+			"request": "We have 300 tests but I am not sure they assert anything. Check assertion strength and isolation.",
+			"promptSha256": "0b365524eed5caf1bc5c3714de525deb0f71cdcce7a9096433ca0d8b4793a3f5"
+		},
+		{
+			"runId": "reach-q6-01",
+			"jobId": "Q6",
+			"axis": "REV",
+			"owner": null,
+			"probeId": "rev-q6-01",
+			"request": "The docs describe the old config format and we changed it. List what is stale, with files.",
+			"promptSha256": "80742896e3d44d65c1b00b8f41fab38b44b109244ef07dfd678003e130368ec9"
+		},
+		{
+			"runId": "reach-q7-01",
+			"jobId": "Q7",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"probeId": "rev-q7-01",
+			"request": "Merge is blocked by the coverage gate. Explain the rule, then give me the smallest compliant fix.",
+			"promptSha256": "057ec5da5f61165053a61a791daa192ccf9c3cb24e599d6372e923b157ea4784"
+		},
+		{
+			"runId": "reach-q8-01",
+			"jobId": "Q8",
+			"axis": "REV",
+			"owner": "code-reviewer",
+			"probeId": "rev-q8-01",
+			"request": "Half this PR came from a generator. Check it against the ticket and flag risky dependencies and licences.",
+			"promptSha256": "6e233a7d29fcde5c5474273690b6d110f33cf710be89ea1b56b3a2aab8f7eeab"
+		},
+		{
+			"runId": "reach-q9-01",
+			"jobId": "Q9",
+			"axis": "REV",
+			"owner": "release-readiness",
+			"probeId": "rev-q9-01",
+			"request": "The candidate is built. Give me open defects by severity, test evidence and risks, plus go or no-go.",
+			"promptSha256": "dd1c49d65c0c6ed403372329202fdb19a41d99768bff90b5c2d8648128fad0a6"
+		},
+		{
+			"runId": "reach-r1-01",
+			"jobId": "R1",
+			"axis": "REQ",
+			"owner": "requirements",
+			"probeId": "req-r1-01",
+			"request": "The whole ticket is just: add SSO to the app. What do you need from me to make it buildable?",
+			"promptSha256": "fa16c35ddc9461cc4f0b6ffffc3ec771c6341f4212dbdba3b38ad36fec9151f5"
+		},
+		{
+			"runId": "reach-r2-01",
+			"jobId": "R2",
+			"axis": "REQ",
+			"owner": null,
+			"probeId": "req-r2-01",
+			"request": "Nobody wrote down how the old billing flow behaves and we must change it next sprint. Where do we start?",
+			"promptSha256": "51c9a44200c732a2257c23b06f07857f93fb6f9b2f6fb2fd451e7cf112a7aaa8"
+		},
+		{
+			"runId": "reach-r3-01",
+			"jobId": "R3",
+			"axis": "REQ",
+			"owner": null,
+			"probeId": "req-r3-01",
+			"request": "Sales wants this shipped this month and security wants a full audit first. Both are in one thread and I am stuck.",
+			"promptSha256": "edba483f6b9d307eb79b1c1b922530dee28d4b636dfe96a14939d0bcb5698ad6"
+		},
+		{
+			"runId": "reach-r4-01",
+			"jobId": "R4",
+			"axis": "REQ",
+			"owner": "acceptance-criteria",
+			"probeId": "req-r4-01",
+			"request": "It has to be fast is all the spec says. What number should go in the ticket, and where do we measure it?",
+			"promptSha256": "1c77b095986203fc70064ccc138a351bbf1a641273559c5b9407901524a7214d"
+		},
+		{
+			"runId": "reach-r5-01",
+			"jobId": "R5",
+			"axis": "REQ",
+			"owner": "requirements",
+			"probeId": "req-r5-01",
+			"request": "Every time I finish a slice they add while you are in there. How do I draw a line and record what is deferred?",
+			"promptSha256": "ec0ff8dedf15210e546cb4a3cfe63b469b9c43e654958c2c3e8074e3cf6152a6"
+		},
+		{
+			"runId": "reach-r6-01",
+			"jobId": "R6",
+			"axis": "REQ",
+			"owner": null,
+			"probeId": "req-r6-01",
+			"request": "Legal says we need audit logging. Where in our system does that land, and how do we show it actually works?",
+			"promptSha256": "d31c33f6c70a5e91808312f63d65572658ac5af45a981c813319cf25e2b08cb9"
+		},
+		{
+			"runId": "reach-r7-01",
+			"jobId": "R7",
+			"axis": "REQ",
+			"owner": "acceptance-criteria",
+			"probeId": "req-r7-01",
+			"request": "The ticket says works correctly and nothing else. What conditions should I test, one per line?",
+			"promptSha256": "30a52d35208dc05d24513dd621c8ab849d61c527429db88c6ce6872b0226ed31"
+		},
+		{
+			"runId": "reach-r8-01",
+			"jobId": "R8",
+			"axis": "REQ",
+			"owner": null,
+			"probeId": "req-r8-01",
+			"request": "Can we ship multi-tenant support by the end of Q1? I need an answer with the assumptions behind it.",
+			"promptSha256": "c83dcf93515a9697a3e01df92c3b5567477fec2a41765532ad4cc40dbe37bf2b"
+		},
+		{
+			"runId": "reach-r9-01",
+			"jobId": "R9",
+			"axis": "REQ",
+			"owner": "requirements",
+			"probeId": "req-r9-01",
+			"request": "The team already picked a solution and I am not sure what problem it solves. Who is affected, and why?",
+			"promptSha256": "9934c532fc4054772db108ebb11d58cba3ec754c4c4b354a4f0251a034f7ea48"
+		},
+		{
+			"runId": "reach-s1-01",
+			"jobId": "S1",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"probeId": "sec-s1-01",
+			"request": "User input reaches a shell command in this handler. Validate at the boundary and add tests for the attack.",
+			"promptSha256": "c0baf482ae24aac928813256152ada2a8ee901f68ba4070d16b0ea79bee7f9c1"
+		},
+		{
+			"runId": "reach-s10-01",
+			"jobId": "S10",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"probeId": "sec-s10-01",
+			"request": "Someone wrote their own encryption here with a fixed IV. Replace it with a vetted library.",
+			"promptSha256": "af53fffed2b6c33b0105e8d5a189f279b7c262d03738be40928fd7a095b7182e"
+		},
+		{
+			"runId": "reach-s2-01",
+			"jobId": "S2",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"probeId": "sec-s2-01",
+			"request": "A CVE landed against a transitive dependency. Is it exploitable here, and what is the fix or mitigation?",
+			"promptSha256": "6c71feb8d6f4a06807907e0b0df5eb2df3dc1defe00228a0f93fdbc23f6ccc70"
+		},
+		{
+			"runId": "reach-s3-01",
+			"jobId": "S3",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"probeId": "sec-s3-01",
+			"request": "A key ended up in a commit. Revoke and rotate it, clean the history where we can, and add a check.",
+			"promptSha256": "33753bb8b007bc75d66c88a6c4067bad3c09430e0c4322fd095bd8deb0dff0bb"
+		},
+		{
+			"runId": "reach-s4-01",
+			"jobId": "S4",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"probeId": "sec-s4-01",
+			"request": "We are adding a tenant boundary. Implement the policy and add deny tests proving it.",
+			"promptSha256": "42d42e2291914e166578d65dcb842fd9312a3982af0c839b97f734a988cf0b7d"
+		},
+		{
+			"runId": "reach-s5-01",
+			"jobId": "S5",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"probeId": "sec-s5-01",
+			"request": "Our agent reads user text and can call tools. Mark the trust boundary and test that injection fails.",
+			"promptSha256": "e7ce05ce01889e9aad395aee1ac654d6120699486457df07d5ffdad3fa5dba4b"
+		},
+		{
+			"runId": "reach-s6-01",
+			"jobId": "S6",
+			"axis": "SEC",
+			"owner": null,
+			"probeId": "sec-s6-01",
+			"request": "A privacy review asks where the address is collected, stored and sent. Map it per field with retention.",
+			"promptSha256": "ae1025d2e0edc3cf5428c436f5122125038c347790e2b7b31d2636566141c099"
+		},
+		{
+			"runId": "reach-s7-01",
+			"jobId": "S7",
+			"axis": "SEC",
+			"owner": "security-reviewer",
+			"probeId": "sec-s7-01",
+			"request": "We are opening a webhook endpoint to a new partner. What are the threats, and where does each mitigation live?",
+			"promptSha256": "1d8247809de9c06854321fe46efee55d2ef0b08b55df5a6664be216b3167d139"
+		},
+		{
+			"runId": "reach-s8-01",
+			"jobId": "S8",
+			"axis": "SEC",
+			"owner": "vulnerability-response",
+			"probeId": "sec-s8-01",
+			"request": "A researcher reported an auth bypass. Reproduce it, rate the severity, fix it and add a regression test.",
+			"promptSha256": "67412b1b59795dd58c19abe699d69e42e1fc4b0694b30a009e6d7b7b5853c966"
+		},
+		{
+			"runId": "reach-s9-01",
+			"jobId": "S9",
+			"axis": "SEC",
+			"owner": null,
+			"probeId": "sec-s9-01",
+			"request": "The audit wants an SBOM and provenance for this build. Generate them and verify the components.",
+			"promptSha256": "2f4ade20290b0d10c5cd4307daf486a14813e6961cca17a0fcf367c4bb570737"
+		},
+		{
+			"runId": "reach-t1-01",
+			"jobId": "T1",
+			"axis": "TST",
+			"owner": "test-author",
+			"probeId": "tst-t1-01",
+			"request": "I added the discount rule and there are no tests. Write tests that fail without it, one per condition.",
+			"promptSha256": "a95b1339cf53c83f0a6c9cab0e0b24ae8759e7abd4f834adb0659eb781e13040"
+		},
+		{
+			"runId": "reach-t10-01",
+			"jobId": "T10",
+			"axis": "TST",
+			"owner": "test-author",
+			"probeId": "tst-t10-01",
+			"request": "The ticket's criteria are agreed but nothing runs them. Turn each one into a check in CI.",
+			"promptSha256": "8a1386538d512e87826d65e5c512efb615204a202814709dbe20159353df0423"
+		},
+		{
+			"runId": "reach-t11-01",
+			"jobId": "T11",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"probeId": "tst-t11-01",
+			"request": "The spec says p95 under 200ms and keyboard accessible. Measure both and report method and environment.",
+			"promptSha256": "e50dcdb8dd67af7e62d8350e4a4a50e7ff0c2e391bdc47b7d9590ebabe0747e4"
+		},
+		{
+			"runId": "reach-t2-01",
+			"jobId": "T2",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"probeId": "tst-t2-01",
+			"request": "The billing module has no tests and we have had two incidents there. Cover the named risks first.",
+			"promptSha256": "f94f6e0715b0be09ae92de18bbebba42c5b12c942e6b367471af5db1407cb481"
+		},
+		{
+			"runId": "reach-t3-01",
+			"jobId": "T3",
+			"axis": "TST",
+			"owner": "performance",
+			"probeId": "tst-t3-01",
+			"request": "CI takes 40 minutes and the team wants it under 15 without losing coverage. Where is the time going?",
+			"promptSha256": "f811d7d80ebb039010c5644b93da7a59c0f1e3221c7c3225d2cccc7eaa1aa63b"
+		},
+		{
+			"runId": "reach-t4-01",
+			"jobId": "T4",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"probeId": "tst-t4-01",
+			"request": "One test fails about twice a week and blocks every merge. Can we park it with a note and a date?",
+			"promptSha256": "4bf46536973abc6e354ee40f79b03d7ac781f01571b67652079817afd761286b"
+		},
+		{
+			"runId": "reach-t5-01",
+			"jobId": "T5",
+			"axis": "TST",
+			"owner": "test-author",
+			"probeId": "tst-t5-01",
+			"request": "We closed that bug as fixed. Add a test that fails on the old version and passes now.",
+			"promptSha256": "b903ee84812d6d7c474e1f159e7f9cd3659932bd9371043c43c8a9493daa8030"
+		},
+		{
+			"runId": "reach-t6-01",
+			"jobId": "T6",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"probeId": "tst-t6-01",
+			"request": "We are changing the response shape and two consumers depend on it. Can you prove compatibility?",
+			"promptSha256": "5145c7047a3a54e9e667633b6d8ae238a3fb85c44b5a074b9bbd6b8c4a693e4f"
+		},
+		{
+			"runId": "reach-t7-01",
+			"jobId": "T7",
+			"axis": "TST",
+			"owner": "release-readiness",
+			"probeId": "tst-t7-01",
+			"request": "We move to Node 22 next week. What should we check before and after, item by item?",
+			"promptSha256": "7fa31df8ba0479735b371c6f2755e175c53485fe13f21c15b8f79fed5ce9cb97"
+		},
+		{
+			"runId": "reach-t8-01",
+			"jobId": "T8",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"probeId": "tst-t8-01",
+			"request": "The new checkout flow has no test basis. Run an exploratory session and file what you find.",
+			"promptSha256": "4ec215fba0cef35858e5fcd678128025de246e9f88f86e8d664135dfa7ce1abc"
+		},
+		{
+			"runId": "reach-t9-01",
+			"jobId": "T9",
+			"axis": "TST",
+			"owner": "test-strategist",
+			"probeId": "tst-t9-01",
+			"request": "The tests need realistic customers but we must not use real ones. Generate a set with rules and constraints.",
+			"promptSha256": "7f54fd13d2407e01b0cc5d06a5c5c95b6aafe247940915bcff48914f2faf7ea5"
+		},
+		{
+			"runId": "reach-x1-01",
+			"jobId": "X1",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"probeId": "dat-x1-01",
+			"request": "We need a new column on a table with 40M rows. Plan the expand and contract steps, reversible, tried on a copy first.",
+			"promptSha256": "dabacc8217e1a684909dac71ec26cce05bb44a4ede8e9f9d858152964633eb21"
+		},
+		{
+			"runId": "reach-x2-01",
+			"jobId": "X2",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"probeId": "dat-x2-01",
+			"request": "This query takes 8 seconds and the budget is 300ms. Show the plan before and after and the change made.",
+			"promptSha256": "a64a51167821545406a4831e394b8187be620fcec4ca93cdd5c7e4205b97ac53"
+		},
+		{
+			"runId": "reach-x3-01",
+			"jobId": "X3",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"probeId": "dat-x3-01",
+			"request": "The status column is wrong for 12k rows. Write an idempotent backfill, dry-run it, and give reconciliation counts.",
+			"promptSha256": "527cfd38c8eb0a4656fbff4da68258121765f397eca88e5973ddb249a0ab902c"
+		},
+		{
+			"runId": "reach-x4-01",
+			"jobId": "X4",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"probeId": "dat-x4-01",
+			"request": "How many customers used the new flow last week, and what are the caveats about the numbers?",
+			"promptSha256": "11075d79fed101cc64d7aaa535b2e96a5e9740db62260616d11a33627375e6a2"
+		},
+		{
+			"runId": "reach-x5-01",
+			"jobId": "X5",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"probeId": "dat-x5-01",
+			"request": "The models and the actual tables disagree in three places and it causes bugs. Map the differences and fix each.",
+			"promptSha256": "b23c195e7982dd11a37db25d7a1ec5e9302b6551ce5d88edff9f708588263ade"
+		},
+		{
+			"runId": "reach-x6-01",
+			"jobId": "X6",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"probeId": "dat-x6-01",
+			"request": "The policy says logs must expire after 90 days. Implement it as a job and verify on old fixtures.",
+			"promptSha256": "cc76b57bd33508b728ae912643d1611ef76b3d716e32db7df8b99af564492a1d"
+		},
+		{
+			"runId": "reach-x7-01",
+			"jobId": "X7",
+			"axis": "DAT",
+			"owner": "database-migration",
+			"probeId": "dat-x7-01",
+			"request": "The upstream feed changed its format. Write a converter with round-trip tests and a sample diff.",
+			"promptSha256": "0129b46bd89f99fd803babbd1e9e006a0e86c63296123250fdc85f351e088dc8"
+		},
+		{
+			"runId": "reach-x8-01",
+			"jobId": "X8",
+			"axis": "DAT",
+			"owner": "data-analyst",
+			"probeId": "dat-x8-01",
+			"request": "Users see stale prices after an update. What is the invalidation rule, and can you reproduce the bug?",
+			"promptSha256": "c44fe30f00fbeace8233a62e3967e37f45391c0d4e79b881d2fba75b32315ed4"
+		}
+	]
+}

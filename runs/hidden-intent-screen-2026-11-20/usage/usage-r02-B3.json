@@ -1,0 +1,29 @@
+{
+	"runId": "r02-B3",
+	"model": "gemini-3.5-flash",
+	"attempts": [
+		{
+			"attempt": 1,
+			"startedAt": "2026-11-20T09:36:32.963Z",
+			"endedAt": "2026-11-20T09:36:38.839Z",
+			"httpStatus": 200,
+			"finishReason": "STOP",
+			"usageMetadata": {
+				"promptTokenCount": 1514,
+				"candidatesTokenCount": 45,
+				"totalTokenCount": 2730,
+				"promptTokensDetails": [
+					{
+						"modality": "TEXT",
+						"tokenCount": 1514
+					}
+				],
+				"thoughtsTokenCount": 1171,
+				"serviceTier": "standard"
+			},
+			"apiMessage": null
+		}
+	],
+	"outcome": "RUN",
+	"maxOutputTokens": 4096
+}

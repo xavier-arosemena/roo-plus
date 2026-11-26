@@ -121,7 +121,7 @@ From [`modes-architecture.md`](modes-architecture.md) §3 and [`modes-doctrine.m
 Tiers:
 
 ```
-bootstrap baseline (1–3, in core)  →  preload (60–90, budgeted, owned, dated)  →  marketplace (dynamic)
+bootstrap baseline (1–3, in core)  →  preload (45, budgeted, owned, dated)  →  marketplace (dynamic)
                                         │
                                    skills spine (~10)
                                         │
@@ -339,13 +339,13 @@ A gate that cannot print the number it enforces is not a gate — it is a mood. 
 
 ### 5.1 Tier contract
 
-| Tier                       | Size                                                    | Admission test                                                                                                                               | Cost                  |
-| -------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| **Bootstrap baseline**     | **1–3**                                                 | the only modes shipped in core: a default mode and a read-only mode, so a zero-file, zero-config start always works                          | free (always present) |
-| ~~Built-in~~ → **Preload** | 5 → 60–90                                               | superseded (ADR-6): today's `architect`/`code`/`ask`/`debug`/`orchestrator` become ordinary preload entries — same slugs, no privileged tier | Σ routing ≤ 12k chars |
-| **Preload**                | 60–90                                                   | owned, dated, eval-backed, ≤ budget, distinct from neighbours                                                                                | Σ routing ≤ 12k chars |
-| **Marketplace**            | target + declared specialisations + labelled non-coding | passes schema + budget + a declared `ownerOf` job or `nonCoding: true`; no eval requirement at install                                       | zero until installed  |
-| **Skills**                 | ~10 spine + tail                                        | a procedure used by ≥ 2 modes, or > 800 chars in a contract                                                                                  | index only            |
+| Tier                       | Size                                                                           | Admission test                                                                                                                               | Cost                  |
+| -------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| **Bootstrap baseline**     | **1–3**                                                                        | the only modes shipped in core: a default mode and a read-only mode, so a zero-file, zero-config start always works                          | free (always present) |
+| ~~Built-in~~ → **Preload** | 5 → 45                                                                         | superseded (ADR-6): today's `architect`/`code`/`ask`/`debug`/`orchestrator` become ordinary preload entries — same slugs, no privileged tier | Σ routing ≤ 12k chars |
+| **Preload**                | **45** — incl. the 16 non-coding; was 60–90 ([why](modes-architecture.md:795)) | owned, dated, eval-backed, ≤ budget, distinct from neighbours; non-coding entries keep their label                                           | Σ routing ≤ 12k chars |
+| **Marketplace**            | target + declared specialisations + labelled non-coding                        | passes schema + budget + a declared `ownerOf` job or `nonCoding: true`; no eval requirement at install                                       | zero until installed  |
+| **Skills**                 | ~10 spine + tail                                                               | a procedure used by ≥ 2 modes, or > 800 chars in a contract                                                                                  | index only            |
 
 ### 5.2 Target catalogue spec (the "ideal catalogue" the refactor is measured against)
 
@@ -356,6 +356,8 @@ For each axis (defined in Phase 3.9 from an external taxonomy), the spec records
 - **preload share** — how many of the axis's jobs the preload carries, and why;
 - **one primary owner** per job;
 - **disposition classes** for the refactor: `keep` · `merge into <slug>` · `thin to skill` · `retire` · `create`.
+- **the words a user types** — E24 measured, per owner, which of them the line does not contain, and whether a model can reach the owner without them ([`triggers-candidates.json`](../test-fixtures/reach/triggers-candidates.json:1), log §34). Candidate list only; it is the input to J3, not a decision.
+- **the rendered line** — the catalogue is read through the picker the extension prints, `* "<Name>" mode (<slug>) - <whenToUse>`, and where the display name sits is a routing lever, not formatting: name in the quoted slot **0.780**, slug in the quoted slot **0.450**, slug quoted with the name in parentheses **0.130**, one interleaved batch of 300 calls ([log §43](research/modes-experiment-log.md:1458), [report §4.11](reviews/2026-11-17-routing-report-e17-draft.md:380)). A slug-only line saves 761 characters over 45 modes and loses 33 points of commitment, so the short form is a trade to be made knowingly, never a default.
 
 ### 5.3 Counts are functions, never literals
 
@@ -379,12 +381,12 @@ bins until each axis carries enough jobs to justify them.
 The catalogue cannot be planned before its need baseline exists, and it must not be planned from the
 shape of the current 302. Four steps, strictly ordered, research first:
 
-| Step                    | Question                                                                                                      | Output                                                                                                     | Roadmap    |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------- |
-| **J1 — Axis research**  | What are the recognised dimensions of coding work, per external standards (not our categories)?               | 6–12 axis definitions, each with sources and a rationale                                                   | Phase 3.9  |
-| **J2 — Job inventory**  | Within each axis, which **jobs** do developers actually bring to an agent?                                    | A job list per axis, each with a trigger description and a definition of done                              | Phase 3.9  |
-| **J3 — Catalogue plan** | Which jobs get a mode, which are preloaded, which stay marketplace-only, which are covered by a skill instead | The target catalogue spec: the named mode list, the 60–90 preload selection, a capability profile per mode | Phase 3.11 |
-| **J4 — Refactor**       | Apply dispositions to the existing catalogue                                                                  | Per-axis batches, each independently shippable                                                             | Phase 3.12 |
+| Step                    | Question                                                                                                      | Output                                                                                                       | Roadmap    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------- |
+| **J1 — Axis research**  | What are the recognised dimensions of coding work, per external standards (not our categories)?               | 6–12 axis definitions, each with sources and a rationale                                                     | Phase 3.9  |
+| **J2 — Job inventory**  | Within each axis, which **jobs** do developers actually bring to an agent?                                    | A job list per axis, each with a trigger description and a definition of done                                | Phase 3.9  |
+| **J3 — Catalogue plan** | Which jobs get a mode, which are preloaded, which stay marketplace-only, which are covered by a skill instead | The target catalogue spec: the named mode list, the 45-mode preload selection, a capability profile per mode | Phase 3.11 |
+| **J4 — Refactor**       | Apply dispositions to the existing catalogue                                                                  | Per-axis batches, each independently shippable                                                               | Phase 3.12 |
 
 Two rules keep this honest. **A job enters the plan only with a failing eval or a named research source
 behind it** (demand by failure). And **the preload is chosen from the job inventory, never from the
@@ -533,7 +535,7 @@ action producing a file they may attach to an issue.
 | **M0** | Write this proposal, accept/reject the seven ADRs                                                                                                                                                                         | ADRs accepted, each with a falsifier                                                                    | n/a                       |
 | **M1** | **Topology** — **DECIDED** ([ADR: vendor the catalogue](adr/adr-modes-catalogue-vendored.md)): vendored via `git subtree`; description gate split into `gate:catalogue`; the pin replaced by `verify:catalogue-integrity` | One home, nothing to drift                                                                              | Yes (git)                 |
 | **M2** | Gates in **warn-only** mode across the whole catalogue                                                                                                                                                                    | A full report of every violation, nothing blocking                                                      | Yes (config)              |
-| **M3** | Fix the preload (60–90 jobs): rewrite `whenToUse`, dedupe, thin the worst offenders                                                                                                                                       | Σ routing ≤ 12k; no mode > 6k; distinctness passes                                                      | Yes (git revert)          |
+| **M3** | Fix the preload (45 modes): rewrite `whenToUse`, dedupe, thin the worst offenders                                                                                                                                         | Σ routing ≤ 12k; no mode > 6k; distinctness passes                                                      | Yes (git revert)          |
 | **M4** | Extract the skill spine; thin the modes that reference it                                                                                                                                                                 | ≥ 8 skills live, ≥ 3 modes each, doctrine shrink ≥ 30%                                                  | Yes (skills are additive) |
 | **M5** | Flip gates to **fail** for preload + preload-adjacent; marketplace stays warn-only for one release                                                                                                                        | Two clean releases                                                                                      | Yes (config)              |
 | **M6** | Refactor the **whole** catalogue to the target spec, in axis batches — preload and marketplace alike                                                                                                                      | Target spec met per axis; **every retired slug aliased** and the alias gate green; coverage regenerated | Per batch                 |

@@ -1,0 +1,109 @@
+{
+	"schema": "r0.reclass.v1",
+	"extractorVersion": "r0-extract/4",
+	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+	"rows": 300,
+	"unusable": [],
+	"changed": [
+		{
+			"runId": "r0-naming-product-name-first-014",
+			"arm": "name-first",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "\"Explain\" mode (explain)",
+			"note": null
+		},
+		{
+			"runId": "r0-naming-product-slug-only-slug-only-019",
+			"arm": "slug-only",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-will-use",
+			"firstLine": "To address this request, I will use **\"explain\" mode**.",
+			"note": null
+		},
+		{
+			"runId": "r0-naming-product-name-first-028",
+			"arm": "name-first",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-will-use",
+			"firstLine": "To address this request, I will use **\"Explain\" mode (explain)**.",
+			"note": null
+		},
+		{
+			"runId": "r0-naming-product-name-first-079",
+			"arm": "name-first",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "**\"Explain\" mode (explain)**",
+			"note": null
+		},
+		{
+			"runId": "r0-naming-product-slug-only-slug-only-080",
+			"arm": "slug-only",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "I want to determine the design rationale, module boundaries, and structural patterns of the module b",
+			"note": null
+		},
+		{
+			"runId": "r0-naming-product-name-first-080",
+			"arm": "name-first",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "**\"Explain\" mode (explain)**",
+			"note": null
+		},
+		{
+			"runId": "r0-naming-product-slug-only-slug-only-085",
+			"arm": "slug-only",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "**\"explain\"**",
+			"note": null
+		},
+		{
+			"runId": "r0-naming-product-name-first-096",
+			"arm": "name-first",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-header",
+			"firstLine": "**\"Explain\" mode (explain)**",
+			"note": null
+		}
+	],
+	"byArm": {
+		"product:name-first": {
+			"n": 100,
+			"storedDeclared": 73,
+			"derivedDeclared": 78,
+			"changed": 5
+		},
+		"product-slug-only:slug-only": {
+			"n": 100,
+			"storedDeclared": 42,
+			"derivedDeclared": 45,
+			"changed": 3
+		},
+		"product-slug-first:slug-and-name": {
+			"n": 100,
+			"storedDeclared": 13,
+			"derivedDeclared": 13,
+			"changed": 0
+		}
+	}
+}

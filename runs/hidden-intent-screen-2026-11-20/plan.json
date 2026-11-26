@@ -1,0 +1,167 @@
+{
+	"schemaVersion": "ecc.hidden-intent-screen.v1",
+	"catalogueDigest": "30315cd252c6bec9789afdddf139ebff29765b775557d6c51d72fbae3706edc6",
+	"pickerDigest": "0d78bdeb89319d82747c54b285e435c424e08d0650fb345aaa4bbeb261328c3a",
+	"runs": [
+		{
+			"slot": 1,
+			"arm": "hidden-intent",
+			"briefId": "hi-01",
+			"brief": "The nightly job failed again. Sort it out.",
+			"runId": "r01-hi-01",
+			"promptSha256": "fe13bee659d4ac1fbf1a3d0e346a3caca2988e56d0a1e36c7f9e86dea2c5f89c"
+		},
+		{
+			"slot": 2,
+			"arm": "control",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"runId": "r02-B3",
+			"promptSha256": "3ab486c2c6f788672b14dbb3449a122cfdd06e9df7d5c4df2ed86f5fb9ffbfe4"
+		},
+		{
+			"slot": 3,
+			"arm": "hidden-intent",
+			"briefId": "hi-02",
+			"brief": "We need to change how customers are billed next quarter.",
+			"runId": "r03-hi-02",
+			"promptSha256": "2b30275665965cbdaeed67e048227757aefd74c447663172fa72f501a922274f"
+		},
+		{
+			"slot": 4,
+			"arm": "control",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"runId": "r04-B3",
+			"promptSha256": "3ab486c2c6f788672b14dbb3449a122cfdd06e9df7d5c4df2ed86f5fb9ffbfe4"
+		},
+		{
+			"slot": 5,
+			"arm": "hidden-intent",
+			"briefId": "hi-03",
+			"brief": "The dashboard is wrong.",
+			"runId": "r05-hi-03",
+			"promptSha256": "5fd333e8e6350c900fcb9ae9cbbf50164c38cdf8ca816604344f5ad105394085"
+		},
+		{
+			"slot": 6,
+			"arm": "control",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"runId": "r06-B3",
+			"promptSha256": "3ab486c2c6f788672b14dbb3449a122cfdd06e9df7d5c4df2ed86f5fb9ffbfe4"
+		},
+		{
+			"slot": 7,
+			"arm": "hidden-intent",
+			"briefId": "hi-04",
+			"brief": "Make the API faster before launch.",
+			"runId": "r07-hi-04",
+			"promptSha256": "12803e864f808d43ec49f9e49bbcde2b3d22c59ceaa92ac12ebaf97891d53bf5"
+		},
+		{
+			"slot": 8,
+			"arm": "control",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"runId": "r08-B3",
+			"promptSha256": "3ab486c2c6f788672b14dbb3449a122cfdd06e9df7d5c4df2ed86f5fb9ffbfe4"
+		},
+		{
+			"slot": 9,
+			"arm": "hidden-intent",
+			"briefId": "hi-05",
+			"brief": "Clean up the repo before the audit.",
+			"runId": "r09-hi-05",
+			"promptSha256": "d98005e47ac12222c1ab59c6e92f490400b73509495ec4980ecf001d573142b4"
+		},
+		{
+			"slot": 10,
+			"arm": "control",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"runId": "r10-B3",
+			"promptSha256": "3ab486c2c6f788672b14dbb3449a122cfdd06e9df7d5c4df2ed86f5fb9ffbfe4"
+		},
+		{
+			"slot": 11,
+			"arm": "hidden-intent",
+			"briefId": "hi-06",
+			"brief": "The docs are out of date.",
+			"runId": "r11-hi-06",
+			"promptSha256": "fd1ed7745c9c7c8683880d1c0b07a5d2e6b9a690f9740fae4945ad2b0f8a76c1"
+		},
+		{
+			"slot": 12,
+			"arm": "control",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"runId": "r12-B3",
+			"promptSha256": "3ab486c2c6f788672b14dbb3449a122cfdd06e9df7d5c4df2ed86f5fb9ffbfe4"
+		},
+		{
+			"slot": 13,
+			"arm": "hidden-intent",
+			"briefId": "hi-07",
+			"brief": "Our tests are slow.",
+			"runId": "r13-hi-07",
+			"promptSha256": "66a8b628d1dd7ad8b718a0b1f711934e721a9d8ab32a92124dcdc12577061d67"
+		},
+		{
+			"slot": 14,
+			"arm": "control",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"runId": "r14-B3",
+			"promptSha256": "3ab486c2c6f788672b14dbb3449a122cfdd06e9df7d5c4df2ed86f5fb9ffbfe4"
+		},
+		{
+			"slot": 15,
+			"arm": "hidden-intent",
+			"briefId": "hi-08",
+			"brief": "Someone should own the migration.",
+			"runId": "r15-hi-08",
+			"promptSha256": "8c7d4c80d3bb0b846dc6aa6f6313d4396741495d0c24b97aae2e1be72efa86e0"
+		},
+		{
+			"slot": 16,
+			"arm": "control",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"runId": "r16-B3",
+			"promptSha256": "3ab486c2c6f788672b14dbb3449a122cfdd06e9df7d5c4df2ed86f5fb9ffbfe4"
+		},
+		{
+			"slot": 17,
+			"arm": "hidden-intent",
+			"briefId": "hi-09",
+			"brief": "Review this before Friday.",
+			"runId": "r17-hi-09",
+			"promptSha256": "03a27b878fb2f14c52803590884b38eb5e80eacc4516402aa31fd648b0af02d1"
+		},
+		{
+			"slot": 18,
+			"arm": "control",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"runId": "r18-B3",
+			"promptSha256": "3ab486c2c6f788672b14dbb3449a122cfdd06e9df7d5c4df2ed86f5fb9ffbfe4"
+		},
+		{
+			"slot": 19,
+			"arm": "hidden-intent",
+			"briefId": "hi-10",
+			"brief": "It's too expensive to run.",
+			"runId": "r19-hi-10",
+			"promptSha256": "fc9804eb4e339a1d812a60e1480004e13fb0b7662bb0efadf759a165e1919c25"
+		},
+		{
+			"slot": 20,
+			"arm": "control",
+			"briefId": "B3",
+			"brief": "Explain why this module is structured the way it is.",
+			"runId": "r20-B3",
+			"promptSha256": "3ab486c2c6f788672b14dbb3449a122cfdd06e9df7d5c4df2ed86f5fb9ffbfe4"
+		}
+	]
+}

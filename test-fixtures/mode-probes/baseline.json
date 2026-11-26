@@ -1,0 +1,29 @@
+{
+	"schemaVersion": "ecc.mode-probe-gate.v1",
+	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+	"catalogueDigest": "30315cd252c6bec9789afdddf139ebff29765b775557d6c51d72fbae3706edc6",
+	"probesDigest": "93ef42705a3d351a6ab600ddf50c194fc1b2c224b890d2be6b26f0a3d9a32fe8",
+	"topk": 3,
+	"top1": {
+		"gate-01": "requirements",
+		"gate-02": "test-author",
+		"gate-03": "devops",
+		"gate-04": "code-reviewer",
+		"gate-05": "database-migration",
+		"gate-06": "documentation",
+		"gate-07": "legal-review",
+		"gate-08": "ai-cost-engineer",
+		"gate-09": "codebase-cartographer",
+		"gate-10": "incident-commander",
+		"gate-11": "release-readiness",
+		"gate-12": "planner",
+		"gate-13": "devops",
+		"gate-14": "content-writer",
+		"gate-15": "pricing-analyst",
+		"gate-16": "synthesis-writer",
+		"gate-17": "architecture-reviewer",
+		"gate-18": "performance",
+		"gate-19": "pricing-analyst",
+		"gate-20": "modernisation"
+	}
+}

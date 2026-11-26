@@ -270,3 +270,8 @@ whether two modes would be chosen for the same request. T-C proper still needs t
 yet be run symmetrically, and the 2 × 2 in §3.1 is still an argument. Drafting those 44 lines is the next
 task, and it is the last prerequisite before T-F can materialise both catalogues as `.roomodes`-compatible
 files and compare them for real.
+
+NOTE:
+The axis-stance frame fails its own coverage test: 108 job ids assigned, 106 unique, so 13 jobs uncovered and 2 double-assigned (§6). That is worse than the artefact frame's 4 uncovered, and it fails differently — it drops evidence jobs and cross-cutting concerns (R6, Q6, S6, S9, I8, I9) rather than "things that are not artefacts". So it is not a draft to adopt wholesale.
+
+The artefact frame's pruning section is headed "47 → 40" but its own arithmetic is 37 classes (47 − 10 merged, line 127). A stale heading, exactly the class of defect the count rules exist to prevent. Also, modes-units.md §11 still says "42 owners: 24 coding, 5 meta, 13 non-coding", which the frame's own correction superseded (16 non-coding, 45 total). Two documents, two totals, no reconciliation note.

@@ -1,0 +1,1078 @@
+{
+	"schema": "r0.reclass.v1",
+	"extractorVersion": "r0-extract/4",
+	"catalogue": "test-fixtures/frames/axis-stance.roomodes",
+	"rows": 254,
+	"unusable": [
+		{
+			"runId": "r0-attribution-fixture-fixture-045",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-063",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-063",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-064",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-064",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-065",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-065",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-065",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-065",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-066",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-066",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-066",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-067",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-067",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-067",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-067",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-068",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-068",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-068",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-069",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-069",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-069",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-069",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-070",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-070",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-070",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-070",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-071",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-071",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-071",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-071",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-072",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-072",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-072",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-072",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-073",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-073",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-073",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-073",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-074",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-074",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-074",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-074",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-075",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-075",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-075",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-075",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-076",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-076",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-076",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-076",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-077",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-077",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-077",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-077",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-078",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-078",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-078",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-078",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-079",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-079",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-079",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-079",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-080",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-080",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-080",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-080",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-081",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-081",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-081",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-081",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-082",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-082",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-082",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-083",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-083",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-083",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-083",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-084",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-084",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-084",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-084",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-085",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-085",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-085",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-085",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-086",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-086",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-086",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-086",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-087",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-087",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-087",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-087",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-088",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-088",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-088",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-088",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-089",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-089",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-089",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-089",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-090",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-090",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-090",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-090",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-091",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-091",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-091",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-091",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-092",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-092",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-092",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-092",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-093",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-093",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-093",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-093",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-094",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-094",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-094",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-094",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-095",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-095",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-095",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-095",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-096",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-096",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-096",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-096",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-097",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-097",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-097",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-097",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-098",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-098",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-098",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-098",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-099",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-099",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-099",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-099",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-product-100",
+			"arm": "product",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-fixture-100",
+			"arm": "fixture",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-100",
+			"arm": "fixture-name-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		},
+		{
+			"runId": "r0-attribution-product-slug-first-product-slug-first-100",
+			"arm": "product-slug-first",
+			"exitCode": 1,
+			"stored": "EMPTY",
+			"reason": "non-zero exit"
+		}
+	],
+	"changed": [
+		{
+			"runId": "r0-attribution-fixture-fixture-036",
+			"arm": "fixture",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-bare-token",
+			"firstLine": "To understand the rationale behind the module's structure, I need to see the module's source code, i",
+			"note": null
+		},
+		{
+			"runId": "r0-attribution-fixture-name-first-fixture-name-first-063",
+			"arm": "fixture-name-first",
+			"stored": "UNRESOLVED",
+			"derived": "DECLARATION",
+			"slug": "explain",
+			"rule": "v4-labelled-mode",
+			"firstLine": "I want to understand the design rationale, boundary choices, and structural trade-offs of the specif",
+			"note": null
+		}
+	],
+	"byArm": {
+		"fixture:fixture": {
+			"n": 62,
+			"storedDeclared": 41,
+			"derivedDeclared": 42,
+			"changed": 1
+		},
+		"fixture-name-first:fixture-name-first": {
+			"n": 64,
+			"storedDeclared": 34,
+			"derivedDeclared": 35,
+			"changed": 1
+		},
+		"product-slug-first:product-slug-first": {
+			"n": 64,
+			"storedDeclared": 8,
+			"derivedDeclared": 8,
+			"changed": 0
+		},
+		"product:product": {
+			"n": 64,
+			"storedDeclared": 46,
+			"derivedDeclared": 46,
+			"changed": 0
+		}
+	}
+}
