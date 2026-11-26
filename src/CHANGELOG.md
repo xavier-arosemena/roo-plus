@@ -12,6 +12,11 @@ The 3.89 pre-release line, promoted to stable. This launch ships the destructive
 
 ### 📣 What's New
 
+- 🛡️ Command and skill frontmatter hardened — a crafted `SKILL.md` or slash-command header can no longer execute code; every frontmatter read now goes through one safe boundary that the test suite enforces for the whole source tree (#2456, #2420)
+- 🖥️ Terminal-escape injection closed in the CLI — ask prompts escape untrusted text instead of printing it raw (#2473)
+- 🤖 More models, fewer surprises — six vscode-lm Copilot entries, nanogpt keeps its optional tool parameters, and images with unsupported MIME types are rejected instead of sent to the model (#2032, #1590, #1961)
+- 🔗 Skills can be symlinked, and the MCP catalogue adds AnySearch, Tradehand, Mailtea and Keenable (#1843)
+- ⚡ Lighter, faster webview — locales load on demand instead of globbing all 18 at startup, and open dependency advisories drop from 48 to 14 (#2267)
 - 🛡️ Command guard ships built-in — destructive-command guard bundled for 5 platforms, hash-verified, no startup download (#479)
 - 📦 ~14 MB lighter install — 1,932 → 1,278 packaged files, source maps gone, curated Shiki themes (#13)
 - 🚀 New models — DeepSeek V4.1 Flash (opencode-go), grok-build-0.1 (xAI)
