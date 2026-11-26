@@ -509,7 +509,7 @@
 		"http-proxy-agent": "^7.0.0",
 		"https-proxy-agent": "^7.0.0",
 		"gray-matter": "^4.0.3",
-		"i18next": "^25.0.0",
+		"i18next": "^26.3.4",
 		"ignore": "^7.0.3",
 		"isbinaryfile": "^5.0.7",
 		"json-stream-stringify": "^3.1.7",
@@ -544,7 +544,7 @@
 		"web-tree-sitter": "^0.25.6",
 		"workerpool": "^10.0.3",
 		"yaml": "^2.8.0",
-		"zod": "3.25.76"
+		"zod": "4.6.6"
 	},
 	"devDependencies": {
 		"@ai-sdk/openai-compatible": "2.0.56",
@@ -569,6 +569,6 @@
 		"nock": "14.0.15",
 		"ovsx": "0.10.12",
 		"rimraf": "6.0.1",
-		"vitest": "4.1.12"
+		"vitest": "5.1.2"
 	}
 }
