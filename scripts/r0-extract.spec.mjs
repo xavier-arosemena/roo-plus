@@ -18,21 +18,33 @@ import { classifyProductReply, echoesLine } from "./lib/r0-extract.mjs"
 import { parseRoomodes } from "./lib/roomodes-lite.mjs"
 
 const RUN = "runs/hidden-intent-screen-2026-11-20"
+const TRANSCRIPTS_DIR = `${RUN}/transcripts`
+
+// `runs/**/transcripts/` is gitignored by design (raw model output, not source), so a CI
+// checkout never carries it. Without the transcripts the extractor cannot be replayed
+// against R2's hand pass, so the four replay tests skip explicitly instead of failing the
+// whole scripts run with an ENOENT at import time. The committed `adjudication.json` still
+// loads, so the file proves itself structurally even where the replay is unavailable.
+const transcriptsAvailable = fs.existsSync(TRANSCRIPTS_DIR)
+const transcriptTest = transcriptsAvailable ? test : test.skip
+
 const { entries } = parseRoomodes(fs.readFileSync("test-fixtures/frames/axis-stance.roomodes", "utf8"))
 const slugs = new Set(entries.map((entry) => entry.slug))
 
 const adjudication = JSON.parse(fs.readFileSync(`${RUN}/adjudication.json`, "utf8"))
-const transcripts = fs
-	.readdirSync(`${RUN}/transcripts`)
-	.sort()
-	.map((file) => ({ file, reply: fs.readFileSync(`${RUN}/transcripts/${file}`, "utf8") }))
+const transcripts = transcriptsAvailable
+	? fs
+			.readdirSync(TRANSCRIPTS_DIR)
+			.sort()
+			.map((file) => ({ file, reply: fs.readFileSync(`${TRANSCRIPTS_DIR}/${file}`, "utf8") }))
+	: []
 
-test("the batch and the adjudication line up, 20 replies", () => {
+transcriptTest("the batch and the adjudication line up, 20 replies", () => {
 	assert.equal(transcripts.length, 20)
 	assert.equal(adjudication.rows.length, 20)
 })
 
-test("the extractor reproduces every hand verdict", () => {
+transcriptTest("the extractor reproduces every hand verdict", () => {
 	const mismatches = []
 	transcripts.forEach(({ file, reply }, index) => {
 		const hand = adjudication.rows[index]
@@ -46,7 +58,7 @@ test("the extractor reproduces every hand verdict", () => {
 	assert.deepEqual(mismatches, [], "the extractor must agree with the hand pass, reply for reply")
 })
 
-test("the one added rule is the one it claims to be", () => {
+transcriptTest("the one added rule is the one it claims to be", () => {
 	// r10-B3 is the only reply v3 leaves unresolved; it must be resolved by the
 	// lead-in rule, not by a special case on its id.
 	const index = transcripts.findIndex(({ file }) => file === "r10-B3.txt")
@@ -83,7 +95,7 @@ test("the echo guard follows the format it is given", () => {
 // manufacturing a declaration out of a sentence like "using concrete evidence".
 // ---------------------------------------------------------------------------
 
-test("the wall still holds when the vocabulary is supplied", () => {
+transcriptTest("the wall still holds when the vocabulary is supplied", () => {
 	const mismatches = []
 	transcripts.forEach(({ file, reply }, index) => {
 		const hand = adjudication.rows[index]
