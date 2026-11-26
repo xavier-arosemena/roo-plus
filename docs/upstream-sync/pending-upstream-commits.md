@@ -1095,7 +1095,7 @@ These 239 commit(s) landed on `upstream/main` after the recorded baseline tip `8
 | `16cd5ad0d` | 2026-11-02 | [Chore] Show the Zoo Code panel in the Solheim smoke video and bound the apt step (#2195)                                        | `A-CLEAN`       | P3  | 0   | ✖ `16cd5ad0d` is Solheim smoke-video/agent-evals tooling whose only entry point is a `.github/**` workflow the fork owns; taking it without that workflow leaves orphaned scripts (SYNC-23 decision, 2026-11-24) | —                                                  | —         | —       | —         |
 | `a53ac5cf6` | 2026-11-02 | [Feat] Add privacy-safe diagnostics reports (#2292)                                                                              | `C-REIMPLEMENT` | P2  | 29  | ☐                                                                                                                                                                                                                | —                                                  | —         | —       | —         |
 | `12ea0f888` | 2026-11-02 | chore(i18n): sweep dead locale keys (AST-gated) (#2263)                                                                          | `C-REIMPLEMENT` | P3  | 236 | ☐                                                                                                                                                                                                                | —                                                  | —         | —       | —         |
-| `f8aa881c5` | 2026-11-02 | perf(webview): load locales on demand instead of eager-globbing all 18 (#2267)                                                   | `A-CLEAN`       | P1  | 0   | ☐ reverted 2026-11-26 (VSIX footprint gate) — see Notes                                                                                                                                                          | `fec4e1353`, `8f7f48ad5`                           | —         | —       | —         |
+| `f8aa881c5` | 2026-11-02 | perf(webview): load locales on demand instead of eager-globbing all 18 (#2267)                                                   | `A-CLEAN`       | P1  | 0   | ◐ 570c0b150 (partial — 3 harness files blocked; chunking fixed in 84804c951)                                                                                                                                     | `fec4e1353`, `8f7f48ad5`                           | —         | —       | —         |
 | `a4f774b17` | 2026-11-02 | perf(webview): replace the debounce package with a local leading-edge helper (#2268)                                             | `B-CAREFUL`     | P1  | 3   | ☐                                                                                                                                                                                                                | —                                                  | —         | —       | —         |
 | `debd3c72c` | 2026-11-03 | feat(settings): user-facing prompt-cache TTL for Anthropic profiles (C6) (#2271)                                                 | `C-REIMPLEMENT` | P2  | 35  | ☐                                                                                                                                                                                                                | —                                                  | —         | —       | —         |
 | `7ecc66723` | 2026-11-03 | Fix checkpoint restore when the saved commit is missing (#2269)                                                                  | `C-REIMPLEMENT` | P3  | 27  | ☐                                                                                                                                                                                                                | —                                                  | —         | —       | —         |
@@ -1709,6 +1709,18 @@ which would have hidden it. The row returns to `☐` with its `Blocked-by` intac
 never justified the growth, and it was already partial (three visual-harness files omitted). Re-land
 it only together with a bundling strategy that keeps the locale chunks out of the package, and
 re-measure `verify:vsix-budget` before merging.
+
+**Notes.** **`f8aa881c5` re-landed behind the bundling fix (2026-11-26, next pre-release).**
+The revert above was correct: the pick alone made Rolldown emit one chunk per
+locale JSON. The re-land adds a `codeSplitting` group in
+[`webview-ui/vite.config.ts`](../../webview-ui/vite.config.ts:1) that merges every
+`webview-ui/src/i18n/locales` module into a **single lazily-fetched chunk**, so the
+initial graph is unchanged and the first locale switch pays one request. Re-measured
+after the change: **1 285 packaged files / 94 `.js`** (budget 1 300 / 100) — the pick
+now fits. The three visual-harness files remain omitted, so the row stays `◐` with
+its `Blocked-by`, and the pick is `570c0b150` while the enabling bundle change is
+`84804c951`. Any future change that makes the locale glob eager again must keep this
+group, or the footprint gate will catch it again.
 
 ## Recommended execution order
 

@@ -27,9 +27,9 @@ export const Announcements: Record<string, ReleaseAnnouncement> = {
 			"🖥️ Terminal-escape injection closed in the CLI — ask prompts escape untrusted text instead of printing it raw (#2473)",
 			"🤖 More models, fewer surprises — six vscode-lm Copilot entries, nanogpt keeps its optional tool parameters, and images with unsupported MIME types are rejected instead of sent to the model (#2032, #1590, #1961)",
 			"🔗 Skills can be symlinked, and the MCP catalogue adds AnySearch, Tradehand, Mailtea and Keenable (#1843)",
-			"📉 Fewer open advisories — 34 of the 48 open Dependabot alerts closed by in-range updates, and the only high that remains (zod) is documented rather than suppressed",
+			"⚡ Lighter startup — locale bundles load on demand instead of all 18 being globbed eagerly, and 34 of the 48 open Dependabot alerts were closed by in-range updates",
 		],
-		contentHash: "4fdad8e8d9964922",
+		contentHash: "0567c66291d09139",
 	},
 }
 
