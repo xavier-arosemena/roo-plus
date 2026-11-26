@@ -39,15 +39,10 @@ const {
 	mockUnlink: vi.fn(),
 }))
 
-// Shared, declaration-only fixtures live in the harness module
-import { GLOBAL_AGENTS_DIR, GLOBAL_ROO_DIR, HOME_DIR, p, PROJECT_DIR, SHARED_DIR } from "./skillsTestHarness"
-
+import { enoent, GLOBAL_AGENTS_DIR, GLOBAL_ROO_DIR, HOME_DIR, p, PROJECT_DIR, SHARED_DIR } from "./skillsTestHarness"
 // Make fs.lstat report the given paths as symlinks
 const mockSymlinks = (...paths: string[]) =>
 	mockLstat.mockImplementation(async (pathArg: string) => ({ isSymbolicLink: () => paths.includes(pathArg) }))
-
-// A real not-found error, as fs throws for a missing path or broken symlink
-const enoent = () => Object.assign(new Error("ENOENT: no such file or directory"), { code: "ENOENT" })
 
 // Mock fs/promises module
 vi.mock("fs/promises", () => ({
@@ -2645,7 +2640,6 @@ Instructions`)
 			const sourceDir = p(sourceSkillsDir, "test-skill")
 			const testSkillMd = p(sourceDir, "SKILL.md")
 			const destDir = p(GLOBAL_ROO_DIR, "skills-architect", "test-skill")
-			const destSkillsDir = p(GLOBAL_ROO_DIR, "skills-architect")
 
 			// Setup: skill exists in code mode directory
 			mockDirectoryExists.mockImplementation(async (dir: string) => {
@@ -2708,7 +2702,6 @@ Instructions`)
 			const sourceDir = p(sourceSkillsDir, "test-skill")
 			const testSkillMd = p(sourceDir, "SKILL.md")
 			const destDir = p(GLOBAL_ROO_DIR, "skills-architect", "test-skill")
-			const destSkillsDir = p(GLOBAL_ROO_DIR, "skills-architect")
 
 			// Setup: skill exists in code mode directory along with another skill
 			mockDirectoryExists.mockImplementation(async (dir: string) => {

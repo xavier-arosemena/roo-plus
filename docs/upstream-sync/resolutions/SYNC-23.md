@@ -37,9 +37,10 @@
 - fork_locus: src/services/skills/__tests__/skillsTestHarness.ts
 - resolution: upstream-adapted
 - rationale: The harness import supplies exactly the six symbols the fork spec uses as bindings, so the declaration move is adopted. `enoent` is deliberately absent from the named import list: its only call sites are inside the harness self-test, which reaches it through `await import("./skillsTestHarness")` as `harness.enoent()`, so a named binding would be unused and rejected as dead code — the export itself is consumed and stays. `mockSymlinks` is not added because upstream never put it in the harness (see above) and the fork's spec has no `mockLstat` for it to close over; the upstream harness file is adopted byte-for-byte.
+- rationale (dated note, 2026-11-26 — task 6 / D10): **the omission rationale above is SUPERSEDED, and is kept verbatim as history.** It expired when `de2ec1870b` landed the symlink predecessor (`7389d9836`): the spec now carries the symlink-container cases, so `enoent` is a live binding and `mockSymlinks` has a `mockLstat` to close over. The file was restored from `upstream/main` (`d672d7961a`) and is now **byte-identical to it** — `git diff upstream/main HEAD -- src/services/skills/__tests__/SkillsManager.spec.ts` is empty. The old `divergent-forever` value is likewise retired; see `divergence:` below.
 - dropped: none
-- evidence: src/services/skills/__tests__/SkillsManager.spec.ts — the suite (including the harness platform branches) passes only after the import replaces the local declarations; `npx vitest run` over the three specs: 143 tests pass; gates: gate:sync
-- divergence: divergent-forever:the symlink-container cases that consume `enoent`/`mockSymlinks` belong to the unpicked `7389d9836`; when that row lands, the spec regains those call sites and the import list follows upstream verbatim
+- evidence: src/services/skills/__tests__/SkillsManager.spec.ts plus safeFrontmatter, safeFrontmatterImportGuard and frontmatter-commands — 222 tests pass across the four specs after the restore (2026-11-26); gates: gate:sync
+- divergence: none
 
 ### src/services/command/commands.ts [shape: modify/modify]
 
@@ -150,3 +151,26 @@
 - dropped: none
 - evidence: docs/architecture/tla/Frontmatter.CaseSensitive.cfg — paired with the spec above; gates: gate:sync
 - divergence: none
+
+## Fork-side divergence (declared)
+
+- **File:** `src/services/skills/SkillsManager.ts` — declared 2026-11-26 (task 6, decision **D11**).
+- **Upstream form** (`upstream/main` = `d672d7961a`, introduced by `5e32badca`): `import matter from "gray-matter"`,
+  then `matter.stringify({ content: body }, frontmatter)`.
+- **Fork form:** `import { stringify } from "gray-matter"`, then `stringify({ content: body }, frontmatter)`.
+- **Why:** `src/utils/__tests__/safeFrontmatterImportGuard.spec.ts` default-denies every module under `src/` that holds
+  gray-matter's callable export — a default import, a namespace import, `require(...)`, a dynamic `import(...)`, a
+  side-effect import, a re-export, `import x = require(...)` or a `createRequire` indirection — and exempts only
+  `src/utils/safeFrontmatter.ts` and itself. `stringify` is a pure serializer: it cannot parse a document header, so it
+  cannot select an engine, and the named binding is the guard's own sanctioned shape (`ALLOWED_NAMED_BINDINGS =
+  {"stringify"}`). The guard is the P0's enforcement mechanism; a module that could call `matter(...)` is exactly what it
+  exists to prevent.
+- **Byte-identity with upstream is deliberately NOT claimed for this file.** The remaining delta is exactly the import
+  line plus the one `matter.stringify(` → `stringify(` call site, and nothing else
+  (`git diff upstream/main HEAD -- src/services/skills/SkillsManager.ts`). The guard was not weakened and this file was
+  not added to any allow-list.
+- **D11 inventory sweep.** `git grep 'from "gray-matter"' upstream/main -- src/` returns exactly two files:
+  `src/utils/safeFrontmatter.ts` (the sanctioned holder, byte-identical) and `src/services/skills/SkillsManager.ts`
+  (declared here). No other upstream `src/` module imports gray-matter, so this is the complete divergence set.
+- **Spec side:** `src/services/skills/__tests__/SkillsManager.spec.ts` **is** byte-identical to `upstream/main`; the
+  earlier `enoent`/`mockSymlinks` omission is superseded by `de2ec1870b`, with that history retained in the block above.
