@@ -14,6 +14,7 @@ vi.mock("@/i18n/setup", () => ({
 		language: "en",
 		changeLanguage: vi.fn(),
 	},
+	loadTranslations: vi.fn(),
 }))
 
 vi.mock("react-i18next", () => ({

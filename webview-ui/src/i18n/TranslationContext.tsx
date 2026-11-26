@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode, useEffect, useCallback } from "react"
 import { useTranslation } from "react-i18next"
-import i18next, { FALLBACK_LANGUAGE, loadLanguage } from "./setup"
+import i18next, { loadTranslations } from "./setup"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 
 // Create context for translations
@@ -18,29 +18,19 @@ export const TranslationProvider: React.FC<{ children: ReactNode }> = ({ childre
 	const { i18n } = useTranslation()
 	// Get the extension state directly - it already contains all state properties
 	const extensionState = useExtensionState()
-	const language = extensionState.language || FALLBACK_LANGUAGE
 
-	// Only the fallback locale ships in the entry chunk, so any other language
-	// has to fetch its bundles before i18next can resolve a key. Switching after
-	// the fetch is deliberate: `changeLanguage` is what emits `languageChanged`,
-	// the event `useTranslation` subscribes to for re-renders. Until it fires the
-	// subtree keeps resolving keys through whichever language is still active:
-	// `fallbackLng` on a cold start, the previous language on a warm switch
-	// between two non-English locales. The swap-then-render shape is the same one
-	// this provider had when every locale was bundled.
+	// Load translations once when the component mounts
 	useEffect(() => {
-		let cancelled = false
-
-		void loadLanguage(language).then(() => {
-			if (!cancelled) {
-				void i18n.changeLanguage(language)
-			}
-		})
-
-		return () => {
-			cancelled = true
+		try {
+			loadTranslations()
+		} catch (error) {
+			console.error("Failed to load translations:", error)
 		}
-	}, [i18n, language])
+	}, [])
+
+	useEffect(() => {
+		i18n.changeLanguage(extensionState.language)
+	}, [i18n, extensionState.language])
 
 	// Memoize the translation function to prevent unnecessary re-renders
 	const translate = useCallback(

@@ -36,8 +36,7 @@ vi.mock("../setup", () => ({
 		},
 		changeLanguage: vi.fn(),
 	},
-	FALLBACK_LANGUAGE: "en",
-	loadLanguage: vi.fn(() => Promise.resolve()),
+	loadTranslations: vi.fn(),
 }))
 
 const TestComponent = () => {

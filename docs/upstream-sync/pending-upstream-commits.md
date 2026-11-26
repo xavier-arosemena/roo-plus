@@ -1095,7 +1095,7 @@ These 239 commit(s) landed on `upstream/main` after the recorded baseline tip `8
 | `16cd5ad0d` | 2026-11-02 | [Chore] Show the Zoo Code panel in the Solheim smoke video and bound the apt step (#2195)                                        | `A-CLEAN`       | P3  | 0   | ✖ `16cd5ad0d` is Solheim smoke-video/agent-evals tooling whose only entry point is a `.github/**` workflow the fork owns; taking it without that workflow leaves orphaned scripts (SYNC-23 decision, 2026-11-24) | —                                                  | —         | —       | —         |
 | `a53ac5cf6` | 2026-11-02 | [Feat] Add privacy-safe diagnostics reports (#2292)                                                                              | `C-REIMPLEMENT` | P2  | 29  | ☐                                                                                                                                                                                                                | —                                                  | —         | —       | —         |
 | `12ea0f888` | 2026-11-02 | chore(i18n): sweep dead locale keys (AST-gated) (#2263)                                                                          | `C-REIMPLEMENT` | P3  | 236 | ☐                                                                                                                                                                                                                | —                                                  | —         | —       | —         |
-| `f8aa881c5` | 2026-11-02 | perf(webview): load locales on demand instead of eager-globbing all 18 (#2267)                                                   | `A-CLEAN`       | P1  | 0   | ◐ ec8f283d31                                                                                                                                                                                                     | `fec4e1353`, `8f7f48ad5`                           | —         | —       | —         |
+| `f8aa881c5` | 2026-11-02 | perf(webview): load locales on demand instead of eager-globbing all 18 (#2267)                                                   | `A-CLEAN`       | P1  | 0   | ☐ reverted 2026-11-26 (VSIX footprint gate) — see Notes                                                                                                                                                          | `fec4e1353`, `8f7f48ad5`                           | —         | —       | —         |
 | `a4f774b17` | 2026-11-02 | perf(webview): replace the debounce package with a local leading-edge helper (#2268)                                             | `B-CAREFUL`     | P1  | 3   | ☐                                                                                                                                                                                                                | —                                                  | —         | —       | —         |
 | `debd3c72c` | 2026-11-03 | feat(settings): user-facing prompt-cache TTL for Anthropic profiles (C6) (#2271)                                                 | `C-REIMPLEMENT` | P2  | 35  | ☐                                                                                                                                                                                                                | —                                                  | —         | —       | —         |
 | `7ecc66723` | 2026-11-03 | Fix checkpoint restore when the saved commit is missing (#2269)                                                                  | `C-REIMPLEMENT` | P3  | 27  | ☐                                                                                                                                                                                                                | —                                                  | —         | —       | —         |
@@ -1697,6 +1697,18 @@ override-pinned at 11.1.0. **NITs recorded, deliberately not acted on:** the
 guard's concatenated-package-name bypass (`require("gray-" + "matter")`) and its
 `src/`-only scan, and the `.prettierignore` exemption for `embedder.ts`, which is
 justified in place.
+
+**Notes.** **`f8aa881c5` picked then reverted — the VSIX footprint gate was right (2026-11-26).**
+The i18n core was ported as `ec8f283d31` and passed every test, but `pnpm --filter ./src vsix`
+then failed `verify:vsix-budget`: **1 437 packaged files / 246 `.js`** against the frozen
+**1 300 / 100** baseline. Cause: the pick replaces the eager `import.meta.glob` with a lazy one,
+so Vite emits a separate chunk per locale file — `webview-ui/build` alone carries 242 of the 246
+`.js` files. That is a real 2.6× footprint regression in the shipped artefact, not a measurement
+artefact, so the pick was reverted (`git revert ec8f283d31`) rather than re-baselining the budget,
+which would have hidden it. The row returns to `☐` with its `Blocked-by` intact; the partial pick
+never justified the growth, and it was already partial (three visual-harness files omitted). Re-land
+it only together with a bundling strategy that keeps the locale chunks out of the package, and
+re-measure `verify:vsix-budget` before merging.
 
 ## Recommended execution order
 
