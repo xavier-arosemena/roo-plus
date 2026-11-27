@@ -502,7 +502,7 @@ The rate depends entirely on the detector, so all three are published:
 
 The third figure is still a lower bound — it is a phrase list, not a semantic classifier — and the fourth example above is the proof: a skill that excludes a whole class of request in ordinary prose, matching none of the eleven phrases. The gap between the first row and the others _is_ the finding. The corpus expresses exclusions overwhelmingly in prose, and the one machine-readable slot anyone uses is a field the specification does not define, adopted by three files out of 2,654.
 
-An earlier draft published only the middle row. That was accurate for its detector and misleading as a property of the corpus — and it quoted the sentence above ("Do NOT use for…") as an illustration, which that detector could not match. Over-firing is still the failure mode the corpus is least defended against, and at 16.7% the finding is stronger than the single number suggested, not weaker.
+An earlier draft published only the middle row. That was accurate for its detector and misleading as a property of the corpus — and it quoted the sentence above ("Do NOT use for…") as an illustration, which that detector could not match. Over-firing is still the failure mode the corpus is least defended against, and at 16.1% the finding is stronger than the single number suggested, not weaker.
 
 ### 7.3 Reference by branch instead of inlining
 
